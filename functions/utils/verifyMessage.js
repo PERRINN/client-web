@@ -183,10 +183,12 @@ module.exports = {
         contract.message=(messageData.contract||{}).message||(userPreviousMessageData.contract||{}).message||null
         if(contract.level!=(((userPreviousMessageData.contract||{}).level)||0)||contract.position!=((userPreviousMessageData.contract||{}).position||null))contract.createdTimestamp=now
         else contract.createdTimestamp=(userPreviousMessageData.contract||{}).createdTimestamp||null
-        contract.days=0
         contract.amount=0
-        contract.rateDay=0
         contract.signed=false
+        contract.hoursDeclared=0
+        contract.hoursAvailable=0
+        contract.hoursValidated=0
+        contract.hourlyRate=0
         if(contract.level&&contract.position&&contract.message&&contract.createdTimestamp){
           const contractSignatureMessage=await admin.firestore().doc('PERRINNMessages/'+contract.message).get()
           let contractSignatureMessageData=(contractSignatureMessage!=undefined)?(contractSignatureMessage||{}).data():{}
@@ -197,16 +199,21 @@ module.exports = {
           ){
             contract.signed=true
             contract.signedLevel=((contractSignatureMessageData.contractSignature||{}).contract||{}).level||null
-            contract.rateDay=appSettingsContract.data().rateDayLevel1*contract.level
-            contract.previousContractMessageServerTimestamp=((userPreviousMessageData.contract||{}).previousContractMessageServerTimestamp)||userPreviousMessageData.serverTimestamp||messageData.serverTimestamp
-            if(messageData.chain==(user+'Log')&&(messageData.text||"").startsWith(">")){
-              contract.days=Math.min(appSettingsContract.data().messageCoverDays,(messageData.serverTimestamp.seconds-contract.previousContractMessageServerTimestamp.seconds)/3600/24)
-              contract.amount=contract.days*contract.rateDay
+            contract.hourlyRate=appSettingsContract.data().hourlyRateLevel1*contract.level
+            contract.previousContractMessageHoursAvailable=((userPreviousMessageData.contract||{}).previousContractMessageHoursAvailable)||0
+            contract.previousContractMessageServerTimestamp=((userPreviousMessageData.contract||{}).previousContractMessageServerTimestamp)||messageData.serverTimestamp
+            if(messageData.chain==(user+'Log')){
+              contract.hoursSincePreviousContractMessage=(messageData.serverTimestamp.seconds-contract.previousContractMessageServerTimestamp.seconds)/3600
+              contract.hoursDeclared=((messageData.text||"").match(/^[>]*/)||[""])[0].length
+              contract.hoursAvailable=Math.min(appSettingsContract.data().hoursAvailable24HoursWindow,contract.previousContractMessageHoursAvailable+contract.hoursSincePreviousContractMessage*appSettingsContract.data().hoursAvailable24HoursWindow/24)
+              contract.hoursValidated=Math.min(contract.hoursDeclared,contract.hoursAvailable)
+              contract.amount=contract.hoursValidated*contract.hourlyRate
+              contract.previousContractMessageHoursAvailable=contract.hoursAvailable-contract.hoursValidated
               contract.previousContractMessageServerTimestamp=messageData.serverTimestamp
             }
           }
         }
-        contract.daysTotal=(((userPreviousMessageData.contract||{}).daysTotal)||0)+contract.days
+        contract.hoursTotal=(((userPreviousMessageData.contract||{}).hoursTotal)||0)+contract.hoursValidated
         contract.amountCummulate=(((userPreviousMessageData.contract||{}).amountCummulate)||0)+contract.amount
         //message wallet
         let wallet={}

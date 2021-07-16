@@ -175,7 +175,7 @@ import * as firebase from 'firebase/app'
             <div class='messageFooter' style="cursor:pointer;clear:both;height:15px" (click)="messageShowActions.includes(message.key)?messageShowActions.splice(messageShowActions.indexOf(message.key),1):messageShowActions.push(message.key)">
               <div style="float:left;width:100px;text-align:right;line-height:10px">...</div>
               <span *ngIf="message.payload?.verified" class="material-icons" style="float:right;font-size:15px;margin:0 2px 2px 0;color:green">done</span>
-              <span *ngIf="message.payload?.contract?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px;color:green">+{{UI.formatCOINS(message.payload?.contract?.amount)}} ({{UI.formatSecondsToDhm1(message.payload?.contract?.days*3600*24)}})</span>
+              <span *ngIf="message.payload?.contract?.hoursValidated>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px;color:green">+{{UI.formatCOINS(message.payload?.contract?.amount)}} ({{UI.formatSecondsToDhm1(message.payload?.contract?.hoursValidated*3600)}}/{{UI.formatSecondsToDhm1(message.payload?.contract?.hoursAvailable*3600)}})</span>
               <span *ngIf="message.payload?.userChain?.nextMessage=='none'&&message.payload?.wallet?.balance!=undefined" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px;color:#999">{{UI.formatCOINS(message.payload?.wallet?.balance)}}</span>
             </div>
             <div *ngIf="messageShowActions.includes(message.key)">
@@ -193,7 +193,8 @@ import * as firebase from 'firebase/app'
 
   <div class="sheet">
     <div class="fixed" style="bottom:0">
-      <div *ngIf="chatLastMessageObj?.chatSubject==null" style="margin:5px;font-size:10px">This message will be the subject of this chat.</div>
+      <span *ngIf="chatLastMessageObj?.chatSubject==null" style="margin:5px;font-size:10px">This message will be the subject of this chat</span>
+      <span *ngIf="chatLastMessageObj?.isLog" style="margin:5px;font-size:10px">Start message with > for 1 hour work >> for 2 hours work etc</span>
       <span *ngFor="let recipient of draftRecipientNamesList" style="margin:5px;font-size:10px">+{{recipient}} </span>
       <div class="seperator" style="width:100%"></div>
       <div style="clear:both;float:left;width:90%">
