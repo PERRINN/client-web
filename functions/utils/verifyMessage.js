@@ -1,5 +1,4 @@
 const admin = require('firebase-admin')
-const emailUtils = require('./email')
 const createMessageUtils = require('./createMessage')
 const googleUtils = require('./google')
 const onshapeUtils = require('./onshape')
@@ -340,7 +339,6 @@ module.exports = {
     }
     catch(error){
       console.log('user '+user+' error '+error)
-      emailUtils.sendErrorEmail(error)
       return admin.firestore().doc('PERRINNMessages/'+messageId).update({verified:false})
     }
 

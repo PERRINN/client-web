@@ -1,7 +1,6 @@
 const admin = require('firebase-admin')
 const createMessageUtils = require('./createMessage')
 const {google} = require('googleapis')
-const emailUtils = require('../utils/email')
 
 module.exports = {
 

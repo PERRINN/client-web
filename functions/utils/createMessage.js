@@ -1,5 +1,4 @@
 const admin = require('firebase-admin')
-const emailUtils = require('../utils/email')
 
 module.exports = {
 
@@ -10,15 +9,14 @@ module.exports = {
       for(let i=0;i<20;i++){
         autoId+=chars.charAt(Math.floor(Math.random()*chars.length))
       }
-      messageObj.serverTimestamp=admin.firestore.FieldValue.serverTimestamp();
-      messageObj.chain=messageObj.chain||autoId;
+      messageObj.serverTimestamp=admin.firestore.FieldValue.serverTimestamp()
+      messageObj.chain=messageObj.chain||autoId
       if(messageObj.PERRINN==undefined)messageObj.PERRINN={}
-      return admin.firestore().collection('PERRINNMessages').add(messageObj);
+      return admin.firestore().collection('PERRINNMessages').add(messageObj)
     }
     catch(error){
-      console.log(error);
-      emailUtils.sendErrorEmail(error);
-      return error;
+      console.log(error)
+      return error
     }
   },
 

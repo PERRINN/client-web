@@ -1,7 +1,6 @@
 const functions = require('firebase-functions')
 const admin = require('firebase-admin')
 try { admin.initializeApp() } catch (e) {}
-const emailUtils = require('../utils/email')
 const verifyMessageUtils = require('../utils/verifyMessage')
 const onshapeUtils = require('../utils/onshape')
 const googleUtils = require('../utils/google')
@@ -119,6 +118,5 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
   }
   catch(error){
     console.log(error)
-    emailUtils.sendErrorEmail(error)
   }
 })

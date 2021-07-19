@@ -1,7 +1,6 @@
 const functions = require('firebase-functions')
 const admin = require('firebase-admin')
 try { admin.initializeApp() } catch (e) {}
-const emailUtils = require('../utils/email')
 const gcs = require('@google-cloud/storage')({
   keyFilename:'perrinn-d5fc1-841e66c0cff2.json',
 });
@@ -34,7 +33,6 @@ exports=module.exports=functions.storage.object().onFinalize(async(data,context)
     await batch.commit();
   }
   catch(error){
-    console.log(error);
-    emailUtils.sendErrorEmail(error);
+    console.log(error)
   }
-});
+})
