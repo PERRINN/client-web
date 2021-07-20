@@ -85,7 +85,7 @@ import * as firebase from 'firebase/app'
     <ul class="listLight">
       <li *ngFor="let message of currentSurveys|async;let first=first;let last=last"
         (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
-        <div *ngIf="(math.floor(UI.nowSeconds/3600/24-message.payload.doc.data()?.survey?.createdTimestamp/3600000/24)<7)&&message.payload.doc.data()?.survey?.createdTimestamp">
+        <div *ngIf="(UI.nowSeconds<message.payload.doc.data()?.survey?.expiryTimestamp/1000)&&message.payload.doc.data()?.survey?.createdTimestamp">
         <div style="float:left;min-width:90px;min-height:40px">
           <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:rgba(0,0,0,0.6)" (click)="router.navigate(['search'])">poll</span>
         </div>
@@ -94,8 +94,8 @@ import * as firebase from 'firebase/app'
             <span *ngIf="message.payload.doc.data()?.isLog" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:rgba(0,0,0,0.6)">fact_check</span>
             <div style="float:left;font-size:14px;font-weight:bold;white-space:nowrap;text-overflow:ellipsis">{{message.payload.doc.data()?.chatSubject}} </div>
           </div>
-          <div *ngIf="(math.floor(UI.nowSeconds/3600/24-message.payload.doc.data()?.survey?.createdTimestamp/3600000/24)<7)&&message.payload.doc.data()?.survey?.createdTimestamp" style="clear:both">
-            <div [style.background-color]="(math.floor(7*24-UI.nowSeconds/3600+message.payload.doc.data()?.survey.createdTimestamp/3600000)>8)?'midnightblue':'red'" style="float:left;color:white;padding:0 5px 0 5px">{{UI.formatSecondsToDhm2(7*24*3600-UI.nowSeconds+message.payload.doc.data()?.survey.createdTimestamp/1000)}} left</div>
+          <div style="clear:both">
+            <div [style.background-color]="(message.payload.doc.data()?.survey.expiryTimestamp*24/1000>UI.nowSeconds)?'midnightblue':'red'" style="float:left;color:white;padding:0 5px 0 5px">{{UI.formatSecondsToDhm2(message.payload.doc.data()?.survey.expiryTimestamp/1000-UI.nowSeconds)}} left</div>
             <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.survey.question}}</div>
             <span *ngFor="let answer of message.payload.doc.data()?.survey.answers;let last=last" [style.font-weight]="answer?.votes.includes(UI.currentUser)?'bold':'normal'" style="float:left;margin:0 5px 0 5px">{{answer.answer}} ({{(answer.votes.length/message.payload.doc.data()?.survey.totalVotes)|percent:'1.0-0'}})</span>
             <span style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.survey.totalVotes}} vote{{message.payload.doc.data()?.survey.totalVotes>1?'s':''}}</span>
@@ -223,8 +223,8 @@ export class ProfileComponent {
     this.currentSurveys=this.afs.collection<any>('PERRINNMessages',ref=>ref
       .where('lastMessage','==',true)
       .where('verified','==',true)
-      .orderBy('survey.createdTimestamp')
-      .where('survey.createdTimestamp','>=',(this.UI.nowSeconds-7*24*3600)*1000)
+      .orderBy('survey.expiryTimestamp')
+      .where('survey.expiryTimestamp','>=',this.UI.nowSeconds*1000)
     ).snapshotChanges().pipe(map(changes=>{
       changes.forEach(c=>{
         this.UI.userObjectIndexPopulate(c.payload.doc.data())

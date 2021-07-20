@@ -114,9 +114,11 @@ module.exports = {
 
       //*******SURVEY**********
       let survey={}
+      survey.durationDays=((messageData.survey||{}).durationDays)||((chatPreviousMessageData.survey||{}).durationDays)||null
       survey.question=((messageData.survey||{}).question)||((chatPreviousMessageData.survey||{}).question)||null
       survey.answers=((messageData.survey||{}).answers)||((chatPreviousMessageData.survey||{}).answers)||[]
       survey.createdTimestamp=((messageData.survey||{}).createdTimestamp)||((chatPreviousMessageData.survey||{}).createdTimestamp)||null
+      survey.expiryTimestamp=(survey.createdTimestamp+survey.durationDays*24*3600000)||null
       survey.voteIndexPlusOne=((messageData.survey||{}).voteIndexPlusOne)||null
       survey.totalVotes=0
       if (!survey.createdTimestamp&&survey.question)survey.createdTimestamp=now

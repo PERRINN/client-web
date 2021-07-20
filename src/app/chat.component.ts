@@ -26,9 +26,9 @@ import * as firebase from 'firebase/app'
           <div style="float:left;margin:0 5px 0 5px">{{eventDescription}}</div>
           <div style="float:left;margin:0 5px 0 0">{{eventDate|date:'EEEE d MMM HH:mm'}}</div>
         </div>
-        <div *ngIf="(math.floor(UI.nowSeconds/3600/24-survey?.createdTimestamp/3600000/24)<7)&&survey?.createdTimestamp" style="clear:both">
+        <div *ngIf="(UI.nowSeconds<survey?.expiryTimestamp)&&survey?.createdTimestamp" style="clear:both">
           <span class="material-icons-outlined" style="float:left;font-size:20px;margin-right:5px;color:rgba(0,0,0,0.6)">poll</span>
-          <div [style.background-color]="(math.floor(7*24-UI.nowSeconds/3600+survey.createdTimestamp/3600000)>8)?'midnightblue':'red'" style="float:left;color:white;padding:0 5px 0 5px">{{UI.formatSecondsToDhm2(7*24*3600-UI.nowSeconds+survey.createdTimestamp/1000)}} left</div>
+          <div [style.background-color]="(math.floor(survey.expiryTimestamp/3600000-UI.nowSeconds/3600)>8)?'midnightblue':'red'" style="float:left;color:white;padding:0 5px 0 5px">{{UI.formatSecondsToDhm2(survey.expiryTimestamp/1000-UI.nowSeconds)}} left</div>
           <div style="float:left;margin:0 5px 0 5px">{{survey.question}}</div>
           <span *ngFor="let answer of survey.answers;let last=last" [style.font-weight]="answer?.votes.includes(UI.currentUser)?'bold':'normal'" style="float:left;margin:0 5px 0 5px">{{answer.answer}} ({{(answer.votes.length/survey.totalVotes)|percent:'1.0-0'}})</span>
           <span style="float:left;margin:0 5px 0 5px">{{survey.totalVotes}} vote{{survey.totalVotes>1?'s':''}}</span>
@@ -99,6 +99,9 @@ import * as firebase from 'firebase/app'
     </div>
     <div class="seperator" style="width:100%;margin:0px"></div>
     <div>
+      <div *ngIf="survey.createdTimestamp" style="font-size:12px;margin:10px;color:midnightblue">created on {{survey.createdTimestamp|date:'EEEE d MMM HH:mm'}} expiring on {{survey.expiryTimestamp|date:'EEEE d MMM HH:mm'}}</div>
+      <span style="margin:10px">duration of the survey (days)</span>
+      <input style="width:40%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="200" [(ngModel)]="survey.durationDays">
       <input style="width:80%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="200" [(ngModel)]="survey.question">
       <div style="clear:both;width:100px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:midnightblue;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="saveSurvey()">Save survey</div>
       <ul class="listLight" style="margin:10px">
@@ -265,6 +268,7 @@ export class ChatComponent {
       this.eventDescription=''
       this.surveyDefault={
         question:'Survey question',
+        durationDays:7,
         answers:[
           {answer:'Answer A',votes:[]},
           {answer:'Answer B',votes:[]},
