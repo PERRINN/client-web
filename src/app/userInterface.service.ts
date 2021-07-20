@@ -11,15 +11,11 @@ export class UserInterfaceService {
   currentUser:string
   currentUserLastMessageObj:any
   nowSeconds:number
-  searchNameIndex:any
-  userObjectIndex:any
 
   constructor(
     private afAuth: AngularFireAuth,
     public afs: AngularFirestore
   ) {
-    this.searchNameIndex=[]
-    this.userObjectIndex=[]
     this.nowSeconds=Math.floor(Date.now()/1000)
     setInterval(()=>{this.nowSeconds=Math.floor(Date.now()/1000)},60000)
     this.afAuth.user.subscribe((auth) => {
@@ -32,28 +28,6 @@ export class UserInterfaceService {
         this.currentUser=null
       }
     })
-  }
-
-
-  userObjectIndexPopulate(message){
-    if(!this.searchNameIndex.includes(message.searchName)){
-      this.searchNameIndex.push(message.searchName)
-      this.userObjectIndexPopulateObject(this.searchNameIndex.indexOf(message.searchName),message.user,message.name,message.familyName)
-    }
-    message.recipientList.forEach(recipient=>{
-      if((message.recipients[recipient]||{}).searchName&&!this.searchNameIndex.includes((message.recipients[recipient]||{}).searchName)){
-        this.searchNameIndex.push(message.recipients[recipient].searchName)
-        this.userObjectIndexPopulateObject(this.searchNameIndex.indexOf(message.recipients[recipient].searchName),recipient,message.recipients[recipient].name,message.recipients[recipient].familyName)
-      }
-    })
-  }
-
-  userObjectIndexPopulateObject(index,user,name,familyName){
-    this.userObjectIndex[index]={
-      user:user,
-      name:name,
-      familyName:familyName
-    }
   }
 
   createMessage(messageObj){

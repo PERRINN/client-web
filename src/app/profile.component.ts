@@ -215,9 +215,6 @@ export class ProfileComponent {
       .orderBy('eventDate')
       .where('eventDate','>',(this.UI.nowSeconds-3600)*1000)
     ).snapshotChanges().pipe(map(changes=>{
-      changes.forEach(c=>{
-        this.UI.userObjectIndexPopulate(c.payload.doc.data())
-      })
       return changes.map(c=>({payload:c.payload}))
     }))
     this.currentSurveys=this.afs.collection<any>('PERRINNMessages',ref=>ref
@@ -226,9 +223,6 @@ export class ProfileComponent {
       .orderBy('survey.expiryTimestamp')
       .where('survey.expiryTimestamp','>=',this.UI.nowSeconds*1000)
     ).snapshotChanges().pipe(map(changes=>{
-      changes.forEach(c=>{
-        this.UI.userObjectIndexPopulate(c.payload.doc.data())
-      })
       return changes.map(c=>({payload:c.payload}))
     }))
     if(this.id=='PERRINN'){
@@ -238,9 +232,6 @@ export class ProfileComponent {
         .orderBy('serverTimestamp','desc')
         .limit(this.messageNumberDisplay)
       ).snapshotChanges().pipe(map(changes=>{
-        changes.forEach(c=>{
-          this.UI.userObjectIndexPopulate(c.payload.doc.data())
-        })
         return changes.map(c=>({payload:c.payload}))
       }))
     }
@@ -252,9 +243,6 @@ export class ProfileComponent {
         .orderBy('serverTimestamp','desc')
         .limit(this.messageNumberDisplay)
       ).snapshotChanges().pipe(map(changes=>{
-        changes.forEach(c=>{
-          this.UI.userObjectIndexPopulate(c.payload.doc.data())
-        })
         return changes.reverse().map(c=>({payload:c.payload}))
       }))
     }
@@ -266,9 +254,6 @@ export class ProfileComponent {
         .orderBy('serverTimestamp','desc')
         .limit(24)
       ).snapshotChanges().pipe(map(changes=>{
-        changes.forEach(c=>{
-          this.UI.userObjectIndexPopulate(c.payload.doc.data())
-        })
         return changes.reverse().map(c=>({payload:c.payload}))
       }))
     }
@@ -279,9 +264,6 @@ export class ProfileComponent {
         .orderBy('serverTimestamp','desc')
         .limit(this.messageNumberDisplay)
       ).snapshotChanges().pipe(map(changes=>{
-        changes.forEach(c=>{
-          this.UI.userObjectIndexPopulate(c.payload.doc.data())
-        })
         return changes.reverse().map(c=>({payload:c.payload}))
       }))
     }
@@ -293,9 +275,6 @@ export class ProfileComponent {
         .orderBy('serverTimestamp','desc')
         .limit(this.messageNumberDisplay)
       ).snapshotChanges().pipe(map(changes=>{
-        changes.forEach(c=>{
-          this.UI.userObjectIndexPopulate(c.payload.doc.data())
-        })
         return changes.map(c=>({payload:c.payload}))
       }))
     }
