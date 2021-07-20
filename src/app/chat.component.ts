@@ -26,7 +26,7 @@ import * as firebase from 'firebase/app'
           <div style="float:left;margin:0 5px 0 5px">{{eventDescription}}</div>
           <div style="float:left;margin:0 5px 0 0">{{eventDate|date:'EEEE d MMM HH:mm'}}</div>
         </div>
-        <div *ngIf="(UI.nowSeconds<survey?.expiryTimestamp)&&survey?.createdTimestamp" style="clear:both">
+        <div *ngIf="(UI.nowSeconds<survey?.expiryTimestamp/1000)&&survey?.createdTimestamp" style="clear:both">
           <span class="material-icons-outlined" style="float:left;font-size:20px;margin-right:5px;color:rgba(0,0,0,0.6)">poll</span>
           <div [style.background-color]="(math.floor(survey.expiryTimestamp/3600000-UI.nowSeconds/3600)>8)?'midnightblue':'red'" style="float:left;color:white;padding:0 5px 0 5px">{{UI.formatSecondsToDhm2(survey.expiryTimestamp/1000-UI.nowSeconds)}} left</div>
           <div style="float:left;margin:0 5px 0 5px">{{survey.question}}</div>
