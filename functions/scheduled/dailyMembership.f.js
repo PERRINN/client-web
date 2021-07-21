@@ -92,9 +92,9 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
       statistics.membersEmails.length+' members. '+
       statistics.developers.length+' developers. '+
       statistics.investors.length+' investors. '+
-      Math.round(statistics.wallet.balance)+' COINS in circulation. '+
-      Math.round(statistics.interest.rateDay)+' COINS/day created from interest. '+
-      Math.round(statistics.membership.rateDay)+' COINS/day burned from membership. '
+      Math.round(statistics.wallet.balance).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' COINS in circulation. '+
+      Math.round(statistics.interest.rateDay).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' COINS/day created from interest. '+
+      Math.round(statistics.membership.rateDay).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' COINS/day burned from membership. '
 
     createMessageUtils.createMessageAFS({
       user:'-L7jqFf8OuGlZrfEK6dT',
