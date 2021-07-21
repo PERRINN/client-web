@@ -54,7 +54,7 @@ import * as firebase from 'firebase/app'
           <img [src]="chatLastMessageObj?.recipients[recipient]?.imageUrlThumb" style="float:left;object-fit:cover;height:25px;width:25px;border-radius:50%;margin:3px 3px 3px 10px">
           <div style="float:left;margin:10px 5px 3px 3px;font-size:12px;line-height:10px;font-family:sans-serif">{{chatLastMessageObj?.recipients[recipient]?.name}}</div>
         </div>
-        <div style="float:left;cursor:pointer;font-weight:bold;margin:10px 15px 3px 3px;font-size:12px;line-height:10px;font-family:sans-serif;color:red" (click)="removeRecipient(recipient,chatLastMessageObj?.recipients[recipient]?.name,chatLastMessageObj?.recipients[recipient]?.familyName)">X</div>
+        <div style="float:left;cursor:pointer;font-weight:bold;margin:10px 15px 3px 3px;font-size:12px;line-height:10px;font-family:sans-serif;color:red" (click)="removeRecipient(recipient,chatLastMessageObj?.recipients[recipient]?.name)">X</div>
       </li>
     </ul>
     <input style="width:60%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="500" (keyup)="refreshSearchLists()" [(ngModel)]="searchFilter" placeholder="Add people">
@@ -64,9 +64,8 @@ import * as firebase from 'firebase/app'
           <div style="float:left;width:175px">
             <img [src]="team?.values?.imageUrlThumbUser" style="display:inline;float:left;margin: 0 5px 0 10px;opacity: 1;object-fit:cover;height:25px;width:25px;border-radius:50%">
             <span>{{team.values?.name}}</span>
-            <span style="font-size:10px"> {{team.values?.familyName}}</span>
           </div>
-          <div class="buttonDiv" style="float:left;width:50px;font-size:11px;background-color:midnightblue;color:white;border-style:none" (click)="addRecipient(team.values.user,team.values.name,team.values.familyName)">Add</div>
+          <div class="buttonDiv" style="float:left;width:50px;font-size:11px;background-color:midnightblue;color:white;border-style:none" (click)="addRecipient(team.values.user,team.values.name)">Add</div>
         </div>
       </li>
     </ul>
@@ -423,18 +422,18 @@ export class ChatComponent {
     this.resetChat()
   }
 
-  addRecipient(user,name,familyName) {
+  addRecipient(user,name) {
     this.UI.createMessage({
-      text:'adding '+name+' '+(familyName||'')+' to this chat.',
+      text:'adding '+name+' to this chat.',
       chain:this.chatLastMessageObj.chain||this.chatChain,
       recipientList:[user]
     })
     this.resetChat()
   }
 
-  removeRecipient(user,name,familyName){
+  removeRecipient(user,name){
     this.UI.createMessage({
-      text:'removing '+name+' '+(familyName||'')+' from this chat.',
+      text:'removing '+name+' from this chat.',
       chain:this.chatLastMessageObj.chain||this.chatChain,
       recipientListToBeRemoved:[user]
     })
@@ -478,9 +477,9 @@ export class ChatComponent {
         this.teams=this.afs.collection('PERRINNMessages', ref=>ref
         .where('userChain.nextMessage','==','none')
         .where('verified','==',true)
-        .where('searchName','>=',this.searchFilter.toLowerCase())
-        .where('searchName','<=',this.searchFilter.toLowerCase()+'\uf8ff')
-        .orderBy('searchName')
+        .where('nameLowerCase','>=',this.searchFilter.toLowerCase())
+        .where('nameLowerCase','<=',this.searchFilter.toLowerCase()+'\uf8ff')
+        .orderBy('nameLowerCase')
         .limit(10))
         .snapshotChanges().pipe(map(changes=>{
           return changes.map(c=>({

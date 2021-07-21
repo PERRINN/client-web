@@ -27,8 +27,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
           <div *ngIf="action=='register'">
             <input maxlength="500" [(ngModel)]="passwordConfirm" name="passwordConfirm" type="password" placeholder="Confirm password *" (keyup)="messageUser=''"/>
             <input maxlength="500" [(ngModel)]="name" name="name" type="text" placeholder="First name *" (keyup)="messageUser=''"/>
-            <input maxlength="500" [(ngModel)]="familyName" name="familyName" type="text" placeholder="Last name *" (keyup)="messageUser=''"/>
-            <button type="button" (click)="register(email,password,passwordConfirm,name,familyName)">Register</button>
+            <button type="button" (click)="register(email,password,passwordConfirm,name)">Register</button>
           </div>
           <div *ngIf="messageUser" style="text-align:center;padding:10px;color:red">{{messageUser}}</div>
         </form>
@@ -44,7 +43,6 @@ export class LoginComponent  {
   password:string
   passwordConfirm:string
   name:string
-  familyName:string
   message:string
   messageUser:string
   action:string
@@ -91,8 +89,8 @@ export class LoginComponent  {
     .catch(err => this.messageUser = 'You were not logged in');
   }
 
-  register(email:string,password:string,passwordConfirm:string,name:string,familyName:string) {
-    if (email==null||password==null||passwordConfirm==null||name==null||familyName==null){
+  register(email:string,password:string,passwordConfirm:string,name:string) {
+    if (email==null||password==null||passwordConfirm==null||name==null){
         this.messageUser = 'You need to fill all the fields';
     } else {
       if (password != passwordConfirm) {
@@ -113,9 +111,8 @@ export class LoginComponent  {
             const imageUrlOriginal="https://storage.googleapis.com/perrinn-d5fc1.appspot.com/images%2Foriginal_1523055261437Screen%20Shot%202018-04-06%20at%2022.36.21.png?GoogleAccessId=firebase-adminsdk-rh8x2@perrinn-d5fc1.iam.gserviceaccount.com&Expires=16756761600&Signature=c8sqTFAMkJMDEr0CZdFAMD0I9gsBWMqqy21O2wmkAKRt3H%2B9Z2DZNnZgzdFPPOgYTSojdOyuhzy8X%2FyET97nUi3fnwQfy1eQrCu%2F5iI4GbCEaZqsosbMz5MiLOsVoLGOlLpjFekVOQTIuniZfTRuPfEL6zNzyyyQasAHfZOqz76E1FkQBg3sYWiabS4sfcirSP%2BhIQT4k6Px02B%2BARos4%2F%2FnivTla9KX8OPYH7tmUj%2Fsc%2F1sPiQaqIrWXpC5HX4TLZ9w%2Bdl83HSCSBYmkwUAOtrtJ1uncwwhia4pzmniLvfXj1%2BikJA6HXcon44Ymv8jDpHh4AqbBVqAXTWyIzKzaQ%3D%3D";
             this.UI.createMessage({
               chain:auth.uid,
-              text:'Creating user: '+name+' '+familyName,
+              text:'Creating user: '+name,
               name:name,
-              familyName:familyName,
               imageUrlThumbUser:imageUrlThumb,
               imageUrlMedium:imageUrlMedium,
               imageUrlOriginal:imageUrlOriginal

@@ -20,7 +20,6 @@ import * as firebase from 'firebase/app';
       <div style="float:left;width:250px;height:115px" (click)="router.navigate(['profile',message.values.user])">
         <img [src]="message?.values.imageUrlThumbUser" style="float:left;margin:0 10px 65px 10px;opacity:1;object-fit:cover;height:50px;width:50px;border-radius:50%">
         <span>{{message.values?.name}}</span>
-        <span style="font-size:10px"> {{message.values?.familyName}}</span>
         <br>
         <span style="font-size:11px;color:green;margin-right:5px">{{UI.formatCOINS(message.values?.wallet?.balance||0)}}</span>
         <span style="font-size:8px;color:green;line-height:22px">COINS</span>
@@ -60,9 +59,9 @@ export class SearchComponent  {
         this.messages = this.afs.collection('PERRINNMessages', ref => ref
         .where('userChain.nextMessage','==','none')
         .where('verified','==',true)
-        .where('searchName','>=',this.searchFilter.toLowerCase())
-        .where('searchName','<=',this.searchFilter.toLowerCase()+'\uf8ff')
-        .orderBy('searchName')
+        .where('nameLowerCase','>=',this.searchFilter.toLowerCase())
+        .where('nameLowerCase','<=',this.searchFilter.toLowerCase()+'\uf8ff')
+        .orderBy('nameLowerCase')
         .limit(10))
         .snapshotChanges().pipe(map(changes => {
           return changes.map(c => ({

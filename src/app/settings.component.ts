@@ -15,7 +15,7 @@ import * as firebase from 'firebase/app';
   <img class="imageWithZoom" [src]="UI.currentUserLastMessageObj?.imageUrlMedium||UI.currentUserLastMessageObj?.imageUrlThumbUser" style="object-fit:cover;margin:10px;border-radius:3px;max-height:150px;width:50%" (click)="showFullScreenImage(UI.currentUserLastMessageObj?.imageUrlOriginal)"
   onerror="this.onerror=null;this.src='https://storage.googleapis.com/perrinn-d5fc1.appspot.com/images%2F1585144867972Screen%20Shot%202018-03-16%20at%2015.05.10_180x180.png?GoogleAccessId=firebase-adminsdk-rh8x2%40perrinn-d5fc1.iam.gserviceaccount.com&Expires=16756761600&Signature=I3Kem9n6zYjSNijnKOx%2FAOUAg65GN3xf8OD1qD4uo%2BayOFblFIgfn81uPWRTzhGg14lJdyhz3Yx%2BiCXuYCIdYnduqMZcIjtHE6WR%2BPo74ckemuxIKx3N24tlBJ6DgkfgqwmIkw%2F%2FKotm8Cz%2Fq%2FbIZm%2FvAOi2dpBHqrHiIFXYb8AVYnhP1osUhVvyzapgYJEBZJcHur7v6uqrSKwQ4DfeHHinbJpvkX3wjM6Nxabi3kVABdGcGqMoAPGCTZJMzNj8xddAXuECbptQprd9LlnQOuL4tuDfLMAOUXTHmJVhJEBrquxQi8iPRjnLOvnqF8s2We0SOxprqEuwbZyxSgH05Q%3D%3D'">
   <br/>
-  <span style="font-size:18px;line-height:30px;margin:15px;font-family:sans-serif;">{{UI.currentUserLastMessageObj?.name}} {{UI.currentUserLastMessageObj?.familyName}}</span>
+  <span style="font-size:18px;line-height:30px;margin:15px;font-family:sans-serif;">{{UI.currentUserLastMessageObj?.name}}</span>
   <span *ngIf="UI.currentUserLastMessageObj?.userStatus?.isMember" style="font-size:10px">Member</span>
   <span *ngIf="UI.currentUserLastMessageObj?.userStatus?.isDeveloper" style="font-size:10px"> Developer ({{UI.currentUserLastMessageObj?.contract?.position}} Level {{UI.currentUserLastMessageObj?.contract?.level}})</span>
   <span *ngIf="UI.currentUserLastMessageObj?.userStatus?.isInvestor" style="font-size:10px"> Investor</span>
@@ -35,7 +35,6 @@ import * as firebase from 'firebase/app';
     </div>
     <div class="seperator" style="width:100%;margin:0px"></div>
       <input [(ngModel)]="name" placeholder="First name">
-      <input [(ngModel)]="familyName" placeholder="Family name">
       <div (click)="updateName()" style="font-size:12px;text-align:center;line-height:20px;width:150px;padding:2px;margin:10px;color:white;background-color:midnightblue;border-radius:3px;cursor:pointer">Update name</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px;color:#444">Your PERRINN email</div>
@@ -60,13 +59,11 @@ import * as firebase from 'firebase/app';
   `,
 })
 export class SettingsComponent {
-  editMembers:boolean;
-  name:string;
-  familyName:string;
-  currentEmail:string;
-  contract:any;
-  searchFilter:string;
-  teams:Observable<any[]>;
+  editMembers:boolean
+  name:string
+  currentEmail:string
+  contract:any
+  searchFilter:string
 
   constructor(
     public afAuth: AngularFireAuth,
@@ -78,7 +75,6 @@ export class SettingsComponent {
     this.contract={}
     this.editMembers=false
     this.name=this.UI.currentUserLastMessageObj.name
-    this.familyName=this.UI.currentUserLastMessageObj.familyName
     this.currentEmail=this.UI.currentUserLastMessageObj.userEmail||null
     this.contract.position=(this.UI.currentUserLastMessageObj.contract||{}).position||null
     this.contract.level=(this.UI.currentUserLastMessageObj.contract||{}).level||null
@@ -90,12 +86,11 @@ export class SettingsComponent {
   }
 
   updateName(){
-    if(!this.name||!this.familyName)return
+    if(!this.name)return
     this.UI.createMessage({
       chain:this.UI.currentUser,
-      text:'Updating my name to: '+this.name+' '+this.familyName,
-      name:this.name,
-      familyName:this.familyName
+      text:'Updating my name to: '+this.name,
+      name:this.name
     })
     this.router.navigate(['chat',this.UI.currentUser])
   }
@@ -169,28 +164,6 @@ export class SettingsComponent {
         this.router.navigate(['chat',this.UI.currentUser])
       });
     });
-  }
-
-  refreshSearchLists() {
-    if (this.searchFilter) {
-      if (this.searchFilter.length > 1) {
-        this.teams = this.afs.collection('PERRINNMessages', ref => ref
-        .where('userChain.nextMessage','==','none')
-        .where('verified','==',true)
-        .where('searchName','>=',this.searchFilter.toLowerCase())
-        .where('searchName','<=',this.searchFilter.toLowerCase()+'\uf8ff')
-        .orderBy('searchName')
-        .limit(10))
-        .snapshotChanges().pipe(map(changes => {
-          return changes.map(c => ({
-            key: c.payload.doc.id,
-            values: c.payload.doc.data(),
-          }));
-        }));
-      }
-    } else {
-      this.teams = null;
-    }
   }
 
   objectToArray(obj) {

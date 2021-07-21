@@ -37,7 +37,6 @@ import * as firebase from 'firebase/app'
         <div style="clear:both;color:#222">
           <div style="float:left">
             <span >{{focusUserLastMessageObj?.name}}</span>
-            <span style="font-size:10px"> {{focusUserLastMessageObj?.familyName}}</span>
             <br>
             <span *ngIf="focusUserLastMessageObj?.userStatus?.isMember" style="font-size:10px">Member</span>
             <span *ngIf="focusUserLastMessageObj?.userStatus?.isDeveloper" style="font-size:10px"> Developer ({{focusUserLastMessageObj?.contract?.position}} Level {{focusUserLastMessageObj?.contract?.level}})</span>

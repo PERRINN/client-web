@@ -52,19 +52,16 @@ module.exports = {
         if(userRecord)authEmail=userRecord.toJSON().email
       }
       let userEmail=messageData.userEmail||userPreviousMessageData.userEmail||authEmail
-      messageData.searchName=(messageData.name||userPreviousMessageData.name||'').toLowerCase()+' '+(messageData.familyName||userPreviousMessageData.familyName||'').toLowerCase()
       messageData.createdTimestamp=messageData.createdTimestamp||userPreviousMessageData.createdTimestamp||now
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userEmail:userEmail||null},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{name:messageData.name||userPreviousMessageData.name||null},{create:true})
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{familyName:messageData.familyName||userPreviousMessageData.familyName||null},{create:true})
+      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{nameLowerCase:(messageData.name||userPreviousMessageData.name||"null").toLowerCase()},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userImageTimestamp:messageData.userImageTimestamp||userPreviousMessageData.userImageTimestamp||null},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{imageUrlThumbUser:messageData.imageUrlThumbUserLong||messageData.imageUrlThumbUser||userPreviousMessageData.imageUrlThumbUser||null},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{imageUrlMedium:messageData.imageUrlMediumLong||messageData.imageUrlMedium||userPreviousMessageData.imageUrlMedium||null},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{imageUrlOriginal:messageData.imageUrlOriginalLong||messageData.imageUrlOriginal||userPreviousMessageData.imageUrlOriginal||null},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{createdTimestamp:messageData.createdTimestamp},{create:true})
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{searchName:messageData.searchName},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${user}.name`]:messageData.name||userPreviousMessageData.name||null},{create:true})
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${user}.familyName`]:messageData.familyName||userPreviousMessageData.familyName||null},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${user}.imageUrlThumb`]:messageData.imageUrlThumbUser||userPreviousMessageData.imageUrlThumbUser||null},{create:true})
 
       //chat chain
@@ -106,9 +103,7 @@ module.exports = {
       const recipientsObj=await Promise.all(reads)
       recipientsObj.forEach((recipient)=>{
         if(recipient.docs[0]!=undefined)batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${recipient.docs[0].data().user}.name`]:(recipient.docs[0].data()||{}).name||null},{create:true})
-        if(recipient.docs[0]!=undefined)batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${recipient.docs[0].data().user}.familyName`]:(recipient.docs[0].data()||{}).familyName||null},{create:true})
         if(recipient.docs[0]!=undefined)batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${recipient.docs[0].data().user}.imageUrlThumb`]:(recipient.docs[0].data()||{}).imageUrlThumbUser||null},{create:true})
-        if(recipient.docs[0]!=undefined)batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${recipient.docs[0].data().user}.searchName`]:(recipient.docs[0].data()||{}).searchName||null},{create:true})
         if(recipient.docs[0]!=undefined)batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${recipient.docs[0].data().user}.unreadMessages`]:((chatPreviousMessageData.reads||{})[recipient.docs[0].data().user]||null)?1:(((((chatPreviousMessageData.recipients||{})[recipient.docs[0].data().user]||{}).unreadMessages||1)+1)||null)},{create:true})
       })
 
@@ -145,7 +140,6 @@ module.exports = {
         transactionOut.user=(messageData.transactionOut||{}).user||null
         transactionOut.message=(messageData.transactionOut||{}).message||null
         transactionOut.name=transactionOutUserLastMessageData.name||null
-        transactionOut.familyName=transactionOutUserLastMessageData.familyName||null
         transactionOut.imageUrlThumb=transactionOutUserLastMessageData.imageUrlThumbUser||null
         transactionOut.amount=Number(((messageData.transactionOut||{}).amount)||0)
         transactionOut.code=(messageData.transactionOut||{}).code||null
@@ -153,7 +147,6 @@ module.exports = {
         if(transactionOut.code=='PERRINNselfTRANSACTION'&&user=='QYm5NATKa6MGD87UpNZCTl6IolX2'){
           transactionOut.user='QYm5NATKa6MGD87UpNZCTl6IolX2'
           transactionOut.name=messageData.name||userPreviousMessageData.name||null
-          transactionOut.familyName=messageData.familyName||userPreviousMessageData.familyName||null
           transactionOut.imageUrlThumb=messageData.imageUrlThumbUser||userPreviousMessageData.imageUrlThumbUser||null
         }
         //message transaction in
@@ -163,7 +156,6 @@ module.exports = {
         transactionIn.user=(messageData.transactionIn||{}).user||null
         transactionIn.message=(messageData.transactionIn||{}).message||null
         transactionIn.name=transactionInUserLastMessageData.name||null
-        transactionIn.familyName=transactionInUserLastMessageData.familyName||null
         transactionIn.imageUrlThumb=transactionInUserLastMessageData.imageUrlThumbUser||null
         transactionIn.amount=Number(((messageData.transactionIn||{}).amount)||0)
         if(transactionOut.code=='PERRINN'&&user=='QYm5NATKa6MGD87UpNZCTl6IolX2')transactionIn.amount=transactionOut.amount
