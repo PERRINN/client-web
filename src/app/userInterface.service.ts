@@ -13,8 +13,8 @@ export class UserInterfaceService {
   nowSeconds:number
 
   constructor(
-    private afAuth: AngularFireAuth,
-    public afs: AngularFirestore
+    private afAuth:AngularFireAuth,
+    public afs:AngularFirestore
   ) {
     this.nowSeconds=Math.floor(Date.now()/1000)
     setInterval(()=>{this.nowSeconds=Math.floor(Date.now()/1000)},60000)

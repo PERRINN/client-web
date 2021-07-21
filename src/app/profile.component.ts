@@ -7,8 +7,8 @@ import { UserInterfaceService } from './userInterface.service'
 import * as firebase from 'firebase/app'
 
 @Component({
-  selector: 'profile',
-  template: `
+  selector:'profile',
+  template:`
   <div class='sheet'>
     <div *ngIf="!UI.currentUserLastMessageObj?.userStatus?.isMember" style="background-color:#f2f5d0;padding:5px">
       <div style="color:#777;font-size:10px;float:left">To become a PERRINN member and gain full access, you need to top up your COINS (go to your settings). If you have any question about the membership, feel free to chat with Nicolas.</div>
@@ -46,12 +46,12 @@ import * as firebase from 'firebase/app'
           </div>
           <div *ngIf="UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="float:right;font-size:10px;padding:2px 4px 2px 4px;color:midnightblue;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer">New message to {{focusUserLastMessageObj?.name}}</div>
         </div>
+        <div style="clear:both;float:left;font-size:10px;color:#999">Created {{focusUserLastMessageObj?.createdTimestamp|date:'MMMM yyyy'}}, {{focusUserLastMessageObj?.userChain?.index}} Messages, {{focusUserLastMessageObj?.membership?.daysTotal|number:'1.1-1'}} Membership days, Verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</div>
         <div style="clear:both">
           <div style="float:left;font-size:10px;color:midnightblue;width:55px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='inbox'?'underline':'none'" (click)="mode='inbox';refreshMessages()">inbox</div>
           <div style="float:left;font-size:10px;color:midnightblue;width:55px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='30days'?'underline':'none'" (click)="mode='30days';refreshMessages()">30 days</div>
           <div style="float:left;font-size:10px;color:midnightblue;width:55px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='24months'?'underline':'none'" (click)="mode='24months';refreshMessages()">24 months</div>
           <div style="float:left;font-size:10px;color:midnightblue;width:55px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='chain'?'underline':'none'" (click)="mode='chain';refreshMessages()">chain</div>
-          <div style="clear:both;float:left;font-size:10px;color:#999">Created {{focusUserLastMessageObj?.createdTimestamp|date:'MMMM yyyy'}}, {{focusUserLastMessageObj?.userChain?.index}} Messages, {{focusUserLastMessageObj?.membership?.daysTotal|number:'1.1-1'}} Membership days, Verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</div>
         </div>
       </div>
       <div class="seperator" style="width:100%;margin:0px"></div>
@@ -186,10 +186,10 @@ export class ProfileComponent {
   messageNumberDisplay:number
 
   constructor(
-    public afs: AngularFirestore,
-    public router: Router,
-    public UI: UserInterfaceService,
-    private route: ActivatedRoute
+    public afs:AngularFirestore,
+    public router:Router,
+    public UI:UserInterfaceService,
+    private route:ActivatedRoute
   ) {
     this.math=Math
     this.messageNumberDisplay=30
@@ -325,7 +325,7 @@ export class ProfileComponent {
   signContract(){
     this.UI.createMessage({
       chain:this.focusUserLastMessageObj.user,
-      text:'Contract signature for position: '+((this.focusUserLastMessageObj.contract||{}).position||null)+', level: '+((this.focusUserLastMessageObj.contract||{}).level||0),
+      text:'Contract signature for position '+((this.focusUserLastMessageObj.contract||{}).position||null)+', level '+((this.focusUserLastMessageObj.contract||{}).level||0),
       contractSignature:{
         user:this.focusUserLastMessageObj.user,
         contract:this.focusUserLastMessageObj.contract||{}

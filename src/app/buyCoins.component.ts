@@ -7,8 +7,8 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
 import * as firebase from 'firebase/app';
 
 @Component({
-  selector: 'buyCoins',
-  template: `
+  selector:'buyCoins',
+  template:`
   <div style="width:320px;color:white;background-color:green;margin:25px auto;padding:25px;text-align:center">
     <span style="font-size:12px">Buy</span>
     <br/>
@@ -73,24 +73,24 @@ import * as firebase from 'firebase/app';
   `,
 })
 export class BuyCoinsComponent {
-  cardNumber: string
-  expiryMonth: string
-  expiryYear: string
-  cvc: string
-  amountCOINSPurchased: number
-  amountCharge: number
-  currentCurrencyID: string
-  messagePayment: string
-  currencyList: any
-  selectingCurrency: boolean
-  enteringCardDetails: boolean
-  processingPayment: boolean
+  cardNumber:string
+  expiryMonth:string
+  expiryYear:string
+  cvc:string
+  amountCOINSPurchased:number
+  amountCharge:number
+  currentCurrencyID:string
+  messagePayment:string
+  currencyList:any
+  selectingCurrency:boolean
+  enteringCardDetails:boolean
+  processingPayment:boolean
 
   constructor(
-    public afs: AngularFirestore,
-    public router: Router,
-    private _zone: NgZone,
-    public UI: UserInterfaceService
+    public afs:AngularFirestore,
+    public router:Router,
+    private _zone:NgZone,
+    public UI:UserInterfaceService
   ) {
     this.selectingCurrency = true
     this.enteringCardDetails = false
@@ -106,11 +106,11 @@ export class BuyCoinsComponent {
 
   processPayment() {
     (window as any).Stripe.card.createToken({
-      number: this.cardNumber,
-      exp_month: this.expiryMonth,
-      exp_year: this.expiryYear,
-      cvc: this.cvc
-    }, (status: number, response: any) => {
+      number:this.cardNumber,
+      exp_month:this.expiryMonth,
+      exp_year:this.expiryYear,
+      cvc:this.cvc
+    }, (status:number, response:any) => {
       this._zone.run(() => {
         if (response.error) {
           this.messagePayment = response.error.message

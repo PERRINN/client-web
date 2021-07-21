@@ -8,8 +8,8 @@ import { AngularFireStorage } from '@angular/fire/storage'
 import * as firebase from 'firebase/app'
 
 @Component({
-  selector: 'chat',
-  template: `
+  selector:'chat',
+  template:`
 
   <div class="sheet">
     <div class="fixed" style="background:whitesmoke;color:#444;font-size:12px;cursor:pointer" (click)="showChatDetails=!showChatDetails">
@@ -62,7 +62,7 @@ import * as firebase from 'firebase/app'
       <li *ngFor="let team of teams | async">
         <div *ngIf="!(chatLastMessageObj?.recipients||{})[team.key]" style="padding:5px">
           <div style="float:left;width:275px">
-            <img [src]="team?.values?.imageUrlThumbUser" style="display:inline;float:left;margin: 0 5px 0 10px;opacity: 1;object-fit:cover;height:25px;width:25px;border-radius:50%">
+            <img [src]="team?.values?.imageUrlThumbUser" style="display:inline;float:left;margin:0 5px 0 10px;opacity:1;object-fit:cover;height:25px;width:25px;border-radius:50%">
             <span>{{team.values?.name}} {{UI.formatCOINS(team.values?.wallet?.balance||0)}}</span>
           </div>
           <div class="buttonDiv" style="float:left;width:50px;font-size:11px;background-color:midnightblue;color:white;border-style:none" (click)="addRecipient(team.values.user,team.values.name)">Add</div>
@@ -149,27 +149,27 @@ import * as firebase from 'firebase/app'
               </div>
               <div *ngIf="messageShowDetails.includes(message.key)" style="margin:5px">
                 <div class="seperator" style="width:100%"></div>
-                <div style="color:#666;font-size:10px">userStatus: {{message.payload?.userStatus|json}}</div>
+                <div style="color:#666;font-size:10px">userStatus {{message.payload?.userStatus|json}}</div>
                 <div class="seperator" style="width:100%"></div>
-                <div style="color:#666;font-size:10px">userChain: {{message.payload?.userChain|json}}</div>
+                <div style="color:#666;font-size:10px">userChain {{message.payload?.userChain|json}}</div>
                 <div class="seperator" style="width:100%"></div>
-                <div style="color:#666;font-size:10px">transactionOut: {{message.payload?.transactionOut|json}}</div>
+                <div style="color:#666;font-size:10px">transactionOut {{message.payload?.transactionOut|json}}</div>
                 <div class="seperator" style="width:100%"></div>
-                <div style="color:#666;font-size:10px">transactionIn: {{message.payload?.transactionIn|json}}</div>
+                <div style="color:#666;font-size:10px">transactionIn {{message.payload?.transactionIn|json}}</div>
                 <div class="seperator" style="width:100%"></div>
-                <div style="color:#666;font-size:10px">messagingCost: {{message.payload?.messagingCost|json}}</div>
+                <div style="color:#666;font-size:10px">messagingCost {{message.payload?.messagingCost|json}}</div>
                 <div class="seperator" style="width:100%"></div>
-                <div style="color:#666;font-size:10px">COIN purchase: {{message.payload?.purchaseCOIN|json}}</div>
+                <div style="color:#666;font-size:10px">COIN purchase {{message.payload?.purchaseCOIN|json}}</div>
                 <div class="seperator" style="width:100%"></div>
-                <div style="color:#666;font-size:10px">interest: {{message.payload?.interest|json}}</div>
+                <div style="color:#666;font-size:10px">interest {{message.payload?.interest|json}}</div>
                 <div class="seperator" style="width:100%"></div>
-                <div style="color:#666;font-size:10px">membership: {{message.payload?.membership|json}}</div>
+                <div style="color:#666;font-size:10px">membership {{message.payload?.membership|json}}</div>
                 <div class="seperator" style="width:100%"></div>
-                <div style="color:#666;font-size:10px">contract: {{message.payload?.contract|json}}</div>
+                <div style="color:#666;font-size:10px">contract {{message.payload?.contract|json}}</div>
                 <div class="seperator" style="width:100%"></div>
-                <div style="color:#666;font-size:10px">wallet: {{message.payload?.wallet|json}}</div>
+                <div style="color:#666;font-size:10px">wallet {{message.payload?.wallet|json}}</div>
                 <div class="seperator" style="width:100%"></div>
-                <div style="color:#666;font-size:10px">survey: {{message.payload?.survey|json}}</div>
+                <div style="color:#666;font-size:10px">survey {{message.payload?.survey|json}}</div>
                 <div class="seperator" style="width:100%"></div>
                 <div style="color:#666;font-size:10px">{{message.payload|json}}</div>
               </div>
@@ -242,11 +242,11 @@ export class ChatComponent {
   leftHere:string
 
   constructor(
-    public afs: AngularFirestore,
-    public router: Router,
-    public UI: UserInterfaceService,
-    private route: ActivatedRoute,
-    private storage: AngularFireStorage,
+    public afs:AngularFirestore,
+    public router:Router,
+    public UI:UserInterfaceService,
+    private route:ActivatedRoute,
+    private storage:AngularFireStorage,
   ) {
     this.math=Math
     this.UI.loading=true
@@ -338,7 +338,7 @@ export class ChatComponent {
     return isMessageNewTimeGroup
   }
 
-  isMessageNewUserGroup(user: any, messageServerTimestamp: any) {
+  isMessageNewUserGroup(user:any,messageServerTimestamp:any) {
     let isMessageNewUserGroup:boolean
     isMessageNewUserGroup=Math.abs(messageServerTimestamp.seconds - this.previousMessageServerTimestamp.seconds) > 60 * 5 || (user != this.previousMessageUser)
     return isMessageNewUserGroup
@@ -349,7 +349,7 @@ export class ChatComponent {
     this.previousMessageServerTimestamp=message.serverTimestamp||{seconds:this.UI.nowSeconds*1000}
   }
 
-  scrollToBottom(scrollMessageTimestamp: number) {
+  scrollToBottom(scrollMessageTimestamp:number) {
     if (scrollMessageTimestamp != this.scrollMessageTimestamp) {
       const element=document.getElementById('chat_window')
       element.scrollTop=element.scrollHeight
@@ -359,7 +359,7 @@ export class ChatComponent {
 
   saveNewSubject() {
     this.UI.createMessage({
-      text:'Changing chat subject to: '+this.chatSubject+" (was: "+this.chatLastMessageObj.chatSubject+")",
+      text:'Changing chat subject to '+this.chatSubject+" (was "+this.chatLastMessageObj.chatSubject+")",
       chain:this.chatLastMessageObj.chain||this.chatChain,
       chatSubject:this.chatSubject,
     })
@@ -403,7 +403,7 @@ export class ChatComponent {
 
   voteSurvey(i) {
     this.UI.createMessage({
-      text:'Survey vote: '+this.survey.answers[i].answer,
+      text:'Survey vote '+this.survey.answers[i].answer,
       chain:this.chatLastMessageObj.chain||this.chatChain,
       survey:{voteIndexPlusOne:i+1}
     })

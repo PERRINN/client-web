@@ -6,8 +6,8 @@ import { UserInterfaceService } from './userInterface.service';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 
 @Component({
-  selector: 'login',
-  template: `
+  selector:'login',
+  template:`
   <div id="login">
     <div class="module form-module">
       <div class="form">
@@ -111,7 +111,7 @@ export class LoginComponent  {
             const imageUrlOriginal="https://storage.googleapis.com/perrinn-d5fc1.appspot.com/images%2Foriginal_1523055261437Screen%20Shot%202018-04-06%20at%2022.36.21.png?GoogleAccessId=firebase-adminsdk-rh8x2@perrinn-d5fc1.iam.gserviceaccount.com&Expires=16756761600&Signature=c8sqTFAMkJMDEr0CZdFAMD0I9gsBWMqqy21O2wmkAKRt3H%2B9Z2DZNnZgzdFPPOgYTSojdOyuhzy8X%2FyET97nUi3fnwQfy1eQrCu%2F5iI4GbCEaZqsosbMz5MiLOsVoLGOlLpjFekVOQTIuniZfTRuPfEL6zNzyyyQasAHfZOqz76E1FkQBg3sYWiabS4sfcirSP%2BhIQT4k6Px02B%2BARos4%2F%2FnivTla9KX8OPYH7tmUj%2Fsc%2F1sPiQaqIrWXpC5HX4TLZ9w%2Bdl83HSCSBYmkwUAOtrtJ1uncwwhia4pzmniLvfXj1%2BikJA6HXcon44Ymv8jDpHh4AqbBVqAXTWyIzKzaQ%3D%3D";
             this.UI.createMessage({
               chain:auth.uid,
-              text:'Creating user: '+name,
+              text:'Creating user '+name,
               name:name,
               imageUrlThumbUser:imageUrlThumb,
               imageUrlMedium:imageUrlMedium,

@@ -9,8 +9,8 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
 import * as firebase from 'firebase/app';
 
 @Component({
-  selector: 'settings',
-  template: `
+  selector:'settings',
+  template:`
   <div class="sheet" style="background-color:whitesmoke">
   <img class="imageWithZoom" [src]="UI.currentUserLastMessageObj?.imageUrlMedium||UI.currentUserLastMessageObj?.imageUrlThumbUser" style="object-fit:cover;margin:10px;border-radius:3px;max-height:150px;width:50%" (click)="showFullScreenImage(UI.currentUserLastMessageObj?.imageUrlOriginal)"
   onerror="this.onerror=null;this.src='https://storage.googleapis.com/perrinn-d5fc1.appspot.com/images%2F1585144867972Screen%20Shot%202018-03-16%20at%2015.05.10_180x180.png?GoogleAccessId=firebase-adminsdk-rh8x2%40perrinn-d5fc1.iam.gserviceaccount.com&Expires=16756761600&Signature=I3Kem9n6zYjSNijnKOx%2FAOUAg65GN3xf8OD1qD4uo%2BayOFblFIgfn81uPWRTzhGg14lJdyhz3Yx%2BiCXuYCIdYnduqMZcIjtHE6WR%2BPo74ckemuxIKx3N24tlBJ6DgkfgqwmIkw%2F%2FKotm8Cz%2Fq%2FbIZm%2FvAOi2dpBHqrHiIFXYb8AVYnhP1osUhVvyzapgYJEBZJcHur7v6uqrSKwQ4DfeHHinbJpvkX3wjM6Nxabi3kVABdGcGqMoAPGCTZJMzNj8xddAXuECbptQprd9LlnQOuL4tuDfLMAOUXTHmJVhJEBrquxQi8iPRjnLOvnqF8s2We0SOxprqEuwbZyxSgH05Q%3D%3D'">
@@ -43,12 +43,12 @@ import * as firebase from 'firebase/app';
     <div class="seperator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px;color:#444">Your PERRINN contract</div>
       <div style="font-size:10px;margin:20px;color:#777">This contract is between you and PERRINN team. New COINS are credited to you based on the settings below. When these settings are updated, they will need to be approved before taking effect. You or PERRINN can cancel this contract at any time.</div>
-      <div style="color:midnightblue;font-size:10px;margin:15px 0 0 15px">Position: as specific as possible so other members understand your role in the team.</div>
+      <div style="color:midnightblue;font-size:10px;margin:15px 0 0 15px">Position as specific as possible so other members understand your role in the team.</div>
       <input [(ngModel)]="contract.position" placeholder="Contract position">
-      <div style="color:midnightblue;font-size:10px;margin:15px 0 0 15px">Level: [1-10] defines the level of experience / capacity to resolve problems independently. Level 1 is university student with no experience, 10 is expert (10+ years experience in the field).</div>
+      <div style="color:midnightblue;font-size:10px;margin:15px 0 0 15px">Level [1-10] defines the level of experience / capacity to resolve problems independently. Level 1 is university student with no experience, 10 is expert (10+ years experience in the field).</div>
       <input [(ngModel)]="contract.level" placeholder="Contract level">
       <div *ngIf="!UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:15px;font-size:10px;color:midnightblue">No contract registered.</div>
-      <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:15px;font-size:10px;color:midnightblue">Contract number: {{UI.currentUserLastMessageObj?.contract?.createdTimestamp}}</div>
+      <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:15px;font-size:10px;color:midnightblue">Contract number {{UI.currentUserLastMessageObj?.contract?.createdTimestamp}}</div>
       <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:15px;font-size:10px;color:midnightblue">Signature valid for level {{UI.currentUserLastMessageObj?.contract?.signedLevel}}, you will receive {{UI.currentUserLastMessageObj?.contract?.rateDay}} COINS per day when you post messages in your log.</div>
       <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:15px;font-size:10px;color:midnightblue">Waiting for contract signature</div>
       <div (click)="updateContract()" style="clear:both;font-size:12px;text-align:center;line-height:20px;width:150px;padding:2px;margin:10px;color:white;background-color:midnightblue;border-radius:3px;cursor:pointer">Update contract</div>
@@ -65,11 +65,11 @@ export class SettingsComponent {
   searchFilter:string
 
   constructor(
-    public afAuth: AngularFireAuth,
-    public afs: AngularFirestore,
-    public router: Router,
-    private storage: AngularFireStorage,
-    public UI: UserInterfaceService
+    public afAuth:AngularFireAuth,
+    public afs:AngularFirestore,
+    public router:Router,
+    private storage:AngularFireStorage,
+    public UI:UserInterfaceService
   ) {
     this.contract={}
     this.editMembers=false
@@ -88,7 +88,7 @@ export class SettingsComponent {
     if(!this.name)return
     this.UI.createMessage({
       chain:this.UI.currentUser,
-      text:'Updating my name to: '+this.name,
+      text:'Updating my name to '+this.name,
       name:this.name
     })
     this.router.navigate(['chat',this.UI.currentUser])
@@ -98,7 +98,7 @@ export class SettingsComponent {
     if(!this.currentEmail)return
     this.UI.createMessage({
       chain:this.UI.currentUser,
-      text:'Updating my email to: '+this.currentEmail,
+      text:'Updating my email to '+this.currentEmail,
       userEmail:this.currentEmail
     })
     this.router.navigate(['chat',this.UI.currentUser])
