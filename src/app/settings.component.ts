@@ -15,13 +15,12 @@ import * as firebase from 'firebase/app';
   <img class="imageWithZoom" [src]="UI.currentUserLastMessageObj?.imageUrlMedium||UI.currentUserLastMessageObj?.imageUrlThumbUser" style="object-fit:cover;margin:10px;border-radius:3px;max-height:150px;width:50%" (click)="showFullScreenImage(UI.currentUserLastMessageObj?.imageUrlOriginal)"
   onerror="this.onerror=null;this.src='https://storage.googleapis.com/perrinn-d5fc1.appspot.com/images%2F1585144867972Screen%20Shot%202018-03-16%20at%2015.05.10_180x180.png?GoogleAccessId=firebase-adminsdk-rh8x2%40perrinn-d5fc1.iam.gserviceaccount.com&Expires=16756761600&Signature=I3Kem9n6zYjSNijnKOx%2FAOUAg65GN3xf8OD1qD4uo%2BayOFblFIgfn81uPWRTzhGg14lJdyhz3Yx%2BiCXuYCIdYnduqMZcIjtHE6WR%2BPo74ckemuxIKx3N24tlBJ6DgkfgqwmIkw%2F%2FKotm8Cz%2Fq%2FbIZm%2FvAOi2dpBHqrHiIFXYb8AVYnhP1osUhVvyzapgYJEBZJcHur7v6uqrSKwQ4DfeHHinbJpvkX3wjM6Nxabi3kVABdGcGqMoAPGCTZJMzNj8xddAXuECbptQprd9LlnQOuL4tuDfLMAOUXTHmJVhJEBrquxQi8iPRjnLOvnqF8s2We0SOxprqEuwbZyxSgH05Q%3D%3D'">
   <br/>
-  <span style="font-size:18px;line-height:30px;margin:15px;font-family:sans-serif;">{{UI.currentUserLastMessageObj?.name}}</span>
-  <span *ngIf="UI.currentUserLastMessageObj?.userStatus?.isMember" style="font-size:10px">Member</span>
+  <span style="font-size:18px;line-height:30px;margin:15px">{{UI.currentUserLastMessageObj?.name}} {{UI.formatCOINS(UI.currentUserLastMessageObj?.wallet?.balance||0)}}</span>
+  <br/>
+  <span *ngIf="UI.currentUserLastMessageObj?.userStatus?.isMember" style="font-size:10px;margin-left:15px">Member</span>
   <span *ngIf="UI.currentUserLastMessageObj?.userStatus?.isDeveloper" style="font-size:10px"> Developer ({{UI.currentUserLastMessageObj?.contract?.position}} Level {{UI.currentUserLastMessageObj?.contract?.level}})</span>
   <span *ngIf="UI.currentUserLastMessageObj?.userStatus?.isInvestor" style="font-size:10px"> Investor</span>
   <span *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px;color:midnightblue">Waiting for contract signature ({{UI.currentUserLastMessageObj?.contract?.position}} Level {{UI.currentUserLastMessageObj?.contract?.level}})</span>
-  <br/>
-  <span style="font-size:16px;line-height:30px;margin:15px;font-family:sans-serif">Balance: {{UI.formatCOINS(UI.currentUserLastMessageObj?.wallet?.balance||0)}}</span>
   <div style="font-size:12px;text-align:center;line-height:20px;width:150px;padding:2px;margin:10px;color:white;background-color:green;border-radius:3px;cursor:pointer" (click)="router.navigate(['buyCoins'])">Buy new COINS</div>
   <br/>
   <div class="seperator" style="width:100%;margin:0px"></div>
@@ -109,7 +108,7 @@ export class SettingsComponent {
     if(!this.contract.position||!this.contract.level)return
     this.UI.createMessage({
       chain:this.UI.currentUser,
-      text:'Updating my contract details to position: '+this.contract.position+', level: '+this.contract.level,
+      text:'Updating my contract details to position '+this.contract.position+', level '+this.contract.level,
       contract:{
         position:this.contract.position,
         level:this.contract.level

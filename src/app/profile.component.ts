@@ -34,9 +34,9 @@ import * as firebase from 'firebase/app'
         <img [src]="focusUserLastMessageObj?.imageUrlThumbUser" style="display:inline;float:left;margin:7px;object-fit:cover;width:75px;height:75px;border-radius:50%">
       </div>
       <div style="padding:10px">
-        <div style="clear:both;color:#222">
+        <div style="clear:both">
           <div style="float:left">
-            <span >{{focusUserLastMessageObj?.name}}</span>
+            <span style="font-size:18px;line-height:30px">{{focusUserLastMessageObj?.name}} {{UI.formatCOINS(focusUserLastMessageObj?.wallet?.balance||0)}}</span>
             <br>
             <span *ngIf="focusUserLastMessageObj?.userStatus?.isMember" style="font-size:10px">Member</span>
             <span *ngIf="focusUserLastMessageObj?.userStatus?.isDeveloper" style="font-size:10px"> Developer ({{focusUserLastMessageObj?.contract?.position}} Level {{focusUserLastMessageObj?.contract?.level}})</span>
@@ -47,8 +47,6 @@ import * as firebase from 'firebase/app'
           <div *ngIf="UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="float:right;font-size:10px;padding:2px 4px 2px 4px;color:midnightblue;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer">New message to {{focusUserLastMessageObj?.name}}</div>
         </div>
         <div style="clear:both">
-          <div style="clear:both;float:left;font-size:17px;color:green;margin-right:5px">{{UI.formatCOINS(focusUserLastMessageObj?.wallet?.balance||0)}}</div>
-          <div style="float:left;font-size:10px;color:green;line-height:25px">COINS</div>
           <div style="float:left;font-size:10px;color:midnightblue;width:55px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='inbox'?'underline':'none'" (click)="mode='inbox';refreshMessages()">inbox</div>
           <div style="float:left;font-size:10px;color:midnightblue;width:55px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='30days'?'underline':'none'" (click)="mode='30days';refreshMessages()">30 days</div>
           <div style="float:left;font-size:10px;color:midnightblue;width:55px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='24months'?'underline':'none'" (click)="mode='24months';refreshMessages()">24 months</div>

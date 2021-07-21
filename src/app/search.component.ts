@@ -19,10 +19,7 @@ import * as firebase from 'firebase/app';
     <li *ngFor="let message of messages | async" style="float:left;padding:5px">
       <div style="float:left;width:250px;height:115px" (click)="router.navigate(['profile',message.values.user])">
         <img [src]="message?.values.imageUrlThumbUser" style="float:left;margin:0 10px 65px 10px;opacity:1;object-fit:cover;height:50px;width:50px;border-radius:50%">
-        <span>{{message.values?.name}}</span>
-        <br>
-        <span style="font-size:11px;color:green;margin-right:5px">{{UI.formatCOINS(message.values?.wallet?.balance||0)}}</span>
-        <span style="font-size:8px;color:green;line-height:22px">COINS</span>
+        <span>{{message.values?.name}} {{UI.formatCOINS(message.values?.wallet?.balance||0)}}</span>
         <br>
         <span *ngIf="message.values?.userStatus?.isMember" style="font-size:10px">Member</span>
         <span *ngIf="message.values?.userStatus?.isDeveloper" style="font-size:10px"> Developer ({{message.values?.contract?.position}} Level {{message.values?.contract?.level}})</span>

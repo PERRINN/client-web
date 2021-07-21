@@ -61,9 +61,9 @@ import * as firebase from 'firebase/app'
     <ul class="listLight">
       <li *ngFor="let team of teams | async">
         <div *ngIf="!(chatLastMessageObj?.recipients||{})[team.key]" style="padding:5px">
-          <div style="float:left;width:175px">
+          <div style="float:left;width:275px">
             <img [src]="team?.values?.imageUrlThumbUser" style="display:inline;float:left;margin: 0 5px 0 10px;opacity: 1;object-fit:cover;height:25px;width:25px;border-radius:50%">
-            <span>{{team.values?.name}}</span>
+            <span>{{team.values?.name}} {{UI.formatCOINS(team.values?.wallet?.balance||0)}}</span>
           </div>
           <div class="buttonDiv" style="float:left;width:50px;font-size:11px;background-color:midnightblue;color:white;border-style:none" (click)="addRecipient(team.values.user,team.values.name)">Add</div>
         </div>
