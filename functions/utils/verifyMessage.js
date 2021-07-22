@@ -78,6 +78,9 @@ module.exports = {
       })
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{lastMessage:chatLastMessage})
 
+      //settings
+      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{isSettings:messageData.chain==user})
+
       //log
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{isLog:messageData.chain.endsWith('Log')})
 
@@ -255,7 +258,7 @@ module.exports = {
 
       //*******MESSAGE WRITES**********************
         //message chat Subject
-        if(messageData.chain==user)messageData.chatSubject='User records'
+        if(messageData.chain==user)messageData.chatSubject='User settings'
         if(messageData.chain=='PERRINNUsersStateSnapshot')messageData.chatSubject='PERRINN Users State Snapshot'
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{chatSubject:messageData.chatSubject||chatPreviousMessageData.chatSubject||messageData.text||null},{create:true})
         //message event

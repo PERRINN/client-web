@@ -15,6 +15,7 @@ import * as firebase from 'firebase/app'
     <div class="fixed" style="background:whitesmoke;color:#444;font-size:12px;cursor:pointer" (click)="showChatDetails=!showChatDetails">
       <div *ngIf="!showChatDetails" style="float:left;margin:0 5px 0 10px;min-height:40px">
         <div>
+          <span *ngIf="chatLastMessageObj?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;color:rgba(0,0,0,0.6)">settings</span>
           <span *ngIf="chatLastMessageObj?.isLog" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;color:rgba(0,0,0,0.6)">fact_check</span>
           <div style="float:left;font-weight:bold">{{chatLastMessageObj?.chatSubject}} </div>
         </div>
