@@ -81,9 +81,6 @@ module.exports = {
       //settings
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{isSettings:messageData.chain==user})
 
-      //log
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{isLog:messageData.chain.endsWith('Log')})
-
       //message recipientList (merge with user, transactionOut user, previous chat list and remove duplicates and remove undefined and null and remove from the ToBeRemoved list)
       messageData.recipientList=[user].concat([(messageData.transactionOut||{}).user]||[]).concat(messageData.recipientList||[]).concat(chatPreviousMessageData.recipientList||[])
       messageData.recipientList=messageData.recipientList.filter((item,pos)=>messageData.recipientList.indexOf(item)===pos)
@@ -94,7 +91,6 @@ module.exports = {
         if(index>-1)messageData.recipientList.splice(index,1)
       })
       if(messageData.chain==user)messageData.recipientList=[user]
-      if(messageData.chain==(user+'Log'))messageData.recipientList=[user]
       if(messageData.chain=='PERRINNUsersStateSnapshot')messageData.recipientList=[]
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{recipientList:messageData.recipientList||[]},{create:true})
 
@@ -198,15 +194,13 @@ module.exports = {
             contract.hourlyRate=appSettingsContract.data().hourlyRateLevel1*contract.level
             contract.previousContractMessageHoursAvailable=((userPreviousMessageData.contract||{}).previousContractMessageHoursAvailable)||0
             contract.previousContractMessageServerTimestamp=((userPreviousMessageData.contract||{}).previousContractMessageServerTimestamp)||messageData.serverTimestamp
-            if(messageData.chain==(user+'Log')){
-              contract.hoursSincePreviousContractMessage=(messageData.serverTimestamp.seconds-contract.previousContractMessageServerTimestamp.seconds)/3600
-              contract.hoursDeclared=((messageData.text||"").match(/^[>]*/)||[""])[0].length
-              contract.hoursAvailable=Math.min(appSettingsContract.data().hoursAvailable24HoursWindow,contract.previousContractMessageHoursAvailable+contract.hoursSincePreviousContractMessage*appSettingsContract.data().hoursAvailable24HoursWindow/24)
-              contract.hoursValidated=Math.min(contract.hoursDeclared,contract.hoursAvailable)
-              contract.amount=contract.hoursValidated*contract.hourlyRate
-              contract.previousContractMessageHoursAvailable=contract.hoursAvailable-contract.hoursValidated
-              contract.previousContractMessageServerTimestamp=messageData.serverTimestamp
-            }
+            contract.hoursSincePreviousContractMessage=(messageData.serverTimestamp.seconds-contract.previousContractMessageServerTimestamp.seconds)/3600
+            contract.hoursDeclared=((messageData.text||"").match(/^[>]*/)||[""])[0].length
+            contract.hoursAvailable=Math.min(appSettingsContract.data().hoursAvailable24HoursWindow,contract.previousContractMessageHoursAvailable+contract.hoursSincePreviousContractMessage*appSettingsContract.data().hoursAvailable24HoursWindow/24)
+            contract.hoursValidated=Math.min(contract.hoursDeclared,contract.hoursAvailable)
+            contract.amount=contract.hoursValidated*contract.hourlyRate
+            contract.previousContractMessageHoursAvailable=contract.hoursAvailable-contract.hoursValidated
+            contract.previousContractMessageServerTimestamp=messageData.serverTimestamp
           }
         }
         contract.hoursTotal=(((userPreviousMessageData.contract||{}).hoursTotal)||0)+contract.hoursValidated

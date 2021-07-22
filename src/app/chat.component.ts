@@ -16,7 +16,6 @@ import * as firebase from 'firebase/app'
       <div *ngIf="!showChatDetails" style="float:left;margin:0 5px 0 10px;min-height:40px">
         <div>
           <span *ngIf="chatLastMessageObj?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;color:rgba(0,0,0,0.6)">settings</span>
-          <span *ngIf="chatLastMessageObj?.isLog" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;color:rgba(0,0,0,0.6)">fact_check</span>
           <div style="float:left;font-weight:bold">{{chatLastMessageObj?.chatSubject}} </div>
         </div>
         <span *ngFor="let recipient of chatLastMessageObj?.recipientList;let last=last">{{recipient==UI.currentUser?'You':chatLastMessageObj?.recipients[recipient]?.name}}{{last?"":", "}}</span>
@@ -197,7 +196,6 @@ import * as firebase from 'firebase/app'
   <div class="sheet">
     <div class="fixed" style="bottom:0">
       <span *ngIf="chatLastMessageObj?.chatSubject==null" style="margin:5px;font-size:10px">This message will be the subject of this chat</span>
-      <span *ngIf="chatLastMessageObj?.isLog" style="margin:5px;font-size:10px">Start message with > for 1 hour work >> for 2 hours work etc</span>
       <div class="seperator" style="width:100%"></div>
       <div style="clear:both;float:left;width:90%">
         <textarea id="inputMessage" autocapitalize="none" style="float:left;width:95%;border-style:solid;border-width:0 1px 0 0;border-color:#ddd;padding:9px;resize:none;overflow-y:scroll" maxlength="500" (keyup.enter)="addMessage()" [(ngModel)]="draftMessage" placeholder="Reply all"></textarea>
