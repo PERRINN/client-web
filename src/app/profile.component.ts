@@ -10,11 +10,6 @@ import * as firebase from 'firebase/app'
   selector:'profile',
   template:`
   <div class='sheet'>
-    <div *ngIf="!UI.currentUserLastMessageObj?.userStatus?.isMember" style="background-color:#f2f5d0;padding:5px">
-      <div style="color:#777;font-size:10px;float:left">To become a PERRINN member and gain full access, you need to top up your COINS (go to your settings). If you have any question about the membership, feel free to chat with Nicolas.</div>
-      <div style="color:#777;font-size:10px;float:left;line-height:16px;margin:0 5px 0 5px;padding:0 3px 0 3px;border-radius:3px;border-style:solid;border-width:1px;cursor:pointer" onclick="window.open('https://discover.perrinn.com/perrinn-com/perrinn-member','_blank')">More info about the membership</div>
-      <div style="color:#777;font-size:10px;float:left;line-height:16px;margin:0 5px 0 5px;padding:0 3px 0 3px;border-radius:3px;border-style:solid;border-width:1px;cursor:pointer" (click)="router.navigate(['profile','QYm5NATKa6MGD87UpNZCTl6IolX2'])">Chat with Nicolas</div>
-    </div>
     <div *ngIf="id=='PERRINN'" style="clear:both;background:whitesmoke">
       <div style="float:left">
         <img src="./../assets/App icons/Perrinn_02.png" style="display:inline;float:left;margin:7px;object-fit:cover;width:75px;height:75px;border-radius:50%;filter:invert(70%)">
