@@ -244,10 +244,10 @@ module.exports = {
       //user status
         let userStatus={}
         userStatus.isMember=false
-        userStatus.isDeveloper=false
+        userStatus.isContributor=false
         userStatus.isInvestor=false
         if(wallet.balance>0)userStatus.isMember=true
-        if(contract.signed)userStatus.isDeveloper=true
+        if(contract.signed)userStatus.isContributor=true
         if((wallet.balance*interest.rateYear)>(365*membership.dailyCost))userStatus.isInvestor=true
 
       //*******MESSAGE WRITES**********************

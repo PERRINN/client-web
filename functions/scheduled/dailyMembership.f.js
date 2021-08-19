@@ -20,7 +20,7 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     statistics.purchaseCOIN={}
     statistics.membership={}
     statistics.membersEmails=[]
-    statistics.developers=[]
+    statistics.contributors=[]
     statistics.investors=[]
     statistics.googleEmails=[]
     statistics.googleEmailsInvalid=[]
@@ -36,7 +36,7 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
       let lastUserMessage=await admin.firestore().collection('PERRINNMessages').where('user','==',userRecord.uid).orderBy('serverTimestamp','desc').limit(1).get()
       let result=await verifyMessageUtils.verifyMessage(lastUserMessage.docs[0].id,lastUserMessage.docs[0].data())
       if (result.userStatus.isMember)statistics.membersEmails.push(result.userEmail)
-      if (result.userStatus.isDeveloper)statistics.developers.push(result.user)
+      if (result.userStatus.isContributor)statistics.contributors.push(result.user)
       if (result.userStatus.isInvestor)statistics.investors.push(result.user)
       statistics.wallet.balance=((statistics.wallet||{}).balance||0)+result.wallet.balance
       statistics.interest.amount=((statistics.interest||{}).amount||0)+result.interest.amount
@@ -90,7 +90,7 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     let messageText=
       statistics.userCount+' visitors. '+
       statistics.membersEmails.length+' members. '+
-      statistics.developers.length+' developers. '+
+      statistics.contributors.length+' contributors. '+
       statistics.investors.length+' investors. '+
       Math.round(statistics.wallet.balance).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' COINS in circulation. '+
       Math.round(statistics.interest.rateDay).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' COINS/day created from interest. '+

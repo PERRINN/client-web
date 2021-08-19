@@ -22,7 +22,7 @@ import * as firebase from 'firebase/app';
         <span>{{message.values?.name}} {{UI.formatCOINS(message.values?.wallet?.balance||0)}}</span>
         <br>
         <span *ngIf="message.values?.userStatus?.isMember" style="font-size:10px">Member</span>
-        <span *ngIf="message.values?.userStatus?.isDeveloper" style="font-size:10px"> Developer ({{message.values?.contract?.position}} Level {{message.values?.contract?.level}})</span>
+        <span *ngIf="message.values?.userStatus?.isContributor" style="font-size:10px"> Contributor ({{message.values?.contract?.position}} Level {{message.values?.contract?.level}})</span>
         <span *ngIf="message.values?.userStatus?.isInvestor" style="font-size:10px"> Investor</span>
       </div>
     </li>
