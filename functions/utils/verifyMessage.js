@@ -91,6 +91,7 @@ module.exports = {
         if(index>-1)messageData.recipientList.splice(index,1)
       })
       if(messageData.chain==user)messageData.recipientList=[user]
+      if(messageData.chain=='PERRINNStatistics')messageData.recipientList=[]
       if(messageData.chain=='PERRINNUsersStateSnapshot')messageData.recipientList=[]
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{recipientList:messageData.recipientList||[]},{create:true})
 
