@@ -7,11 +7,10 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
 import * as firebase from 'firebase/app';
 
 @Component({
-  selector:'search',
+  selector:'directory',
   template:`
   <div class="sheet">
-  <input id="searchInput" maxlength="500" (keyup)="refreshSearchLists()" [(ngModel)]="searchFilter" placeholder="Search">
-  <div class="buttonDiv" *ngIf="searchFilter==''" style="color:white;margin:10px;width:150px;font-size:11px;background-color:midnightblue" (click)="refreshMembersList()">Members list</div>
+  <div class="buttonDiv" style="color:white;margin:10px;width:150px;font-size:11px;background-color:midnightblue" (click)="refreshMembersList()">Members list</div>
   <div class="seperator" style="width:100%;margin:0px"></div>
   </div>
   <div class='sheet'>
@@ -22,8 +21,10 @@ import * as firebase from 'firebase/app';
         <span>{{message.values?.name}} {{UI.formatCOINS(message.values?.wallet?.balance||0)}}</span>
         <br>
         <span *ngIf="message.values?.userStatus?.isMember" style="font-size:10px">Member</span>
-        <span *ngIf="message.values?.userStatus?.isContributor" style="font-size:10px"> Contributor ({{message.values?.contract?.position}} Level {{message.values?.contract?.level}})</span>
+        <span *ngIf="message.values?.userStatus?.isContributor" style="font-size:10px"> Contributor</span>
         <span *ngIf="message.values?.userStatus?.isInvestor" style="font-size:10px"> Investor</span>
+        <br>
+        <span *ngIf="message.values?.userStatus?.isContributor" style="font-size:10px">{{message.values?.contract?.position}} Level {{message.values?.contract?.level}}</span>
       </div>
     </li>
   </ul>
@@ -32,44 +33,20 @@ import * as firebase from 'firebase/app';
   `,
 })
 
-export class SearchComponent  {
+export class DirectoryComponent  {
 
   messages:Observable<any[]>;
-  searchFilter:string;
 
   constructor(
     public afs:AngularFirestore,
     public router:Router,
     public UI:UserInterfaceService
-  ) {
-    this.searchFilter='';
+  ){
+
   }
 
   ngOnInit() {
-    document.getElementById('searchInput').focus();
-    this.refreshSearchLists();
-  }
-
-  refreshSearchLists() {
-    if (this.searchFilter) {
-      if (this.searchFilter.length > 1) {
-        this.messages = this.afs.collection('PERRINNMessages', ref => ref
-        .where('userChain.nextMessage','==','none')
-        .where('verified','==',true)
-        .where('nameLowerCase','>=',this.searchFilter.toLowerCase())
-        .where('nameLowerCase','<=',this.searchFilter.toLowerCase()+'\uf8ff')
-        .orderBy('nameLowerCase')
-        .limit(10))
-        .snapshotChanges().pipe(map(changes => {
-          return changes.map(c => ({
-            key:c.payload.doc.id,
-            values:c.payload.doc.data(),
-          }));
-        }));
-      }
-    } else {
-      this.messages = null;
-    }
+    this.refreshMembersList();
   }
 
   refreshMembersList() {

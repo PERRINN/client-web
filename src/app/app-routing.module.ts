@@ -4,7 +4,7 @@ import { LoginComponent } from './login.component';
 import { ChatComponent } from './chat.component';
 import { ProfileComponent } from './profile.component';
 import { SettingsComponent } from './settings.component';
-import { SearchComponent } from './search.component';
+import { DirectoryComponent } from './directory.component';
 import { BuyCoinsComponent } from './buyCoins.component';
 
 const appRoutes: Routes = [
@@ -12,7 +12,7 @@ const appRoutes: Routes = [
   { path: 'profile/:id', component: ProfileComponent },
   { path: 'settings', component: SettingsComponent },
   { path: 'login', component: LoginComponent },
-  { path: 'search', component: SearchComponent },
+  { path: 'directory', component: DirectoryComponent },
   { path: 'buyCoins', component: BuyCoinsComponent },
   { path: '',   redirectTo: '/login', pathMatch: 'full' },
   { path: '**', component: LoginComponent }

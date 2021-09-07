@@ -9,7 +9,7 @@ import { ChatComponent }  from './chat.component';
 import { LoginComponent }  from './login.component';
 import { ProfileComponent }  from './profile.component';
 import { SettingsComponent }  from './settings.component';
-import { SearchComponent }  from './search.component';
+import { DirectoryComponent }  from './directory.component';
 import { BuyCoinsComponent }  from './buyCoins.component';
 import { LinkyModule } from 'angular-linky';
 
@@ -43,7 +43,7 @@ export const firebaseConfig = {
     LoginComponent,
     ProfileComponent,
     SettingsComponent,
-    SearchComponent,
+    DirectoryComponent,
     BuyCoinsComponent,
     ScrollableDirective,
   ],

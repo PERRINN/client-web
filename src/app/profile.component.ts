@@ -34,8 +34,10 @@ import * as firebase from 'firebase/app'
             <span style="font-size:18px;line-height:30px">{{focusUserLastMessageObj?.name}} {{UI.formatCOINS(focusUserLastMessageObj?.wallet?.balance||0)}}</span>
             <br>
             <span *ngIf="focusUserLastMessageObj?.userStatus?.isMember" style="font-size:10px">Member</span>
-            <span *ngIf="focusUserLastMessageObj?.userStatus?.isContributor" style="font-size:10px"> Contributor ({{focusUserLastMessageObj?.contract?.position}} Level {{focusUserLastMessageObj?.contract?.level}})</span>
+            <span *ngIf="focusUserLastMessageObj?.userStatus?.isContributor" style="font-size:10px"> Contributor</span>
             <span *ngIf="focusUserLastMessageObj?.userStatus?.isInvestor" style="font-size:10px"> Investor</span>
+            <br>
+            <span *ngIf="focusUserLastMessageObj?.userStatus?.isContributor" style="font-size:10px">{{focusUserLastMessageObj?.contract?.position}} Level {{focusUserLastMessageObj?.contract?.level}}</span>
             <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px;color:midnightblue">Waiting for contract signature ({{focusUserLastMessageObj?.contract?.position}} Level {{focusUserLastMessageObj?.contract?.level}})</span>
             <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin:15px;font-size:10px;color:midnightblue;cursor:pointer" (click)=signContract()>Sign contract</span>
           </div>
@@ -56,7 +58,7 @@ import * as firebase from 'firebase/app'
         (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
         <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>-60">
         <div style="float:left;min-width:90px;min-height:40px">
-          <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:rgba(0,0,0,0.6)" (click)="router.navigate(['search'])">event</span>
+          <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:rgba(0,0,0,0.6)">event</span>
         </div>
         <div>
           <div style="clear:right;margin-top:5px;width:60%">
@@ -79,7 +81,7 @@ import * as firebase from 'firebase/app'
         (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
         <div *ngIf="(UI.nowSeconds<message.payload.doc.data()?.survey?.expiryTimestamp/1000)&&message.payload.doc.data()?.survey?.createdTimestamp">
         <div style="float:left;min-width:90px;min-height:40px">
-          <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:rgba(0,0,0,0.6)" (click)="router.navigate(['search'])">poll</span>
+          <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:rgba(0,0,0,0.6)">poll</span>
         </div>
         <div>
           <div style="clear:right;margin-top:5px;width:60%">
