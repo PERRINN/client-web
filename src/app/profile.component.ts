@@ -32,6 +32,8 @@ import * as firebase from 'firebase/app'
         <div style="clear:both">
           <div style="float:left">
             <span style="font-size:18px;line-height:30px">{{focusUserLastMessageObj?.name}} {{UI.formatCOINS(focusUserLastMessageObj?.wallet?.balance||0)}}</span>
+            <br *ngIf="focusUserLastMessageObj?.isUserAnOrganisation">
+            <span *ngIf="focusUserLastMessageObj?.isUserAnOrganisation" style="font-size:10px;font-weight:bold">Organisation</span>
             <br>
             <span *ngIf="focusUserLastMessageObj?.userStatus?.isMember" style="font-size:10px">Member</span>
             <span *ngIf="focusUserLastMessageObj?.userStatus?.isContributor" style="font-size:10px"> Contributor</span>
@@ -41,7 +43,6 @@ import * as firebase from 'firebase/app'
             <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px;color:midnightblue">Waiting for contract signature ({{focusUserLastMessageObj?.contract?.position}} Level {{focusUserLastMessageObj?.contract?.level}})</span>
             <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin:15px;font-size:10px;color:midnightblue;cursor:pointer" (click)=signContract()>Sign contract</span>
           </div>
-          <div *ngIf="UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="float:right;font-size:10px;padding:2px 4px 2px 4px;color:midnightblue;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer">New message to {{focusUserLastMessageObj?.name}}</div>
         </div>
         <div style="clear:both;float:left;font-size:10px;color:#999">Created {{focusUserLastMessageObj?.createdTimestamp|date:'MMMM yyyy'}}, {{focusUserLastMessageObj?.userChain?.index}} Messages, {{focusUserLastMessageObj?.membership?.daysTotal|number:'1.1-1'}} Membership days, Verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</div>
         <div style="clear:both">
@@ -50,6 +51,9 @@ import * as firebase from 'firebase/app'
           <div style="float:left;font-size:10px;color:midnightblue;width:55px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='24months'?'underline':'none'" (click)="mode='24months';refreshMessages()">24 months</div>
           <div style="float:left;font-size:10px;color:midnightblue;width:55px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='chain'?'underline':'none'" (click)="mode='chain';refreshMessages()">chain</div>
         </div>
+        <div *ngIf="UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="float:left;font-size:10px;padding:2px 4px 2px 4px;margin-right:5px;color:midnightblue;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer">New message to {{focusUserLastMessageObj?.name}}</div>
+        <div *ngIf="UI.currentUser!=focusUserLastMessageObj?.user" (click)="addUserToYourTeam()" style="float:left;font-size:10px;padding:2px 4px 2px 4px;margin-right:5px;color:midnightblue;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer">Add {{focusUserLastMessageObj?.name}} to your team</div>
+        <div *ngIf="UI.currentUser!=focusUserLastMessageObj?.user" (click)="chooseUserAsLeader()" style="float:left;font-size:10px;padding:2px 4px 2px 4px;margin-right:5px;color:midnightblue;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer">Choose {{focusUserLastMessageObj?.name}} as your leader</div>
       </div>
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
@@ -296,6 +300,24 @@ export class ProfileComponent {
       recipientList:[this.focusUserLastMessageObj.user]
     })
     this.router.navigate(['chat',ID])
+  }
+
+  addUserToYourTeam() {
+    this.UI.createMessage({
+      text:'Adding '+this.focusUserLastMessageObj.name+' to my team.',
+      chain:this.UI.currentUser,
+      teamMemberList:[this.focusUserLastMessageObj.user]
+    })
+    this.router.navigate(['chat',this.UI.currentUser])
+  }
+
+  chooseUserAsLeader() {
+    this.UI.createMessage({
+      text:'Choosing '+this.focusUserLastMessageObj.name+' as my leader.',
+      chain:this.UI.currentUser,
+      teamLeader:this.focusUserLastMessageObj.user
+    })
+    this.router.navigate(['chat',this.UI.currentUser])
   }
 
   newId():string{

@@ -63,6 +63,7 @@ module.exports = {
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{createdTimestamp:messageData.createdTimestamp},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${user}.name`]:messageData.name||userPreviousMessageData.name||null},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${user}.imageUrlThumb`]:messageData.imageUrlThumbUser||userPreviousMessageData.imageUrlThumbUser||null},{create:true})
+      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{isUserAnOrganisation:messageData.isUserAnOrganisation||userPreviousMessageData.isUserAnOrganisation||false},{create:true})
 
       //chat chain
       let chatPreviousMessageData={}
@@ -106,6 +107,40 @@ module.exports = {
         if(recipient.docs[0]!=undefined)batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${recipient.docs[0].data().user}.imageUrlThumb`]:(recipient.docs[0].data()||{}).imageUrlThumbUser||null},{create:true})
         if(recipient.docs[0]!=undefined)batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${recipient.docs[0].data().user}.unreadMessages`]:((chatPreviousMessageData.reads||{})[recipient.docs[0].data().user]||null)?1:(((((chatPreviousMessageData.recipients||{})[recipient.docs[0].data().user]||{}).unreadMessages||1)+1)||null)},{create:true})
       })
+
+      //*******TEAM MEMBERS************
+      //(merge with previous user list and remove duplicates and remove undefined and null)
+      messageData.teamMemberList=(messageData.teamMemberList||[]).concat(userPreviousMessageData.teamMemberList||[])
+      messageData.teamMemberList=messageData.teamMemberList.filter((item,pos)=>messageData.teamMemberList.indexOf(item)===pos)
+      messageData.teamMemberList.indexOf('undefined')!=-1&&messageData.teamMemberList.splice(messageData.teamMemberList.indexOf('undefined'),1)
+      messageData.teamMemberList.indexOf(null)!=-1&&messageData.teamMemberList.splice(messageData.teamMemberList.indexOf(null),1)
+      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{teamMemberList:messageData.teamMemberList||[]},{create:true})
+      //TEAM MEMBER DATA
+      var reads=[]
+      messageData.teamMemberList.forEach(teamMember=>{
+        reads.push(admin.firestore().collection('PERRINNMessages').where('user','==',teamMember||null).where('verified','==',true).orderBy('serverTimestamp','desc').limit(1).get())
+      })
+      const teamMembersObj=await Promise.all(reads)
+      teamMembersObj.forEach((teamMember)=>{
+        if(teamMember.docs[0]!=undefined)batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`teamMembers.${teamMember.docs[0].data().user}.name`]:(teamMember.docs[0].data()||{}).name||null},{create:true})
+        if(teamMember.docs[0]!=undefined)batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`teamMembers.${teamMember.docs[0].data().user}.imageUrlThumb`]:(teamMember.docs[0].data()||{}).imageUrlThumbUser||null},{create:true})
+        if(teamMember.docs[0]!=undefined)batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`teamMembers.${teamMember.docs[0].data().user}.teamLeader`]:(teamMember.docs[0].data()||{}).teamLeader||null},{create:true})
+      })
+      //*******TEAM LEADER************
+      let teamLeader=messageData.teamLeader||userPreviousMessageData.teamLeader||null
+      let teamLeaderName=null
+      let teamLeaderImageUrlThumb=null
+      if(teamLeader){
+        const teamLeaderLastMessage=await admin.firestore().collection('PERRINNMessages').where('user','==',teamLeader).where('verified','==',true).orderBy('serverTimestamp','desc').limit(1).get()
+        if(teamLeaderLastMessage.docs[0]!=undefined){
+          teamLeaderName=(teamLeaderLastMessage.docs[0].data()||{}).name||null
+          teamLeaderImageUrlThumb=(teamLeaderLastMessage.docs[0].data()||{}).imageUrlThumbUser||null
+        }
+      }
+      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{teamLeader:teamLeader},{create:true})
+      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{teamLeaderName:teamLeaderName},{create:true})
+      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{teamLeaderImageUrlThumb:teamLeaderImageUrlThumb},{create:true})
+
 
       //*******SURVEY**********
       let survey={}
