@@ -163,11 +163,6 @@ module.exports = {
       })
 
       //*******INSTANT CREDIT/DEBIT*********************
-        //messaging cost
-        let messagingCost={}
-        messagingCost.amountWrite=(appSettingsCosts.data().messageWrite)||0
-        messagingCost.amount=Math.round(Number(messagingCost.amountWrite)*100000)/100000
-        messagingCost.amountWriteCummulate=(((userPreviousMessageData.messagingCost||{}).amountWriteCummulate)||0)+((messagingCost.amountWrite)||0)
         //message transaction out
         let transactionOut={}
         const transactionOutUserLastMessages=await admin.firestore().collection('PERRINNMessages').where('user','==',(messageData.transactionOut||{}).user||null).where('verified','==',true).orderBy('serverTimestamp','desc').limit(1).get()
@@ -246,7 +241,6 @@ module.exports = {
         let wallet={}
         wallet.previousBalance=((userPreviousMessageData.wallet||{}).balance)||0
         wallet.balance=wallet.previousBalance
-        wallet.balance=Math.round((Number(wallet.balance)-Number(messagingCost.amount))*100000)/100000
         wallet.balance=Math.round((Number(wallet.balance)-Number(transactionOut.amount))*100000)/100000
         wallet.balance=Math.round((Number(wallet.balance)+Number(transactionIn.amount))*100000)/100000
         wallet.balance=Math.round((Number(wallet.balance)+Number(purchaseCOIN.amount))*100000)/100000
@@ -254,13 +248,10 @@ module.exports = {
         wallet.balance=Math.max(0,wallet.balance)
 
       //*******TIME BASED INTEREST*************************
-        let membership={}
-        membership.dailyCost=((messageData.membership||{}).dailyCost)||appSettingsCosts.data().membershipDay
-        //interest
         let interest={}
-        interest.rateYear=appSettingsCosts.data().interestRateYear
+        interest.rateYear=((messageData.interest||{}).rateYear)||appSettingsCosts.data().interestRateYear
         interest.days=(now/1000/3600/24-(userPreviousMessageData.verifiedTimestamp||{}).seconds/3600/24)||0
-        interest.amountBase=wallet.balance-interest.days*membership.dailyCost/2
+        interest.amountBase=wallet.balance
         interest.amount=Math.max(0,interest.amountBase*(Math.exp(interest.rateYear/365*interest.days)-1))
         interest.amountCummulate=(((userPreviousMessageData.interest||{}).amountCummulate)||0)+interest.amount
         wallet.balance=Math.round((Number(wallet.balance)+Number((interest.amount)||0))*100000)/100000
@@ -270,22 +261,12 @@ module.exports = {
         if(wallet.balance>0){
           googleUtils.googleGroupMemberInsert(userEmail)
           onshapeUtils.onshapeTeamMemberPost(userEmail)
-          membership.days=(now/1000/3600/24-(userPreviousMessageData.verifiedTimestamp||{}).seconds/3600/24)||0
-          if((membership.days*membership.dailyCost)>wallet.balance)membership.days=wallet.balance/membership.dailyCost
-        } else membership.days=0
-        membership.daysTotal=(((userPreviousMessageData.membership||{}).daysTotal)||0)+membership.days
-        membership.amount=membership.days*membership.dailyCost
-        membership.amountCummulate=(((userPreviousMessageData.membership||{}).amountCummulate)||0)+membership.amount
-        wallet.balance=Math.round((Number(wallet.balance)-Number((membership.amount)||0))*100000)/100000
+        }
 
       //user status
         let userStatus={}
         userStatus.isMember=false
-        userStatus.isContributor=false
-        userStatus.isInvestor=false
         if(wallet.balance>0)userStatus.isMember=true
-        if(contract.signed)userStatus.isContributor=true
-        if((wallet.balance*interest.rateYear)>(365*membership.dailyCost))userStatus.isInvestor=true
 
       //*******MESSAGE WRITES**********************
         //message chat Subject
@@ -297,11 +278,9 @@ module.exports = {
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{eventDescription:messageData.eventDescription||chatPreviousMessageData.eventDescription||null},{create:true})
         //message objects
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userChain:userChain},{create:true})
-        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{messagingCost:messagingCost},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{purchaseCOIN:purchaseCOIN},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{transactionOut:transactionOut},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{transactionIn:transactionIn},{create:true})
-        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{membership:membership},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{contract:contract},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{interest:interest},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{wallet:wallet},{create:true})
@@ -342,7 +321,7 @@ module.exports = {
         }
 
         //user state snapshot
-        if(membership.dailyCost!=appSettingsCosts.data().membershipDay){
+        if(interest.rateYear!=appSettingsCosts.data().interestRateYear){
           createMessageUtils.createMessageAFS({
             user:user,
             text:'Taking a snapshot of user state',
@@ -357,9 +336,7 @@ module.exports = {
         transactionIn:transactionIn,
         transactionOut:transactionOut,
         purchaseCOIN:purchaseCOIN,
-        membership:membership,
         contract:contract,
-        messagingCost:messagingCost,
         interest:interest,
         userStatus:userStatus
       }

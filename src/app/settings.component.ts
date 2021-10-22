@@ -18,8 +18,6 @@ import * as firebase from 'firebase/app';
   <span style="font-size:18px;line-height:30px;margin:15px">{{UI.currentUserLastMessageObj?.name}} {{UI.formatCOINS(UI.currentUserLastMessageObj?.wallet?.balance||0)}}</span>
   <br/>
   <span *ngIf="UI.currentUserLastMessageObj?.userStatus?.isMember" style="font-size:10px;margin-left:15px">Member</span>
-  <span *ngIf="UI.currentUserLastMessageObj?.userStatus?.isContributor" style="font-size:10px"> Contributor</span>
-  <span *ngIf="UI.currentUserLastMessageObj?.userStatus?.isInvestor" style="font-size:10px"> Investor</span>
   <br/>
   <span *ngIf="UI.currentUserLastMessageObj?.userStatus?.isContributor" style="font-size:10px;margin-left:15px">{{UI.currentUserLastMessageObj?.contract?.position}} Level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
   <span *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px;color:midnightblue">Waiting for contract signature ({{UI.currentUserLastMessageObj?.contract?.position}} Level {{UI.currentUserLastMessageObj?.contract?.level}})</span>

@@ -14,11 +14,9 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     statistics.wallet={}
     statistics.interest={}
     statistics.contract={}
-    statistics.messagingCost={}
     statistics.transactionIn={}
     statistics.transactionOut={}
     statistics.purchaseCOIN={}
-    statistics.membership={}
     statistics.membersEmails=[]
     statistics.contributors=[]
     statistics.investors=[]
@@ -37,25 +35,18 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
       if(lastUserMessage.docs[0]!=undefined){
         let result=await verifyMessageUtils.verifyMessage(lastUserMessage.docs[0].id,lastUserMessage.docs[0].data())
         if (result.userStatus.isMember)statistics.membersEmails.push(result.userEmail)
-        if (result.userStatus.isContributor)statistics.contributors.push(result.user)
-        if (result.userStatus.isInvestor)statistics.investors.push(result.user)
         statistics.wallet.balance=((statistics.wallet||{}).balance||0)+result.wallet.balance
         statistics.interest.amount=((statistics.interest||{}).amount||0)+result.interest.amount
         statistics.interest.rateDay=statistics.wallet.balance*(Math.exp(result.interest.rateYear/365)-1)
         statistics.interest.amountCummulate=((statistics.interest||{}).amountCummulate||0)+result.interest.amountCummulate
         statistics.contract.amount=((statistics.contract||{}).amount||0)+result.contract.amount
         statistics.contract.amountCummulate=((statistics.contract||{}).amountCummulate||0)+result.contract.amountCummulate
-        statistics.messagingCost.amount=((statistics.messagingCost||{}).amount||0)+result.messagingCost.amount
-        statistics.messagingCost.amountWriteCummulate=((statistics.messagingCost||{}).amountWriteCummulate||0)+result.messagingCost.amountWriteCummulate
         statistics.transactionIn.amount=((statistics.transactionIn||{}).amount||0)+result.transactionIn.amount
         statistics.transactionIn.amountCummulate=((statistics.transactionIn||{}).amountCummulate||0)+result.transactionIn.amountCummulate
         statistics.transactionOut.amount=((statistics.transactionOut||{}).amount||0)+result.transactionOut.amount
         statistics.transactionOut.amountCummulate=((statistics.transactionOut||{}).amountCummulate||0)+result.transactionOut.amountCummulate
         statistics.purchaseCOIN.amount=((statistics.purchaseCOIN||{}).amount||0)+result.purchaseCOIN.amount
         statistics.purchaseCOIN.amountCummulate=((statistics.purchaseCOIN||{}).amountCummulate||0)+result.purchaseCOIN.amountCummulate
-        statistics.membership.amount=((statistics.membership||{}).amount||0)+result.membership.amount
-        if(result.wallet.balance>0)statistics.membership.rateDay=((statistics.membership||{}).rateDay||0)+result.membership.dailyCost
-        statistics.membership.amountCummulate=((statistics.membership||{}).amountCummulate||0)+result.membership.amountCummulate
         statistics.userCount=(statistics.userCount||0)+1
       }
     }
@@ -95,8 +86,7 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
       statistics.contributors.length+' contributors. '+
       statistics.investors.length+' investors. '+
       Math.round(statistics.wallet.balance).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' COINS in circulation. '+
-      Math.round(statistics.interest.rateDay).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' COINS/day created from interest. '+
-      Math.round(statistics.membership.rateDay).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' COINS/day burned from membership. '
+      Math.round(statistics.interest.rateDay).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' COINS/day created from interest. '
 
     createMessageUtils.createMessageAFS({
       user:'-L7jqFf8OuGlZrfEK6dT',
