@@ -18,8 +18,6 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     statistics.transactionOut={}
     statistics.purchaseCOIN={}
     statistics.membersEmails=[]
-    statistics.contributors=[]
-    statistics.investors=[]
     statistics.googleEmails=[]
     statistics.googleEmailsInvalid=[]
     statistics.googleEmailsMissing=[]
@@ -83,8 +81,6 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     let messageText=
       statistics.userCount+' visitors. '+
       statistics.membersEmails.length+' members. '+
-      statistics.contributors.length+' contributors. '+
-      statistics.investors.length+' investors. '+
       Math.round(statistics.wallet.balance).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' COINS in circulation. '+
       Math.round(statistics.interest.rateDay).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' COINS/day created from interest. '
 
