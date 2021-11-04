@@ -25,8 +25,12 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     statistics.onshapeUids=[]
     statistics.onshapeUidsInvalid=[]
     statistics.onshapeEmailsMissing=[]
-    const listUsersResult=await admin.auth().listUsers()
-    for(const userRecord of listUsersResult.users){
+    let listUsersResult1={}
+    let listUsersResult2={}
+    listUsersResult1=await admin.auth().listUsers(1000)
+    if(listUsersResult1.pageToken)listUsersResult2=await admin.auth().listUsers(1000,listUsersResult1.pageToken)
+    let listUsersResult=listUsersResult1.users.concat(listUsersResult2.users)
+    for(const userRecord of listUsersResult){
       let messageRef=''
       let messageData={}
       let lastUserMessage=await admin.firestore().collection('PERRINNMessages').where('user','==',userRecord.uid).orderBy('serverTimestamp','desc').limit(1).get()
