@@ -31,6 +31,12 @@ import * as firebase from 'firebase/app';
   <div class="seperator" style="width:100%;margin:0px;cursor:default"></div>
   <ul class="listLight" style="margin:10px">
     <li *ngFor="let message of messages | async" style="float:left;cursor:default">
+      <img [src]="message?.values.imageUrlThumbUser" style="float:left;opacity:1;object-fit:cover;height:75px;width:75px">
+    </li>
+  </ul>
+  <div class="seperator" style="width:100%;margin:0px;cursor:default"></div>
+  <ul class="listLight" style="margin:10px">
+    <li *ngFor="let message of messages | async" style="float:left;cursor:default">
       <span>{{message.values?.name}} {{UI.formatCOINS(message.values?.wallet?.balance||0)}}&nbsp;&nbsp;</span>
     </li>
   </ul>
