@@ -42,12 +42,11 @@ export class UserInterfaceService {
   }
 
   formatCOINS(amount){
-    if(amount<0)return '-C'+formatNumber(-amount,"en-US","1.2-2")
-    if(amount<100)return 'C'+formatNumber(amount,"en-US","1.2-2")
-    if(amount<1000)return 'C'+formatNumber(amount,"en-US","1.0-0")
-    if(amount<100000)return 'C'+formatNumber(amount/1000,"en-US","1.1-1")+'K'
-    if(amount<1000000)return 'C'+formatNumber(amount/1000,"en-US","1.0-0")+'K'
-    else return 'C'+formatNumber(amount/1000000,"en-US","1.2-2")+'M'
+    if(amount<100)return formatNumber(amount,"en-US","1.2-2")
+    if(amount<1000)return formatNumber(amount,"en-US","1.1-1")
+    if(amount<100000)return formatNumber(amount/1000,"en-US","1.1-1")+'K'
+    if(amount<1000000)return formatNumber(amount/1000,"en-US","1.0-0")+'K'
+    else return formatNumber(amount/1000000,"en-US","1.2-2")+'M'
   }
 
   formatSecondsToDhm2(seconds){

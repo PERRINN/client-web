@@ -18,7 +18,9 @@ import * as firebase from 'firebase/app';
     <li *ngFor="let message of messages | async" style="float:left;padding:5px">
       <div style="float:left;width:250px;height:115px" (click)="router.navigate(['profile',message.values.user])">
         <img [src]="message?.values.imageUrlThumbUser" style="float:left;margin:0 10px 65px 10px;opacity:1;object-fit:cover;height:50px;width:50px;border-radius:50%">
-        <span>{{message.values?.name}} {{UI.formatCOINS(message.values?.wallet?.balance||0)}}</span>
+        <span>{{message.values?.name}} </span>
+        <span style="font-family:impact;font-size:6px;font-style:italic">424 </span>
+        <span>{{UI.formatCOINS(message.values?.wallet?.balance||0)}}</span>
         <br *ngIf="message.values?.isUserAnOrganisation">
         <span *ngIf="message.values?.isUserAnOrganisation" style="font-size:10px;font-weight:bold">Organisation</span>
         <br>
@@ -37,7 +39,9 @@ import * as firebase from 'firebase/app';
   <div class="seperator" style="width:100%;margin:0px;cursor:default"></div>
   <ul class="listLight" style="margin:10px">
     <li *ngFor="let message of messages | async" style="float:left;cursor:default">
-      <span>{{message.values?.name}} {{UI.formatCOINS(message.values?.wallet?.balance||0)}}&nbsp;&nbsp;</span>
+      <span>{{message.values?.name}} </span>
+      <span style="font-family:impact;font-size:6px;font-style:italic">424 </span>
+      <span>{{UI.formatCOINS(message.values?.wallet?.balance||0)}}&nbsp;&nbsp;</span>
     </li>
   </ul>
   <div class="seperator" style="width:100%;margin:0px"></div>
