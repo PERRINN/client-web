@@ -18,7 +18,8 @@ import * as firebase from 'firebase/app';
   <div style="margin:15px">
     <span style="font-size:18px">{{UI.currentUserLastMessageObj?.name}} </span>
     <span style="font-size:8px;font-style:italic">424 </span>
-    <span style="font-size:18px">{{UI.formatCOINS(UI.currentUserLastMessageObj?.wallet?.balance||0)}}</span>
+    <span style="font-size:18px">{{UI.formatCOINS(UI.currentUserLastMessageObj?.wallet?.balance||0)}} </span>
+    <span *ngFor="let currency of objectToArray(currencyList);let first=first;let last=last">{{first?"(":""}}{{UI.formatCOINS((UI.currentUserLastMessageObj?.wallet?.balance||0)/currency[1].toCOIN)}} {{currency[1].code}}{{last?")":", "}}</span>
   </div>
   <span *ngIf="UI.currentUserLastMessageObj?.userStatus?.isMember" style="font-size:10px;margin-left:15px">Member</span>
   <br/>
@@ -66,6 +67,7 @@ export class SettingsComponent {
   currentEmail:string
   contract:any
   searchFilter:string
+  currencyList:any
 
   constructor(
     public afAuth:AngularFireAuth,
@@ -80,6 +82,9 @@ export class SettingsComponent {
     this.currentEmail=this.UI.currentUserLastMessageObj.userEmail||null
     this.contract.position=(this.UI.currentUserLastMessageObj.contract||{}).position||null
     this.contract.level=(this.UI.currentUserLastMessageObj.contract||{}).level||null
+    afs.doc<any>('appSettings/payment').valueChanges().subscribe(snapshot=>{
+      this.currencyList=snapshot.currencyList
+    })
   }
 
   logout() {
