@@ -5,6 +5,7 @@ const verifyMessageUtils = require('../utils/verifyMessage')
 const onshapeUtils = require('../utils/onshape')
 const googleUtils = require('../utils/google')
 const createMessageUtils = require('../utils/createMessage')
+const stripeObj = require('stripe')(functions.config().stripe.token)
 
 const runtimeOpts={timeoutSeconds:540,memory:'1GB'}
 
@@ -81,12 +82,14 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     })
     statistics.serverTimestamp=admin.firestore.FieldValue.serverTimestamp()
     await admin.firestore().collection('statistics').add(statistics);
+    let stripeBalance=await stripeObj.balance.retrieve()
 
     let messageText=
       statistics.userCount+' visitors. '+
       statistics.membersEmails.length+' members. '+
       Math.round(statistics.wallet.balance).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' COINS in circulation. '+
-      Math.round(statistics.interest.rateDay).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' COINS/day created from interest. '
+      Math.round(statistics.interest.rateDay).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' COINS/day created from interest. '+
+      stripeBalance.available[0].amount+stripeBalance.available[0].currency+' available in the PERRINN cash reserve.'
 
     createMessageUtils.createMessageAFS({
       user:'-L7jqFf8OuGlZrfEK6dT',
