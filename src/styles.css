@@ -348,12 +348,6 @@ iframe {
   font-weight: bold;
   font-family: sans-serif;
 }
-.messageFooter {
-  color:white;
-}
-.messageFooter:hover {
-  color:#ccc;
-}
 .tableRow:hover {
   background-color:#eee;
 }

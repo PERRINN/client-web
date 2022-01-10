@@ -136,48 +136,48 @@ import * as firebase from 'firebase/app'
           <div *ngIf="message.payload?.imageUrlThumbUser&&(isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first)" style="float:left;width:60px;min-height:10px">
             <img [src]="message.payload?.imageUrlThumbUser" style="cursor:pointer;display:inline;float:left;margin:10px;border-radius:50%; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
           </div>
-          <div [style.background-color]="(message.payload?.user==UI.currentUser)?'midnightblue':'white'" style="cursor:text;border-style:solid;border-width:1px;color:#ccc;margin:2px 10px 5px 60px">
+          <div [style.background-color]="(message.payload?.user==UI.currentUser)?'midnightblue':'white'" style="cursor:text;border-style:solid;border-width:1px;margin:2px 10px 5px 60px" [style.color]="(message.payload?.user==UI.currentUser)?'#CCC':'#777'">
             <div>
-              <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" [style.color]="(message.payload?.user==UI.currentUser)?'#DDD':'#777'">
+              <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
                 <div style="font-size:12px;font-weight:bold;display:inline;float:left;margin:0px 10px 0px 5px">{{message.payload?.name}}</div>
                 <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)>43200" style="font-size:11px;margin:0px 10px 0px 10px">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'HH:mm'}}</div>
                 <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)<=43200" style="font-size:11px;margin:0px 10px 0px 10px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</div>
               </div>
-              <div [style.color]="(message.payload?.user==UI.currentUser)?'#DDD':'#404040'" style="float:left;margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
+              <div style="float:left;margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
               <div style="clear:both;text-align:center">
                 <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" style="clear:both;width:70%;max-height:320px;object-fit:contain;margin:5px 10px 5px 5px;border-radius:3px" (click)="showFullScreenImage(message.payload?.chatImageUrlOriginal)">
               </div>
               <div *ngIf="messageShowDetails.includes(message.key)" style="margin:5px">
                 <div class="seperator" style="width:100%"></div>
-                <div style="color:#666;font-size:10px">userStatus {{message.payload?.userStatus|json}}</div>
+                <div style="font-size:10px">userStatus {{message.payload?.userStatus|json}}</div>
                 <div class="seperator" style="width:100%"></div>
-                <div style="color:#666;font-size:10px">userChain {{message.payload?.userChain|json}}</div>
+                <div style="font-size:10px">userChain {{message.payload?.userChain|json}}</div>
                 <div class="seperator" style="width:100%"></div>
-                <div style="color:#666;font-size:10px">transactionOut {{message.payload?.transactionOut|json}}</div>
+                <div style="font-size:10px">transactionOut {{message.payload?.transactionOut|json}}</div>
                 <div class="seperator" style="width:100%"></div>
-                <div style="color:#666;font-size:10px">transactionIn {{message.payload?.transactionIn|json}}</div>
+                <div style="font-size:10px">transactionIn {{message.payload?.transactionIn|json}}</div>
                 <div class="seperator" style="width:100%"></div>
-                <div style="color:#666;font-size:10px">COIN purchase {{message.payload?.purchaseCOIN|json}}</div>
+                <div style="font-size:10px">COIN purchase {{message.payload?.purchaseCOIN|json}}</div>
                 <div class="seperator" style="width:100%"></div>
-                <div style="color:#666;font-size:10px">interest {{message.payload?.interest|json}}</div>
+                <div style="font-size:10px">interest {{message.payload?.interest|json}}</div>
                 <div class="seperator" style="width:100%"></div>
-                <div style="color:#666;font-size:10px">contract {{message.payload?.contract|json}}</div>
+                <div style="font-size:10px">contract {{message.payload?.contract|json}}</div>
                 <div class="seperator" style="width:100%"></div>
-                <div style="color:#666;font-size:10px">wallet {{message.payload?.wallet|json}}</div>
+                <div style="font-size:10px">wallet {{message.payload?.wallet|json}}</div>
                 <div class="seperator" style="width:100%"></div>
-                <div style="color:#666;font-size:10px">survey {{message.payload?.survey|json}}</div>
+                <div style="font-size:10px">survey {{message.payload?.survey|json}}</div>
                 <div class="seperator" style="width:100%"></div>
-                <div style="color:#666;font-size:10px">{{message.payload|json}}</div>
+                <div style="font-size:10px">{{message.payload|json}}</div>
               </div>
             </div>
-            <div class='messageFooter' style="cursor:pointer;clear:both;height:15px" (click)="messageShowActions.includes(message.key)?messageShowActions.splice(messageShowActions.indexOf(message.key),1):messageShowActions.push(message.key)">
+            <div style="cursor:pointer;clear:both;height:15px" (click)="messageShowActions.includes(message.key)?messageShowActions.splice(messageShowActions.indexOf(message.key),1):messageShowActions.push(message.key)">
               <div style="float:left;width:100px;text-align:right;line-height:10px">...</div>
-              <span *ngIf="message.payload?.verified" class="material-icons" style="float:right;font-size:15px;margin:0 2px 2px 0;color:green">done</span>
-              <span *ngIf="message.payload?.contract?.hoursValidated>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px;color:green">+{{UI.formatCOINS(message.payload?.contract?.amount)}} ({{UI.formatSecondsToDhm1(message.payload?.contract?.hoursValidated*3600)}}/{{UI.formatSecondsToDhm1(message.payload?.contract?.hoursAvailable*3600)}})</span>
-              <span *ngIf="message.payload?.userChain?.nextMessage=='none'&&message.payload?.wallet?.balance!=undefined" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px;color:#999">{{UI.formatCOINS(message.payload?.wallet?.balance)}}</span>
+              <span *ngIf="message.payload?.verified" class="material-icons" style="float:right;font-size:15px;margin:0 2px 2px 0">done</span>
+              <span *ngIf="message.payload?.contract?.hoursValidated>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.formatCOINS(message.payload?.contract?.amount)}} ({{UI.formatSecondsToDhm1(message.payload?.contract?.hoursValidated*3600)}}/{{UI.formatSecondsToDhm1(message.payload?.contract?.hoursAvailable*3600)}})</span>
+              <span *ngIf="message.payload?.userChain?.nextMessage=='none'&&message.payload?.wallet?.balance!=undefined" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.formatCOINS(message.payload?.wallet?.balance)}}</span>
             </div>
             <div *ngIf="messageShowActions.includes(message.key)">
-              <div style="float:left;padding:5px;color:#777;cursor:pointer;border-color:#ddd;border-style:solid;border-width:1px 1px 0 0" (click)="messageShowDetails.includes(message.key)?messageShowDetails.splice(messageShowDetails.indexOf(message.key),1):messageShowDetails.push(message.key)">Details</div>
+              <div style="float:left;padding:5px;cursor:pointer;border-style:solid;border-width:1px 1px 0 0" (click)="messageShowDetails.includes(message.key)?messageShowDetails.splice(messageShowDetails.indexOf(message.key),1):messageShowDetails.push(message.key)">Details</div>
             </div>
           </div>
           <div *ngIf="leftHere==message.key" style="margin:0 auto;text-align:center;color:#404040;font-size:12px;margin:35px 0 35px 0;background-color:#f4f7fc;border-style:solid;border-color:#bbb;border-width:1px 0 1px 0">Left here</div>
