@@ -183,7 +183,7 @@ import * as firebase from 'firebase/app'
               <div style="float:left;padding:5px;cursor:pointer;border-style:solid;border-width:1px 1px 0 0" (click)="messageShowDetails.includes(message.key)?messageShowDetails.splice(messageShowDetails.indexOf(message.key),1):messageShowDetails.push(message.key)">Details</div>
             </div>
           </div>
-          <div *ngIf="leftHere==message.key" style="margin:0 auto;text-align:center;color:#404040;font-size:12px;margin:35px 0 35px 0;background-color:#f4f7fc;border-style:solid;border-color:#bbb;border-width:1px 0 1px 0">Left here</div>
+          <div *ngIf="lastRead==message.key" style="margin:0 auto;text-align:center;color:midnightblue;font-weight:bold;font-size:12px;margin:35px 0 35px 0;border-style:solid;border-width:0 0 2px 0">Last read</div>
           {{storeMessageValues(message.payload)}}
           {{(last||i==(messageNumberDisplay-1))?scrollToBottom(message.payload?.serverTimestamp?.seconds):''}}
         </li>
@@ -237,7 +237,7 @@ export class ChatComponent {
   surveyDefault:any
   survey:any
   messageShowActions:[]
-  leftHere:string
+  lastRead:string
 
   constructor(
     public afs:AngularFirestore,
@@ -250,7 +250,7 @@ export class ChatComponent {
     this.UI.loading=true
     this.reads=[]
     this.route.params.subscribe(params=>{
-      this.leftHere=null
+      this.lastRead=null
       this.chatChain=params.id
       this.messageShowActions=[]
       this.messageShowDetails=[]
@@ -304,7 +304,7 @@ export class ChatComponent {
       var batch=this.afs.firestore.batch()
       var nextMessageRead=true
       changes.forEach(c=>{
-        if(!this.leftHere&&!nextMessageRead&&(c.payload.doc.data()['reads']||[])[this.UI.currentUser])this.leftHere=c.payload.doc.id
+        if(!this.lastRead&&!nextMessageRead&&(c.payload.doc.data()['reads']||[])[this.UI.currentUser])this.lastRead=c.payload.doc.id
         nextMessageRead=(c.payload.doc.data()['reads']||[])[this.UI.currentUser]
         if(c.payload.doc.data()['lastMessage']){
           if(!this.reads.includes(c.payload.doc.id))batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id),{serverTimestamp:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
