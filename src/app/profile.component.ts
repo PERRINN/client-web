@@ -37,7 +37,9 @@ import * as firebase from 'firebase/app'
             <br *ngIf="focusUserLastMessageObj?.isUserAnOrganisation">
             <span *ngIf="focusUserLastMessageObj?.isUserAnOrganisation" style="font-size:10px;font-weight:bold">Organisation</span>
             <br>
-            <span *ngIf="focusUserLastMessageObj?.contract?.signed" style="font-size:10px">{{focusUserLastMessageObj?.userPresentation}} {{focusUserLastMessageObj?.contract?.position}} Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
+            <span *ngIf="focusUserLastMessageObj?.contract?.signed" style="font-size:10px;padding:3px;color:white;background-color:midnightblue">Contributor</span>
+            <br>
+            <span style="font-size:10px">{{focusUserLastMessageObj?.userPresentation}} {{focusUserLastMessageObj?.contract?.position}} Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
             <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px;color:midnightblue">Waiting for contract signature ({{focusUserLastMessageObj?.contract?.position}} Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}})</span>
             <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin:15px;font-size:10px;color:midnightblue;cursor:pointer" (click)=signContract()>Sign contract</span>
           </div>

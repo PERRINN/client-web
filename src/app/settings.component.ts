@@ -27,7 +27,7 @@ import * as firebase from 'firebase/app';
     <span style="font-size:18px">{{UI.formatCOINS(UI.currentUserLastMessageObj?.wallet?.balance||0)}} </span>
     <span *ngFor="let currency of objectToArray(currencyList);let first=first;let last=last">{{first?"(":""}}{{UI.formatCOINS((UI.currentUserLastMessageObj?.wallet?.balance||0)/currency[1].toCOIN)}} {{currency[1].code}}{{last?")":", "}}</span>
   </div>
-  <span *ngIf="UI.currentUserLastMessageObj?.contract?.signed" style="font-size:10px;margin-left:15px">{{UI.currentUserLastMessageObj?.userPresentation}} {{UI.currentUserLastMessageObj?.contract?.position}} Level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
+  <span style="font-size:10px;margin-left:15px">{{UI.currentUserLastMessageObj?.userPresentation}} {{UI.currentUserLastMessageObj?.contract?.position}} Level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
   <span *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px;color:midnightblue">Waiting for contract signature ({{UI.currentUserLastMessageObj?.contract?.position}} Level {{UI.currentUserLastMessageObj?.contract?.level}})</span>
   <div style="font-size:12px;text-align:center;line-height:20px;width:150px;padding:2px;margin:10px;color:white;background-color:green;border-radius:3px;cursor:pointer" (click)="router.navigate(['buyCoins'])">Buy new COINS</div>
   <br/>
