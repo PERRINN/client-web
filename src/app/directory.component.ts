@@ -37,6 +37,13 @@ import * as firebase from 'firebase/app';
     </li>
   </ul>
   <div class="seperator" style="width:100%;margin:0px;cursor:default"></div>
+  <div style="font-size:14px;margin:20px;color:#444">Contributors only</div>
+  <ul class="listLight" style="margin:10px;max-width:375px">
+    <li *ngFor="let message of messages | async" style="float:left;cursor:default">
+      <img *ngIf="message?.values?.contract?.signed" [src]="message?.values.imageUrlThumbUser" style="float:left;opacity:1;object-fit:cover;height:75px;width:75px">
+    </li>
+  </ul>
+  <div class="seperator" style="width:100%;margin:0px;cursor:default"></div>
   <ul class="listLight" style="margin:10px">
     <li *ngFor="let message of messages | async" style="float:left;cursor:default">
       <span>{{message.values?.name}} </span>
