@@ -11,7 +11,6 @@ module.exports = {
       }
       messageObj.serverTimestamp=admin.firestore.FieldValue.serverTimestamp()
       messageObj.chain=messageObj.chain||autoId
-      if(messageObj.PERRINN==undefined)messageObj.PERRINN={}
       return admin.firestore().collection('PERRINNMessages').add(messageObj)
     }
     catch(error){

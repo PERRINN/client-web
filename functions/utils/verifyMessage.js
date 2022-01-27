@@ -53,18 +53,20 @@ module.exports = {
       }
       let userEmail=messageData.userEmail||userPreviousMessageData.userEmail||authEmail
       messageData.createdTimestamp=messageData.createdTimestamp||userPreviousMessageData.createdTimestamp||now
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userEmail:userEmail||null},{create:true})
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{name:messageData.name||userPreviousMessageData.name||null},{create:true})
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userPresentation:messageData.userPresentation||userPreviousMessageData.userPresentation||null},{create:true})
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{nameLowerCase:(messageData.name||userPreviousMessageData.name||"null").toLowerCase()},{create:true})
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userImageTimestamp:messageData.userImageTimestamp||userPreviousMessageData.userImageTimestamp||null},{create:true})
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{imageUrlThumbUser:messageData.imageUrlThumbUserLong||messageData.imageUrlThumbUser||userPreviousMessageData.imageUrlThumbUser||null},{create:true})
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{imageUrlMedium:messageData.imageUrlMediumLong||messageData.imageUrlMedium||userPreviousMessageData.imageUrlMedium||null},{create:true})
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{imageUrlOriginal:messageData.imageUrlOriginalLong||messageData.imageUrlOriginal||userPreviousMessageData.imageUrlOriginal||null},{create:true})
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{createdTimestamp:messageData.createdTimestamp},{create:true})
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${user}.name`]:messageData.name||userPreviousMessageData.name||null},{create:true})
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${user}.imageUrlThumb`]:messageData.imageUrlThumbUser||userPreviousMessageData.imageUrlThumbUser||null},{create:true})
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{isUserAnOrganisation:messageData.isUserAnOrganisation||userPreviousMessageData.isUserAnOrganisation||false},{create:true})
+      if(messageData.creatingUser==undefined||userPreviousMessageData==undefined){
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userEmail:userEmail||null},{create:true})
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{name:messageData.name||userPreviousMessageData.name||null},{create:true})
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userPresentation:messageData.userPresentation||userPreviousMessageData.userPresentation||null},{create:true})
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{nameLowerCase:(messageData.name||userPreviousMessageData.name||"null").toLowerCase()},{create:true})
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userImageTimestamp:messageData.userImageTimestamp||userPreviousMessageData.userImageTimestamp||null},{create:true})
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{imageUrlThumbUser:messageData.imageUrlThumbUserLong||messageData.imageUrlThumbUser||userPreviousMessageData.imageUrlThumbUser||null},{create:true})
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{imageUrlMedium:messageData.imageUrlMediumLong||messageData.imageUrlMedium||userPreviousMessageData.imageUrlMedium||null},{create:true})
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{imageUrlOriginal:messageData.imageUrlOriginalLong||messageData.imageUrlOriginal||userPreviousMessageData.imageUrlOriginal||null},{create:true})
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{createdTimestamp:messageData.createdTimestamp},{create:true})
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${user}.name`]:messageData.name||userPreviousMessageData.name||null},{create:true})
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${user}.imageUrlThumb`]:messageData.imageUrlThumbUser||userPreviousMessageData.imageUrlThumbUser||null},{create:true})
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{isUserAnOrganisation:messageData.isUserAnOrganisation||userPreviousMessageData.isUserAnOrganisation||false},{create:true})
+      }
 
       //chat chain
       let chatPreviousMessageData={}
