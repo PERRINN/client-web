@@ -53,6 +53,13 @@ module.exports = {
       }
       let userEmail=messageData.userEmail||userPreviousMessageData.userEmail||authEmail
       messageData.createdTimestamp=messageData.createdTimestamp||userPreviousMessageData.createdTimestamp||now
+      if((messageData.creatingUser!=undefined)&&(userPreviousMessageData!=undefined)){
+        messageData.text=(messageData.text||"")+" (duplicate)"
+        messageData.name=userPreviousMessageData.name
+        messageData.imageUrlThumbUser=userPreviousMessageData.imageUrlThumbUser
+        messageData.imageUrlMedium=userPreviousMessageData.imageUrlMedium
+        messageData.imageUrlOriginal=userPreviousMessageData.imageUrlOriginal
+      }
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userEmail:userEmail||null},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{name:messageData.name||userPreviousMessageData.name||null},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userPresentation:messageData.userPresentation||userPreviousMessageData.userPresentation||null},{create:true})
