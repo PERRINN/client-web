@@ -53,7 +53,7 @@ module.exports = {
       }
       let userEmail=messageData.userEmail||userPreviousMessageData.userEmail||authEmail
       messageData.createdTimestamp=messageData.createdTimestamp||userPreviousMessageData.createdTimestamp||now
-      if((messageData.creatingUser!=undefined)&&(userPreviousMessageData!=undefined)){
+      if((messageData.creatingUser!=undefined)&&(userPreviousMessageData.name)&&(userPreviousMessageData.imageUrlThumbUser)){
         messageData.text=(messageData.text||"")+" (duplicate)"
         messageData.name=userPreviousMessageData.name
         messageData.imageUrlThumbUser=userPreviousMessageData.imageUrlThumbUser
