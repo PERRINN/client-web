@@ -320,7 +320,7 @@ module.exports = {
           const contractSignatureUserLastMessage=await admin.firestore().collection('PERRINNMessages').where('user','==',messageData.contractSignature.user).where('verified','==',true).orderBy('serverTimestamp','desc').limit(1).get()
           createMessageUtils.createMessageAFS({
             user:messageData.contractSignature.user,
-            text:'Contract signature activation',
+            text:'Contract signed',
             chain:messageData.contractSignature.user,
             contract:{
               message:messageId
