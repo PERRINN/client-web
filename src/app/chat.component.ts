@@ -48,8 +48,7 @@ import * as firebase from 'firebase/app'
     <div *ngIf="chatLastMessageObj?.chatSubject!=chatSubject&&chatSubject" style="float:right;width:75px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:white;background-color:midnightblue;border-radius:3px;cursor:pointer" (click)="saveNewSubject()">Save</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
     <ul style="color:#333;margin:10px">
-      <li *ngFor="let recipient of chatLastMessageObj?.recipientList" style="float:left"
-     >
+      <li *ngFor="let recipient of chatLastMessageObj?.recipientList" style="float:left">
         <div style="float:left;cursor:pointer" (click)="router.navigate(['profile',recipient])">
           <img [src]="chatLastMessageObj?.recipients[recipient]?.imageUrlThumb" style="float:left;object-fit:cover;height:25px;width:25px;border-radius:50%;margin:3px 3px 3px 10px">
           <div style="float:left;margin:10px 5px 3px 3px;font-size:12px;line-height:10px;font-family:sans-serif">{{chatLastMessageObj?.recipients[recipient]?.name}}</div>
@@ -137,7 +136,7 @@ import * as firebase from 'firebase/app'
             <img [src]="message.payload?.imageUrlThumbUser" style="cursor:pointer;display:inline;float:left;margin:10px;border-radius:50%; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
           </div>
           <div [style.background-color]="(message.payload?.user==UI.currentUser)?'midnightblue':'white'"
-                style="cursor:text;border-width:1px;margin:2px 10px 5px 60px"
+                style="cursor:text;border-width:1px;margin:2px 10px 5px 60px;user-select:text"
                 [style.color]="(message.payload?.user==UI.currentUser)?'#CCC':'#777'"
                 [style.border-style]="(message.payload?.user==UI.currentUser)?'none':'solid'">
             <div>

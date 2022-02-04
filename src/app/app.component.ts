@@ -15,13 +15,18 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
         <span class="material-icons-outlined" style="float:left;margin:5px 45px 5px 45px;font-size:30px;height:30px;cursor:pointer;color:white" onclick="window.open('https://discover.perrinn.com','_blank')">info</span>
       </div>
     </div>
-    <div>
+    <div style="user-select:none">
       <div *ngIf="UI.currentUser" style="max-width:800px;margin:0 auto">
         <div style="float:left;width:110px;height:35px;cursor:pointer;border-style:solid;border-width:0 1px 0 0;border-color:#ddd" (click)="router.navigate(['profile',UI.currentUser])">
           <img *ngIf="UI.currentUserLastMessageObj?.imageUrlThumbUser" [src]="UI.currentUserLastMessageObj.imageUrlThumbUser" style="display:inline;float:left;margin:4px;border-radius:50%;object-fit:cover;width:25px;height:25px">
           <div *ngIf="UI.currentUserLastMessageObj?.wallet?.balance" style="float:left;margin:8px;font-size:12px">
             <span style="font-size:8px;font-style:italic">424 </span>
             <span >{{UI.formatCOINS(UI.currentUserLastMessageObj.wallet.balance)}}</span>
+          </div>
+        </div>
+        <div style="float:left;height:35px;color:midnightblue;cursor:pointer;border-style:solid;border-width:0 1px 0 0;border-color:#ddd" (click)="UI.currentChannel==UI.channelMax?UI.currentChannel=0:UI.currentChannel=UI.currentChannel+1">
+          <div *ngIf="UI.currentUserLastMessageObj?.wallet?.balance" style="float:left;margin:8px;font-size:12px;font-weight:bold">
+            {{UI.currentChannel}}
           </div>
         </div>
         <span class="material-icons" style="float:left;margin:5px;cursor:pointer;color:rgba(0,0,0,0.6)" (click)="newMessage()">create</span>
