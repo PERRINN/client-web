@@ -12,13 +12,15 @@ import * as firebase from 'firebase/app'
   <div class='sheet'>
     <div *ngIf="scope.substring(0,7)=='channel'" style="clear:both;background:whitesmoke">
       <div style="float:left">
-        <img src="./../assets/App icons/Perrinn_02.png" style="display:inline;float:left;margin:7px;object-fit:cover;width:75px;height:75px;border-radius:50%;filter:invert(70%)">
+        <img src="./../assets/App icons/Perrinn_02.png" style="display:inline;float:left;margin:7px;object-fit:cover;width:60px;height:60px;border-radius:50%;filter:invert(70%)">
       </div>
       <div style="padding:10px">
         <div style="clear:both;color:#222">
           <div style="float:left">
             <div style="font-size:20px">PERRINN</div>
             <div style="font-size:12px;line-height:14px"> We are a Team</div>
+            <div *ngIf="UI.currentChannel==0" style="font-size:10px">Channel 0 is for all messages.</div>
+            <div *ngIf="UI.currentChannel==1" style="font-size:10px">Channel 1 is for Contributors' messages.</div>
           </div>
         </div>
       </div>
