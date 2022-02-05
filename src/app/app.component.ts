@@ -10,7 +10,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
     <progress value='0' max='100' id='uploader'>0%</progress>
     <div class='menu'>
       <div style="width:320px;display:block;margin: 0 auto">
-        <img src="./../assets/App icons/Perrinn_02.png" style="cursor:pointer;float:left;width:30px;margin:5px 45px 5px 5px;border-radius:3px;" (click)="router.navigate(['profile','PERRINN'])">
+        <img src="./../assets/App icons/Perrinn_02.png" style="cursor:pointer;float:left;width:30px;margin:5px 45px 5px 5px;border-radius:3px;" (click)="router.navigate(['profile','channel'+UI.currentChannel])">
         <span class="material-icons" style="float:left;margin:5px 45px 5px 45px;font-size:30px;cursor:pointer;color:white" (click)="router.navigate(['directory'])">list</span>
         <span class="material-icons-outlined" style="float:left;margin:5px 45px 5px 45px;font-size:30px;height:30px;cursor:pointer;color:white" onclick="window.open('https://discover.perrinn.com','_blank')">info</span>
       </div>
@@ -24,9 +24,9 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
             <span >{{UI.formatCOINS(UI.currentUserLastMessageObj.wallet.balance)}}</span>
           </div>
         </div>
-        <div style="float:left;height:35px;color:midnightblue;cursor:pointer;border-style:solid;border-width:0 1px 0 0;border-color:#ddd" (click)="UI.currentChannel==UI.channelMax?UI.currentChannel=0:UI.currentChannel=UI.currentChannel+1">
+        <div style="float:left;height:35px;cursor:pointer;border-style:solid;border-width:0 1px 0 0;border-color:#ddd" (click)="UI.currentChannel==UI.channelMax?UI.currentChannel=0:UI.currentChannel=UI.currentChannel+1;router.navigate(['profile','channel'+UI.currentChannel])">
           <div *ngIf="UI.currentUserLastMessageObj?.wallet?.balance" style="float:left;margin:8px;font-size:12px;font-weight:bold">
-            {{UI.currentChannel}}
+            ch{{UI.currentChannel}}
           </div>
         </div>
         <span class="material-icons" style="float:left;margin:5px;cursor:pointer;color:rgba(0,0,0,0.6)" (click)="newMessage()">create</span>

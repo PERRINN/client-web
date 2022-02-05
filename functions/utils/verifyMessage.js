@@ -277,6 +277,11 @@ module.exports = {
         if(wallet.balance>0)userStatus.isMember=true
 
       //*******MESSAGE WRITES**********************
+        //message channel
+        if(messageData.channel!=undefined&&messageData.channel==0){
+          batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{channel:0},{create:true})
+        }
+        else batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{channel:messageData.channel||chatPreviousMessageData.channel||0},{create:true})
         //message chat Subject
         if(messageData.chain==user)messageData.chatSubject='User settings'
         if(messageData.chain=='PERRINNUsersStateSnapshot')messageData.chatSubject='PERRINN Users State Snapshot'

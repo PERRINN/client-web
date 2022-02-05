@@ -10,7 +10,7 @@ import * as firebase from 'firebase/app'
   selector:'profile',
   template:`
   <div class='sheet'>
-    <div *ngIf="id=='PERRINN'" style="clear:both;background:whitesmoke">
+    <div *ngIf="scope.substring(0,7)=='channel'" style="clear:both;background:whitesmoke">
       <div style="float:left">
         <img src="./../assets/App icons/Perrinn_02.png" style="display:inline;float:left;margin:7px;object-fit:cover;width:75px;height:75px;border-radius:50%;filter:invert(70%)">
       </div>
@@ -24,7 +24,7 @@ import * as firebase from 'firebase/app'
       </div>
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
-    <div *ngIf="id!='PERRINN'" style="clear:both;background:whitesmoke">
+    <div *ngIf="scope.substring(0,7)!='channel'" style="clear:both;background:whitesmoke">
       <div style="float:left">
         <img [src]="focusUserLastMessageObj?.imageUrlThumbUser" style="display:inline;float:left;margin:7px;object-fit:cover;width:75px;height:75px;border-radius:50%">
       </div>
@@ -67,7 +67,7 @@ import * as firebase from 'firebase/app'
         <div>
           <div style="clear:right;margin-top:5px;width:60%">
             <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:rgba(0,0,0,0.6)">settings</span>
-            <div style="float:left;font-size:14px;font-weight:bold;white-space:nowrap;text-overflow:ellipsis">{{message.payload.doc.data()?.chatSubject}} </div>
+            <div style="float:left;font-size:14px;font-weight:bold;white-space:nowrap;text-overflow:ellipsis">{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.channel&&message.payload.doc.data()?.channel!=0?" (ch"+message.payload.doc.data()?.channel+")":""}}</div>
           </div>
           <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>-60" style="width:80%">
             <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>0" [style.background-color]="(math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>60*8)?'midnightblue':'red'" style="float:left;color:white;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(message.payload.doc.data()?.eventDate/1000-UI.nowSeconds)}}</div>
@@ -90,7 +90,7 @@ import * as firebase from 'firebase/app'
         <div>
           <div style="clear:right;margin-top:5px;width:60%">
             <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:rgba(0,0,0,0.6)">settings</span>
-            <div style="float:left;font-size:14px;font-weight:bold;white-space:nowrap;text-overflow:ellipsis">{{message.payload.doc.data()?.chatSubject}} </div>
+            <div style="float:left;font-size:14px;font-weight:bold;white-space:nowrap;text-overflow:ellipsis">{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.channel&&message.payload.doc.data()?.channel!=0?" (ch"+message.payload.doc.data()?.channel+")":""}}</div>
           </div>
           <div style="clear:both">
             <div [style.background-color]="(math.floor(message.payload.doc.data()?.survey.expiryTimestamp/3600000-UI.nowSeconds/3600)>8)?'midnightblue':'red'" style="float:left;color:white;padding:0 5px 0 5px">{{UI.formatSecondsToDhm2(message.payload.doc.data()?.survey.expiryTimestamp/1000-UI.nowSeconds)}} left</div>
@@ -107,7 +107,7 @@ import * as firebase from 'firebase/app'
     <ul class="listLight">
       <li *ngFor="let message of messages|async;let first=first;let last=last"
         (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
-        <div *ngIf="id=='PERRINN'||mode=='inbox'">
+        <div *ngIf="scope.substring(0,7)=='channel'||mode=='inbox'">
           <div style="float:left;min-width:90px;min-height:40px">
             <img [src]="message.payload.doc.data()?.imageUrlThumbUser" style="float:left;margin:7px 4px 7px 4px;object-fit:cover;height:40px;width:40px;border-radius:50%">
             <img *ngIf="message.payload.doc.data()?.recipientList[1]" [src]="message.payload.doc.data()?.recipients[message.payload.doc.data()?.recipientList[1]]?.imageUrlThumb" style="float:left;margin:7px 4px 7px 4px;object-fit:cover;height:25px;width:25px;border-radius:50%">
@@ -124,13 +124,13 @@ import * as firebase from 'firebase/app'
             <div style="float:right;margin-top:5px;color:#999;font-size:11px;margin-right:10px;width:40px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</div>
             <div style="clear:right;margin-top:5px;width:60%">
               <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:rgba(0,0,0,0.6)">settings</span>
-              <div style="float:left;font-size:14px;font-weight:bold;white-space:nowrap;text-overflow:ellipsis">{{message.payload.doc.data()?.chatSubject}} </div>
+              <div style="float:left;font-size:14px;font-weight:bold;white-space:nowrap;text-overflow:ellipsis">{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.channel&&message.payload.doc.data()?.channel!=0?" (ch"+message.payload.doc.data()?.channel+")":""}}</div>
             </div>
             <div style="clear:both;white-space:nowrap;width:80%;text-overflow:ellipsis;color:#888">{{message.payload.doc.data()?.text}}{{(message.payload.doc.data()?.chatImageTimestamp!=''&&message.payload.doc.data()?.chatImageTimestamp!=undefined)?' (image)':''}}</div>
           </div>
           <div class="seperator"></div>
         </div>
-        <div *ngIf="id!='PERRINN'&&(mode=='30days'||mode=='24months'||mode=='chain')">
+        <div *ngIf="scope.substring(0,7)!='channel'&&(mode=='30days'||mode=='24months'||mode=='chain')">
           <div *ngIf="first">
             <div style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd;background-color:whitesmoke">Date</div>
             <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd;background-color:whitesmoke;font-size:10px">Days</div>
@@ -171,7 +171,7 @@ export class ProfileComponent {
   currentSurveys:Observable<any[]>
   scrollTeam:string
   focusUserLastMessageObj:any
-  id:string
+  scope:string
   mode:string
   previousBalance:string
   previousTimestamp:string
@@ -191,12 +191,12 @@ export class ProfileComponent {
   ) {
     this.math=Math
     this.messageNumberDisplay=30
-    this.id=''
+    this.scope=''
     this.mode='inbox'
     this.scrollTeam=''
     this.route.params.subscribe(params => {
-      this.id=params.id
-      afs.collection<any>('PERRINNMessages',ref=>ref.where('user','==',this.id).where('verified','==',true).orderBy('serverTimestamp','desc').limit(1)).valueChanges().subscribe(snapshot=>{
+      this.scope=params.id
+      afs.collection<any>('PERRINNMessages',ref=>ref.where('user','==',this.scope).where('verified','==',true).orderBy('serverTimestamp','desc').limit(1)).valueChanges().subscribe(snapshot=>{
         this.focusUserLastMessageObj=snapshot[0]
       })
       this.refreshMessages()
@@ -204,35 +204,66 @@ export class ProfileComponent {
   }
 
   refreshMessages(){
-    this.comingEvents=this.afs.collection<any>('PERRINNMessages',ref=>ref
-      .where('lastMessage','==',true)
-      .where('verified','==',true)
-      .orderBy('eventDate')
-      .where('eventDate','>',(this.UI.nowSeconds-3600)*1000)
-    ).snapshotChanges().pipe(map(changes=>{
-      return changes.map(c=>({payload:c.payload}))
-    }))
-    this.currentSurveys=this.afs.collection<any>('PERRINNMessages',ref=>ref
-      .where('lastMessage','==',true)
-      .where('verified','==',true)
-      .orderBy('survey.expiryTimestamp')
-      .where('survey.expiryTimestamp','>=',this.UI.nowSeconds*1000)
-    ).snapshotChanges().pipe(map(changes=>{
-      return changes.map(c=>({payload:c.payload}))
-    }))
-    if(this.id=='PERRINN'){
-      this.messages=this.afs.collection<any>('PERRINNMessages',ref=>ref
-        .where('lastMessage','==',true)
-        .where('verified','==',true)
-        .orderBy('serverTimestamp','desc')
-        .limit(this.messageNumberDisplay)
-      ).snapshotChanges().pipe(map(changes=>{
-        return changes.map(c=>({payload:c.payload}))
-      }))
+    if(this.scope.substring(0,7)=='channel'){
+      if(this.UI.currentChannel==0){
+        this.comingEvents=this.afs.collection<any>('PERRINNMessages',ref=>ref
+          .where('lastMessage','==',true)
+          .where('verified','==',true)
+          .orderBy('eventDate')
+          .where('eventDate','>',(this.UI.nowSeconds-3600)*1000)
+        ).snapshotChanges().pipe(map(changes=>{
+          return changes.map(c=>({payload:c.payload}))
+        }))
+        this.currentSurveys=this.afs.collection<any>('PERRINNMessages',ref=>ref
+          .where('lastMessage','==',true)
+          .where('verified','==',true)
+          .orderBy('survey.expiryTimestamp')
+          .where('survey.expiryTimestamp','>=',this.UI.nowSeconds*1000)
+        ).snapshotChanges().pipe(map(changes=>{
+          return changes.map(c=>({payload:c.payload}))
+        }))
+        this.messages=this.afs.collection<any>('PERRINNMessages',ref=>ref
+          .where('lastMessage','==',true)
+          .where('verified','==',true)
+          .orderBy('serverTimestamp','desc')
+          .limit(this.messageNumberDisplay)
+        ).snapshotChanges().pipe(map(changes=>{
+          return changes.map(c=>({payload:c.payload}))
+        }))
+      }
+      else{
+        this.comingEvents=this.afs.collection<any>('PERRINNMessages',ref=>ref
+          .where('channel','==',this.UI.currentChannel)
+          .where('lastMessage','==',true)
+          .where('verified','==',true)
+          .orderBy('eventDate')
+          .where('eventDate','>',(this.UI.nowSeconds-3600)*1000)
+        ).snapshotChanges().pipe(map(changes=>{
+          return changes.map(c=>({payload:c.payload}))
+        }))
+        this.currentSurveys=this.afs.collection<any>('PERRINNMessages',ref=>ref
+          .where('channel','==',this.UI.currentChannel)
+          .where('lastMessage','==',true)
+          .where('verified','==',true)
+          .orderBy('survey.expiryTimestamp')
+          .where('survey.expiryTimestamp','>=',this.UI.nowSeconds*1000)
+        ).snapshotChanges().pipe(map(changes=>{
+          return changes.map(c=>({payload:c.payload}))
+        }))
+        this.messages=this.afs.collection<any>('PERRINNMessages',ref=>ref
+          .where('channel','==',this.UI.currentChannel)
+          .where('lastMessage','==',true)
+          .where('verified','==',true)
+          .orderBy('serverTimestamp','desc')
+          .limit(this.messageNumberDisplay)
+        ).snapshotChanges().pipe(map(changes=>{
+          return changes.map(c=>({payload:c.payload}))
+        }))
+      }
     }
     else if(this.mode=='30days'){
       this.messages=this.afs.collection<any>('PERRINNMessages',ref=>ref
-        .where('user','==',this.id)
+        .where('user','==',this.scope)
         .where('verified','==',true)
         .where('userChain.newDay','==',true)
         .orderBy('serverTimestamp','desc')
@@ -243,7 +274,7 @@ export class ProfileComponent {
     }
     else if(this.mode=='24months'){
       this.messages=this.afs.collection<any>('PERRINNMessages',ref=>ref
-        .where('user','==',this.id)
+        .where('user','==',this.scope)
         .where('verified','==',true)
         .where('userChain.newMonth','==',true)
         .orderBy('serverTimestamp','desc')
@@ -254,7 +285,7 @@ export class ProfileComponent {
     }
     else if(this.mode=='chain'){
       this.messages=this.afs.collection<any>('PERRINNMessages',ref=>ref
-        .where('user','==',this.id)
+        .where('user','==',this.scope)
         .where('verified','==',true)
         .orderBy('serverTimestamp','desc')
         .limit(this.messageNumberDisplay)
@@ -264,7 +295,7 @@ export class ProfileComponent {
     }
     else{
       this.messages=this.afs.collection<any>('PERRINNMessages',ref=>ref
-        .where('recipientList','array-contains',this.id)
+        .where('recipientList','array-contains',this.scope)
         .where('verified','==',true)
         .where('lastMessage','==',true)
         .orderBy('serverTimestamp','desc')
