@@ -48,17 +48,6 @@ import * as firebase from 'firebase/app'
     <div *ngIf="chatLastMessageObj?.chatSubject!=chatSubject&&chatSubject" style="float:right;width:75px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:white;background-color:midnightblue;border-radius:3px;cursor:pointer" (click)="saveNewSubject()">Save</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
     <ul style="color:#333;margin:10px">
-      <li *ngFor="let channels of [].constructor(UI.channelMax+1);let channel=index" style="float:left;font-size:12px;margin:3px 20px 3px 20px">
-        <div *ngIf="channel==chatLastMessageObj?.channel||(channel==0&&chatLastMessageObj?.channel==undefined)">
-          <div style="font-weight:bold">On channel {{channel}}</div>
-        </div>
-        <div *ngIf="channel!=chatLastMessageObj?.channel&&(channel!=0||chatLastMessageObj?.channel!=undefined)" style="cursor:pointer" (click)="switchChannel(channel)">
-          <div style="color:midnightblue">switch to channel {{channel}}</div>
-        </div>
-      </li>
-    </ul>
-    <div class="seperator" style="width:100%;margin:0px"></div>
-    <ul style="color:#333;margin:10px">
       <li *ngFor="let recipient of chatLastMessageObj?.recipientList" style="float:left">
         <div style="float:left;cursor:pointer" (click)="router.navigate(['profile',recipient])">
           <img [src]="chatLastMessageObj?.recipients[recipient]?.imageUrlThumb" style="float:left;object-fit:cover;height:25px;width:25px;border-radius:50%;margin:3px 3px 3px 10px">
@@ -76,6 +65,28 @@ import * as firebase from 'firebase/app'
             <span>{{team.values?.name}} {{UI.formatCOINS(team.values?.wallet?.balance||0)}}</span>
           </div>
           <div class="buttonDiv" style="float:left;width:50px;font-size:11px;background-color:midnightblue;color:white;border-style:none" (click)="addRecipient(team.values.user,team.values.name)">Add</div>
+        </div>
+      </li>
+    </ul>
+    <div class="seperator" style="width:100%;margin:0px"></div>
+    <img class="imageWithZoom" [src]="chatLastMessageObj?.channelImageUrlMedium" style="object-fit:cover;margin:10px;border-radius:3px;height:50px;width:200px" (click)="showFullScreenImage(chatLastMessageObj?.channelImageUrlMedium)"
+    onerror="this.onerror=null;this.src='https://storage.googleapis.com/perrinn-d5fc1.appspot.com/images%2F1585144867972Screen%20Shot%202018-03-16%20at%2015.05.10_180x180.png?GoogleAccessId=firebase-adminsdk-rh8x2%40perrinn-d5fc1.iam.gserviceaccount.com&Expires=16756761600&Signature=I3Kem9n6zYjSNijnKOx%2FAOUAg65GN3xf8OD1qD4uo%2BayOFblFIgfn81uPWRTzhGg14lJdyhz3Yx%2BiCXuYCIdYnduqMZcIjtHE6WR%2BPo74ckemuxIKx3N24tlBJ6DgkfgqwmIkw%2F%2FKotm8Cz%2Fq%2FbIZm%2FvAOi2dpBHqrHiIFXYb8AVYnhP1osUhVvyzapgYJEBZJcHur7v6uqrSKwQ4DfeHHinbJpvkX3wjM6Nxabi3kVABdGcGqMoAPGCTZJMzNj8xddAXuECbptQprd9LlnQOuL4tuDfLMAOUXTHmJVhJEBrquxQi8iPRjnLOvnqF8s2We0SOxprqEuwbZyxSgH05Q%3D%3D'">
+    <br/>
+    <div>
+      <input type="file" name="chatImage" id="chatImage" class="inputfile" (change)="channelImageChange=true;draftMessage='updating the channel picture';onImageChange($event)" accept="image/*">
+      <label class="buttonUploadImage" for="chatImage" id="buttonFile">
+      <div style="clear:both;width:200px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:midnightblue;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer">Upload a new channel picture</div>
+      </label>
+    </div>
+    <input [(ngModel)]="channelName" style="width:60%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" placeholder="What is the name of this channel?">
+    <div *ngIf="chatLastMessageObj?.channelName!=channelName&&channelName" style="float:right;width:75px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:white;background-color:midnightblue;border-radius:3px;cursor:pointer" (click)="saveNewChannelName()">Save</div>
+    <ul style="color:#333;margin:10px">
+      <li *ngFor="let channels of [].constructor(UI.channelMax+1);let channel=index" style="float:left;font-size:12px;margin:3px 20px 3px 20px">
+        <div *ngIf="channel==chatLastMessageObj?.channel||(channel==0&&chatLastMessageObj?.channel==undefined)">
+          <div style="font-weight:bold">On channel {{channel}}</div>
+        </div>
+        <div *ngIf="channel!=chatLastMessageObj?.channel&&(channel!=0||chatLastMessageObj?.channel!=undefined)" style="cursor:pointer" (click)="switchChannel(channel)">
+          <div style="color:midnightblue">switch to channel {{channel}}</div>
         </div>
       </li>
     </ul>
@@ -236,6 +247,7 @@ export class ChatComponent {
   teams:Observable<any[]>
   searchFilter:string
   reads:any[]
+  channelName:string
   chatSubject:string
   chatLastMessageObj:any
   chatChain:string
@@ -248,6 +260,7 @@ export class ChatComponent {
   survey:any
   messageShowActions:[]
   lastRead:string
+  channelImageChange:boolean
 
   constructor(
     public afs:AngularFirestore,
@@ -268,8 +281,10 @@ export class ChatComponent {
       this.previousMessageServerTimestamp={seconds:this.UI.nowSeconds*1000}
       this.previousMessageUser=''
       this.messageNumberDisplay=15
+      this.channelName=''
       this.chatSubject=''
       this.eventDescription=''
+      this.channelImageChange=false
       this.surveyDefault={
         question:'Survey question',
         durationDays:7,
@@ -320,6 +335,7 @@ export class ChatComponent {
           if(!this.reads.includes(c.payload.doc.id))batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id),{serverTimestamp:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
           this.reads.push(c.payload.doc.id)
           this.chatLastMessageObj=c.payload.doc.data()
+          this.channelName=c.payload.doc.data()['channelName']
           this.chatSubject=c.payload.doc.data()['chatSubject']
           this.eventDescription=c.payload.doc.data()['eventDescription']
           this.eventDate=c.payload.doc.data()['eventDate']
@@ -370,6 +386,15 @@ export class ChatComponent {
       text:'Changing chat subject to '+this.chatSubject+" (was "+this.chatLastMessageObj.chatSubject+")",
       chain:this.chatLastMessageObj.chain||this.chatChain,
       chatSubject:this.chatSubject,
+    })
+    this.resetChat()
+  }
+
+  saveNewChannelName() {
+    this.UI.createMessage({
+      text:'Changing channel name to '+this.channelName+" (was "+this.chatLastMessageObj.channelName+")",
+      chain:this.chatLastMessageObj.chain||this.chatChain,
+      channelName:this.channelName,
     })
     this.resetChat()
   }
@@ -428,13 +453,18 @@ export class ChatComponent {
   }
 
   addMessage() {
+    let channelImageTimestamp=this.channelImageChange?this.imageTimestamp:null
+    let channelImageDownloadUrl=this.channelImageChange?this.imageDownloadUrl:null
     this.UI.createMessage({
       text:this.draftMessage,
       chain:this.chatLastMessageObj.chain||this.chatChain,
       chatImageTimestamp:this.imageTimestamp,
       chatImageUrlThumb:this.imageDownloadUrl,
       chatImageUrlMedium:this.imageDownloadUrl,
-      chatImageUrlOriginal:this.imageDownloadUrl
+      chatImageUrlOriginal:this.imageDownloadUrl,
+      channelImageTimestamp:channelImageTimestamp,
+      channelImageUrlThumb:channelImageDownloadUrl,
+      channelImageUrlMedium:channelImageDownloadUrl
     })
     this.resetChat()
   }
@@ -519,6 +549,7 @@ export class ChatComponent {
     this.showChatDetails=false
     this.messageShowDetails=[]
     this.messageShowActions=[]
+    this.channelImageChange=false
   }
 
 }
