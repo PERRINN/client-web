@@ -54,8 +54,6 @@ import * as firebase from 'firebase/app'
           <div style="float:left;font-size:10px;color:midnightblue;width:55px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='chain'?'underline':'none'" (click)="mode='chain';refreshMessages()">chain</div>
         </div>
         <div *ngIf="UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="float:left;font-size:10px;padding:2px 4px 2px 4px;margin-right:5px;color:midnightblue;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer">New message to {{focusUserLastMessageObj?.name}}</div>
-        <div *ngIf="UI.currentUser!=focusUserLastMessageObj?.user" (click)="addUserToYourTeam()" style="float:left;font-size:10px;padding:2px 4px 2px 4px;margin-right:5px;color:midnightblue;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer">Add {{focusUserLastMessageObj?.name}} to your team</div>
-        <div *ngIf="UI.currentUser!=focusUserLastMessageObj?.user" (click)="chooseUserAsLeader()" style="float:left;font-size:10px;padding:2px 4px 2px 4px;margin-right:5px;color:midnightblue;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer">Choose {{focusUserLastMessageObj?.name}} as your leader</div>
       </div>
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
@@ -330,24 +328,6 @@ export class ProfileComponent {
       recipientList:[this.focusUserLastMessageObj.user]
     })
     this.router.navigate(['chat',ID])
-  }
-
-  addUserToYourTeam() {
-    this.UI.createMessage({
-      text:'Adding '+this.focusUserLastMessageObj.name+' to my team.',
-      chain:this.UI.currentUser,
-      teamMemberList:[this.focusUserLastMessageObj.user]
-    })
-    this.router.navigate(['chat',this.UI.currentUser])
-  }
-
-  chooseUserAsLeader() {
-    this.UI.createMessage({
-      text:'Choosing '+this.focusUserLastMessageObj.name+' as my leader.',
-      chain:this.UI.currentUser,
-      teamLeader:this.focusUserLastMessageObj.user
-    })
-    this.router.navigate(['chat',this.UI.currentUser])
   }
 
   newId():string{
