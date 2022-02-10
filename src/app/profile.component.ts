@@ -10,22 +10,6 @@ import * as firebase from 'firebase/app'
   selector:'profile',
   template:`
   <div class='sheet'>
-    <div *ngIf="scope.substring(0,7)=='channel'" style="clear:both;background:whitesmoke">
-      <div style="float:left">
-        <img src="./../assets/App icons/Perrinn_02.png" style="display:inline;float:left;margin:7px;object-fit:cover;width:60px;height:60px;border-radius:50%;filter:invert(70%)">
-      </div>
-      <div style="padding:10px">
-        <div style="clear:both;color:#222">
-          <div style="float:left">
-            <div style="font-size:20px">PERRINN</div>
-            <div style="font-size:12px;line-height:14px"> We are a Team</div>
-            <div *ngIf="UI.currentChannel==0" style="font-size:10px">Channel 0 is for all messages.</div>
-            <div *ngIf="UI.currentChannel==1" style="font-size:10px">Channel 1 is for Contributors' messages.</div>
-          </div>
-        </div>
-      </div>
-      <div class="seperator" style="width:100%;margin:0px"></div>
-    </div>
     <div *ngIf="scope.substring(0,7)!='channel'" style="clear:both;background:whitesmoke">
       <div style="float:left">
         <img [src]="focusUserLastMessageObj?.imageUrlThumbUser" style="display:inline;float:left;margin:7px;object-fit:cover;width:75px;height:75px;border-radius:50%">
@@ -67,7 +51,7 @@ import * as firebase from 'firebase/app'
         <div>
           <div style="clear:right;margin-top:5px;width:60%">
             <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:rgba(0,0,0,0.6)">settings</span>
-            <div style="float:left;font-size:14px;font-weight:bold;white-space:nowrap;text-overflow:ellipsis">{{message.payload.doc.data()?.chatSubject}}{{(message.payload.doc.data()?.channel&&message.payload.doc.data()?.channel!=0&&message.payload.doc.data()?.channel!=UI.currentChannel)?" (ch"+message.payload.doc.data()?.channel+")":""}}</div>
+            <div style="float:left;font-size:14px;font-weight:bold;white-space:nowrap;text-overflow:ellipsis">{{message.payload.doc.data()?.chatSubject}} </div>
           </div>
           <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>-60" style="width:80%">
             <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>0" [style.background-color]="(math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>60*8)?'midnightblue':'red'" style="float:left;color:white;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(message.payload.doc.data()?.eventDate/1000-UI.nowSeconds)}}</div>
@@ -90,7 +74,7 @@ import * as firebase from 'firebase/app'
         <div>
           <div style="clear:right;margin-top:5px;width:60%">
             <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:rgba(0,0,0,0.6)">settings</span>
-            <div style="float:left;font-size:14px;font-weight:bold;white-space:nowrap;text-overflow:ellipsis">{{message.payload.doc.data()?.chatSubject}}{{(message.payload.doc.data()?.channel&&message.payload.doc.data()?.channel!=0&&message.payload.doc.data()?.channel!=UI.currentChannel)?" (ch"+message.payload.doc.data()?.channel+")":""}}</div>
+            <div style="float:left;font-size:14px;font-weight:bold;white-space:nowrap;text-overflow:ellipsis">{{message.payload.doc.data()?.chatSubject}} </div>
           </div>
           <div style="clear:both">
             <div [style.background-color]="(math.floor(message.payload.doc.data()?.survey.expiryTimestamp/3600000-UI.nowSeconds/3600)>8)?'midnightblue':'red'" style="float:left;color:white;padding:0 5px 0 5px">{{UI.formatSecondsToDhm2(message.payload.doc.data()?.survey.expiryTimestamp/1000-UI.nowSeconds)}} left</div>
@@ -124,7 +108,7 @@ import * as firebase from 'firebase/app'
             <div style="float:right;margin-top:5px;color:#999;font-size:11px;margin-right:10px;width:40px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</div>
             <div style="clear:right;margin-top:5px;width:60%">
               <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:rgba(0,0,0,0.6)">settings</span>
-              <div style="float:left;font-size:14px;font-weight:bold;white-space:nowrap;text-overflow:ellipsis">{{message.payload.doc.data()?.chatSubject}}{{(message.payload.doc.data()?.channel&&message.payload.doc.data()?.channel!=0&&message.payload.doc.data()?.channel!=UI.currentChannel)?" (ch"+message.payload.doc.data()?.channel+")":""}}</div>
+              <div style="float:left;font-size:14px;font-weight:bold;white-space:nowrap;text-overflow:ellipsis">{{message.payload.doc.data()?.chatSubject}} </div>
             </div>
             <div style="clear:both;white-space:nowrap;width:80%;text-overflow:ellipsis;color:#888">{{message.payload.doc.data()?.text}}{{(message.payload.doc.data()?.chatImageTimestamp!=''&&message.payload.doc.data()?.chatImageTimestamp!=undefined)?' (image)':''}}</div>
           </div>
@@ -321,22 +305,13 @@ export class ProfileComponent {
   }
 
   newMessageToUser() {
-    let ID=this.newId()
+    let ID=this.UI.newId()
     this.UI.createMessage({
       text:'Starting a new chat.',
       chain:ID,
       recipientList:[this.focusUserLastMessageObj.user]
     })
     this.router.navigate(['chat',ID])
-  }
-
-  newId():string{
-    const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-    let autoId=''
-    for(let i=0;i<20;i++){
-      autoId+=chars.charAt(Math.floor(Math.random()*chars.length))
-    }
-    return autoId
   }
 
   storeMessageValues(message) {

@@ -1,6 +1,7 @@
 import { Injectable }    from '@angular/core'
 import { AngularFireAuth } from '@angular/fire/auth'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore'
+import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
 import * as firebase from 'firebase/app'
 import { formatNumber } from '@angular/common'
@@ -11,16 +12,18 @@ export class UserInterfaceService {
   currentUser:string
   currentUserLastMessageObj:any
   nowSeconds:number
-  channelMax:number
-  currentChannel:number
+  channels:Observable<any[]>
+  channelNumberDisplay:number
+  currentChannel:any
+  currentChannelLastMessageObj:any
 
   constructor(
     private afAuth:AngularFireAuth,
     public afs:AngularFirestore
   ) {
     this.nowSeconds=Math.floor(Date.now()/1000)
-    this.channelMax=1
     this.currentChannel=0
+    this.channelNumberDisplay=30
     setInterval(()=>{this.nowSeconds=Math.floor(Date.now()/1000)},60000)
     this.afAuth.user.subscribe((auth) => {
       if (auth != null) {
@@ -32,6 +35,14 @@ export class UserInterfaceService {
         this.currentUser=null
       }
     })
+    this.channels=this.afs.collection<any>('PERRINNMessages',ref=>ref
+      .where('channelLastMessage','==',true)
+      .where('verified','==',true)
+      .orderBy('serverTimestamp','desc')
+      .limit(this.channelNumberDisplay)
+    ).snapshotChanges().pipe(map(changes=>{
+      return changes.map(c=>({payload:c.payload}))
+    }))
   }
 
   createMessage(messageObj){
@@ -72,6 +83,15 @@ export class UserInterfaceService {
     var hDisplay=(h>0&&d==0)?h+'h ':''
     var mDisplay=(m>=0&&d==0&&h==0)?m+'m ':''
     return dDisplay+hDisplay+mDisplay
+  }
+
+  newId():string{
+    const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    let autoId=''
+    for(let i=0;i<20;i++){
+      autoId+=chars.charAt(Math.floor(Math.random()*chars.length))
+    }
+    return autoId
   }
 
 }

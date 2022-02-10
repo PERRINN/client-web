@@ -16,7 +16,7 @@ import * as firebase from 'firebase/app'
       <div *ngIf="!showChatDetails" style="float:left;margin:0 5px 0 10px;min-height:40px">
         <div>
           <span *ngIf="chatLastMessageObj?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;color:rgba(0,0,0,0.6)">settings</span>
-          <div style="float:left;font-weight:bold">{{chatLastMessageObj?.chatSubject}}{{chatLastMessageObj?.channel&&chatLastMessageObj?.channel!=0?" (ch"+chatLastMessageObj?.channel+")":""}}</div>
+          <div style="float:left;font-weight:bold">{{chatLastMessageObj?.chatSubject}}</div>
         </div>
         <span *ngFor="let recipient of chatLastMessageObj?.recipientList;let last=last">{{recipient==UI.currentUser?'You':chatLastMessageObj?.recipients[recipient]?.name}}{{last?"":", "}}</span>
         <div *ngIf="math.floor(eventDate/60000-UI.nowSeconds/60)>-60" style="clear:both">
@@ -81,12 +81,12 @@ import * as firebase from 'firebase/app'
     <input [(ngModel)]="channelName" style="width:60%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" placeholder="What is the name of this channel?">
     <div *ngIf="chatLastMessageObj?.channelName!=channelName&&channelName" style="float:right;width:75px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:white;background-color:midnightblue;border-radius:3px;cursor:pointer" (click)="saveNewChannelName()">Save</div>
     <ul style="color:#333;margin:10px">
-      <li *ngFor="let channels of [].constructor(UI.channelMax+1);let channel=index" style="float:left;font-size:12px;margin:3px 20px 3px 20px">
-        <div *ngIf="channel==chatLastMessageObj?.channel||(channel==0&&chatLastMessageObj?.channel==undefined)">
-          <div style="font-weight:bold">On channel {{channel}}</div>
+      <li *ngFor="let channel of UI.channels|async" style="float:left;font-size:12px;margin:3px 20px 3px 20px">
+        <div *ngIf="channel.payload.doc.data().channel==chatLastMessageObj?.channel||(channel.payload.doc.data().channel==0&&chatLastMessageObj?.channel==undefined)">
+          <div style="font-weight:bold">{{channel.payload.doc.data().channelName}}</div>
         </div>
-        <div *ngIf="channel!=chatLastMessageObj?.channel&&(channel!=0||chatLastMessageObj?.channel!=undefined)" style="cursor:pointer" (click)="switchChannel(channel)">
-          <div style="color:midnightblue">switch to channel {{channel}}</div>
+        <div *ngIf="channel.payload.doc.data().channel!=chatLastMessageObj?.channel&&(channel!=0||chatLastMessageObj?.channel!=undefined)" style="cursor:pointer" (click)="switchChannel(channel.payload.doc.data().channel,channel.payload.doc.data().channelName)">
+          <div style="color:midnightblue">switch to {{channel.payload.doc.data().channelName}}</div>
         </div>
       </li>
     </ul>
@@ -402,9 +402,9 @@ export class ChatComponent {
     this.resetChat()
   }
 
-  switchChannel(channel) {
+  switchChannel(channel,channelName) {
     this.UI.createMessage({
-      text:'Switching to channel '+channel,
+      text:'Switching to channel '+channelName,
       chain:this.chatLastMessageObj.chain||this.chatChain,
       channel:channel,
     })
