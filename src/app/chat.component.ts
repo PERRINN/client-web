@@ -218,12 +218,15 @@ import * as firebase from 'firebase/app'
       <span *ngIf="chatLastMessageObj?.chatSubject==null" style="margin:5px;font-size:10px">This message will be the subject of this chat</span>
       <div class="seperator" style="width:100%"></div>
       <div style="clear:both;float:left;width:90%">
-        <textarea id="inputMessage" autocapitalize="none" style="float:left;width:95%;border-style:solid;border-width:0 1px 0 0;border-color:#ddd;padding:9px;resize:none;overflow-y:scroll" maxlength="500" (keyup.enter)="addMessage()" [(ngModel)]="draftMessage" placeholder="Reply all"></textarea>
+        <textarea id="inputMessage" autocapitalize="none" style="float:left;border-style:solid;border-width:0 1px 0 0;border-color:#ddd;padding:9px;resize:none;overflow-y:scroll"  [style.width]="imageDownloadUrl?'85%':'95%'" maxlength="500" (keyup.enter)="addMessage()" [(ngModel)]="draftMessage" placeholder="Reply all"></textarea>
+        <div *ngIf="imageDownloadUrl" style="float:left;width:15%">
+          <img [src]="imageDownloadUrl" style="object-fit:cover;height:53px;margin:0 auto">
+        </div>
       </div>
-      <div *ngIf="draftMessage" style="float:right;width:10%;cursor:pointer">
+      <div *ngIf="draftMessage||imageDownloadUrl" style="float:right;width:10%;cursor:pointer">
         <span class="material-icons-outlined" style="margin:15px 5px 5px 5px;font-size:30px;color:rgba(0,0,0,0.6)" (click)="addMessage()">send</span>
       </div>
-      <div *ngIf="!draftMessage" style="float:right;width:10%;cursor:pointer">
+      <div *ngIf="!draftMessage&&!imageDownloadUrl" style="float:right;width:10%;cursor:pointer">
         <input type="file" name="chatImage" id="chatImage" class="inputfile" (change)="onImageChange($event)" accept="image/*">
         <label class="buttonUploadImage" for="chatImage" id="buttonFile">
         <span class="material-icons-outlined" style="margin:15px 5px 5px 5px;font-size:30px;color:rgba(0,0,0,0.6)">photo_camera</span>
@@ -512,7 +515,7 @@ export class ChatComponent {
       this.imageTimestamp=task.task.snapshot.ref.name.substring(0, 13)
       storageRef.getDownloadURL().subscribe(url=>{
         this.imageDownloadUrl=url
-        this.addMessage()
+        if(this.channelImageChange)this.addMessage()
         event.target.value=''
       })
     })
