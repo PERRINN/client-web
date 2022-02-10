@@ -31,11 +31,14 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
           </div>
           <img *ngIf="UI.currentChannelLastMessageObj?.channelImageUrlMedium" [src]="UI.currentChannelLastMessageObj?.channelImageUrlMedium" style="float:left;object-fit:cover;height:35px;width:140px">
         </div>
-        <span class="material-icons" style="float:left;margin:5px;cursor:pointer;color:rgba(0,0,0,0.6)" (click)="newMessage()">create</span>
       </div>
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
     <div class='sheet' *ngIf="showApps">
+      <div style="float:left;width:100px;text-align:center;cursor:pointer;margin:10px;border-style:solid;border-width:1px;border-color:#ddd" (click)="showApps=false;showChannels=false;newMessage()">
+        <span class="material-icons" style="margin:5px;cursor:pointer;color:rgba(0,0,0,0.6)">create</span>
+        <div style="width:100px;font-size:12px;font-weight:bold;padding:3px">New message</div>
+      </div>
       <div style="float:left;width:100px;text-align:center;cursor:pointer;margin:10px;border-style:solid;border-width:1px;border-color:#ddd" (click)="showApps=false;showChannels=false;router.navigate(['settings'])">
         <span class="material-icons" style="margin:5px;cursor:pointer;color:rgba(0,0,0,0.6)">settings</span>
         <div style="width:100px;font-size:12px;font-weight:bold;padding:3px">Settings</div>
