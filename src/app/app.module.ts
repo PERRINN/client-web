@@ -6,6 +6,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { ChatComponent }  from './chat.component';
+import { AppsComponent }  from './apps.component';
 import { LoginComponent }  from './login.component';
 import { ProfileComponent }  from './profile.component';
 import { SettingsComponent }  from './settings.component';
@@ -39,6 +40,7 @@ export const firebaseConfig = {
 @NgModule({
   declarations: [
     AppComponent,
+    AppsComponent,
     ChatComponent,
     LoginComponent,
     ProfileComponent,
