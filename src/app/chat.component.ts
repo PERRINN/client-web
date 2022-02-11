@@ -81,7 +81,7 @@ import * as firebase from 'firebase/app'
     <input [(ngModel)]="channelName" style="width:60%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" placeholder="What is the name of this channel?">
     <div *ngIf="chatLastMessageObj?.channelName!=channelName&&channelName" style="float:right;width:75px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:white;background-color:midnightblue;border-radius:3px;cursor:pointer" (click)="saveNewChannelName()">Save</div>
     <ul style="color:#333;margin:10px">
-      <li *ngFor="let channel of UI.channels|async" style="float:left;font-size:12px;margin:3px 20px 3px 20px">
+      <li *ngFor="let channel of channels|async" style="float:left;font-size:12px;margin:3px 20px 3px 20px">
         <div *ngIf="channel.payload.doc.data().channel==chatLastMessageObj?.channel||(channel.payload.doc.data().channel==0&&chatLastMessageObj?.channel==undefined)">
           <div style="font-weight:bold">{{channel.payload.doc.data().channelName}}</div>
         </div>
@@ -264,6 +264,7 @@ export class ChatComponent {
   messageShowActions:[]
   lastRead:string
   channelImageChange:boolean
+  channels:Observable<any[]>
 
   constructor(
     public afs:AngularFirestore,
@@ -301,6 +302,14 @@ export class ChatComponent {
       this.refreshMessages(params.id)
       this.refreshEventDates()
       this.resetChat()
+      this.channels=this.afs.collection<any>('PERRINNMessages',ref=>ref
+        .where('channelLastMessage','==',true)
+        .where('verified','==',true)
+        .orderBy('serverTimestamp','desc')
+        .limit(this.messageNumberDisplay)
+      ).snapshotChanges().pipe(map(changes=>{
+        return changes.map(c=>({payload:c.payload}))
+      }))
     })
   }
 
