@@ -25,11 +25,8 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
           </div>
         </div>
         <span class="material-icons" style="float:right;margin:5px;cursor:pointer;color:rgba(0,0,0,0.6)" (click)="router.navigate(['apps'])">apps</span>
-        <div style="float:right;height:35px;cursor:pointer;border-style:solid;border-width:0 1px 0 0;border-color:#ddd" (click)="router.navigate(['profile','listChannels'])">
-          <div style="float:left;margin:8px;font-size:12px;font-weight:bold">
-            {{UI.currentChannelLastMessageObj?.channelName||'All messages'}}
-          </div>
-        </div>
+        <span style="float:right;height:35px;padding:8px;font-size:12px;font-weight:bold;border-style:solid;border-width:0 1px 0 0;border-color:#ddd">{{UI.currentChannelLastMessageObj?.channelName||'All messages'}}</span>
+        <span style="float:right;height:35px;padding:8px;font-size:12px;font-weight:bold;cursor:pointer" (click)="router.navigate(['profile','listChannels'])">&#x25BC;</span>
       </div>
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
