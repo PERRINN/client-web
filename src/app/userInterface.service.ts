@@ -12,7 +12,6 @@ export class UserInterfaceService {
   currentUser:string
   currentUserLastMessageObj:any
   nowSeconds:number
-  channels:Observable<any[]>
   channelNumberDisplay:number
   currentChannel:any
   currentChannelLastMessageObj:any
@@ -35,14 +34,6 @@ export class UserInterfaceService {
         this.currentUser=null
       }
     })
-    this.channels=this.afs.collection<any>('PERRINNMessages',ref=>ref
-      .where('channelLastMessage','==',true)
-      .where('verified','==',true)
-      .orderBy('serverTimestamp','desc')
-      .limit(this.channelNumberDisplay)
-    ).snapshotChanges().pipe(map(changes=>{
-      return changes.map(c=>({payload:c.payload}))
-    }))
   }
 
   createMessage(messageObj){
