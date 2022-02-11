@@ -27,7 +27,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
         <span class="material-icons" style="float:right;margin:5px;cursor:pointer;color:rgba(0,0,0,0.6)" (click)="showApps=!showApps">apps</span>
         <div style="float:right;height:35px;cursor:pointer;border-style:solid;border-width:0 1px 0 0;border-color:#ddd" (click)="router.navigate(['profile','listChannels'])">
           <div style="float:left;margin:8px;font-size:12px;font-weight:bold">
-            {{UI.currentChannelLastMessageObj?.channelName||'Channels'}}
+            {{UI.currentChannelLastMessageObj?.channelName||'All messages'}}
           </div>
         </div>
       </div>
@@ -45,6 +45,10 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
       <div *ngIf="UI.currentUserLastMessageObj?.wallet?.balance>0" style="float:left;width:100px;text-align:center;cursor:pointer;margin:10px;border-style:solid;border-width:1px;border-color:#ddd" onclick="showApps=false;window.open('https://drive.google.com/drive/u/1/folders/1qvipN1gs1QS4sCh1tY8rSSFXV5S0-uR3','_blank')">
         <img style="width:22px;margin:5px 8px 5px 8px;margin-top:9px;filter:grayscale(100%)" src="./../assets/App icons/Google_Drive_icon_(2020).svg">
         <div style="width:100px;font-size:12px;font-weight:bold;padding:3px">Documents</div>
+      </div>
+      <div *ngIf="UI.currentUserLastMessageObj?.wallet?.balance>0" style="float:left;width:100px;text-align:center;cursor:pointer;margin:10px;border-style:solid;border-width:1px;border-color:#ddd" onclick="showApps=false;window.open('https://github.com/PERRINN')">
+        <img style="width:22px;margin:5px 8px 5px 8px;margin-top:7px;filter:grayscale(100%)" src="./../assets/App icons/Octicons-mark-github.svg">
+        <div style="width:100px;font-size:12px;font-weight:bold;padding:3px">Code</div>
       </div>
       <div *ngIf="UI.currentUserLastMessageObj?.wallet?.balance>0" style="float:left;width:100px;text-align:center;cursor:pointer;margin:10px;border-style:solid;border-width:1px;border-color:#ddd" onclick="showApps=false;window.open('https://cad.onshape.com/documents?nodeId=31475a51a48fbcc9cfc7e244&resourceType=folder','_blank')">
         <img style="width:24px;margin:5px 8px 5px 8px;filter:grayscale(100%)" src="./../assets/App icons/onshape_new.png">
