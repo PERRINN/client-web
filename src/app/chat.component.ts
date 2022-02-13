@@ -197,7 +197,7 @@ import * as firebase from 'firebase/app'
             <div style="cursor:pointer;clear:both;height:15px" (click)="messageShowActions.includes(message.key)?messageShowActions.splice(messageShowActions.indexOf(message.key),1):messageShowActions.push(message.key)">
               <div style="float:left;width:100px;text-align:right;line-height:10px">...</div>
               <span *ngIf="message.payload?.verified" class="material-icons" style="float:right;font-size:15px;margin:0 2px 2px 0">done</span>
-              <span *ngIf="message.payload?.imageResized" class="material-icons-outlined" style="float:right;font-size:15px;margin:0 2px 2px 0">image</span>
+              <span *ngIf="message.payload?.imageResized" class="material-icons-outlined" style="float:right;font-size:15px;margin:0 2px 2px 0">aspect_ratio</span>
               <span *ngIf="message.payload?.contract?.hoursValidated>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.formatCOINS(message.payload?.contract?.amount)}} ({{UI.formatSecondsToDhm1(message.payload?.contract?.hoursValidated*3600)}}/{{UI.formatSecondsToDhm1(message.payload?.contract?.hoursAvailable*3600)}})</span>
               <span *ngIf="message.payload?.userChain?.nextMessage=='none'&&message.payload?.wallet?.balance!=undefined" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.formatCOINS(message.payload?.wallet?.balance)}}</span>
             </div>
