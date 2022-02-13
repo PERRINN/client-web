@@ -18,7 +18,7 @@ exports=module.exports=functions.storage.object().onFinalize(async(data,context)
       expires:'01-01-2501'
     };
     const url=await file.getSignedUrl(config)
-    await new Promise(resolve => setTimeout(resolve, 5000))
+    await new Promise(resolve => setTimeout(resolve, 20000))
     const messagesUser=await admin.firestore().collection('PERRINNMessages').where('userImageTimestamp','==',imageID).get()
     const messagesChat=await admin.firestore().collection('PERRINNMessages').where('chatImageTimestamp','==',imageID).get()
     const messagesChannel=await admin.firestore().collection('PERRINNMessages').where('channelImageTimestamp','==',imageID).get()
