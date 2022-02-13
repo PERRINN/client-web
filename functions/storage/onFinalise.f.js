@@ -18,11 +18,16 @@ exports=module.exports=functions.storage.object().onFinalize(async(data,context)
       expires:'01-01-2501'
     };
     const url=await file.getSignedUrl(config)
-    await new Promise(resolve => setTimeout(resolve, 20000))
     const messagesUser=await admin.firestore().collection('PERRINNMessages').where('userImageTimestamp','==',imageID).get()
     const messagesChat=await admin.firestore().collection('PERRINNMessages').where('chatImageTimestamp','==',imageID).get()
     const messagesChannel=await admin.firestore().collection('PERRINNMessages').where('channelImageTimestamp','==',imageID).get()
     var batch = admin.firestore().batch();
+    if(fileName.substring(0,fileName.lastIndexOf('.')).endsWith('_180x180')){
+      batch.update(admin.firestore().collection('Images').doc(imageID),{imageUrlThumb:url[0]},{create:true})
+    }
+    if(fileName.substring(0,fileName.lastIndexOf('.')).endsWith('_540x540')){
+      batch.update(admin.firestore().collection('Images').doc(imageID),{imageUrlMedium:url[0]},{create:true})
+    }
     messagesUser.forEach(message=>{
       if(fileName.substring(0,fileName.lastIndexOf('.')).endsWith('_180x180')){
         batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{imageUrlThumbUser:url[0]},{create:true})
