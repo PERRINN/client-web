@@ -24,16 +24,34 @@ exports=module.exports=functions.storage.object().onFinalize(async(data,context)
     const messagesChannel=await admin.firestore().collection('PERRINNMessages').where('channelImageTimestamp','==',imageID).get()
     var batch = admin.firestore().batch();
     messagesUser.forEach(message=>{
-      if(fileName.substring(0,fileName.lastIndexOf('.')).endsWith('_180x180'))batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{imageUrlThumbUser:url[0]});
-      if(fileName.substring(0,fileName.lastIndexOf('.')).endsWith('_540x540'))batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{imageUrlMedium:url[0]});
+      if(fileName.substring(0,fileName.lastIndexOf('.')).endsWith('_180x180')){
+        batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{imageUrlThumbUser:url[0]},{create:true})
+        batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{imageResized:true},{create:true})
+      }
+      if(fileName.substring(0,fileName.lastIndexOf('.')).endsWith('_540x540')){
+        batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{imageUrlMedium:url[0]},{create:true})
+        batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{imageResized:true},{create:true})
+      }
     });
     messagesChat.forEach(message=>{
-      if(fileName.substring(0,fileName.lastIndexOf('.')).endsWith('_180x180'))batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{chatImageUrlThumb:url[0]});
-      if(fileName.substring(0,fileName.lastIndexOf('.')).endsWith('_540x540'))batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{chatImageUrlMedium:url[0]});
+      if(fileName.substring(0,fileName.lastIndexOf('.')).endsWith('_180x180')){
+        batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{chatImageUrlThumb:url[0]},{create:true})
+        batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{imageResized:true},{create:true})
+      }
+      if(fileName.substring(0,fileName.lastIndexOf('.')).endsWith('_540x540')){
+        batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{chatImageUrlMedium:url[0]},{create:true})
+        batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{imageResized:true},{create:true})
+      }
     });
     messagesChannel.forEach(message=>{
-      if(fileName.substring(0,fileName.lastIndexOf('.')).endsWith('_180x180'))batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{channelImageUrlThumb:url[0]});
-      if(fileName.substring(0,fileName.lastIndexOf('.')).endsWith('_540x540'))batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{channelImageUrlMedium:url[0]});
+      if(fileName.substring(0,fileName.lastIndexOf('.')).endsWith('_180x180')){
+        batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{channelImageUrlThumb:url[0]},{create:true})
+        batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{imageResized:true},{create:true})
+      }
+      if(fileName.substring(0,fileName.lastIndexOf('.')).endsWith('_540x540')){
+        batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{channelImageUrlMedium:url[0]},{create:true})
+        batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{imageResized:true},{create:true})
+      }
     });
     await batch.commit();
   }
