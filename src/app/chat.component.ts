@@ -167,10 +167,10 @@ import * as firebase from 'firebase/app'
                 <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)>43200" style="font-size:11px;margin:0px 10px 0px 10px">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'HH:mm'}}</div>
                 <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)<=43200" style="font-size:11px;margin:0px 10px 0px 10px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</div>
               </div>
-              <div style="float:left;margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
               <div style="clear:both;text-align:center">
                 <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" style="clear:both;width:70%;max-height:320px;object-fit:contain;margin:5px 10px 5px 5px;border-radius:3px" (click)="showFullScreenImage(message.payload?.chatImageUrlOriginal)">
               </div>
+              <div style="float:left;margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
               <div *ngIf="messageShowDetails.includes(message.key)" style="margin:5px">
                 <div class="seperator" style="width:100%"></div>
                 <div style="font-size:10px">userStatus {{message.payload?.userStatus|json}}</div>
