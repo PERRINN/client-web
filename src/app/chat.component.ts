@@ -13,30 +13,33 @@ import * as firebase from 'firebase/app'
 
   <div class="sheet">
     <div class="fixed" style="background:whitesmoke;color:#444;font-size:12px;cursor:pointer" (click)="showChatDetails=!showChatDetails">
-      <div *ngIf="!showChatDetails" style="float:left;margin:0 5px 0 10px;min-height:40px">
-        <div>
-          <span *ngIf="chatLastMessageObj?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;color:rgba(0,0,0,0.6)">settings</span>
-          <div style="float:left;font-weight:bold">{{chatLastMessageObj?.chatSubject}}</div>
+      <div *ngIf="!showChatDetails">
+        <div style="float:left;margin:0 5px 0 10px;min-height:40px">
+          <div>
+            <span *ngIf="chatLastMessageObj?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;color:rgba(0,0,0,0.6)">settings</span>
+            <div style="float:left;font-weight:bold">{{chatLastMessageObj?.chatSubject}}</div>
+          </div>
+          <span *ngFor="let recipient of chatLastMessageObj?.recipientList;let last=last">{{recipient==UI.currentUser?'You':chatLastMessageObj?.recipients[recipient]?.name}}{{last?"":", "}}</span>
+          <div *ngIf="math.floor(eventDate/60000-UI.nowSeconds/60)>-60" style="clear:both">
+            <span class="material-icons-outlined" style="float:left;font-size:20px;margin-right:5px;color:rgba(0,0,0,0.6)">event</span>
+            <div [style.background-color]="(math.floor((eventDate/1000-UI.nowSeconds)/60)>60*8)?'midnightblue':'red'" style="float:left;color:white;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(eventDate/1000-UI.nowSeconds)}}</div>
+            <div *ngIf="math.floor(eventDate/60000-UI.nowSeconds/60)<=0&&math.floor(eventDate/60000-UI.nowSeconds/60)>-60" style="float:left;background-color:red;color:white;padding:0 5px 0 5px">Now</div>
+            <div style="float:left;margin:0 5px 0 5px">{{eventDescription}}</div>
+            <div style="float:left;margin:0 5px 0 0">{{eventDate|date:'EEEE d MMM HH:mm'}}</div>
+          </div>
+          <div *ngIf="(UI.nowSeconds<survey?.expiryTimestamp/1000)&&survey?.createdTimestamp" style="clear:both">
+            <span class="material-icons-outlined" style="float:left;font-size:20px;margin-right:5px;color:rgba(0,0,0,0.6)">poll</span>
+            <div [style.background-color]="(math.floor(survey.expiryTimestamp/3600000-UI.nowSeconds/3600)>8)?'midnightblue':'red'" style="float:left;color:white;padding:0 5px 0 5px">{{UI.formatSecondsToDhm2(survey.expiryTimestamp/1000-UI.nowSeconds)}} left</div>
+            <div style="float:left;margin:0 5px 0 5px">{{survey.question}}</div>
+            <span *ngFor="let answer of survey.answers;let last=last" [style.font-weight]="answer?.votes.includes(UI.currentUser)?'bold':'normal'" style="float:left;margin:0 5px 0 5px">{{answer.answer}} ({{(answer.votes.length/survey.totalVotes)|percent:'1.0-0'}})</span>
+            <span style="float:left;margin:0 5px 0 5px">{{survey.totalVotes}} vote{{survey.totalVotes>1?'s':''}}</span>
+            <div *ngIf="!chatLastMessageObj?.recipients[UI.currentUser]?.voteIndexPlusOne" style="clear:both;color:red;margin:0 5px 0 5px">vote now</div>
+          </div>
         </div>
-        <span *ngFor="let recipient of chatLastMessageObj?.recipientList;let last=last">{{recipient==UI.currentUser?'You':chatLastMessageObj?.recipients[recipient]?.name}}{{last?"":", "}}</span>
-        <div *ngIf="math.floor(eventDate/60000-UI.nowSeconds/60)>-60" style="clear:both">
-          <span class="material-icons-outlined" style="float:left;font-size:20px;margin-right:5px;color:rgba(0,0,0,0.6)">event</span>
-          <div [style.background-color]="(math.floor((eventDate/1000-UI.nowSeconds)/60)>60*8)?'midnightblue':'red'" style="float:left;color:white;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(eventDate/1000-UI.nowSeconds)}}</div>
-          <div *ngIf="math.floor(eventDate/60000-UI.nowSeconds/60)<=0&&math.floor(eventDate/60000-UI.nowSeconds/60)>-60" style="float:left;background-color:red;color:white;padding:0 5px 0 5px">Now</div>
-          <div style="float:left;margin:0 5px 0 5px">{{eventDescription}}</div>
-          <div style="float:left;margin:0 5px 0 0">{{eventDate|date:'EEEE d MMM HH:mm'}}</div>
-        </div>
-        <div *ngIf="(UI.nowSeconds<survey?.expiryTimestamp/1000)&&survey?.createdTimestamp" style="clear:both">
-          <span class="material-icons-outlined" style="float:left;font-size:20px;margin-right:5px;color:rgba(0,0,0,0.6)">poll</span>
-          <div [style.background-color]="(math.floor(survey.expiryTimestamp/3600000-UI.nowSeconds/3600)>8)?'midnightblue':'red'" style="float:left;color:white;padding:0 5px 0 5px">{{UI.formatSecondsToDhm2(survey.expiryTimestamp/1000-UI.nowSeconds)}} left</div>
-          <div style="float:left;margin:0 5px 0 5px">{{survey.question}}</div>
-          <span *ngFor="let answer of survey.answers;let last=last" [style.font-weight]="answer?.votes.includes(UI.currentUser)?'bold':'normal'" style="float:left;margin:0 5px 0 5px">{{answer.answer}} ({{(answer.votes.length/survey.totalVotes)|percent:'1.0-0'}})</span>
-          <span style="float:left;margin:0 5px 0 5px">{{survey.totalVotes}} vote{{survey.totalVotes>1?'s':''}}</span>
-          <div *ngIf="!chatLastMessageObj?.recipients[UI.currentUser]?.voteIndexPlusOne" style="clear:both;color:red;margin:0 5px 0 5px">vote now</div>
-        </div>
+        <span class="material-icons-outlined" style="float:right;padding:7px;color:rgba(0,0,0,0.6)" (click)="showImageGalleryClick()">{{showImageGallery?'collections':'question_answer'}}</span>
       </div>
-      <div *ngIf="showChatDetails" style="background:whitesmoke">
-        <div style="float:left;font-size:12px;line-height:20px;margin:10px;color:midnightblue;cursor:pointer">< messages</div>
+      <div *ngIf="showChatDetails">
+        <div style="float:left;font-size:12px;line-height:20px;margin:10px;color:midnightblue">< messages</div>
       </div>
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
@@ -140,7 +143,7 @@ import * as firebase from 'firebase/app'
     <div class="seperator" style="width:100%;margin-bottom:150px"></div>
   </div>
 
-  <div class="sheet" id="chat_window" style="overflow-y:auto;height:100%" *ngIf="!showChatDetails" scrollable>
+  <div class="sheet" id="chat_window" *ngIf="!showChatDetails&&!showImageGallery" style="padding:50px 0 0 0;overflow-y:auto;height:100%" scrollable>
     <div class="spinner" *ngIf="UI.loading">
       <div class="bounce1"></div>
       <div class="bounce2"></div>
@@ -149,7 +152,7 @@ import * as firebase from 'firebase/app'
     <div>
       <ul style="list-style:none;">
         <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index">
-          <div *ngIf="isMessageNewTimeGroup(message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" style="padding:100px 15px 15px 15px">
+          <div *ngIf="isMessageNewTimeGroup(message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" style="padding:15px">
             <div *ngIf="first" style="color:midnightblue;width:200px;padding:15px;margin:0 auto;text-align:center;cursor:pointer" (click)="loadMore()">Load more</div>
             <div style="color:midnightblue;font-weight:bold;margin:0 auto;text-align:center">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'fullDate'}}</div>
           </div>
@@ -168,9 +171,9 @@ import * as firebase from 'firebase/app'
                 <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)<=43200" style="font-size:11px;margin:0px 10px 0px 10px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</div>
               </div>
               <div style="clear:both;text-align:center">
-                <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" style="clear:both;width:70%;max-height:320px;object-fit:contain;margin:5px 10px 5px 5px;border-radius:3px" (click)="showFullScreenImage(message.payload?.chatImageUrlOriginal)">
+                <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" style="width:70%;max-height:320px;object-fit:contain;margin:5px 10px 5px 5px;border-radius:3px" (click)="showFullScreenImage(message.payload?.chatImageUrlOriginal)">
               </div>
-              <div style="float:left;margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
+              <div style="margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
               <div *ngIf="messageShowDetails.includes(message.key)" style="margin:5px">
                 <div class="seperator" style="width:100%"></div>
                 <div style="font-size:10px">userStatus {{message.payload?.userStatus|json}}</div>
@@ -214,7 +217,28 @@ import * as firebase from 'firebase/app'
     </div>
   </div>
 
-  <div class="sheet">
+  <div class="sheet" id="chat_window" *ngIf="!showChatDetails&&showImageGallery" style="padding:50px 0 0 0;overflow-y:auto;height:100%" scrollable>
+    <div class="spinner" *ngIf="UI.loading">
+      <div class="bounce1"></div>
+      <div class="bounce2"></div>
+      <div class="bounce3"></div>
+    </div>
+    <div>
+      <ul style="list-style:none;">
+        <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index" style="float:left;margin:5px;border-style:solid;border-width:1px;border-color:#ddd">
+          <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" style="width:375px;height:200px;object-fit:contain" (click)="showFullScreenImage(message.payload?.chatImageUrlOriginal)">
+          <div style="margin:5px;width:365px;height:45px">
+            <span style="font-weight:bold">{{message.payload?.name}} </span>
+            <span>{{message.payload?.text}}</span>
+          </div>
+        </li>
+      </ul>
+      <div style="height:100px;width:100%"></div>
+    </div>
+  </div>
+
+
+  <div class="sheet" *ngIf="!showImageGallery">
     <div class="fixed" style="bottom:0">
       <span *ngIf="chatLastMessageObj?.chatSubject==null" style="margin:5px;font-size:10px">This message will be the subject of this chat</span>
       <div class="seperator" style="width:100%"></div>
@@ -266,6 +290,7 @@ export class ChatComponent {
   lastRead:string
   channelImageChange:boolean
   channels:Observable<any[]>
+  showImageGallery:boolean
 
   constructor(
     public afs:AngularFirestore,
@@ -314,11 +339,17 @@ export class ChatComponent {
     })
   }
 
-  ngOnInit() {
+  ngOnInit(){
     this.refreshSearchLists()
   }
 
-  loadMore() {
+  showImageGalleryClick(){
+    event.stopPropagation()
+    this.showImageGallery=!this.showImageGallery
+    this.refreshMessages(this.chatLastMessageObj.chain||this.chatChain)
+  }
+
+  loadMore(){
     this.UI.loading=true
     this.messageNumberDisplay+=15
     this.refreshMessages(this.chatLastMessageObj.chain||this.chatChain)
@@ -333,7 +364,7 @@ export class ChatComponent {
   }
 
   refreshMessages(chain) {
-    this.messages=this.afs.collection('PERRINNMessages',ref=>ref
+    if(!this.showImageGallery)this.messages=this.afs.collection('PERRINNMessages',ref=>ref
       .where('chain','==',chain)
       .orderBy('serverTimestamp','desc')
       .limit(this.messageNumberDisplay)
@@ -357,6 +388,34 @@ export class ChatComponent {
       })
       batch.commit()
       return changes.reverse().map(c=>({
+        key:c.payload.doc.id,
+        payload:c.payload.doc.data()
+      }))
+    }))
+    else this.messages=this.afs.collection('PERRINNMessages',ref=>ref
+      .where('chain','==',chain)
+      .orderBy('chatImageTimestamp','desc')
+      .limit(this.messageNumberDisplay)
+    ).snapshotChanges().pipe(map(changes=>{
+      this.UI.loading=false
+      var batch=this.afs.firestore.batch()
+      var nextMessageRead=true
+      changes.forEach(c=>{
+        if(!this.lastRead&&!nextMessageRead&&(c.payload.doc.data()['reads']||[])[this.UI.currentUser])this.lastRead=c.payload.doc.id
+        nextMessageRead=(c.payload.doc.data()['reads']||[])[this.UI.currentUser]
+        if(c.payload.doc.data()['lastMessage']){
+          if(!this.reads.includes(c.payload.doc.id))batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id),{serverTimestamp:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
+          this.reads.push(c.payload.doc.id)
+          this.chatLastMessageObj=c.payload.doc.data()
+          this.channelName=c.payload.doc.data()['channelName']
+          this.chatSubject=c.payload.doc.data()['chatSubject']
+          this.eventDescription=c.payload.doc.data()['eventDescription']
+          this.eventDate=c.payload.doc.data()['eventDate']
+          this.survey=((c.payload.doc.data()['survey']||{})['createdTimestamp'])?c.payload.doc.data()['survey']:this.survey
+        }
+      })
+      batch.commit()
+      return changes.map(c=>({
         key:c.payload.doc.id,
         payload:c.payload.doc.data()
       }))
@@ -554,11 +613,11 @@ export class ChatComponent {
   }
 
   resetChat(){
-    this.searchFilter=''
+    this.searchFilter=null
     this.teams=null
-    this.draftMessage=''
-    this.imageTimestamp=''
-    this.imageDownloadUrl=''
+    this.draftMessage=null
+    this.imageTimestamp=null
+    this.imageDownloadUrl=null
     this.showChatDetails=false
     this.messageShowDetails=[]
     this.messageShowActions=[]
