@@ -36,7 +36,7 @@ import * as firebase from 'firebase/app'
             <div *ngIf="!chatLastMessageObj?.recipients[UI.currentUser]?.voteIndexPlusOne" style="clear:both;color:red;margin:0 5px 0 5px">vote now</div>
           </div>
         </div>
-        <span class="material-icons-outlined" style="float:right;padding:7px;color:rgba(0,0,0,0.6)" (click)="showImageGalleryClick()">{{showImageGallery?'collections':'question_answer'}}</span>
+        <span class="material-icons-outlined" style="float:right;padding:7px;color:rgba(0,0,0,0.6)" (click)="showImageGalleryClick()">{{showImageGallery?'question_answer':'collections'}}</span>
       </div>
       <div *ngIf="showChatDetails">
         <div style="float:left;font-size:12px;line-height:20px;margin:10px;color:midnightblue">< messages</div>
