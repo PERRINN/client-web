@@ -53,8 +53,8 @@ module.exports = {
           batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{imageResized:true},{create:true})
           userImageData=userImageData.data()
         }
+        else userImageData={}
       }
-      else userImageData={}
       let chatImageData={}
       if(messageData.chatImageTimestamp){
         chatImageData=await admin.firestore().doc('Images/'+messageData.chatImageTimestamp).get()
@@ -62,8 +62,8 @@ module.exports = {
           batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{imageResized:true},{create:true})
           chatImageData=chatImageData.data()
         }
+        else chatImageData={}
       }
-      else chatImageData={}
       let channelImageData={}
       if(messageData.channelImageTimestamp){
         channelImageData=await admin.firestore().doc('Images/'+messageData.channelImageTimestamp).get()
@@ -71,8 +71,8 @@ module.exports = {
           batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{imageResized:true},{create:true})
           channelImageData=channelImageData.data()
         }
+        else channelImageData={}
       }
-      else channelImageData={}
 
       //chat image
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{chatImageUrlThumb:chatImageData.imageUrlThumb||messageData.chatImageUrlThumb||null},{create:true})
