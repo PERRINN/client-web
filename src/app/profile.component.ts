@@ -47,12 +47,18 @@ import * as firebase from 'firebase/app'
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
     <div *ngIf="scope=='listChannels'">
+      <div style="float:left;cursor:pointer;margin:10px;border-style:solid;border-width:1px;border-color:#ddd" (click)="UI.currentChannel=0;UI.currentChannelLastMessageObj={};router.navigate(['profile','channel0'])">
+        <img [src]="'https://storage.googleapis.com/perrinn-d5fc1.appspot.com/images%2F1644511364753Screenshot%202022-02-10%20at%2016.42.17_540x540.png?GoogleAccessId=firebase-adminsdk-rh8x2%40perrinn-d5fc1.iam.gserviceaccount.com&Expires=16756761600&Signature=erFZoGTzTgE87d8rYnWssaoHrrHJcnY6wyuUoOnRgnQ4r0gtdFwpsczIkM1m0xampje7gI0lJK9IXA6P8Z8BY6Bn%2F3DGz%2BcA6Ei7UjKLT2TkFG5UAO1l4BMbqUb%2F5WtszN5czJJEbyBCLHeD1PcIHCFMSGIUjr3cW4D7s7ss6KDQvhbB4S6RNbYsYLjNtGYNNen7iuIpA4WikMAmqfEs%2BoOCJOlyLP5xwf%2Buw0tXbwsFSGXbBRsKeIAxbTOvMJIWNI06SsCNUfpusLpd2mchmYHFm2guqFb6GTMjwLFUmBFqjM8vEX%2Fi3yTFla9OuuVKQGpaQ%2B%2FwZyKYxqlxuYfuJA%3D%3D'" style="object-fit:cover;height:75px;width:300px">
+        <div style="width:300px;text-align:center;font-size:12px;font-weight:bold;padding:3px">All messages</div>
+      </div>
       <ul class="listLight">
         <li *ngFor="let message of messages|async;let first=first;let last=last"
           style="float:left;margin:10px;border-style:solid;border-width:1px;border-color:#ddd"
-          (click)="UI.currentChannel=message.payload.doc.data()?.channel;UI.currentChannelLastMessageObj=message.payload.doc.data();showApps=false;router.navigate(['profile','channel'+UI.currentChannel])">
-          <img [src]="message.payload.doc.data()?.channelImageUrlMedium" style="object-fit:cover;height:75px;width:300px">
-          <div style="width:300px;text-align:center;font-size:12px;font-weight:bold;padding:3px">{{message.payload.doc.data()?.channelName}}</div>
+          (click)="UI.currentChannel=message.payload.doc.data()?.channel;UI.currentChannelLastMessageObj=message.payload.doc.data();router.navigate(['profile','channel'+UI.currentChannel])">
+          <div *ngIf="message.payload.doc.data()?.channel">
+            <img [src]="message.payload.doc.data()?.channelImageUrlMedium" style="object-fit:cover;height:75px;width:300px">
+            <div style="width:300px;text-align:center;font-size:12px;font-weight:bold;padding:3px">{{message.payload.doc.data()?.channelName}}</div>
+          </div>
         </li>
       </ul>
       <div class="seperator" style="width:100%;margin:0px"></div>
