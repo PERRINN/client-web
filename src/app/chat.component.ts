@@ -17,7 +17,7 @@ import * as firebase from 'firebase/app'
         <div style="float:left;margin:0 5px 0 10px;min-height:40px">
           <div>
             <span *ngIf="chatLastMessageObj?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;color:rgba(0,0,0,0.6)">settings</span>
-            <div style="float:left;font-weight:bold">{{chatLastMessageObj?.chatSubject}}</div>
+            <div style="float:left;font-weight:bold">{{chatLastMessageObj?.channel?chatLastMessageObj?.channelName+':&nbsp;':''}}{{chatLastMessageObj?.chatSubject}}</div>
           </div>
           <span *ngFor="let recipient of chatLastMessageObj?.recipientList;let last=last">{{recipient==UI.currentUser?'You':chatLastMessageObj?.recipients[recipient]?.name}}{{last?"":", "}}</span>
           <div *ngIf="math.floor(eventDate/60000-UI.nowSeconds/60)>-60" style="clear:both">
