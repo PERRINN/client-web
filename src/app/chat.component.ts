@@ -615,7 +615,7 @@ export class ChatComponent {
   resetChat(){
     this.searchFilter=null
     this.teams=null
-    this.draftMessage=null
+    this.draftMessage=''
     this.imageTimestamp=null
     this.imageDownloadUrl=null
     this.showChatDetails=false
