@@ -14,7 +14,8 @@ export class UserInterfaceService {
   nowSeconds:number
   channelNumberDisplay:number
   currentChannel:any
-  currentChannelLastMessageObj:any
+  currentChannelName:any
+  currentChannelImageUrlMedium:any
 
   constructor(
     private afAuth:AngularFireAuth,

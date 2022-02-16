@@ -11,7 +11,7 @@ import * as firebase from 'firebase/app'
   template:`
   <div class='sheet'>
     <div *ngIf="scope.substring(0,7)=='channel'&&scope!='listChannels'" style="clear:both;background:whitesmoke">
-      <img [src]="UI.currentChannelLastMessageObj?.channelImageUrlMedium||'https://storage.googleapis.com/perrinn-d5fc1.appspot.com/images%2F1644511364753Screenshot%202022-02-10%20at%2016.42.17_540x540.png?GoogleAccessId=firebase-adminsdk-rh8x2%40perrinn-d5fc1.iam.gserviceaccount.com&Expires=16756761600&Signature=erFZoGTzTgE87d8rYnWssaoHrrHJcnY6wyuUoOnRgnQ4r0gtdFwpsczIkM1m0xampje7gI0lJK9IXA6P8Z8BY6Bn%2F3DGz%2BcA6Ei7UjKLT2TkFG5UAO1l4BMbqUb%2F5WtszN5czJJEbyBCLHeD1PcIHCFMSGIUjr3cW4D7s7ss6KDQvhbB4S6RNbYsYLjNtGYNNen7iuIpA4WikMAmqfEs%2BoOCJOlyLP5xwf%2Buw0tXbwsFSGXbBRsKeIAxbTOvMJIWNI06SsCNUfpusLpd2mchmYHFm2guqFb6GTMjwLFUmBFqjM8vEX%2Fi3yTFla9OuuVKQGpaQ%2B%2FwZyKYxqlxuYfuJA%3D%3D'" style="margin:5px;object-fit:cover;border-radius:3px;height:75px;width:300px">
+      <img [src]="UI.currentChannelImageUrlMedium||'https://storage.googleapis.com/perrinn-d5fc1.appspot.com/images%2F1644511364753Screenshot%202022-02-10%20at%2016.42.17_540x540.png?GoogleAccessId=firebase-adminsdk-rh8x2%40perrinn-d5fc1.iam.gserviceaccount.com&Expires=16756761600&Signature=erFZoGTzTgE87d8rYnWssaoHrrHJcnY6wyuUoOnRgnQ4r0gtdFwpsczIkM1m0xampje7gI0lJK9IXA6P8Z8BY6Bn%2F3DGz%2BcA6Ei7UjKLT2TkFG5UAO1l4BMbqUb%2F5WtszN5czJJEbyBCLHeD1PcIHCFMSGIUjr3cW4D7s7ss6KDQvhbB4S6RNbYsYLjNtGYNNen7iuIpA4WikMAmqfEs%2BoOCJOlyLP5xwf%2Buw0tXbwsFSGXbBRsKeIAxbTOvMJIWNI06SsCNUfpusLpd2mchmYHFm2guqFb6GTMjwLFUmBFqjM8vEX%2Fi3yTFla9OuuVKQGpaQ%2B%2FwZyKYxqlxuYfuJA%3D%3D'" style="margin:5px;object-fit:cover;border-radius:3px;height:75px;width:300px">
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
     <div *ngIf="scope.substring(0,7)!='channel'&&scope!='listChannels'" style="clear:both;background:whitesmoke">
@@ -47,15 +47,10 @@ import * as firebase from 'firebase/app'
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
     <div *ngIf="scope=='listChannels'">
-      <div style="float:left;cursor:pointer;margin:10px;border-style:solid;border-width:1px;border-color:#ddd" (click)="UI.currentChannel=0;UI.currentChannelLastMessageObj={};router.navigate(['profile','channel0'])">
-        <img [src]="'https://storage.googleapis.com/perrinn-d5fc1.appspot.com/images%2F1644511364753Screenshot%202022-02-10%20at%2016.42.17_540x540.png?GoogleAccessId=firebase-adminsdk-rh8x2%40perrinn-d5fc1.iam.gserviceaccount.com&Expires=16756761600&Signature=erFZoGTzTgE87d8rYnWssaoHrrHJcnY6wyuUoOnRgnQ4r0gtdFwpsczIkM1m0xampje7gI0lJK9IXA6P8Z8BY6Bn%2F3DGz%2BcA6Ei7UjKLT2TkFG5UAO1l4BMbqUb%2F5WtszN5czJJEbyBCLHeD1PcIHCFMSGIUjr3cW4D7s7ss6KDQvhbB4S6RNbYsYLjNtGYNNen7iuIpA4WikMAmqfEs%2BoOCJOlyLP5xwf%2Buw0tXbwsFSGXbBRsKeIAxbTOvMJIWNI06SsCNUfpusLpd2mchmYHFm2guqFb6GTMjwLFUmBFqjM8vEX%2Fi3yTFla9OuuVKQGpaQ%2B%2FwZyKYxqlxuYfuJA%3D%3D'" style="object-fit:cover;height:75px;width:300px">
-        <div style="width:300px;text-align:center;font-size:12px;font-weight:bold;padding:3px">All messages</div>
-      </div>
       <ul class="listLight">
-        <li *ngFor="let message of messages|async;let first=first;let last=last"
-          style="float:left;margin:10px;border-style:solid;border-width:1px;border-color:#ddd"
-          (click)="UI.currentChannel=message.payload.doc.data()?.channel;UI.currentChannelLastMessageObj=message.payload.doc.data();router.navigate(['profile','channel'+UI.currentChannel])">
-          <div *ngIf="message.payload.doc.data()?.channel">
+        <li *ngFor="let message of messages|async;let first=first;let last=last" style="float:left"
+          (click)="UI.currentChannel=message.payload.doc.data()?.channel;UI.currentChannelName=message.payload.doc.data()?.channelName;UI.currentChannelImageUrlMedium=message.payload.doc.data()?.channelImageUrlMedium;router.navigate(['profile','channel'+UI.currentChannel])">
+          <div *ngIf="message.payload.doc.data()?.channel" style="margin:10px;border-style:solid;border-width:1px;border-color:#ddd">
             <img [src]="message.payload.doc.data()?.channelImageUrlMedium" style="object-fit:cover;height:75px;width:300px">
             <div style="width:300px;text-align:center;font-size:12px;font-weight:bold;padding:3px">{{message.payload.doc.data()?.channelName}}</div>
           </div>
@@ -222,7 +217,7 @@ export class ProfileComponent {
       }))
     }
     else if(this.scope.substring(0,7)=='channel'){
-      if(this.UI.currentChannel==0){
+      if(this.scope=='channel0'){
         this.comingEvents=this.afs.collection<any>('PERRINNMessages',ref=>ref
           .where('lastMessage','==',true)
           .where('verified','==',true)

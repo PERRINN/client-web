@@ -10,7 +10,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
     <progress value='0' max='100' id='uploader'>0%</progress>
     <div class='menu'>
       <div style="width:320px;display:block;margin: 0 auto">
-        <img src="./../assets/App icons/Perrinn_02.png" style="cursor:pointer;float:left;width:30px;margin:5px 45px 5px 5px;border-radius:3px;" (click)="router.navigate(['profile','channel'+UI.currentChannel])">
+        <img src="./../assets/App icons/Perrinn_02.png" style="cursor:pointer;float:left;width:30px;margin:5px 45px 5px 5px;border-radius:3px;" (click)="UI.currentChannel=0;UI.currentChannelName='All messages';UI.currentChannelImageUrlMedium='';router.navigate(['profile','channel0'])">
         <span class="material-icons" style="float:left;margin:5px 45px 5px 45px;font-size:30px;cursor:pointer;color:white" (click)="router.navigate(['directory'])">list</span>
         <span class="material-icons-outlined" style="float:left;margin:5px 45px 5px 45px;font-size:30px;height:30px;cursor:pointer;color:white" onclick="window.open('https://discover.perrinn.com','_blank')">info</span>
       </div>
@@ -25,7 +25,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
           </div>
         </div>
         <span class="material-icons" style="float:right;margin:5px;cursor:pointer;color:rgba(0,0,0,0.6)" (click)="router.navigate(['apps'])">apps</span>
-        <span style="float:right;height:35px;padding:8px;font-size:12px;font-weight:bold;border-style:solid;border-width:0 1px 0 0;border-color:#ddd">{{UI.currentChannelLastMessageObj?.channelName||'All messages'}}</span>
+        <span style="float:right;height:35px;padding:8px;font-size:12px;font-weight:bold;cursor:pointer;border-style:solid;border-width:0 1px 0 0;border-color:#ddd" (click)="router.navigate(['profile','channel'+UI.currentChannel])">{{UI.currentChannelName||'All messages'}}</span>
         <span style="float:right;height:35px;padding:8px;font-size:12px;font-weight:bold;cursor:pointer" (click)="router.navigate(['profile','listChannels'])">&#x25BC;</span>
       </div>
       <div class="seperator" style="width:100%;margin:0px"></div>
