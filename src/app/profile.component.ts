@@ -67,9 +67,9 @@ import * as firebase from 'firebase/app'
             <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:rgba(0,0,0,0.6)">event</span>
           </div>
           <div>
-            <div style="clear:right;margin-top:5px;width:60%">
+            <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
               <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:rgba(0,0,0,0.6)">settings</span>
-              <div style="float:left;font-size:14px;font-weight:bold;white-space:nowrap;text-overflow:ellipsis">{{message.payload.doc.data()?.channel?message.payload.doc.data()?.channelName+':&nbsp;':''}}{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</div>
+              <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.channel?message.payload.doc.data()?.channelName+':&nbsp;':''}}{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</span>
             </div>
             <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>-60" style="width:80%">
               <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>0" [style.background-color]="(math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>60*8)?'midnightblue':'red'" style="float:left;color:white;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(message.payload.doc.data()?.eventDate/1000-UI.nowSeconds)}}</div>
@@ -90,9 +90,9 @@ import * as firebase from 'firebase/app'
             <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:rgba(0,0,0,0.6)">poll</span>
           </div>
           <div>
-            <div style="clear:right;margin-top:5px;width:60%">
+            <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
               <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:rgba(0,0,0,0.6)">settings</span>
-              <div style="float:left;font-size:14px;font-weight:bold;white-space:nowrap;text-overflow:ellipsis">{{message.payload.doc.data()?.channel?message.payload.doc.data()?.channelName+':&nbsp;':''}}{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</div>
+              <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.channel?message.payload.doc.data()?.channelName+':&nbsp;':''}}{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</span>
             </div>
             <div style="clear:both">
               <div [style.background-color]="(math.floor(message.payload.doc.data()?.survey.expiryTimestamp/3600000-UI.nowSeconds/3600)>8)?'midnightblue':'red'" style="float:left;color:white;padding:0 5px 0 5px">{{UI.formatSecondsToDhm2(message.payload.doc.data()?.survey.expiryTimestamp/1000-UI.nowSeconds)}} left</div>
@@ -115,9 +115,9 @@ import * as firebase from 'firebase/app'
               <img *ngIf="message.payload.doc.data()?.recipientList[1]" [src]="message.payload.doc.data()?.recipients[message.payload.doc.data()?.recipientList[1]]?.imageUrlThumb" style="float:left;margin:7px 4px 7px 4px;object-fit:cover;height:25px;width:25px;border-radius:50%">
             </div>
             <div>
-              <div style="float:left;margin-top:5px;width:60%">
+              <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
                 <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:rgba(0,0,0,0.6)">settings</span>
-                <div style="float:left;font-size:14px;font-weight:bold;white-space:nowrap;text-overflow:ellipsis">{{message.payload.doc.data()?.channel?message.payload.doc.data()?.channelName+':&nbsp;':''}}{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</div>
+                <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.channel?message.payload.doc.data()?.channelName+':&nbsp;':''}}{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</span>
               </div>
               <div style="float:right;margin:5px 0 0 0;width:35px;height:20px;line-height:20px;font-size:10px;text-align:center;border-radius:3px 0 0 3px"
                 (click)="readFlagClick(message.payload.doc.id,(message.payload.doc.data()?.reads||{})[UI.currentUser])"
@@ -126,8 +126,10 @@ import * as firebase from 'firebase/app'
                 {{message.payload.doc.data()?.recipients[UI.currentUser]?.unreadMessages}}
               </div>
               <div style="float:right;margin-top:5px;color:#999;font-size:11px;margin-right:10px;width:40px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</div>
-              <div style="clear:both;float:left">{{message.payload.doc.data()?.name}}:&nbsp;</div>
-              <div style="float:left;white-space:nowrap;width:70%;text-overflow:ellipsis">{{(message.payload.doc.data()?.chatImageTimestamp!=''&&message.payload.doc.data()?.chatImageTimestamp!=undefined)?'(image) ':''}}{{message.payload.doc.data()?.text}}</div>
+              <div style="clear:both;float:left;height:42px;width:90%;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">
+                <span>{{message.payload.doc.data()?.name}}:&nbsp;</span>
+                <span>{{(message.payload.doc.data()?.chatImageTimestamp!=''&&message.payload.doc.data()?.chatImageTimestamp!=undefined)?'(image) ':''}}{{message.payload.doc.data()?.text}}</span>
+              </div>
             </div>
             <div class="seperator"></div>
           </div>
