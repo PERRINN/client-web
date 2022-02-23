@@ -45,7 +45,7 @@ import * as firebase from 'firebase/app';
   </ul>
   <div class="seperator" style="width:100%;margin:0px;cursor:default"></div>
   <ul class="listLight" style="margin:10px">
-    <li *ngFor="let message of messages | async" style="float:left;cursor:default">
+    <li *ngFor="let message of messages | async" style="float:left;cursor:text;user-select:text">
       <span>{{message.values?.name}} </span>
       <span>{{UI.formatCOINS(message.values?.wallet?.balance||0)}}&nbsp;&nbsp;</span>
     </li>
