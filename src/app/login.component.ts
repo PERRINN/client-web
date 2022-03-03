@@ -56,7 +56,7 @@ export class LoginComponent  {
     this.action=''
     this.afAuth.user.subscribe((auth) => {
       if (auth != null) {
-        this.router.navigate(['profile','channel0'])
+        this.router.navigate(['profile','all'])
       }
     })
   }

@@ -64,15 +64,6 @@ module.exports = {
         }
         else chatImageData={}
       }
-      let channelImageData={}
-      if(messageData.channelImageTimestamp){
-        channelImageData=await admin.firestore().doc('Images/'+messageData.channelImageTimestamp).get()
-        if(channelImageData!=undefined&&channelImageData.data()!=undefined){
-          batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{imageResized:true},{create:true})
-          channelImageData=channelImageData.data()
-        }
-        else channelImageData={}
-      }
 
       //chat image
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{chatImageUrlThumb:chatImageData.imageUrlThumb||messageData.chatImageUrlThumb||null},{create:true})
@@ -108,9 +99,9 @@ module.exports = {
 
       //chat chain
       let chatPreviousMessageData={}
-      const chatPreviousMessages=await admin.firestore().collection('PERRINNMessages').where('chain','==',messageData.chain).where('lastMessage','==',true).get()
+      const chatPreviousLastMessages=await admin.firestore().collection('PERRINNMessages').where('chain','==',messageData.chain).where('lastMessage','==',true).get()
       let chatLastMessage=true
-      chatPreviousMessages.forEach(message=>{
+      chatPreviousLastMessages.forEach(message=>{
         if(message.data().serverTimestamp<messageData.serverTimestamp&&messageId!=message.id){
           batch.update(admin.firestore().doc('PERRINNMessages/'+message.id),{lastMessage:false})
           chatPreviousMessageData=message.data()
@@ -120,25 +111,27 @@ module.exports = {
       })
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{lastMessage:chatLastMessage})
 
-      //channel chain
-      if(messageData.channel==undefined||messageData.channel==null)messageData.channel=chatPreviousMessageData.channel||0
-      let channelPreviousMessageData={}
-      const channelPreviousMessages=await admin.firestore().collection('PERRINNMessages').where('channel','==',messageData.channel).where('channelLastMessage','==',true).get()
-      let channelLastMessage=true
-      channelPreviousMessages.forEach(message=>{
+      //message chat Subject
+      if(messageData.chain==user)messageData.chatSubject='User settings'
+      if(messageData.chain=='PERRINNUsersStateSnapshot')messageData.chatSubject='User State Snapshot'
+      messageData.chatSubject=messageData.chatSubject||chatPreviousMessageData.chatSubject||messageData.text||null
+      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{chatSubject:messageData.chatSubject},{create:true})
+
+      //tag chain
+      messageData.tag=messageData.chatSubject.split(" ")[0]||null
+      let tagPreviousMessageData={}
+      const tagPreviousLastMessages=await admin.firestore().collection('PERRINNMessages').where('tag','==',messageData.tag).where('tagLastMessage','==',true).get()
+      let tagLastMessage=true
+      tagPreviousLastMessages.forEach(message=>{
         if(message.data().serverTimestamp<messageData.serverTimestamp&&messageId!=message.id){
-          batch.update(admin.firestore().doc('PERRINNMessages/'+message.id),{channelLastMessage:false})
-          channelPreviousMessageData=message.data()
+          batch.update(admin.firestore().doc('PERRINNMessages/'+message.id),{tagLastMessage:false})
+          tagPreviousMessageData=message.data()
         } else if (message.data().serverTimestamp>messageData.serverTimestamp&&messageId!=message.id) {
-          channelLastMessage=false
+          tagLastMessage=false
         }
       })
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{channel:messageData.channel})
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{channelLastMessage:channelLastMessage})
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{channelName:messageData.channelName||channelPreviousMessageData.channelName||null},{create:true})
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{channelImageTimestamp:messageData.channelImageTimestamp||channelPreviousMessageData.channelImageTimestamp||null},{create:true})
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{channelImageUrlThumb:channelImageData.imageUrlThumb||messageData.channelImageUrlThumb||channelPreviousMessageData.channelImageUrlThumb||null},{create:true})
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{channelImageUrlMedium:channelImageData.imageUrlMedium||messageData.channelImageUrlMedium||channelPreviousMessageData.channelImageUrlMedium||null},{create:true})
+      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{tag:messageData.tag})
+      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{tagLastMessage:tagLastMessage})
 
       //settings
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{isSettings:messageData.chain==user})
@@ -295,10 +288,6 @@ module.exports = {
         if(wallet.balance>0)userStatus.isMember=true
 
       //*******MESSAGE WRITES**********************
-        //message chat Subject
-        if(messageData.chain==user)messageData.chatSubject='User settings'
-        if(messageData.chain=='PERRINNUsersStateSnapshot')messageData.chatSubject='PERRINN Users State Snapshot'
-        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{chatSubject:messageData.chatSubject||chatPreviousMessageData.chatSubject||messageData.text||null},{create:true})
         //message event
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{eventDate:messageData.eventDate||chatPreviousMessageData.eventDate||null},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{eventDescription:messageData.eventDescription||chatPreviousMessageData.eventDescription||null},{create:true})

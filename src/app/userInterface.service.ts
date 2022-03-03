@@ -12,18 +12,14 @@ export class UserInterfaceService {
   currentUser:string
   currentUserLastMessageObj:any
   nowSeconds:number
-  channelNumberDisplay:number
-  currentChannel:any
-  currentChannelName:any
-  currentChannelImageUrlMedium:any
+  tagFilters:any
 
   constructor(
     private afAuth:AngularFireAuth,
     public afs:AngularFirestore
   ) {
+    this.tagFilters=[]
     this.nowSeconds=Math.floor(Date.now()/1000)
-    this.currentChannel=0
-    this.channelNumberDisplay=30
     setInterval(()=>{this.nowSeconds=Math.floor(Date.now()/1000)},60000)
     this.afAuth.user.subscribe((auth) => {
       if (auth != null) {

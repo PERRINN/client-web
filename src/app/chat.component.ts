@@ -17,7 +17,7 @@ import * as firebase from 'firebase/app'
         <div style="float:left;margin:0 5px 0 10px;min-height:40px">
           <div>
             <span *ngIf="chatLastMessageObj?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;color:rgba(0,0,0,0.6)">settings</span>
-            <div style="float:left;font-weight:bold">{{chatLastMessageObj?.channel?chatLastMessageObj?.channelName+':&nbsp;':''}}{{chatLastMessageObj?.chatSubject}}</div>
+            <div style="float:left;font-weight:bold">{{chatLastMessageObj?.chatSubject}}</div>
           </div>
           <span *ngFor="let recipient of chatLastMessageObj?.recipientList;let last=last">{{recipient==UI.currentUser?'You':chatLastMessageObj?.recipients[recipient]?.name}}{{last?"":", "}}</span>
           <div *ngIf="math.floor(eventDate/60000-UI.nowSeconds/60)>-60" style="clear:both">
@@ -71,26 +71,6 @@ import * as firebase from 'firebase/app'
         </div>
       </li>
     </ul>
-    <div class="seperator" style="width:100%;margin:0px"></div>
-    <img class="imageWithZoom" [src]="chatLastMessageObj?.channelImageUrlMedium" style="object-fit:cover;margin:10px;border-radius:3px;height:50px;width:200px" (click)="showFullScreenImage(chatLastMessageObj?.channelImageUrlMedium)"
-    onerror="this.onerror=null;this.src='https://storage.googleapis.com/perrinn-d5fc1.appspot.com/images%2F1585144867972Screen%20Shot%202018-03-16%20at%2015.05.10_180x180.png?GoogleAccessId=firebase-adminsdk-rh8x2%40perrinn-d5fc1.iam.gserviceaccount.com&Expires=16756761600&Signature=I3Kem9n6zYjSNijnKOx%2FAOUAg65GN3xf8OD1qD4uo%2BayOFblFIgfn81uPWRTzhGg14lJdyhz3Yx%2BiCXuYCIdYnduqMZcIjtHE6WR%2BPo74ckemuxIKx3N24tlBJ6DgkfgqwmIkw%2F%2FKotm8Cz%2Fq%2FbIZm%2FvAOi2dpBHqrHiIFXYb8AVYnhP1osUhVvyzapgYJEBZJcHur7v6uqrSKwQ4DfeHHinbJpvkX3wjM6Nxabi3kVABdGcGqMoAPGCTZJMzNj8xddAXuECbptQprd9LlnQOuL4tuDfLMAOUXTHmJVhJEBrquxQi8iPRjnLOvnqF8s2We0SOxprqEuwbZyxSgH05Q%3D%3D'">
-    <br/>
-    <div>
-      <input type="file" name="chatImage" id="chatImage" class="inputfile" (change)="channelImageChange=true;draftMessage='updating the channel picture';onImageChange($event)" accept="image/*">
-      <label class="buttonUploadImage" for="chatImage" id="buttonFile">
-      <div style="clear:both;width:200px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:midnightblue;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer">Upload a new channel picture</div>
-      </label>
-    </div>
-    <input [(ngModel)]="channelName" style="width:60%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" placeholder="What is the name of this channel?">
-    <div *ngIf="chatLastMessageObj?.channelName!=channelName&&channelName" style="float:right;width:75px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:white;background-color:midnightblue;border-radius:3px;cursor:pointer" (click)="saveNewChannelName()">Save</div>
-    <ul style="color:#333;margin:10px">
-      <li *ngFor="let channel of channels|async" style="float:left">
-        <div *ngIf="channel.payload.doc.data().channel&&channel.payload.doc.data().channel!=chatLastMessageObj?.channel" style="cursor:pointer;font-size:12px;margin:3px 20px 3px 3px" (click)="switchChannel(channel.payload.doc.data().channel,channel.payload.doc.data().channelName)">
-          <div style="color:midnightblue">switch to {{channel.payload.doc.data().channelName}}</div>
-        </div>
-      </li>
-    </ul>
-    <div style="clear:both;width:200px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:midnightblue;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="switchToNewChannel()">Switch to a new channel</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
     <div *ngIf="chatLastMessageObj?.recipientList&&chatLastMessageObj?.recipientList.length!=2" style="font-size:10px;margin:10px;color:#777">To send COINS, chat must be between you and 1 other user only.</div>
     <div *ngIf="chatLastMessageObj?.recipientList&&chatLastMessageObj?.recipientList.length==2&&chatLastMessageObj?.recipientList.includes(UI.currentUser)">
@@ -273,7 +253,6 @@ export class ChatComponent {
   teams:Observable<any[]>
   searchFilter:string
   reads:any[]
-  channelName:string
   chatSubject:string
   chatLastMessageObj:any
   chatChain:string
@@ -286,8 +265,6 @@ export class ChatComponent {
   survey:any
   messageShowActions:[]
   lastRead:string
-  channelImageChange:boolean
-  channels:Observable<any[]>
   showImageGallery:boolean
 
   constructor(
@@ -309,10 +286,8 @@ export class ChatComponent {
       this.previousMessageServerTimestamp={seconds:this.UI.nowSeconds*1000}
       this.previousMessageUser=''
       this.messageNumberDisplay=15
-      this.channelName=''
       this.chatSubject=''
       this.eventDescription=''
-      this.channelImageChange=false
       this.surveyDefault={
         question:'Survey question',
         durationDays:7,
@@ -326,14 +301,6 @@ export class ChatComponent {
       this.refreshMessages(params.id)
       this.refreshEventDates()
       this.resetChat()
-      this.channels=this.afs.collection<any>('PERRINNMessages',ref=>ref
-        .where('channelLastMessage','==',true)
-        .where('verified','==',true)
-        .orderBy('serverTimestamp','desc')
-        .limit(this.messageNumberDisplay)
-      ).snapshotChanges().pipe(map(changes=>{
-        return changes.map(c=>({payload:c.payload}))
-      }))
     })
   }
 
@@ -377,7 +344,6 @@ export class ChatComponent {
           if(!this.reads.includes(c.payload.doc.id))batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id),{serverTimestamp:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
           this.reads.push(c.payload.doc.id)
           this.chatLastMessageObj=c.payload.doc.data()
-          this.channelName=c.payload.doc.data()['channelName']
           this.chatSubject=c.payload.doc.data()['chatSubject']
           this.eventDescription=c.payload.doc.data()['eventDescription']
           this.eventDate=c.payload.doc.data()['eventDate']
@@ -405,7 +371,6 @@ export class ChatComponent {
           if(!this.reads.includes(c.payload.doc.id))batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id),{serverTimestamp:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
           this.reads.push(c.payload.doc.id)
           this.chatLastMessageObj=c.payload.doc.data()
-          this.channelName=c.payload.doc.data()['channelName']
           this.chatSubject=c.payload.doc.data()['chatSubject']
           this.eventDescription=c.payload.doc.data()['eventDescription']
           this.eventDate=c.payload.doc.data()['eventDate']
@@ -453,38 +418,9 @@ export class ChatComponent {
 
   saveNewSubject() {
     this.UI.createMessage({
-      text:'Changing chat subject to '+this.chatSubject+" (was "+this.chatLastMessageObj.chatSubject+")",
+      text:'Changing subject to '+this.chatSubject,
       chain:this.chatLastMessageObj.chain||this.chatChain,
       chatSubject:this.chatSubject,
-    })
-    this.resetChat()
-  }
-
-  saveNewChannelName() {
-    this.UI.createMessage({
-      text:'Changing channel name to '+this.channelName+" (was "+this.chatLastMessageObj.channelName+")",
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      channelName:this.channelName,
-    })
-    this.resetChat()
-  }
-
-  switchChannel(channel,channelName) {
-    this.UI.createMessage({
-      text:'Switching to channel '+channelName,
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      channel:channel,
-    })
-    this.resetChat()
-  }
-
-  switchToNewChannel() {
-    let channel=this.UI.newId()
-    this.UI.createMessage({
-      text:'Switching to a new channel',
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      channel:channel,
-      channelName:'New',
     })
     this.resetChat()
   }
@@ -534,18 +470,13 @@ export class ChatComponent {
   }
 
   addMessage() {
-    let channelImageTimestamp=this.channelImageChange?this.imageTimestamp:null
-    let channelImageDownloadUrl=this.channelImageChange?this.imageDownloadUrl:null
     this.UI.createMessage({
       text:this.draftMessage,
       chain:this.chatLastMessageObj.chain||this.chatChain,
       chatImageTimestamp:this.imageTimestamp,
       chatImageUrlThumb:this.imageDownloadUrl,
       chatImageUrlMedium:this.imageDownloadUrl,
-      chatImageUrlOriginal:this.imageDownloadUrl,
-      channelImageTimestamp:channelImageTimestamp,
-      channelImageUrlThumb:channelImageDownloadUrl,
-      channelImageUrlMedium:channelImageDownloadUrl
+      chatImageUrlOriginal:this.imageDownloadUrl
     })
     this.resetChat()
   }
@@ -593,7 +524,6 @@ export class ChatComponent {
       this.imageTimestamp=task.task.snapshot.ref.name.substring(0, 13)
       storageRef.getDownloadURL().subscribe(url=>{
         this.imageDownloadUrl=url
-        if(this.channelImageChange)this.addMessage()
         event.target.value=''
       })
     })
@@ -630,7 +560,6 @@ export class ChatComponent {
     this.showChatDetails=false
     this.messageShowDetails=[]
     this.messageShowActions=[]
-    this.channelImageChange=false
   }
 
 }
