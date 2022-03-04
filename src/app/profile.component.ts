@@ -47,9 +47,9 @@ import * as firebase from 'firebase/app'
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
     <div *ngIf="scope=='all'">
-      <div class="material-icons" style="float:left;margin:5px;cursor:pointer;color:rgba(0,0,0,0.6)">filter_list</div>
+      <div class="material-icons" style="float:left;margin:5px;cursor:pointer;color:rgba(0,0,0,0.6)" (click)="showTags=!showTags">filter_list</div>
       <div *ngIf="UI.tagFilters.length>0" style="float:left;font-size:10px;line-height:15px;padding:10px;color:midnightblue;cursor:pointer" (click)="UI.tagFilters=[];refreshMessages()">Clear {{UI.tagFilters.length}} filter{{UI.tagFilters.length>1?'s':''}}</div>
-      <ul class="listLight">
+      <ul *ngIf="showTags" class="listLight">
         <li *ngFor="let message of tags|async" style="float:left"
           (click)="UI.tagFilters.includes(message.payload.doc.data()?.tag)?UI.tagFilters.splice(UI.tagFilters.indexOf(message.payload.doc.data()?.tag),1):UI.tagFilters.push(message.payload.doc.data()?.tag);refreshMessages()">
           <div *ngIf="message.payload.doc.data()?.tag" style="margin:5px;border-width:1px;border-style:solid"
@@ -196,6 +196,7 @@ export class ProfileComponent {
   previousAmountTransactionCummulate:number
   math:any
   messageNumberDisplay:number
+  showTags:boolean
 
   constructor(
     public afs:AngularFirestore,
@@ -203,6 +204,7 @@ export class ProfileComponent {
     public UI:UserInterfaceService,
     private route:ActivatedRoute
   ) {
+    this.showTags=false
     this.math=Math
     this.messageNumberDisplay=30
     this.scope=''
