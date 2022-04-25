@@ -115,6 +115,7 @@ module.exports = {
       if(messageData.chain==user)messageData.chatSubject='User settings'
       if(messageData.chain=='PERRINNUsersStateSnapshot')messageData.chatSubject='User State Snapshot'
       messageData.chatSubject=messageData.chatSubject||chatPreviousMessageData.chatSubject||messageData.text||null
+      messageData.chatSubject=messageData.chatSubject.substring(0,60)
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{chatSubject:messageData.chatSubject},{create:true})
 
       //tag chain
