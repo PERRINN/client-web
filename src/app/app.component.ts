@@ -25,6 +25,8 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
           </div>
         </div>
         <span class="material-icons" style="float:right;margin:5px;cursor:pointer;color:rgba(0,0,0,0.6)" (click)="router.navigate(['apps'])">apps</span>
+        <div style="float:right;width:1px;height:35px;cursor:pointer;border-style:solid;border-width:0 1px 0 0;border-color:#ddd"></div>
+        <span class="material-icons" style="float:right;margin:5px;cursor:pointer;color:rgba(0,0,0,0.6)" (click)="newMessage()">create</span>
       </div>
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
@@ -52,6 +54,10 @@ export class AppComponent {
     const fullScreenImage = document.getElementById('fullScreenImage') as HTMLImageElement;
     fullScreenImage.style.visibility = 'hidden';
     fullScreenImage.src = '';
+  }
+
+  newMessage() {
+    this.router.navigate(['chat',this.UI.newId()])
   }
 
 }

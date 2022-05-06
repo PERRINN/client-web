@@ -6,10 +6,6 @@ import { UserInterfaceService } from './userInterface.service';
   selector:'apps',
   template:`
   <div class="sheet">
-    <div style="float:left;width:100px;text-align:center;cursor:pointer;margin:10px;border-style:solid;border-width:1px;border-color:#ddd" (click)="newMessage()">
-      <span class="material-icons" style="margin:5px;cursor:pointer;color:rgba(0,0,0,0.6)">create</span>
-      <div style="width:100px;font-size:12px;font-weight:bold;padding:3px">New</div>
-    </div>
     <div style="float:left;width:100px;text-align:center;cursor:pointer;margin:10px;border-style:solid;border-width:1px;border-color:#ddd" onclick="window.open('https://meet.google.com/rxn-vtfa-shq','_blank')" (click)="router.navigate(['profile','all'])">
       <img style="width:22px;margin:5px 8px 5px 8px;margin-top:11px;filter:grayscale(100%)" src="./../assets/App icons/google-meet-logo.png">
       <div style="width:100px;font-size:12px;font-weight:bold;padding:3px">Meet</div>
@@ -37,9 +33,4 @@ export class AppsComponent {
     public UI:UserInterfaceService
   ) {
   }
-
-  newMessage() {
-    this.router.navigate(['chat',this.UI.newId()])
-  }
-
 }
