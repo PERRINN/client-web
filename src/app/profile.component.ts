@@ -114,9 +114,9 @@ import * as firebase from 'firebase/app'
         <li *ngFor="let message of messages|async;let first=first;let last=last"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
-            <div style="float:left;min-width:90px;min-height:40px">
-              <img [src]="message.payload.doc.data()?.imageUrlThumbUser" style="float:left;margin:7px 4px 7px 4px;object-fit:cover;height:40px;width:40px;border-radius:50%">
-              <img *ngIf="message.payload.doc.data()?.recipientList[1]" [src]="message.payload.doc.data()?.recipients[message.payload.doc.data()?.recipientList[1]]?.imageUrlThumb" style="float:left;margin:7px 4px 7px 4px;object-fit:cover;height:25px;width:25px;border-radius:50%">
+            <div style="float:left;min-width:84px;min-height:40px">
+              <img [src]="message.payload.doc.data()?.imageUrlThumbUser" style="float:left;margin:7px 2px 7px 4px;object-fit:cover;height:40px;width:40px;border-radius:50%">
+              <img *ngIf="message.payload.doc.data()?.recipientList[1]" [src]="message.payload.doc.data()?.recipients[message.payload.doc.data()?.recipientList[1]]?.imageUrlThumb" style="float:left;margin:7px 4px 7px 2px;object-fit:cover;height:25px;width:25px;border-radius:50%">
             </div>
             <div>
               <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
