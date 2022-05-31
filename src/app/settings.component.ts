@@ -23,7 +23,6 @@ import * as firebase from 'firebase/app';
   </div>
   <div style="margin:15px">
     <span style="font-size:18px">{{UI.currentUserLastMessageObj?.name}} </span>
-    <span style="font-size:8px;font-style:italic">424 </span>
     <span style="font-size:18px">{{UI.formatCOINS(UI.currentUserLastMessageObj?.wallet?.balance||0)}} </span>
     <span *ngFor="let currency of objectToArray(currencyList);let first=first;let last=last">{{first?"(":""}}{{UI.formatCOINS((UI.currentUserLastMessageObj?.wallet?.balance||0)/currency[1].toCOIN)}} {{currency[1].code}}{{last?")":", "}}</span>
   </div>
