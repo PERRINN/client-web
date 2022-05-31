@@ -443,7 +443,7 @@ export class ChatComponent {
 
   saveEvent() {
     this.UI.createMessage({
-      text:'event saved',
+      text:'new event',
       chain:this.chatLastMessageObj.chain||this.chatChain,
       eventDate:this.eventDate,
       eventDescription:this.eventDescription
