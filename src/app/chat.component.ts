@@ -323,8 +323,8 @@ export class ChatComponent {
   refreshEventDates(){
     var i
     this.eventDates=[]
-    for(i=0;i<500;i++){
-      this.eventDates[i]=(Math.ceil(this.UI.nowSeconds/3600)+i)*3600000
+    for(i=0;i<1000;i++){
+      this.eventDates[i]=(Math.ceil(this.UI.nowSeconds/3600)+i/2)*3600000
     }
   }
 
