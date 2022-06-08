@@ -40,7 +40,7 @@ import * as firebase from 'firebase/app';
       <div style="font-size:14px;margin:20px;color:#444">Your short presentation</div>
       <div style="font-size:10px;margin:20px;color:#777">Your short presentation helps other members get to know you.</div>
       <div style="color:midnightblue;font-size:10px;margin:15px 0 0 15px">I am someone who is:</div>
-      <input [(ngModel)]="userPresentation" placeholder="your short presentation" maxlength="100">
+      <input [(ngModel)]="userPresentation" placeholder="your short presentation" maxlength="150">
       <div (click)="updateUserPresentation()" style="font-size:12px;text-align:center;line-height:20px;width:200px;padding:2px;margin:10px;color:white;background-color:midnightblue;border-radius:3px;cursor:pointer">Update my presentation</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px;color:#444">Your PERRINN email</div>
