@@ -228,12 +228,12 @@ module.exports = {
         contract.message=(messageData.contract||{}).message||(userPreviousMessageData.contract||{}).message||null
         if(contract.level!=(((userPreviousMessageData.contract||{}).level)||0)||contract.position!=((userPreviousMessageData.contract||{}).position||null))contract.createdTimestamp=now
         else contract.createdTimestamp=(userPreviousMessageData.contract||{}).createdTimestamp||null
-        contract.levelTimeAdjusted=Math.min(10,Number(contract.level)+(now-contract.createdTimestamp)/3600000/24/365)
         contract.amount=0
         contract.signed=false
         contract.hoursDeclared=0
         contract.hoursAvailable=0
         contract.hoursValidated=0
+        contract.levelTimeAdjusted=null
         contract.hourlyRate=0
         if(contract.level&&contract.position&&contract.message&&contract.createdTimestamp){
           const contractSignatureMessage=await admin.firestore().doc('PERRINNMessages/'+contract.message).get()
@@ -245,6 +245,7 @@ module.exports = {
           ){
             contract.signed=true
             contract.signedLevel=((contractSignatureMessageData.contractSignature||{}).contract||{}).level||null
+            contract.levelTimeAdjusted=Math.min(10,Number(contract.level)+(now-contract.createdTimestamp)/3600000/24/365)
             contract.hourlyRate=appSettingsContract.data().hourlyRateLevel1*contract.levelTimeAdjusted
             contract.previousContractMessageHoursAvailable=((userPreviousMessageData.contract||{}).previousContractMessageHoursAvailable)||0
             contract.previousContractMessageServerTimestamp=((userPreviousMessageData.contract||{}).previousContractMessageServerTimestamp)||messageData.serverTimestamp

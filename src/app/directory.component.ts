@@ -15,18 +15,20 @@ import * as firebase from 'firebase/app';
   </div>
   <div class='sheet'>
   <ul class="listLight">
-    <li *ngFor="let message of messages | async" style="float:left;padding:5px">
-      <div style="float:left;width:250px;height:175px" (click)="router.navigate(['profile',message.values.user])">
-        <img [src]="message?.values.imageUrlThumbUser" style="float:left;margin:0 10px 125px 10px;opacity:1;object-fit:cover;height:50px;width:50px;border-radius:50%">
-        <span>{{message.values?.name}} </span>
-        <span>{{UI.formatCOINS(message.values?.wallet?.balance||0)}}</span>
-        <br *ngIf="message.values?.isUserAnOrganisation">
-        <span *ngIf="message.values?.isUserAnOrganisation" style="font-size:10px;font-weight:bold">Organisation</span>
-        <br>
-        <span *ngIf="message.values?.contract?.signed" style="font-size:10px;padding:3px;color:white;background-color:midnightblue">Contributor</span>
-        <br>
-        <span style="font-size:10px">{{message.values?.userPresentation}} {{message.values?.contract?.position}} Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
+    <li *ngFor="let message of messages | async">
+      <div (click)="router.navigate(['profile',message.values.user])">
+        <img [src]="message?.values.imageUrlThumbUser" style="float:left;margin:10px;opacity:1;object-fit:cover;height:50px;width:50px;border-radius:50%">
+        <div style="float:left;padding:10px;width:20%">
+          <div style="font-weight:bold">{{message.values?.name}}</div>
+          <div *ngIf="message.values?.isUserAnOrganisation" style="font-size:10px;font-weight:bold">Organisation</div>
+        </div>
+        <div style="float:left;padding:10px;width:45%">
+          <span *ngIf="message.values?.contract?.signed" style="font-size:10px;padding:3px;color:white;background-color:midnightblue">Contributor</span>
+          <span style="font-size:10px"> {{message.values?.userPresentation}} {{message.values?.contract?.position}} Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
+        </div>
+        <div style="float:right;margin:10px;width:50px">{{UI.formatCOINS(message.values?.wallet?.balance||0)}}</div>
       </div>
+      <div class="seperator"></div>
     </li>
   </ul>
   <div class="seperator" style="width:100%;margin:0px;cursor:default"></div>
