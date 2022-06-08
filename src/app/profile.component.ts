@@ -124,7 +124,7 @@ import * as firebase from 'firebase/app'
               </div>
               <div style="float:right;margin:5px 0 0 0;width:35px;height:20px;line-height:20px;font-size:10px;text-align:center;border-radius:3px 0 0 3px"
                 (click)="readFlagClick(message.payload.doc.id,(message.payload.doc.data()?.reads||{})[UI.currentUser])"
-                [style.background-color]="(message.payload.doc.data()?.reads||{})[UI.currentUser]?'whitesmoke':message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name)?'magenta':message.payload.doc.data()?.recipients[UI.currentUser]?'red':'midnightblue'"
+                [style.background-color]="(message.payload.doc.data()?.reads||{})[UI.currentUser]?'whitesmoke':message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name)?'magenta':message.payload.doc.data()?.recipients[UI.currentUser]?'red':message.payload.doc.data()?.recipients['xCxYTM0AD7aj5SKZ27iFaqJaXps1']?'red':'midnightblue'"
                 [style.color]="(message.payload.doc.data()?.reads||{})[UI.currentUser]?'whitesmoke':'white'">
                 {{message.payload.doc.data()?.recipients[UI.currentUser]?.unreadMessages}}
               </div>
@@ -325,7 +325,7 @@ export class ProfileComponent {
     }
     else{
       this.comingEvents=this.afs.collection<any>('PERRINNMessages',ref=>ref
-        .where('recipientList','array-contains',this.scope)
+        .where('recipientList','array-contains-any',[this.scope,'xCxYTM0AD7aj5SKZ27iFaqJaXps1'])
         .where('lastMessage','==',true)
         .where('verified','==',true)
         .orderBy('eventDate')
@@ -334,7 +334,7 @@ export class ProfileComponent {
         return changes.map(c=>({payload:c.payload}))
       }))
       this.currentSurveys=this.afs.collection<any>('PERRINNMessages',ref=>ref
-        .where('recipientList','array-contains',this.scope)
+        .where('recipientList','array-contains-any',[this.scope,'xCxYTM0AD7aj5SKZ27iFaqJaXps1'])
         .where('lastMessage','==',true)
         .where('verified','==',true)
         .orderBy('survey.expiryTimestamp')
@@ -343,7 +343,7 @@ export class ProfileComponent {
         return changes.map(c=>({payload:c.payload}))
       }))
       this.messages=this.afs.collection<any>('PERRINNMessages',ref=>ref
-        .where('recipientList','array-contains',this.scope)
+        .where('recipientList','array-contains-any',[this.scope,'xCxYTM0AD7aj5SKZ27iFaqJaXps1'])
         .where('verified','==',true)
         .where('lastMessage','==',true)
         .orderBy('serverTimestamp','desc')
