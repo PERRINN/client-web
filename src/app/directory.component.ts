@@ -24,7 +24,8 @@ import * as firebase from 'firebase/app';
         </div>
         <div style="float:left;padding:10px;width:45%">
           <span *ngIf="message.values?.contract?.signed" style="font-size:10px;padding:3px;color:white;background-color:midnightblue">Contributor</span>
-          <span style="font-size:10px"> {{message.values?.userPresentation}} {{message.values?.contract?.position}} Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
+          <span style="font-size:10px"> {{message.values?.userPresentation}}</span>
+          <span *ngIf="message.values?.contract?.signed" style="font-size:10px"> {{message.values?.contract?.position}} Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
         </div>
         <div style="float:right;margin:10px;width:50px">{{UI.formatCOINS(message.values?.wallet?.balance||0)}}</div>
       </div>

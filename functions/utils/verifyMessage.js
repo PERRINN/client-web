@@ -84,7 +84,7 @@ module.exports = {
         messageData.imageUrlMedium=userPreviousMessageData.imageUrlMedium
         messageData.imageUrlOriginal=userPreviousMessageData.imageUrlOriginal
       }
-      messageData.userPresentation=messageData.userPresentation||userPreviousMessageData.userPresentation||null
+      messageData.userPresentation=messageData.userPresentation||userPreviousMessageData.userPresentation||""
       messageData.userPresentation=messageData.userPresentation.substring(0,150)
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userEmail:userEmail||null},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{name:messageData.name||userPreviousMessageData.name||null},{create:true})
@@ -116,7 +116,7 @@ module.exports = {
       //message chat Subject
       if(messageData.chain==user)messageData.chatSubject='User settings'
       if(messageData.chain=='PERRINNUsersStateSnapshot')messageData.chatSubject='User State Snapshot'
-      messageData.chatSubject=messageData.chatSubject||chatPreviousMessageData.chatSubject||messageData.text||null
+      messageData.chatSubject=messageData.chatSubject||chatPreviousMessageData.chatSubject||messageData.text||""
       messageData.chatSubject=messageData.chatSubject.substring(0,60)
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{chatSubject:messageData.chatSubject},{create:true})
 
