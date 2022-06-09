@@ -148,8 +148,6 @@ module.exports = {
         const index=messageData.recipientList.indexOf(recipientToBeRemoved)
         if(index>-1)messageData.recipientList.splice(index,1)
       })
-      if(messageData.chain=='PERRINNStatistics')messageData.recipientList=[]
-      if(messageData.chain=='PERRINNUsersStateSnapshot')messageData.recipientList=[]
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{recipientList:messageData.recipientList||[]},{create:true})
 
       //message recipients data
