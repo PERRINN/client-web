@@ -92,7 +92,7 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
       (stripeBalance.available[0].amount/100)+stripeBalance.available[0].currency+' available in the PERRINN cash reserve.'
 
     createMessageUtils.createMessageAFS({
-      user:'xCxYTM0AD7aj5SKZ27iFaqJaXps1',
+      user:'FHk0zgOQUja7rsB9jxDISXzHaro2',
       text:messageText,
       chain:'PERRINNStatistics',
       chatSubject:'PERRINN statistics'
