@@ -22,7 +22,7 @@ import { UserInterfaceService } from './userInterface.service';
       <img style="width:24px;margin:5px 8px 5px 8px;filter:grayscale(100%)" src="./../assets/App icons/onshape_new.png">
       <div style="width:100px;font-size:12px;font-weight:bold;padding:3px">Design</div>
     </div>
-    <div style="float:left;width:100px;text-align:center;cursor:pointer;margin:10px;border-style:solid;border-width:1px;border-color:#ddd" onclick="window.open('https://app.bramblecfd.com/#/','_blank')" (click)="router.navigate(['profile','all'])">
+    <div style="float:left;width:100px;text-align:center;cursor:pointer;margin:10px;border-style:solid;border-width:1px;border-color:#ddd" onclick="window.open('https://app.bramblecfd.com/#/forces','_blank')" (click)="router.navigate(['profile','all'])">
       <img style="width:24px;margin:5px 8px 5px 8px;filter:grayscale(100%)" src="./../assets/App icons/bramble-logo-small.png">
       <div style="width:100px;font-size:12px;font-weight:bold;padding:3px">Aero</div>
     </div>
