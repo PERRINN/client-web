@@ -94,6 +94,7 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     createMessageUtils.createMessageAFS({
       user:'FHk0zgOQUja7rsB9jxDISXzHaro2',
       text:messageText,
+      statistics:statistics,
       chain:'PERRINNStatistics',
       chatSubject:'PERRINN statistics'
     })
