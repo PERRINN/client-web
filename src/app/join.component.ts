@@ -7,42 +7,35 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
 import * as firebase from 'firebase/app';
 
 @Component({
-  selector:'buyCoins',
+  selector:'join',
   template:`
+  <div class='sheet'>
   <div style="width:320px;color:white;background-color:green;margin:25px auto;padding:25px;text-align:center">
-    <span style="font-size:12px">Buy</span>
-    <br/>
-    <span style="font-size:20px">{{amountCOINSPurchased}}</span>
+    <span style="font-size:20px">{{membership.amountRequired}}</span>
     <span style="font-size:14px"> COINS</span>
-    <div class="seperator" style="width:100%;margin:10px 0px 10px 0px"></div>
-    <span style="font-size:12px">Gives you membership, read and write access to the team.</span>
-    <div style="margin:5px auto;font-size:10px;color:white;line-height:14px;width:75px;text-align:center;border-radius:3px;border-style:solid;border-width:1px;cursor:pointer" onclick="window.open('https://discover.perrinn.com/perrinn-com/perrinn-member','_blank')">More info</div>
+    <br>
+    <span style="font-size:12px">in your wallet</span>
+    <br>
+    <span style="font-size:12px">is required to be a member</span>
+    <br>
+    <span style="font-size:10px">(increases by </span>
+    <span style="font-size:10px">{{membership.amountRequiredIncreaseRate| percent:'0.0'}}</span>
+    <span style="font-size:10px"> a year)</span>
   </div>
-  <div [hidden]='!selectingCurrency'>
-    <div class="sheet" style="max-width:320px">
-      <div class="seperator"></div>
-      <div class="title">Select your currency</div>
-      <ul class="listLight">
-        <li *ngFor="let currency of objectToArray(currencyList)"
-          [class.selected]="currency[0] === currentCurrencyID"
-          (click)="currentCurrencyID = currency[0];refreshAmountCharge()"
-          style="padding:15px">
-          <div style="width:250px;height:20px;float:left;font-size:15px">{{currency[1].designation}}</div>
-          <div style="height:20px;float:left;font-size:10px">1 COIN costs {{1/currency[1].toCOIN|number:'1.2-2'}} {{currency[1].code}}</div>
-        </li>
-      </ul>
-      <div class="content" style="text-align:center; padding-top:20px">{{amountCharge/100 | number:'1.2-2'}} {{currentCurrencyID | uppercase}} to be paid.</div>
-      <div style="text-align:center">
-        <button type="button" (click)="selectingCurrency=false;enteringCardDetails=true">Proceed to payment</button>
-      </div>
-      <div class="seperator"></div>
-    </div>
+  <div class="sheet" style="max-width:320px">
+    <div class="seperator"></div>
+    <div class="title">Select your currency</div>
+    <ul class="listLight">
+      <li *ngFor="let currency of objectToArray(currencyList)"
+        [class.selected]="currency[0] === currentCurrencyID"
+        (click)="currentCurrencyID = currency[0];refreshAmountCharge()"
+        style="padding:15px">
+        <div style="width:250px;height:20px;float:left;font-size:15px">{{currency[1].designation}}</div>
+        <div style="height:20px;float:left;font-size:10px">1 COIN costs {{1/currency[1].toCOIN|number:'1.2-2'}} {{currency[1].code}}</div>
+      </li>
+    </ul>
   </div>
-  <div [hidden]='!enteringCardDetails'>
   <div class="module form-module" style="border-style:solid;border-width:1px;border-color:#ddd">
-  <div class="top">
-    <div style="text-align:left; font-size:10px; cursor:pointer; color:midnightblue; padding:10px;" (click)="selectingCurrency=true;enteringCardDetails=false">back</div>
-  </div>
   <div class="form">
   <form>
   <div style="margin:10px">
@@ -58,21 +51,17 @@ import * as firebase from 'firebase/app';
   </div>
   <input [(ngModel)]="cvc" name="cvc" type="text"  placeholder="CVC *" (keyup)='messagePayment=""'>
   <button type="button" (click)="processPayment()">Pay {{amountCharge/100 | number:'1.2-2'}} {{currentCurrencyID | uppercase}}</button>
-  <div>{{messagePayment}}</div>
   </form>
   </div>
   </div>
+  <div class='sheet' style="max-width:320px">
+    <div class='content' style="text-align:center">{{messagePayment}}</div>
+    <div class="seperator"></div>
   </div>
-  <div [hidden]='!processingPayment'>
-    <div class='sheet' style="max-width:320px">
-      <div class="seperator"></div>
-      <div class='content' style="text-align:center">{{messagePayment}}</div>
-      <div class="seperator"></div>
-    </div>
   </div>
   `,
 })
-export class BuyCoinsComponent {
+export class joinComponent {
   cardNumber:string
   expiryMonth:string
   expiryYear:string
@@ -82,9 +71,7 @@ export class BuyCoinsComponent {
   currentCurrencyID:string
   messagePayment:string
   currencyList:any
-  selectingCurrency:boolean
-  enteringCardDetails:boolean
-  processingPayment:boolean
+  membership:any
 
   constructor(
     public afs:AngularFirestore,
@@ -92,15 +79,15 @@ export class BuyCoinsComponent {
     private _zone:NgZone,
     public UI:UserInterfaceService
   ) {
-    this.selectingCurrency = true
-    this.enteringCardDetails = false
-    this.processingPayment = false
     this.messagePayment = ''
     this.amountCOINSPurchased = 50
     this.currentCurrencyID = 'gbp'
     afs.doc<any>('appSettings/payment').valueChanges().subscribe(snapshot=>{
       this.currencyList=snapshot.currencyList
       this.refreshAmountCharge()
+    })
+    afs.doc<any>('appSettings/membership').valueChanges().subscribe(snapshot=>{
+      this.membership=snapshot.membership
     })
   }
 
@@ -115,8 +102,6 @@ export class BuyCoinsComponent {
         if (response.error) {
           this.messagePayment = response.error.message
         } else {
-          this.enteringCardDetails = false
-          this.processingPayment = true
           this.messagePayment = `Processing card...`
           this.afs.collection('PERRINNTeams/'+this.UI.currentUser+'/payments').add({
             source:response.id,
