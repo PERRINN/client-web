@@ -121,7 +121,7 @@ import * as firebase from 'firebase/app'
     <div class="seperator" style="width:100%;margin-bottom:150px"></div>
   </div>
 
-  <div class="sheet" id="chat_window" *ngIf="!showChatDetails&&!showImageGallery" style="padding:50px 0 0 0;overflow-y:auto;height:100%" scrollable>
+  <div class="sheet" id="chat_window" *ngIf="!showChatDetails&&!showImageGallery" style="padding:50px 0 0 0;background:whitesmoke;overflow-y:auto;height:100%" scrollable>
     <div class="spinner" *ngIf="UI.loading">
       <div class="bounce1"></div>
       <div class="bounce2"></div>
@@ -140,8 +140,7 @@ import * as firebase from 'firebase/app'
           </div>
           <div [style.background-color]="(message.payload?.user==UI.currentUser)?'midnightblue':'white'"
                 style="cursor:text;border-width:1px;margin:2px 10px 5px 60px;user-select:text"
-                [style.color]="(message.payload?.user==UI.currentUser)?'#CCC':'#777'"
-                [style.border-style]="(message.payload?.user==UI.currentUser)?'none':'solid'">
+                [style.color]="(message.payload?.user==UI.currentUser)?'#CCC':'#555'">
             <div>
               <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
                 <div style="font-size:12px;font-weight:bold;display:inline;float:left;margin:0px 10px 0px 5px">{{message.payload?.name}}</div>
@@ -538,7 +537,7 @@ export class ChatComponent {
         .where('nameLowerCase','>=',this.searchFilter.toLowerCase())
         .where('nameLowerCase','<=',this.searchFilter.toLowerCase()+'\uf8ff')
         .orderBy('nameLowerCase')
-        .limit(10))
+        .limit(20))
         .snapshotChanges().pipe(map(changes=>{
           return changes.map(c=>({
             key:c.payload.doc.id,
