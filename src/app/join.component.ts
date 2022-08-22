@@ -10,19 +10,21 @@ import * as firebase from 'firebase/app';
   selector:'join',
   template:`
   <div class='sheet'>
-  <div style="width:320px;color:white;background-color:green;margin:25px auto;padding:25px;text-align:center">
-    <span style="font-size:20px">{{membership.amountRequired}}</span>
+  <div style="width:320px;color:white;background-color:midnightblue;margin:25px auto;padding:25px;text-align:center">
+    <span style="font-size:12px">To be a member you need</span>
+    <br>
+    <span style="font-size:20px">{{membership.amountRequired|number:'1.1-1'}}</span>
     <span style="font-size:14px"> COINS</span>
     <br>
     <span style="font-size:12px">in your wallet</span>
     <br>
-    <span style="font-size:12px">is required to be a member</span>
-    <br>
     <span style="font-size:10px">(increases by </span>
-    <span style="font-size:10px">{{membership.amountRequiredIncreaseRate| percent:'0.0'}}</span>
+    <span style="font-size:10px">{{membership.amountRequiredIncreaseRate|percent:'0.0'}}</span>
     <span style="font-size:10px"> a year)</span>
   </div>
   <div class="sheet" style="max-width:320px">
+    <div class="seperator"></div>
+    <div class="title">You are purchasing {{amountCOINSPurchased|number:'1.1-1'}} COINS</div>
     <div class="seperator"></div>
     <div class="title">Select your currency</div>
     <ul class="listLight">
@@ -80,7 +82,7 @@ export class joinComponent {
     public UI:UserInterfaceService
   ) {
     this.messagePayment = ''
-    this.amountCOINSPurchased = 50
+    this.amountCOINSPurchased = 55
     this.currentCurrencyID = 'gbp'
     afs.doc<any>('appSettings/payment').valueChanges().subscribe(snapshot=>{
       this.currencyList=snapshot.currencyList
