@@ -43,7 +43,7 @@ import * as firebase from 'firebase/app';
       <span style="font-size:10px"> a year</span>
     </div>
     <div style="padding:10px;text-align:center">
-      <span style="font-size:10px">The COINS your are placing in your wallet today are invested. You can track the interests added to your wallet every day. You will be able to sell your COINS back at a later stage realising a return.</span>
+      <span style="font-size:10px">The COINS you are placing in your wallet today are invested. You can track the interests added to your wallet every day. You will be able to sell your COINS back at a later stage realising a return.</span>
     </div>
     <div class="seperator"></div>
   </div>
@@ -123,6 +123,7 @@ export class membershipComponent {
   membership:any
   investmentList:any
   investmentSelected:string
+  math:any
 
   constructor(
     public afs:AngularFirestore,
@@ -176,7 +177,7 @@ export class membershipComponent {
   }
 
   refreshAmountCharge() {
-    if(this.investmentSelected==0)this.amountCOINSPurchased=Math.ceil(this.membership.amountRequired)||0
+    if(this.investmentSelected=='0')this.amountCOINSPurchased=Math.ceil(this.membership.amountRequired)||0
     else this.amountCOINSPurchased=this.investmentList[this.investmentSelected]||0
     this.amountCharge=Number((this.amountCOINSPurchased/this.currencyList[this.currentCurrencyID].toCOIN*100).toFixed(0))
   }
