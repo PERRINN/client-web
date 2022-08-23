@@ -17,7 +17,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
     </div>
     <div style="user-select:none">
       <div *ngIf="UI.currentUser" style="max-width:800px;margin:0 auto">
-        <div style="float:left;width:110px;height:35px;cursor:pointer;border-style:solid;border-width:0 1px 0 0;border-color:#ddd" (click)="router.navigate(['profile',UI.currentUser])">
+        <div style="float:left;width:110px;height:35px;cursor:pointer" (click)="router.navigate(['profile',UI.currentUser])">
           <img *ngIf="UI.currentUserLastMessageObj?.imageUrlThumbUser" [src]="UI.currentUserLastMessageObj.imageUrlThumbUser" style="display:inline;float:left;margin:4px;border-radius:50%;object-fit:cover;width:25px;height:25px">
           <div *ngIf="UI.currentUserLastMessageObj?.wallet?.balance" style="float:left;margin:8px;font-size:12px">
             <span >{{UI.formatCOINS(UI.currentUserLastMessageObj.wallet.balance)}}</span>

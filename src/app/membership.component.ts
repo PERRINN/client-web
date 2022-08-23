@@ -13,43 +13,65 @@ import * as firebase from 'firebase/app';
   <br>
   <div class="sheet" style="max-width:320px">
     <div class="seperator"></div>
-    <div class="title">PERRINN Membership</div>
+    <div class="title" style="background-color:whitesmoke">Membership</div>
     <div style="color:white;background-color:midnightblue;padding:10px;text-align:center">
       <span style="font-size:12px">To be a member you need</span>
       <br>
-      <span style="font-size:20px">{{membership.amountRequired|number:'1.1-1'}}</span>
+      <span style="font-size:20px">{{membership?.amountRequired|number:'1.1-1'}}</span>
       <span style="font-size:14px"> COINS</span>
       <br>
       <span style="font-size:12px">in your wallet</span>
     </div>
     <div style="padding:10px;text-align:center">
-      <span style="font-size:10px">The membership never expires.</span>
-      <br>
-      <span style="font-size:10px">Once you have the minimum amount in your wallet, that amount is locked in.</span>
+      <span style="font-size:10px">Your membership will never expire.</span>
+    </div>
+    <div *ngIf="UI.currentUserLastMessageObj?.userStatus?.isMember" class="seperator"></div>
+    <div *ngIf="UI.currentUserLastMessageObj?.userStatus?.isMember" style="padding:10px;text-align:center">
+      <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
+      <span style="font-size:10px"> Your membership is active.</span>
     </div>
     <div class="seperator"></div>
   </div>
   <br>
   <div class="sheet" style="max-width:320px">
     <div class="seperator"></div>
-    <div class="title">Investment</div>
+    <div class="title" style="background-color:whitesmoke">Investment</div>
     <div style="color:white;background-color:midnightblue;padding:10px;text-align:center">
       <span style="font-size:12px">Your COIN balance increases automatically by</span>
       <br>
-      <span style="font-size:20px">{{membership.amountRequiredIncreaseRate|percent:'0.0'}}</span>
+      <span style="font-size:20px">{{membership?.amountRequiredIncreaseRate|percent:'0.0'}}</span>
       <span style="font-size:10px"> a year</span>
     </div>
     <div style="padding:10px;text-align:center">
-      <span style="font-size:10px">The value of your membership keeps increasing over time at this rate</span>
-      <br>
-      <span style="font-size:10px">The COINS your are placing in your wallet today are invested. You will be able to sell your COINS back at a later stage realising a return.</span>
+      <span style="font-size:10px">The COINS your are placing in your wallet today are invested. You can track the interests added to your wallet every day. You will be able to sell your COINS back at a later stage realising a return.</span>
     </div>
     <div class="seperator"></div>
   </div>
   <br>
   <div class="sheet" style="max-width:320px">
     <div class="seperator"></div>
-    <div class="title">You are purchasing {{amountCOINSPurchased|number:'1.1-1'}} COINS</div>
+    <div style="padding:10px;text-align:center">
+      <span style="font-size:10px">How many COINS do you want to purchase?</span>
+    </div>
+    <div style="padding:10px">
+      <ul class="listLight">
+        <li *ngFor="let investment of investmentList;let index=index"
+          (click)="investmentSelected==index?investmentSelected=null:investmentSelected=index;refreshAmountCharge()"
+          style="float:left;width:63px;padding:5px;margin:5px;text-align:center;font-size:10px;border-radius:3px"
+          [style.background-color]="investmentSelected==index?'midnightblue':'white'"
+          [style.color]="investmentSelected==index?'white':'midnightblue'"
+          [style.border-style]="investmentSelected==index?'none':'solid'"
+          [style.border-width]="investmentSelected==index?'none':'1px'">
+          {{index==0?'Minimum':investment|number:'1.1-1'}} COINS
+        </li>
+      </ul>
+    </div>
+    <div class="seperator"></div>
+  </div>
+  <br>
+  <div class="sheet" style="max-width:320px">
+    <div class="seperator"></div>
+    <div class="title" style="background-color:whitesmoke">You are purchasing {{amountCOINSPurchased|number:'1.1-1'}} COINS</div>
     <div class="seperator"></div>
     <div class="title">Select your currency</div>
     <ul class="listLight">
@@ -99,6 +121,8 @@ export class membershipComponent {
   messagePayment:string
   currencyList:any
   membership:any
+  investmentList:any
+  investmentSelected:string
 
   constructor(
     public afs:AngularFirestore,
@@ -106,9 +130,11 @@ export class membershipComponent {
     private _zone:NgZone,
     public UI:UserInterfaceService
   ) {
-    this.messagePayment = ''
-    this.amountCOINSPurchased = 55
-    this.currentCurrencyID = 'gbp'
+    this.math=Math
+    this.messagePayment=''
+    this.investmentList=[0,500,1000,2000]
+    this.investmentSelected=null
+    this.currentCurrencyID='gbp'
     afs.doc<any>('appSettings/payment').valueChanges().subscribe(snapshot=>{
       this.currencyList=snapshot.currencyList
       this.refreshAmountCharge()
@@ -150,7 +176,9 @@ export class membershipComponent {
   }
 
   refreshAmountCharge() {
-    this.amountCharge = Number((this.amountCOINSPurchased/this.currencyList[this.currentCurrencyID].toCOIN*100).toFixed(0))
+    if(this.investmentSelected==0)this.amountCOINSPurchased=Math.ceil(this.membership.amountRequired)||0
+    else this.amountCOINSPurchased=this.investmentList[this.investmentSelected]||0
+    this.amountCharge=Number((this.amountCOINSPurchased/this.currencyList[this.currentCurrencyID].toCOIN*100).toFixed(0))
   }
 
   objectToArray(obj) {
