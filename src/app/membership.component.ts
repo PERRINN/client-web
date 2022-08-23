@@ -7,21 +7,46 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
 import * as firebase from 'firebase/app';
 
 @Component({
-  selector:'join',
+  selector:'membership',
   template:`
   <div class='sheet'>
-  <div style="width:320px;color:white;background-color:midnightblue;margin:25px auto;padding:25px;text-align:center">
-    <span style="font-size:12px">To be a member you need</span>
-    <br>
-    <span style="font-size:20px">{{membership.amountRequired|number:'1.1-1'}}</span>
-    <span style="font-size:14px"> COINS</span>
-    <br>
-    <span style="font-size:12px">in your wallet</span>
-    <br>
-    <span style="font-size:10px">(increases by </span>
-    <span style="font-size:10px">{{membership.amountRequiredIncreaseRate|percent:'0.0'}}</span>
-    <span style="font-size:10px"> a year)</span>
+  <br>
+  <div class="sheet" style="max-width:320px">
+    <div class="seperator"></div>
+    <div class="title">PERRINN Membership</div>
+    <div style="color:white;background-color:midnightblue;padding:10px;text-align:center">
+      <span style="font-size:12px">To be a member you need</span>
+      <br>
+      <span style="font-size:20px">{{membership.amountRequired|number:'1.1-1'}}</span>
+      <span style="font-size:14px"> COINS</span>
+      <br>
+      <span style="font-size:12px">in your wallet</span>
+    </div>
+    <div style="padding:10px;text-align:center">
+      <span style="font-size:10px">The membership never expires.</span>
+      <br>
+      <span style="font-size:10px">Once you have the minimum amount in your wallet, that amount is locked in.</span>
+    </div>
+    <div class="seperator"></div>
   </div>
+  <br>
+  <div class="sheet" style="max-width:320px">
+    <div class="seperator"></div>
+    <div class="title">Investment</div>
+    <div style="color:white;background-color:midnightblue;padding:10px;text-align:center">
+      <span style="font-size:12px">Your COIN balance increases automatically by</span>
+      <br>
+      <span style="font-size:20px">{{membership.amountRequiredIncreaseRate|percent:'0.0'}}</span>
+      <span style="font-size:10px"> a year</span>
+    </div>
+    <div style="padding:10px;text-align:center">
+      <span style="font-size:10px">The value of your membership keeps increasing over time at this rate</span>
+      <br>
+      <span style="font-size:10px">The COINS your are placing in your wallet today are invested. You will be able to sell your COINS back at a later stage realising a return.</span>
+    </div>
+    <div class="seperator"></div>
+  </div>
+  <br>
   <div class="sheet" style="max-width:320px">
     <div class="seperator"></div>
     <div class="title">You are purchasing {{amountCOINSPurchased|number:'1.1-1'}} COINS</div>
@@ -63,7 +88,7 @@ import * as firebase from 'firebase/app';
   </div>
   `,
 })
-export class joinComponent {
+export class membershipComponent {
   cardNumber:string
   expiryMonth:string
   expiryYear:string

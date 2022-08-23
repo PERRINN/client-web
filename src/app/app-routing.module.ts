@@ -6,7 +6,7 @@ import { ChatComponent } from './chat.component';
 import { ProfileComponent } from './profile.component';
 import { SettingsComponent } from './settings.component';
 import { DirectoryComponent } from './directory.component';
-import { joinComponent } from './join.component';
+import { membershipComponent } from './membership.component';
 
 const appRoutes: Routes = [
   { path: 'apps', component: AppsComponent },
@@ -15,7 +15,7 @@ const appRoutes: Routes = [
   { path: 'settings', component: SettingsComponent },
   { path: 'login', component: LoginComponent },
   { path: 'directory', component: DirectoryComponent },
-  { path: 'join', component: joinComponent },
+  { path: 'membership', component: membershipComponent },
   { path: '',   redirectTo: '/login', pathMatch: 'full' },
   { path: '**', component: LoginComponent }
 ];
