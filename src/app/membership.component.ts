@@ -14,6 +14,20 @@ import * as firebase from 'firebase/app';
   <div class="sheet" style="max-width:320px">
     <div class="seperator"></div>
     <div class="title" style="background-color:whitesmoke">Membership</div>
+    <div class="seperator"></div>
+    <div style="padding:10px;text-align:center">
+      <img src="./../assets/App icons/424logoThumb.png" style="width:65px;margin:0 auto">
+      <br>
+      <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
+      <span style="font-size:10px"> Gives you full access to the team.</span>
+      <br>
+      <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
+      <span style="font-size:10px"> Meet like minded members.</span>
+      <br>
+      <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
+      <span style="font-size:10px"> Get behind project 424 with us.</span>
+      <br>
+    </div>
     <div style="color:white;background-color:midnightblue;padding:10px;text-align:center">
       <span style="font-size:12px">To be a member you need</span>
       <br>
@@ -104,9 +118,10 @@ import * as firebase from 'firebase/app';
   </div>
   </div>
   <div class='sheet' style="max-width:320px">
-    <div class='content' style="text-align:center">{{messagePayment}}</div>
+    <div class='content' style="text-align:center;min-height:50px">{{messagePayment}}</div>
     <div class="seperator"></div>
   </div>
+  <br>
   </div>
   `,
 })
