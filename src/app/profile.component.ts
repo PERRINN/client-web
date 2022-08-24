@@ -10,8 +10,8 @@ import * as firebase from 'firebase/app'
   selector:'profile',
   template:`
   <div class='sheet'>
-    <div *ngIf="scope=='all'" style="clear:both;background:whitesmoke">
-      <img [src]="'https://storage.googleapis.com/perrinn-d5fc1.appspot.com/images%2F1644511364753Screenshot%202022-02-10%20at%2016.42.17_540x540.png?GoogleAccessId=firebase-adminsdk-rh8x2%40perrinn-d5fc1.iam.gserviceaccount.com&Expires=16756761600&Signature=erFZoGTzTgE87d8rYnWssaoHrrHJcnY6wyuUoOnRgnQ4r0gtdFwpsczIkM1m0xampje7gI0lJK9IXA6P8Z8BY6Bn%2F3DGz%2BcA6Ei7UjKLT2TkFG5UAO1l4BMbqUb%2F5WtszN5czJJEbyBCLHeD1PcIHCFMSGIUjr3cW4D7s7ss6KDQvhbB4S6RNbYsYLjNtGYNNen7iuIpA4WikMAmqfEs%2BoOCJOlyLP5xwf%2Buw0tXbwsFSGXbBRsKeIAxbTOvMJIWNI06SsCNUfpusLpd2mchmYHFm2guqFb6GTMjwLFUmBFqjM8vEX%2Fi3yTFla9OuuVKQGpaQ%2B%2FwZyKYxqlxuYfuJA%3D%3D'" style="margin:5px;object-fit:cover;border-radius:3px;height:75px;width:300px">
+    <div *ngIf="scope=='all'" style="clear:both">
+      <img src="./../assets/App icons/424logoMedium.png" style="margin:5px 0 5px 15px;object-fit:cover;border-radius:3px;width:100px">
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
     <div *ngIf="scope!='all'" style="clear:both;background:whitesmoke">
