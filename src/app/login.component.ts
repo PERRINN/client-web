@@ -9,7 +9,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
   selector:'login',
   template:`
   <div id="login">
-    <div class="module form-module">
+    <div class="module form-module" style="max-width:320px">
       <div class="form">
         <form>
           <img src="./../assets/App icons/424logoMedium.png" style="width:80%;margin:10px 0 15px 25px">
