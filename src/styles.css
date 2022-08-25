@@ -212,7 +212,6 @@ input {
 /* Form Module */
 .form-module {
   background: #ffffff;
-  max-width: 320px;
   margin: 0 auto;
 }
 .form-module .form {

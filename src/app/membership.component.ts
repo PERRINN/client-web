@@ -11,7 +11,7 @@ import * as firebase from 'firebase/app';
   template:`
   <div class='sheet'>
   <br>
-  <div class="sheet" style="max-width:320px">
+  <div class="sheet" style="width:400px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
     <div class="title" style="background-color:whitesmoke">Membership</div>
     <div class="seperator"></div>
@@ -25,7 +25,7 @@ import * as firebase from 'firebase/app';
       <span style="font-size:10px"> Meet like minded members.</span>
       <br>
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:10px"> Get behind project 424 with us.</span>
+      <span style="font-size:10px"> Get behind 424 with us.</span>
       <br>
     </div>
     <div style="color:white;background-color:midnightblue;padding:10px;text-align:center">
@@ -47,9 +47,23 @@ import * as firebase from 'firebase/app';
     <div class="seperator"></div>
   </div>
   <br>
-  <div class="sheet" style="max-width:320px">
+  <div class="sheet" style="width:400px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
     <div class="title" style="background-color:whitesmoke">Investment</div>
+    <div class="seperator"></div>
+    <div style="padding:10px;text-align:center">
+      <span class="material-icons-outlined" style="font-size:40px">savings</span>
+      <br>
+      <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
+      <span style="font-size:10px"> Your COINS are backed by the open source technology we are developing.</span>
+      <br>
+      <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
+      <span style="font-size:10px"> Your investment is going directly into 424 development.</span>
+      <br>
+      <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
+      <span style="font-size:10px"> You can follow and query the impact of your investment.</span>
+      <br>
+    </div>
     <div style="color:white;background-color:midnightblue;padding:10px;text-align:center">
       <span style="font-size:12px">Your COIN balance increases automatically by</span>
       <br>
@@ -59,10 +73,6 @@ import * as firebase from 'firebase/app';
     <div style="padding:10px;text-align:center">
       <span style="font-size:10px">The COINS you are placing in your wallet today are invested. You can track the interests added to your wallet every day. You will be able to sell your COINS back at a later stage realising a return.</span>
     </div>
-    <div class="seperator"></div>
-  </div>
-  <br>
-  <div class="sheet" style="max-width:320px">
     <div class="seperator"></div>
     <div style="padding:10px;text-align:center">
       <span style="font-size:10px">How many COINS do you want to purchase?</span>
@@ -76,14 +86,14 @@ import * as firebase from 'firebase/app';
           [style.color]="investmentSelected==index?'white':'midnightblue'"
           [style.border-style]="investmentSelected==index?'none':'solid'"
           [style.border-width]="investmentSelected==index?'none':'1px'">
-          {{index==0?'Minimum':investment|number:'1.1-1'}} COINS
+          {{investment|number:'1.1-1'}} COINS
         </li>
       </ul>
     </div>
     <div class="seperator"></div>
   </div>
   <br>
-  <div class="sheet" style="max-width:320px">
+  <div class="sheet" style="width:400px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
     <div class="title" style="background-color:whitesmoke">You are purchasing {{amountCOINSPurchased|number:'1.1-1'}} COINS</div>
     <div class="seperator"></div>
@@ -97,8 +107,12 @@ import * as firebase from 'firebase/app';
         <div style="height:20px;float:left;font-size:10px">1 COIN costs {{1/currency[1].toCOIN|number:'1.2-2'}} {{currency[1].code}}</div>
       </li>
     </ul>
+    <div class="seperator"></div>
+    <div class="title" style="float:right">Total cost {{amountCharge/100 | number:'1.2-2'}} {{currentCurrencyID | uppercase}}</div>
+    <div class="seperator"></div>
   </div>
-  <div class="module form-module" style="border-style:solid;border-width:1px;border-color:#ddd">
+  <br>
+  <div class="module form-module" style="width:400px;max-width:80%;border-style:solid;border-width:1px;border-color:#ddd;border-radius:3px">
   <div class="form">
   <form>
   <div style="margin:10px">
@@ -117,7 +131,9 @@ import * as firebase from 'firebase/app';
   </form>
   </div>
   </div>
-  <div class='sheet' style="max-width:320px">
+  <br>
+  <div class='sheet' style="width:400px;max-width:80%;border-radius:3px">
+    <div class="seperator"></div>
     <div class='content' style="text-align:center;min-height:50px">{{messagePayment}}</div>
     <div class="seperator"></div>
   </div>
@@ -148,7 +164,7 @@ export class membershipComponent {
   ) {
     this.math=Math
     this.messagePayment=''
-    this.investmentList=[0,500,1000,2000]
+    this.investmentList=[100,500,1000,2000]
     this.investmentSelected=null
     this.currentCurrencyID='gbp'
     afs.doc<any>('appSettings/payment').valueChanges().subscribe(snapshot=>{
@@ -192,8 +208,7 @@ export class membershipComponent {
   }
 
   refreshAmountCharge() {
-    if(this.investmentSelected=='0')this.amountCOINSPurchased=Math.ceil(this.membership.amountRequired)||0
-    else this.amountCOINSPurchased=this.investmentList[this.investmentSelected]||0
+    this.amountCOINSPurchased=this.investmentList[this.investmentSelected]||0
     this.amountCharge=Number((this.amountCOINSPurchased/this.currencyList[this.currentCurrencyID].toCOIN*100).toFixed(0))
   }
 
