@@ -11,6 +11,7 @@ export class UserInterfaceService {
   loading:boolean
   currentUser:string
   currentUserLastMessageObj:any
+  PERRINNProfileLastMessageObj:any
   nowSeconds:number
   tagFilters:any
 
@@ -21,6 +22,9 @@ export class UserInterfaceService {
     this.tagFilters=[]
     this.nowSeconds=Math.floor(Date.now()/1000)
     setInterval(()=>{this.nowSeconds=Math.floor(Date.now()/1000)},60000)
+    afs.collection<any>('PERRINNMessages',ref=>ref.where('user','==',"ubiLUzQOd0ZIAEDYsOltrUMUdim2").where('verified','==',true).orderBy('serverTimestamp','desc').limit(1)).valueChanges().subscribe(snapshot=>{
+      this.PERRINNProfileLastMessageObj=snapshot[0]
+    })
     this.afAuth.user.subscribe((auth) => {
       if (auth != null) {
         this.currentUser=auth.uid

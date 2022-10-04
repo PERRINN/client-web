@@ -11,7 +11,7 @@ import * as firebase from 'firebase/app'
   template:`
   <div class='sheet'>
     <div *ngIf="scope=='all'" style="clear:both">
-      <img src="./../assets/App icons/424logoMedium.png" style="margin:5px 0 5px 15px;object-fit:cover;border-radius:3px;width:100px">
+      <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="width:100%">
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
     <div *ngIf="scope!='all'" style="clear:both;background:whitesmoke">
