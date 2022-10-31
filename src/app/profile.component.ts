@@ -222,7 +222,7 @@ export class ProfileComponent {
         .where('lastMessage','==',true)
         .where('tagLastMessage','==',true)
         .where('verified','==',true)
-        .orderBy('serverTimestamp','desc')
+        .orderBy('tag','asc')
       ).snapshotChanges().pipe(map(changes=>{
         return changes.map(c=>({payload:c.payload}))
       }))
