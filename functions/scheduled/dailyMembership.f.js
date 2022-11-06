@@ -93,8 +93,8 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     let messageText=
       statistics.userCount+' visitors. '+
       statistics.membersEmails.length+' members. '+
-      Math.round(statistics.wallet.balance).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' COINS in circulation. '+
-      Math.round(statistics.interest.rateDay).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' COINS/day created from interest. '+
+      Math.round(statistics.wallet.balance).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' COINS invested. '+
+      Math.round(statistics.interest.rateDay).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' COINS created from interest per day. '+
       (stripeBalance.available[0].amount/100)+stripeBalance.available[0].currency+' available in the PERRINN cash reserve.'
 
     createMessageUtils.createMessageAFS({
