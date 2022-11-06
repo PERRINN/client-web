@@ -13,36 +13,58 @@ import * as firebase from 'firebase/app';
   <br>
   <div class="sheet" style="width:400px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
+    <div *ngIf="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined" style="clear:both">
+      <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="width:100%">
+    </div>
+    <div class="title" style="padding:10px;text-align:center">PERRINN is where We are a Team.</div>
+    <div style="padding:10px;text-align:center">
+      <span style="font-size:12px">PERRINN is a new kind of social network designed to innovate faster than traditional organisations and deliver amazing projects like 424.</span>
+      <br>
+      <span style="font-size:12px">Become a life member, follow or contribute to 424.</span>
+      <br>
+      <span style="font-size:12px">You can invest into 424 and PERRINN using COIN, our native digital credit.</span>
+      <br>
+      <span style="font-size:12px">PERRINN has </span>
+      <span style="font-size:15px">{{UI.PERRINNAdminLastMessageObj?.statistics?.membersEmails?.length}}</span>
+      <span style="font-size:12px"> members and </span>
+      <span style="font-size:15px">{{UI.formatCOINS(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}</span>
+      <span style="font-size:12px"> COINS invested.</span>
+    </div>
+    <div class="seperator"></div>
+  </div>
+  <br>
+  <div class="sheet" style="width:400px;max-width:80%;border-radius:3px">
+    <div class="seperator"></div>
     <div class="title" style="background-color:whitesmoke">Membership</div>
     <div class="seperator"></div>
     <div style="padding:10px;text-align:center">
-      <img src="./../assets/App icons/424logoThumb.png" style="width:65px;margin:0 auto">
+      <span class="material-icons-outlined" style="font-size:30px">verified</span>
       <br>
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:10px"> Gives you full access to the team.</span>
+      <span style="font-size:12px"> Gives you full access to the team.</span>
       <br>
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:10px"> Meet like minded members.</span>
+      <span style="font-size:12px"> Meet like minded members.</span>
       <br>
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:10px"> Get behind 424 with us.</span>
+      <span style="font-size:12px"> Get behind 424 with us.</span>
       <br>
     </div>
     <div style="color:white;background-color:midnightblue;padding:10px;text-align:center">
       <span style="font-size:12px">To be a member you need</span>
       <br>
       <span style="font-size:20px">{{membership?.amountRequired|number:'1.1-1'}}</span>
-      <span style="font-size:14px"> COINS</span>
+      <span style="font-size:15px"> COINS</span>
       <br>
       <span style="font-size:12px">in your wallet</span>
     </div>
     <div style="padding:10px;text-align:center">
-      <span style="font-size:10px">Your membership will never expire.</span>
+      <span style="font-size:12px">Your membership will never expire.</span>
     </div>
     <div *ngIf="UI.currentUserLastMessageObj?.userStatus?.isMember" class="seperator"></div>
-    <div *ngIf="UI.currentUserLastMessageObj?.userStatus?.isMember" style="padding:10px;text-align:center">
+    <div *ngIf="UI.currentUserLastMessageObj?.userStatus?.isMember" style="padding:10px;text-align:center;color:white;background-color:green">
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:10px"> Your membership is active.</span>
+      <span style="font-size:12px"> You are a member.</span>
     </div>
     <div class="seperator"></div>
   </div>
@@ -52,31 +74,35 @@ import * as firebase from 'firebase/app';
     <div class="title" style="background-color:whitesmoke">Investment</div>
     <div class="seperator"></div>
     <div style="padding:10px;text-align:center">
-      <span class="material-icons-outlined" style="font-size:40px">savings</span>
+      <span class="material-icons-outlined" style="font-size:30px">savings</span>
       <br>
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:10px"> Your COINS are backed by the open source technology we are developing.</span>
+      <span style="font-size:12px"> Your COINS are backed by the open source technology we are developing.</span>
       <br>
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:10px"> Your investment is going directly into 424 development.</span>
+      <span style="font-size:12px"> Your investment is going into 424 and PERRINN development.</span>
       <br>
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:10px"> You can follow and query the impact of your investment.</span>
+      <span style="font-size:12px"> You can follow and query the impact of your investment live on PERRINN.com.</span>
       <br>
     </div>
     <div style="color:white;background-color:midnightblue;padding:10px;text-align:center">
       <span style="font-size:12px">Your COIN balance increases automatically by</span>
       <br>
       <span style="font-size:20px">{{membership?.amountRequiredIncreaseRate|percent:'0.0'}}</span>
-      <span style="font-size:10px"> a year</span>
+      <span style="font-size:12px"> a year</span>
     </div>
     <div style="padding:10px;text-align:center">
-      <span style="font-size:10px">The COINS you are placing in your wallet today are invested. You can track the interests added to your wallet every day. You will be able to sell your COINS back at a later stage realising a return.</span>
+      <span style="font-size:12px">The COINS placed in your wallet today are invested. You can track the interests added to your wallet every day. You will be able to sell your COINS at a later stage realising a return &#42;.</span>
+      <br>
+      <span style="font-size:10px">(&#42;) When 424 realises a profit through sponsorship rights, all members will be contacted and offered the same opportunity to sell some of their COINS back to PERRINN.</span>
     </div>
     <div class="seperator"></div>
-    <div style="padding:10px;text-align:center">
-      <span style="font-size:10px">How many COINS do you want to purchase?</span>
-    </div>
+  </div>
+  <br>
+  <div class="sheet" style="width:400px;max-width:80%;border-radius:3px">
+    <div class="seperator"></div>
+    <div class="title" style="background-color:whitesmoke">How many COINS do you want to purchase?</div>
     <div style="padding:10px">
       <ul class="listLight">
         <li *ngFor="let investment of investmentList;let index=index"
@@ -90,10 +116,6 @@ import * as firebase from 'firebase/app';
         </li>
       </ul>
     </div>
-    <div class="seperator"></div>
-  </div>
-  <br>
-  <div class="sheet" style="width:400px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
     <div class="title" style="background-color:whitesmoke">You are purchasing {{amountCOINSPurchased|number:'1.1-1'}} COINS</div>
     <div class="seperator"></div>

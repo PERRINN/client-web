@@ -10,7 +10,7 @@ import * as firebase from 'firebase/app'
   selector:'profile',
   template:`
   <div class='sheet'>
-    <div *ngIf="scope=='all'" style="clear:both">
+    <div *ngIf="scope=='all'&&UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined" style="clear:both">
       <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="width:100%">
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
