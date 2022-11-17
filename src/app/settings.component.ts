@@ -18,7 +18,7 @@ import * as firebase from 'firebase/app';
   <div>
     <input type="file" name="chatImage" id="chatImage" class="inputfile" (change)="onImageChange($event)" accept="image/*">
     <label class="buttonUploadImage" for="chatImage" id="buttonFile">
-    <div style="font-size:12px;text-align:center;line-height:20px;width:250px;padding:2px;margin:10px;color:white;background-color:midnightblue;border-radius:3px;cursor:pointer">Upload a new profile picture</div>
+    <div style="font-size:12px;text-align:center;line-height:20px;width:250px;padding:2px;margin:10px;color:white;background-color:black;border-radius:3px;cursor:pointer">Upload a new profile picture</div>
     </label>
   </div>
   <div style="margin:15px">
@@ -27,36 +27,36 @@ import * as firebase from 'firebase/app';
     <span *ngFor="let currency of objectToArray(currencyList);let first=first;let last=last">{{first?"(":""}}{{UI.formatCOINS((UI.currentUserLastMessageObj?.wallet?.balance||0)/currency[1].toCOIN)}} {{currency[1].code}}{{last?")":", "}}</span>
   </div>
   <span style="font-size:10px;margin-left:15px">{{UI.currentUserLastMessageObj?.userPresentation}} {{UI.currentUserLastMessageObj?.contract?.position}} Level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
-  <span *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px;color:midnightblue">Waiting for contract signature ({{UI.currentUserLastMessageObj?.contract?.position}} Level {{UI.currentUserLastMessageObj?.contract?.level}})</span>
+  <span *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px;color:black">Waiting for contract signature ({{UI.currentUserLastMessageObj?.contract?.position}} Level {{UI.currentUserLastMessageObj?.contract?.level}})</span>
   <div class="seperator" style="width:100%;margin:0px"></div>
   </div>
   <div class='sheet'>
       <div style="font-size:14px;margin:20px;color:#444">Your name (preferably your first name)</div>
       <input [(ngModel)]="name" placeholder="First name">
-      <div (click)="updateName()" style="font-size:12px;text-align:center;line-height:20px;width:150px;padding:2px;margin:10px;color:white;background-color:midnightblue;border-radius:3px;cursor:pointer">Update my name</div>
+      <div (click)="updateName()" style="font-size:12px;text-align:center;line-height:20px;width:150px;padding:2px;margin:10px;color:white;background-color:black;border-radius:3px;cursor:pointer">Update my name</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px;color:#444">Your short presentation</div>
       <div style="font-size:10px;margin:20px;color:#777">Your short presentation helps other members get to know you.</div>
-      <div style="color:midnightblue;font-size:10px;margin:15px 0 0 15px">I am someone who is:</div>
+      <div style="color:black;font-size:10px;margin:15px 0 0 15px">I am someone who is:</div>
       <input [(ngModel)]="userPresentation" placeholder="your short presentation" maxlength="150">
-      <div (click)="updateUserPresentation()" style="font-size:12px;text-align:center;line-height:20px;width:200px;padding:2px;margin:10px;color:white;background-color:midnightblue;border-radius:3px;cursor:pointer">Update my presentation</div>
+      <div (click)="updateUserPresentation()" style="font-size:12px;text-align:center;line-height:20px;width:200px;padding:2px;margin:10px;color:white;background-color:black;border-radius:3px;cursor:pointer">Update my presentation</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px;color:#444">Your PERRINN email</div>
       <div style="font-size:10px;margin:20px;color:#777">Use this email to receive notifications, connect to other PERRINN apps like Onshape, Google Drive and Google Meet (calendar events and meetings). This email can be the one you use to log into PERRINN.com or any other email. This email is visible by other PERRINN members.</div>
       <input [(ngModel)]="currentEmail" placeholder="Enter your PERRINN email">
-      <div (click)="updateEmail()" style="font-size:12px;text-align:center;line-height:20px;width:150px;padding:2px;margin:10px;color:white;background-color:midnightblue;border-radius:3px;cursor:pointer">Update my email</div>
+      <div (click)="updateEmail()" style="font-size:12px;text-align:center;line-height:20px;width:150px;padding:2px;margin:10px;color:white;background-color:black;border-radius:3px;cursor:pointer">Update my email</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px;color:#444">Your PERRINN contract</div>
       <div style="font-size:10px;margin:20px;color:#777">This contract is between you and PERRINN team. New COINS are credited to you based on the settings below. When these settings are updated, they will need to be approved before taking effect. You or PERRINN can cancel this contract at any time.</div>
-      <div style="color:midnightblue;font-size:10px;margin:15px 0 0 15px">Position as specific as possible so other members understand your role in the team.</div>
+      <div style="color:black;font-size:10px;margin:15px 0 0 15px">Position as specific as possible so other members understand your role in the team.</div>
       <input [(ngModel)]="contract.position" placeholder="Contract position">
-      <div style="color:midnightblue;font-size:10px;margin:15px 0 0 15px">Level [1-10] defines the level of experience / capacity to resolve problems independently. Level 1 is university student with no experience, 10 is expert (10+ years experience in the field). After signature your level will increase automatically with time at a rate of +1 per year.</div>
+      <div style="color:black;font-size:10px;margin:15px 0 0 15px">Level [1-10] defines the level of experience / capacity to resolve problems independently. Level 1 is university student with no experience, 10 is expert (10+ years experience in the field). After signature your level will increase automatically with time at a rate of +1 per year.</div>
       <input [(ngModel)]="contract.level" placeholder="Contract level">
-      <div *ngIf="!UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:15px;font-size:10px;color:midnightblue">No contract registered.</div>
-      <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:15px;font-size:10px;color:midnightblue">Contract number {{UI.currentUserLastMessageObj?.contract?.createdTimestamp}}</div>
-      <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:15px;font-size:10px;color:midnightblue">Signature valid for level {{UI.currentUserLastMessageObj?.contract?.signedLevel}}, you will receive {{UI.currentUserLastMessageObj?.contract?.hourlyRate|number:'1.1-1'}} COINS per hour when you declare working hours.</div>
-      <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:15px;font-size:10px;color:midnightblue">Waiting for contract signature</div>
-      <div (click)="updateContract()" style="clear:both;font-size:12px;text-align:center;line-height:20px;width:150px;padding:2px;margin:10px;color:white;background-color:midnightblue;border-radius:3px;cursor:pointer">Update my contract</div>
+      <div *ngIf="!UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:15px;font-size:10px;color:black">No contract registered.</div>
+      <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:15px;font-size:10px;color:black">Contract number {{UI.currentUserLastMessageObj?.contract?.createdTimestamp}}</div>
+      <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:15px;font-size:10px;color:black">Signature valid for level {{UI.currentUserLastMessageObj?.contract?.signedLevel}}, you will receive {{UI.currentUserLastMessageObj?.contract?.hourlyRate|number:'1.1-1'}} COINS per hour when you declare working hours.</div>
+      <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:15px;font-size:10px;color:black">Waiting for contract signature</div>
+      <div (click)="updateContract()" style="clear:both;font-size:12px;text-align:center;line-height:20px;width:150px;padding:2px;margin:10px;color:white;background-color:black;border-radius:3px;cursor:pointer">Update my contract</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
   <div class="buttonDiv" style="color:white;background-color:red;margin-top:25px;margin-bottom:25px" (click)="this.logout();router.navigate(['login']);">logout</div>
   <div class="seperator" style="width:100%;margin-bottom:250px"></div>

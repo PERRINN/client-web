@@ -10,7 +10,7 @@ import * as firebase from 'firebase/app';
   selector:'directory',
   template:`
   <div class="sheet">
-  <div class="buttonDiv" style="color:white;margin:10px;width:150px;font-size:11px;background-color:midnightblue" (click)="refreshMembersList()">Members list</div>
+  <div class="buttonDiv" style="color:white;margin:10px;width:150px;font-size:11px;background-color:black" (click)="refreshMembersList()">Members list</div>
   <div class="seperator" style="width:100%;margin:0px"></div>
   </div>
   <div class='sheet'>
@@ -23,7 +23,7 @@ import * as firebase from 'firebase/app';
           <div *ngIf="message.values?.isUserAnOrganisation" style="font-size:10px;font-weight:bold">Organisation</div>
         </div>
         <div style="float:left;padding:10px;width:45%">
-          <span *ngIf="message.values?.contract?.signed" style="font-size:10px;padding:3px;color:white;background-color:midnightblue">Contributor</span>
+          <span *ngIf="message.values?.contract?.signed" style="font-size:10px;padding:3px;color:white;background-color:black">Contributor</span>
           <span style="font-size:10px"> {{message.values?.userPresentation}}</span>
           <span *ngIf="message.values?.contract?.signed" style="font-size:10px"> {{message.values?.contract?.position}} Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
         </div>

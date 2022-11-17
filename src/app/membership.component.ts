@@ -50,7 +50,7 @@ import * as firebase from 'firebase/app';
       <span style="font-size:12px"> Get behind 424 with us.</span>
       <br>
     </div>
-    <div style="color:white;background-color:midnightblue;padding:10px;text-align:center">
+    <div style="color:white;background-color:black;padding:10px;text-align:center">
       <span style="font-size:12px">To be a member you need</span>
       <br>
       <span style="font-size:20px">{{membership?.amountRequired|number:'1.1-1'}}</span>
@@ -86,7 +86,7 @@ import * as firebase from 'firebase/app';
       <span style="font-size:12px"> You can follow and query the impact of your investment live on PERRINN.com.</span>
       <br>
     </div>
-    <div style="color:white;background-color:midnightblue;padding:10px;text-align:center">
+    <div style="color:white;background-color:black;padding:10px;text-align:center">
       <span style="font-size:12px">Your COIN balance increases automatically by</span>
       <br>
       <span style="font-size:20px">{{membership?.amountRequiredIncreaseRate|percent:'0.0'}}</span>
@@ -108,8 +108,8 @@ import * as firebase from 'firebase/app';
         <li *ngFor="let investment of investmentList;let index=index"
           (click)="investmentSelected==index?investmentSelected=null:investmentSelected=index;refreshAmountCharge()"
           style="float:left;width:63px;padding:5px;margin:5px;text-align:center;font-size:10px;border-radius:3px"
-          [style.background-color]="investmentSelected==index?'midnightblue':'white'"
-          [style.color]="investmentSelected==index?'white':'midnightblue'"
+          [style.background-color]="investmentSelected==index?'black':'white'"
+          [style.color]="investmentSelected==index?'white':'black'"
           [style.border-style]="investmentSelected==index?'none':'solid'"
           [style.border-width]="investmentSelected==index?'none':'1px'">
           {{investment|number:'1.1-1'}} COINS

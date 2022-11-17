@@ -22,14 +22,14 @@ import * as firebase from 'firebase/app'
           <span *ngFor="let recipient of chatLastMessageObj?.recipientList;let last=last">{{recipient==UI.currentUser?'You':chatLastMessageObj?.recipients[recipient]?.name}}{{last?"":", "}}</span>
           <div *ngIf="math.floor(eventDate/60000-UI.nowSeconds/60)>-60" style="clear:both">
             <span class="material-icons-outlined" style="float:left;font-size:20px;margin-right:5px;color:rgba(0,0,0,0.6)">event</span>
-            <div [style.background-color]="(math.floor((eventDate/1000-UI.nowSeconds)/60)>60*8)?'midnightblue':'red'" style="float:left;color:white;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(eventDate/1000-UI.nowSeconds)}}</div>
+            <div [style.background-color]="(math.floor((eventDate/1000-UI.nowSeconds)/60)>60*8)?'black':'red'" style="float:left;color:white;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(eventDate/1000-UI.nowSeconds)}}</div>
             <div *ngIf="math.floor(eventDate/60000-UI.nowSeconds/60)<=0&&math.floor(eventDate/60000-UI.nowSeconds/60)>-60" style="float:left;background-color:red;color:white;padding:0 5px 0 5px">Now</div>
             <div style="float:left;margin:0 5px 0 5px">{{eventDescription}}</div>
             <div style="float:left;margin:0 5px 0 0">{{eventDate|date:'EEEE d MMM HH:mm'}}</div>
           </div>
           <div *ngIf="(UI.nowSeconds<survey?.expiryTimestamp/1000)&&survey?.createdTimestamp" style="clear:both">
             <span class="material-icons-outlined" style="float:left;font-size:20px;margin-right:5px;color:rgba(0,0,0,0.6)">poll</span>
-            <div [style.background-color]="(math.floor(survey.expiryTimestamp/3600000-UI.nowSeconds/3600)>8)?'midnightblue':'red'" style="float:left;color:white;padding:0 5px 0 5px">{{UI.formatSecondsToDhm2(survey.expiryTimestamp/1000-UI.nowSeconds)}} left</div>
+            <div [style.background-color]="(math.floor(survey.expiryTimestamp/3600000-UI.nowSeconds/3600)>8)?'black':'red'" style="float:left;color:white;padding:0 5px 0 5px">{{UI.formatSecondsToDhm2(survey.expiryTimestamp/1000-UI.nowSeconds)}} left</div>
             <div style="float:left;margin:0 5px 0 5px">{{survey.question}}</div>
             <span *ngFor="let answer of survey.answers;let last=last" [style.font-weight]="answer?.votes.includes(UI.currentUser)?'bold':'normal'" style="float:left;margin:0 5px 0 5px">{{answer.answer}} ({{(answer.votes.length/survey.totalVotes)|percent:'1.0-0'}})</span>
             <span style="float:left;margin:0 5px 0 5px">{{survey.totalVotes}} vote{{survey.totalVotes>1?'s':''}}</span>
@@ -39,7 +39,7 @@ import * as firebase from 'firebase/app'
         <span class="material-icons-outlined" style="float:right;padding:7px;color:rgba(0,0,0,0.6)" (click)="showImageGalleryClick()">{{showImageGallery?'question_answer':'collections'}}</span>
       </div>
       <div *ngIf="showChatDetails">
-        <div style="float:left;font-size:12px;line-height:20px;margin:10px;color:midnightblue">< messages</div>
+        <div style="float:left;font-size:12px;line-height:20px;margin:10px;color:black">< messages</div>
       </div>
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
@@ -48,7 +48,7 @@ import * as firebase from 'firebase/app'
 
   <div class="sheet" *ngIf="showChatDetails" style="padding-top:40px">
     <input [(ngModel)]="chatSubject" style="width:60%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" placeholder="What is the subject of this chat?">
-    <div *ngIf="chatLastMessageObj?.chatSubject!=chatSubject&&chatSubject" style="float:right;width:75px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:white;background-color:midnightblue;border-radius:3px;cursor:pointer" (click)="saveNewSubject()">Save</div>
+    <div *ngIf="chatLastMessageObj?.chatSubject!=chatSubject&&chatSubject" style="float:right;width:75px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="saveNewSubject()">Save</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
     <ul style="color:#333;margin:10px">
       <li *ngFor="let recipient of chatLastMessageObj?.recipientList" style="float:left">
@@ -67,7 +67,7 @@ import * as firebase from 'firebase/app'
             <img [src]="team?.values?.imageUrlThumbUser" style="display:inline;float:left;margin:0 5px 0 10px;opacity:1;object-fit:cover;height:25px;width:25px;border-radius:50%">
             <span>{{team.values?.name}} {{UI.formatCOINS(team.values?.wallet?.balance||0)}}</span>
           </div>
-          <div class="buttonDiv" style="float:left;width:50px;font-size:11px;background-color:midnightblue;color:white;border-style:none" (click)="addRecipient(team.values.user,team.values.name)">Add</div>
+          <div class="buttonDiv" style="float:left;width:50px;font-size:11px;background-color:black;color:white;border-style:none" (click)="addRecipient(team.values.user,team.values.name)">Add</div>
         </div>
       </li>
     </ul>
@@ -77,15 +77,15 @@ import * as firebase from 'firebase/app'
       <div style="font-size:12px;margin:10px;color:#777">Send COINS to {{(chatLastMessageObj?.recipientList[0]==UI.currentUser)?(chatLastMessageObj?.recipients[chatLastMessageObj?.recipientList[1]].name):(chatLastMessageObj?.recipients[chatLastMessageObj?.recipientList[0]].name)}}</div>
       <input style="width:100px;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="500" (keyup)="inputsValid=checkInputs()" [(ngModel)]="amount" placeholder="Amount">
       <input style="width:150px;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="500" [(ngModel)]="code" placeholder="Code (optional)">
-      <div *ngIf="amount>0&&amount<=UI.currentUserLastMessageObj?.wallet?.balance" style="clear:both;width:200px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:midnightblue;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="sendCoins(amount,code)">
+      <div *ngIf="amount>0&&amount<=UI.currentUserLastMessageObj?.wallet?.balance" style="clear:both;width:200px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:black;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="sendCoins(amount,code)">
         Send {{amount}} Coins to {{(chatLastMessageObj?.recipientList[0]==UI.currentUser)?(chatLastMessageObj?.recipients[chatLastMessageObj?.recipientList[1]].name):(chatLastMessageObj?.recipients[chatLastMessageObj?.recipientList[0]].name)}}
       </div>
     </div>
     <div class="seperator" style="width:100%;margin:0px"></div>
     <div>
       <input style="width:60%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="200" [(ngModel)]="eventDescription" placeholder="Event description">
-      <div style="font-size:12px;margin:10px;color:midnightblue">{{eventDate==0?'':eventDate|date:'EEEE d MMM HH:mm'}}</div>
-      <div *ngIf="eventDate!=chatLastMessageObj?.eventDate||eventDescription!=chatLastMessageObj?.eventDescription" style="clear:both;width:100px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:midnightblue;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="saveEvent()">Save event</div>
+      <div style="font-size:12px;margin:10px;color:black">{{eventDate==0?'':eventDate|date:'EEEE d MMM HH:mm'}}</div>
+      <div *ngIf="eventDate!=chatLastMessageObj?.eventDate||eventDescription!=chatLastMessageObj?.eventDescription" style="clear:both;width:100px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:black;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="saveEvent()">Save event</div>
       <ul class="listLight" style="float:left;width:200px;margin:10px">
         <li *ngFor="let date of eventDates;let first=first" (click)="first?eventDate=date:eventDate=(date+(eventDate/3600000/24-math.floor(eventDate/3600000/24))*3600000*24)" [class.selected]="math.floor(date/3600000/24)==math.floor(eventDate/3600000/24)">
           <div *ngIf="math.round(date/3600000/24)==(date/3600000/24)||first" style="float:left;width:100px;min-height:10px">{{date|date:'EEEE'}}</div>
@@ -100,16 +100,16 @@ import * as firebase from 'firebase/app'
     </div>
     <div class="seperator" style="width:100%;margin:0px"></div>
     <div>
-      <div *ngIf="survey.createdTimestamp" style="font-size:12px;margin:10px;color:midnightblue">created on {{survey.createdTimestamp|date:'EEEE d MMM HH:mm'}} expiring on {{survey.expiryTimestamp|date:'EEEE d MMM HH:mm'}}</div>
+      <div *ngIf="survey.createdTimestamp" style="font-size:12px;margin:10px;color:black">created on {{survey.createdTimestamp|date:'EEEE d MMM HH:mm'}} expiring on {{survey.expiryTimestamp|date:'EEEE d MMM HH:mm'}}</div>
       <span style="margin:10px">duration of the survey (days)</span>
       <input style="width:40%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="200" [(ngModel)]="survey.durationDays">
       <input style="width:80%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="200" [(ngModel)]="survey.question">
-      <div style="clear:both;width:100px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:midnightblue;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="saveSurvey()">Save survey</div>
+      <div style="clear:both;width:100px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:black;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="saveSurvey()">Save survey</div>
       <ul class="listLight" style="margin:10px">
         <li *ngFor="let answer of survey.answers;let i=index">
           <div>
             <div style="float:left;width:50px;margin:15px 5px 5px 0px">
-              <div *ngIf="!answer?.votes.includes(UI.currentUser)" style="width:100%;height:20px;text-align:center;line-height:18px;font-size:10px;color:midnightblue;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="voteSurvey(i)">Vote</div>
+              <div *ngIf="!answer?.votes.includes(UI.currentUser)" style="width:100%;height:20px;text-align:center;line-height:18px;font-size:10px;color:black;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="voteSurvey(i)">Vote</div>
             </div>
             <input style="float:left;width:70%;border:0;background:none;box-shadow:none;border-radius:0px" [style.font-weight]="answer?.votes.includes(UI.currentUser)?'bold':'normal'" [(ngModel)]="survey.answers[i].answer">
           </div>
@@ -117,7 +117,7 @@ import * as firebase from 'firebase/app'
         </li>
       </ul>
     </div>
-    <div style="width:75px;margin:10px;height:20px;text-align:center;line-height:18px;font-size:10px;color:midnightblue;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="survey.answers.push({answer:'new answer',votes:[]})">Add answer</div>
+    <div style="width:75px;margin:10px;height:20px;text-align:center;line-height:18px;font-size:10px;color:black;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="survey.answers.push({answer:'new answer',votes:[]})">Add answer</div>
     <div class="seperator" style="width:100%;margin-bottom:150px"></div>
   </div>
 
@@ -131,14 +131,14 @@ import * as firebase from 'firebase/app'
       <ul style="list-style:none;">
         <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index">
           <div *ngIf="isMessageNewTimeGroup(message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" style="padding:15px">
-            <div *ngIf="first" style="color:midnightblue;width:200px;padding:15px;margin:0 auto;text-align:center;cursor:pointer" (click)="loadMore()">Load more</div>
-            <div style="color:midnightblue;font-weight:bold;margin:0 auto;text-align:center">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'fullDate'}}</div>
+            <div *ngIf="first" style="color:black;width:200px;padding:15px;margin:0 auto;text-align:center;cursor:pointer" (click)="loadMore()">Load more</div>
+            <div style="color:black;font-weight:bold;margin:0 auto;text-align:center">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'fullDate'}}</div>
           </div>
           <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" style="clear:both;width:100%;height:15px"></div>
           <div *ngIf="message.payload?.imageUrlThumbUser&&(isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first)" style="float:left;width:60px;min-height:10px">
             <img [src]="message.payload?.imageUrlThumbUser" style="cursor:pointer;display:inline;float:left;margin:10px;border-radius:50%; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
           </div>
-          <div [style.background-color]="(message.payload?.user==UI.currentUser)?'midnightblue':'white'"
+          <div [style.background-color]="(message.payload?.user==UI.currentUser)?'black':'white'"
                 style="cursor:text;border-width:2px;margin:2px 10px 5px 60px;user-select:text;border-color:magenta"
                 [style.color]="(message.payload?.user==UI.currentUser)?'#CCC':'#555'"
                 [style.border-style]="(message.payload?.text.includes(UI.currentUserLastMessageObj?.name))?'solid':'none'">
@@ -186,7 +186,7 @@ import * as firebase from 'firebase/app'
               <div style="float:left;padding:5px;cursor:pointer;border-style:solid;border-width:1px 1px 0 0" (click)="messageShowDetails.includes(message.key)?messageShowDetails.splice(messageShowDetails.indexOf(message.key),1):messageShowDetails.push(message.key)">Details</div>
             </div>
           </div>
-          <div *ngIf="lastRead==message.key" style="margin:0 auto;text-align:center;color:midnightblue;font-weight:bold;font-size:12px;margin:35px 0 35px 0;border-style:solid;border-width:0 0 2px 0">Last read</div>
+          <div *ngIf="lastRead==message.key" style="margin:0 auto;text-align:center;color:black;font-weight:bold;font-size:12px;margin:35px 0 35px 0;border-style:solid;border-width:0 0 2px 0">Last read</div>
           {{storeMessageValues(message.payload)}}
           {{(last||i==(messageNumberDisplay-1))?scrollToBottom(message.payload?.serverTimestamp?.seconds):''}}
         </li>
