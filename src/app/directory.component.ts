@@ -20,10 +20,8 @@ import * as firebase from 'firebase/app';
         <img [src]="message?.values.imageUrlThumbUser" style="float:left;margin:10px;opacity:1;object-fit:cover;height:50px;width:50px;border-radius:50%">
         <div style="float:left;padding:10px;width:20%">
           <div style="font-weight:bold">{{message.values?.name}}</div>
-          <div *ngIf="message.values?.isUserAnOrganisation" style="font-size:10px;font-weight:bold">Organisation</div>
         </div>
         <div style="float:left;padding:10px;width:45%">
-          <span *ngIf="message.values?.contract?.signed" style="font-size:10px;padding:3px;color:white;background-color:black">Contributor</span>
           <span style="font-size:10px"> {{message.values?.userPresentation}}</span>
           <span *ngIf="message.values?.contract?.signed" style="font-size:10px"> {{message.values?.contract?.position}} Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
         </div>
@@ -36,13 +34,6 @@ import * as firebase from 'firebase/app';
   <ul class="listLight" style="margin:10px">
     <li *ngFor="let message of messages | async" style="float:left;cursor:default">
       <img [src]="message?.values.imageUrlThumbUser" style="float:left;opacity:1;object-fit:cover;height:75px;width:75px">
-    </li>
-  </ul>
-  <div class="seperator" style="width:100%;margin:0px;cursor:default"></div>
-  <div style="font-size:14px;margin:20px;color:#444">Contributors only</div>
-  <ul class="listLight" style="margin:10px;max-width:500px">
-    <li *ngFor="let message of messages | async" style="float:left;cursor:default">
-      <img *ngIf="message?.values?.contract?.signed" [src]="message?.values.imageUrlThumbUser" style="float:left;opacity:1;object-fit:cover;height:75px;width:75px">
     </li>
   </ul>
   <div class="seperator" style="width:100%;margin:0px;cursor:default"></div>

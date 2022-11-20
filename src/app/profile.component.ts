@@ -23,10 +23,6 @@ import * as firebase from 'firebase/app'
           <div style="float:left;width:200px">
             <span style="font-size:18px;line-height:30px">{{focusUserLastMessageObj?.name}} </span>
             <span style="font-size:18px;line-height:30px">{{UI.formatCOINS(focusUserLastMessageObj?.wallet?.balance||0)}}</span>
-            <br *ngIf="focusUserLastMessageObj?.isUserAnOrganisation">
-            <span *ngIf="focusUserLastMessageObj?.isUserAnOrganisation" style="font-size:10px;font-weight:bold">Organisation</span>
-            <br>
-            <span *ngIf="focusUserLastMessageObj?.contract?.signed" style="font-size:10px;padding:3px;color:white;background-color:black">Contributor</span>
             <br>
             <span style="font-size:10px">{{focusUserLastMessageObj?.userPresentation}}</span>
             <span *ngIf="focusUserLastMessageObj?.contract?.signed" style="font-size:10px"> {{focusUserLastMessageObj?.contract?.position}} Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
