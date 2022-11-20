@@ -25,7 +25,10 @@ import * as firebase from 'firebase/app';
           <span style="font-size:10px"> {{message.values?.userPresentation}}</span>
           <span *ngIf="message.values?.contract?.signed" style="font-size:10px"> {{message.values?.contract?.position}} Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
         </div>
-        <div style="float:right;margin:10px;width:50px">{{UI.formatCOINS(message.values?.wallet?.balance||0)}}</div>
+        <div style="float:right;margin:10px;width:50px">
+          <div>{{UI.formatCOINS(message.values?.wallet?.balance||0)}}</div>
+          <div style="font-size:10px">{{((message.values?.wallet?.balance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance))|percent:'1.1-1'}}</div>
+        </div>
       </div>
       <div class="seperator"></div>
     </li>
