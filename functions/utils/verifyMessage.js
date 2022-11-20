@@ -15,6 +15,8 @@ module.exports = {
 
       const appSettingsCosts=await admin.firestore().doc('appSettings/costs').get()
       const appSettingsContract=await admin.firestore().doc('appSettings/contract').get()
+      const appSettingsPERRINNLimited=await admin.firestore().doc('appSettings/PERRINNLimited').get()
+      const appSettingsPayment=await admin.firestore().doc('appSettings/payment').get()
 
       //user chain
       let userChain={}
@@ -277,6 +279,24 @@ module.exports = {
         interest.amountCummulate=(((userPreviousMessageData.interest||{}).amountCummulate)||0)+interest.amount
         wallet.balance=Math.round((Number(wallet.balance)+Number((interest.amount)||0))*100000)/100000
 
+      //*******PERRINN Limited*************************
+        let PERRINNLimited={}
+        if(appSettingsPERRINNLimited.data().shares[user]){
+          PERRINNLimited.shares=appSettingsPERRINNLimited.data().shares[user]
+          PERRINNLimited.sharesDistribution=PERRINNLimited.shares/appSettingsPERRINNLimited.data().sharesTotal
+          PERRINNLimited.rateYear=appSettingsCosts.data().interestRateYear
+          PERRINNLimited.shareToCOINDays=(now/1000/3600/24-appSettingsPERRINNLimited.data().shareToCOINTimestamp.seconds/3600/24)||0
+          PERRINNLimited.shareToCOIN=Math.max(0,appSettingsPERRINNLimited.data().shareToCOIN*(Math.exp(PERRINNLimited.rateYear/365*PERRINNLimited.shareToCOINDays)))
+          PERRINNLimited.amountTotal=appSettingsPERRINNLimited.data().sharesTotal*PERRINNLimited.shareToCOIN
+          PERRINNLimited.loanAmountTotal=appSettingsPERRINNLimited.data().loanGBPTotal*appSettingsPayment.data().currencyList['gbp'].toCOIN
+          PERRINNLimited.loanAmount=(appSettingsPERRINNLimited.data().loanGBP[user]*appSettingsPayment.data().currencyList['gbp'].toCOIN)||0
+          PERRINNLimited.amount=(PERRINNLimited.amountTotal-PERRINNLimited.loanAmountTotal)*PERRINNLimited.sharesDistribution+PERRINNLimited.loanAmount
+        }
+
+      //*******PERRINN Share*************************
+        let share={}
+        share.amount=wallet.balance+(PERRINNLimited.amount||0)
+
       //*******TIME BASED CREDIT/DEBIT**********************
         //PERRINN membership
         if(wallet.balance>0){
@@ -303,6 +323,8 @@ module.exports = {
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{wallet:wallet},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userStatus:userStatus},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{survey:survey},{create:true})
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{PERRINNLimited:PERRINNLimited},{create:true})
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{share:share},{create:true})
         //message verified
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{verified:true},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{verifiedTimestamp:admin.firestore.FieldValue.serverTimestamp()},{create:true})
@@ -355,7 +377,9 @@ module.exports = {
         purchaseCOIN:purchaseCOIN,
         contract:contract,
         interest:interest,
-        userStatus:userStatus
+        userStatus:userStatus,
+        PERRINNLimited:PERRINNLimited,
+        share:share
       }
 
     }
