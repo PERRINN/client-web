@@ -78,8 +78,11 @@ module.exports = {
         if(userRecord)emails.auth=userRecord.toJSON().email
       }
       if(emails.auth&&userPreviousMessageData.emails&&(emails.auth!=userPreviousMessageData.emails.auth))emails.authUpdated=true
+      else emails.authUpdated=false
       if(emails.google&&userPreviousMessageData.emails&&(emails.google!=userPreviousMessageData.emails.google))emails.googleUpdated=true
+      else emails.googleUpdated=false
       if(emails.onshape&&userPreviousMessageData.emails&&(emails.onshape!=userPreviousMessageData.emails.onshape))emails.onshapeUpdated=true
+      else emails.onshapeUpdated=false
       if(emails.authUpdated)await admin.auth().updateUser(user,{email:emails.auth})
       messageData.createdTimestamp=messageData.createdTimestamp||userPreviousMessageData.createdTimestamp||now
       if((messageData.creatingUser!=undefined)&&(userPreviousMessageData.name)&&(userPreviousMessageData.imageUrlThumbUser)){
