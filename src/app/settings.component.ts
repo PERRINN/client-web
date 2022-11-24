@@ -46,9 +46,9 @@ import * as firebase from 'firebase/app';
       <div style="font-size:10px;margin:10px 20px 0 20px;color:black">Authentication address.</div>
       <input [(ngModel)]="emailsAuth" placeholder="Enter your authentication email">
       <div style="font-size:10px;margin:10px 20px 0 20px;color:black">Google address.</div>
-      <input [(ngModel)]="emailsGoogle" placeholder="Enter your Google account email">
+      <input [(ngModel)]="emailsGoogle" placeholder="Enter your Google account email (optional)">
       <div style="font-size:10px;margin:10px 20px 0 20px;color:black">Onshape address.</div>
-      <input [(ngModel)]="emailsOnshape" placeholder="Enter your Onshape account email">
+      <input [(ngModel)]="emailsOnshape" placeholder="Enter your Onshape account email (optional)">
       <div (click)="updateEmails()" style="font-size:12px;text-align:center;line-height:20px;width:250px;padding:2px;margin:10px;color:white;background-color:black;border-radius:3px;cursor:pointer">Update my email addresses</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px;color:#444">Your PERRINN contract</div>
