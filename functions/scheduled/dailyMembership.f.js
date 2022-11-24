@@ -19,14 +19,16 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     statistics.transactionIn={}
     statistics.transactionOut={}
     statistics.purchaseCOIN={}
-    statistics.membersEmails=[]
-    statistics.googleEmails=[]
-    statistics.googleEmailsInvalid=[]
-    statistics.googleEmailsMissing=[]
-    statistics.onshapeEmails=[]
+    statistics.emailsMembersAuth=[]
+    statistics.emailsMembersGoogle=[]
+    statistics.emailsMembersOnshape=[]
+    statistics.emailsAPIGoogle=[]
+    statistics.emailsAPIOnshape=[]
+    statistics.emailsInvalidGoogle=[]
+    statistics.emailsMissingGoogle=[]
+    statistics.emailsMissingOnshape=[]
     statistics.onshapeUids=[]
     statistics.onshapeUidsInvalid=[]
-    statistics.onshapeEmailsMissing=[]
     let listUsersResult1={}
     let listUsersResult2={}
     const appSettingsMembership=await admin.firestore().doc('appSettings/membership').get()
@@ -43,7 +45,11 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
       let lastUserMessage=await admin.firestore().collection('PERRINNMessages').where('user','==',userRecord.uid).orderBy('serverTimestamp','desc').limit(1).get()
       if(lastUserMessage.docs[0]!=undefined){
         let result=await verifyMessageUtils.verifyMessage(lastUserMessage.docs[0].id,lastUserMessage.docs[0].data())
-        if (result.userStatus.isMember)statistics.membersEmails.push(result.userEmail)
+        if (result.userStatus.isMember){
+          statistics.emailsMembersAuth.push(result.emails.auth)
+          statistics.emailsMembersGoogle.push(result.emails.google)
+          statistics.emailsMembersOnshape.push(result.emails.onshape)
+        }
         statistics.wallet.balance=((statistics.wallet||{}).balance||0)+result.wallet.balance
         statistics.interest.amount=((statistics.interest||{}).amount||0)+result.interest.amount
         statistics.interest.rateDay=statistics.wallet.balance*(Math.exp(result.interest.rateYear/365)-1)
@@ -61,30 +67,30 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     }
     const googleUsers=await googleUtils.googleGroupMembersGet()
     googleUsers.data.members.forEach(member=>{
-      statistics.googleEmails.push(member.email)
+      statistics.emailsAPIGoogle.push(member.email)
     })
-    statistics.googleEmails.forEach(email=>{
-      if(!statistics.membersEmails.includes(email))statistics.googleEmailsInvalid.push(email)
+    statistics.emailsAPIGoogle.forEach(email=>{
+      if(!statistics.emailsMembersGoogle.includes(email))statistics.emailsInvalidGoogle.push(email)
     })
-    for(const email of statistics.googleEmailsInvalid){
+    for(const email of statistics.emailsInvalidGoogle){
       await googleUtils.googleGroupMemberDelete(email)
     }
-    statistics.membersEmails.forEach(email=>{
-      if(!statistics.googleEmails.includes(email))statistics.googleEmailsMissing.push(email)
+    statistics.emailsMembersGoogle.forEach(email=>{
+      if(!statistics.emailsAPIGoogle.includes(email))statistics.emailsMissingGoogle.push(email)
     })
     const onshapeUsers=await onshapeUtils.onshapeTeamMembersGet()
     onshapeUsers.items.forEach(item=>{
-      statistics.onshapeEmails.push(item.member.email)
+      statistics.emailsAPIOnshape.push(item.member.email)
       statistics.onshapeUids.push(item.member.id)
     })
-    statistics.onshapeEmails.forEach(email=>{
-      if(!statistics.membersEmails.includes(email))statistics.onshapeUidsInvalid.push(statistics.onshapeUids[statistics.onshapeEmails.indexOf(email)])
+    statistics.emailsAPIOnshape.forEach(email=>{
+      if(!statistics.emailsMembersOnshape.includes(email))statistics.onshapeUidsInvalid.push(statistics.onshapeUids[statistics.emailsAPIOnshape.indexOf(email)])
     })
     for(const uid of statistics.onshapeUidsInvalid){
       await onshapeUtils.onshapeTeamMemberDelete(uid)
     }
-    statistics.membersEmails.forEach(email=>{
-      if(!statistics.onshapeEmails.includes(email))statistics.onshapeEmailsMissing.push(email)
+    statistics.emailsMembersOnshape.forEach(email=>{
+      if(!statistics.emailsAPIOnshape.includes(email))statistics.emailsMissingOnshape.push(email)
     })
     statistics.serverTimestamp=admin.firestore.FieldValue.serverTimestamp()
     await admin.firestore().collection('statistics').add(statistics);
@@ -92,7 +98,7 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
 
     let messageText=
       statistics.userCount+' visitors. '+
-      statistics.membersEmails.length+' members. '+
+      statistics.emailsMembersAuth.length+' members. '+
       Math.round(statistics.wallet.balance).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' COINS invested. '+
       Math.round(statistics.interest.rateDay).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' COINS created from interest per day. '+
       (stripeBalance.available[0].amount/100)+stripeBalance.available[0].currency+' available in the PERRINN cash reserve.'
@@ -106,16 +112,16 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     })
 
     console.log(statistics.userCount+' users processed.')
-    console.log(statistics.membersEmails.length+' PERRINN members.')
-    console.log(statistics.googleEmails.length+' Google users.')
-    console.log(statistics.onshapeEmails.length+' Onshape users.')
-    console.log('Members Emails: '+JSON.stringify(statistics.membersEmails))
-    console.log('Google Emails: '+JSON.stringify(statistics.googleEmails))
-    console.log('Onshape Emails: '+JSON.stringify(statistics.onshapeEmails))
-    console.log('invalid Google Emails: '+JSON.stringify(statistics.googleEmailsInvalid))
+    console.log(statistics.emailsMembersAuth.length+' PERRINN members.')
+    console.log(statistics.emailsAPIGoogle.length+' Google users.')
+    console.log(statistics.emailsAPIOnshape.length+' Onshape users.')
+    console.log('Members Emails: '+JSON.stringify(statistics.emailsMembersAuth))
+    console.log('Google Emails: '+JSON.stringify(statistics.emailsAPIGoogle))
+    console.log('Onshape Emails: '+JSON.stringify(statistics.emailsAPIOnshape))
+    console.log('invalid Google Emails: '+JSON.stringify(statistics.emailsInvalidGoogle))
     console.log('invalid Onshape Uids: '+JSON.stringify(statistics.onshapeUidsInvalid))
-    console.log('missing Google Emails: '+JSON.stringify(statistics.googleEmailsMissing))
-    console.log('missing Onshape Emails: '+JSON.stringify(statistics.onshapeEmailsMissing))
+    console.log('missing Google Emails: '+JSON.stringify(statistics.emailsMissingGoogle))
+    console.log('missing Onshape Emails: '+JSON.stringify(statistics.emailsMissingOnshape))
 
   }
   catch(error){

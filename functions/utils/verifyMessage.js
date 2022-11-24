@@ -72,12 +72,15 @@ module.exports = {
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{chatImageUrlMedium:chatImageData.imageUrlMedium||messageData.chatImageUrlMedium||null},{create:true})
 
       //user data
-      let authEmail=''
-      if(!(messageData.userEmail||userPreviousMessageData.userEmail)){
+      let emails=messageData.emails||userPreviousMessageData.emails||{}
+      if(emails.auth==undefined){
         const userRecord=await admin.auth().getUser(user)
-        if(userRecord)authEmail=userRecord.toJSON().email
+        if(userRecord)emails.auth=userRecord.toJSON().email
       }
-      let userEmail=messageData.userEmail||userPreviousMessageData.userEmail||authEmail
+      if(emails.auth&&userPreviousMessageData.emails&&(emails.auth!=userPreviousMessageData.emails.auth))emails.authUpdated=true
+      if(emails.google&&userPreviousMessageData.emails&&(emails.google!=userPreviousMessageData.emails.google))emails.googleUpdated=true
+      if(emails.onshape&&userPreviousMessageData.emails&&(emails.onshape!=userPreviousMessageData.emails.onshape))emails.onshapeUpdated=true
+      if(emails.authUpdated)await admin.auth().updateUser(user,{email:emails.auth})
       messageData.createdTimestamp=messageData.createdTimestamp||userPreviousMessageData.createdTimestamp||now
       if((messageData.creatingUser!=undefined)&&(userPreviousMessageData.name)&&(userPreviousMessageData.imageUrlThumbUser)){
         messageData.text=(messageData.text||"")+" (duplicate)"
@@ -88,7 +91,6 @@ module.exports = {
       }
       messageData.userPresentation=messageData.userPresentation||userPreviousMessageData.userPresentation||""
       messageData.userPresentation=messageData.userPresentation.substring(0,150)
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userEmail:userEmail||null},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{name:messageData.name||userPreviousMessageData.name||null},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userPresentation:messageData.userPresentation},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{nameLowerCase:(messageData.name||userPreviousMessageData.name||"null").toLowerCase()},{create:true})
@@ -292,11 +294,10 @@ module.exports = {
         }
         wallet.balance=wallet.balance+(PERRINNLimited.amount||0)
 
-      //*******TIME BASED CREDIT/DEBIT**********************
-        //PERRINN membership
+      //PERRINN membership
         if(wallet.balance>0){
-          googleUtils.googleGroupMemberInsert(userEmail)
-          onshapeUtils.onshapeTeamMemberPost(userEmail)
+          if(emails.googleUpdated)googleUtils.googleGroupMemberInsert(emails.google)
+          if(emails.onshapeUpdated)onshapeUtils.onshapeTeamMemberPost(emails.onshape)
         }
 
       //user status
@@ -317,6 +318,7 @@ module.exports = {
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{interest:interest},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{wallet:wallet},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userStatus:userStatus},{create:true})
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{emails:emails},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{survey:survey},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{PERRINNLimited:PERRINNLimited},{create:true})
         //message verified
@@ -364,7 +366,7 @@ module.exports = {
 
       return {
         user:user,
-        userEmail:userEmail||null,
+        emails:emails,
         wallet:wallet,
         transactionIn:transactionIn,
         transactionOut:transactionOut,

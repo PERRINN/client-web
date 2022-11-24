@@ -37,20 +37,25 @@ import * as firebase from 'firebase/app';
     <div class="seperator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px;color:#444">Your short presentation</div>
       <div style="font-size:10px;margin:20px;color:#777">Your short presentation helps other members get to know you.</div>
-      <div style="color:black;font-size:10px;margin:15px 0 0 15px">I am someone who is:</div>
+      <div style="color:black;font-size:10px;margin:10px 20px 0 20px">I am someone who is:</div>
       <input [(ngModel)]="userPresentation" placeholder="your short presentation" maxlength="150">
       <div (click)="updateUserPresentation()" style="font-size:12px;text-align:center;line-height:20px;width:200px;padding:2px;margin:10px;color:white;background-color:black;border-radius:3px;cursor:pointer">Update my presentation</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
-      <div style="font-size:14px;margin:20px;color:#444">Your PERRINN email</div>
-      <div style="font-size:10px;margin:20px;color:#777">Use this email to receive notifications, connect to other PERRINN apps like Onshape, Google Drive and Google Meet (calendar events and meetings). This email can be the one you use to log into PERRINN.com or any other email. This email is visible by other PERRINN members.</div>
-      <input [(ngModel)]="currentEmail" placeholder="Enter your PERRINN email">
-      <div (click)="updateEmail()" style="font-size:12px;text-align:center;line-height:20px;width:150px;padding:2px;margin:10px;color:white;background-color:black;border-radius:3px;cursor:pointer">Update my email</div>
+      <div style="font-size:14px;margin:20px;color:#444">Your email addresses</div>
+      <div style="font-size:10px;margin:20px 20px 0 20px;color:#777">Use these addresses to receive notifications, connect to other PERRINN apps like Onshape, Google Drive and Google Meet (calendar events and meetings). These addresses are visible by other PERRINN members.</div>
+      <div style="font-size:10px;margin:10px 20px 0 20px;color:black">Authentication address.</div>
+      <input [(ngModel)]="emailsAuth" placeholder="Enter your authentication email">
+      <div style="font-size:10px;margin:10px 20px 0 20px;color:black">Google address.</div>
+      <input [(ngModel)]="emailsGoogle" placeholder="Enter your Google account email">
+      <div style="font-size:10px;margin:10px 20px 0 20px;color:black">Onshape address.</div>
+      <input [(ngModel)]="emailsOnshape" placeholder="Enter your Onshape account email">
+      <div (click)="updateEmails()" style="font-size:12px;text-align:center;line-height:20px;width:250px;padding:2px;margin:10px;color:white;background-color:black;border-radius:3px;cursor:pointer">Update my email addresses</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px;color:#444">Your PERRINN contract</div>
       <div style="font-size:10px;margin:20px;color:#777">This contract is between you and PERRINN team. New COINS are credited to you based on the settings below. When these settings are updated, they will need to be approved before taking effect. You or PERRINN can cancel this contract at any time.</div>
-      <div style="color:black;font-size:10px;margin:15px 0 0 15px">Position as specific as possible so other members understand your role in the team.</div>
+      <div style="color:black;font-size:10px;margin:15px 20px 0 20px">Position as specific as possible so other members understand your role in the team.</div>
       <input [(ngModel)]="contract.position" placeholder="Contract position">
-      <div style="color:black;font-size:10px;margin:15px 0 0 15px">Level [1-10] defines the level of experience / capacity to resolve problems independently. Level 1 is university student with no experience, 10 is expert (10+ years experience in the field). After signature your level will increase automatically with time at a rate of +1 per year.</div>
+      <div style="color:black;font-size:10px;margin:15px 20px 0 20px">Level [1-10] defines the level of experience / capacity to resolve problems independently. Level 1 is university student with no experience, 10 is expert (10+ years experience in the field). After signature your level will increase automatically with time at a rate of +1 per year.</div>
       <input [(ngModel)]="contract.level" placeholder="Contract level">
       <div *ngIf="!UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:15px;font-size:10px;color:black">No contract registered.</div>
       <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:15px;font-size:10px;color:black">Contract number {{UI.currentUserLastMessageObj?.contract?.createdTimestamp}}</div>
@@ -66,7 +71,9 @@ export class SettingsComponent {
   editMembers:boolean
   name:string
   userPresentation:string
-  currentEmail:string
+  emailsAuth:string
+  emailsGoogle:string
+  emailsOnshape:string
   contract:any
   searchFilter:string
   currencyList:any
@@ -82,7 +89,9 @@ export class SettingsComponent {
     this.editMembers=false
     this.name=this.UI.currentUserLastMessageObj.name
     this.userPresentation=this.UI.currentUserLastMessageObj.userPresentation||null
-    this.currentEmail=this.UI.currentUserLastMessageObj.userEmail||null
+    this.emailsAuth=this.UI.currentUserLastMessageObj.emails.auth||null
+    this.emailsGoogle=this.UI.currentUserLastMessageObj.emails.google||null
+    this.emailsOnshape=this.UI.currentUserLastMessageObj.emails.onshape||null
     this.contract.position=(this.UI.currentUserLastMessageObj.contract||{}).position||null
     this.contract.level=(this.UI.currentUserLastMessageObj.contract||{}).level||null
     afs.doc<any>('appSettings/payment').valueChanges().subscribe(snapshot=>{
@@ -115,14 +124,24 @@ export class SettingsComponent {
     this.router.navigate(['chat',this.UI.currentUser])
   }
 
-  updateEmail(){
-    if(!this.currentEmail)return
-    this.UI.createMessage({
-      chain:this.UI.currentUser,
-      text:'Updating my email to '+this.currentEmail,
-      userEmail:this.currentEmail
-    })
-    this.router.navigate(['chat',this.UI.currentUser])
+  updateEmails(){
+    if(this.emailsAuth!=this.UI.currentUserLastMessageObj.emails.auth
+      ||this.emailsGoogle!=this.UI.currentUserLastMessageObj.emails.google
+      ||this.emailsOnshape!=this.UI.currentUserLastMessageObj.emails.onshape
+    ){
+      this.UI.createMessage({
+        chain:this.UI.currentUser,
+        text:'Updating my email addresses.',
+        emails:{
+          auth:this.emailsAuth,
+          google:this.emailsGoogle,
+          onshape:this.emailsOnshape
+        }
+      })
+      this.router.navigate(['chat',this.UI.currentUser])
+      return
+    }
+    else return
   }
 
   updateContract(){
