@@ -9,8 +9,12 @@ import * as firebase from 'firebase/app';
 @Component({
   selector:'directory',
   template:`
-  <div class="sheet">
-  <div class="buttonDiv" style="color:white;margin:10px;width:150px;font-size:11px;background-color:black" (click)="refreshMembersList()">Members list</div>
+  <div class="sheet" style="background-color:whitesmoke">
+    <div style="margin:15px">
+      <span style="font-size:12px">PERRINN ownership is split between PERRINN Limited UK (73%) and our community of members (27%).</span>
+      <br>
+      <span style="font-size:10px">{{UI.formatCOINS(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}} Shares have been distributed. We keep distributing new shares every day though interest and new capital investment.</span>
+    </div>
   <div class="seperator" style="width:100%;margin:0px"></div>
   </div>
   <div class='sheet'>
