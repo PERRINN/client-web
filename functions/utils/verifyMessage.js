@@ -297,7 +297,7 @@ module.exports = {
         }
         wallet.balance=wallet.balance+(PERRINNLimited.amount||0)
 
-      //PERRINN membership
+      //APIs
         if(wallet.balance>0){
           if(emails.googleUpdated)googleUtils.googleGroupMemberInsert(emails.google)
           if(emails.onshapeUpdated)onshapeUtils.onshapeTeamMemberPost(emails.onshape)

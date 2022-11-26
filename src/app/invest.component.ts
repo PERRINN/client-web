@@ -7,7 +7,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
 import * as firebase from 'firebase/app';
 
 @Component({
-  selector:'membership',
+  selector:'invest',
   template:`
   <div class='sheet'>
   <br>
@@ -16,55 +16,17 @@ import * as firebase from 'firebase/app';
     <div *ngIf="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined" style="clear:both">
       <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="width:100%">
     </div>
-    <div class="title" style="padding:10px;text-align:center">PERRINN is where We are a Team.</div>
+    <div class="title" style="padding:10px;text-align:center">PERRINN is a network built as a team.</div>
     <div style="padding:10px;text-align:center">
-      <span style="font-size:12px">PERRINN is a new kind of social network designed to innovate faster than traditional organisations and deliver amazing projects like 424.</span>
+      <span style="font-size:12px">PERRINN is a new kind of social network designed to innovate faster than traditional organisations and deliver challenging projects like 424.</span>
       <br>
-      <span style="font-size:12px">Become a life member, follow or contribute to 424.</span>
-      <br>
-      <span style="font-size:12px">You can invest into 424 and PERRINN using COIN, our native digital credit.</span>
+      <span style="font-size:12px">You can invest into 424 and PERRINN buy purchasing Shares.</span>
       <br>
       <span style="font-size:12px">PERRINN has </span>
-      <span style="font-size:15px">{{UI.PERRINNAdminLastMessageObj?.statistics?.membersEmails?.length}}</span>
-      <span style="font-size:12px"> members and </span>
+      <span style="font-size:15px">{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsMembersAuth?.length}}</span>
+      <span style="font-size:12px"> investors and </span>
       <span style="font-size:15px">{{UI.formatCOINS(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}</span>
-      <span style="font-size:12px"> COINS invested.</span>
-    </div>
-    <div class="seperator"></div>
-  </div>
-  <br>
-  <div class="sheet" style="width:400px;max-width:80%;border-radius:3px">
-    <div class="seperator"></div>
-    <div class="title" style="background-color:whitesmoke">Membership</div>
-    <div class="seperator"></div>
-    <div style="padding:10px;text-align:center">
-      <span class="material-icons-outlined" style="font-size:30px">verified</span>
-      <br>
-      <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:12px"> Gives you full access to the team.</span>
-      <br>
-      <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:12px"> Meet like minded members.</span>
-      <br>
-      <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:12px"> Get behind 424 with us.</span>
-      <br>
-    </div>
-    <div style="color:white;background-color:black;padding:10px;text-align:center">
-      <span style="font-size:12px">To be a member you need</span>
-      <br>
-      <span style="font-size:20px">{{membership?.amountRequired|number:'1.1-1'}}</span>
-      <span style="font-size:15px"> COINS</span>
-      <br>
-      <span style="font-size:12px">in your wallet</span>
-    </div>
-    <div style="padding:10px;text-align:center">
-      <span style="font-size:12px">Your membership will never expire.</span>
-    </div>
-    <div *ngIf="UI.currentUserLastMessageObj?.userStatus?.isMember" class="seperator"></div>
-    <div *ngIf="UI.currentUserLastMessageObj?.userStatus?.isMember" style="padding:10px;text-align:center;color:white;background-color:green">
-      <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:12px"> You are a member.</span>
+      <span style="font-size:12px"> Shares distributed.</span>
     </div>
     <div class="seperator"></div>
   </div>
@@ -74,10 +36,10 @@ import * as firebase from 'firebase/app';
     <div class="title" style="background-color:whitesmoke">Investment</div>
     <div class="seperator"></div>
     <div style="padding:10px;text-align:center">
-      <span class="material-icons-outlined" style="font-size:30px">savings</span>
+      <span class="material-icons-outlined" style="font-size:30px">verified</span>
       <br>
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:12px"> Your COINS are backed by the open source technology we are developing.</span>
+      <span style="font-size:12px"> Your Shares are backed by the open source technology we are developing.</span>
       <br>
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
       <span style="font-size:12px"> Your investment is going into 424 and PERRINN development.</span>
@@ -85,24 +47,27 @@ import * as firebase from 'firebase/app';
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
       <span style="font-size:12px"> You can follow and query the impact of your investment live on PERRINN.com.</span>
       <br>
+      <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
+      <span style="font-size:12px"> Investing gives you full access to the team.</span>
+      <br>
     </div>
     <div style="color:white;background-color:black;padding:10px;text-align:center">
-      <span style="font-size:12px">Your COIN balance increases automatically by</span>
+      <span style="font-size:12px">Your Share balance increases automatically by</span>
       <br>
-      <span style="font-size:20px">{{membership?.amountRequiredIncreaseRate|percent:'0.0'}}</span>
+      <span style="font-size:20px">{{costs?.interestRateYear|percent:'0.0'}}</span>
       <span style="font-size:12px"> a year</span>
     </div>
     <div style="padding:10px;text-align:center">
-      <span style="font-size:12px">The COINS placed in your wallet today are invested. You can track the interests added to your wallet every day. You will be able to sell your COINS at a later stage realising a return &#42;.</span>
+      <span style="font-size:12px">The Shares are stored in your wallet. You can track the interests added to your wallet every day. You will be able to sell your Shares at a later stage realising a return &#42;.</span>
       <br>
-      <span style="font-size:10px">(&#42;) When 424 realises a profit through sponsorship rights, all members will be contacted and offered the same opportunity to sell some of their COINS back to PERRINN.</span>
+      <span style="font-size:10px">(&#42;) When 424 realises a profit through sponsorship rights, all investors will be contacted and offered the same opportunity to sell some of their Shares back to PERRINN.</span>
     </div>
     <div class="seperator"></div>
   </div>
   <br>
   <div class="sheet" style="width:400px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
-    <div class="title" style="background-color:whitesmoke">How many COINS do you want to purchase?</div>
+    <div class="title" style="background-color:whitesmoke">How many Shares do you want to purchase?</div>
     <div style="padding:10px">
       <ul class="listLight">
         <li *ngFor="let investment of investmentList;let index=index"
@@ -112,12 +77,12 @@ import * as firebase from 'firebase/app';
           [style.color]="investmentSelected==index?'white':'black'"
           [style.border-style]="investmentSelected==index?'none':'solid'"
           [style.border-width]="investmentSelected==index?'none':'1px'">
-          {{investment|number:'1.1-1'}} COINS
+          {{investment|number:'1.1-1'}} Shares
         </li>
       </ul>
     </div>
     <div class="seperator"></div>
-    <div class="title" style="background-color:whitesmoke">You are purchasing {{amountCOINSPurchased|number:'1.1-1'}} COINS</div>
+    <div class="title" style="background-color:whitesmoke">You are purchasing {{amountCOINSPurchased|number:'1.1-1'}} Shares</div>
     <div class="seperator"></div>
     <div class="title">Select your currency</div>
     <ul class="listLight">
@@ -163,7 +128,7 @@ import * as firebase from 'firebase/app';
   </div>
   `,
 })
-export class membershipComponent {
+export class InvestComponent {
   cardNumber:string
   expiryMonth:string
   expiryYear:string
@@ -173,7 +138,7 @@ export class membershipComponent {
   currentCurrencyID:string
   messagePayment:string
   currencyList:any
-  membership:any
+  costs:any
   investmentList:any
   investmentSelected:string
   math:any
@@ -193,8 +158,8 @@ export class membershipComponent {
       this.currencyList=snapshot.currencyList
       this.refreshAmountCharge()
     })
-    afs.doc<any>('appSettings/membership').valueChanges().subscribe(snapshot=>{
-      this.membership=snapshot.membership
+    afs.doc<any>('appSettings/costs').valueChanges().subscribe(snapshot=>{
+      this.costs=snapshot
     })
   }
 

@@ -32,11 +32,6 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     statistics.onshapeUidsInvalid=[]
     let listUsersResult1={}
     let listUsersResult2={}
-    const appSettingsMembership=await admin.firestore().doc('appSettings/membership').get()
-    let membership=appSettingsMembership.data().membership
-    membership.amountRequiredDays=(now/1000/3600/24-(membership.amountRequiredBaseTimestamp||{}).seconds/3600/24)||0
-    membership.amountRequired=Math.max(membership.amountRequiredBase,membership.amountRequiredBase*Math.exp(membership.amountRequiredIncreaseRate/365*membership.amountRequiredDays))
-    await admin.firestore().doc('appSettings/membership').update({membership:membership})
     listUsersResult1=await admin.auth().listUsers(1000)
     if(listUsersResult1.pageToken)listUsersResult2=await admin.auth().listUsers(1000,listUsersResult1.pageToken)
     let listUsersResult=listUsersResult1.users.concat(listUsersResult2.users)
