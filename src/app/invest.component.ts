@@ -91,7 +91,7 @@ import * as firebase from 'firebase/app';
         (click)="currentCurrencyID = currency[0];refreshAmountCharge()"
         style="padding:15px">
         <div style="width:250px;height:20px;float:left;font-size:15px">{{currency[1].designation}}</div>
-        <div style="height:20px;float:left;font-size:10px">1 COIN costs {{1/currency[1].toCOIN|number:'1.2-2'}} {{currency[1].code}}</div>
+        <div style="height:20px;float:left;font-size:10px">1 Share costs {{1/currency[1].toCOIN|number:'1.2-2'}} {{currency[1].code}}</div>
       </li>
     </ul>
     <div class="seperator"></div>
