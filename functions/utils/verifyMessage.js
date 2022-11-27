@@ -335,7 +335,7 @@ module.exports = {
         if(!transactionOut.message&&transactionOut.amount>0&&transactionOut.user){
           createMessageUtils.createMessageAFS({
             user:transactionOut.user,
-            text:transactionOut.amount+" COINS received",
+            text:transactionOut.amount+" Shares received",
             chain:messageData.chain,
             transactionIn:{
               user:user,
