@@ -77,13 +77,7 @@ module.exports = {
         const userRecord=await admin.auth().getUser(user)
         if(userRecord)emails.auth=userRecord.toJSON().email
       }
-      if(emails.auth&&userPreviousMessageData.emails&&(emails.auth!=userPreviousMessageData.emails.auth))emails.authUpdated=true
-      else emails.authUpdated=false
-      if(emails.google&&userPreviousMessageData.emails&&(emails.google!=userPreviousMessageData.emails.google))emails.googleUpdated=true
-      else emails.googleUpdated=false
-      if(emails.onshape&&userPreviousMessageData.emails&&(emails.onshape!=userPreviousMessageData.emails.onshape))emails.onshapeUpdated=true
-      else emails.onshapeUpdated=false
-      if(emails.authUpdated)await admin.auth().updateUser(user,{email:emails.auth})
+      if(emails.auth&&userPreviousMessageData.emails&&(emails.auth!=userPreviousMessageData.emails.auth))await admin.auth().updateUser(user,{email:emails.auth})
       messageData.createdTimestamp=messageData.createdTimestamp||userPreviousMessageData.createdTimestamp||now
       if((messageData.creatingUser!=undefined)&&(userPreviousMessageData.name)&&(userPreviousMessageData.imageUrlThumbUser)){
         messageData.text=(messageData.text||"")+" (duplicate)"
@@ -299,8 +293,8 @@ module.exports = {
 
       //APIs
         if(wallet.balance>0){
-          if(emails.googleUpdated)googleUtils.googleGroupMemberInsert(emails.google)
-          if(emails.onshapeUpdated)onshapeUtils.onshapeTeamMemberPost(emails.onshape)
+          if(emails.google)googleUtils.googleGroupMemberInsert(emails.google)
+          if(emails.onshape)onshapeUtils.onshapeTeamMemberPost(emails.onshape)
         }
 
       //user status
