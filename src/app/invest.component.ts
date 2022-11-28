@@ -16,7 +16,7 @@ import * as firebase from 'firebase/app';
     <div *ngIf="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined" style="clear:both">
       <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="width:100%">
     </div>
-    <div class="title" style="padding:10px;text-align:center">PERRINN is a network built as a team.</div>
+    <div class="title" style="padding:10px;text-align:center">PERRINN is a team built as a network.</div>
     <div style="padding:10px;text-align:center">
       <span style="font-size:12px">PERRINN is a new kind of social network designed to innovate faster than traditional organisations and deliver challenging projects like 424.</span>
       <br>
