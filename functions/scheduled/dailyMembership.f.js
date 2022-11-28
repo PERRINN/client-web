@@ -35,33 +35,39 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     listUsersResult1=await admin.auth().listUsers(1000)
     if(listUsersResult1.pageToken)listUsersResult2=await admin.auth().listUsers(1000,listUsersResult1.pageToken)
     let listUsersResult=listUsersResult1.users.concat(listUsersResult2.users)
-    for(const userRecord of listUsersResult){
-      let messageRef=''
-      let messageData={}
-      let lastUserMessage=await admin.firestore().collection('PERRINNMessages').where('user','==',userRecord.uid).orderBy('serverTimestamp','desc').limit(1).get()
+    var reads=[]
+    listUsersResult.forEach(userRecord=>{
+      reads.push(admin.firestore().collection('PERRINNMessages').where('user','==',userRecord.uid).orderBy('serverTimestamp','desc').limit(1).get())
+    })
+    const lastUserMessages=await Promise.all(reads)
+    var verifyMessageBatch=[]
+    lastUserMessages.forEach((lastUserMessage)=>{
       if(lastUserMessage.docs[0]!=undefined){
-        let result=await verifyMessageUtils.verifyMessage(lastUserMessage.docs[0].id,lastUserMessage.docs[0].data())
-        if (result.userStatus.isMember){
-          statistics.emailsMembersAuth.push(result.emails.auth)
-          statistics.emailsMembersGoogle.push(result.emails.google)
-          statistics.emailsMembersOnshape.push(result.emails.onshape)
-        }
-        statistics.wallet.balance=((statistics.wallet||{}).balance||0)+result.wallet.balance
-        statistics.PERRINNLimited.balance=((statistics.PERRINNLimited||{}).balance||0)+(result.PERRINNLimited.amount||0)
-        statistics.interest.amount=((statistics.interest||{}).amount||0)+result.interest.amount
-        statistics.interest.rateDay=statistics.wallet.balance*(Math.exp(result.interest.rateYear/365)-1)
-        statistics.interest.amountCummulate=((statistics.interest||{}).amountCummulate||0)+result.interest.amountCummulate
-        statistics.contract.amount=((statistics.contract||{}).amount||0)+result.contract.amount
-        statistics.contract.amountCummulate=((statistics.contract||{}).amountCummulate||0)+result.contract.amountCummulate
-        statistics.transactionIn.amount=((statistics.transactionIn||{}).amount||0)+result.transactionIn.amount
-        statistics.transactionIn.amountCummulate=((statistics.transactionIn||{}).amountCummulate||0)+result.transactionIn.amountCummulate
-        statistics.transactionOut.amount=((statistics.transactionOut||{}).amount||0)+result.transactionOut.amount
-        statistics.transactionOut.amountCummulate=((statistics.transactionOut||{}).amountCummulate||0)+result.transactionOut.amountCummulate
-        statistics.purchaseCOIN.amount=((statistics.purchaseCOIN||{}).amount||0)+result.purchaseCOIN.amount
-        statistics.purchaseCOIN.amountCummulate=((statistics.purchaseCOIN||{}).amountCummulate||0)+result.purchaseCOIN.amountCummulate
-        statistics.userCount=(statistics.userCount||0)+1
+        verifyMessageBatch.push(verifyMessageUtils.verifyMessage(lastUserMessage.docs[0].id,lastUserMessage.docs[0].data()))
       }
-    }
+    })
+    const results=await Promise.all(verifyMessageBatch)
+    results.forEach((result)=>{
+      if (result.userStatus.isMember){
+        statistics.emailsMembersAuth.push(result.emails.auth)
+        statistics.emailsMembersGoogle.push(result.emails.google)
+        statistics.emailsMembersOnshape.push(result.emails.onshape)
+      }
+      statistics.wallet.balance=((statistics.wallet||{}).balance||0)+result.wallet.balance
+      statistics.PERRINNLimited.balance=((statistics.PERRINNLimited||{}).balance||0)+(result.PERRINNLimited.amount||0)
+      statistics.interest.amount=((statistics.interest||{}).amount||0)+result.interest.amount
+      statistics.interest.rateDay=statistics.wallet.balance*(Math.exp(result.interest.rateYear/365)-1)
+      statistics.interest.amountCummulate=((statistics.interest||{}).amountCummulate||0)+result.interest.amountCummulate
+      statistics.contract.amount=((statistics.contract||{}).amount||0)+result.contract.amount
+      statistics.contract.amountCummulate=((statistics.contract||{}).amountCummulate||0)+result.contract.amountCummulate
+      statistics.transactionIn.amount=((statistics.transactionIn||{}).amount||0)+result.transactionIn.amount
+      statistics.transactionIn.amountCummulate=((statistics.transactionIn||{}).amountCummulate||0)+result.transactionIn.amountCummulate
+      statistics.transactionOut.amount=((statistics.transactionOut||{}).amount||0)+result.transactionOut.amount
+      statistics.transactionOut.amountCummulate=((statistics.transactionOut||{}).amountCummulate||0)+result.transactionOut.amountCummulate
+      statistics.purchaseCOIN.amount=((statistics.purchaseCOIN||{}).amount||0)+result.purchaseCOIN.amount
+      statistics.purchaseCOIN.amountCummulate=((statistics.purchaseCOIN||{}).amountCummulate||0)+result.purchaseCOIN.amountCummulate
+      statistics.userCount=(statistics.userCount||0)+1
+    })
     const googleUsers=await googleUtils.googleGroupMembersGet()
     googleUsers.data.members.forEach(member=>{
       statistics.emailsAPIGoogle.push(member.email)
