@@ -8,6 +8,6 @@ exports=module.exports=functions.firestore.document('PERRINNTeams/{team}/reads/{
       [context.params.team]:data.data().serverTimestamp||true
     }
   },{merge:true}).catch(error=>{
-    console.log(error);
-  });
-});
+    console.log(error)
+  })
+})

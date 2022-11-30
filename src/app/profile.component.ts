@@ -121,7 +121,7 @@ import * as firebase from 'firebase/app'
               </div>
               <div style="float:right;margin:5px 0 0 0;width:35px;height:20px;line-height:20px;font-size:10px;text-align:center;border-radius:3px 0 0 3px"
                 (click)="readFlagClick(message.payload.doc.id,(message.payload.doc.data()?.reads||{})[UI.currentUser])"
-                [style.background-color]="(message.payload.doc.data()?.reads||{})[UI.currentUser]?'whitesmoke':message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name)?'magenta':message.payload.doc.data()?.recipients[UI.currentUser]?'red':message.payload.doc.data()?.recipients['xCxYTM0AD7aj5SKZ27iFaqJaXps1']?'red':'black'"
+                [style.background-color]="(message.payload.doc.data()?.reads||{})[UI.currentUser]?'whitesmoke':message.payload.doc.data()?.recipients[UI.currentUser]?.mentionMessages?'magenta':message.payload.doc.data()?.recipients[UI.currentUser]?'red':message.payload.doc.data()?.recipients['xCxYTM0AD7aj5SKZ27iFaqJaXps1']?'red':'black'"
                 [style.color]="(message.payload.doc.data()?.reads||{})[UI.currentUser]?'whitesmoke':'white'">
                 {{message.payload.doc.data()?.recipients[UI.currentUser]?.unreadMessages}}
               </div>
