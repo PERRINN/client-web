@@ -114,7 +114,7 @@ module.exports = {
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{lastMessage:chatLastMessage})
 
       //message chat Subject
-      if(messageData.chain==user)messageData.chatSubject='User settings'
+      if(messageData.chain==user)messageData.chatSubject='User settings for '+messageData.name||userPreviousMessageData.name||"user"
       if(messageData.chain=='PERRINNUsersStateSnapshot')messageData.chatSubject='User State Snapshot'
       messageData.chatSubject=messageData.chatSubject||chatPreviousMessageData.chatSubject||messageData.text||""
       messageData.chatSubject=messageData.chatSubject.substring(0,60)
