@@ -82,7 +82,7 @@ import * as firebase from 'firebase/app';
       </ul>
     </div>
     <div class="seperator"></div>
-    <div class="title" style="background-color:whitesmoke">You are purchasing {{amountCOINSPurchased|number:'1.1-1'}} Shares</div>
+    <div class="title" style="background-color:whitesmoke">You are purchasing {{amountCOINSPurchased|number:'1.2-2'}} Shares</div>
     <div class="seperator"></div>
     <div class="title">Select your currency</div>
     <ul class="listLight">
