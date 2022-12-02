@@ -77,7 +77,7 @@ import * as firebase from 'firebase/app';
           [style.color]="investmentSelected==index?'white':'black'"
           [style.border-style]="investmentSelected==index?'none':'solid'"
           [style.border-width]="investmentSelected==index?'none':'1px'">
-          {{investment|number:'1.1-1'}} Shares
+          {{investment|number:'1.2-2'}} Shares
         </li>
       </ul>
     </div>
@@ -151,7 +151,7 @@ export class InvestComponent {
   ) {
     this.math=Math
     this.messagePayment=''
-    this.investmentList=[100,500,1000,2000]
+    this.investmentList=[100,300,1000,3000]
     this.investmentSelected=null
     this.currentCurrencyID='gbp'
     afs.doc<any>('appSettings/payment').valueChanges().subscribe(snapshot=>{
