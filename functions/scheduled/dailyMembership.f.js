@@ -53,10 +53,10 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
         statistics.emailsMembersGoogle.push(result.emails.google)
         statistics.emailsMembersOnshape.push(result.emails.onshape)
       }
-      statistics.wallet.balance=((statistics.wallet||{}).balance||0)+result.wallet.balance
+      statistics.wallet.shareBalance=((statistics.wallet||{}).shareBalance||0)+result.wallet.shareBalance
       statistics.PERRINNLimited.balance=((statistics.PERRINNLimited||{}).balance||0)+(result.PERRINNLimited.amount||0)
       statistics.interest.amount=((statistics.interest||{}).amount||0)+result.interest.amount
-      statistics.interest.rateDay=statistics.wallet.balance*(Math.exp(result.interest.rateYear/365)-1)
+      statistics.interest.rateDay=statistics.wallet.shareBalance*(Math.exp(result.interest.rateYear/365)-1)
       statistics.interest.amountCummulate=((statistics.interest||{}).amountCummulate||0)+result.interest.amountCummulate
       statistics.contract.amount=((statistics.contract||{}).amount||0)+result.contract.amount
       statistics.contract.amountCummulate=((statistics.contract||{}).amountCummulate||0)+result.contract.amountCummulate
@@ -102,7 +102,7 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     let messageText=
       statistics.userCount+' visitors. '+
       statistics.emailsMembersAuth.length+' members. '+
-      Math.round(statistics.wallet.balance).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' Shares distributed. '+
+      Math.round(statistics.wallet.shareBalance).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' Shares distributed. '+
       Math.round(statistics.interest.rateDay).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' Shares created from interest per day. '+
       (stripeBalance.available[0].amount/100)+stripeBalance.available[0].currency+' available in the PERRINN cash reserve.'
 

@@ -261,7 +261,7 @@ module.exports = {
         contract.amountCummulate=(((userPreviousMessageData.contract||{}).amountCummulate)||0)+contract.amount
         //message wallet
         let wallet={}
-        wallet.balance=(((userPreviousMessageData.wallet||{}).balance)||0)-(((userPreviousMessageData.PERRINNLimited||{}).amount)||0)
+        wallet.balance=(((userPreviousMessageData.wallet||{}).balance)||0)
         wallet.balance=Math.round((Number(wallet.balance)-Number(transactionOut.amount))*100000)/100000
         wallet.balance=Math.round((Number(wallet.balance)+Number(transactionIn.amount))*100000)/100000
         wallet.balance=Math.round((Number(wallet.balance)+Number(purchaseCOIN.amount))*100000)/100000
@@ -290,10 +290,10 @@ module.exports = {
           PERRINNLimited.loanAmount=(appSettingsPERRINNLimited.data().loanGBP[user]*appSettingsPayment.data().currencyList['gbp'].toCOIN)||0
           PERRINNLimited.amount=(PERRINNLimited.amountTotal-PERRINNLimited.loanAmountTotal)*PERRINNLimited.sharesDistribution+PERRINNLimited.loanAmount
         }
-        wallet.balance=wallet.balance+(PERRINNLimited.amount||0)
+        wallet.shareBalance=wallet.balance+(PERRINNLimited.amount||0)
 
       //APIs
-        if(wallet.balance>0){
+        if(wallet.shareBalance>0){
           if(emails.google)googleUtils.googleGroupMemberInsert(emails.google)
           if(emails.onshape)onshapeUtils.onshapeTeamMemberPost(emails.onshape)
         }
@@ -301,7 +301,7 @@ module.exports = {
       //user status
         let userStatus={}
         userStatus.isMember=false
-        if(wallet.balance>0)userStatus.isMember=true
+        if(wallet.shareBalance>0)userStatus.isMember=true
 
       //*******MESSAGE WRITES**********************
         //message event

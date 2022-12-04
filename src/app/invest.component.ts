@@ -25,7 +25,7 @@ import * as firebase from 'firebase/app';
       <span style="font-size:12px">PERRINN has </span>
       <span style="font-size:15px">{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsMembersAuth?.length}}</span>
       <span style="font-size:12px"> investors and </span>
-      <span style="font-size:15px">{{UI.formatCOINS(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}</span>
+      <span style="font-size:15px">{{UI.formatCOINS(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}}</span>
       <span style="font-size:12px"> Shares distributed.</span>
     </div>
     <div class="seperator"></div>
