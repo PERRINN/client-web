@@ -16,11 +16,11 @@ import * as firebase from 'firebase/app';
     <div *ngIf="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined" style="clear:both">
       <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="width:100%">
     </div>
-    <div class="title" style="padding:10px;text-align:center">PERRINN is a team built like a social network.</div>
+    <div class="title" style="padding:10px;text-align:center">Invest in the PERRINN network.</div>
     <div style="padding:10px;text-align:center">
       <span style="font-size:12px">PERRINN is designed to innovate faster than traditional organisations and deliver challenging projects like 424.</span>
       <br>
-      <span style="font-size:12px">You can invest into 424 and PERRINN buy purchasing Shares.</span>
+      <span style="font-size:12px">You can invest into 424 and PERRINN by purchasing digital Shares here.</span>
       <br>
       <span style="font-size:12px">PERRINN has </span>
       <span style="font-size:15px">{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsMembersAuth?.length}}</span>
@@ -46,10 +46,6 @@ import * as firebase from 'firebase/app';
       <br>
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
       <span style="font-size:12px"> You can follow and query the impact of your investment live on PERRINN.com.</span>
-      <br>
-      <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:12px"> Investing gives you full access to the team.</span>
-      <br>
     </div>
     <div style="color:white;background-color:black;padding:10px;text-align:center">
       <span style="font-size:12px">Your Share balance increases automatically by</span>
@@ -60,7 +56,7 @@ import * as firebase from 'firebase/app';
     <div style="padding:10px;text-align:center">
       <span style="font-size:12px">The Shares are stored in your wallet. You can track the interests added to your wallet every day. You will be able to sell your Shares at a later stage realising a return &#42;.</span>
       <br>
-      <span style="font-size:10px">(&#42;) When 424 realises a profit through sponsorship rights, all investors will be contacted and offered the same opportunity to sell some of their Shares back to PERRINN.</span>
+      <span style="font-size:10px">(&#42;) When 424 realises a profit through commercial rights, all investors will be offered the opportunity to sell some of their Shares back to PERRINN.</span>
     </div>
     <div class="seperator"></div>
   </div>

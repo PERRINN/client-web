@@ -36,13 +36,13 @@ import * as firebase from 'firebase/app';
       <div (click)="updateName()" style="font-size:12px;text-align:center;line-height:20px;width:150px;padding:2px;margin:10px;color:white;background-color:black;border-radius:3px;cursor:pointer">Update my name</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px;color:#444">Your short presentation</div>
-      <div style="font-size:10px;margin:20px;color:#777">Your short presentation helps other members get to know you.</div>
+      <div style="font-size:10px;margin:20px;color:#777">Your short presentation helps other investors get to know you.</div>
       <div style="color:black;font-size:10px;margin:10px 20px 0 20px">I am someone who is:</div>
       <input [(ngModel)]="userPresentation" placeholder="your short presentation" maxlength="150">
       <div (click)="updateUserPresentation()" style="font-size:12px;text-align:center;line-height:20px;width:200px;padding:2px;margin:10px;color:white;background-color:black;border-radius:3px;cursor:pointer">Update my presentation</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px;color:#444">Your email addresses</div>
-      <div style="font-size:10px;margin:20px 20px 0 20px;color:#777">Use these addresses to receive notifications, connect to other PERRINN apps like Onshape, Google Drive and Google Meet (calendar events and meetings). These addresses are visible by other PERRINN members.</div>
+      <div style="font-size:10px;margin:20px 20px 0 20px;color:#777">Use these addresses to receive notifications, connect to other PERRINN apps like Onshape, Google Drive and Google Meet (calendar events and meetings). These addresses are visible by other PERRINN investors.</div>
       <div style="font-size:10px;margin:10px 20px 0 20px;color:black">Authentication address.</div>
       <input [(ngModel)]="emailsAuth" placeholder="Enter your authentication email">
       <div style="font-size:10px;margin:10px 20px 0 20px;color:black">Google address.</div>
@@ -53,7 +53,7 @@ import * as firebase from 'firebase/app';
     <div class="seperator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px;color:#444">Your PERRINN contract</div>
       <div style="font-size:10px;margin:20px;color:#777">This contract is between you and PERRINN team. New Shares are credited to you based on the settings below. When these settings are updated, they will need to be approved before taking effect. You or PERRINN can cancel this contract at any time.</div>
-      <div style="color:black;font-size:10px;margin:15px 20px 0 20px">Position as specific as possible so other members understand your role in the team.</div>
+      <div style="color:black;font-size:10px;margin:15px 20px 0 20px">Position as specific as possible so other investors understand your role in the team.</div>
       <input [(ngModel)]="contract.position" placeholder="Contract position">
       <div style="color:black;font-size:10px;margin:15px 20px 0 20px">Level [1-10] defines the level of experience / capacity to resolve problems independently. Level 1 is university student with no experience, 10 is expert (10+ years experience in the field). After signature your level will increase automatically with time at a rate of +1 per year.</div>
       <input [(ngModel)]="contract.level" placeholder="Contract level">
@@ -68,7 +68,7 @@ import * as firebase from 'firebase/app';
   `,
 })
 export class SettingsComponent {
-  editMembers:boolean
+  editInvestors:boolean
   name:string
   userPresentation:string
   emailsAuth:string
@@ -86,7 +86,7 @@ export class SettingsComponent {
     public UI:UserInterfaceService
   ) {
     this.contract={}
-    this.editMembers=false
+    this.editInvestors=false
     this.name=this.UI.currentUserLastMessageObj.name
     this.userPresentation=this.UI.currentUserLastMessageObj.userPresentation||null
     this.emailsAuth=this.UI.currentUserLastMessageObj.emails.auth||null
