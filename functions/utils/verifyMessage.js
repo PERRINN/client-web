@@ -373,7 +373,7 @@ module.exports = {
 
     }
     catch(error){
-      console.log('user '+user+' error '+error)
+      console.log('user '+user+' message '+messageId+' error '+error)
       return admin.firestore().doc('PERRINNMessages/'+messageId).update({verified:false})
     }
 
