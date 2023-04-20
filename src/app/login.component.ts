@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import * as firebase from 'firebase/app';
-import { AngularFireAuth } from '@angular/fire/auth';
+import firebase from 'firebase/compat/app';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { UserInterfaceService } from './userInterface.service';
-import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
+import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
 
 @Component({
   selector:'login',
@@ -62,7 +62,7 @@ export class LoginComponent  {
   }
 
   login(email:string, password:string) {
-    this.afAuth.auth.signInWithEmailAndPassword(email, password).catch((error) => {
+    this.afAuth.signInWithEmailAndPassword(email, password).catch((error) => {
       const errorCode = error.code;
       const errorMessage = error.message;
       if (errorCode === 'auth/wrong-password') {
@@ -74,7 +74,7 @@ export class LoginComponent  {
   }
 
   resetPassword(email:string) {
-    this.afAuth.auth.sendPasswordResetEmail(email)
+    this.afAuth.sendPasswordResetEmail(email)
     .then(_ => this.messageUser = 'An email has been sent to you')
     .catch((error) => {
       const errorCode = error.code;
@@ -84,7 +84,7 @@ export class LoginComponent  {
   }
 
   logout() {
-    this.afAuth.auth.signOut()
+    this.afAuth.signOut()
     .then(_ => this.messageUser = 'Successfully logged out')
     .catch(err => this.messageUser = 'You were not logged in');
   }
@@ -96,7 +96,7 @@ export class LoginComponent  {
       if (password != passwordConfirm) {
         this.messageUser = 'Verification password doesn\'t match';
       } else {
-        this.afAuth.auth.createUserWithEmailAndPassword(email, password).catch((error) => {
+        this.afAuth.createUserWithEmailAndPassword(email, password).catch((error) => {
           const errorCode = error.code;
           const errorMessage = error.message;
           if (errorCode == 'auth/weak-password') {

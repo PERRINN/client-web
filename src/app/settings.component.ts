@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
-import { AngularFireAuth } from '@angular/fire/auth';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Router, ActivatedRoute } from '@angular/router';
 import { UserInterfaceService } from './userInterface.service';
-import { AngularFireStorage } from '@angular/fire/storage';
-import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
-import * as firebase from 'firebase/app';
+import { AngularFireStorage } from '@angular/fire/compat/storage';
+import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
+import firebase from 'firebase/compat/app';
 
 @Component({
   selector:'settings',
@@ -100,7 +100,7 @@ export class SettingsComponent {
   }
 
   logout() {
-    this.afAuth.auth.signOut();
+    this.afAuth.signOut();
     this.UI.currentUser = null;
   }
 

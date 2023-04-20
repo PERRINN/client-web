@@ -1,10 +1,10 @@
 import { Component } from '@angular/core'
-import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore'
+import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
 import { Router, ActivatedRoute } from '@angular/router'
 import { UserInterfaceService } from './userInterface.service'
-import * as firebase from 'firebase/app'
+import firebase from 'firebase/compat/app'
 
 @Component({
   selector:'profile',
