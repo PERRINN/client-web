@@ -26,15 +26,16 @@ import { AngularFireStorageModule } from '@angular/fire/compat/storage';
 import { AngularFireAuthModule } from '@angular/fire/compat/auth';
 
 import { Ng2ImgMaxModule } from 'ng2-img-max';
+import { environment } from '../environments/environment';
 
 // Must export the config
 export const firebaseConfig = {
-  apiKey: 'AIzaSyAoG3PvimV926EgWlGvpzXrZAkOi1uWdcs',
-  authDodash: 'perrinn-d5fc1.firebaseapp.com',
-  databaseURL: 'https://perrinn-d5fc1.firebaseio.com',
-  storageBucket: 'perrinn-d5fc1.appspot.com',
-  projectId: 'perrinn-d5fc1',
-  messagingSenderId: '44958643568'
+  apiKey: environment.FIREBASE_API_KEY,
+  authDodash: environment.FIREBASE_AUTH_DOMAIN,
+  databaseURL: environment.FIREBASE_DATABASE_URL,
+  storageBucket: environment.FIREBASE_STORAGE_BUCKET,
+  projectId: environment.FIREBASE_PROJECT_ID,
+  messagingSenderId: environment.FIREBASE_MESSAGING_SENDER_ID
 };
 
 @NgModule({

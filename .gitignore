@@ -63,3 +63,5 @@ package-lock.json
 functions/lib
 
 .angular/
+src/environments/environment.dev.ts
+src/environments/environment.prod.ts

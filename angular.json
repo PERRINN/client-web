@@ -26,14 +26,14 @@
             ],
             "scripts": [
               "node_modules/blueimp-canvas-to-blob/js/canvas-to-blob.min.js"
-            ]
+            ],
+            "allowedCommonJsDependencies":[ "angular-linky"]
           },
           "configurations": {
             "production": {
               "optimization": true,
               "outputHashing": "all",
               "sourceMap": false,
-              "extractCss": true,
               "namedChunks": false,
               "aot": true,
               "extractLicenses": true,
@@ -47,6 +47,23 @@
                   "with": "src/environments/environment.prod.ts"
                 }
               ]
+            },
+            "dev": {
+              "optimization": false,
+              "outputHashing": "all",
+              "sourceMap": true,
+              "namedChunks": true,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": false,
+              "serviceWorker": false,
+              "ngswConfigPath": "src/ngsw-config.json",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.dev.ts"
+                }
+              ]
             }
           }
         },
@@ -58,6 +75,9 @@
           "configurations": {
             "production": {
               "browserTarget": "perrinn:build:production"
+            },
+            "dev": {
+              "browserTarget": "perrinn:build:dev"
             }
           }
         },
