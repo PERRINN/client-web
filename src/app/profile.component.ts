@@ -4,6 +4,7 @@ import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
 import { Router, ActivatedRoute } from '@angular/router'
 import { UserInterfaceService } from './userInterface.service'
+import { AngularFireAuth } from '@angular/fire/compat/auth'
 import firebase from 'firebase/compat/app'
 
 @Component({
@@ -194,6 +195,7 @@ export class ProfileComponent {
   showTags:boolean
 
   constructor(
+    public afAuth:AngularFireAuth,
     public afs:AngularFirestore,
     public router:Router,
     public UI:UserInterfaceService,
@@ -205,6 +207,11 @@ export class ProfileComponent {
     this.scope=''
     this.mode='inbox'
     this.scrollTeam=''
+    this.afAuth.user.subscribe((auth) => {
+      if (auth == null) {
+        this.router.navigate(['login'])
+      }
+    })
     this.route.params.subscribe(params => {
       this.scope=params.id
       afs.collection<any>('PERRINNMessages',ref=>ref
