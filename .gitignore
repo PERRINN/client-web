@@ -62,6 +62,6 @@ package-lock.json
 .firebaserc
 functions/lib
 
-.angular/
+#.angular/
 src/environments/environment.dev.ts
 src/environments/environment.prod.ts
