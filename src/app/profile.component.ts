@@ -129,7 +129,8 @@ import firebase from 'firebase/compat/app'
               <div style="float:right;margin-top:5px;color:#999;font-size:11px;margin-right:10px;width:40px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</div>
               <div style="clear:both;float:left;height:42px;width:90%;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">
                 <span style="font-weight:bold;color:#555">{{message.payload.doc.data()?.name}}:&nbsp;</span>
-                <span>{{(message.payload.doc.data()?.chatImageTimestamp!=''&&message.payload.doc.data()?.chatImageTimestamp!=undefined)?'(image) ':''}}{{message.payload.doc.data()?.text}}</span>
+                <span *ngIf="message.payload.doc.data()?.imageResized" class="material-icons-outlined" style="font-size:15px;line-height:12px">aspect_ratio</span>
+                <span> {{message.payload.doc.data()?.text}}</span>
               </div>
             </div>
             <div class="seperator"></div>
