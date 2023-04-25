@@ -6,7 +6,7 @@ module.exports = {
 
   googleGroupMemberInsert:(email)=>{
     var SERVICE_ACCOUNT_EMAIL = 'perrinn-service-account@perrinn.iam.gserviceaccount.com'
-    var SERVICE_ACCOUNT_KEY_FILE = './perrinn-73e7f16c6042.json'
+    var SERVICE_ACCOUNT_KEY_FILE = 'perrinn-62d6932fce8e.json'
     const jwt = new google.auth.JWT(
         SERVICE_ACCOUNT_EMAIL,
         SERVICE_ACCOUNT_KEY_FILE,
@@ -36,7 +36,7 @@ module.exports = {
   googleGroupMemberDelete:(email)=>{
     if(email=='nicolas@perrinn.com')return
     var SERVICE_ACCOUNT_EMAIL = 'perrinn-service-account@perrinn.iam.gserviceaccount.com'
-    var SERVICE_ACCOUNT_KEY_FILE = './perrinn-73e7f16c6042.json'
+    var SERVICE_ACCOUNT_KEY_FILE = 'perrinn-62d6932fce8e.json'
     const jwt = new google.auth.JWT(
         SERVICE_ACCOUNT_EMAIL,
         SERVICE_ACCOUNT_KEY_FILE,
@@ -62,7 +62,7 @@ module.exports = {
 
   googleGroupMembersGet:()=>{
     var SERVICE_ACCOUNT_EMAIL = 'perrinn-service-account@perrinn.iam.gserviceaccount.com'
-    var SERVICE_ACCOUNT_KEY_FILE = './perrinn-73e7f16c6042.json'
+    var SERVICE_ACCOUNT_KEY_FILE = 'perrinn-62d6932fce8e.json'
     const jwt = new google.auth.JWT(
         SERVICE_ACCOUNT_EMAIL,
         SERVICE_ACCOUNT_KEY_FILE,
