@@ -176,8 +176,6 @@ import firebase from 'firebase/compat/app'
                 <div class="seperator" style="width:100%"></div>
                 <div style="font-size:10px">PERRINNLimited {{message.payload?.PERRINNLimited|json}}</div>
                 <div class="seperator" style="width:100%"></div>
-                <div style="font-size:10px">share {{message.payload?.share|json}}</div>
-                <div class="seperator" style="width:100%"></div>
                 <div style="font-size:10px">survey {{message.payload?.survey|json}}</div>
                 <div class="seperator" style="width:100%"></div>
                 <div style="font-size:10px">{{message.payload|json}}</div>

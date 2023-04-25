@@ -2,7 +2,7 @@ const functions = require('firebase-functions')
 const admin = require('firebase-admin')
 try { admin.initializeApp() } catch (e) {}
 const gcs = require('@google-cloud/storage')({
-  keyFilename:'perrinn-d5fc1-841e66c0cff2.json',
+  keyFilename:'perrinn-d5fc1-c86aeb94515d.json',
 });
 
 exports=module.exports=functions.storage.object().onFinalize(async(data,context)=>{

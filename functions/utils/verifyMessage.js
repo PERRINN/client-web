@@ -51,7 +51,6 @@ module.exports = {
       if(messageData.userImageTimestamp){
         userImageData=await admin.firestore().doc('Images/'+messageData.userImageTimestamp).get()
         if(userImageData!=undefined&&userImageData.data()!=undefined){
-          batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{imageResized:true},{create:true})
           userImageData=userImageData.data()
         }
         else userImageData={}
