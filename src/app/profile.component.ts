@@ -165,8 +165,8 @@ import firebase from 'firebase/compat/app'
               <div [style.color]="message.payload.doc.data()?.userChain?.nextMessage=='none'?'black':'grey'" style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd;font-size:10px">{{first?'':UI.formatCOINS((message.payload.doc.data()?.interest?.amountCummulate||0)-previousAmountInterestCummulate)|blankIfZero}}</div>
               <div [style.color]="message.payload.doc.data()?.userChain?.nextMessage=='none'?'black':'grey'" style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd;font-size:10px">{{first?'':UI.formatCOINS((message.payload.doc.data()?.contract?.amountCummulate||0)-previousContractAmountCummulate)|blankIfZero}}</div>
             </div>
+            {{storeMessageValues(message.payload.doc.data())}}
           </div>
-          {{storeMessageValues(message.payload.doc.data())}}
         </li>
       </ul>
       <div class="spinner" *ngIf="UI.loading">
@@ -390,7 +390,7 @@ export class ProfileComponent {
   }
 
   storeMessageValues(message) {
-    this.previousBalance=((message.wallet||{}).balance)||0
+    this.previousBalance=((message.wallet||{}).shareBalance)||0
     this.previousTimestamp=message.verifiedTimestamp
     this.previousIndex=message.userChain.index
     this.previousPurchaseCOINAmountCummulate=(message.purchaseCOIN||{}).amountCummulate||0
