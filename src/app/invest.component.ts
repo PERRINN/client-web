@@ -18,9 +18,7 @@ import firebase from 'firebase/compat/app';
     </div>
     <div class="title" style="padding:10px;text-align:center">Invest in the PERRINN network.</div>
     <div style="padding:10px;text-align:center">
-      <span style="font-size:12px">PERRINN is designed to innovate faster than traditional organisations and deliver challenging projects like 424.</span>
-      <br>
-      <span style="font-size:12px">You can invest into 424 and PERRINN by purchasing digital Shares here.</span>
+      <span style="font-size:12px">You can invest into PERRINN 424 by purchasing digital Shares here.</span>
       <br>
       <span style="font-size:12px">PERRINN has </span>
       <span style="font-size:15px">{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsMembersAuth?.length}}</span>
@@ -42,7 +40,7 @@ import firebase from 'firebase/compat/app';
       <span style="font-size:12px"> Your Shares are backed by the open source technology we are developing.</span>
       <br>
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:12px"> Your investment is going into 424 and PERRINN development.</span>
+      <span style="font-size:12px"> Your investment is going into PERRINN 424 development.</span>
       <br>
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
       <span style="font-size:12px"> You can follow and query the impact of your investment live on PERRINN.com.</span>
