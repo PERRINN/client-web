@@ -26,8 +26,8 @@ import firebase from 'firebase/compat/app';
     <span style="font-size:18px">{{UI.formatCOINS(UI.currentUserLastMessageObj?.wallet?.shareBalance||0)}} </span>
     <span *ngFor="let currency of objectToArray(currencyList);let first=first;let last=last">{{first?"(":""}}{{UI.formatCOINS((UI.currentUserLastMessageObj?.wallet?.shareBalance||0)/currency[1].toCOIN)}} {{currency[1].code}}{{last?")":", "}}</span>
   </div>
-  <span style="font-size:10px;margin-left:15px">{{UI.currentUserLastMessageObj?.userPresentation}} {{UI.currentUserLastMessageObj?.contract?.position}} Level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
-  <span *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px;color:black">Waiting for contract signature ({{UI.currentUserLastMessageObj?.contract?.position}} Level {{UI.currentUserLastMessageObj?.contract?.level}})</span>
+  <span style="font-size:10px;margin-left:15px">{{UI.currentUserLastMessageObj?.userPresentation}} Level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
+  <span *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px;color:black">Waiting for contract signature (Level {{UI.currentUserLastMessageObj?.contract?.level}})</span>
   <div class="seperator" style="width:100%;margin:0px"></div>
   </div>
   <div class='sheet'>
@@ -53,8 +53,6 @@ import firebase from 'firebase/compat/app';
     <div class="seperator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px;color:#444">Your PERRINN contract</div>
       <div style="font-size:10px;margin:20px;color:#777">This contract is between you and PERRINN team. New Shares are credited to you based on the settings below. When these settings are updated, they will need to be approved before taking effect. You or PERRINN can cancel this contract at any time.</div>
-      <div style="color:black;font-size:10px;margin:15px 20px 0 20px">Position as specific as possible so other investors understand your role in the team.</div>
-      <input [(ngModel)]="contract.position" placeholder="Contract position">
       <div style="color:black;font-size:10px;margin:15px 20px 0 20px">Level [1-10] defines the level of experience / capacity to resolve problems independently. Level 1 is university student with no experience, 10 is expert (10+ years experience in the field). After signature your level will increase automatically with time at a rate of +1 per year.</div>
       <input [(ngModel)]="contract.level" placeholder="Contract level">
       <div *ngIf="!UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:15px;font-size:10px;color:black">No contract registered.</div>
@@ -92,7 +90,6 @@ export class SettingsComponent {
     this.emailsAuth=this.UI.currentUserLastMessageObj.emails.auth||null
     this.emailsGoogle=this.UI.currentUserLastMessageObj.emails.google||null
     this.emailsOnshape=this.UI.currentUserLastMessageObj.emails.onshape||null
-    this.contract.position=(this.UI.currentUserLastMessageObj.contract||{}).position||null
     this.contract.level=(this.UI.currentUserLastMessageObj.contract||{}).level||null
     afs.doc<any>('appSettings/payment').valueChanges().subscribe(snapshot=>{
       this.currencyList=snapshot.currencyList
@@ -145,12 +142,11 @@ export class SettingsComponent {
   }
 
   updateContract(){
-    if(!this.contract.position||!this.contract.level)return
+    if(!this.contract.level)return
     this.UI.createMessage({
       chain:this.UI.currentUser,
-      text:'Updating my contract details to position '+this.contract.position+', level '+this.contract.level,
+      text:'Updating my contract details to level '+this.contract.level,
       contract:{
-        position:this.contract.position,
         level:this.contract.level
       }
     })

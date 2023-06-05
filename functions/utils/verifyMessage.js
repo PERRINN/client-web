@@ -220,10 +220,9 @@ module.exports = {
         purchaseCOIN.amountCummulate=(((userPreviousMessageData.purchaseCOIN||{}).amountCummulate)||0)+purchaseCOIN.amount
         //contract
         let contract={}
-        contract.position=(messageData.contract||{}).position||(userPreviousMessageData.contract||{}).position||null
         contract.level=((messageData.contract||{}).level)||((userPreviousMessageData.contract||{}).level)||0
         contract.message=(messageData.contract||{}).message||(userPreviousMessageData.contract||{}).message||null
-        if(contract.level!=(((userPreviousMessageData.contract||{}).level)||0)||contract.position!=((userPreviousMessageData.contract||{}).position||null))contract.createdTimestamp=now
+        if(contract.level!=(((userPreviousMessageData.contract||{}).level)||0))contract.createdTimestamp=now
         else contract.createdTimestamp=(userPreviousMessageData.contract||{}).createdTimestamp||null
         contract.amount=0
         contract.signed=false
@@ -232,7 +231,7 @@ module.exports = {
         contract.hoursValidated=0
         contract.levelTimeAdjusted=null
         contract.hourlyRate=0
-        if(contract.level&&contract.position&&contract.message&&contract.createdTimestamp){
+        if(contract.level&&contract.message&&contract.createdTimestamp){
           const contractSignatureMessage=await admin.firestore().doc('PERRINNMessages/'+contract.message).get()
           let contractSignatureMessageData=(contractSignatureMessage!=undefined)?(contractSignatureMessage||{}).data():{}
           if((contractSignatureMessageData.user=='QYm5NATKa6MGD87UpNZCTl6IolX2')
