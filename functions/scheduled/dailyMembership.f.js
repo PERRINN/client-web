@@ -104,8 +104,8 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
       statistics.emailsMembersAuth.length+' members. '+
       Math.round(statistics.wallet.shareBalance).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' Shares distributed. '+
       Math.round(statistics.interest.rateDay).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' Shares created from interest per day. '+
-      (stripeBalance.available[0].amount/100)+stripeBalance.available[0].currency+' available in the PERRINN cash reserve. '+
-      (stripeBalance.pending[0].amount/100)+stripeBalance.pending[0].currency+' pending in the PERRINN cash reserve.'
+      (stripeBalance.available[0].amount/100)+stripeBalance.available[0].currency+' available in the PERRINN cash reserve. (and '+
+      (stripeBalance.pending[0].amount/100)+stripeBalance.pending[0].currency+' pending.)'
 
     createMessageUtils.createMessageAFS({
       user:'FHk0zgOQUja7rsB9jxDISXzHaro2',
