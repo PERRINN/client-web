@@ -12,7 +12,7 @@ exports=module.exports=functions.firestore.document('PERRINNTeams/{user}/payment
     const amount=val.amountCharge
     const currency=val.currency
     const source=val.source
-    const description=val.amountCOINSPurchased+" COINS to "+email
+    const description=val.amountCOINSPurchased+" Shares to "+email
     const receipt_email=email
     const idempotency_key=context.params.chargeID
     let charge = {amount,currency,source,description,receipt_email}
