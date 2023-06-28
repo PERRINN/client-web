@@ -12,7 +12,7 @@ exports=module.exports=functions.firestore.document('PERRINNTeams/{user}/payment
     const amount=val.amountCharge
     const currency=val.currency
     const source=val.source
-    const description=val.amountCOINSPurchased+" Shares to "+email
+    const description=val.amountSharesPurchased+" Shares to "+email
     const receipt_email=email
     const idempotency_key=context.params.chargeID
     let charge = {amount,currency,source,description,receipt_email}
@@ -22,10 +22,10 @@ exports=module.exports=functions.firestore.document('PERRINNTeams/{user}/payment
         let messageObj={
           user:context.params.user,
           chain:context.params.user,
-          text:"Purchased "+val.amountCOINSPurchased+" Shares.",
+          text:"Purchased "+val.amountSharesPurchased+" Shares.",
           purchaseCOIN:{
             chargeID:context.params.chargeID,
-            amount:val.amountCOINSPurchased
+            amount:val.amountSharesPurchased
           }
         }
         createMessageUtils.createMessageAFS(messageObj)

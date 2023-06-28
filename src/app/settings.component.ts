@@ -23,8 +23,8 @@ import firebase from 'firebase/compat/app';
   </div>
   <div style="margin:15px">
     <span style="font-size:18px">{{UI.currentUserLastMessageObj?.name}} </span>
-    <span style="font-size:18px">{{UI.formatCOINS(UI.currentUserLastMessageObj?.wallet?.shareBalance||0)}} </span>
-    <span *ngFor="let currency of objectToArray(currencyList);let first=first;let last=last">{{first?"(":""}}{{UI.formatCOINS((UI.currentUserLastMessageObj?.wallet?.shareBalance||0)/currency[1].toCOIN)}} {{currency[1].code}}{{last?")":", "}}</span>
+    <span style="font-size:18px">{{UI.formatShares(UI.currentUserLastMessageObj?.wallet?.shareBalance||0)}} </span>
+    <span *ngFor="let currency of objectToArray(currencyList);let first=first;let last=last">{{first?"(":""}}{{UI.formatShares((UI.currentUserLastMessageObj?.wallet?.shareBalance||0)/currency[1].toCOIN)}} {{currency[1].code}}{{last?")":", "}}</span>
   </div>
   <span style="font-size:10px;margin-left:15px">{{UI.currentUserLastMessageObj?.userPresentation}} Level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
   <span *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px;color:black">Waiting for contract signature (Level {{UI.currentUserLastMessageObj?.contract?.level}})</span>

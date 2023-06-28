@@ -1,35 +1,35 @@
-import { Component, NgZone } from '@angular/core';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { Router } from '@angular/router';
-import { UserInterfaceService } from './userInterface.service';
-import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
-import firebase from 'firebase/compat/app';
+import {AfterViewInit,ChangeDetectorRef,ElementRef,Inject,OnDestroy,ViewChild} from '@angular/core'
+import { Component, NgZone } from '@angular/core'
+import { Observable } from 'rxjs'
+import { map } from 'rxjs/operators'
+import { Router } from '@angular/router'
+import { UserInterfaceService } from './userInterface.service'
+import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
+import firebase from 'firebase/compat/app'
 
 @Component({
   selector:'invest',
   template:`
   <div class='sheet'>
   <br>
-  <div class="sheet" style="width:400px;max-width:80%;border-radius:3px">
+  <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
     <div *ngIf="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined" style="clear:both">
       <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="width:100%">
     </div>
-    <div class="title" style="padding:10px;text-align:center">Invest in the PERRINN network.</div>
     <div style="padding:10px;text-align:center">
-      <span style="font-size:12px">You can invest into PERRINN 424 by purchasing digital Shares here.</span>
+      <span style="font-size:12px">To invest into PERRINN 424, purchase digital Shares here.</span>
       <br>
       <span style="font-size:12px">PERRINN has </span>
       <span style="font-size:15px">{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsMembersAuth?.length}}</span>
       <span style="font-size:12px"> investors and </span>
-      <span style="font-size:15px">{{UI.formatCOINS(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}}</span>
+      <span style="font-size:15px">{{UI.formatShares(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}}</span>
       <span style="font-size:12px"> Shares distributed.</span>
     </div>
     <div class="seperator"></div>
   </div>
   <br>
-  <div class="sheet" style="width:400px;max-width:80%;border-radius:3px">
+  <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
     <div class="title" style="background-color:whitesmoke">Investment</div>
     <div class="seperator"></div>
@@ -37,13 +37,13 @@ import firebase from 'firebase/compat/app';
       <span class="material-icons-outlined" style="font-size:30px">verified</span>
       <br>
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:12px"> Your Shares are backed by the open source technology we are developing.</span>
+      <span style="font-size:12px"> Your Shares are backed by the network we are developing.</span>
       <br>
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
       <span style="font-size:12px"> Your investment is going into PERRINN 424 development.</span>
       <br>
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:12px"> You can follow and query the impact of your investment live on PERRINN.com.</span>
+      <span style="font-size:12px"> You can follow the impact of your investment live on PERRINN.com.</span>
     </div>
     <div style="color:white;background-color:black;padding:10px;text-align:center">
       <span style="font-size:12px">Your Share balance increases automatically by</span>
@@ -59,13 +59,13 @@ import firebase from 'firebase/compat/app';
     <div class="seperator"></div>
   </div>
   <br>
-  <div class="sheet" style="width:400px;max-width:80%;border-radius:3px">
+  <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
     <div class="title" style="background-color:whitesmoke">How many Shares do you want to purchase?</div>
     <div style="padding:10px">
       <ul class="listLight">
         <li *ngFor="let investment of investmentList;let index=index"
-          (click)="investmentSelected==index?investmentSelected=null:investmentSelected=index;refreshAmountCharge()"
+          (click)="investmentSelected=index;refreshAmountCharge()"
           style="float:left;width:63px;padding:5px;margin:5px;text-align:center;font-size:10px;border-radius:3px"
           [style.background-color]="investmentSelected==index?'black':'white'"
           [style.color]="investmentSelected==index?'white':'black'"
@@ -76,50 +76,51 @@ import firebase from 'firebase/compat/app';
       </ul>
     </div>
     <div class="seperator"></div>
-    <div class="title" style="background-color:whitesmoke">You are purchasing {{amountCOINSPurchased|number:'1.2-2'}} Shares</div>
+  </div>
+  <br>
+  <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
-    <div class="title">Select your currency</div>
-    <ul class="listLight">
-      <li *ngFor="let currency of objectToArray(currencyList)"
-        [class.selected]="currency[0] === currentCurrencyID"
-        (click)="currentCurrencyID = currency[0];refreshAmountCharge()"
-        style="padding:15px">
-        <div style="width:250px;height:20px;float:left;font-size:15px">{{currency[1].designation}}</div>
-        <div style="height:20px;float:left;font-size:10px">1 Share costs {{1/currency[1].toCOIN|number:'1.2-2'}} {{currency[1].code}}</div>
-      </li>
-    </ul>
-    <div class="seperator"></div>
-    <div class="title" style="float:right">Total cost {{amountCharge/100 | number:'1.2-2'}} {{currentCurrencyID | uppercase}}</div>
+    <div class="title" style="background-color:whitesmoke">Which currency do you want to pay with?</div>
+    <div style="padding:10px">
+      <ul class="listLight">
+        <li *ngFor="let currency of objectToArray(currencyList)"
+          (click)="currencySelected=currency[0];refreshAmountCharge()"
+          style="float:left;width:125px;padding:5px;margin:5px;text-align:center;font-size:10px;border-radius:3px"
+          [style.background-color]="currencySelected==currency[0]?'black':'white'"
+          [style.color]="currencySelected==currency[0]?'white':'black'"
+          [style.border-style]="currencySelected==currency[0]?'none':'solid'"
+          [style.border-width]="currencySelected==currency[0]?'none':'1px'">
+          {{currency[1].designation}}
+        </li>
+      </ul>
+      <div style="font-size:10px;padding:10px">1 Share costs {{1/currencyList[currencySelected].toCOIN|number:'1.2-2'}} {{currencyList[currencySelected].code}}</div>
+    </div>
     <div class="seperator"></div>
   </div>
   <br>
-  <div class="module form-module" style="width:400px;max-width:80%;border-style:solid;border-width:1px;border-color:#ddd;border-radius:3px">
+  <div class="module form-module" style="width:500px;max-width:80%;border-style:solid;border-width:1px;border-color:#ddd;border-radius:3px">
+  <div class="title" style="background-color:whitesmoke">Credit or debit card</div>
   <div class="form">
-  <form>
-  <div style="margin:10px">
-    <img src="./../assets/App icons/Payment Method Icons/Light Color/22.png" style="width:40px">
-    <img src="./../assets/App icons/Payment Method Icons/Light Color/2.png" style="width:40px">
-    <img src="./../assets/App icons/Payment Method Icons/Light Color/1.png" style="width:40px">
+    <form (ngSubmit)="createStripeToken()" class="checkout">
+      <div id="form-field">
+        <div id="card-info" #cardElement></div>
+        <br>
+        <div class="title">You are purchasing {{amountSharesPurchased|number:'1.2-2'}} Shares</div>
+        <button *ngIf="!processing" id="submit-button" type="submit">
+            Pay {{amountCharge/100 | number:'1.2-2'}} {{currencySelected | uppercase}}
+        </button>
+        <br>
+        <mat-error id="card-errors" role="alert" *ngIf="stripeMessage">
+            &nbsp;{{ stripeMessage }}
+        </mat-error>
+      </div>
+    </form>
   </div>
-  <input [(ngModel)]="cardNumber" name="card-number" type="text" placeholder="Card number *" (keyup)='messagePayment=""'>
-  <div>
-  <input [(ngModel)]="expiryMonth" style="width:30%;float:left" name="expiry-month" type="text" placeholder="MM *" (keyup)='messagePayment=""'>
-  <div style="font-size:30px;line-height:40px;float:left">/</div>
-  <input [(ngModel)]="expiryYear" style="width:30%;float:left" name="expiry-year" type="text" placeholder="YY *" (keyup)='messagePayment=""'>
-  </div>
-  <input [(ngModel)]="cvc" name="cvc" type="text"  placeholder="CVC *" (keyup)='messagePayment=""'>
-  <button type="button" (click)="processPayment()">Pay {{amountCharge/100 | number:'1.2-2'}} {{currentCurrencyID | uppercase}}</button>
-  </form>
-  </div>
-  </div>
-  <br>
-  <div class='sheet' style="width:400px;max-width:80%;border-radius:3px">
-    <div class="seperator"></div>
-    <div class='content' style="text-align:center;min-height:50px">{{messagePayment}}</div>
-    <div class="seperator"></div>
+  <div class="seperator"></div>
+  <div style="float:right"><img src="./../assets/App icons/poweredByStripe2.png" style="width:175px"></div>
   </div>
   <br>
-  </div>
+ </div>
   `,
 })
 export class InvestComponent {
@@ -127,27 +128,32 @@ export class InvestComponent {
   expiryMonth:string
   expiryYear:string
   cvc:string
-  amountCOINSPurchased:number
+  amountSharesPurchased:number
   amountCharge:number
-  currentCurrencyID:string
-  messagePayment:string
   currencyList:any
+  currencySelected:string
   costs:any
   investmentList:any
-  investmentSelected:string
+  investmentSelected:number
   math:any
+  card:any
+  cardHandler=this.onChange.bind(this)
+  stripeMessage:string
+  @ViewChild('cardElement') cardElement:ElementRef
+  processing:boolean
 
   constructor(
     public afs:AngularFirestore,
     public router:Router,
     private _zone:NgZone,
-    public UI:UserInterfaceService
+    public UI:UserInterfaceService,
+    private cd: ChangeDetectorRef,
   ) {
+    this.processing=false
     this.math=Math
-    this.messagePayment=''
     this.investmentList=[100,300,1000,3000]
-    this.investmentSelected=null
-    this.currentCurrencyID='gbp'
+    this.investmentSelected=0
+    this.currencySelected='usd'
     afs.doc<any>('appSettings/payment').valueChanges().subscribe(snapshot=>{
       this.currencyList=snapshot.currencyList
       this.refreshAmountCharge()
@@ -157,40 +163,55 @@ export class InvestComponent {
     })
   }
 
-  processPayment() {
-    (window as any).Stripe.card.createToken({
-      number:this.cardNumber,
-      exp_month:this.expiryMonth,
-      exp_year:this.expiryYear,
-      cvc:this.cvc
-    }, (status:number, response:any) => {
-      this._zone.run(() => {
-        if (response.error) {
-          this.messagePayment = response.error.message
-        } else {
-          this.messagePayment = `Processing card...`
-          this.afs.collection('PERRINNTeams/'+this.UI.currentUser+'/payments').add({
-            source:response.id,
-            amountCOINSPurchased:this.amountCOINSPurchased,
-            amountCharge:this.amountCharge,
-            currency:this.currentCurrencyID,
-            user:this.UI.currentUser,
-            serverTimestamp:firebase.firestore.FieldValue.serverTimestamp()
-          }).then(paymentID=>{
-            this.afs.doc<any>('PERRINNTeams/'+this.UI.currentUser+'/payments/'+paymentID.id).valueChanges().subscribe(payment=>{
-              if(payment.outcome!=undefined)this.messagePayment=payment.outcome.seller_message
-              if(this.messagePayment=='Payment complete.')this.router.navigate(['chat',this.UI.currentUser])
-              if(payment.errorMessage!=undefined)this.messagePayment=payment.errorMessage
-            })
-          })
-        }
+  ngAfterViewInit(){
+    this.card=elements.create('card')
+    this.card.mount(this.cardElement.nativeElement)
+    this.card.addEventListener('change',this.cardHandler)
+  }
+
+  ngOnDestroy() {
+    if (this.card) {
+        this.card.destroy()
+    }
+  }
+
+  onChange({error}) {
+    if(error)this.stripeMessage=error.message
+    else this.stripeMessage=null
+    this.cd.detectChanges()
+  }
+  async createStripeToken(){
+    this.processing=true
+    const {token,error}=await stripe.createToken(this.card)
+    if(token)this.onSuccess(token)
+    else this.onError(error)
+  }
+  onSuccess(token){
+    this.card.destroy()
+    this.stripeMessage="processing payment"
+    this.afs.collection('PERRINNTeams/'+this.UI.currentUser+'/payments').add({
+      source:token.id,
+      amountSharesPurchased:this.amountSharesPurchased,
+      amountCharge:this.amountCharge,
+      currency:this.currencySelected,
+      user:this.UI.currentUser,
+      serverTimestamp:firebase.firestore.FieldValue.serverTimestamp()
+    }).then(chargeID=>{
+      this.afs.doc<any>('PERRINNTeams/'+this.UI.currentUser+'/payments/'+chargeID.id).valueChanges().subscribe(payment=>{
+        if(payment.outcome!=undefined)this.stripeMessage=payment.outcome.seller_message
+        if(this.stripeMessage=='Payment complete.')this.router.navigate(['chat',this.UI.currentUser])
+        if(payment.errorMessage!=undefined)this.stripeMessage=payment.errorMessage
       })
     })
   }
+  onError(error){
+    this.processing=false
+    if(error.message)this.stripeMessage=error.message
+  }
 
   refreshAmountCharge() {
-    this.amountCOINSPurchased=this.investmentList[this.investmentSelected]||0
-    this.amountCharge=Number((this.amountCOINSPurchased/this.currencyList[this.currentCurrencyID].toCOIN*100).toFixed(0))
+    this.amountSharesPurchased=this.investmentList[this.investmentSelected]||0
+    this.amountCharge=Number((this.amountSharesPurchased/this.currencyList[this.currencySelected].toCOIN*100).toFixed(0))
   }
 
   objectToArray(obj) {

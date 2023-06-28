@@ -51,7 +51,7 @@ export class UserInterfaceService {
     return this.afs.collection('PERRINNMessages').add(messageObj)
   }
 
-  formatCOINS(amount){
+  formatShares(amount){
     if(amount<100)return formatNumber(amount,"en-US","1.2-2")
     if(amount<1000)return formatNumber(amount,"en-US","1.1-1")
     if(amount<100000)return formatNumber(amount/1000,"en-US","1.1-1")+'K'

@@ -24,6 +24,7 @@
     "@angular/platform-server": "15.2.6",
     "@angular/router": "15.2.6",
     "@sendgrid/mail": "^7.2.1",
+    "@stripe/stripe-js": "^1.54.1",
     "angular-linky": "^1.2.2",
     "blueimp-canvas-to-blob": "^3.27.0",
     "core-js": "^3.6.5",
@@ -36,7 +37,7 @@
     "request": "^2.88.2",
     "rxjs": "7.8.0",
     "rxjs-compat": "^6.6.7",
-    "stripe": "^7.15.0",
+    "stripe": "^7.63.1",
     "zone.js": "0.13.0"
   },
   "devDependencies": {

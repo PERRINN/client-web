@@ -13,7 +13,7 @@ import firebase from 'firebase/compat/app';
     <div style="margin:15px">
       <span style="font-size:12px">PERRINN network is owned by PERRINN Limited UK ({{UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance|percent:'1.0-0'}}) and our community of investors ({{1-(UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)|percent:'1.0-0'}}).</span>
       <br>
-      <span style="font-size:10px">{{UI.formatCOINS(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}} Shares have been distributed. We keep distributing new shares every day though interest and new capital investment.</span>
+      <span style="font-size:10px">{{UI.formatShares(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}} Shares have been distributed. We keep distributing new shares every day though interest and new capital investment.</span>
     </div>
   <div class="seperator" style="width:100%;margin:0px"></div>
   </div>
@@ -29,10 +29,10 @@ import firebase from 'firebase/compat/app';
           <span style="font-size:10px"> {{message.values?.userPresentation}}</span>
           <span *ngIf="message.values?.contract?.signed" style="font-size:10px"> Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
           <br>
-          <span *ngIf="message.values?.PERRINNLimited?.amount>0" style="font-size:10px">({{UI.formatCOINS(message.values?.PERRINNLimited?.amount)}} from PERRINN Limited ownership)</span>
+          <span *ngIf="message.values?.PERRINNLimited?.amount>0" style="font-size:10px">({{UI.formatShares(message.values?.PERRINNLimited?.amount)}} from PERRINN Limited ownership)</span>
         </div>
         <div style="float:right;margin:10px;width:50px">
-          <div>{{UI.formatCOINS(message.values?.wallet?.shareBalance||0)}}</div>
+          <div>{{UI.formatShares(message.values?.wallet?.shareBalance||0)}}</div>
           <div style="font-size:10px">{{((message.values?.wallet?.shareBalance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance))|percent:'1.1-1'}}</div>
         </div>
       </div>
@@ -49,7 +49,7 @@ import firebase from 'firebase/compat/app';
   <ul class="listLight" style="margin:10px">
     <li *ngFor="let message of messages | async" style="float:left;cursor:text;user-select:text">
       <span>{{message.values?.name}} </span>
-      <span>{{UI.formatCOINS(message.values?.wallet?.shareBalance||0)}}&nbsp;&nbsp;</span>
+      <span>{{UI.formatShares(message.values?.wallet?.shareBalance||0)}}&nbsp;&nbsp;</span>
     </li>
   </ul>
   <div class="seperator" style="width:100%;margin:0px"></div>
