@@ -84,6 +84,27 @@ import firebase from 'firebase/compat/app'
         </li>
       </ul>
       <ul class="listLight">
+        <li *ngFor="let message of currentFunds|async;let first=first;let last=last"
+          (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
+          <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0">
+          <div style="float:left;min-width:90px;min-height:40px">
+            <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:rgba(0,0,0,0.6)">paid</span>
+          </div>
+          <div>
+            <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
+              <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:rgba(0,0,0,0.6)">settings</span>
+              <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</span>
+            </div>
+            <div style="clear:both">
+              <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.description}}</div>
+              <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.amountGBPTarget}}GBP target</div>
+            </div>
+          </div>
+          </div>
+          <div class="seperator"></div>
+        </li>
+      </ul>
+      <ul class="listLight">
         <li *ngFor="let message of currentSurveys|async;let first=first;let last=last"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="(UI.nowSeconds<message.payload.doc.data()?.survey?.expiryTimestamp/1000)&&message.payload.doc.data()?.survey?.createdTimestamp">
@@ -183,6 +204,7 @@ import firebase from 'firebase/compat/app'
 export class ProfileComponent {
   messages:Observable<any[]>
   comingEvents:Observable<any[]>
+  currentFunds:Observable<any[]>
   currentSurveys:Observable<any[]>
   tags:Observable<any[]>
   scrollTeam:string
@@ -251,6 +273,13 @@ export class ProfileComponent {
         ).snapshotChanges().pipe(map(changes=>{
           return changes.map(c=>({payload:c.payload}))
         }))
+        this.currentFunds=this.afs.collection<any>('PERRINNMessages',ref=>ref
+          .where('lastMessage','==',true)
+          .where('verified','==',true)
+          .where('fund.amountGBPTarget','>',0)
+        ).snapshotChanges().pipe(map(changes=>{
+          return changes.map(c=>({payload:c.payload}))
+        }))
         this.currentSurveys=this.afs.collection<any>('PERRINNMessages',ref=>ref
           .where('lastMessage','==',true)
           .where('verified','==',true)
@@ -276,6 +305,14 @@ export class ProfileComponent {
           .where('verified','==',true)
           .orderBy('eventDate')
           .where('eventDate','>',(this.UI.nowSeconds-3600)*1000)
+        ).snapshotChanges().pipe(map(changes=>{
+          return changes.map(c=>({payload:c.payload}))
+        }))
+        this.currentFunds=this.afs.collection<any>('PERRINNMessages',ref=>ref
+          .where('lastMessage','==',true)
+          .where('tag','in',this.UI.tagFilters)
+          .where('verified','==',true)
+          .where('fund.amountGBPTarget','>',0)
         ).snapshotChanges().pipe(map(changes=>{
           return changes.map(c=>({payload:c.payload}))
         }))
@@ -340,6 +377,14 @@ export class ProfileComponent {
         .where('verified','==',true)
         .orderBy('eventDate')
         .where('eventDate','>',(this.UI.nowSeconds-3600)*1000)
+      ).snapshotChanges().pipe(map(changes=>{
+        return changes.map(c=>({payload:c.payload}))
+      }))
+      this.currentFunds=this.afs.collection<any>('PERRINNMessages',ref=>ref
+        .where('recipientList','array-contains-any',[this.scope,'xCxYTM0AD7aj5SKZ27iFaqJaXps1'])
+        .where('lastMessage','==',true)
+        .where('verified','==',true)
+        .where('fund.amountGBPTarget','>',0)
       ).snapshotChanges().pipe(map(changes=>{
         return changes.map(c=>({payload:c.payload}))
       }))

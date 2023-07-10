@@ -161,6 +161,10 @@ module.exports = {
         if(recipient.docs[0]!=undefined)batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${recipient.docs[0].data().user}.mentionMessages`]:((messageData.text||"").includes((recipient.docs[0].data()||{}).name||null))?true:((chatPreviousMessageData.reads||{})[recipient.docs[0].data().user]||null)?false:(((chatPreviousMessageData.recipients||{})[recipient.docs[0].data().user]||{}).mentionMessages||false)},{create:true})
       })
 
+      //*******FUND**********
+      let fund={}
+      fund=messageData.fund||chatPreviousMessageData.fund||{}
+
       //*******SURVEY**********
       let survey={}
       survey.durationDays=((messageData.survey||{}).durationDays)||((chatPreviousMessageData.survey||{}).durationDays)||null
@@ -311,6 +315,7 @@ module.exports = {
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{wallet:wallet},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userStatus:userStatus},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{emails:emails},{create:true})
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{fund:fund},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{survey:survey},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{PERRINNLimited:PERRINNLimited},{create:true})
         //message verified

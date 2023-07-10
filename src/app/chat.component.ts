@@ -29,6 +29,11 @@ import firebase from 'firebase/compat/app'
             <div style="float:left;margin:0 5px 0 5px">{{eventDescription}}</div>
             <div style="float:left;margin:0 5px 0 0">{{eventDate|date:'EEEE d MMM HH:mm'}}</div>
           </div>
+          <div *ngIf="fund.amountGBPTarget>0" style="clear:both">
+            <span class="material-icons-outlined" style="float:left;font-size:20px;margin-right:5px;color:rgba(0,0,0,0.6)">paid</span>
+            <div style="float:left;margin:0 5px 0 5px">{{fund.description}},</div>
+            <div style="float:left;margin:0 5px 0 0">amount to raise: {{fund.amountGBPTarget}}GBP</div>
+          </div>
           <div *ngIf="(UI.nowSeconds<survey?.expiryTimestamp/1000)&&survey?.createdTimestamp" style="clear:both">
             <span class="material-icons-outlined" style="float:left;font-size:20px;margin-right:5px;color:rgba(0,0,0,0.6)">poll</span>
             <div [style.background-color]="(math.floor(survey.expiryTimestamp/3600000-UI.nowSeconds/3600)>8)?'black':'red'" style="float:left;color:white;padding:0 5px 0 5px">{{UI.formatSecondsToDhm2(survey.expiryTimestamp/1000-UI.nowSeconds)}} left</div>
@@ -102,6 +107,12 @@ import firebase from 'firebase/compat/app'
     </div>
     <div class="seperator" style="width:100%;margin:0px"></div>
     <div>
+      <input style="width:60%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="200" [(ngModel)]="fund.description" placeholder="Fund description">
+      <input style="width:30%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="10" [(ngModel)]="fund.amountGBPTarget" placeholder="Fund amount">
+      <div *ngIf="fund.description!=chatLastMessageObj?.fund?.description||fund.amountGBPTarget!=chatLastMessageObj?.fund?.amountGBPTarget" style="clear:both;width:100px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:black;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="saveFund()">Save fund</div>
+    </div>
+    <div class="seperator" style="width:100%;margin:0px"></div>
+    <div>
       <div *ngIf="survey.createdTimestamp" style="font-size:12px;margin:10px;color:black">created on {{survey.createdTimestamp|date:'EEEE d MMM HH:mm'}} expiring on {{survey.expiryTimestamp|date:'EEEE d MMM HH:mm'}}</div>
       <span style="margin:10px">duration of the survey (days)</span>
       <input style="width:40%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="200" [(ngModel)]="survey.durationDays">
@@ -118,8 +129,8 @@ import firebase from 'firebase/compat/app'
           <span *ngFor="let user of answer?.votes;let last=last">{{user==UI.currentUser?'You':chatLastMessageObj?.recipients[user]?.name}}{{last?"":", "}}</span>
         </li>
       </ul>
+      <div style="width:75px;margin:10px;height:20px;text-align:center;line-height:18px;font-size:10px;color:black;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="survey.answers.push({answer:'new answer',votes:[]})">Add answer</div>
     </div>
-    <div style="width:75px;margin:10px;height:20px;text-align:center;line-height:18px;font-size:10px;color:black;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="survey.answers.push({answer:'new answer',votes:[]})">Add answer</div>
     <div class="seperator" style="width:100%;margin-bottom:150px"></div>
   </div>
 
@@ -175,6 +186,8 @@ import firebase from 'firebase/compat/app'
                 <div style="font-size:10px">wallet {{message.payload?.wallet|json}}</div>
                 <div class="seperator" style="width:100%"></div>
                 <div style="font-size:10px">PERRINNLimited {{message.payload?.PERRINNLimited|json}}</div>
+                <div class="seperator" style="width:100%"></div>
+                <div style="font-size:10px">fund {{message.payload?.fund|json}}</div>
                 <div class="seperator" style="width:100%"></div>
                 <div style="font-size:10px">survey {{message.payload?.survey|json}}</div>
                 <div class="seperator" style="width:100%"></div>
@@ -267,6 +280,7 @@ export class ChatComponent {
   eventDates:any
   eventDate:any
   eventDescription:string
+  fund:any
   surveyDefault:any
   survey:any
   messageShowActions:[]
@@ -294,6 +308,10 @@ export class ChatComponent {
       this.messageNumberDisplay=15
       this.chatSubject=''
       this.eventDescription=''
+      this.fund={
+        description:'Fund description',
+        amountGBPTarget:0
+      }
       this.surveyDefault={
         question:'Survey question',
         durationDays:7,
@@ -353,6 +371,7 @@ export class ChatComponent {
           this.chatSubject=c.payload.doc.data()['chatSubject']
           this.eventDescription=c.payload.doc.data()['eventDescription']
           this.eventDate=c.payload.doc.data()['eventDate']
+          this.fund=c.payload.doc.data()['fund']||{}
           this.survey=((c.payload.doc.data()['survey']||{})['createdTimestamp'])?c.payload.doc.data()['survey']:this.survey
         }
       })
@@ -380,6 +399,7 @@ export class ChatComponent {
           this.chatSubject=c.payload.doc.data()['chatSubject']
           this.eventDescription=c.payload.doc.data()['eventDescription']
           this.eventDate=c.payload.doc.data()['eventDate']
+          this.fund=c.payload.doc.data()['fund']||this.fund
           this.survey=((c.payload.doc.data()['survey']||{})['createdTimestamp'])?c.payload.doc.data()['survey']:this.survey
         }
       })
@@ -453,6 +473,15 @@ export class ChatComponent {
       chain:this.chatLastMessageObj.chain||this.chatChain,
       eventDate:this.eventDate,
       eventDescription:this.eventDescription
+    })
+    this.resetChat()
+  }
+
+  saveFund() {
+    this.UI.createMessage({
+      text:'edited fund',
+      chain:this.chatLastMessageObj.chain||this.chatChain,
+      fund:this.fund
     })
     this.resetChat()
   }
