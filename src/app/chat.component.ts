@@ -185,7 +185,8 @@ import firebase from 'firebase/compat/app'
               <div style="float:left;width:100px;text-align:right;line-height:10px">...</div>
               <span *ngIf="message.payload?.verified" class="material-icons" style="float:right;font-size:15px;margin:0 2px 2px 0">done</span>
               <span *ngIf="message.payload?.imageResized" class="material-icons-outlined" style="float:right;font-size:15px;margin:0 2px 2px 0">aspect_ratio</span>
-              <span *ngIf="message.payload?.contract?.hoursValidated>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.formatShares(message.payload?.contract?.amount)}} ({{UI.formatSecondsToDhm1(message.payload?.contract?.hoursValidated*3600)}}/{{UI.formatSecondsToDhm1(message.payload?.contract?.hoursAvailable*3600)}})</span>
+              <span *ngIf="message.payload?.contract?.hoursValidated>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.formatShares(message.payload?.contract?.amount)}} earned ({{UI.formatSecondsToDhm1(message.payload?.contract?.hoursValidated*3600)}}declared in {{UI.formatSecondsToDhm1(message.payload?.contract?.hoursAvailable*3600)}} window)</span>
+              <span *ngIf="message.payload?.purchaseCOIN?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.formatShares(message.payload?.purchaseCOIN?.amount)}} purchased</span>
               <span *ngIf="message.payload?.userChain?.nextMessage=='none'&&message.payload?.wallet?.shareBalance!=undefined" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.formatShares(message.payload?.wallet?.shareBalance)}}</span>
             </div>
             <div *ngIf="messageShowActions.includes(message.key)">
