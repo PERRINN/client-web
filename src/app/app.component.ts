@@ -24,9 +24,9 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
           </div>
         </div>
         <div style="float:left;font-size:10px;text-align:center;line-height:15px;width:65px;padding:2px;margin:7px;color:white;color:black;border-radius:3px;border-style:solid;border-width:1px;cursor:pointer" (click)="router.navigate(['invest'])">Invest</div>
-        <span class="material-icons" style="float:right;margin:5px;cursor:pointer;color:rgba(0,0,0,0.6)" (click)="router.navigate(['apps'])">apps</span>
+        <span class="material-icons" style="float:right;margin:5px;cursor:pointer;color:black" (click)="router.navigate(['apps'])">apps</span>
         <div style="float:right;width:1px;height:35px;cursor:pointer;border-style:solid;border-width:0 1px 0 0;border-color:#ddd"></div>
-        <span class="material-icons" style="float:right;margin:5px;cursor:pointer;color:rgba(0,0,0,0.6)" (click)="newMessage()">create</span>
+        <span class="material-icons" style="float:right;margin:5px;cursor:pointer;color:black" (click)="newMessage()">create</span>
       </div>
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>

@@ -30,7 +30,7 @@ import firebase from 'firebase/compat/app'
             <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px;color:black">Waiting for contract signature (Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}})</span>
             <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin:15px;font-size:10px;color:black;cursor:pointer" (click)=signContract()>Sign contract</span>
           </div>
-          <div *ngIf="focusUserLastMessageObj?.user==UI.currentUser" class="material-icons" style="float:right;cursor:pointer;color:rgba(0,0,0,0.6)" (click)="router.navigate(['settings'])">settings</div>
+          <div *ngIf="focusUserLastMessageObj?.user==UI.currentUser" class="material-icons" style="float:right;cursor:pointer;color:black" (click)="router.navigate(['settings'])">settings</div>
         </div>
         <div style="clear:both;float:left;font-size:10px;color:#999">Created {{focusUserLastMessageObj?.createdTimestamp|date:'MMMM yyyy'}}, {{focusUserLastMessageObj?.userChain?.index}} Messages, Verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</div>
         <div style="clear:both">
@@ -44,7 +44,7 @@ import firebase from 'firebase/compat/app'
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
     <div *ngIf="scope=='all'">
-      <div class="material-icons" style="float:left;margin:5px;cursor:pointer;color:rgba(0,0,0,0.6)" (click)="showTags=!showTags">filter_list</div>
+      <div class="material-icons" style="float:left;margin:5px;cursor:pointer;color:black" (click)="showTags=!showTags">filter_list</div>
       <div *ngIf="UI.tagFilters.length>0" style="float:left;font-size:10px;line-height:15px;padding:10px;color:black;cursor:pointer" (click)="UI.tagFilters=[];refreshMessages()">Clear {{UI.tagFilters.length}} filter{{UI.tagFilters.length>1?'s':''}}</div>
       <ul *ngIf="showTags" class="listLight">
         <li *ngFor="let message of tags|async" style="float:left"
@@ -65,11 +65,11 @@ import firebase from 'firebase/compat/app'
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>-60">
           <div style="float:left;min-width:90px;min-height:40px">
-            <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:rgba(0,0,0,0.6)">event</span>
+            <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:black">event</span>
           </div>
           <div>
             <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
-              <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:rgba(0,0,0,0.6)">settings</span>
+              <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:black">settings</span>
               <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</span>
             </div>
             <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>-60" style="width:80%">
@@ -88,16 +88,18 @@ import firebase from 'firebase/compat/app'
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0">
           <div style="float:left;min-width:90px;min-height:40px">
-            <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:rgba(0,0,0,0.6)">paid</span>
+            <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:black">paid</span>
           </div>
           <div>
             <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
-              <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:rgba(0,0,0,0.6)">settings</span>
+              <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:black">settings</span>
               <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</span>
             </div>
             <div style="clear:both">
-              <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.description}}</div>
-              <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.amountGBPTarget}}GBP target</div>
+              <div style="float:left;background-color:black;width:65px;text-align:center;color:white;padding:0 5px 0 5px">{{(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)|percent:'1.0-0'}}</div>
+              <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.description}},</div>
+              <div style="float:left;margin:0 5px 0 5px">target: {{message.payload.doc.data()?.fund?.amountGBPTarget}}GBP,</div>
+              <div style="float:left;margin:0 5px 0 5px">raised: {{message.payload.doc.data()?.fund?.amountGBPRaised}}GBP</div>
             </div>
           </div>
           </div>
@@ -109,11 +111,11 @@ import firebase from 'firebase/compat/app'
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="(UI.nowSeconds<message.payload.doc.data()?.survey?.expiryTimestamp/1000)&&message.payload.doc.data()?.survey?.createdTimestamp">
           <div style="float:left;min-width:90px;min-height:40px">
-            <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:rgba(0,0,0,0.6)">poll</span>
+            <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:black">poll</span>
           </div>
           <div>
             <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
-              <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:rgba(0,0,0,0.6)">settings</span>
+              <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:black">settings</span>
               <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</span>
             </div>
             <div style="clear:both">
@@ -138,7 +140,7 @@ import firebase from 'firebase/compat/app'
             </div>
             <div>
               <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
-                <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:rgba(0,0,0,0.6)">settings</span>
+                <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:black">settings</span>
                 <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</span>
               </div>
               <div *ngIf="(UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds" style="float:right;margin:5px 0 0 0;width:35px;height:20px;line-height:20px;font-size:10px;text-align:center;border-radius:3px 0 0 3px"
@@ -276,7 +278,7 @@ export class ProfileComponent {
         this.currentFunds=this.afs.collection<any>('PERRINNMessages',ref=>ref
           .where('lastMessage','==',true)
           .where('verified','==',true)
-          .where('fund.amountGBPTarget','>',0)
+          .where('fund.active','==',true)
         ).snapshotChanges().pipe(map(changes=>{
           return changes.map(c=>({payload:c.payload}))
         }))
@@ -312,7 +314,7 @@ export class ProfileComponent {
           .where('lastMessage','==',true)
           .where('tag','in',this.UI.tagFilters)
           .where('verified','==',true)
-          .where('fund.amountGBPTarget','>',0)
+          .where('fund.active','==',true)
         ).snapshotChanges().pipe(map(changes=>{
           return changes.map(c=>({payload:c.payload}))
         }))
@@ -384,7 +386,7 @@ export class ProfileComponent {
         .where('recipientList','array-contains-any',[this.scope,'xCxYTM0AD7aj5SKZ27iFaqJaXps1'])
         .where('lastMessage','==',true)
         .where('verified','==',true)
-        .where('fund.amountGBPTarget','>',0)
+        .where('fund.active','==',true)
       ).snapshotChanges().pipe(map(changes=>{
         return changes.map(c=>({payload:c.payload}))
       }))
