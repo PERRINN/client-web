@@ -2,6 +2,7 @@ const admin = require('firebase-admin')
 const createMessageUtils = require('./createMessage')
 const googleUtils = require('./google')
 const onshapeUtils = require('./onshape')
+const updateFundsUtils = require('./updateFunds')
 
 module.exports = {
 
@@ -167,6 +168,7 @@ module.exports = {
       fund.amountGBPTarget=((messageData.fund||{}).amountGBPTarget)||((chatPreviousMessageData.fund||{}).amountGBPTarget)||0
       fund.amountGBPRaised=((messageData.fund||{}).amountGBPRaised)||((chatPreviousMessageData.fund||{}).amountGBPRaised)||0
       fund.active=fund.amountGBPTarget>0?true:false
+      fund.amountGBPTargetUpdated=(fund.amountGBPTarget!=(((chatPreviousMessageData.fund||{}).amountGBPTarget)||0))?true:false
 
       //*******SURVEY**********
       let survey={}
@@ -363,6 +365,9 @@ module.exports = {
             chain:'PERRINNUsersStateSnapshot',
           })
         }
+
+        //update funds
+        if(fund.amountGBPTargetUpdated||(purchaseCOIN.amount>0))updateFundsUtils.updateFunds()
 
       return {
         user:user,

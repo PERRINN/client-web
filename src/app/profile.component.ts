@@ -96,10 +96,12 @@ import firebase from 'firebase/compat/app'
               <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</span>
             </div>
             <div style="clear:both">
-              <div style="float:left;background-color:black;width:65px;text-align:center;color:white;padding:0 5px 0 5px">{{(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)|percent:'1.0-0'}}</div>
+              <div style="float:left;background-color:black;height:20px;width:65px;text-align:center;color:white;padding:0 5px 0 5px;position:relative"></div>
+              <div style="position:absolute;height:20px;background-color:red" [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*65+'px'"></div>
+              <div style="float:left;background-color:none;width:65px;text-align:center;color:white;padding:0 5px 0 5px;position:absolute">{{(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)|percent:'1.0-0'}}</div>
               <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.description}},</div>
-              <div style="float:left;margin:0 5px 0 5px">target: {{message.payload.doc.data()?.fund?.amountGBPTarget}}GBP,</div>
-              <div style="float:left;margin:0 5px 0 5px">raised: {{message.payload.doc.data()?.fund?.amountGBPRaised}}GBP</div>
+              <div style="float:left;margin:0 5px 0 5px">target: {{message.payload.doc.data()?.fund?.amountGBPTarget|number:'1.0-0'}}GBP,</div>
+              <div style="float:left;margin:0 5px 0 5px">raised: {{message.payload.doc.data()?.fund?.amountGBPRaised|number:'1.0-0'}}GBP</div>
             </div>
           </div>
           </div>
@@ -279,6 +281,7 @@ export class ProfileComponent {
           .where('lastMessage','==',true)
           .where('verified','==',true)
           .where('fund.active','==',true)
+          .orderBy('fund.amountGBPTarget','desc')
         ).snapshotChanges().pipe(map(changes=>{
           return changes.map(c=>({payload:c.payload}))
         }))
@@ -315,6 +318,7 @@ export class ProfileComponent {
           .where('tag','in',this.UI.tagFilters)
           .where('verified','==',true)
           .where('fund.active','==',true)
+          .orderBy('fund.amountGBPTarget','desc')
         ).snapshotChanges().pipe(map(changes=>{
           return changes.map(c=>({payload:c.payload}))
         }))
@@ -387,6 +391,7 @@ export class ProfileComponent {
         .where('lastMessage','==',true)
         .where('verified','==',true)
         .where('fund.active','==',true)
+        .orderBy('fund.amountGBPTarget','desc')
       ).snapshotChanges().pipe(map(changes=>{
         return changes.map(c=>({payload:c.payload}))
       }))
