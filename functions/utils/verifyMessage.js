@@ -163,11 +163,10 @@ module.exports = {
 
       //*******FUND**********
       let fund={}
-      fund=messageData.fund||chatPreviousMessageData.fund||{}
-      fund.amountGBPTarget=fund.amountGBPTarget||0
-      fund.amountGBPRaised=0
-      fund.amountGBPToRaise=fund.amountGBPTarget-fund.amountGBPRaised
-      fund.active=fund.amountGBPToRaise>0?true:false
+      fund.description=((messageData.fund||{}).description)||((chatPreviousMessageData.fund||{}).description)||null
+      fund.amountGBPTarget=((messageData.fund||{}).amountGBPTarget)||((chatPreviousMessageData.fund||{}).amountGBPTarget)||0
+      fund.amountGBPRaised=((messageData.fund||{}).amountGBPRaised)||((chatPreviousMessageData.fund||{}).amountGBPRaised)||0
+      fund.active=fund.amountGBPTarget>0?true:false
 
       //*******SURVEY**********
       let survey={}

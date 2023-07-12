@@ -88,7 +88,7 @@ import firebase from 'firebase/compat/app'
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0">
           <div style="float:left;min-width:90px;min-height:40px">
-            <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:black">paid</span>
+            <span class="material-symbols-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:black">crowdsource</span>
           </div>
           <div>
             <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
