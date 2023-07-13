@@ -31,9 +31,9 @@ import firebase from 'firebase/compat/app'
           </div>
           <div *ngIf="fund.amountGBPTarget>0" style="clear:both">
             <span class="material-symbols-outlined" style="float:left;font-size:20px;margin-right:5px;color:black">crowdsource</span>
-            <div style="float:left;background-color:black;height:20px;width:65px;text-align:center;color:white;padding:0 5px 0 5px;position:relative"></div>
-            <div style="position:absolute;left:35px;height:20px;background-color:red" [style.width]="(fund?.amountGBPRaised/fund?.amountGBPTarget)*65+'px'"></div>
-            <div style="float:left;background-color:none;width:65px;text-align:center;color:white;padding:0 5px 0 5px;position:absolute;left:35px">{{(fund?.amountGBPRaised/fund?.amountGBPTarget)|percent:'1.0-0'}}</div>
+            <div style="float:left;background-color:black;height:20px;width:65px;text-align:center;color:white;padding:0 5px 0 5px"></div>
+            <div style="float:left;height:20px;background-color:red;margin-left:-65px" [style.width]="(fund?.amountGBPRaised/fund?.amountGBPTarget)*65+'px'"></div>
+            <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;color:white;padding:0 5px 0 5px">{{(fund?.amountGBPRaised/fund?.amountGBPTarget)|percent:'1.0-0'}}</div>
             <div style="float:left;margin:0 5px 0 5px">{{fund.description}},</div>
             <div style="float:left;margin:0 5px 0 0">target: {{fund.amountGBPTarget|number:'1.0-0'}}GBP,</div>
             <div style="float:left;margin:0 5px 0 0">raised: {{fund.amountGBPRaised|number:'1.0-0'}}GBP</div>
