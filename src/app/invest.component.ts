@@ -31,13 +31,13 @@ import firebase from 'firebase/compat/app'
   <br>
   <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
-    <div class="title" style="background-color:whitesmoke">Investment</div>
+    <div class="title" style="background-color:whitesmoke">Your secured investment</div>
     <div class="seperator"></div>
     <div style="padding:10px;text-align:center">
-      <span class="material-icons-outlined" style="font-size:30px">verified</span>
+      <span class="material-symbols-outlined" style="font-size:30px">encrypted</span>
       <br>
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:12px"> Your Shares are backed by the network we are developing.</span>
+      <span style="font-size:12px"> Your Shares are secured by our network.</span>
       <br>
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
       <span style="font-size:12px"> Your investment is going into PERRINN 424 development.</span>
@@ -80,7 +80,7 @@ import firebase from 'firebase/compat/app'
   <br>
   <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
-    <div class="title" style="background-color:whitesmoke">Which currency do you want to pay with?</div>
+    <div class="title" style="background-color:whitesmoke">Which currency do you use?</div>
     <div style="padding:10px">
       <ul class="listLight">
         <li *ngFor="let currency of objectToArray(currencyList)"
