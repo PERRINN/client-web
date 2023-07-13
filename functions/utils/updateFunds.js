@@ -30,7 +30,7 @@ module.exports = {
           fundsCountFull=Number(fundsCountFull)+Number(1)
         }
       })
-      amountGBPRaisedPerFund=Number(amountGBPRaisedPERRINN-amountGBPFullTotal)/Number(funds.length-fundsCountFull)
+      if(Number(funds.length-fundsCountFull)!=0)amountGBPRaisedPerFund=Number(amountGBPRaisedPERRINN-amountGBPFullTotal)/Number(funds.length-fundsCountFull)
       funds.forEach(fund=>{
         if(!fund.amountGBPRaised)fund['amountGBPRaised']=Number(amountGBPRaisedPerFund)
       })
