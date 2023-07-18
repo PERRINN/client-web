@@ -14,23 +14,6 @@ import firebase from 'firebase/compat/app'
   <br>
   <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
-    <div *ngIf="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined" style="clear:both">
-      <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="width:100%">
-    </div>
-    <div style="padding:10px;text-align:center">
-      <span style="font-size:12px">To invest into PERRINN 424, purchase digital Shares here.</span>
-      <br>
-      <span style="font-size:12px">PERRINN has </span>
-      <span style="font-size:15px">{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsMembersAuth?.length}}</span>
-      <span style="font-size:12px"> investors and </span>
-      <span style="font-size:15px">{{UI.formatShares(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}}</span>
-      <span style="font-size:12px"> Shares distributed.</span>
-    </div>
-    <div class="seperator"></div>
-  </div>
-  <br>
-  <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
-    <div class="seperator"></div>
     <div class="title" style="background-color:whitesmoke">Your secured investment</div>
     <div class="seperator"></div>
     <div style="padding:10px;text-align:center">
@@ -40,7 +23,11 @@ import firebase from 'firebase/compat/app'
       <span style="font-size:12px"> Your Shares are secured by our network.</span>
       <br>
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:12px"> Your investment is going into PERRINN 424 development.</span>
+      <span style="font-size:12px">PERRINN has </span>
+      <span style="font-size:15px">{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsMembersAuth?.length}}</span>
+      <span style="font-size:12px"> investors and </span>
+      <span style="font-size:15px">{{UI.formatShares(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}}</span>
+      <span style="font-size:12px"> Shares distributed.</span>
       <br>
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
       <span style="font-size:12px"> You can follow the impact of your investment live on PERRINN.com.</span>
@@ -61,7 +48,7 @@ import firebase from 'firebase/compat/app'
   <br>
   <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
-    <div class="title" style="background-color:whitesmoke">How many Shares do you want to purchase?</div>
+    <div class="title" style="background-color:whitesmoke">How many PERRINN Shares do you want to purchase?</div>
     <div style="padding:10px">
       <ul class="listLight">
         <li *ngFor="let investment of investmentList;let index=index"
