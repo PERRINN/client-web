@@ -12,17 +12,17 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
     <div class="module form-module" style="max-width:320px">
       <div class="form">
         <form>
-          <img src="./../assets/App icons/424logoMedium.png" style="width:80%;margin:10px 0 15px 25px">
-          <div style="font-size:10px;text-align:center;line-height:15px;width:125px;padding:2px;margin:10px auto;color:white;background-color:black;border-radius:3px;cursor:pointer" onclick="window.open('https://discover.perrinn.com','_blank')">Discover PERRINN</div>
-          <div [hidden]="action=='register'" style="font-size:10px;text-align:center;line-height:15px;width:125px;padding:2px;margin:10px auto;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="action='register';messageUser=''">New user</div>
-          <div [hidden]="action=='login'" style="font-size:10px;text-align:center;line-height:15px;width:125px;padding:2px;margin:10px auto;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="action='login';messageUser=''">Existing user</div>
+          <img src="./../assets/App icons/424logoMedium.png" style="width:70%;margin:10px 0 15px 35px">
+          <div style="font-size:12px;text-align:center;line-height:15px;width:150px;padding:4px;margin:10px auto;color:black;background-color:white;border-radius:3px;cursor:pointer;border-width:1px;border-style:solid" onclick="window.open('https://discover.perrinn.com','_blank')">Discover PERRINN</div>
+          <div [hidden]="action=='register'" style="font-size:12px;text-align:center;line-height:15px;width:150px;padding:4px;margin:10px auto;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="action='register';messageUser=''">New user</div>
+          <div [hidden]="action=='login'" style="font-size:12px;text-align:center;line-height:15px;width:150px;padding:4px;margin:10px auto;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="action='login';messageUser=''">Existing user</div>
           <div *ngIf="action=='login'||action=='register'">
             <input maxlength="500" [(ngModel)]="email" name="email" type="text" placeholder="Email *" (keyup)="messageUser=''" autofocus required/>
             <input maxlength="500" [(ngModel)]="password" name="password" type="password" placeholder="Password *" (keyup)="messageUser=''" required/>
           </div>
           <div *ngIf="action=='login'">
             <button type="submit" (click)="login(email,password)">Login</button>
-            <div style="text-align:center; font-size:10px; cursor:pointer; color:black; padding:10px;" (click)="resetPassword(email)">Forgot password?</div>
+            <div style="text-align:center; font-size:12px; cursor:pointer; color:black; padding:10px;" (click)="resetPassword(email)">Forgot password?</div>
           </div>
           <div *ngIf="action=='register'">
             <input maxlength="500" [(ngModel)]="passwordConfirm" name="passwordConfirm" type="password" placeholder="Confirm password *" (keyup)="messageUser=''"/>
@@ -53,7 +53,7 @@ export class LoginComponent  {
     public router:Router,
     public UI:UserInterfaceService
   ) {
-    this.action=''
+    this.action='login'
     this.afAuth.user.subscribe((auth) => {
       if (auth != null) {
         this.router.navigate(['profile','all'])
