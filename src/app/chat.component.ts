@@ -109,6 +109,7 @@ import firebase from 'firebase/compat/app'
         </li>
       </ul>
     </div>
+    <div *ngIf="chatLastMessageObj?.eventDate!=null" style="clear:both;width:100px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:red;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="cancelEvent()">Cancel event</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
     <div>
       <input style="width:60%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="200" [(ngModel)]="fund.description" placeholder="Fund description">
@@ -477,6 +478,15 @@ export class ChatComponent {
       chain:this.chatLastMessageObj.chain||this.chatChain,
       eventDate:this.eventDate,
       eventDescription:this.eventDescription
+    })
+    this.resetChat()
+  }
+
+  cancelEvent() {
+    this.UI.createMessage({
+      text:'cancelling event',
+      chain:this.chatLastMessageObj.chain||this.chatChain,
+      eventDate:this.UI.nowSeconds*1000-3600000
     })
     this.resetChat()
   }
