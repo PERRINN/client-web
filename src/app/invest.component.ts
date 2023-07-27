@@ -14,13 +14,41 @@ import firebase from 'firebase/compat/app'
   <br>
   <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
+    <div class="title" style="background-color:whitesmoke">Active PERRINN funds</div>
+    <div class="seperator"></div>
+    <div style="padding:10px;text-align:center">
+      <span class="material-symbols-outlined" style="font-size:30px">crowdsource</span>
+      <br>
+      <span style="font-size:12px"> Your investment will go towards:</span>
+    </div>
+    <div class="seperator"></div>
+    <ul class="listLight">
+      <li *ngFor="let message of currentFunds|async;let first=first;let last=last">
+        <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0" style="padding:10px">
+          <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.chatSubject}}</span>
+          <div style="clear:both">
+            <div style="float:left;background-color:black;height:20px;width:65px;text-align:center;color:white;padding:0 5px 0 5px"></div>
+            <div style="float:left;height:20px;background-color:red;margin-left:-65px" [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*65+'px'"></div>
+            <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;color:white;padding:0 5px 0 5px">{{(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)|percent:'1.0-0'}}</div>
+            <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.description}},</div>
+            <div style="float:left;margin:0 5px 0 5px">target: {{message.payload.doc.data()?.fund?.amountGBPTarget|number:'1.0-0'}}GBP,</div>
+            <div style="float:left;margin:0 5px 0 5px">raised: {{message.payload.doc.data()?.fund?.amountGBPRaised|number:'1.0-0'}}GBP</div>
+          </div>
+        </div>
+        <div class="seperator"></div>
+      </li>
+    </ul>
+  </div>
+  <br>
+  <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
+    <div class="seperator"></div>
     <div class="title" style="background-color:whitesmoke">Your secured investment</div>
     <div class="seperator"></div>
     <div style="padding:10px;text-align:center">
       <span class="material-symbols-outlined" style="font-size:30px">encrypted</span>
       <br>
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:12px"> Your Shares are secured by our network.</span>
+      <span style="font-size:12px"> You are investing by purchasing digital Shares that are secured by our network.</span>
       <br>
       <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
       <span style="font-size:12px">PERRINN has </span>
@@ -128,6 +156,7 @@ export class InvestComponent {
   stripeMessage:string
   @ViewChild('cardElement') cardElement:ElementRef
   processing:boolean
+  currentFunds:Observable<any[]>
 
   constructor(
     public afs:AngularFirestore,
@@ -148,6 +177,14 @@ export class InvestComponent {
     afs.doc<any>('appSettings/costs').valueChanges().subscribe(snapshot=>{
       this.costs=snapshot
     })
+    this.currentFunds=this.afs.collection<any>('PERRINNMessages',ref=>ref
+      .where('lastMessage','==',true)
+      .where('verified','==',true)
+      .where('fund.active','==',true)
+      .orderBy('fund.amountGBPTarget','desc')
+    ).snapshotChanges().pipe(map(changes=>{
+      return changes.map(c=>({payload:c.payload}))
+    }))
   }
 
   ngAfterViewInit(){
