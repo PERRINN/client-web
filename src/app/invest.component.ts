@@ -223,7 +223,6 @@ export class InvestComponent {
     }).then(chargeID=>{
       this.afs.doc<any>('PERRINNTeams/'+this.UI.currentUser+'/payments/'+chargeID.id).valueChanges().subscribe(payment=>{
         if(payment.outcome!=undefined)this.stripeMessage=payment.outcome.seller_message
-        if(this.stripeMessage=='Payment complete.')this.router.navigate(['chat',this.UI.currentUser])
         if(payment.errorMessage!=undefined)this.stripeMessage=payment.errorMessage
       })
     })
