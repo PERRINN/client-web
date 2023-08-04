@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators'
 import { Router } from '@angular/router'
 import { UserInterfaceService } from './userInterface.service'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
+import { AngularFireAuth } from '@angular/fire/compat/auth'
 import firebase from 'firebase/compat/app'
 
 @Component({
@@ -159,12 +160,18 @@ export class InvestComponent {
   currentFunds:Observable<any[]>
 
   constructor(
+    public afAuth:AngularFireAuth,
     public afs:AngularFirestore,
     public router:Router,
     private _zone:NgZone,
     public UI:UserInterfaceService,
     private cd: ChangeDetectorRef,
   ) {
+    this.afAuth.user.subscribe((auth) => {
+      if (auth == null) {
+        this.router.navigate(['login'])
+      }
+    })
     this.processing=false
     this.math=Math
     this.investmentList=[100,300,1000,3000]
