@@ -15,12 +15,10 @@ import firebase from 'firebase/compat/app'
   <br>
   <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
-    <div class="title" style="background-color:whitesmoke">Active PERRINN funds</div>
+    <div class="title" style="background-color:whitesmoke">Active funds</div>
     <div class="seperator"></div>
     <div style="padding:10px;text-align:center">
       <span class="material-symbols-outlined" style="font-size:30px">crowdsource</span>
-      <br>
-      <span style="font-size:12px"> Your investment will go towards:</span>
     </div>
     <div class="seperator"></div>
     <ul class="listLight">
@@ -43,41 +41,34 @@ import firebase from 'firebase/compat/app'
   <br>
   <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
-    <div class="title" style="background-color:whitesmoke">Your secured investment</div>
+    <div class="title" style="background-color:whitesmoke">Your investment is secured</div>
     <div class="seperator"></div>
     <div style="padding:10px;text-align:center">
       <span class="material-symbols-outlined" style="font-size:30px">encrypted</span>
       <br>
-      <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:12px"> You are investing by purchasing digital Shares that are secured by our network.</span>
-      <br>
-      <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:12px">PERRINN has </span>
+      <span style="font-size:12px"> The digital shares you are purchasing are secured by our network and keep a stable value against the US dollar, Euro and British pound. </span>
       <span style="font-size:15px">{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsMembersAuth?.length}}</span>
-      <span style="font-size:12px"> investors and </span>
+      <span style="font-size:12px"> investors own </span>
       <span style="font-size:15px">{{UI.formatShares(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}}</span>
-      <span style="font-size:12px"> Shares distributed.</span>
-      <br>
-      <span class="material-icons" style="font-size:15px;line-height:8px">done</span>
-      <span style="font-size:12px"> You can follow the impact of your investment live on PERRINN.com.</span>
+      <span style="font-size:12px"> shares. You can follow the impact of your investment live on PERRINN.com.</span>
     </div>
     <div style="color:white;background-color:black;padding:10px;text-align:center">
-      <span style="font-size:12px">Your Share balance increases automatically by</span>
+      <span style="font-size:12px">Your share balance increases automatically by</span>
       <br>
       <span style="font-size:20px">{{costs?.interestRateYear|percent:'0.0'}}</span>
-      <span style="font-size:12px"> a year</span>
+      <span style="font-size:12px"> a year.</span>
     </div>
     <div style="padding:10px;text-align:center">
-      <span style="font-size:12px">The Shares are stored in your wallet. You can track the interests added to your wallet every day. You will be able to sell your Shares at a later stage realising a return &#42;.</span>
+      <span style="font-size:12px">The shares are stored in your wallet. You can track the interests credited in your wallet every day. You will be able to sell back your shares at a later stage realising a return &#42;.</span>
       <br>
-      <span style="font-size:10px">(&#42;) When 424 realises a profit through commercial rights, all investors will be offered the opportunity to sell some of their Shares back to PERRINN.</span>
+      <span style="font-size:10px">(&#42;) When 424 realises a profit through commercial rights, all investors will be offered the opportunity to sell some of their shares back to PERRINN.</span>
     </div>
     <div class="seperator"></div>
   </div>
   <br>
   <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
-    <div class="title" style="background-color:whitesmoke">How many PERRINN Shares do you want to purchase?</div>
+    <div class="title" style="background-color:whitesmoke">How many shares do you want to purchase?</div>
     <div style="padding:10px">
       <ul class="listLight">
         <li *ngFor="let investment of investmentList;let index=index"
@@ -87,7 +78,7 @@ import firebase from 'firebase/compat/app'
           [style.color]="investmentSelected==index?'white':'black'"
           [style.border-style]="investmentSelected==index?'none':'solid'"
           [style.border-width]="investmentSelected==index?'none':'1px'">
-          {{investment|number:'1.2-2'}} Shares
+          {{investment|number:'1.2-2'}} shares
         </li>
       </ul>
     </div>
@@ -121,7 +112,7 @@ import firebase from 'firebase/compat/app'
       <div id="form-field">
         <div id="card-info" #cardElement></div>
         <br>
-        <div class="title">You are purchasing {{amountSharesPurchased|number:'1.2-2'}} Shares</div>
+        <div class="title">You are purchasing {{amountSharesPurchased|number:'1.2-2'}} shares</div>
         <button *ngIf="!processing" id="submit-button" type="submit">
             Pay {{amountCharge/100 | number:'1.2-2'}} {{currencySelected | uppercase}}
         </button>
