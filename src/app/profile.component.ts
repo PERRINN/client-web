@@ -70,7 +70,7 @@ import firebase from 'firebase/compat/app'
           <div>
             <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
               <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:black">settings</span>
-              <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</span>
+              <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.chatSubject}}</span>
             </div>
             <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>-60" style="width:80%">
               <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>0" [style.background-color]="(math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>60*8)?'black':'red'" style="float:left;color:white;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(message.payload.doc.data()?.eventDate/1000-UI.nowSeconds)}}</div>
@@ -93,7 +93,7 @@ import firebase from 'firebase/compat/app'
           <div>
             <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
               <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:black">settings</span>
-              <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</span>
+              <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.chatSubject}}</span>
             </div>
             <div style="clear:both">
               <div style="float:left;background-color:black;height:20px;width:65px;text-align:center;color:white;padding:0 5px 0 5px"></div>
@@ -118,7 +118,7 @@ import firebase from 'firebase/compat/app'
           <div>
             <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
               <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:black">settings</span>
-              <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</span>
+              <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.chatSubject}}</span>
             </div>
             <div style="clear:both">
               <div [style.background-color]="(math.floor(message.payload.doc.data()?.survey.expiryTimestamp/3600000-UI.nowSeconds/3600)>8)?'black':'red'" style="float:left;color:white;padding:0 5px 0 5px">{{UI.formatSecondsToDhm2(message.payload.doc.data()?.survey.expiryTimestamp/1000-UI.nowSeconds)}} left</div>
