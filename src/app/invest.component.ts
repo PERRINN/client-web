@@ -12,18 +12,28 @@ import firebase from 'firebase/compat/app'
   selector:'invest',
   template:`
   <div class='sheet'>
-  <br>
+  <div class="sheet" style="width:500px;max-width:80%;border-width:0px">
+    <div style="padding:10px">
+      <ul class="listLight">
+        <li *ngFor="let product of productList;let index=index"
+          (click)="productSelected=index;refreshAmountCharge()"
+          style="float:left;width:150px;padding:5px;margin:5px;text-align:center;font-size:10px;border-radius:3px"
+          [style.background-color]="productSelected==index?'black':'white'"
+          [style.color]="productSelected==index?'white':'black'"
+          [style.border-style]="productSelected==index?'none':'solid'"
+          [style.border-width]="productSelected==index?'none':'1px'">
+          {{product}}
+        </li>
+      </ul>
+    </div>
+  </div>
   <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
-    <div class="title" style="background-color:whitesmoke">Active funds</div>
-    <div class="seperator"></div>
-    <div style="padding:10px;text-align:center">
-      <span class="material-symbols-outlined" style="font-size:30px">crowdsource</span>
-    </div>
+    <div class="title" style="background-color:whitesmoke">We are raising money for</div>
     <div class="seperator"></div>
     <ul class="listLight">
       <li *ngFor="let message of currentFunds|async;let first=first;let last=last">
-        <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0" style="padding:10px">
+        <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0" style="cursor:default;padding:10px">
           <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.chatSubject}}</span>
           <div style="clear:both">
             <div style="float:left;background-color:black;height:20px;width:65px;text-align:center;color:white;padding:0 5px 0 5px"></div>
@@ -41,7 +51,7 @@ import firebase from 'firebase/compat/app'
   <br>
   <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
-    <div class="title" style="background-color:whitesmoke">Your investment is secured</div>
+    <div class="title" style="background-color:whitesmoke">Your investment in details</div>
     <div class="seperator"></div>
     <div style="padding:10px;text-align:center">
       <span class="material-symbols-outlined" style="font-size:30px">encrypted</span>
@@ -68,7 +78,7 @@ import firebase from 'firebase/compat/app'
   <br>
   <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
-    <div class="title" style="background-color:whitesmoke">How many shares do you want to purchase?</div>
+    <div class="title" style="background-color:whitesmoke">How many shares would you like to purchase?</div>
     <div style="padding:10px">
       <ul class="listLight">
         <li *ngFor="let investment of investmentList;let index=index"
@@ -85,9 +95,9 @@ import firebase from 'firebase/compat/app'
     <div class="seperator"></div>
   </div>
   <br>
-  <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
+  <div *ngIf="investmentSelected!=undefined" class="sheet" style="width:500px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
-    <div class="title" style="background-color:whitesmoke">Which currency do you use?</div>
+    <div class="title" style="background-color:whitesmoke">Which currency are you using?</div>
     <div style="padding:10px">
       <ul class="listLight">
         <li *ngFor="let currency of objectToArray(currencyList)"
@@ -100,33 +110,33 @@ import firebase from 'firebase/compat/app'
           {{currency[1].designation}}
         </li>
       </ul>
-      <div style="font-size:10px;padding:10px">1 Share costs {{1/currencyList[currencySelected].toCOIN|number:'1.2-2'}} {{currencyList[currencySelected].code}}</div>
+      <div *ngIf="currencySelected!=undefined" style="font-size:10px;padding:10px">1 Share costs {{1/currencyList[currencySelected].toCOIN|number:'1.2-2'}} {{currencyList[currencySelected].code}}</div>
     </div>
     <div class="seperator"></div>
   </div>
   <br>
   <div class="module form-module" style="width:500px;max-width:80%;border-style:solid;border-width:1px;border-color:#ddd;border-radius:3px">
-  <div class="title" style="background-color:whitesmoke">Credit or debit card</div>
-  <div class="form">
-    <form (ngSubmit)="createStripeToken()" class="checkout">
-      <div id="form-field">
-        <div id="card-info" #cardElement></div>
-        <br>
-        <div class="title">You are purchasing {{amountSharesPurchased|number:'1.2-2'}} shares</div>
-        <button *ngIf="!processing" id="submit-button" type="submit">
-            Pay {{amountCharge/100 | number:'1.2-2'}} {{currencySelected | uppercase}}
-        </button>
-        <br>
-        <mat-error id="card-errors" role="alert" *ngIf="stripeMessage">
-            &nbsp;{{ stripeMessage }}
-        </mat-error>
-      </div>
-    </form>
-  </div>
-  <div class="seperator"></div>
-  <div style="float:right"><img src="./../assets/App icons/poweredByStripe2.png" style="width:175px"></div>
-  </div>
-  <br>
+    <div class="title" style="background-color:whitesmoke">Credit or debit card</div>
+    <div class="form">
+      <form (ngSubmit)="createStripeToken()" class="checkout">
+        <div id="form-field">
+          <div id="card-info" #cardElement></div>
+          <br>
+          <div *ngIf="investmentSelected!=undefined&&currencySelected!=undefined" class="title">You are purchasing {{amountSharesPurchased|number:'1.2-2'}} shares</div>
+          <button *ngIf="!processing&&investmentSelected!=undefined&&currencySelected!=undefined" id="submit-button" type="submit">
+              Pay {{amountCharge/100 | number:'1.2-2'}} {{currencySelected | uppercase}}
+          </button>
+          <br>
+          <mat-error id="card-errors" role="alert" *ngIf="stripeMessage">
+              &nbsp;{{ stripeMessage }}
+          </mat-error>
+        </div>
+      </form>
+    </div>
+    <div class="seperator"></div>
+    <div style="float:right"><img src="./../assets/App icons/poweredByStripe2.png" style="width:175px"></div>
+    </div>
+    <br>
  </div>
   `,
 })
@@ -135,6 +145,8 @@ export class InvestComponent {
   expiryMonth:string
   expiryYear:string
   cvc:string
+  productList:any
+  productSelected:number
   amountSharesPurchased:number
   amountCharge:number
   currencyList:any
@@ -165,9 +177,9 @@ export class InvestComponent {
     })
     this.processing=false
     this.math=Math
+    this.productList=["Invest in PERRINN"]
+    this.productSelected=0
     this.investmentList=[100,300,1000,3000]
-    this.investmentSelected=0
-    this.currencySelected='usd'
     afs.doc<any>('appSettings/payment').valueChanges().subscribe(snapshot=>{
       this.currencyList=snapshot.currencyList
       this.refreshAmountCharge()
@@ -231,8 +243,8 @@ export class InvestComponent {
   }
 
   refreshAmountCharge() {
-    this.amountSharesPurchased=this.investmentList[this.investmentSelected]||0
-    this.amountCharge=Number((this.amountSharesPurchased/this.currencyList[this.currencySelected].toCOIN*100).toFixed(0))
+    if(this.investmentSelected!=undefined)this.amountSharesPurchased=this.investmentList[this.investmentSelected]||0
+    if(this.currencySelected!=undefined)this.amountCharge=Number((this.amountSharesPurchased/this.currencyList[this.currencySelected].toCOIN*100).toFixed(0))
   }
 
   objectToArray(obj) {
