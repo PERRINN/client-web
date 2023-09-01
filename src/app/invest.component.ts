@@ -179,7 +179,7 @@ export class InvestComponent {
     this.math=Math
     this.productList=["Invest in PERRINN"]
     this.productSelected=0
-    this.investmentList=[100,300,1000,3000]
+    this.investmentList=[100,200,400,800]
     afs.doc<any>('appSettings/payment').valueChanges().subscribe(snapshot=>{
       this.currencyList=snapshot.currencyList
       this.refreshAmountCharge()
