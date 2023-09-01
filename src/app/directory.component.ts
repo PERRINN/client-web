@@ -42,7 +42,7 @@ import firebase from 'firebase/compat/app';
   <div class="seperator" style="width:100%;margin:0px;cursor:default"></div>
   <ul class="listLight" style="margin:10px">
     <li *ngFor="let message of messages | async" style="float:left;cursor:default">
-      <img [src]="message?.values.imageUrlThumbUser" style="float:left;opacity:1;object-fit:cover;height:75px;width:75px">
+      <img [src]="message?.values.imageUrlThumbUser" style="float:left;opacity:1;object-fit:cover;height:50px;width:50px">
     </li>
   </ul>
   <div class="seperator" style="width:100%;margin:0px;cursor:default"></div>
@@ -79,7 +79,7 @@ export class DirectoryComponent  {
     .where('verified','==',true)
     .where('wallet.shareBalance','>',0)
     .orderBy('wallet.shareBalance',"desc")
-    .limit(50))
+    .limit(100))
     .snapshotChanges().pipe(map(changes => {
       return changes.map(c => ({
         key:c.payload.doc.id,
