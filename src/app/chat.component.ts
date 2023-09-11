@@ -34,7 +34,8 @@ import firebase from 'firebase/compat/app'
             <div style="float:left;background-color:black;height:20px;width:65px;text-align:center;color:white;padding:0 5px 0 5px"></div>
             <div style="float:left;height:20px;background-color:red;margin-left:-65px" [style.width]="(fund?.amountGBPRaised/fund?.amountGBPTarget)*65+'px'"></div>
             <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;color:white;padding:0 5px 0 5px">{{(fund?.amountGBPRaised/fund?.amountGBPTarget)|percent:'1.0-0'}}</div>
-            <div style="float:left;margin:0 5px 0 5px">{{fund.description}},</div>
+            <div style="float:left;margin:0 5px 0 5px;font-weight:bold">{{fund.daysLeft|number:'1.0-0'}} days left</div>
+            <div style="float:left;margin:0 5px 0 0">{{fund.description}},</div>
             <div style="float:left;margin:0 5px 0 0">target: {{fund.amountGBPTarget|number:'1.0-0'}}GBP,</div>
             <div style="float:left;margin:0 5px 0 0">raised: {{fund.amountGBPRaised|number:'1.0-0'}}GBP</div>
           </div>
@@ -112,14 +113,20 @@ import firebase from 'firebase/compat/app'
     <div *ngIf="chatLastMessageObj?.eventDate!=null" style="clear:both;width:100px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:red;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="cancelEvent()">Cancel event</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
     <div>
-      <input style="width:60%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="200" [(ngModel)]="fund.description" placeholder="Fund description">
-      <input style="width:30%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="10" [(ngModel)]="fund.amountGBPTarget" placeholder="Fund amount">
-      <div *ngIf="fund.description!=chatLastMessageObj?.fund?.description||fund.amountGBPTarget!=chatLastMessageObj?.fund?.amountGBPTarget" style="clear:both;width:100px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:black;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="saveFund()">Save fund</div>
+      <span style="margin:10px;color:grey">Fund description</span>
+      <input style="width:60%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="200" [(ngModel)]="fund.description">
+      <br/>
+      <span style="margin:10px;color:grey">Amount target</span>
+      <input style="width:30%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="10" [(ngModel)]="fund.amountGBPTarget">
+      <br/>
+      <span style="margin:10px;color:grey">Days left</span>
+      <input style="width:30%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="10" [(ngModel)]="fund.daysLeft">
+      <div *ngIf="fund.description!=chatLastMessageObj?.fund?.description||fund.amountGBPTarget!=chatLastMessageObj?.fund?.amountGBPTarget||fund.daysLeft!=chatLastMessageObj?.fund?.daysLeft" style="clear:both;width:100px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:black;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="saveFund()">Save fund</div>
     </div>
     <div class="seperator" style="width:100%;margin:0px"></div>
     <div>
       <div *ngIf="survey.createdTimestamp" style="font-size:12px;margin:10px;color:black">created on {{survey.createdTimestamp|date:'EEEE d MMM HH:mm'}} expiring on {{survey.expiryTimestamp|date:'EEEE d MMM HH:mm'}}</div>
-      <span style="margin:10px">duration of the survey (days)</span>
+      <span style="margin:10px;color:grey">Duration of the survey (days)</span>
       <input style="width:40%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="200" [(ngModel)]="survey.durationDays">
       <input style="width:80%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="200" [(ngModel)]="survey.question">
       <div style="clear:both;width:100px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:black;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="saveSurvey()">Save survey</div>
@@ -314,8 +321,9 @@ export class ChatComponent {
       this.chatSubject=''
       this.eventDescription=''
       this.fund={
-        description:'Fund description',
-        amountGBPTarget:0
+        description:'add a description',
+        amountGBPTarget:0,
+        daysLeft:30
       }
       this.surveyDefault={
         question:'Survey question',
@@ -376,7 +384,7 @@ export class ChatComponent {
           this.chatSubject=c.payload.doc.data()['chatSubject']
           this.eventDescription=c.payload.doc.data()['eventDescription']
           this.eventDate=c.payload.doc.data()['eventDate']
-          this.fund=c.payload.doc.data()['fund']||{}
+          this.fund=c.payload.doc.data()['fund']||this.fund
           this.survey=((c.payload.doc.data()['survey']||{})['createdTimestamp'])?c.payload.doc.data()['survey']:this.survey
         }
       })

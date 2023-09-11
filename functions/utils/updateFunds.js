@@ -9,37 +9,15 @@ module.exports = {
     try{
       let stripeBalance=await stripeObj.balance.retrieve()
       let amountGBPRaisedPERRINN=stripeBalance.available[0].amount/100+stripeBalance.pending[0].amount/100
-      const fundLastMessages=await admin.firestore().collection('PERRINNMessages').where('fund.active','==',true).where('lastMessage','==',true).get()
-      let funds=[]
+      const fundLastMessages=await admin.firestore().collection('PERRINNMessages').where('fund.active','==',true).where('lastMessage','==',true).where('verified','==',true).orderBy('fund.daysLeft','asc').get()
       fundLastMessages.forEach(fundLastMessage=>{
-        let fund={
-          amountGBPTarget:((fundLastMessage.data().fund||{}).amountGBPTarget||0),
-          amountGBPRaisedOld:((fundLastMessage.data().fund||{}).amountGBPRaised||0),
-          chain:fundLastMessage.data().chain
-        }
-        funds.push(fund)
-      })
-      if (funds.length==0)return
-      let amountGBPRaisedPerFund=Number(amountGBPRaisedPERRINN)/funds.length
-      let amountGBPFullTotal=0
-      let fundsCountFull=0
-      funds.forEach(fund=>{
-        if(fund.amountGBPTarget<amountGBPRaisedPerFund){
-          fund['amountGBPRaised']=fund.amountGBPTarget
-          amountGBPFullTotal=Number(amountGBPFullTotal)+Number(fund.amountGBPTarget)
-          fundsCountFull=Number(fundsCountFull)+Number(1)
-        }
-      })
-      if(Number(funds.length-fundsCountFull)!=0)amountGBPRaisedPerFund=Number(amountGBPRaisedPERRINN-amountGBPFullTotal)/Number(funds.length-fundsCountFull)
-      funds.forEach(fund=>{
-        if(!fund.amountGBPRaised)fund['amountGBPRaised']=Number(amountGBPRaisedPerFund)
-      })
-      funds.forEach(fund=>{
-        if(fund['amountGBPRaised']!=fund['amountGBPRaisedOld'])createMessageUtils.createMessageAFS({
+        let amountRaised=Math.min(amountGBPRaisedPERRINN,((fundLastMessage.data().fund||{}).amountGBPTarget||0))
+        amountGBPRaisedPERRINN=amountGBPRaisedPERRINN-amountRaised
+        if(amountRaised!=((fundLastMessage.data().fund||{}).amountGBPRaised||0))createMessageUtils.createMessageAFS({
           user:'FHk0zgOQUja7rsB9jxDISXzHaro2',
           text:'Updating fund amount raised',
-          chain:fund['chain'],
-          fund:{amountGBPRaised:fund['amountGBPRaised']}
+          chain:fundLastMessage.data().chain,
+          fund:{amountGBPRaised:amountRaised}
         })
       })
       return
