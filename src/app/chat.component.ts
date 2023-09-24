@@ -29,7 +29,7 @@ import firebase from 'firebase/compat/app'
             <div style="float:left;margin:0 5px 0 5px">{{eventDescription}}</div>
             <div style="float:left;margin:0 5px 0 0">{{eventDate|date:'EEEE d MMM HH:mm'}}</div>
           </div>
-          <div *ngIf="fund.amountGBPTarget>0" style="clear:both">
+          <div *ngIf="fund?.active" style="clear:both">
             <span class="material-symbols-outlined" style="float:left;font-size:20px;margin-right:5px;color:black">crowdsource</span>
             <div style="float:left;background-color:black;height:20px;width:65px;text-align:center;color:white;padding:0 5px 0 5px"></div>
             <div style="float:left;height:20px;background-color:red;margin-left:-65px" [style.width]="(fund?.amountGBPRaised/fund?.amountGBPTarget)*65+'px'"></div>
