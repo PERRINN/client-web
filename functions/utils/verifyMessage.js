@@ -167,12 +167,12 @@ module.exports = {
       fund.description=((messageData.fund||{}).description)||((chatPreviousMessageData.fund||{}).description)||"add a description"
       fund.amountGBPTarget=((messageData.fund||{}).amountGBPTarget)||((chatPreviousMessageData.fund||{}).amountGBPTarget)||0
       fund.amountGBPRaised=((messageData.fund||{}).amountGBPRaised)||((chatPreviousMessageData.fund||{}).amountGBPRaised)||0
-      fund.active=fund.amountGBPTarget>0?true:false
       fund.amountGBPTargetUpdated=(fund.amountGBPTarget!=(((chatPreviousMessageData.fund||{}).amountGBPTarget)||0))?true:false
       fund.daysSinceLastVerifiedMessage=(now/1000/3600/24-(chatPreviousMessageData.verifiedTimestamp||{}).seconds/3600/24)||0
       fund.daysLeftLastVerifiedMessage=((messageData.fund||{}).daysLeft)||((chatPreviousMessageData.fund||{}).daysLeft)||30
       fund.daysLeft=fund.daysLeftLastVerifiedMessage-fund.daysSinceLastVerifiedMessage
       fund.daysLeft=Math.round(fund.daysLeft*10)/10
+      fund.active=(fund.amountGBPTarget>0&&fund.daysLeft>0)?true:false
 
       //*******SURVEY**********
       let survey={}
