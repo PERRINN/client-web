@@ -206,11 +206,6 @@ module.exports = {
         transactionOut.amount=Number(((messageData.transactionOut||{}).amount)||0)
         transactionOut.code=(messageData.transactionOut||{}).code||null
         transactionOut.amountCummulate=Number(((userPreviousMessageData.transactionOut||{}).amountCummulate)||0)+transactionOut.amount
-        if(transactionOut.code=='PERRINNselfTRANSACTION'&&user=='QYm5NATKa6MGD87UpNZCTl6IolX2'){
-          transactionOut.user='QYm5NATKa6MGD87UpNZCTl6IolX2'
-          transactionOut.name=messageData.name||userPreviousMessageData.name||null
-          transactionOut.imageUrlThumb=messageData.imageUrlThumbUser||userPreviousMessageData.imageUrlThumbUser||null
-        }
         //message transaction in
         let transactionIn={}
         const transactionInUserLastMessages=await admin.firestore().collection('PERRINNMessages').where('user','==',(messageData.transactionIn||{}).user||null).where('verified','==',true).orderBy('serverTimestamp','desc').limit(1).get()
@@ -221,9 +216,6 @@ module.exports = {
         transactionIn.imageUrlThumb=transactionInUserLastMessageData.imageUrlThumbUser||null
         transactionIn.amount=Number(((messageData.transactionIn||{}).amount)||0)
         if(transactionOut.code=='PERRINN'&&user=='QYm5NATKa6MGD87UpNZCTl6IolX2')transactionIn.amount=transactionOut.amount
-        if(transactionOut.code=='PERRINNselfTRANSACTION'&&user=='QYm5NATKa6MGD87UpNZCTl6IolX2'){
-          transactionIn.amount=transactionOut.amount
-        }
         transactionIn.amountCummulate=Number(((userPreviousMessageData.transactionIn||{}).amountCummulate)||0)+transactionIn.amount
         if(transactionIn.message&&transactionIn.amount>0&&transactionIn.user)batch.update(admin.firestore().doc('PERRINNMessages/'+transactionIn.message),{"transactionOut.message":messageId},{create:true})
         //COIN Purchase

@@ -84,15 +84,21 @@ import firebase from 'firebase/compat/app'
       </li>
     </ul>
     <div class="seperator" style="width:100%;margin:0px"></div>
-    <div *ngIf="chatLastMessageObj?.recipientList&&chatLastMessageObj?.recipientList.length!=2" style="font-size:10px;margin:10px;color:#777">To send Shares, chat must be between you and 1 other user only.</div>
-    <div *ngIf="chatLastMessageObj?.recipientList&&chatLastMessageObj?.recipientList.length==2&&chatLastMessageObj?.recipientList.includes(UI.currentUser)">
-      <div style="font-size:12px;margin:10px;color:#777">Send Shares to {{(chatLastMessageObj?.recipientList[0]==UI.currentUser)?(chatLastMessageObj?.recipients[chatLastMessageObj?.recipientList[1]].name):(chatLastMessageObj?.recipients[chatLastMessageObj?.recipientList[0]].name)}}</div>
-      <input style="width:100px;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="500" (keyup)="inputsValid=checkInputs()" [(ngModel)]="amount" placeholder="Amount">
-      <input style="width:150px;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="500" [(ngModel)]="code" placeholder="Code (optional)">
-      <div *ngIf="amount>0&&amount<=UI.currentUserLastMessageObj?.wallet?.shareBalance" style="clear:both;width:200px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:black;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="sendCoins(amount,code)">
-        Send {{amount}} Shares to {{(chatLastMessageObj?.recipientList[0]==UI.currentUser)?(chatLastMessageObj?.recipients[chatLastMessageObj?.recipientList[1]].name):(chatLastMessageObj?.recipients[chatLastMessageObj?.recipientList[0]].name)}}
+      <input style="width:200px;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="500" [(ngModel)]="transactionAmount" placeholder="Amount of shares to send">
+      <input style="width:150px;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="500" [(ngModel)]="transactionCode" placeholder="Code (optional)">
+      <div *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.shareBalance">
+        <ul style="color:#333;margin:10px">
+          <li *ngFor="let recipient of chatLastMessageObj?.recipientList" style="float:left">
+            <div style="float:left;cursor:pointer" (click)="transactionUser=recipient;transactionUserName=chatLastMessageObj?.recipients[recipient].name">
+              <img [src]="chatLastMessageObj?.recipients[recipient]?.imageUrlThumb" style="float:left;object-fit:cover;height:25px;width:25px;border-radius:50%;margin:3px 3px 3px 10px">
+              <div style="float:left;margin:10px 5px 3px 3px;font-size:12px;line-height:10px;font-family:sans-serif">{{chatLastMessageObj?.recipients[recipient]?.name}}</div>
+            </div>
+          </li>
+        </ul>
       </div>
-    </div>
+      <div *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.shareBalance&&transactionUser!=undefined" style="clear:both;width:250px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:black;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="sendCoins(transactionAmount,transactionCode,transactionUser,transactionUserName)">
+        Send {{transactionAmount}} Shares to {{transactionUserName}}
+      </div>
     <div class="seperator" style="width:100%;margin:0px"></div>
     <div>
       <input style="width:60%;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="200" [(ngModel)]="eventDescription" placeholder="Event description">
@@ -464,17 +470,14 @@ export class ChatComponent {
     this.resetChat()
   }
 
-  sendCoins(amount,code){
-    let user=''
-    if (this.chatLastMessageObj.recipientList[0]==this.UI.currentUser)user=this.chatLastMessageObj.recipientList[1]
-    else user=this.chatLastMessageObj.recipientList[0]
+  sendCoins(transactionAmount,transactionCode,transactionUser,transactionUserName){
     this.UI.createMessage({
-      text:'sending '+amount+' Shares'+((code||null)?' using code ':'')+((code||null)?code:''),
+      text:'sending '+transactionAmount+' Shares to '+transactionUserName+((transactionCode||null)?' using code ':'')+((transactionCode||null)?transactionCode:''),
       chain:this.chatLastMessageObj.chain||this.chatChain,
       transactionOut:{
-        user:user,
-        amount:amount,
-        code:code||null
+        user:transactionUser,
+        amount:transactionAmount,
+        code:transactionCode||null
       }
     })
     this.resetChat()
