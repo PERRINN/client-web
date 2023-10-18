@@ -13,6 +13,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
       <div class="form">
         <form>
           <img src="./../assets/App icons/424logoMedium.png" style="width:70%;margin:10px 0 15px 35px">
+          <div style="text-align:center;font-size:12px;color:black;padding:10px">Login or register to communicate with our members and invest in the team.</div>
           <div style="font-size:12px;text-align:center;line-height:15px;width:150px;padding:4px;margin:10px auto;color:black;background-color:white;border-radius:3px;cursor:pointer;border-width:1px;border-style:solid" onclick="window.open('https://discover.perrinn.com','_blank')">Discover PERRINN</div>
           <div [hidden]="action=='register'" style="font-size:12px;text-align:center;line-height:15px;width:150px;padding:4px;margin:10px auto;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="action='register';messageUser=''">New user</div>
           <div [hidden]="action=='login'" style="font-size:12px;text-align:center;line-height:15px;width:150px;padding:4px;margin:10px auto;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="action='login';messageUser=''">Existing user</div>
