@@ -11,9 +11,9 @@ import firebase from 'firebase/compat/app';
   template:`
   <div class="sheet" style="background-color:whitesmoke">
     <div style="margin:15px">
-      <span style="font-size:12px">PERRINN network is owned by PERRINN Limited UK ({{UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance|percent:'1.0-0'}}) and our community of investors ({{1-(UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)|percent:'1.0-0'}}).</span>
+      <span style="font-size:12px">PERRINN is owned by PERRINN Limited UK ({{UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance|percent:'1.0-0'}}) and our community ({{1-(UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)|percent:'1.0-0'}}).</span>
       <br>
-      <span style="font-size:10px">{{UI.formatShares(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}} Shares have been distributed. We keep distributing new shares every day though interest and new capital investment.</span>
+      <span style="font-size:10px">{{UI.formatShares(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}} Shares distributed.</span>
     </div>
   <div class="seperator" style="width:100%;margin:0px"></div>
   </div>
@@ -27,9 +27,9 @@ import firebase from 'firebase/compat/app';
         </div>
         <div style="float:left;padding:10px;width:45%">
           <span style="font-size:10px"> {{message.values?.userPresentation}}</span>
-          <span *ngIf="message.values?.contract?.signed" style="font-size:10px"> Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
-          <br>
-          <span *ngIf="message.values?.PERRINNLimited?.amount>0" style="font-size:10px">({{UI.formatShares(message.values?.PERRINNLimited?.amount)}} from PERRINN Limited ownership)</span>
+          <span *ngIf="message.values?.contract?.signed" style="font-size:10px"> Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}.</span>
+          <span *ngIf="message.values?.PERRINNLimited?.amount>0" style="font-size:10px"> {{UI.formatShares(message.values?.PERRINNLimited?.amount-message.values?.PERRINNLimited?.zeroInterestLoan1)}} from PERRINN Limited ownership.</span>
+          <span *ngIf="message.values?.PERRINNLimited?.zeroInterestLoan1>0" style="font-size:10px"> {{UI.formatShares(message.values?.PERRINNLimited?.zeroInterestLoan1)}} from PERRINN Limited loan.</span>
         </div>
         <div style="float:right;margin:10px;width:50px">
           <div>{{UI.formatShares(message.values?.wallet?.shareBalance||0)}}</div>
