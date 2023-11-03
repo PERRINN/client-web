@@ -30,6 +30,7 @@ import firebase from 'firebase/compat/app';
           <span *ngIf="message.values?.contract?.signed" style="font-size:10px"> Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}.</span>
           <span *ngIf="message.values?.PERRINNLimited?.amount>0" style="font-size:10px"> {{UI.formatShares(message.values?.PERRINNLimited?.amount-message.values?.PERRINNLimited?.zeroInterestLoan1)}} from PERRINN Limited ownership.</span>
           <span *ngIf="message.values?.PERRINNLimited?.zeroInterestLoan1>0" style="font-size:10px"> {{UI.formatShares(message.values?.PERRINNLimited?.zeroInterestLoan1)}} from PERRINN Limited loan.</span>
+          <span *ngIf="message.values?.PERRINNLimited?.amount>0&&message.values?.wallet?.balance>0" style="font-size:10px"> {{UI.formatShares(message.values?.wallet?.balance)}} from community investment.</span>
         </div>
         <div style="float:right;margin:10px;width:50px">
           <div>{{UI.formatShares(message.values?.wallet?.shareBalance||0)}}</div>
