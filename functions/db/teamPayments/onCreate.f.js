@@ -22,7 +22,7 @@ exports=module.exports=functions.firestore.document('PERRINNTeams/{user}/payment
         let messageObj={
           user:context.params.user,
           chain:context.params.user,
-          text:"Purchased "+val.amountSharesPurchased+" Shares.",
+          text:"Invested "+val.amountCharge/100+val.currency,
           purchaseCOIN:{
             chargeID:context.params.chargeID,
             amount:val.amountSharesPurchased

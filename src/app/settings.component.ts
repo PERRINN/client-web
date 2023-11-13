@@ -23,8 +23,7 @@ import firebase from 'firebase/compat/app';
   </div>
   <div style="margin:15px">
     <span style="font-size:18px">{{UI.currentUserLastMessageObj?.name}} </span>
-    <span style="font-size:18px">{{UI.formatShares(UI.currentUserLastMessageObj?.wallet?.shareBalance||0)}} </span>
-    <span *ngFor="let currency of objectToArray(currencyList);let first=first;let last=last">{{first?"(":""}}{{UI.formatShares((UI.currentUserLastMessageObj?.wallet?.shareBalance||0)/currency[1].toCOIN)}} {{currency[1].code}}{{last?")":", "}}</span>
+    <span style="font-size:18px">{{UI.formatSharesToCurrency(UI.currentUserLastMessageObj?.wallet?.shareBalance||0)}} </span>
   </div>
   <span style="font-size:10px;margin-left:15px">{{UI.currentUserLastMessageObj?.userPresentation}} Level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
   <span *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px;color:black">Waiting for contract signature (Level {{UI.currentUserLastMessageObj?.contract?.level}})</span>
@@ -34,6 +33,22 @@ import firebase from 'firebase/compat/app';
       <div style="font-size:14px;margin:20px;color:#444">Your name (preferably your first name)</div>
       <input [(ngModel)]="name" placeholder="First name">
       <div (click)="updateName()" style="font-size:12px;text-align:center;line-height:20px;width:150px;padding:2px;margin:10px;color:white;background-color:black;border-radius:3px;cursor:pointer">Update my name</div>
+    <div class="seperator" style="width:100%;margin:0px"></div>
+      <div style="font-size:14px;margin:20px;color:#444">Your preferred currency</div>
+      <div style="padding:10px">
+        <ul class="listLight">
+          <li *ngFor="let currency of objectToArray(UI.currencyList)"
+            (click)="UI.currentUserLastMessageObj?.userCurrency==currency[0]?'':updateUserCurrency(currency[0])"
+            style="float:left;width:125px;padding:5px;margin:5px;text-align:center;font-size:10px;border-radius:3px"
+            [style.background-color]="UI.currentUserLastMessageObj?.userCurrency==currency[0]?'black':'white'"
+            [style.color]="UI.currentUserLastMessageObj?.userCurrency==currency[0]?'white':'black'"
+            [style.border-style]="UI.currentUserLastMessageObj?.userCurrency==currency[0]?'none':'solid'"
+            [style.border-width]="UI.currentUserLastMessageObj?.userCurrency==currency[0]?'none':'1px'"
+            [style.cursor]="UI.currentUserLastMessageObj?.userCurrency==currency[0]?'default':'pointer'">
+            {{currency[1].designation}}
+          </li>
+        </ul>
+      </div>
     <div class="seperator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px;color:#444">Your short presentation</div>
       <div style="font-size:10px;margin:20px;color:#777">Your short presentation helps other investors get to know you.</div>
@@ -52,12 +67,12 @@ import firebase from 'firebase/compat/app';
       <div (click)="updateEmails()" style="font-size:12px;text-align:center;line-height:20px;width:250px;padding:2px;margin:10px;color:white;background-color:black;border-radius:3px;cursor:pointer">Update my email addresses</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px;color:#444">Your PERRINN contract</div>
-      <div style="font-size:10px;margin:20px;color:#777">This contract is between you and PERRINN team. New Shares are credited to you based on the settings below. When these settings are updated, they will need to be approved before taking effect. You or PERRINN can cancel this contract at any time.</div>
+      <div style="font-size:10px;margin:20px;color:#777">This contract is between you and PERRINN team. When these settings are updated, they will need to be approved before taking effect. You or PERRINN can cancel this contract at any time.</div>
       <div style="color:black;font-size:10px;margin:15px 20px 0 20px">Level [1-10] defines the level of experience / capacity to resolve problems independently. Level 1 is university student with no experience, 10 is expert (10+ years experience in the field). After signature your level will increase automatically with time at a rate of +1 per year.</div>
       <input [(ngModel)]="contract.level" placeholder="Contract level">
       <div *ngIf="!UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:15px;font-size:10px;color:black">No contract registered.</div>
       <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:15px;font-size:10px;color:black">Contract number {{UI.currentUserLastMessageObj?.contract?.createdTimestamp}}</div>
-      <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:15px;font-size:10px;color:black">Signature valid for level {{UI.currentUserLastMessageObj?.contract?.signedLevel}}, you will receive {{UI.currentUserLastMessageObj?.contract?.hourlyRate|number:'1.1-1'}} Shares per hour when you declare working hours.</div>
+      <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:15px;font-size:10px;color:black">Signature valid for level {{UI.currentUserLastMessageObj?.contract?.signedLevel}}, you will receive {{UI.formatSharesToCurrency(UI.currentUserLastMessageObj?.contract?.hourlyRate)}} per hour when you declare working hours.</div>
       <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:15px;font-size:10px;color:black">Waiting for contract signature</div>
       <div (click)="updateContract()" style="clear:both;font-size:12px;text-align:center;line-height:20px;width:150px;padding:2px;margin:10px;color:white;background-color:black;border-radius:3px;cursor:pointer">Update my contract</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
@@ -74,7 +89,6 @@ export class SettingsComponent {
   emailsOnshape:string
   contract:any
   searchFilter:string
-  currencyList:any
 
   constructor(
     public afAuth:AngularFireAuth,
@@ -91,9 +105,6 @@ export class SettingsComponent {
     this.emailsGoogle=this.UI.currentUserLastMessageObj.emails.google||null
     this.emailsOnshape=this.UI.currentUserLastMessageObj.emails.onshape||null
     this.contract.level=(this.UI.currentUserLastMessageObj.contract||{}).level||null
-    afs.doc<any>('appSettings/payment').valueChanges().subscribe(snapshot=>{
-      this.currencyList=snapshot.currencyList
-    })
   }
 
   logout() {
@@ -107,6 +118,16 @@ export class SettingsComponent {
       chain:this.UI.currentUser,
       text:'Updating my name to '+this.name,
       name:this.name
+    })
+    this.router.navigate(['chat',this.UI.currentUser])
+  }
+
+  updateUserCurrency(currency){
+    if(!currency)return
+    this.UI.createMessage({
+      chain:this.UI.currentUser,
+      text:'Updating my preferred currency to '+this.UI.currencyList[currency].designation,
+      userCurrency:currency
     })
     this.router.navigate(['chat',this.UI.currentUser])
   }

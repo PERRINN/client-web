@@ -77,7 +77,7 @@ import firebase from 'firebase/compat/app'
         <div *ngIf="!(chatLastMessageObj?.recipients||{})[team.key]" style="padding:5px">
           <div style="float:left;width:275px">
             <img [src]="team?.values?.imageUrlThumbUser" style="display:inline;float:left;margin:0 5px 0 10px;opacity:1;object-fit:cover;height:25px;width:25px;border-radius:50%">
-            <span>{{team.values?.name}} {{UI.formatShares(team.values?.wallet?.shareBalance||0)}}</span>
+            <span>{{team.values?.name}} {{UI.formatSharesToCurrency(team.values?.wallet?.shareBalance||0)}}</span>
           </div>
           <div class="buttonDiv" style="float:left;width:50px;font-size:11px;background-color:black;color:white;border-style:none" (click)="addRecipient(team.values.user,team.values.name)">Add</div>
         </div>
@@ -215,9 +215,9 @@ import firebase from 'firebase/compat/app'
             <div style="cursor:pointer;clear:both;height:15px" (click)="messageShowActions.includes(message.key)?messageShowActions.splice(messageShowActions.indexOf(message.key),1):messageShowActions.push(message.key)">
               <span *ngIf="message.payload?.verified" class="material-icons" style="float:right;font-size:15px;margin:0 2px 2px 0">done</span>
               <span *ngIf="message.payload?.imageResized" class="material-icons-outlined" style="float:right;font-size:15px;margin:0 2px 2px 0">aspect_ratio</span>
-              <span *ngIf="message.payload?.contract?.hoursValidated>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.formatShares(message.payload?.contract?.amount)}} earned ({{UI.formatSecondsToDhm1(message.payload?.contract?.hoursValidated*3600)}}declared in {{UI.formatSecondsToDhm1(message.payload?.contract?.hoursAvailable*3600)}} window)</span>
-              <span *ngIf="message.payload?.purchaseCOIN?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.formatShares(message.payload?.purchaseCOIN?.amount)}} purchased</span>
-              <span *ngIf="message.payload?.userChain?.nextMessage=='none'&&message.payload?.wallet?.shareBalance!=undefined" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.formatShares(message.payload?.wallet?.shareBalance)}}</span>
+              <span *ngIf="message.payload?.contract?.hoursValidated>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.formatSharesToCurrency(message.payload?.contract?.amount)}} earned ({{UI.formatSecondsToDhm1(message.payload?.contract?.hoursValidated*3600)}}declared in {{UI.formatSecondsToDhm1(message.payload?.contract?.hoursAvailable*3600)}} window)</span>
+              <span *ngIf="message.payload?.purchaseCOIN?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.formatSharesToCurrency(message.payload?.purchaseCOIN?.amount)}} purchased</span>
+              <span *ngIf="message.payload?.userChain?.nextMessage=='none'&&message.payload?.wallet?.shareBalance!=undefined" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.formatSharesToCurrency(message.payload?.wallet?.shareBalance)}}</span>
             </div>
             <div *ngIf="messageShowActions.includes(message.key)">
               <div style="float:left;padding:5px;cursor:pointer;border-style:solid;border-width:1px 1px 0 0" (click)="messageShowDetails.includes(message.key)?messageShowDetails.splice(messageShowDetails.indexOf(message.key),1):messageShowDetails.push(message.key)">Details</div>

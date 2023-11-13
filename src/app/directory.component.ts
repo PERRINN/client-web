@@ -11,9 +11,9 @@ import firebase from 'firebase/compat/app';
   template:`
   <div class="sheet" style="background-color:whitesmoke">
     <div style="margin:15px">
-      <span style="font-size:12px">PERRINN is owned by PERRINN Limited UK ({{UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance|percent:'1.0-0'}}) and our community ({{1-(UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)|percent:'1.0-0'}}).</span>
+      <span style="font-size:12px">PERRINN investors are PERRINN Limited UK ({{UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance|percent:'1.0-0'}}) and our community of public investors ({{1-(UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)|percent:'1.0-0'}}).</span>
       <br>
-      <span style="font-size:10px">{{UI.formatShares(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}} Shares distributed.</span>
+      <span style="font-size:10px">A total of {{UI.formatSharesToCurrency(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}} is currently locked and invested.</span>
     </div>
   <div class="seperator" style="width:100%;margin:0px"></div>
   </div>
@@ -28,12 +28,12 @@ import firebase from 'firebase/compat/app';
         <div style="float:left;padding:10px;width:45%">
           <span style="font-size:10px"> {{message.values?.userPresentation}}</span>
           <span *ngIf="message.values?.contract?.signed" style="font-size:10px"> Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}.</span>
-          <span *ngIf="message.values?.PERRINNLimited?.amount>0" style="font-size:10px"> {{UI.formatShares(message.values?.PERRINNLimited?.amount-message.values?.PERRINNLimited?.zeroInterestLoan1)}} from PERRINN Limited ownership.</span>
-          <span *ngIf="message.values?.PERRINNLimited?.zeroInterestLoan1>0" style="font-size:10px"> {{UI.formatShares(message.values?.PERRINNLimited?.zeroInterestLoan1)}} from PERRINN Limited loan.</span>
-          <span *ngIf="message.values?.PERRINNLimited?.amount>0&&message.values?.wallet?.balance>0" style="font-size:10px"> {{UI.formatShares(message.values?.wallet?.balance)}} from community investment.</span>
+          <span *ngIf="message.values?.PERRINNLimited?.amount>0" style="font-size:10px"> {{UI.formatSharesToCurrency(message.values?.PERRINNLimited?.amount-message.values?.PERRINNLimited?.zeroInterestLoan1)}} from PERRINN Limited ownership.</span>
+          <span *ngIf="message.values?.PERRINNLimited?.zeroInterestLoan1>0" style="font-size:10px"> {{UI.formatSharesToCurrency(message.values?.PERRINNLimited?.zeroInterestLoan1)}} from PERRINN Limited loan.</span>
+          <span *ngIf="message.values?.PERRINNLimited?.amount>0&&message.values?.wallet?.balance>0" style="font-size:10px"> {{UI.formatSharesToCurrency(message.values?.wallet?.balance)}} from community investment.</span>
         </div>
         <div style="float:right;margin:10px;width:50px">
-          <div>{{UI.formatShares(message.values?.wallet?.shareBalance||0)}}</div>
+          <div>{{UI.formatSharesToCurrency(message.values?.wallet?.shareBalance||0)}}</div>
           <div style="font-size:10px">{{((message.values?.wallet?.shareBalance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance))|percent:'1.1-1'}}</div>
         </div>
       </div>
@@ -50,7 +50,7 @@ import firebase from 'firebase/compat/app';
   <ul class="listLight" style="margin:10px">
     <li *ngFor="let message of messages | async" style="float:left;cursor:text;user-select:text">
       <span>{{message.values?.name}} </span>
-      <span>{{UI.formatShares(message.values?.wallet?.shareBalance||0)}}&nbsp;&nbsp;</span>
+      <span>{{UI.formatSharesToCurrency(message.values?.wallet?.shareBalance||0)}}&nbsp;&nbsp;</span>
     </li>
   </ul>
   <div class="seperator" style="width:100%;margin:0px"></div>

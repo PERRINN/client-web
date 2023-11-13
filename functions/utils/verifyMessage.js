@@ -88,6 +88,7 @@ module.exports = {
       messageData.userPresentation=messageData.userPresentation||userPreviousMessageData.userPresentation||""
       messageData.userPresentation=messageData.userPresentation.substring(0,150)
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{name:messageData.name||userPreviousMessageData.name||null},{create:true})
+      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userCurrency:messageData.userCurrency||userPreviousMessageData.userCurrency||"usd"},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userPresentation:messageData.userPresentation},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{nameLowerCase:(messageData.name||userPreviousMessageData.name||"null").toLowerCase()},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userImageTimestamp:messageData.userImageTimestamp||userPreviousMessageData.userImageTimestamp||null},{create:true})

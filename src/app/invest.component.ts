@@ -12,21 +12,7 @@ import firebase from 'firebase/compat/app'
   selector:'invest',
   template:`
   <div class='sheet'>
-  <div class="sheet" style="width:500px;max-width:80%;border-width:0px">
-    <div style="padding:10px">
-      <ul class="listLight">
-        <li *ngFor="let product of productList;let index=index"
-          (click)="productSelected=index;refreshAmountCharge()"
-          style="float:left;width:150px;padding:5px;margin:5px;text-align:center;font-size:10px;border-radius:3px"
-          [style.background-color]="productSelected==index?'black':'white'"
-          [style.color]="productSelected==index?'white':'black'"
-          [style.border-style]="productSelected==index?'none':'solid'"
-          [style.border-width]="productSelected==index?'none':'1px'">
-          {{product}}
-        </li>
-      </ul>
-    </div>
-  </div>
+  <br>
   <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
     <div class="title" style="background-color:whitesmoke">We are raising money for</div>
@@ -57,29 +43,27 @@ import firebase from 'firebase/compat/app'
     <div style="padding:10px;text-align:center">
       <span class="material-symbols-outlined" style="font-size:30px">encrypted</span>
       <br>
-      <span style="font-size:12px"> The digital shares you are purchasing are secured by our network and keep a stable value against the US dollar, Euro and British pound. </span>
+      <span style="font-size:12px"> The money you are investing is locked in and secured by our network. </span>
       <span style="font-size:15px">{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsMembersAuth?.length}}</span>
-      <span style="font-size:12px"> investors own </span>
-      <span style="font-size:15px">{{UI.formatShares(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}}</span>
-      <span style="font-size:12px"> shares. You can follow the impact of your investment live on PERRINN.com.</span>
+      <span style="font-size:12px"> investors have invested </span>
+      <span style="font-size:15px">{{UI.formatSharesToCurrency(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}}</span>
+      <span style="font-size:12px"> .You can follow the impact of your investment live on PERRINN.com.</span>
     </div>
     <div style="color:white;background-color:black;padding:10px;text-align:center">
-      <span style="font-size:12px">Your share balance increases automatically by</span>
+      <span style="font-size:12px">Interest rate:</span>
       <br>
       <span style="font-size:20px">{{costs?.interestRateYear|percent:'0.0'}}</span>
       <span style="font-size:12px"> a year.</span>
     </div>
     <div style="padding:10px;text-align:center">
-      <span style="font-size:12px">The shares are stored in your wallet. You can track the interests credited in your wallet every day. You will be able to sell back your shares at a later stage realising a return &#42;.</span>
-      <br>
-      <span style="font-size:10px">(&#42;) When 424 realises a profit through commercial rights, all investors will be offered the opportunity to sell some of their shares back to PERRINN.</span>
+      <span style="font-size:12px">Your investment is stored in your wallet. You can track the interests credited in your wallet every day.</span>
     </div>
     <div class="seperator"></div>
   </div>
   <br>
   <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
-    <div class="title" style="background-color:whitesmoke">How many shares would you like to purchase?</div>
+    <div class="title" style="background-color:whitesmoke">How much would you like to invest?</div>
     <div style="padding:10px">
       <ul class="listLight">
         <li *ngFor="let investment of investmentList;let index=index"
@@ -89,7 +73,7 @@ import firebase from 'firebase/compat/app'
           [style.color]="investmentSelected==index?'white':'black'"
           [style.border-style]="investmentSelected==index?'none':'solid'"
           [style.border-width]="investmentSelected==index?'none':'1px'">
-          {{investment|number:'1.2-2'}} shares
+          {{investment|number:'1.2-2'}}
         </li>
       </ul>
     </div>
@@ -101,7 +85,7 @@ import firebase from 'firebase/compat/app'
     <div class="title" style="background-color:whitesmoke">Which currency are you using?</div>
     <div style="padding:10px">
       <ul class="listLight">
-        <li *ngFor="let currency of objectToArray(currencyList)"
+        <li *ngFor="let currency of objectToArray(UI.currencyList)"
           (click)="currencySelected=currency[0];refreshAmountCharge()"
           style="float:left;width:125px;padding:5px;margin:5px;text-align:center;font-size:10px;border-radius:3px"
           [style.background-color]="currencySelected==currency[0]?'black':'white'"
@@ -111,7 +95,6 @@ import firebase from 'firebase/compat/app'
           {{currency[1].designation}}
         </li>
       </ul>
-      <div *ngIf="currencySelected!=undefined" style="font-size:10px;padding:10px">1 Share costs {{1/currencyList[currencySelected].toCOIN|number:'1.2-2'}} {{currencyList[currencySelected].code}}</div>
     </div>
     <div class="seperator"></div>
   </div>
@@ -123,9 +106,8 @@ import firebase from 'firebase/compat/app'
         <div id="form-field">
           <div id="card-info" #cardElement></div>
           <br>
-          <div *ngIf="investmentSelected!=undefined&&currencySelected!=undefined" class="title">You are purchasing {{amountSharesPurchased|number:'1.2-2'}} shares</div>
           <button *ngIf="!processing&&investmentSelected!=undefined&&currencySelected!=undefined" id="submit-button" type="submit">
-              Pay {{amountCharge/100 | number:'1.2-2'}} {{currencySelected | uppercase}}
+              Pay {{amountCharge/100|number:'1.2-2'}} {{currencySelected|uppercase}}
           </button>
           <br>
           <mat-error id="card-errors" role="alert" *ngIf="stripeMessage">
@@ -146,11 +128,8 @@ export class InvestComponent {
   expiryMonth:string
   expiryYear:string
   cvc:string
-  productList:any
-  productSelected:number
   amountSharesPurchased:number
   amountCharge:number
-  currencyList:any
   currencySelected:string
   costs:any
   investmentList:any
@@ -178,13 +157,7 @@ export class InvestComponent {
     })
     this.processing=false
     this.math=Math
-    this.productList=["Invest in PERRINN"]
-    this.productSelected=0
-    this.investmentList=[100,200,400,800]
-    afs.doc<any>('appSettings/payment').valueChanges().subscribe(snapshot=>{
-      this.currencyList=snapshot.currencyList
-      this.refreshAmountCharge()
-    })
+    this.investmentList=[100,200,500,1000]
     afs.doc<any>('appSettings/costs').valueChanges().subscribe(snapshot=>{
       this.costs=snapshot
     })
@@ -244,8 +217,10 @@ export class InvestComponent {
   }
 
   refreshAmountCharge() {
-    if(this.investmentSelected!=undefined)this.amountSharesPurchased=this.investmentList[this.investmentSelected]||0
-    if(this.currencySelected!=undefined)this.amountCharge=Number((this.amountSharesPurchased/this.currencyList[this.currencySelected].toCOIN*100).toFixed(0))
+    if(this.investmentSelected!=undefined&&this.currencySelected!=undefined){
+      this.amountCharge=Number(((this.investmentList[this.investmentSelected]||0)*100).toFixed(0))
+      this.amountSharesPurchased=Number(this.amountCharge/100*this.UI.currencyList[this.currencySelected].toCOIN)
+    }
   }
 
   objectToArray(obj) {
