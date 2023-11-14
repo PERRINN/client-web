@@ -63,25 +63,6 @@ import firebase from 'firebase/compat/app'
   <br>
   <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
     <div class="seperator"></div>
-    <div class="title" style="background-color:whitesmoke">How much would you like to invest?</div>
-    <div style="padding:10px">
-      <ul class="listLight">
-        <li *ngFor="let investment of investmentList;let index=index"
-          (click)="investmentSelected=index;refreshAmountCharge()"
-          style="float:left;width:63px;padding:5px;margin:5px;text-align:center;font-size:10px;border-radius:3px"
-          [style.background-color]="investmentSelected==index?'black':'white'"
-          [style.color]="investmentSelected==index?'white':'black'"
-          [style.border-style]="investmentSelected==index?'none':'solid'"
-          [style.border-width]="investmentSelected==index?'none':'1px'">
-          {{investment|number:'1.2-2'}}
-        </li>
-      </ul>
-    </div>
-    <div class="seperator"></div>
-  </div>
-  <br>
-  <div *ngIf="investmentSelected!=undefined" class="sheet" style="width:500px;max-width:80%;border-radius:3px">
-    <div class="seperator"></div>
     <div class="title" style="background-color:whitesmoke">Which currency are you using?</div>
     <div style="padding:10px">
       <ul class="listLight">
@@ -93,6 +74,25 @@ import firebase from 'firebase/compat/app'
           [style.border-style]="currencySelected==currency[0]?'none':'solid'"
           [style.border-width]="currencySelected==currency[0]?'none':'1px'">
           {{currency[1].designation}}
+        </li>
+      </ul>
+    </div>
+    <div class="seperator"></div>
+  </div>
+  <br>
+  <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
+    <div class="seperator"></div>
+    <div class="title" style="background-color:whitesmoke">How much would you like to invest?</div>
+    <div style="padding:10px">
+      <ul class="listLight">
+        <li *ngFor="let investment of investmentList;let index=index"
+          (click)="investmentSelected=index;refreshAmountCharge()"
+          style="float:left;width:63px;padding:5px;margin:5px;text-align:center;font-size:10px;border-radius:3px"
+          [style.background-color]="investmentSelected==index?'black':'white'"
+          [style.color]="investmentSelected==index?'white':'black'"
+          [style.border-style]="investmentSelected==index?'none':'solid'"
+          [style.border-width]="investmentSelected==index?'none':'1px'">
+          {{investment|number:'1.2-2'}}
         </li>
       </ul>
     </div>
@@ -155,6 +155,8 @@ export class InvestComponent {
         this.router.navigate(['login'])
       }
     })
+    if(UI.currentUserLastMessageObj!=undefined)this.currencySelected=UI.currentUserLastMessageObj.userCurrency||"usd"
+    else this.currencySelected="usd"
     this.processing=false
     this.math=Math
     this.investmentList=[100,200,500,1000]
