@@ -36,8 +36,8 @@ import firebase from 'firebase/compat/app'
             <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;color:white;padding:0 5px 0 5px">{{(fund?.amountGBPRaised/fund?.amountGBPTarget)|percent:'1.0-0'}}</div>
             <div style="float:left;margin:0 5px 0 5px;font-weight:bold">{{fund.daysLeft|number:'1.0-0'}} days left</div>
             <div style="float:left;margin:0 5px 0 0">{{fund.description}},</div>
-            <div style="float:left;margin:0 5px 0 0">target: {{fund.amountGBPTarget|number:'1.0-0'}}GBP,</div>
-            <div style="float:left;margin:0 5px 0 0">raised: {{fund.amountGBPRaised|number:'1.0-0'}}GBP</div>
+            <div style="float:left;margin:0 5px 0 0">target: {{UI.formatSharesToCurrency(fund?.amountGBPTarget*UI.currencyList["gbp"].toCOIN)}} /</div>
+            <div style="float:left">raised: {{UI.formatSharesToCurrency(fund?.amountGBPRaised*UI.currencyList["gbp"].toCOIN)}}</div>
           </div>
           <div *ngIf="(UI.nowSeconds<survey?.expiryTimestamp/1000)&&survey?.createdTimestamp" style="clear:both">
             <span class="material-icons-outlined" style="float:left;font-size:20px;margin-right:5px;color:black">poll</span>

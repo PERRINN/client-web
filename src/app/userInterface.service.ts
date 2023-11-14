@@ -65,6 +65,7 @@ export class UserInterfaceService {
     let amountCurrency=amount/userCurrencyToCoin
     if(amountCurrency<100)return userCurrencySymbol+formatNumber(amountCurrency,"en-US","1.2-2")
     if(amountCurrency<1000)return userCurrencySymbol+formatNumber(amountCurrency,"en-US","1.1-1")
+    if(amountCurrency<10000)return userCurrencySymbol+formatNumber(amountCurrency,"en-US","1.0-0")
     if(amountCurrency<100000)return userCurrencySymbol+formatNumber(amountCurrency/1000,"en-US","1.1-1")+'K'
     if(amountCurrency<1000000)return userCurrencySymbol+formatNumber(amountCurrency/1000,"en-US","1.0-0")+'K'
     else return userCurrencySymbol+formatNumber(amountCurrency/1000000,"en-US","1.2-2")+'M'
