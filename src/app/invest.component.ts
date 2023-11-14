@@ -92,7 +92,7 @@ import firebase from 'firebase/compat/app'
           [style.color]="investmentSelected==index?'white':'black'"
           [style.border-style]="investmentSelected==index?'none':'solid'"
           [style.border-width]="investmentSelected==index?'none':'1px'">
-          {{investment|number:'1.2-2'}}
+          {{investment|number:'1.0-0'}}
         </li>
       </ul>
     </div>
@@ -107,7 +107,7 @@ import firebase from 'firebase/compat/app'
           <div id="card-info" #cardElement></div>
           <br>
           <button *ngIf="!processing&&investmentSelected!=undefined&&currencySelected!=undefined" id="submit-button" type="submit">
-              Pay {{amountCharge/100|number:'1.2-2'}} {{currencySelected|uppercase}}
+              Pay {{UI.formatSharesToCurrency(amountCharge/100*UI.currencyList[UI.currentUserLastMessageObj.userCurrency].toCOIN)}}
           </button>
           <br>
           <mat-error id="card-errors" role="alert" *ngIf="stripeMessage">
