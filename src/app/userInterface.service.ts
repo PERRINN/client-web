@@ -63,12 +63,13 @@ export class UserInterfaceService {
       userCurrencyToCoin=this.currencyList[this.currentUserLastMessageObj.userCurrency].toCOIN
     }
     let amountCurrency=amount/userCurrencyToCoin
-    if(amountCurrency<100)return userCurrencySymbol+formatNumber(amountCurrency,"en-US","1.2-2")
-    if(amountCurrency<1000)return userCurrencySymbol+formatNumber(amountCurrency,"en-US","1.1-1")
-    if(amountCurrency<10000)return userCurrencySymbol+formatNumber(amountCurrency,"en-US","1.0-0")
-    if(amountCurrency<100000)return userCurrencySymbol+formatNumber(amountCurrency/1000,"en-US","1.1-1")+'K'
-    if(amountCurrency<1000000)return userCurrencySymbol+formatNumber(amountCurrency/1000,"en-US","1.0-0")+'K'
-    else return userCurrencySymbol+formatNumber(amountCurrency/1000000,"en-US","1.2-2")+'M'
+    if (amountCurrency<0)amountCurrency=-amountCurrency
+    if(amountCurrency<100)return (amount<0?"-":"")+userCurrencySymbol+formatNumber(amountCurrency,"en-US","1.2-2")
+    if(amountCurrency<1000)return (amount<0?"-":"")+userCurrencySymbol+formatNumber(amountCurrency,"en-US","1.1-1")
+    if(amountCurrency<10000)return (amount<0?"-":"")+userCurrencySymbol+formatNumber(amountCurrency,"en-US","1.0-0")
+    if(amountCurrency<100000)return (amount<0?"-":"")+userCurrencySymbol+formatNumber(amountCurrency/1000,"en-US","1.1-1")+'K'
+    if(amountCurrency<1000000)return (amount<0?"-":"")+userCurrencySymbol+formatNumber(amountCurrency/1000,"en-US","1.0-0")+'K'
+    else return (amount<0?"-":"")+userCurrencySymbol+formatNumber(amountCurrency/1000000,"en-US","1.2-2")+'M'
   }
 
   formatSecondsToDhm2(seconds){

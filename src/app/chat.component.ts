@@ -84,7 +84,8 @@ import firebase from 'firebase/compat/app'
       </li>
     </ul>
     <div class="seperator" style="width:100%;margin:0px"></div>
-      <input style="width:200px;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="500" [(ngModel)]="transactionAmount" placeholder="Amount of shares to send">
+    <span style="margin:10px;color:grey">Sending {{UI.currencyList[UI.currentUserLastMessageObj.userCurrency].designation}}:</span>
+      <input style="width:200px;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="500" [(ngModel)]="transactionAmount" placeholder="amount">
       <input style="width:150px;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="500" [(ngModel)]="transactionCode" placeholder="Code (optional)">
       <div *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.shareBalance">
         <ul style="color:#333;margin:10px">
@@ -96,8 +97,8 @@ import firebase from 'firebase/compat/app'
           </li>
         </ul>
       </div>
-      <div *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.shareBalance&&transactionUser!=undefined" style="clear:both;width:250px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:black;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="sendCoins(transactionAmount,transactionCode,transactionUser,transactionUserName)">
-        Send {{transactionAmount}} Shares to {{transactionUserName}}
+      <div *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.shareBalance&&transactionUser!=undefined" style="clear:both;width:250px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:black;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="sendCredit(transactionAmount,transactionCode,transactionUser,transactionUserName)">
+        Send {{UI.currencyList[UI.currentUserLastMessageObj.userCurrency].symbol}}{{transactionAmount}} to {{transactionUserName}}
       </div>
     <div class="seperator" style="width:100%;margin:0px"></div>
     <div>
@@ -217,6 +218,8 @@ import firebase from 'firebase/compat/app'
               <span *ngIf="message.payload?.imageResized" class="material-icons-outlined" style="float:right;font-size:15px;margin:0 2px 2px 0">aspect_ratio</span>
               <span *ngIf="message.payload?.contract?.hoursValidated>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.formatSharesToCurrency(message.payload?.contract?.amount)}} earned ({{UI.formatSecondsToDhm1(message.payload?.contract?.hoursValidated*3600)}}declared in {{UI.formatSecondsToDhm1(message.payload?.contract?.hoursAvailable*3600)}} window)</span>
               <span *ngIf="message.payload?.purchaseCOIN?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.formatSharesToCurrency(message.payload?.purchaseCOIN?.amount)}} purchased</span>
+              <span *ngIf="message.payload?.transactionIn?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.formatSharesToCurrency(message.payload?.transactionIn?.amount)}} received</span>
+              <span *ngIf="message.payload?.transactionOut?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.formatSharesToCurrency(-message.payload?.transactionOut?.amount)}} sent</span>
               <span *ngIf="message.payload?.userChain?.nextMessage=='none'&&message.payload?.wallet?.shareBalance!=undefined" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.formatSharesToCurrency(message.payload?.wallet?.shareBalance)}}</span>
             </div>
             <div *ngIf="messageShowActions.includes(message.key)">
@@ -470,13 +473,13 @@ export class ChatComponent {
     this.resetChat()
   }
 
-  sendCoins(transactionAmount,transactionCode,transactionUser,transactionUserName){
+  sendCredit(transactionAmount,transactionCode,transactionUser,transactionUserName){
     this.UI.createMessage({
-      text:'sending '+transactionAmount+' Shares to '+transactionUserName+((transactionCode||null)?' using code ':'')+((transactionCode||null)?transactionCode:''),
+      text:'sending '+this.UI.currencyList[this.UI.currentUserLastMessageObj.userCurrency].symbol+transactionAmount+' to '+transactionUserName+((transactionCode||null)?' using code ':'')+((transactionCode||null)?transactionCode:''),
       chain:this.chatLastMessageObj.chain||this.chatChain,
       transactionOut:{
         user:transactionUser,
-        amount:transactionAmount,
+        amount:transactionAmount*this.UI.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN,
         code:transactionCode||null
       }
     })
