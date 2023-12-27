@@ -27,8 +27,8 @@ import firebase from 'firebase/compat/app'
             <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;color:white;padding:0 5px 0 5px">{{(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)|percent:'1.0-0'}}</div>
             <div style="float:left;margin:0 5px 0 5px;font-weight:bold">{{message.payload.doc.data()?.fund?.daysLeft|number:'1.0-0'}} days left</div>
             <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.description}},</div>
-            <div style="float:left;margin:0 5px 0 5px">target: {{UI.formatSharesToCurrency(message.payload.doc.data()?.fund?.amountGBPTarget*UI.currencyList["gbp"].toCOIN)}} /</div>
-            <div style="float:left">raised: {{UI.formatSharesToCurrency(message.payload.doc.data()?.fund?.amountGBPRaised*UI.currencyList["gbp"].toCOIN)}}</div>
+            <div style="float:left;margin:0 5px 0 5px">target: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*UI.currencyList["gbp"].toCOIN)}} /</div>
+            <div style="float:left">raised: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*UI.currencyList["gbp"].toCOIN)}}</div>
           </div>
         </div>
         <div class="seperator"></div>
@@ -46,7 +46,7 @@ import firebase from 'firebase/compat/app'
       <span style="font-size:12px"> The money you are investing is locked in and secured by our network. </span>
       <span style="font-size:15px">{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsMembersAuth?.length}}</span>
       <span style="font-size:12px"> investors have invested </span>
-      <span style="font-size:15px">{{UI.formatSharesToCurrency(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}}</span>
+      <span style="font-size:15px">{{UI.formatSharesToCurrency(null,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}}</span>
       <span style="font-size:12px"> .You can follow the impact of your investment live on PERRINN.com.</span>
     </div>
     <div style="color:white;background-color:black;padding:10px;text-align:center">
@@ -107,7 +107,7 @@ import firebase from 'firebase/compat/app'
           <div id="card-info" #cardElement></div>
           <br>
           <button *ngIf="!processing&&investmentSelected!=undefined&&currencySelected!=undefined" id="submit-button" type="submit">
-              Pay {{UI.formatSharesToCurrency(amountCharge/100*UI.currencyList[UI.currentUserLastMessageObj.userCurrency].toCOIN)}}
+              Pay {{UI.formatSharesToCurrency(currencySelected,amountCharge/100*UI.currencyList[currencySelected].toCOIN)}}
           </button>
           <br>
           <mat-error id="card-errors" role="alert" *ngIf="stripeMessage">

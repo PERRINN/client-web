@@ -23,7 +23,7 @@ import firebase from 'firebase/compat/app'
         <div style="clear:both">
           <div style="float:left;width:200px">
             <span style="font-size:18px;line-height:30px">{{focusUserLastMessageObj?.name}} </span>
-            <span style="font-size:18px;line-height:30px">{{UI.formatSharesToCurrency(focusUserLastMessageObj?.wallet?.shareBalance||0)}}</span>
+            <span style="font-size:18px;line-height:30px">{{UI.formatSharesToCurrency(null,focusUserLastMessageObj?.wallet?.shareBalance||0)}}</span>
             <br>
             <span style="font-size:10px">{{focusUserLastMessageObj?.userPresentation}}</span>
             <span *ngIf="focusUserLastMessageObj?.contract?.signed" style="font-size:10px"> Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
@@ -101,8 +101,8 @@ import firebase from 'firebase/compat/app'
               <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;color:white;padding:0 5px 0 5px">{{(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)|percent:'1.0-0'}}</div>
               <div style="float:left;margin:0 5px 0 5px;font-weight:bold">{{message.payload.doc.data()?.fund?.daysLeft|number:'1.0-0'}} days left</div>
               <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.description}},</div>
-              <div style="float:left;margin:0 5px 0 5px">target: {{UI.formatSharesToCurrency(message.payload.doc.data()?.fund?.amountGBPTarget*UI.currencyList["gbp"].toCOIN)}} /</div>
-              <div style="float:left">raised: {{UI.formatSharesToCurrency(message.payload.doc.data()?.fund?.amountGBPRaised*UI.currencyList["gbp"].toCOIN)}}</div>
+              <div style="float:left;margin:0 5px 0 5px">target: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*UI.currencyList["gbp"].toCOIN)}} /</div>
+              <div style="float:left">raised: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*UI.currencyList["gbp"].toCOIN)}}</div>
             </div>
           </div>
           </div>
@@ -183,13 +183,13 @@ import firebase from 'firebase/compat/app'
               <div [style.color]="message.payload.doc.data()?.userChain?.nextMessage=='none'?'black':'grey'" style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd;font-size:10px">{{first?'':(message.payload.doc.data()?.verifiedTimestamp?.seconds-previousTimestamp.seconds)/3600/24|number:'1.2-2'}}</div>
               <div [style.color]="message.payload.doc.data()?.userChain?.nextMessage=='none'?'black':'grey'" style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd;font-size:10px">{{first?'':(message.payload.doc.data()?.userChain?.index-previousIndex)}}</div>
               <div [style.color]="message.payload.doc.data()?.userChain?.nextMessage=='none'?'black':'grey'" style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd">
-                {{UI.formatSharesToCurrency(message.payload.doc.data()?.wallet?.shareBalance)}}
+                {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.wallet?.shareBalance)}}
               </div>
-              <div [style.color]="message.payload.doc.data()?.userChain?.nextMessage=='none'?'black':'grey'" style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd;font-size:10px">{{first?'':UI.formatSharesToCurrency(message.payload.doc.data()?.wallet?.shareBalance-previousBalance)}}</div>
-              <div [style.color]="message.payload.doc.data()?.userChain?.nextMessage=='none'?'black':'grey'" style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd;font-size:10px">{{first?'':UI.formatSharesToCurrency((message.payload.doc.data()?.purchaseCOIN?.amountCummulate||0)-previousPurchaseCOINAmountCummulate)|blankIfZero}}</div>
-              <div [style.color]="message.payload.doc.data()?.userChain?.nextMessage=='none'?'black':'grey'" style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd;font-size:10px">{{first?'':UI.formatSharesToCurrency((message.payload.doc.data()?.transactionIn?.amountCummulate||0)-(message.payload.doc.data()?.transactionOut?.amountCummulate||0)-previousAmountTransactionCummulate)|blankIfZero}}</div>
-              <div [style.color]="message.payload.doc.data()?.userChain?.nextMessage=='none'?'black':'grey'" style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd;font-size:10px">{{first?'':UI.formatSharesToCurrency((message.payload.doc.data()?.interest?.amountCummulate||0)-previousAmountInterestCummulate)|blankIfZero}}</div>
-              <div [style.color]="message.payload.doc.data()?.userChain?.nextMessage=='none'?'black':'grey'" style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd;font-size:10px">{{first?'':UI.formatSharesToCurrency((message.payload.doc.data()?.contract?.amountCummulate||0)-previousContractAmountCummulate)|blankIfZero}}</div>
+              <div [style.color]="message.payload.doc.data()?.userChain?.nextMessage=='none'?'black':'grey'" style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,message.payload.doc.data()?.wallet?.shareBalance-previousBalance)}}</div>
+              <div [style.color]="message.payload.doc.data()?.userChain?.nextMessage=='none'?'black':'grey'" style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.purchaseCOIN?.amountCummulate||0)-previousPurchaseCOINAmountCummulate)|blankIfZero}}</div>
+              <div [style.color]="message.payload.doc.data()?.userChain?.nextMessage=='none'?'black':'grey'" style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.transactionIn?.amountCummulate||0)-(message.payload.doc.data()?.transactionOut?.amountCummulate||0)-previousAmountTransactionCummulate)|blankIfZero}}</div>
+              <div [style.color]="message.payload.doc.data()?.userChain?.nextMessage=='none'?'black':'grey'" style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.interest?.amountCummulate||0)-previousAmountInterestCummulate)|blankIfZero}}</div>
+              <div [style.color]="message.payload.doc.data()?.userChain?.nextMessage=='none'?'black':'grey'" style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.contract?.amountCummulate||0)-previousContractAmountCummulate)|blankIfZero}}</div>
             </div>
             {{storeMessageValues(message.payload.doc.data())}}
           </div>

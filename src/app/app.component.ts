@@ -20,7 +20,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
         <div style="float:left;width:110px;height:35px;cursor:pointer" (click)="router.navigate(['profile',UI.currentUser])">
           <img *ngIf="UI.currentUserLastMessageObj?.imageUrlThumbUser" [src]="UI.currentUserLastMessageObj.imageUrlThumbUser" style="display:inline;float:left;margin:4px;border-radius:50%;object-fit:cover;width:25px;height:25px">
           <div *ngIf="UI.currentUserLastMessageObj?.wallet?.shareBalance" style="float:left;margin:8px;font-size:12px">
-            <span >{{UI.formatSharesToCurrency(UI.currentUserLastMessageObj.wallet.shareBalance)}}</span>
+            <span >{{UI.formatSharesToCurrency(null,UI.currentUserLastMessageObj.wallet.shareBalance)}}</span>
           </div>
         </div>
         <div style="float:left;font-size:12px;text-align:center;line-height:15px;width:75px;padding:2px;margin:7px;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="router.navigate(['invest'])">Invest</div>

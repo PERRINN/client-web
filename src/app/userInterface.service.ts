@@ -55,21 +55,19 @@ export class UserInterfaceService {
     return this.afs.collection('PERRINNMessages').add(messageObj)
   }
 
-  formatSharesToCurrency(amount){
-    let userCurrencySymbol="$"
-    let userCurrencyToCoin=this.currencyList["usd"].toCOIN
-    if(this.currentUserLastMessageObj.userCurrency!=undefined){
-      userCurrencySymbol=this.currencyList[this.currentUserLastMessageObj.userCurrency].symbol
-      userCurrencyToCoin=this.currencyList[this.currentUserLastMessageObj.userCurrency].toCOIN
+  formatSharesToCurrency(currency,amount){
+    if(currency==null){
+      if(this.currentUserLastMessageObj.userCurrency!=undefined)currency=this.currentUserLastMessageObj.userCurrency
+      else currency="usd"
     }
-    let amountCurrency=amount/userCurrencyToCoin
+    let amountCurrency=amount/this.currencyList[currency].toCOIN
     if (amountCurrency<0)amountCurrency=-amountCurrency
-    if(amountCurrency<100)return (amount<0?"-":"")+userCurrencySymbol+formatNumber(amountCurrency,"en-US","1.2-2")
-    if(amountCurrency<1000)return (amount<0?"-":"")+userCurrencySymbol+formatNumber(amountCurrency,"en-US","1.1-1")
-    if(amountCurrency<10000)return (amount<0?"-":"")+userCurrencySymbol+formatNumber(amountCurrency,"en-US","1.0-0")
-    if(amountCurrency<100000)return (amount<0?"-":"")+userCurrencySymbol+formatNumber(amountCurrency/1000,"en-US","1.1-1")+'K'
-    if(amountCurrency<1000000)return (amount<0?"-":"")+userCurrencySymbol+formatNumber(amountCurrency/1000,"en-US","1.0-0")+'K'
-    else return (amount<0?"-":"")+userCurrencySymbol+formatNumber(amountCurrency/1000000,"en-US","1.2-2")+'M'
+    if(amountCurrency<100)return (amount<0?"-":"")+this.currencyList[currency].symbol+formatNumber(amountCurrency,"en-US","1.2-2")
+    if(amountCurrency<1000)return (amount<0?"-":"")+this.currencyList[currency].symbol+formatNumber(amountCurrency,"en-US","1.1-1")
+    if(amountCurrency<10000)return (amount<0?"-":"")+this.currencyList[currency].symbol+formatNumber(amountCurrency,"en-US","1.0-0")
+    if(amountCurrency<100000)return (amount<0?"-":"")+this.currencyList[currency].symbol+formatNumber(amountCurrency/1000,"en-US","1.1-1")+'K'
+    if(amountCurrency<1000000)return (amount<0?"-":"")+this.currencyList[currency].symbol+formatNumber(amountCurrency/1000,"en-US","1.0-0")+'K'
+    else return (amount<0?"-":"")+this.currencyList[currency].symbol+formatNumber(amountCurrency/1000000,"en-US","1.2-2")+'M'
   }
 
   formatSecondsToDhm2(seconds){

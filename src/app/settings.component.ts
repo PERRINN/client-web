@@ -23,7 +23,7 @@ import firebase from 'firebase/compat/app';
   </div>
   <div style="margin:15px">
     <span style="font-size:18px">{{UI.currentUserLastMessageObj?.name}} </span>
-    <span style="font-size:18px">{{UI.formatSharesToCurrency(UI.currentUserLastMessageObj?.wallet?.shareBalance||0)}} </span>
+    <span style="font-size:18px">{{UI.formatSharesToCurrency(null,UI.currentUserLastMessageObj?.wallet?.shareBalance||0)}} </span>
   </div>
   <span style="font-size:10px;margin-left:15px">{{UI.currentUserLastMessageObj?.userPresentation}} Level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
   <span *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px;color:black">Waiting for contract signature (Level {{UI.currentUserLastMessageObj?.contract?.level}})</span>
@@ -72,7 +72,7 @@ import firebase from 'firebase/compat/app';
       <input [(ngModel)]="contract.level" placeholder="Contract level">
       <div *ngIf="!UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:15px;font-size:10px;color:black">No contract registered.</div>
       <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:15px;font-size:10px;color:black">Contract number {{UI.currentUserLastMessageObj?.contract?.createdTimestamp}}</div>
-      <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:15px;font-size:10px;color:black">Signature valid for level {{UI.currentUserLastMessageObj?.contract?.signedLevel}}, you will receive {{UI.formatSharesToCurrency(UI.currentUserLastMessageObj?.contract?.hourlyRate)}} per hour when you declare working hours.</div>
+      <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:15px;font-size:10px;color:black">Signature valid for level {{UI.currentUserLastMessageObj?.contract?.signedLevel}}, you will receive {{UI.formatSharesToCurrency(null,UI.currentUserLastMessageObj?.contract?.hourlyRate)}} per hour when you declare working hours.</div>
       <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:15px;font-size:10px;color:black">Waiting for contract signature</div>
       <div (click)="updateContract()" style="clear:both;font-size:12px;text-align:center;line-height:20px;width:150px;padding:2px;margin:10px;color:white;background-color:black;border-radius:3px;cursor:pointer">Update my contract</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
