@@ -96,20 +96,11 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
       if(!statistics.emailsAPIOnshape.includes(email))statistics.emailsMissingOnshape.push(email)
     })
     statistics.serverTimestamp=admin.firestore.FieldValue.serverTimestamp()
-    await admin.firestore().collection('statistics').add(statistics);
-    let stripeBalance=await stripeObj.balance.retrieve()
-
-    let messageText=
-      statistics.userCount+' visitors. '+
-      statistics.emailsMembersAuth.length+' members. '+
-      Math.round(statistics.wallet.shareBalance).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' Shares distributed. '+
-      Math.round(statistics.interest.rateDay).toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,')+' Shares created from interest per day. '+
-      (stripeBalance.available[0].amount/100)+stripeBalance.available[0].currency+' available in the PERRINN fund ('+
-      (stripeBalance.pending[0].amount/100)+stripeBalance.pending[0].currency+' pending).'
+    statistics.stripeBalance=await stripeObj.balance.retrieve()
 
     createMessageUtils.createMessageAFS({
       user:'FHk0zgOQUja7rsB9jxDISXzHaro2',
-      text:messageText,
+      text:"New statistics:",
       statistics:statistics,
       chain:'PERRINNStatistics',
       chatSubject:'PERRINN statistics'

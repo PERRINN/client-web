@@ -184,6 +184,12 @@ import firebase from 'firebase/compat/app'
                 <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" style="width:70%;max-height:320px;object-fit:contain;margin:5px 10px 5px 5px;border-radius:3px" (click)="showFullScreenImage(message.payload?.chatImageUrlOriginal)">
               </div>
               <div style="margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
+              <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{message.payload?.statistics?.userCount}} visitors,</div>
+              <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{message.payload?.statistics?.emailsMembersAuth?.length}} investors.</div>
+              <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{UI.formatSharesToCurrency(null,message.payload?.statistics?.wallet?.shareBalance)}} invested,</div>
+              <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{UI.formatSharesToCurrency(null,message.payload?.statistics?.interest?.rateDay)}} interest paid to investors per day.</div>
+              <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{UI.formatSharesToCurrency(null,message.payload?.statistics?.stripeBalance?.available[0]?.amount/100*UI.currencyList["gbp"].toCOIN)}} available in the PERRINN fund</div>
+              <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">({{UI.formatSharesToCurrency(null,message.payload?.statistics?.stripeBalance?.pending[0]?.amount/100*UI.currencyList["gbp"].toCOIN)}} pending).</div>
               <div *ngIf="messageShowDetails.includes(message.key)" style="margin:5px">
                 <div class="seperator" style="width:100%"></div>
                 <div style="font-size:10px">userStatus {{message.payload?.userStatus|json}}</div>
