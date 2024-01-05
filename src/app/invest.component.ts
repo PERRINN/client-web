@@ -18,7 +18,7 @@ import {
 } from "@angular/fire/compat/firestore";
 import { AngularFireAuth } from "@angular/fire/compat/auth";
 import firebase from "firebase/compat/app";
-import { environment } from "environments/environment";
+import { environment } from "environments/environment.prod";
 
 @Component({
   selector: "invest",
@@ -411,7 +411,7 @@ export class InvestComponent {
     const params = {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Bearer ${""}`,
+        Authorization: `Bearer ${environment.STRIPE_SECRET}`,
       },
     };
     const res = this.http.post(url, urlencoded, params).subscribe(
