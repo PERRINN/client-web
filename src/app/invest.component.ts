@@ -302,7 +302,8 @@ export class InvestComponent {
     else this.currencySelected = "usd";
     this.processing = false;
     this.math = Math;
-    this.investmentList = [100, 200, 500, 1000];
+    if(this.UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2')this.investmentList=[1,200,500,1000]
+    else this.investmentList=[100,200,500,1000]
     afs
       .doc<any>("appSettings/costs")
       .valueChanges()
