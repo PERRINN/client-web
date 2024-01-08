@@ -409,6 +409,11 @@ export class InvestComponent {
     var urlencoded = new URLSearchParams();
     urlencoded.append("amount", amount.toString());
     urlencoded.append("currency", currency);
+    urlencoded.append("receipt_email", this.UI.currentUserEmail);
+    urlencoded.append(
+      "description",
+      `${this.amountSharesPurchased} Shares to ${this.UI.currentUserEmail}`
+    );
     const params = {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
