@@ -4,6 +4,7 @@ import { map } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { UserInterfaceService } from './userInterface.service';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
+import { AngularFireAuth } from '@angular/fire/compat/auth'
 import firebase from 'firebase/compat/app';
 
 @Component({
@@ -63,11 +64,16 @@ export class DirectoryComponent  {
   messages:Observable<any[]>;
 
   constructor(
+    public afAuth:AngularFireAuth,
     public afs:AngularFirestore,
     public router:Router,
     public UI:UserInterfaceService
   ){
-
+    this.afAuth.user.subscribe((auth) => {
+      if (auth == null) {
+        this.router.navigate(['login'])
+      }
+    })
   }
 
   ngOnInit() {
