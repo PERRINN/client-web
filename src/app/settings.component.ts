@@ -51,13 +51,13 @@ import firebase from 'firebase/compat/app';
       </div>
     <div class="seperator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px;color:#444">Your short presentation</div>
-      <div style="font-size:10px;margin:20px;color:#777">Your short presentation helps other investors get to know you.</div>
+      <div style="font-size:10px;margin:20px;color:#777">Your short presentation helps other members get to know you.</div>
       <div style="color:black;font-size:10px;margin:10px 20px 0 20px">I am someone who is:</div>
       <input [(ngModel)]="userPresentation" placeholder="your short presentation" maxlength="150">
       <div (click)="updateUserPresentation()" style="font-size:12px;text-align:center;line-height:20px;width:200px;padding:2px;margin:10px;color:white;background-color:black;border-radius:3px;cursor:pointer">Update my presentation</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px;color:#444">Your email addresses</div>
-      <div style="font-size:10px;margin:20px 20px 0 20px;color:#777">Use these addresses to receive notifications, connect to other PERRINN apps like Onshape, Google Drive and Google Meet (calendar events and meetings). These addresses are visible by other PERRINN investors.</div>
+      <div style="font-size:10px;margin:20px 20px 0 20px;color:#777">Use these addresses to receive notifications, connect to other PERRINN apps like Onshape, Google Drive and Google Meet (calendar events and meetings). These addresses are visible by other PERRINN members.</div>
       <div style="font-size:10px;margin:10px 20px 0 20px;color:black">Authentication address.</div>
       <input [(ngModel)]="emailsAuth" placeholder="Enter your authentication email">
       <div style="font-size:10px;margin:10px 20px 0 20px;color:black">Google address.</div>
@@ -81,7 +81,6 @@ import firebase from 'firebase/compat/app';
   `,
 })
 export class SettingsComponent {
-  editInvestors:boolean
   name:string
   userPresentation:string
   emailsAuth:string
@@ -98,7 +97,6 @@ export class SettingsComponent {
     public UI:UserInterfaceService
   ) {
     this.contract={}
-    this.editInvestors=false
     this.name=this.UI.currentUserLastMessageObj.name
     this.userPresentation=this.UI.currentUserLastMessageObj.userPresentation||null
     this.emailsAuth=this.UI.currentUserLastMessageObj.emails.auth||null

@@ -12,9 +12,9 @@ import firebase from 'firebase/compat/app';
   template:`
   <div class="sheet" style="background-color:whitesmoke">
     <div style="margin:15px">
-      <span style="font-size:12px">PERRINN investors are PERRINN Limited UK ({{UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance|percent:'1.0-0'}}) and our community of public investors ({{1-(UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)|percent:'1.0-0'}}).</span>
+      <span style="font-size:12px">PERRINN members are PERRINN Limited UK ({{UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance|percent:'1.0-0'}} of all deposits) and our public community ({{1-(UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)|percent:'1.0-0'}} of all deposits).</span>
       <br>
-      <span style="font-size:10px">A total of {{UI.formatSharesToCurrency(null,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}} is currently locked and invested.</span>
+      <span style="font-size:12px">{{UI.formatSharesToCurrency(null,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}} is currently deposited by our members.</span>
     </div>
   <div class="seperator" style="width:100%;margin:0px"></div>
   </div>
@@ -31,7 +31,7 @@ import firebase from 'firebase/compat/app';
           <span *ngIf="message.values?.contract?.signed" style="font-size:10px"> Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}.</span>
           <span *ngIf="message.values?.PERRINNLimited?.amount>0" style="font-size:10px"> {{UI.formatSharesToCurrency(null,message.values?.PERRINNLimited?.amount-message.values?.PERRINNLimited?.zeroInterestLoan1)}} from PERRINN Limited ownership.</span>
           <span *ngIf="message.values?.PERRINNLimited?.zeroInterestLoan1>0" style="font-size:10px"> {{UI.formatSharesToCurrency(null,message.values?.PERRINNLimited?.zeroInterestLoan1)}} from PERRINN Limited loan.</span>
-          <span *ngIf="message.values?.PERRINNLimited?.amount>0&&message.values?.wallet?.balance>0" style="font-size:10px"> {{UI.formatSharesToCurrency(null,message.values?.wallet?.balance)}} from community investment.</span>
+          <span *ngIf="message.values?.PERRINNLimited?.amount>0&&message.values?.wallet?.balance>0" style="font-size:10px"> {{UI.formatSharesToCurrency(null,message.values?.wallet?.balance)}} from membership.</span>
         </div>
         <div style="float:right;margin:10px;width:50px">
           <div>{{UI.formatSharesToCurrency(null,message.values?.wallet?.shareBalance||0)}}</div>

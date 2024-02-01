@@ -21,7 +21,7 @@ import firebase from "firebase/compat/app";
 import { environment } from "environments/environment.prod";
 
 @Component({
-  selector: "invest",
+  selector: "membership",
   template: `
     <div class="sheet">
       <br />
@@ -109,7 +109,7 @@ import { environment } from "environments/environment.prod";
       <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
         <div class="seperator"></div>
         <div class="title" style="background-color:whitesmoke">
-          Your investment in details
+          Your membership in details
         </div>
         <div class="seperator"></div>
         <div style="padding:10px;text-align:center">
@@ -118,12 +118,12 @@ import { environment } from "environments/environment.prod";
           >
           <br />
           <span style="font-size:12px">
-            The money you are investing is locked in and secured by our network.
+            The money you are depositing is locked in and secured by our network.
           </span>
           <span style="font-size:15px">{{
             UI.PERRINNAdminLastMessageObj?.statistics?.emailsMembersAuth?.length
           }}</span>
-          <span style="font-size:12px"> investors have invested </span>
+          <span style="font-size:12px"> members have deposited </span>
           <span style="font-size:15px">{{
             UI.formatSharesToCurrency(
               null,
@@ -131,7 +131,7 @@ import { environment } from "environments/environment.prod";
             )
           }}</span>
           <span style="font-size:12px">
-            .You can follow the impact of your investment live on
+            .You can follow the impact of your deposit live on
             PERRINN.com.</span
           >
         </div>
@@ -147,7 +147,7 @@ import { environment } from "environments/environment.prod";
         </div>
         <div style="padding:10px;text-align:center">
           <span style="font-size:12px"
-            >Your investment is stored in your wallet. You can track the
+            >Your deposit is stored in your wallet. You can track the
             interests credited in your wallet every day.</span
           >
         </div>
@@ -188,26 +188,26 @@ import { environment } from "environments/environment.prod";
       <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
         <div class="seperator"></div>
         <div class="title" style="background-color:whitesmoke">
-          How much would you like to invest?
+          How much would you like to deposit?
         </div>
         <div style="padding:10px">
           <ul class="listLight">
             <li
-              *ngFor="let investment of investmentList; let index = index"
-              (click)="investmentSelected = index; refreshAmountCharge()"
+              *ngFor="let deposit of depositList; let index = index"
+              (click)="depositSelected = index; refreshAmountCharge()"
               style="float:left;width:63px;padding:5px;margin:5px;text-align:center;font-size:10px;border-radius:3px"
               [style.background-color]="
-                investmentSelected == index ? 'black' : 'white'
+                depositSelected == index ? 'black' : 'white'
               "
-              [style.color]="investmentSelected == index ? 'white' : 'black'"
+              [style.color]="depositSelected == index ? 'white' : 'black'"
               [style.border-style]="
-                investmentSelected == index ? 'none' : 'solid'
+                depositSelected == index ? 'none' : 'solid'
               "
               [style.border-width]="
-                investmentSelected == index ? 'none' : '1px'
+                depositSelected == index ? 'none' : '1px'
               "
             >
-              {{ investment | number : "1.0-0" }}
+              {{ deposit | number : "1.0-0" }}
             </li>
           </ul>
         </div>
@@ -229,7 +229,7 @@ import { environment } from "environments/environment.prod";
               <button
                 *ngIf="
                   !processing &&
-                  investmentSelected != undefined &&
+                  depositSelected != undefined &&
                   currencySelected != undefined
                 "
                 id="submit-button"
@@ -263,7 +263,7 @@ import { environment } from "environments/environment.prod";
     </div>
   `,
 })
-export class InvestComponent {
+export class MembershipComponent {
   cardNumber: string;
   expiryMonth: string;
   expiryYear: string;
@@ -272,8 +272,8 @@ export class InvestComponent {
   amountCharge: number;
   currencySelected: string;
   costs: any;
-  investmentList: any;
-  investmentSelected: number;
+  depositList: any;
+  depositSelected: number;
   math: any;
   card: any;
   cardHandler = this.onChange.bind(this);
@@ -302,8 +302,8 @@ export class InvestComponent {
     else this.currencySelected = "usd";
     this.processing = false;
     this.math = Math;
-    if(this.UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2')this.investmentList=[1,200,500,1000]
-    else this.investmentList=[100,200,500,1000]
+    if(this.UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2')this.depositList=[1,200,500,1000]
+    else this.depositList=[100,200,500,1000]
     afs
       .doc<any>("appSettings/costs")
       .valueChanges()
@@ -382,11 +382,11 @@ export class InvestComponent {
 
   refreshAmountCharge() {
     if (
-      this.investmentSelected != undefined &&
+      this.depositSelected != undefined &&
       this.currencySelected != undefined
     ) {
       this.amountCharge = Number(
-        ((this.investmentList[this.investmentSelected] || 0) * 100).toFixed(0)
+        ((this.depositList[this.depositSelected] || 0) * 100).toFixed(0)
       );
       this.amountSharesPurchased = Number(
         (this.amountCharge / 100) *

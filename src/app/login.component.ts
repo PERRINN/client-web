@@ -9,11 +9,18 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
   selector:'login',
   template:`
   <div id="login">
-    <div class="module form-module" style="max-width:320px">
+    <div class="module form-module" style="max-width:450px">
       <div class="form">
         <form>
-          <img src="./../assets/App icons/424logoMedium.png" style="width:70%;margin:10px 0 15px 35px">
-          <div style="text-align:center;font-size:12px;color:black;padding:10px">Login or register to communicate with our members and invest in the team.</div>
+          <img src="./../assets/App icons/424logoMedium.png" style="width:200px;display:block;margin: 0 auto">
+          <br>
+          <div style="font-family:open-sans;font-weight:bold;font-size:36px;line-height:36px;color:black;padding:10px">We are building a better team, right here.</div>
+          <div style="font-family:open-sans;font-weight:bold;font-size:28px;line-height:28px;color:black;padding:10px">Join today.</div>
+          <br>
+          <div style="font-family:open-sans;font-weight:bold;font-size:18px;line-height:20px;color:black;padding:10px">We are taking communication, collaboration and value exchange to the next level.</div>
+          <div style="font-family:open-sans;font-weight:bold;font-size:18px;line-height:20px;color:black;padding:10px">We have big plans. Today we are busy creating 424, the fastest electric hypercar ever made. Tomorrow we might launch a rocket.</div>
+          <div style="font-size:12px;color:black;padding:10px">#sustainability #open #collaboration #teamspirit</div>
+          <br>
           <div style="font-size:12px;text-align:center;line-height:15px;width:150px;padding:4px;margin:10px auto;color:black;background-color:white;border-radius:3px;cursor:pointer;border-width:1px;border-style:solid" onclick="window.open('https://discover.perrinn.com','_blank')">Discover PERRINN</div>
           <div [hidden]="action=='register'" style="font-size:12px;text-align:center;line-height:15px;width:150px;padding:4px;margin:10px auto;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="action='register';messageUser=''">New user</div>
           <div [hidden]="action=='login'" style="font-size:12px;text-align:center;line-height:15px;width:150px;padding:4px;margin:10px auto;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="action='login';messageUser=''">Existing user</div>

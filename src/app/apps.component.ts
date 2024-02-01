@@ -12,7 +12,7 @@ import { UserInterfaceService } from './userInterface.service';
     </div>
     <div *ngIf="UI.currentUserLastMessageObj?.userStatus?.isMember" style="float:left;width:100px;height:68px;text-align:center;cursor:pointer;margin:10px;border-style:solid;border-width:1px;border-color:#ddd" onclick="window.open('https://chat.whatsapp.com/DHqykwu6oax2EkrCS7wK7Q','_blank')" (click)="router.navigate(['profile','all'])">
       <img style="width:28px;margin:5px 8px 0px 5px;margin-top:11px;filter:grayscale(100%)" src="./../assets/App icons/whatsapp-black-logo-icon--24.png">
-      <div style="width:100px;font-size:12px;font-weight:bold;padding:0px">Investors</div>
+      <div style="width:100px;font-size:12px;font-weight:bold;padding:0px">Members</div>
     </div>
     <div class="seperator"></div>
     <div style="float:left;width:100px;height:68px;text-align:center;cursor:pointer;margin:10px;border-style:solid;border-width:1px;border-color:#ddd" onclick="window.open('https://drive.google.com/drive/folders/15lFP8gDsQ6VV_v3vUPlX-5PXzq0vna7G?usp=sharing','_blank')" (click)="router.navigate(['profile','all'])">
