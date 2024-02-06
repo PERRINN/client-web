@@ -14,7 +14,16 @@ import firebase from 'firebase/compat/app';
     <div style="margin:15px">
       <span style="font-size:12px">PERRINN members are PERRINN Limited UK ({{UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance|percent:'1.0-0'}} of all deposits) and our public community ({{1-(UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)|percent:'1.0-0'}} of all deposits).</span>
       <br>
-      <span style="font-size:12px">{{UI.formatSharesToCurrency(null,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}} is currently deposited by our members.</span>
+      <span style="font-size:15px">{{
+        UI.PERRINNAdminLastMessageObj?.statistics?.emailsMembersAuth?.length
+      }}</span>
+      <span style="font-size:12px"> members have deposited </span>
+      <span style="font-size:15px">{{
+        UI.formatSharesToCurrency(
+          null,
+          UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance
+        )
+      }}</span>
     </div>
   <div class="seperator" style="width:100%;margin:0px"></div>
   </div>
