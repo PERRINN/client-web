@@ -37,7 +37,7 @@ import firebase from 'firebase/compat/app';
       <div style="font-size:14px;margin:20px;color:#444">Your preferred currency</div>
       <div style="padding:10px">
         <ul class="listLight">
-          <li *ngFor="let currency of objectToArray(UI.currencyList)"
+          <li *ngFor="let currency of objectToArray(UI.appSettingsPayment.currencyList)"
             (click)="UI.currentUserLastMessageObj?.userCurrency==currency[0]?'':updateUserCurrency(currency[0])"
             style="float:left;width:125px;padding:5px;margin:5px;text-align:center;font-size:10px;border-radius:3px"
             [style.background-color]="UI.currentUserLastMessageObj?.userCurrency==currency[0]?'black':'white'"
@@ -104,7 +104,7 @@ export class SettingsComponent {
     this.emailsOnshape=this.UI.currentUserLastMessageObj.emails.onshape||null
     this.contract.level=(this.UI.currentUserLastMessageObj.contract||{}).level||null
   }
-  
+
   ngOnInit() {
     this.UI.redirectUser()
   }
@@ -123,7 +123,7 @@ export class SettingsComponent {
     if(!currency)return
     this.UI.createMessage({
       chain:this.UI.currentUser,
-      text:'Updating my preferred currency to '+this.UI.currencyList[currency].designation,
+      text:'Updating my preferred currency to '+this.UI.appSettingsPayment.currencyList[currency].designation,
       userCurrency:currency
     })
     this.router.navigate(['chat',this.UI.currentUser])

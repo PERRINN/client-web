@@ -36,8 +36,8 @@ import firebase from 'firebase/compat/app'
             <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;color:white;padding:0 5px 0 5px">{{(fund?.amountGBPRaised/fund?.amountGBPTarget)|percent:'1.0-0'}}</div>
             <div style="float:left;margin:0 5px 0 5px;font-weight:bold">{{fund.daysLeft|number:'1.0-0'}} days left</div>
             <div style="float:left;margin:0 5px 0 0">{{fund.description}},</div>
-            <div style="float:left;margin:0 5px 0 0">target: {{UI.formatSharesToCurrency(null,fund?.amountGBPTarget*UI.currencyList["gbp"].toCOIN)}} /</div>
-            <div style="float:left">raised: {{UI.formatSharesToCurrency(null,fund?.amountGBPRaised*UI.currencyList["gbp"].toCOIN)}}</div>
+            <div style="float:left;margin:0 5px 0 0">target: {{UI.formatSharesToCurrency(null,fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /</div>
+            <div style="float:left">raised: {{UI.formatSharesToCurrency(null,fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}</div>
           </div>
           <div *ngIf="(UI.nowSeconds<survey?.expiryTimestamp/1000)&&survey?.createdTimestamp" style="clear:both">
             <span class="material-icons-outlined" style="float:left;font-size:20px;margin-right:5px;color:black">poll</span>
@@ -84,7 +84,7 @@ import firebase from 'firebase/compat/app'
       </li>
     </ul>
     <div class="seperator" style="width:100%;margin:0px"></div>
-    <span style="margin:10px;color:grey">Sending {{UI.currencyList[UI.currentUserLastMessageObj.userCurrency].designation}}:</span>
+    <span style="margin:10px;color:grey">Sending {{UI.appSettingsPayment.currencyList[UI.currentUserLastMessageObj.userCurrency].designation}}:</span>
       <input style="width:200px;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="500" [(ngModel)]="transactionAmount" placeholder="amount">
       <input style="width:150px;margin:10px;border:0;background:none;box-shadow:none;border-radius:0px" maxlength="500" [(ngModel)]="transactionCode" placeholder="Code (optional)">
       <div *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.shareBalance">
@@ -98,7 +98,7 @@ import firebase from 'firebase/compat/app'
         </ul>
       </div>
       <div *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.shareBalance&&transactionUser!=undefined" style="clear:both;width:250px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:black;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer" (click)="sendCredit(transactionAmount,transactionCode,transactionUser,transactionUserName)">
-        Send {{UI.currencyList[UI.currentUserLastMessageObj.userCurrency].symbol}}{{transactionAmount}} to {{transactionUserName}}
+        Send {{UI.appSettingsPayment.currencyList[UI.currentUserLastMessageObj.userCurrency].symbol}}{{transactionAmount}} to {{transactionUserName}}
       </div>
     <div class="seperator" style="width:100%;margin:0px"></div>
     <div>
@@ -188,8 +188,8 @@ import firebase from 'firebase/compat/app'
               <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{message.payload?.statistics?.emailsMembersAuth?.length}} Members.</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{UI.formatSharesToCurrency(null,message.payload?.statistics?.wallet?.shareBalance)}} purchased,</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{UI.formatSharesToCurrency(null,message.payload?.statistics?.interest?.rateDay)}} interest paid to members per day.</div>
-              <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{UI.formatSharesToCurrency(null,message.payload?.statistics?.stripeBalance?.available[0]?.amount/100*UI.currencyList["gbp"].toCOIN)}} available in the PERRINN fund</div>
-              <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">({{UI.formatSharesToCurrency(null,message.payload?.statistics?.stripeBalance?.pending[0]?.amount/100*UI.currencyList["gbp"].toCOIN)}} pending).</div>
+              <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{UI.formatSharesToCurrency(null,message.payload?.statistics?.stripeBalance?.available[0]?.amount/100*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} available in the PERRINN fund</div>
+              <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">({{UI.formatSharesToCurrency(null,message.payload?.statistics?.stripeBalance?.pending[0]?.amount/100*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} pending).</div>
               <div *ngIf="messageShowDetails.includes(message.key)" style="margin:5px">
                 <div class="seperator" style="width:100%"></div>
                 <div style="font-size:10px">userStatus {{message.payload?.userStatus|json}}</div>
@@ -482,11 +482,11 @@ export class ChatComponent {
 
   sendCredit(transactionAmount,transactionCode,transactionUser,transactionUserName){
     this.UI.createMessage({
-      text:'sending '+this.UI.currencyList[this.UI.currentUserLastMessageObj.userCurrency].symbol+transactionAmount+' to '+transactionUserName+((transactionCode||null)?' using code ':'')+((transactionCode||null)?transactionCode:''),
+      text:'sending '+this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].symbol+transactionAmount+' to '+transactionUserName+((transactionCode||null)?' using code ':'')+((transactionCode||null)?transactionCode:''),
       chain:this.chatLastMessageObj.chain||this.chatChain,
       transactionOut:{
         user:transactionUser,
-        amount:transactionAmount*this.UI.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN,
+        amount:transactionAmount*this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN,
         code:transactionCode||null
       }
     })

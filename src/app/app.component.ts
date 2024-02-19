@@ -17,10 +17,11 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
     </div>
     <div style="user-select:none">
       <div *ngIf="UI.currentUser" style="max-width:800px;margin:0 auto">
-        <div style="float:left;width:110px;height:35px;cursor:pointer" (click)="router.navigate(['profile',UI.currentUser])">
+        <div style="float:left;width:175px;height:35px;cursor:pointer" (click)="router.navigate(['profile',UI.currentUser])">
           <img *ngIf="UI.currentUserLastMessageObj?.imageUrlThumbUser" [src]="UI.currentUserLastMessageObj.imageUrlThumbUser" style="display:inline;float:left;margin:4px;border-radius:50%;object-fit:cover;width:25px;height:25px">
           <div style="float:left;margin:8px;font-size:12px">
-            <span >{{UI.formatSharesToCurrency(null,UI.currentUserLastMessageObj.wallet.shareBalance||0)}}</span>
+            <span>{{UI.formatSharesToCurrency(null,UI.currentUserLastMessageObj.wallet.shareBalance||0)}}</span>
+            <span style="font-size:10px;margin-left:10px"> {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} APY</span>
           </div>
         </div>
         <div style="float:left;font-size:12px;text-align:center;line-height:15px;width:100px;padding:2px;margin:7px;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="router.navigate(['buycredit'])">Buy Credit</div>

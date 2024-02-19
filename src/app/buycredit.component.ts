@@ -84,7 +84,7 @@ import { environment } from "environments/environment.prod";
                     UI.formatSharesToCurrency(
                       null,
                       message.payload.doc.data()?.fund?.amountGBPTarget *
-                        UI.currencyList["gbp"].toCOIN
+                        UI.appSettingsPayment.currencyList["gbp"].toCOIN
                     )
                   }}
                   /
@@ -95,7 +95,7 @@ import { environment } from "environments/environment.prod";
                     UI.formatSharesToCurrency(
                       null,
                       message.payload.doc.data()?.fund?.amountGBPRaised *
-                        UI.currencyList["gbp"].toCOIN
+                        UI.appSettingsPayment.currencyList["gbp"].toCOIN
                     )
                   }}
                 </div>
@@ -138,7 +138,7 @@ import { environment } from "environments/environment.prod";
           <span style="font-size:12px">Interest rate:</span>
           <br />
           <span style="font-size:20px">{{
-            costs?.interestRateYear | percent : "0.0"
+            UI.appSettingsCosts?.interestRateYear | percent : "0.0"
           }}</span>
           <span style="font-size:12px"> a year.</span>
         </div>
@@ -159,7 +159,7 @@ import { environment } from "environments/environment.prod";
         <div style="padding:10px">
           <ul class="listLight">
             <li
-              *ngFor="let currency of objectToArray(UI.currencyList)"
+              *ngFor="let currency of objectToArray(UI.appSettingsPayment.currencyList)"
               (click)="currencySelected = currency[0]; refreshAmountCharge()"
               style="float:left;width:125px;padding:5px;margin:5px;text-align:center;font-size:10px;border-radius:3px"
               [style.background-color]="
@@ -237,7 +237,7 @@ import { environment } from "environments/environment.prod";
                   UI.formatSharesToCurrency(
                     currencySelected,
                     (amountCharge / 100) *
-                      UI.currencyList[currencySelected].toCOIN
+                      UI.appSettingsPayment.currencyList[currencySelected].toCOIN
                   )
                 }}
               </button>
@@ -269,7 +269,6 @@ export class BuyCreditComponent {
   amountSharesPurchased: number;
   amountCharge: number;
   currencySelected: string;
-  costs: any;
   creditList: any;
   creditSelected: number;
   math: any;
@@ -297,12 +296,6 @@ export class BuyCreditComponent {
     this.math = Math;
     if(this.UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2')this.creditList=[1,200,500,1000]
     else this.creditList=[100,200,500,1000]
-    afs
-      .doc<any>("appSettings/costs")
-      .valueChanges()
-      .subscribe((snapshot) => {
-        this.costs = snapshot;
-      });
     this.currentFunds = this.afs
       .collection<any>("PERRINNMessages", (ref) =>
         ref
@@ -387,7 +380,7 @@ export class BuyCreditComponent {
       );
       this.amountSharesPurchased = Number(
         (this.amountCharge / 100) *
-          this.UI.currencyList[this.currencySelected].toCOIN
+          this.UI.appSettingsPayment.currencyList[this.currencySelected].toCOIN
       );
     }
   }

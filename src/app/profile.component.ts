@@ -101,8 +101,8 @@ import firebase from 'firebase/compat/app'
               <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;color:white;padding:0 5px 0 5px">{{(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)|percent:'1.0-0'}}</div>
               <div style="float:left;margin:0 5px 0 5px;font-weight:bold">{{message.payload.doc.data()?.fund?.daysLeft|number:'1.0-0'}} days left</div>
               <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.description}},</div>
-              <div style="float:left;margin:0 5px 0 5px">target: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*UI.currencyList["gbp"].toCOIN)}} /</div>
-              <div style="float:left">raised: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*UI.currencyList["gbp"].toCOIN)}}</div>
+              <div style="float:left;margin:0 5px 0 5px">target: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /</div>
+              <div style="float:left">raised: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}</div>
             </div>
           </div>
           </div>
