@@ -240,11 +240,6 @@ export class ProfileComponent {
     this.scope=''
     this.mode='inbox'
     this.scrollTeam=''
-    this.afAuth.user.subscribe((auth) => {
-      if (auth == null) {
-        this.router.navigate(['login'])
-      }
-    })
     this.route.params.subscribe(params => {
       this.scope=params.id
       afs.collection<any>('PERRINNMessages',ref=>ref
@@ -264,6 +259,10 @@ export class ProfileComponent {
       }))
       this.refreshMessages()
     })
+  }
+
+  ngOnInit() {
+    this.UI.redirectUser()
   }
 
   refreshMessages(){

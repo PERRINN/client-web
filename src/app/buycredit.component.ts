@@ -21,7 +21,7 @@ import firebase from "firebase/compat/app";
 import { environment } from "environments/environment.prod";
 
 @Component({
-  selector: "membership",
+  selector: "buycredit",
   template: `
     <div class="sheet">
       <br />
@@ -109,7 +109,7 @@ import { environment } from "environments/environment.prod";
       <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
         <div class="seperator"></div>
         <div class="title" style="background-color:whitesmoke">
-          Your membership in details
+          Your purchase in details
         </div>
         <div class="seperator"></div>
         <div style="padding:10px;text-align:center">
@@ -118,22 +118,19 @@ import { environment } from "environments/environment.prod";
           >
           <br />
           <span style="font-size:12px">
-            The money you are depositing is locked in and secured by our network.
+            The credit you are purchasing is secured by our network and growing over time.
           </span>
           <span style="font-size:15px">{{
             UI.PERRINNAdminLastMessageObj?.statistics?.emailsMembersAuth?.length
           }}</span>
-          <span style="font-size:12px"> members have deposited </span>
+          <span style="font-size:12px"> members own </span>
           <span style="font-size:15px">{{
             UI.formatSharesToCurrency(
               null,
               UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance
             )
           }}</span>
-          <span style="font-size:12px">
-            .You can follow the impact of your deposit live on
-            PERRINN.com.</span
-          >
+          <span style="font-size:12px">. You can follow the impact of your purchase live on PERRINN.com.</span>
         </div>
         <div
           style="color:white;background-color:black;padding:10px;text-align:center"
@@ -147,8 +144,8 @@ import { environment } from "environments/environment.prod";
         </div>
         <div style="padding:10px;text-align:center">
           <span style="font-size:12px"
-            >Your deposit is stored in your wallet. You can track the
-            interests credited in your wallet every day.</span
+            >Your credit is stored in your wallet. You can track the
+            interests added in your wallet every day.</span
           >
         </div>
         <div class="seperator"></div>
@@ -188,26 +185,26 @@ import { environment } from "environments/environment.prod";
       <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
         <div class="seperator"></div>
         <div class="title" style="background-color:whitesmoke">
-          How much would you like to deposit?
+          How much credit would you like to purchase?
         </div>
         <div style="padding:10px">
           <ul class="listLight">
             <li
-              *ngFor="let deposit of depositList; let index = index"
-              (click)="depositSelected = index; refreshAmountCharge()"
+              *ngFor="let credit of creditList; let index = index"
+              (click)="creditSelected = index; refreshAmountCharge()"
               style="float:left;width:63px;padding:5px;margin:5px;text-align:center;font-size:10px;border-radius:3px"
               [style.background-color]="
-                depositSelected == index ? 'black' : 'white'
+                creditSelected == index ? 'black' : 'white'
               "
-              [style.color]="depositSelected == index ? 'white' : 'black'"
+              [style.color]="creditSelected == index ? 'white' : 'black'"
               [style.border-style]="
-                depositSelected == index ? 'none' : 'solid'
+                creditSelected == index ? 'none' : 'solid'
               "
               [style.border-width]="
-                depositSelected == index ? 'none' : '1px'
+                creditSelected == index ? 'none' : '1px'
               "
             >
-              {{ deposit | number : "1.0-0" }}
+              {{ credit | number : "1.0-0" }}
             </li>
           </ul>
         </div>
@@ -229,7 +226,7 @@ import { environment } from "environments/environment.prod";
               <button
                 *ngIf="
                   !processing &&
-                  depositSelected != undefined &&
+                  creditSelected != undefined &&
                   currencySelected != undefined
                 "
                 id="submit-button"
@@ -260,10 +257,11 @@ import { environment } from "environments/environment.prod";
         </div>
       </div>
       <br />
+      <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
   `,
 })
-export class MembershipComponent {
+export class BuyCreditComponent {
   cardNumber: string;
   expiryMonth: string;
   expiryYear: string;
@@ -272,8 +270,8 @@ export class MembershipComponent {
   amountCharge: number;
   currencySelected: string;
   costs: any;
-  depositList: any;
-  depositSelected: number;
+  creditList: any;
+  creditSelected: number;
   math: any;
   card: any;
   cardHandler = this.onChange.bind(this);
@@ -291,19 +289,14 @@ export class MembershipComponent {
     private cd: ChangeDetectorRef,
     private http: HttpClient
   ) {
-    this.afAuth.user.subscribe((auth) => {
-      if (auth == null) {
-        this.router.navigate(["login"]);
-      }
-    });
     if (UI.currentUserLastMessageObj != undefined)
       this.currencySelected =
         UI.currentUserLastMessageObj.userCurrency || "usd";
     else this.currencySelected = "usd";
     this.processing = false;
     this.math = Math;
-    if(this.UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2')this.depositList=[1,200,500,1000]
-    else this.depositList=[100,200,500,1000]
+    if(this.UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2')this.creditList=[1,200,500,1000]
+    else this.creditList=[100,200,500,1000]
     afs
       .doc<any>("appSettings/costs")
       .valueChanges()
@@ -330,6 +323,10 @@ export class MembershipComponent {
     this.card = elements.create("card");
     this.card.mount(this.cardElement.nativeElement);
     this.card.addEventListener("change", this.cardHandler);
+  }
+
+  ngOnInit() {
+    this.UI.redirectUser()
   }
 
   ngOnDestroy() {
@@ -382,11 +379,11 @@ export class MembershipComponent {
 
   refreshAmountCharge() {
     if (
-      this.depositSelected != undefined &&
+      this.creditSelected != undefined &&
       this.currencySelected != undefined
     ) {
       this.amountCharge = Number(
-        ((this.depositList[this.depositSelected] || 0) * 100).toFixed(0)
+        ((this.creditList[this.creditSelected] || 0) * 100).toFixed(0)
       );
       this.amountSharesPurchased = Number(
         (this.amountCharge / 100) *

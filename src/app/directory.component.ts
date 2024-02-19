@@ -12,12 +12,12 @@ import firebase from 'firebase/compat/app';
   template:`
   <div class="sheet" style="background-color:whitesmoke">
     <div style="margin:15px">
-      <span style="font-size:12px">PERRINN members are PERRINN Limited UK ({{UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance|percent:'1.0-0'}} of all deposits) and our public community ({{1-(UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)|percent:'1.0-0'}} of all deposits).</span>
+      <span style="font-size:12px">PERRINN members are PERRINN Limited UK ({{UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance|percent:'1.0-0'}} of all credits) and our public community ({{1-(UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)|percent:'1.0-0'}}).</span>
       <br>
       <span style="font-size:15px">{{
         UI.PERRINNAdminLastMessageObj?.statistics?.emailsMembersAuth?.length
       }}</span>
-      <span style="font-size:12px"> members have deposited </span>
+      <span style="font-size:12px"> members own </span>
       <span style="font-size:15px">{{
         UI.formatSharesToCurrency(
           null,
@@ -40,7 +40,7 @@ import firebase from 'firebase/compat/app';
           <span *ngIf="message.values?.contract?.signed" style="font-size:10px"> Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}.</span>
           <span *ngIf="message.values?.PERRINNLimited?.amount>0" style="font-size:10px"> {{UI.formatSharesToCurrency(null,message.values?.PERRINNLimited?.amount-message.values?.PERRINNLimited?.zeroInterestLoan1)}} from PERRINN Limited ownership.</span>
           <span *ngIf="message.values?.PERRINNLimited?.zeroInterestLoan1>0" style="font-size:10px"> {{UI.formatSharesToCurrency(null,message.values?.PERRINNLimited?.zeroInterestLoan1)}} from PERRINN Limited loan.</span>
-          <span *ngIf="message.values?.PERRINNLimited?.amount>0&&message.values?.wallet?.balance>0" style="font-size:10px"> {{UI.formatSharesToCurrency(null,message.values?.wallet?.balance)}} from membership.</span>
+          <span *ngIf="message.values?.PERRINNLimited?.amount>0&&message.values?.wallet?.balance>0" style="font-size:10px"> {{UI.formatSharesToCurrency(null,message.values?.wallet?.balance)}} from credit.</span>
         </div>
         <div style="float:right;margin:10px;width:50px">
           <div>{{UI.formatSharesToCurrency(null,message.values?.wallet?.shareBalance||0)}}</div>
@@ -77,16 +77,11 @@ export class DirectoryComponent  {
     public afs:AngularFirestore,
     public router:Router,
     public UI:UserInterfaceService
-  ){
-    this.afAuth.user.subscribe((auth) => {
-      if (auth == null) {
-        this.router.navigate(['login'])
-      }
-    })
-  }
+  ){}
 
   ngOnInit() {
-    this.refreshMembersList();
+    this.UI.redirectUser()
+    this.refreshMembersList()
   }
 
   refreshMembersList() {

@@ -5,6 +5,7 @@ import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
 import firebase from 'firebase/compat/app'
 import { formatNumber } from '@angular/common'
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Injectable()
 export class UserInterfaceService {
@@ -18,7 +19,11 @@ export class UserInterfaceService {
   tagFilters: any;
   currencyList: any;
 
-  constructor(private afAuth: AngularFireAuth, public afs: AngularFirestore) {
+  constructor(
+    private afAuth: AngularFireAuth,
+    public router:Router,
+    public afs: AngularFirestore
+  ) {
     this.tagFilters = [];
     this.nowSeconds = Math.floor(Date.now() / 1000);
     setInterval(() => {
@@ -171,4 +176,19 @@ export class UserInterfaceService {
     }
     return autoId;
   }
+
+  logout(){
+    this.afAuth.signOut()
+    this.currentUser=null
+    this.router.navigate(['login'])
+  }
+
+
+  redirectUser(){
+    this.afAuth.user.subscribe((auth) => {
+      if(auth==null)this.router.navigate(['login'])
+    })
+
+  }
+
 }

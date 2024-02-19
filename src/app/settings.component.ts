@@ -76,7 +76,7 @@ import firebase from 'firebase/compat/app';
       <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:15px;font-size:10px;color:black">Waiting for contract signature</div>
       <div (click)="updateContract()" style="clear:both;font-size:12px;text-align:center;line-height:20px;width:150px;padding:2px;margin:10px;color:white;background-color:black;border-radius:3px;cursor:pointer">Update my contract</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
-  <div class="buttonDiv" style="color:white;background-color:red;margin-top:25px;margin-bottom:25px" (click)="this.logout();router.navigate(['login']);">logout</div>
+  <div class="buttonDiv" style="color:white;background-color:red;margin-top:25px;margin-bottom:25px" (click)="this.UI.logout()">logout</div>
   <div class="seperator" style="width:100%;margin-bottom:250px"></div>
   `,
 })
@@ -104,10 +104,9 @@ export class SettingsComponent {
     this.emailsOnshape=this.UI.currentUserLastMessageObj.emails.onshape||null
     this.contract.level=(this.UI.currentUserLastMessageObj.contract||{}).level||null
   }
-
-  logout() {
-    this.afAuth.signOut();
-    this.UI.currentUser = null;
+  
+  ngOnInit() {
+    this.UI.redirectUser()
   }
 
   updateName(){

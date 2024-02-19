@@ -22,20 +22,20 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
           <div style="font-size:12px;color:black;padding:10px">#sustainability #open #collaboration #teamspirit</div>
           <br>
           <div style="font-size:12px;text-align:center;line-height:15px;width:150px;padding:4px;margin:10px auto;color:black;background-color:white;border-radius:3px;cursor:pointer;border-width:1px;border-style:solid" onclick="window.open('https://discover.perrinn.com','_blank')">Discover PERRINN</div>
-          <div [hidden]="action=='register'" style="font-size:12px;text-align:center;line-height:15px;width:150px;padding:4px;margin:10px auto;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="action='register';messageUser=''">New user</div>
-          <div [hidden]="action=='login'" style="font-size:12px;text-align:center;line-height:15px;width:150px;padding:4px;margin:10px auto;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="action='login';messageUser=''">Existing user</div>
+          <div [hidden]="action=='register'" style="font-size:12px;text-align:center;line-height:15px;width:150px;padding:4px;margin:10px auto;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="action='register';messageUser=''">New member</div>
+          <div [hidden]="action=='login'" style="font-size:12px;text-align:center;line-height:15px;width:150px;padding:4px;margin:10px auto;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="action='login';messageUser=''">Existing member</div>
           <div *ngIf="action=='login'||action=='register'">
             <input maxlength="500" [(ngModel)]="email" name="email" type="text" placeholder="Email *" (keyup)="messageUser=''" autofocus required/>
             <input maxlength="500" [(ngModel)]="password" name="password" type="password" placeholder="Password *" (keyup)="messageUser=''" required/>
           </div>
           <div *ngIf="action=='login'">
-            <button type="submit" (click)="login(email,password)">Login</button>
+            <div style="font-size:14px;text-align:center;line-height:25px;width:200px;padding:4px;margin:10px auto;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="login(email,password)">Login</div>
             <div style="text-align:center; font-size:12px; cursor:pointer; color:black; padding:10px;" (click)="resetPassword(email)">Forgot password?</div>
           </div>
           <div *ngIf="action=='register'">
             <input maxlength="500" [(ngModel)]="passwordConfirm" name="passwordConfirm" type="password" placeholder="Confirm password *" (keyup)="messageUser=''"/>
             <input maxlength="500" [(ngModel)]="name" name="name" type="text" placeholder="First name *" (keyup)="messageUser=''"/>
-            <button type="button" (click)="register(email,password,passwordConfirm,name)">Register</button>
+            <div style="font-size:14px;text-align:center;line-height:25px;width:200px;padding:4px;margin:10px auto;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="register(email,password,passwordConfirm,name)">Register</div>
           </div>
           <div *ngIf="messageUser" style="text-align:center;padding:10px;color:red">{{messageUser}}</div>
         </form>
@@ -120,7 +120,7 @@ export class LoginComponent  {
             this.UI.createMessage({
               chain:auth.uid,
               creatingUser:true,
-              text:'Creating user '+name,
+              text:'Creating member '+name,
               name:name,
               imageUrlThumbUser:imageUrlThumb,
               imageUrlMedium:imageUrlMedium,
