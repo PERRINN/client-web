@@ -24,8 +24,8 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
             <span style="margin-left:10px"> {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} APY</span>
           </div>
         </div>
-        <div style="float:left;font-size:12px;text-align:center;line-height:15px;width:75px;padding:2px;margin:7px;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="router.navigate(['buy'])">Buy</div>
-        <div style="float:left;font-size:12px;text-align:center;line-height:15px;width:75px;padding:2px;margin:7px;color:black;border-radius:3px;cursor:pointer;border-width:1px;border-style:solid" (click)="router.navigate(['sell'])">Sell</div>
+        <div style="float:left;font-size:12px;text-align:center;line-height:15px;width:65px;padding:2px;margin:7px;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="router.navigate(['buy'])">Buy</div>
+        <div style="float:left;font-size:12px;text-align:center;line-height:15px;width:65px;padding:2px;margin:7px;color:black;border-radius:3px;cursor:pointer;border-width:1px;border-style:solid" (click)="router.navigate(['sell'])">Sell</div>
         <span class="material-icons" style="float:right;margin:5px;cursor:pointer;color:black" (click)="router.navigate(['apps'])">apps</span>
         <div style="float:right;width:1px;height:35px;cursor:pointer;border-style:solid;border-width:0 1px 0 0;border-color:#ddd"></div>
         <span class="material-icons" style="float:right;margin:5px;cursor:pointer;color:black" (click)="newMessage()">create</span>
