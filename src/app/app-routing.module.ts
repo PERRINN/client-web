@@ -6,7 +6,7 @@ import { ChatComponent } from './chat.component';
 import { ProfileComponent } from './profile.component';
 import { SettingsComponent } from './settings.component';
 import { DirectoryComponent } from './directory.component';
-import { BuyCreditComponent } from './buycredit.component';
+import { BuyComponent } from './buy.component';
 
 const appRoutes: Routes = [
   { path: 'apps', component: AppsComponent },
@@ -15,7 +15,7 @@ const appRoutes: Routes = [
   { path: 'settings', component: SettingsComponent },
   { path: 'login', component: LoginComponent },
   { path: 'directory', component: DirectoryComponent },
-  { path: 'buycredit', component: BuyCreditComponent },
+  { path: 'buy', component: BuyComponent },
   { path: '',   redirectTo: '/login', pathMatch: 'full' },
   { path: '**', component: LoginComponent }
 ];

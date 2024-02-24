@@ -21,7 +21,7 @@ import firebase from "firebase/compat/app";
 import { environment } from "environments/environment.prod";
 
 @Component({
-  selector: "buycredit",
+  selector: "buy",
   template: `
     <div class="sheet">
       <br />
@@ -261,7 +261,7 @@ import { environment } from "environments/environment.prod";
     </div>
   `,
 })
-export class BuyCreditComponent {
+export class BuyComponent {
   cardNumber: string;
   expiryMonth: string;
   expiryYear: string;
