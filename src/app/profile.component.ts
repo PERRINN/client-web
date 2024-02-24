@@ -45,7 +45,6 @@ import firebase from 'firebase/compat/app'
     </div>
     <div *ngIf="scope=='all'">
       <div class="material-icons" style="float:left;margin:5px;cursor:pointer;color:black" (click)="showTags=!showTags">filter_list</div>
-      <span class="material-icons" style="float:right;margin:5px;cursor:pointer;color:black" (click)="newMessage()">create</span>
       <div *ngIf="UI.tagFilters.length>0" style="float:left;font-size:10px;line-height:15px;padding:10px;color:black;cursor:pointer" (click)="UI.tagFilters=[];refreshMessages()">Clear {{UI.tagFilters.length}} filter{{UI.tagFilters.length>1?'s':''}}</div>
       <ul *ngIf="showTags" class="listLight">
         <li *ngFor="let message of tags|async" style="float:left"
@@ -467,10 +466,6 @@ export class ProfileComponent {
   loadMore() {
     this.messageNumberDisplay+=15
     this.refreshMessages()
-  }
-
-  newMessage() {
-    this.router.navigate(['chat',this.UI.newId()])
   }
 
 }
