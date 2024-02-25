@@ -7,6 +7,7 @@ import { ProfileComponent } from './profile.component';
 import { SettingsComponent } from './settings.component';
 import { DirectoryComponent } from './directory.component';
 import { BuyComponent } from './buy.component';
+import { SellComponent } from './sell.component';
 
 const appRoutes: Routes = [
   { path: 'apps', component: AppsComponent },
@@ -16,6 +17,7 @@ const appRoutes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'directory', component: DirectoryComponent },
   { path: 'buy', component: BuyComponent },
+  { path: 'sell', component: SellComponent },
   { path: '',   redirectTo: '/login', pathMatch: 'full' },
   { path: '**', component: LoginComponent }
 ];

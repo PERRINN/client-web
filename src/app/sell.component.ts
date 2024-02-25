@@ -24,6 +24,8 @@ import { environment } from "environments/environment.prod";
   selector: "sell",
   template: `
     <div class="sheet">
+      <div style="font-size:14px;line-height:20px;padding:30px">Soon you will be able to sell your credit to other members from here.</div>
+      <div style="font-size:14px;line-height:20px;padding:30px">We are building this new feature, stay tuned.</div>
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
   `,
