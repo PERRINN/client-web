@@ -38,6 +38,7 @@ import firebase from 'firebase/compat/app'
           <div style="float:left;font-size:10px;color:black;width:55px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='30days'?'underline':'none'" (click)="mode='30days';refreshMessages()">30 days</div>
           <div style="float:left;font-size:10px;color:black;width:55px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='24months'?'underline':'none'" (click)="mode='24months';refreshMessages()">24 months</div>
           <div style="float:left;font-size:10px;color:black;width:55px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='chain'?'underline':'none'" (click)="mode='chain';refreshMessages()">chain</div>
+          <div style="float:left;font-size:10px;color:black;width:85px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='10yearForecast'?'underline':'none'" (click)="mode='10yearForecast';refreshMessages()">10 year forecast</div>
         </div>
         <div *ngIf="UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="float:left;font-size:10px;padding:2px 4px 2px 4px;margin-right:5px;color:black;border-style:solid;border-width:1px;border-radius:3px;cursor:pointer">New message to {{focusUserLastMessageObj?.name}}</div>
       </div>
@@ -63,74 +64,80 @@ import firebase from 'firebase/compat/app'
       <ul class="listLight">
         <li *ngFor="let message of comingEvents|async;let first=first;let last=last"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
-          <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>-60">
-          <div style="float:left;min-width:90px;min-height:40px">
-            <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:black">event</span>
-          </div>
-          <div>
-            <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
-              <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:black">settings</span>
-              <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.chatSubject}}</span>
+          <div *ngIf="scope=='all'||mode=='inbox'">
+            <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>-60">
+            <div style="float:left;min-width:90px;min-height:40px">
+              <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:black">event</span>
             </div>
-            <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>-60" style="width:80%">
-              <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>0" [style.background-color]="(math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>60*8)?'black':'red'" style="float:left;color:white;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(message.payload.doc.data()?.eventDate/1000-UI.nowSeconds)}}</div>
-              <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)<=0&&math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>-60" style="float:left;background-color:red;color:white;padding:0 5px 0 5px">Now</div>
-              <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.eventDescription}}</div>
-              <div style="float:left;margin:0 5px 0 0">{{message.payload.doc.data()?.eventDate|date:'EEEE d MMM HH:mm'}}</div>
+            <div>
+              <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
+                <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:black">settings</span>
+                <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.chatSubject}}</span>
+              </div>
+              <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>-60" style="width:80%">
+                <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>0" [style.background-color]="(math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>60*8)?'black':'red'" style="float:left;color:white;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(message.payload.doc.data()?.eventDate/1000-UI.nowSeconds)}}</div>
+                <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)<=0&&math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>-60" style="float:left;background-color:red;color:white;padding:0 5px 0 5px">Now</div>
+                <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.eventDescription}}</div>
+                <div style="float:left;margin:0 5px 0 0">{{message.payload.doc.data()?.eventDate|date:'EEEE d MMM HH:mm'}}</div>
+              </div>
             </div>
+            <div class="seperator"></div>
           </div>
-          <div class="seperator"></div>
           </div>
         </li>
       </ul>
       <ul class="listLight">
         <li *ngFor="let message of currentFunds|async;let first=first;let last=last"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
-          <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0">
-          <div style="float:left;min-width:90px;min-height:40px">
-            <span class="material-symbols-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:black">crowdsource</span>
-          </div>
-          <div>
-            <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
-              <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:black">settings</span>
-              <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.chatSubject}}</span>
+          <div *ngIf="scope=='all'||mode=='inbox'">
+            <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0">
+            <div style="float:left;min-width:90px;min-height:40px">
+              <span class="material-symbols-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:black">crowdsource</span>
             </div>
-            <div style="clear:both">
-              <div style="float:left;background-color:black;height:20px;width:65px;text-align:center;color:white;padding:0 5px 0 5px"></div>
-              <div style="float:left;height:20px;background-color:red;margin-left:-65px" [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*65+'px'"></div>
-              <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;color:white;padding:0 5px 0 5px">{{(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)|percent:'1.0-0'}}</div>
-              <div style="float:left;margin:0 5px 0 5px;font-weight:bold">{{message.payload.doc.data()?.fund?.daysLeft|number:'1.0-0'}} days left</div>
-              <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.description}},</div>
-              <div style="float:left;margin:0 5px 0 5px">target: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /</div>
-              <div style="float:left">raised: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}</div>
+            <div>
+              <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
+                <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:black">settings</span>
+                <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.chatSubject}}</span>
+              </div>
+              <div style="clear:both">
+                <div style="float:left;background-color:black;height:20px;width:65px;text-align:center;color:white;padding:0 5px 0 5px"></div>
+                <div style="float:left;height:20px;background-color:red;margin-left:-65px" [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*65+'px'"></div>
+                <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;color:white;padding:0 5px 0 5px">{{(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)|percent:'1.0-0'}}</div>
+                <div style="float:left;margin:0 5px 0 5px;font-weight:bold">{{message.payload.doc.data()?.fund?.daysLeft|number:'1.0-0'}} days left</div>
+                <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.description}},</div>
+                <div style="float:left;margin:0 5px 0 5px">target: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /</div>
+                <div style="float:left">raised: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}</div>
+              </div>
             </div>
+            </div>
+            <div class="seperator"></div>
           </div>
-          </div>
-          <div class="seperator"></div>
         </li>
       </ul>
       <ul class="listLight">
         <li *ngFor="let message of currentSurveys|async;let first=first;let last=last"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
-          <div *ngIf="(UI.nowSeconds<message.payload.doc.data()?.survey?.expiryTimestamp/1000)&&message.payload.doc.data()?.survey?.createdTimestamp">
-          <div style="float:left;min-width:90px;min-height:40px">
-            <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:black">poll</span>
-          </div>
-          <div>
-            <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
-              <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:black">settings</span>
-              <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.chatSubject}}</span>
+          <div *ngIf="scope=='all'||mode=='inbox'">
+            <div *ngIf="(UI.nowSeconds<message.payload.doc.data()?.survey?.expiryTimestamp/1000)&&message.payload.doc.data()?.survey?.createdTimestamp">
+            <div style="float:left;min-width:90px;min-height:40px">
+              <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer;color:black">poll</span>
             </div>
-            <div style="clear:both">
-              <div [style.background-color]="(math.floor(message.payload.doc.data()?.survey.expiryTimestamp/3600000-UI.nowSeconds/3600)>8)?'black':'red'" style="float:left;color:white;padding:0 5px 0 5px">{{UI.formatSecondsToDhm2(message.payload.doc.data()?.survey.expiryTimestamp/1000-UI.nowSeconds)}} left</div>
-              <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.survey.question}}</div>
-              <span *ngFor="let answer of message.payload.doc.data()?.survey.answers;let last=last" [style.font-weight]="answer?.votes.includes(UI.currentUser)?'bold':'normal'" style="float:left;margin:0 5px 0 5px">{{answer.answer}} ({{(answer.votes.length/message.payload.doc.data()?.survey.totalVotes)|percent:'1.0-0'}})</span>
-              <span style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.survey.totalVotes}} vote{{message.payload.doc.data()?.survey.totalVotes>1?'s':''}}</span>
-              <div *ngIf="!message.payload.doc.data()?.recipients[UI.currentUser]?.voteIndexPlusOne" style="clear:both;color:red;margin:0 5px 0 5px">Vote now</div>
+            <div>
+              <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
+                <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer;color:black">settings</span>
+                <span style="font-size:14px;font-weight:bold">{{message.payload.doc.data()?.chatSubject}}</span>
+              </div>
+              <div style="clear:both">
+                <div [style.background-color]="(math.floor(message.payload.doc.data()?.survey.expiryTimestamp/3600000-UI.nowSeconds/3600)>8)?'black':'red'" style="float:left;color:white;padding:0 5px 0 5px">{{UI.formatSecondsToDhm2(message.payload.doc.data()?.survey.expiryTimestamp/1000-UI.nowSeconds)}} left</div>
+                <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.survey.question}}</div>
+                <span *ngFor="let answer of message.payload.doc.data()?.survey.answers;let last=last" [style.font-weight]="answer?.votes.includes(UI.currentUser)?'bold':'normal'" style="float:left;margin:0 5px 0 5px">{{answer.answer}} ({{(answer.votes.length/message.payload.doc.data()?.survey.totalVotes)|percent:'1.0-0'}})</span>
+                <span style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.survey.totalVotes}} vote{{message.payload.doc.data()?.survey.totalVotes>1?'s':''}}</span>
+                <div *ngIf="!message.payload.doc.data()?.recipients[UI.currentUser]?.voteIndexPlusOne" style="clear:both;color:red;margin:0 5px 0 5px">Vote now</div>
+              </div>
             </div>
+            </div>
+            <div class="seperator"></div>
           </div>
-          </div>
-          <div class="seperator"></div>
         </li>
       </ul>
       <ul class="listLight">
@@ -195,6 +202,22 @@ import firebase from 'firebase/compat/app'
           </div>
         </li>
       </ul>
+      <div *ngIf="scope!='all'&&mode=='10yearForecast'">
+        <div style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd;background-color:whitesmoke">Year</div>
+        <div style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd;background-color:whitesmoke">Balance</div>
+        <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd;background-color:whitesmoke;font-size:10px">Multiple</div>
+        <div class="tableRow" style="clear:both">
+          <ul>
+            <li *ngFor="let number of [1,2,3,4,5,6,7,8,9,10]" style="clear:both">
+              <div style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd">{{number}}</div>
+              <div style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd">
+                {{UI.formatSharesToCurrency(null,focusUserLastMessageObj?.wallet?.shareBalance*math.exp(UI.appSettingsCosts?.interestRateYear*number))}}
+              </div>
+              <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;border-color:#ddd;font-size:10px">{{math.exp(UI.appSettingsCosts?.interestRateYear*number)|number:'1.1-1'}}X</div>
+            </li>
+          </ul>
+        </div>
+      </div>
       <div class="spinner" *ngIf="UI.loading">
         <div class="bounce1"></div>
         <div class="bounce2"></div>
@@ -351,6 +374,7 @@ export class ProfileComponent {
         .orderBy('serverTimestamp','desc')
         .limit(this.messageNumberDisplay)
       ).snapshotChanges().pipe(map(changes=>{
+        this.UI.loading=false
         return changes.reverse().map(c=>({payload:c.payload}))
       }))
     }
@@ -362,6 +386,7 @@ export class ProfileComponent {
         .orderBy('serverTimestamp','desc')
         .limit(24)
       ).snapshotChanges().pipe(map(changes=>{
+        this.UI.loading=false
         return changes.reverse().map(c=>({payload:c.payload}))
       }))
     }
