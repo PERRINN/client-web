@@ -25,9 +25,9 @@ import { environment } from "environments/environment.prod";
   template: `
     <div class="sheet">
       <br />
-      <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
+      <div class="sheet" style="width:500px;max-width:80%">
         <div class="seperator"></div>
-        <div class="title" style="background-color:whitesmoke">
+        <div class="title">
           We are raising money for
         </div>
         <div class="seperator"></div>
@@ -43,15 +43,15 @@ import { environment } from "environments/environment.prod";
               *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget > 0"
               style="cursor:default;padding:10px"
             >
-              <span style="font-size:14px;font-weight:bold">{{
+              <span style="font-size:14px">{{
                 message.payload.doc.data()?.chatSubject
               }}</span>
               <div style="clear:both">
                 <div
-                  style="float:left;background-color:black;height:20px;width:65px;text-align:center;color:white;padding:0 5px 0 5px"
+                  style="float:left;background-color:black;height:20px;width:65px;text-align:center;padding:0 5px 0 5px"
                 ></div>
                 <div
-                  style="float:left;height:20px;background-color:red;margin-left:-65px"
+                  style="float:left;height:20px;background-color:darkred;margin-left:-65px"
                   [style.width]="
                     (message.payload.doc.data()?.fund?.amountGBPRaised /
                       message.payload.doc.data()?.fund?.amountGBPTarget) *
@@ -60,7 +60,7 @@ import { environment } from "environments/environment.prod";
                   "
                 ></div>
                 <div
-                  style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;color:white;padding:0 5px 0 5px"
+                  style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;padding:0 5px 0 5px"
                 >
                   {{
                     message.payload.doc.data()?.fund?.amountGBPRaised /
@@ -68,7 +68,7 @@ import { environment } from "environments/environment.prod";
                       | percent : "1.0-0"
                   }}
                 </div>
-                <div style="float:left;margin:0 5px 0 5px;font-weight:bold">
+                <div style="float:left;margin:0 5px 0 5px">
                   {{
                     message.payload.doc.data()?.fund?.daysLeft
                       | number : "1.0-0"
@@ -106,9 +106,9 @@ import { environment } from "environments/environment.prod";
         </ul>
       </div>
       <br />
-      <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
+      <div class="sheet" style="width:500px;max-width:80%">
         <div class="seperator"></div>
-        <div class="title" style="background-color:whitesmoke">
+        <div class="title">
           Your purchase in details
         </div>
         <div class="seperator"></div>
@@ -133,7 +133,7 @@ import { environment } from "environments/environment.prod";
           <span style="font-size:12px">. You can follow the impact of your purchase live on PERRINN.com.</span>
         </div>
         <div
-          style="color:white;background-color:black;padding:10px;text-align:center"
+          style="background-color:black;padding:10px;text-align:center"
         >
           <span style="font-size:12px">Interest rate:</span>
           <br />
@@ -151,28 +151,19 @@ import { environment } from "environments/environment.prod";
         <div class="seperator"></div>
       </div>
       <br />
-      <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
+      <div class="sheet" style="width:500px;max-width:80%">
         <div class="seperator"></div>
-        <div class="title" style="background-color:whitesmoke">
+        <div class="title">
           Which currency are you using?
         </div>
         <div style="padding:10px">
           <ul class="listLight">
-            <li
+            <li class="buttonBlack"
               *ngFor="let currency of objectToArray(UI.appSettingsPayment.currencyList)"
               (click)="currencySelected = currency[0]; refreshAmountCharge()"
-              style="float:left;width:125px;padding:5px;margin:5px;text-align:center;font-size:10px;border-radius:3px"
-              [style.background-color]="
-                currencySelected == currency[0] ? 'black' : 'white'
-              "
-              [style.color]="
+              style="float:left;width:125px;margin:5px"
+              [style.border-color]="
                 currencySelected == currency[0] ? 'white' : 'black'
-              "
-              [style.border-style]="
-                currencySelected == currency[0] ? 'none' : 'solid'
-              "
-              [style.border-width]="
-                currencySelected == currency[0] ? 'none' : '1px'
               "
             >
               {{ currency[1].designation }}
@@ -182,26 +173,19 @@ import { environment } from "environments/environment.prod";
         <div class="seperator"></div>
       </div>
       <br />
-      <div class="sheet" style="width:500px;max-width:80%;border-radius:3px">
+      <div class="sheet" style="width:500px;max-width:80%">
         <div class="seperator"></div>
-        <div class="title" style="background-color:whitesmoke">
+        <div class="title">
           How much credit would you like to purchase?
         </div>
         <div style="padding:10px">
           <ul class="listLight">
-            <li
+            <li class="buttonBlack"
               *ngFor="let credit of creditList; let index = index"
               (click)="creditSelected = index; refreshAmountCharge()"
-              style="float:left;width:63px;padding:5px;margin:5px;text-align:center;font-size:10px;border-radius:3px"
-              [style.background-color]="
-                creditSelected == index ? 'black' : 'white'
-              "
-              [style.color]="creditSelected == index ? 'white' : 'black'"
-              [style.border-style]="
-                creditSelected == index ? 'none' : 'solid'
-              "
-              [style.border-width]="
-                creditSelected == index ? 'none' : '1px'
+              style="float:left;width:63px;margin:5px"
+              [style.border-color]="
+                creditSelected == index ? 'white' : 'black'
               "
             >
               {{ credit | number : "1.0-0" }}
@@ -213,12 +197,12 @@ import { environment } from "environments/environment.prod";
       <br />
       <div
         class="module form-module"
-        style="width:500px;max-width:80%;border-style:solid;border-width:1px;border-color:#ddd;border-radius:3px"
+        style="width:500px;max-width:80%;border-style:solid"
       >
-        <div class="title" style="background-color:whitesmoke">
+        <div class="title">
           Credit or debit card
         </div>
-        <div class="form">
+        <div class="form" style="background-color:#ddd">
           <form (ngSubmit)="createStripeToken()" class="checkout">
             <div id="form-field">
               <div id="card-info" #cardElement></div>
@@ -242,18 +226,14 @@ import { environment } from "environments/environment.prod";
                 }}
               </button>
               <br />
-              <mat-error id="card-errors" role="alert" *ngIf="stripeMessage">
+              <mat-error id="card-errors" role="alert" *ngIf="stripeMessage" style="color:#333">
                 &nbsp;{{ stripeMessage }}
               </mat-error>
             </div>
+            <div style="float:right">
+              <img src="./../assets/App icons/poweredByStripe2.png" style="width:175px"/>
+            </div>
           </form>
-        </div>
-        <div class="seperator"></div>
-        <div style="float:right">
-          <img
-            src="./../assets/App icons/poweredByStripe2.png"
-            style="width:175px"
-          />
         </div>
       </div>
       <br />

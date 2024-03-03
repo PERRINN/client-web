@@ -6,6 +6,9 @@
   padding: 0px;
   font-size: 13px;
   line-height: 20px;
+  border-color:darkslategray;
+  border-radius:2px;
+  border-width:thin;
   overflow: hidden;
   -webkit-overflow-scrolling: touch;
 }
@@ -19,16 +22,17 @@
     height: 5px;
 }
 *::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, .5);
+    background-color:gainsboro;
 }
 *::-webkit-scrollbar-track {
-    background-color: #fff;
+    background-color: #222;
 }
 html {
 }
 body {
   border: 0;
-  background-color: #fafafa;
+  background-color:darkslategray;
+  color: gainsboro;
 }
 #main_container {
   margin: 0 auto;
@@ -68,28 +72,18 @@ a:visited {
 .menu .iconSmall .activity {
   height: 12px;
   width: 12px;
-  background-color: red;
-  border-radius:3px;
+  background-color:darkred;
   position: absolute;
   top: 1px;
   left: 34px;
   z-index: 1000;
 }
-.memberStatus {
-  background-color: #3fba3b;
-  color: white;
-  text-align: center;
-  font-size: 10px;
-  padding: 3px;
-  border-radius:3px;
-  width: 130px;
-  margin: 10px;
-  user-select: none;
-}
 .listLight {
-  color: #666;
   list-style-type: none;
   clear: both;
+}
+.listLight li:hover {
+  background-color:#333;
 }
 .listLight .userIcon {
   text-align: center;
@@ -102,102 +96,100 @@ a:visited {
 .seperator {
   border-style: solid;
   border-width: 0px 0px 1px 0px;
-  border-color: #ddd;
   clear: both;
 }
 .listLight .activity {
   height: 12px;
   width: 12px;
-  background-color: red;
-  border-radius:3px;
+  background-color:darkred;
   position: absolute;
   top: 0px;
   right: 0px;
   z-index: 1000;
 }
-.listLight .button {
-  cursor: pointer;
-  margin: 2px 5px 2px 5px;
-  width:100px;
-  height:20px;
-  float:left;
-  text-align:center;
-  border-style:solid;
-  border-width:thin;
-  border-radius:3px;
-  user-select: none;
-}
 .listLight .selected {
-  background-color: #eee !important;
+  background-color: darkslategray;
 }
-.buttonDiv {
+.buttonBlack {
   cursor: pointer;
-  color: #4b5cd8;
+  background-color: black;
+  color: gainsboro;
   margin: 0 auto;
-  margin-top: 5px;
-  margin-bottom: 5px;
-  width:100px;
   text-align:center;
   border-style:solid;
-  border-width:thin;
-  border-radius:3px;
-  user-select: none;
+  padding:3px;
+}
+.buttonBlack:hover{
+  opacity: 0.95;
+}
+.buttonWhite {
+  cursor: pointer;
+  background-color:whitesmoke;
+  color: black;
+  margin: 0 auto;
+  text-align:center;
+  border-style:solid;
+  padding:3px;
+}
+.buttonWhite:hover{
+  opacity: 0.95;
+}
+.buttonRed {
+  cursor: pointer;
+  background-color:darkred;
+  color: gainsboro;
+  margin: 0 auto;
+  text-align:center;
+  border-style:none;
+  padding:3px;
+}
+.buttonRed:hover{
+  opacity: 0.95;
+}
+.material-icons .material-icons-outlined {
+  color:gainsboro;
 }
 button {
   cursor: pointer;
-  background: black;
+  background-color: black;
   width: 90%;
   max-width: 250px;
   border: 0;
   padding: 7px;
   margin: 10px;
-  color: white;
+  color: gainsboro;
   -webkit-transition: 0.3s ease;
   transition: 0.3s ease;
-  border-radius:3px;
   text-align:center;
   user-select: none;
 }
 input {
+  background-color:#123;
+  color: gainsboro;
   width: 90%;
-  border-width: thin;
+  border-style:solid;
   padding: 10px;
   margin: 5px 10px 5px 10px;
   box-sizing: border-box;
   -webkit-transition: 0.3s ease;
   transition: 0.3s ease;
-  border-radius:3px;
 }
 .textAreaInput {
   resize: none;
   overflow-y: scroll;
   width: 90%;
-  border-width: thin;
   padding: 10px;
   margin: 5px 10px 5px 10px;
   box-sizing: border-box;
   -webkit-transition: 0.3s ease;
   transition: 0.3s ease;
-  border-radius:3px;
-}
-.cornerButton {
-  border-style:solid;
-  border-width:thin;
-  line-height:35px;
-  font-size:20px;
-  text-align:center;
-  margin: 0 10px 0 10px;
-  background-color:#FEF;
-  border-color:#AAA;
-  border-radius:3px;
-  height:40px;
-  width:40px
+  background-color: black;
 }
 .message {
   font-size: 10px;
   background: #1db217;
   box-sizing: border-box;
-  color: white;
+  color: #222;
   text-align: center;
 }
 .message .general {
@@ -211,47 +203,39 @@ input {
 }
 /* Form Module */
 .form-module {
-  background: #ffffff;
   margin: 0 auto;
 }
 .form-module .form {
   padding: 20px;
 }
 .form-module .top {
-  background: #f2f2f2;
   width: 100%;
   padding: 7px;
   box-sizing: border-box;
-  color: #666666;
   text-align: center;
 }
 .form-module .cta {
-  background: #f2f2f2;
   width: 100%;
   padding: 7px;
   box-sizing: border-box;
-  color: #666666;
   text-align: center;
 }
 .form-module .cta a {
   font-size: 10px;
-  color: #333333;
   text-decoration: none;
 }
 hr {
     display: block;
     margin: 10px 10px 10px 10px;
     border-style: ridge;
-    border-width: thin;
 }
 .sheet {
   margin: 0 auto;
   width: 100%;
   max-width: 800px;
-  background-color: white;
+  background-color: #222;
   border-style: solid;
   border-width: 0 1px 0 1px;
-  border-color: #ddd;
   user-select:none;
 }
 .sheet .fixed {
@@ -260,25 +244,18 @@ hr {
   z-index: 999;
   width: 100%;
   max-width: 798px;
-  background-color: white;
+  background-color:black;
 }
 .title {
   padding:10px;
-  color:#4b4f56;
+  background-color:black;
   font-size: 14px;
-  font-weight: bold;
   font-family: sans-serif;
   line-height: 15px;
   clear:both;
 }
 .sheet .content {
   padding: 5px 10px 5px 10px;
-}
-.sheetBadge {
-  width:280px;
-  margin: 10px auto;
-  border-radius:3px;
-  background-color: white;
 }
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
@@ -294,7 +271,6 @@ input[type=number]::-webkit-outer-spin-button {
 	z-index: -1;
 }
 .inputfile + label {
-    color: black;
     cursor: pointer;
 }
 progress {
@@ -305,7 +281,7 @@ progress {
   appearance:none;
   width:100%;
   height:3px;
-  background-color: white;
+  background-color: #222;
 }
 progress::-webkit-progress-bar {
   background-color: transparent; width: 100%;
@@ -332,19 +308,17 @@ iframe {
   border:none;
 }
 .inputTitle {
-  border-radius: none;
   width: 100%;
   padding: 5px;
   margin: 0px;
   border: none;
-  color:#4b4f56;
   font-size: 16px;
   line-height: 16px;
   font-weight: bold;
   font-family: sans-serif;
 }
 .tableRow:hover {
-  background-color:#eee;
+  opacity: 0.95;
 }
 img {
   image-orientation:from-image;
@@ -355,7 +329,6 @@ img:hover {
 .chatButton{
   cursor:pointer;
   font-size:14px;
-  color:black;
   text-align:center;
   width:70px;
   margin:2px;
@@ -363,12 +336,10 @@ img:hover {
 .note {
   white-space: pre-wrap;
   overflow-y: scroll;
-  border-radius: none;
   width: 100%;
   padding: 5px;
   margin: 0px;
   border: none;
-  color:#4b4f56;
   font-size: 12px;
   line-height: 12px;
 }
@@ -384,8 +355,7 @@ img:hover {
   height: 10px;
   margin:5px;
   background-color:#3e6ab2;
-
-  border-radius: 100%;
+  border-radius:100%;
   display: inline-block;
   -webkit-animation: sk-bouncedelay 1.4s infinite ease-in-out both;
   animation: sk-bouncedelay 1.4s infinite ease-in-out both;

@@ -10,7 +10,7 @@ import firebase from 'firebase/compat/app';
 @Component({
   selector:'directory',
   template:`
-  <div class="sheet" style="background-color:whitesmoke">
+  <div class="sheet" style="background-color:black">
     <div style="margin:15px">
       <span style="font-size:12px">PERRINN members are PERRINN Limited UK ({{UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance|percent:'1.0-0'}} of all credits) and our public community ({{1-(UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)|percent:'1.0-0'}}).</span>
       <br>
@@ -31,9 +31,9 @@ import firebase from 'firebase/compat/app';
   <ul class="listLight">
     <li *ngFor="let message of messages | async">
       <div (click)="router.navigate(['profile',message.values.user])">
-        <img [src]="message?.values.imageUrlThumbUser" style="float:left;margin:10px;opacity:1;object-fit:cover;height:50px;width:50px;border-radius:50%">
+        <img [src]="message?.values.imageUrlThumbUser" style="float:left;margin:10px;opacity:1;object-fit:cover;height:50px;width:50px">
         <div style="float:left;padding:10px;width:20%">
-          <div style="font-weight:bold">{{message.values?.name}}</div>
+          <div>{{message.values?.name}}</div>
         </div>
         <div style="float:left;padding:10px;width:45%">
           <span style="font-size:10px"> {{message.values?.userPresentation}}</span>

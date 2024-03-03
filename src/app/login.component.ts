@@ -14,30 +14,30 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
         <form>
           <img src="./../assets/App icons/424logoMedium.png" style="width:200px;display:block;margin: 0 auto">
           <br>
-          <div style="font-family:open-sans;font-weight:bold;font-size:36px;line-height:36px;color:black;padding:10px">We are building a better team, right here.</div>
-          <div style="font-family:open-sans;font-weight:bold;font-size:28px;line-height:28px;color:black;padding:10px">Join today.</div>
+          <div style="font-size:30px;line-height:30px;padding:10px">We are building a better team, right here.</div>
+          <div style="font-size:22px;line-height:22px;padding:10px">Join today.</div>
           <br>
-          <div style="font-family:open-sans;font-weight:bold;font-size:18px;line-height:20px;color:black;padding:10px">We are taking communication, collaboration and value exchange to the next level.</div>
-          <div style="font-family:open-sans;font-weight:bold;font-size:18px;line-height:20px;color:black;padding:10px">We have big plans. Today we are busy creating 424, the fastest electric hypercar ever made. Tomorrow we might launch a rocket.</div>
-          <div style="font-size:12px;color:black;padding:10px">#sustainability #open #collaboration #teamspirit</div>
+          <div style="font-size:14px;line-height:20px;padding:10px">We are taking communication, collaboration and value exchange to the next level.</div>
+          <div style="font-size:14px;line-height:20px;padding:10px">We have big plans. Today we are busy creating 424, the fastest electric hypercar ever made. Tomorrow we might launch a rocket.</div>
+          <div style="font-size:12px;padding:10px">#sustainability #open #collaboration #teamspirit</div>
           <br>
-          <div style="font-size:12px;text-align:center;line-height:15px;width:150px;padding:4px;margin:10px auto;color:black;background-color:white;border-radius:3px;cursor:pointer;border-width:1px;border-style:solid" onclick="window.open('https://discover.perrinn.com','_blank')">Discover PERRINN</div>
-          <div [hidden]="action=='register'" style="font-size:12px;text-align:center;line-height:15px;width:150px;padding:4px;margin:10px auto;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="action='register';messageUser=''">New member</div>
-          <div [hidden]="action=='login'" style="font-size:12px;text-align:center;line-height:15px;width:150px;padding:4px;margin:10px auto;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="action='login';messageUser=''">Existing member</div>
+          <div class="buttonWhite" style="font-size:12px;text-align:center;line-height:15px;width:150px;padding:4px;margin:10px auto" onclick="window.open('https://discover.perrinn.com','_blank')">Discover PERRINN</div>
+          <div class="buttonBlack" [hidden]="action=='register'" style="font-size:12px;line-height:15px;width:150px;padding:4px;margin:10px auto" (click)="action='register';messageUser=''">New member</div>
+          <div class="buttonBlack" [hidden]="action=='login'" style="font-size:12px;line-height:15px;width:150px;padding:4px;margin:10px auto" (click)="action='login';messageUser=''">Existing member</div>
           <div *ngIf="action=='login'||action=='register'">
             <input maxlength="500" [(ngModel)]="email" name="email" type="text" placeholder="Email *" (keyup)="messageUser=''" autofocus required/>
             <input maxlength="500" [(ngModel)]="password" name="password" type="password" placeholder="Password *" (keyup)="messageUser=''" required/>
           </div>
           <div *ngIf="action=='login'">
-            <div style="font-size:14px;text-align:center;line-height:25px;width:200px;padding:4px;margin:10px auto;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="login(email,password)">Login</div>
-            <div style="text-align:center; font-size:12px; cursor:pointer; color:black; padding:10px;" (click)="resetPassword(email)">Forgot password?</div>
+            <div class="buttonWhite" style="font-size:14px;text-align:center;line-height:25px;width:200px;padding:4px;margin:10px auto" (click)="login(email,password)">Login</div>
+            <div class="buttonBlack" style="width:125px;font-size:10px;padding:10px" (click)="resetPassword(email)">Forgot password?</div>
           </div>
           <div *ngIf="action=='register'">
             <input maxlength="500" [(ngModel)]="passwordConfirm" name="passwordConfirm" type="password" placeholder="Confirm password *" (keyup)="messageUser=''"/>
             <input maxlength="500" [(ngModel)]="name" name="name" type="text" placeholder="First name *" (keyup)="messageUser=''"/>
-            <div style="font-size:14px;text-align:center;line-height:25px;width:200px;padding:4px;margin:10px auto;color:white;background-color:black;border-radius:3px;cursor:pointer" (click)="register(email,password,passwordConfirm,name)">Register</div>
+            <div class="buttonWhite" style="font-size:14px;text-align:center;line-height:25px;width:200px;padding:4px;margin:10px auto" (click)="register(email,password,passwordConfirm,name)">Register</div>
           </div>
-          <div *ngIf="messageUser" style="text-align:center;padding:10px;color:red">{{messageUser}}</div>
+          <div *ngIf="messageUser" style="text-align:center;padding:10px;color:darkred">{{messageUser}}</div>
         </form>
       </div>
     </div>
