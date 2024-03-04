@@ -45,10 +45,10 @@ import firebase from 'firebase/compat/app'
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
     <div *ngIf="scope=='all'">
-      <div class="material-icons" style="float:left;margin:5px;cursor:pointer" (click)="showTags=!showTags">filter_list</div>
+      <div class="material-icons" style="float:left;margin:10px;cursor:pointer" (click)="showTags=!showTags">filter_list</div>
       <div *ngIf="UI.tagFilters.length>0" style="float:left;font-size:10px;line-height:15px;padding:10px;cursor:pointer" (click)="UI.tagFilters=[];refreshMessages()">Clear {{UI.tagFilters.length}} filter{{UI.tagFilters.length>1?'s':''}}</div>
       <ul class="listLight" *ngIf="showTags">
-        <li class="buttonBlack" *ngFor="let message of tags|async" style="float:left;width:100px;margin:5px;font-size:11px"
+        <li class="buttonBlack" *ngFor="let message of tags|async" style="float:left;width:100px;margin:10px;font-size:11px"
           [style.border-color]="UI.tagFilters.includes(message.payload.doc.data()?.tag)?'white':'black'"
           (click)="UI.tagFilters.includes(message.payload.doc.data()?.tag)?UI.tagFilters.splice(UI.tagFilters.indexOf(message.payload.doc.data()?.tag),1):UI.tagFilters.push(message.payload.doc.data()?.tag);refreshMessages()">
           {{message.payload.doc.data()?.tag}}
@@ -66,7 +66,7 @@ import firebase from 'firebase/compat/app'
               <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer">event</span>
             </div>
             <div>
-              <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
+              <div style="float:left;margin-top:10px;width:60%;white-space:nowrap;text-overflow:ellipsis">
                 <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer">settings</span>
                 <span style="font-size:15px">{{message.payload.doc.data()?.chatSubject}}</span>
               </div>
@@ -91,7 +91,7 @@ import firebase from 'firebase/compat/app'
               <span class="material-symbols-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer">crowdsource</span>
             </div>
             <div>
-              <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
+              <div style="float:left;margin-top:10px;width:60%;white-space:nowrap;text-overflow:ellipsis">
                 <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer">settings</span>
                 <span style="font-size:15px">{{message.payload.doc.data()?.chatSubject}}</span>
               </div>
@@ -119,7 +119,7 @@ import firebase from 'firebase/compat/app'
               <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer">poll</span>
             </div>
             <div>
-              <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
+              <div style="float:left;margin-top:10px;width:60%;white-space:nowrap;text-overflow:ellipsis">
                 <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer">settings</span>
                 <span style="font-size:15px">{{message.payload.doc.data()?.chatSubject}}</span>
               </div>
@@ -141,11 +141,11 @@ import firebase from 'firebase/compat/app'
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
             <div style="float:left;min-width:84px;min-height:40px">
-              <img [src]="message.payload.doc.data()?.imageUrlThumbUser" style="float:left;margin:7px 2px 7px 4px;object-fit:cover;height:40px;width:40px">
-              <img *ngIf="message.payload.doc.data()?.recipientList[1]" [src]="message.payload.doc.data()?.recipients[message.payload.doc.data()?.recipientList[1]]?.imageUrlThumb" style="float:left;margin:7px 4px 7px 2px;object-fit:cover;height:25px;width:25px">
+              <img [src]="message.payload.doc.data()?.imageUrlThumbUser" style="float:left;margin:12px 2px 12px 4px;object-fit:cover;height:40px;width:40px">
+              <img *ngIf="message.payload.doc.data()?.recipientList[1]" [src]="message.payload.doc.data()?.recipients[message.payload.doc.data()?.recipientList[1]]?.imageUrlThumb" style="float:left;margin:12px 4px 12px 2px;object-fit:cover;height:25px;width:25px">
             </div>
             <div>
-              <div style="float:left;margin-top:5px;width:60%;white-space:nowrap;text-overflow:ellipsis">
+              <div style="float:left;margin-top:10px;width:60%;white-space:nowrap;text-overflow:ellipsis">
                 <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer">settings</span>
                 <span style="font-size:15px">{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</span>
               </div>
@@ -160,8 +160,8 @@ import firebase from 'firebase/compat/app'
                 [style.color]="'#B0BAC0'">
                 {{message.payload.doc.data()?.recipients[UI.currentUser]?.unreadMessages}}
               </div>
-              <div style="float:right;margin-top:5px;color:#999;font-size:11px;margin-right:10px;width:40px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</div>
-              <div style="clear:both;float:left;height:42px;width:90%;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">
+              <div style="float:right;margin-top:10px;color:#999;font-size:11px;margin-right:10px;width:40px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</div>
+              <div style="clear:both;float:left;margin-bottom:10px;width:90%;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">
                 <span>{{message.payload.doc.data()?.name}}:&nbsp;</span>
                 <span *ngIf="message.payload.doc.data()?.imageResized" class="material-icons-outlined" style="font-size:15px;line-height:12px;margin-right:2px">aspect_ratio</span>
                 <span>{{message.payload.doc.data()?.text}}</span>
