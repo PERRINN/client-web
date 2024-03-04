@@ -25,14 +25,14 @@ import firebase from 'firebase/compat/app'
           <div *ngIf="math.floor(eventDate/60000-UI.nowSeconds/60)>-60" style="clear:both">
             <span class="material-icons-outlined" style="float:left;font-size:20px;margin-right:5px">event</span>
             <div [style.background-color]="(math.floor((eventDate/1000-UI.nowSeconds)/60)>60*8)?'black':'red'" style="float:left;color:whitesmoke;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(eventDate/1000-UI.nowSeconds)}}</div>
-            <div *ngIf="math.floor(eventDate/60000-UI.nowSeconds/60)<=0&&math.floor(eventDate/60000-UI.nowSeconds/60)>-60" style="float:left;background-color:darkred;color:whitesmoke;padding:0 5px 0 5px">Now</div>
+            <div *ngIf="math.floor(eventDate/60000-UI.nowSeconds/60)<=0&&math.floor(eventDate/60000-UI.nowSeconds/60)>-60" style="float:left;background-color:#E06670;color:whitesmoke;padding:0 5px 0 5px">Now</div>
             <div style="float:left;margin:0 5px 0 5px">{{eventDescription}}</div>
             <div style="float:left;margin:0 5px 0 0">{{eventDate|date:'EEEE d MMM HH:mm'}}</div>
           </div>
           <div *ngIf="fund?.active" style="clear:both">
             <span class="material-symbols-outlined" style="float:left;font-size:20px;margin-right:5px">crowdsource</span>
             <div style="float:left;background-color:black;height:20px;width:65px;text-align:center;color:whitesmoke;padding:0 5px 0 5px"></div>
-            <div style="float:left;height:20px;background-color:darkred;margin-left:-65px" [style.width]="(fund?.amountGBPRaised/fund?.amountGBPTarget)*65+'px'"></div>
+            <div style="float:left;height:20px;background-color:#E06670;margin-left:-65px" [style.width]="(fund?.amountGBPRaised/fund?.amountGBPTarget)*65+'px'"></div>
             <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;color:whitesmoke;padding:0 5px 0 5px">{{(fund?.amountGBPRaised/fund?.amountGBPTarget)|percent:'1.0-0'}}</div>
             <div style="float:left;margin:0 5px 0 5px">{{fund.daysLeft|number:'1.0-0'}} days left</div>
             <div style="float:left;margin:0 5px 0 0">{{fund.description}},</div>
@@ -45,7 +45,7 @@ import firebase from 'firebase/compat/app'
             <div style="float:left;margin:0 5px 0 5px">{{survey.question}}</div>
             <span *ngFor="let answer of survey.answers;let last=last" style="float:left;margin:0 5px 0 5px">{{answer.answer}} ({{(answer.votes.length/survey.totalVotes)|percent:'1.0-0'}})</span>
             <span style="float:left;margin:0 5px 0 5px">{{survey.totalVotes}} vote{{survey.totalVotes>1?'s':''}}</span>
-            <div *ngIf="!chatLastMessageObj?.recipients[UI.currentUser]?.voteIndexPlusOne" style="clear:both;color:darkred;margin:0 5px 0 5px">vote now</div>
+            <div *ngIf="!chatLastMessageObj?.recipients[UI.currentUser]?.voteIndexPlusOne" style="clear:both;color:#E06670;margin:0 5px 0 5px">vote now</div>
           </div>
         </div>
         <span class="material-icons-outlined" style="float:right;padding:7px" (click)="showImageGalleryClick()">{{showImageGallery?'question_answer':'collections'}}</span>
@@ -68,7 +68,7 @@ import firebase from 'firebase/compat/app'
           <img [src]="chatLastMessageObj?.recipients[recipient]?.imageUrlThumb" style="float:left;object-fit:cover;height:25px;width:25px;margin:3px 3px 3px 10px">
           <div style="float:left;margin:10px 5px 3px 3px;font-size:12px;line-height:10px;font-family:sans-serif">{{chatLastMessageObj?.recipients[recipient]?.name}}</div>
         </div>
-        <div style="float:left;cursor:pointer;margin:10px 15px 3px 3px;font-size:12px;line-height:10px;font-family:sans-serif;color:darkred" (click)="removeRecipient(recipient,chatLastMessageObj?.recipients[recipient]?.name)">X</div>
+        <div style="float:left;cursor:pointer;margin:10px 15px 3px 3px;font-size:12px;line-height:10px;font-family:sans-serif;color:#E06670" (click)="removeRecipient(recipient,chatLastMessageObj?.recipients[recipient]?.name)">X</div>
       </li>
     </ul>
     <input style="width:60%;margin:10px" maxlength="500" (keyup)="refreshSearchLists()" [(ngModel)]="searchFilter" placeholder="Add people">
@@ -153,7 +153,7 @@ import firebase from 'firebase/compat/app'
     <div class="seperator" style="width:100%;margin-bottom:150px"></div>
   </div>
 
-  <div class="sheet" id="chat_window" *ngIf="!showChatDetails&&!showImageGallery" style="padding:50px 0 0 0;overflow-y:auto;height:100%" scrollable>
+  <div class="sheet" id="chat_window" *ngIf="!showChatDetails&&!showImageGallery" style="padding:100px 0 0 0;overflow-y:auto;height:100%" scrollable>
     <div class="spinner" *ngIf="UI.loading">
       <div class="bounce1"></div>
       <div class="bounce2"></div>
@@ -170,7 +170,7 @@ import firebase from 'firebase/compat/app'
           <div *ngIf="message.payload?.imageUrlThumbUser&&(isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first)" style="float:left;width:60px;min-height:10px">
             <img [src]="message.payload?.imageUrlThumbUser" style="cursor:pointer;display:inline;float:left;margin:0 10px 10px 10px; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
           </div>
-          <div [style.background-color]="(message.payload?.user==UI.currentUser)?'darkslategray':'black'"
+          <div [style.background-color]="(message.payload?.user==UI.currentUser)?'#222C32':'black'"
                 style="cursor:text;margin:0 10px 5px 60px;user-select:text;border-color:magenta"
                 [style.border-style]="(message.payload?.text.includes(UI.currentUserLastMessageObj?.name))?'solid':'none'">
             <div>
@@ -236,7 +236,7 @@ import firebase from 'firebase/compat/app'
           {{(last||i==(messageNumberDisplay-1))?scrollToBottom(message.payload?.serverTimestamp?.seconds):''}}
         </li>
       </ul>
-      <div style="height:100px;width:100%"></div>
+      <div style="height:150px;width:100%"></div>
     </div>
   </div>
 
@@ -261,11 +261,11 @@ import firebase from 'firebase/compat/app'
 
 
   <div class="sheet" *ngIf="!showImageGallery">
-    <div class="fixed" style="bottom:0">
+    <div class="fixed" style="bottom:0;padding-bottom:25px">
       <span *ngIf="chatLastMessageObj?.chatSubject==null" style="margin:5px;font-size:10px">This message will be the subject of this chat</span>
       <div class="seperator" style="width:100%"></div>
       <div style="clear:both;float:left;width:90%">
-        <input autocapitalize="none" style="float:left;padding:9px;resize:none;overflow-y:scroll"  [style.width]="imageDownloadUrl?'80%':'95%'" maxlength="500" (keyup.enter)="addMessage()" [(ngModel)]="draftMessage" placeholder="Reply all">
+        <input autocapitalize="none" style="float:left;padding:10px;resize:none;overflow-y:scroll"  [style.width]="imageDownloadUrl?'80%':'95%'" maxlength="500" (keyup.enter)="addMessage()" [(ngModel)]="draftMessage" placeholder="Reply all">
         <div *ngIf="imageDownloadUrl" style="float:left;width:15%">
           <img [src]="imageDownloadUrl" style="object-fit:cover;height:53px;margin:0 auto">
         </div>
@@ -276,7 +276,7 @@ import firebase from 'firebase/compat/app'
       <div *ngIf="!draftMessage&&!imageDownloadUrl" style="float:right;width:10%;cursor:pointer">
         <input type="file" name="chatImage" id="chatImage" class="inputfile" (change)="onImageChange($event)" accept="image/*">
         <label class="buttonUploadImage" for="chatImage" id="buttonFile">
-        <span class="material-icons-outlined" style="margin:15px 5px 5px 5px;font-size:30px;color:gainsboro">photo_camera</span>
+        <span class="material-icons-outlined" style="margin:15px 5px 5px 5px;font-size:30px;color:#B0BAC0">photo_camera</span>
         </label>
       </div>
     </div>

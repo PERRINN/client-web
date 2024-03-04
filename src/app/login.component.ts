@@ -37,7 +37,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
             <input maxlength="500" [(ngModel)]="name" name="name" type="text" placeholder="First name *" (keyup)="messageUser=''"/>
             <div class="buttonWhite" style="font-size:14px;text-align:center;line-height:25px;width:200px;padding:4px;margin:10px auto" (click)="register(email,password,passwordConfirm,name)">Register</div>
           </div>
-          <div *ngIf="messageUser" style="text-align:center;padding:10px;color:darkred">{{messageUser}}</div>
+          <div *ngIf="messageUser" style="text-align:center;padding:10px;color:#E06670">{{messageUser}}</div>
         </form>
       </div>
     </div>

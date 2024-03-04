@@ -51,7 +51,7 @@ import { environment } from "environments/environment.prod";
                   style="float:left;background-color:black;height:20px;width:65px;text-align:center;padding:0 5px 0 5px"
                 ></div>
                 <div
-                  style="float:left;height:20px;background-color:darkred;margin-left:-65px"
+                  style="float:left;height:20px;background-color:#E06670;margin-left:-65px"
                   [style.width]="
                     (message.payload.doc.data()?.fund?.amountGBPRaised /
                       message.payload.doc.data()?.fund?.amountGBPTarget) *
