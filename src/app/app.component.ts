@@ -20,11 +20,11 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
       <div *ngIf="UI.currentUser" style="max-width:800px;margin:0 auto">
         <span class="material-icons" style="font-size:25px;float:right;margin:5px;cursor:pointer" (click)="router.navigate(['apps'])">apps</span>
         <span class="material-icons" style="font-size:25px;float:right;margin:5px;cursor:pointer" (click)="newMessage()">create</span>
-        <div style="float:left;width:195px;height:45px;cursor:pointer" (click)="router.navigate(['profile',UI.currentUser])">
+        <div style="float:left;width:220px;height:45px;cursor:pointer" (click)="router.navigate(['profile',UI.currentUser])">
           <img *ngIf="UI.currentUserLastMessageObj?.imageUrlThumbUser" [src]="UI.currentUserLastMessageObj.imageUrlThumbUser" style="display:inline;float:left;margin:4px;object-fit:cover;width:35px;height:35px">
           <div style="float:left;margin:11px;font-size:12px">
             <span>{{UI.formatSharesToCurrency(null,UI.currentUserLastMessageObj.wallet.shareBalance||0)}}</span>
-            <span style="margin-left:9px"> {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} APY</span>
+            <span style="margin-left:8px"> {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} growth</span>
           </div>
         </div>
         <div style="float:left;width:250px">
