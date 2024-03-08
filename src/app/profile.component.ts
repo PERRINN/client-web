@@ -27,8 +27,8 @@ import firebase from 'firebase/compat/app'
             <br>
             <span style="font-size:10px">{{focusUserLastMessageObj?.userPresentation}}</span>
             <span *ngIf="focusUserLastMessageObj?.contract?.signed" style="font-size:10px"> Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
-            <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px;color:black">Waiting for contract signature (Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}})</span>
-            <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin:15px;font-size:10px;color:black;cursor:pointer" (click)=signContract()>Sign contract</span>
+            <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px">Waiting for contract signature (Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}})</span>
+            <span class="buttonBlack" *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin:15px;font-size:10px" (click)=signContract()>Sign contract</span>
           </div>
           <div *ngIf="focusUserLastMessageObj?.user==UI.currentUser" class="material-icons" style="float:right;cursor:pointer" (click)="router.navigate(['settings'])">settings</div>
         </div>
@@ -40,7 +40,7 @@ import firebase from 'firebase/compat/app'
           <div style="float:left;font-size:10px;width:55px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='chain'?'underline':'none'" (click)="mode='chain';refreshMessages()">chain</div>
           <div style="float:left;font-size:10px;width:85px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='10yearForecast'?'underline':'none'" (click)="mode='10yearForecast';refreshMessages()">10 year forecast</div>
         </div>
-        <div *ngIf="UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="float:left;font-size:10px;padding:2px 4px 2px 4px;margin-right:5px;color:black;border-style:solid;cursor:pointer">New message to {{focusUserLastMessageObj?.name}}</div>
+        <div class="buttonWhite" *ngIf="UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="float:left;font-size:10px;padding:2px 4px 2px 4px;margin-right:5px">New message to {{focusUserLastMessageObj?.name}}</div>
       </div>
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
