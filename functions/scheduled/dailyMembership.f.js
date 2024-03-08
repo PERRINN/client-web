@@ -107,10 +107,10 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     })
 
     console.log(statistics.userCount+' users processed.')
-    console.log(statistics.emailsMembersAuth.length+' PERRINN members.')
+    console.log(statistics.emailsMembersAuth.length+' Contributors.')
     console.log(statistics.emailsAPIGoogle.length+' Google users.')
     console.log(statistics.emailsAPIOnshape.length+' Onshape users.')
-    console.log('Members Emails: '+JSON.stringify(statistics.emailsMembersAuth))
+    console.log('Contributors Emails: '+JSON.stringify(statistics.emailsMembersAuth))
     console.log('Google Emails: '+JSON.stringify(statistics.emailsAPIGoogle))
     console.log('Onshape Emails: '+JSON.stringify(statistics.emailsAPIOnshape))
     console.log('invalid Google Emails: '+JSON.stringify(statistics.emailsInvalidGoogle))
