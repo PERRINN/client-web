@@ -21,16 +21,16 @@ import firebase from "firebase/compat/app";
 import { environment } from "environments/environment.prod";
 
 @Component({
-  selector: "sell",
+  selector: "exchange",
   template: `
     <div class="sheet">
-      <div style="font-size:14px;line-height:20px;padding:30px">Soon you will be able to sell your credit to other members from here.</div>
+      <div style="font-size:14px;line-height:20px;padding:30px">Soon you will be able to exchange your credit with other members here.</div>
       <div style="font-size:14px;line-height:20px;padding:30px">We are building this new feature, stay tuned.</div>
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
   `,
 })
-export class SellComponent {
+export class ExchangeComponent {
 
   constructor(
     public afAuth: AngularFireAuth,

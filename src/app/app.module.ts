@@ -11,8 +11,8 @@ import { LoginComponent }  from './login.component';
 import { ProfileComponent }  from './profile.component';
 import { SettingsComponent }  from './settings.component';
 import { DirectoryComponent }  from './directory.component';
-import { BuyComponent }  from './buy.component';
-import { SellComponent }  from './sell.component';
+import { ContributeComponent }  from './contribute.component';
+import { ExchangeComponent }  from './exchange.component';
 import { LinkyModule } from 'angular-linky';
 
 import { PipeModule }    from './pipes.module';
@@ -48,8 +48,8 @@ export const firebaseConfig = {
     ProfileComponent,
     SettingsComponent,
     DirectoryComponent,
-    BuyComponent,
-    SellComponent,
+    ContributeComponent,
+    ExchangeComponent,
     ScrollableDirective,
   ],
   imports: [

@@ -6,8 +6,8 @@ import { ChatComponent } from './chat.component';
 import { ProfileComponent } from './profile.component';
 import { SettingsComponent } from './settings.component';
 import { DirectoryComponent } from './directory.component';
-import { BuyComponent } from './buy.component';
-import { SellComponent } from './sell.component';
+import { ContributeComponent } from './contribute.component';
+import { ExchangeComponent } from './exchange.component';
 
 const appRoutes: Routes = [
   { path: 'apps', component: AppsComponent },
@@ -16,8 +16,8 @@ const appRoutes: Routes = [
   { path: 'settings', component: SettingsComponent },
   { path: 'login', component: LoginComponent },
   { path: 'directory', component: DirectoryComponent },
-  { path: 'buy', component: BuyComponent },
-  { path: 'sell', component: SellComponent },
+  { path: 'contribute', component: ContributeComponent },
+  { path: 'exchange', component: ExchangeComponent },
   { path: '',   redirectTo: '/login', pathMatch: 'full' },
   { path: '**', component: LoginComponent }
 ];

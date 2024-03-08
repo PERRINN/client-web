@@ -27,9 +27,9 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
             <span style="margin-left:9px"> {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} APY</span>
           </div>
         </div>
-        <div style="float:left;width:180px">
-          <div class="buttonWhite" style="float:left;font-size:12px;line-height:20px;width:65px;padding:2px;margin:7px" (click)="router.navigate(['buy'])">Buy</div>
-          <div class="buttonBlack" style="float:left;font-size:12px;line-height:20px;width:65px;padding:2px;margin:7px" (click)="router.navigate(['sell'])">Sell</div>
+        <div style="float:left;width:250px">
+          <div class="buttonWhite" style="float:left;font-size:12px;line-height:20px;width:100px;padding:2px;margin:7px" (click)="router.navigate(['contribute'])">Contribute</div>
+          <div class="buttonBlack" style="float:left;font-size:12px;line-height:20px;width:100px;padding:2px;margin:7px" (click)="router.navigate(['exchange'])">Exchange</div>
         </div>
       </div>
       <div class="seperator" style="width:100%;margin:0px"></div>

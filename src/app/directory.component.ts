@@ -12,12 +12,10 @@ import firebase from 'firebase/compat/app';
   template:`
   <div class="sheet" style="background-color:black">
     <div style="margin:15px">
-      <span style="font-size:12px">PERRINN members are PERRINN Limited UK ({{UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance|percent:'1.0-0'}} of all credits) and our public community ({{1-(UI.PERRINNAdminLastMessageObj?.statistics?.PERRINNLimited?.balance/UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)|percent:'1.0-0'}}).</span>
-      <br>
       <span style="font-size:15px">{{
         UI.PERRINNAdminLastMessageObj?.statistics?.emailsMembersAuth?.length
       }}</span>
-      <span style="font-size:12px"> members own </span>
+      <span style="font-size:12px"> people have contributed </span>
       <span style="font-size:15px">{{
         UI.formatSharesToCurrency(
           null,

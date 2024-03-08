@@ -23,7 +23,7 @@ exports = module.exports = functions.firestore
             user: context.params.user,
             chain: context.params.user,
             userCurrency: val.currency,
-            text: "Purchased " + val.amountCharge / 100 + val.currency,
+            text: "Contributed " + val.amountCharge / 100 + val.currency,
             purchaseCOIN: {
               chargeID: context.params.chargeID,
               amount: val.amountSharesPurchased,

@@ -21,7 +21,7 @@ import firebase from "firebase/compat/app";
 import { environment } from "environments/environment.prod";
 
 @Component({
-  selector: "buy",
+  selector: "contribute",
   template: `
     <div class="sheet">
       <br />
@@ -109,7 +109,7 @@ import { environment } from "environments/environment.prod";
       <div class="sheet" style="width:500px;max-width:80%">
         <div class="seperator"></div>
         <div class="title">
-          Your purchase in details
+          Your contribution in details
         </div>
         <div class="seperator"></div>
         <div style="padding:10px;text-align:center">
@@ -118,19 +118,19 @@ import { environment } from "environments/environment.prod";
           >
           <br />
           <span style="font-size:12px">
-            The credit you are purchasing is secured by our network and growing over time.
+            The record of your contribution is stored by our network and growing over time.
           </span>
           <span style="font-size:15px">{{
             UI.PERRINNAdminLastMessageObj?.statistics?.emailsMembersAuth?.length
           }}</span>
-          <span style="font-size:12px"> members own </span>
+          <span style="font-size:12px"> people have contributed </span>
           <span style="font-size:15px">{{
             UI.formatSharesToCurrency(
               null,
               UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance
             )
           }}</span>
-          <span style="font-size:12px">. You can follow the impact of your purchase live on PERRINN.com.</span>
+          <span style="font-size:12px">. You can follow the impact of your contribution live on PERRINN.com.</span>
         </div>
         <div
           style="background-color:black;padding:10px;text-align:center"
@@ -176,7 +176,7 @@ import { environment } from "environments/environment.prod";
       <div class="sheet" style="width:500px;max-width:80%">
         <div class="seperator"></div>
         <div class="title">
-          How much credit would you like to purchase?
+          How much would you like to contribute?
         </div>
         <div style="padding:10px">
           <ul class="listLight">
@@ -241,7 +241,7 @@ import { environment } from "environments/environment.prod";
     </div>
   `,
 })
-export class BuyComponent {
+export class ContributeComponent {
   cardNumber: string;
   expiryMonth: string;
   expiryYear: string;
