@@ -53,7 +53,7 @@ import firebase from 'firebase/compat/app';
   <ul class="listLight" style="margin:10px">
     <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="float:left;object-fit:cover;width:100%">
     <li *ngFor="let message of messages | async" style="float:left" (click)="router.navigate(['profile',message.values.user])">
-      <img [src]="message?.values.imageUrlThumbUser" style="float:left;object-fit:cover;height:60px;width:60px">
+      <img [src]="message?.values.imageUrlThumbUser" style="float:left;object-fit:cover;height:77px;width:77px">
     </li>
   </ul>
   <div class="seperator" style="width:100%;margin:0px;cursor:default"></div>
