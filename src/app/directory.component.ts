@@ -22,7 +22,7 @@ import firebase from 'firebase/compat/app';
           UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance
         )
       }}</span>
-      <span style="font-size:12px"> worth of time and money.</span>
+      <span style="font-size:12px"> worth of money and time.</span>
     </div>
   <div class="seperator" style="width:100%;margin:0px"></div>
   </div>

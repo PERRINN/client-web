@@ -118,8 +118,9 @@ import { environment } from "environments/environment.prod";
           >
           <br />
           <span style="font-size:12px">
-            The record of your contribution is stored by our network and growing over time.
+            In exchange for your contribution, you receive PERRINN digital credits that you can later exchange with other members.
           </span>
+          <br />
           <span style="font-size:15px">{{
             UI.PERRINNAdminLastMessageObj?.statistics?.emailsMembersAuth?.length
           }}</span>
@@ -130,15 +131,14 @@ import { environment } from "environments/environment.prod";
               UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance
             )
           }}</span>
-          <span style="font-size:12px"> worth of time and money.</span>
+          <span style="font-size:12px"> worth of money and time.</span>
           <br />
           <span style="font-size:12px">You can follow the impact of your contribution live on PERRINN.com.</span>
         </div>
         <div
           style="background-color:black;padding:10px;text-align:center"
         >
-          <span style="font-size:12px">Growth rate:</span>
-          <br />
+          <span style="font-size:12px">Your digital credits grow at a rate of </span>
           <span style="font-size:20px">{{
             UI.appSettingsCosts?.interestRateYear | percent : "0.0"
           }}</span>
@@ -178,7 +178,7 @@ import { environment } from "environments/environment.prod";
       <div class="sheet" style="width:500px;max-width:80%">
         <div class="seperator"></div>
         <div class="title">
-          How much would you like to contribute?
+          How much would you like to contribute today?
         </div>
         <div style="padding:10px">
           <ul class="listLight">
