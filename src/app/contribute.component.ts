@@ -28,7 +28,7 @@ import { environment } from "environments/environment.prod";
       <div class="sheet" style="width:500px;max-width:80%">
         <div class="seperator"></div>
         <div class="title">
-          Your financial contribution will be used for
+          Your contribution will go towards
         </div>
         <div class="seperator"></div>
         <ul class="listLight">
@@ -51,7 +51,7 @@ import { environment } from "environments/environment.prod";
                   style="float:left;background-color:black;height:20px;width:65px;text-align:center;padding:0 5px 0 5px"
                 ></div>
                 <div
-                  style="float:left;height:20px;background-color:#E06670;margin-left:-65px"
+                  style="float:left;height:20px;background-color:#D85140;margin-left:-65px"
                   [style.width]="
                     (message.payload.doc.data()?.fund?.amountGBPRaised /
                       message.payload.doc.data()?.fund?.amountGBPTarget) *
@@ -109,7 +109,7 @@ import { environment } from "environments/environment.prod";
       <div class="sheet" style="width:500px;max-width:80%">
         <div class="seperator"></div>
         <div class="title">
-          Your contribution in details
+          How it works
         </div>
         <div class="seperator"></div>
         <div style="padding:10px;text-align:center">
@@ -118,7 +118,7 @@ import { environment } from "environments/environment.prod";
           >
           <br />
           <span style="font-size:12px">
-            In exchange for your contribution, you receive PERRINN digital credits that you can later exchange with other members.
+            In exchange for your contribution, you receive digital credits that you can later exchange with other members.
           </span>
           <br />
           <span style="font-size:15px">{{
@@ -146,8 +146,12 @@ import { environment } from "environments/environment.prod";
         </div>
         <div style="padding:10px;text-align:center">
           <span style="font-size:12px"
-            >Your credit is stored in your wallet. You can track the
-            interests added in your wallet every day.</span
+            >Your credit is stored in your wallet.</span
+          >
+          <br />
+          <span style="font-size:12px"
+            >You can track the
+            interests added to your wallet every day.</span
           >
         </div>
         <div class="seperator"></div>
