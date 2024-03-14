@@ -71,7 +71,7 @@ import firebase from 'firebase/compat/app'
         <div style="float:left;cursor:pointer;margin:10px 15px 3px 3px;font-size:12px;line-height:10px;font-family:sans-serif;color:#D85140" (click)="removeRecipient(recipient,chatLastMessageObj?.recipients[recipient]?.name)">X</div>
       </li>
     </ul>
-    <input style="width:60%;margin:10px" maxlength="500" (keyup)="refreshSearchLists()" [(ngModel)]="searchFilter" placeholder="Add people">
+    <input style="width:60%;margin:10px" maxlength="500" (keyup)="refreshSearchLists()" [(ngModel)]="searchFilter" placeholder="Add member">
     <ul class="listLight">
       <li *ngFor="let team of teams | async">
         <div *ngIf="!(chatLastMessageObj?.recipients||{})[team.key]" style="padding:5px">

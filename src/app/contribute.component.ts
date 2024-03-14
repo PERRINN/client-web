@@ -124,7 +124,7 @@ import { environment } from "environments/environment.prod";
           <span style="font-size:15px">{{
             UI.PERRINNAdminLastMessageObj?.statistics?.emailsMembersAuth?.length
           }}</span>
-          <span style="font-size:12px"> people have contributed </span>
+          <span style="font-size:12px"> members have contributed </span>
           <span style="font-size:15px">{{
             UI.formatSharesToCurrency(
               null,
