@@ -30,6 +30,26 @@ export class UserInterfaceService {
     setInterval(() => {
       this.nowSeconds = Math.floor(Date.now() / 1000);
     }, 60000);
+    this.afAuth.user.subscribe((auth) => {
+      if (auth != null) {
+        this.currentUser = auth.uid;
+        this.currentUserEmail = auth.email;
+        afs
+          .collection<any>("PERRINNMessages", (ref) =>
+            ref
+              .where("user", "==", this.currentUser)
+              .where("verified", "==", true)
+              .orderBy("serverTimestamp", "desc")
+              .limit(1)
+          )
+          .valueChanges()
+          .subscribe((snapshot) => {
+            this.currentUserLastMessageObj = snapshot[0];
+          });
+      } else {
+        this.currentUser = null;
+      }
+    });
     afs
       .collection<any>("PERRINNMessages", (ref) =>
         ref
@@ -54,26 +74,6 @@ export class UserInterfaceService {
       .subscribe((snapshot) => {
         this.PERRINNAdminLastMessageObj = snapshot[0];
       });
-    this.afAuth.user.subscribe((auth) => {
-      if (auth != null) {
-        this.currentUser = auth.uid;
-        this.currentUserEmail = auth.email;
-        afs
-          .collection<any>("PERRINNMessages", (ref) =>
-            ref
-              .where("user", "==", this.currentUser)
-              .where("verified", "==", true)
-              .orderBy("serverTimestamp", "desc")
-              .limit(1)
-          )
-          .valueChanges()
-          .subscribe((snapshot) => {
-            this.currentUserLastMessageObj = snapshot[0];
-          });
-      } else {
-        this.currentUser = null;
-      }
-    });
     afs
       .doc<any>("appSettings/payment")
       .valueChanges()
@@ -105,7 +105,7 @@ export class UserInterfaceService {
 
   formatSharesToCurrency(currency, amount) {
     if (currency == null) {
-      if (this.currentUserLastMessageObj.userCurrency != undefined)
+      if (this.currentUserLastMessageObj!=undefined&&this.currentUserLastMessageObj.userCurrency!=undefined)
         currency = this.currentUserLastMessageObj.userCurrency;
       else currency = "usd";
     }
@@ -197,5 +197,11 @@ export class UserInterfaceService {
     })
 
   }
+
+  
+  openWindow(url){
+    window.open(url,'_blank')
+  }
+
 
 }

@@ -24,6 +24,7 @@ import firebase from 'firebase/compat/app'
           <div style="float:left;width:200px">
             <span style="font-size:18px;line-height:30px">{{focusUserLastMessageObj?.name}} </span>
             <span style="font-size:18px;line-height:30px">{{UI.formatSharesToCurrency(null,focusUserLastMessageObj?.wallet?.shareBalance||0)}}</span>
+            <span *ngIf="focusUserLastMessageObj?.publicLink" class="material-icons-outlined" style="font-size:18px;line-height:10px;margin-left:10px;cursor:pointer" (click)="UI.openWindow(focusUserLastMessageObj?.publicLink)">link</span>
             <br>
             <span style="font-size:10px">{{focusUserLastMessageObj?.userPresentation}}</span>
             <span *ngIf="focusUserLastMessageObj?.contract?.signed" style="font-size:10px"> Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>

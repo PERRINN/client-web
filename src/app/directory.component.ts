@@ -33,6 +33,7 @@ import firebase from 'firebase/compat/app';
         <img [src]="message?.values.imageUrlThumbUser" style="float:left;margin:10px;opacity:1;object-fit:cover;height:50px;width:50px">
         <div style="float:left;padding:10px;width:20%">
           <div>{{message.values?.name}}</div>
+          <span *ngIf="message.values?.publicLink" class="material-icons-outlined" style="font-size:18px;line-height:10px">link</span>
         </div>
         <div style="float:left;padding:10px;width:45%">
           <span style="font-size:10px"> {{message.values?.userPresentation}}</span>

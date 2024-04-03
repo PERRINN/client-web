@@ -32,7 +32,7 @@ import firebase from 'firebase/compat/app';
   <div class='sheet'>
       <div style="font-size:14px;margin:20px">Your name (preferably your first name)</div>
       <input [(ngModel)]="name" placeholder="First name">
-      <div class="buttonWhite" (click)="updateName()" style="font-size:12px;width:150px;padding:2px;margin:10px">Update my name</div>
+      <div class="buttonWhite" (click)="updateName()" style="font-size:12px;width:200px;padding:2px;margin:10px">Update my name</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px">Your preferred currency</div>
       <div style="padding:10px">
@@ -50,8 +50,13 @@ import firebase from 'firebase/compat/app';
       <div style="font-size:14px;margin:20px">Your short presentation</div>
       <div style="font-size:10px;margin:20px">Your short presentation helps other members get to know you.</div>
       <div style="font-size:10px;margin:10px 20px 0 20px">I am someone who is:</div>
-      <input [(ngModel)]="userPresentation" placeholder="your short presentation" maxlength="150">
+      <input [(ngModel)]="userPresentation" placeholder="Your short presentation" maxlength="150">
       <div class="buttonWhite" (click)="updateUserPresentation()" style="font-size:12px;width:200px;padding:2px;margin:10px">Update my presentation</div>
+    <div class="seperator" style="width:100%;margin:0px"></div>
+      <div style="font-size:14px;margin:20px">Your public link</div>
+      <div style="font-size:10px;margin:20px 20px 0 20px">Add view only public link so other members can view your documents, website, code and more.</div>
+      <input [(ngModel)]="publicLink" placeholder="Add a link">
+      <div class="buttonWhite" (click)="updatePublicLink()" style="font-size:12px;width:200px;padding:2px;margin:10px">Update my link</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px">Your email addresses</div>
       <div style="font-size:10px;margin:20px 20px 0 20px">Use these addresses to receive notifications, connect to other PERRINN apps like Onshape, Google Drive and Google Meet (calendar events and meetings). These addresses are visible by other PERRINN members.</div>
@@ -71,7 +76,7 @@ import firebase from 'firebase/compat/app';
       <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:15px;font-size:10px">Contract number {{UI.currentUserLastMessageObj?.contract?.createdTimestamp}}</div>
       <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:15px;font-size:10px">Signature valid for level {{UI.currentUserLastMessageObj?.contract?.signedLevel}}, you will receive {{UI.formatSharesToCurrency(null,UI.currentUserLastMessageObj?.contract?.hourlyRate)}} per hour when you declare working hours.</div>
       <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:15px;font-size:10px">Waiting for contract signature</div>
-      <div class="buttonWhite" (click)="updateContract()" style="clear:both;font-size:12px;width:150px;padding:2px;margin:10px">Update my contract</div>
+      <div class="buttonWhite" (click)="updateContract()" style="clear:both;font-size:12px;width:200px;padding:2px;margin:10px">Update my contract</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
   <div class="buttonRed" style="width:100px;margin:25px auto" (click)="this.UI.logout()">logout</div>
   <div class="seperator" style="width:100%;margin-bottom:250px"></div>
@@ -85,6 +90,7 @@ export class SettingsComponent {
   emailsOnshape:string
   contract:any
   searchFilter:string
+  publicLink:any
 
   constructor(
     public afAuth:AngularFireAuth,
@@ -94,8 +100,9 @@ export class SettingsComponent {
     public UI:UserInterfaceService
   ) {
     this.contract={}
-    this.name=this.UI.currentUserLastMessageObj.name
+    this.name=this.UI.currentUserLastMessageObj.name||null
     this.userPresentation=this.UI.currentUserLastMessageObj.userPresentation||null
+    this.publicLink=this.UI.currentUserLastMessageObj.publicLink||null
     this.emailsAuth=this.UI.currentUserLastMessageObj.emails.auth||null
     this.emailsGoogle=this.UI.currentUserLastMessageObj.emails.google||null
     this.emailsOnshape=this.UI.currentUserLastMessageObj.emails.onshape||null
@@ -132,6 +139,16 @@ export class SettingsComponent {
       chain:this.UI.currentUser,
       text:'Updating my presentation to '+this.userPresentation,
       userPresentation:this.userPresentation
+    })
+    this.router.navigate(['chat',this.UI.currentUser])
+  }
+
+  updatePublicLink(){
+    if(this.publicLink==(this.UI.currentUserLastMessageObj.publicLink||null))return
+    this.UI.createMessage({
+      chain:this.UI.currentUser,
+      text:'Updating my public link.',
+      publicLink:this.publicLink
     })
     this.router.navigate(['chat',this.UI.currentUser])
   }
