@@ -191,8 +191,6 @@ import firebase from 'firebase/compat/app'
               <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">({{UI.formatSharesToCurrency(null,message.payload?.statistics?.stripeBalance?.pending[0]?.amount/100*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} pending).</div>
               <div *ngIf="messageShowDetails.includes(message.key)" style="margin:5px">
                 <div class="seperator" style="width:100%"></div>
-                <div style="font-size:10px">userStatus {{message.payload?.userStatus|json}}</div>
-                <div class="seperator" style="width:100%"></div>
                 <div style="font-size:10px">Email addresses {{message.payload?.emails|json}}</div>
                 <div class="seperator" style="width:100%"></div>
                 <div style="font-size:10px">userChain {{message.payload?.userChain|json}}</div>

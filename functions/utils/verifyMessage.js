@@ -1,7 +1,5 @@
 const admin = require('firebase-admin')
 const createMessageUtils = require('./createMessage')
-const googleUtils = require('./google')
-const onshapeUtils = require('./onshape')
 const updateFundsUtils = require('./updateFunds')
 
 module.exports = {
@@ -293,17 +291,6 @@ module.exports = {
         }
         wallet.shareBalance=wallet.balance+(PERRINNLimited.amount||0)
 
-      //APIs
-        if(wallet.shareBalance>0){
-          if(emails.google)googleUtils.googleGroupMemberInsert(emails.google)
-          if(emails.onshape)onshapeUtils.onshapeTeamMemberPost(emails.onshape)
-        }
-
-      //user status
-        let userStatus={}
-        userStatus.isMember=false
-        if(wallet.shareBalance>0)userStatus.isMember=true
-
       //*******MESSAGE WRITES**********************
         //message event
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{eventDate:messageData.eventDate||chatPreviousMessageData.eventDate||null},{create:true})
@@ -317,7 +304,6 @@ module.exports = {
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{contract:contract},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{interest:interest},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{wallet:wallet},{create:true})
-        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userStatus:userStatus},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{emails:emails},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{fund:fund},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{survey:survey},{create:true})
@@ -377,7 +363,6 @@ module.exports = {
         purchaseCOIN:purchaseCOIN,
         contract:contract,
         interest:interest,
-        userStatus:userStatus,
         PERRINNLimited:PERRINNLimited
       }
 

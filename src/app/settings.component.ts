@@ -58,15 +58,10 @@ import firebase from 'firebase/compat/app';
       <input [(ngModel)]="publicLink" placeholder="Add a link">
       <div class="buttonWhite" (click)="updatePublicLink()" style="font-size:12px;width:200px;padding:2px;margin:10px">Update my link</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
-      <div style="font-size:14px;margin:20px">Your email addresses</div>
-      <div style="font-size:10px;margin:20px 20px 0 20px">Use these addresses to receive notifications, connect to other PERRINN apps like Onshape, Google Drive and Google Meet (calendar events and meetings). These addresses are visible by other PERRINN members.</div>
+      <div style="font-size:14px;margin:20px">Your email address</div>
       <div style="font-size:10px;margin:10px 20px 0 20px">Authentication address.</div>
       <input [(ngModel)]="emailsAuth" placeholder="Enter your authentication email">
-      <div style="font-size:10px;margin:10px 20px 0 20px">Google address.</div>
-      <input [(ngModel)]="emailsGoogle" placeholder="Enter your Google account email (optional)">
-      <div style="font-size:10px;margin:10px 20px 0 20px">Onshape address.</div>
-      <input [(ngModel)]="emailsOnshape" placeholder="Enter your Onshape account email (optional)">
-      <div class="buttonWhite" (click)="updateEmails()" style="font-size:12px;width:250px;padding:2px;margin:10px">Update my email addresses</div>
+      <div class="buttonWhite" (click)="updateEmails()" style="font-size:12px;width:250px;padding:2px;margin:10px">Update my email address</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px">Your PERRINN contract</div>
       <div style="font-size:10px;margin:20px">This contract is between you and PERRINN team. When these settings are updated, they will need to be approved before taking effect. You or PERRINN can cancel this contract at any time.</div>
@@ -86,8 +81,6 @@ export class SettingsComponent {
   name:string
   userPresentation:string
   emailsAuth:string
-  emailsGoogle:string
-  emailsOnshape:string
   contract:any
   searchFilter:string
   publicLink:any
@@ -104,8 +97,6 @@ export class SettingsComponent {
     this.userPresentation=this.UI.currentUserLastMessageObj.userPresentation||null
     this.publicLink=this.UI.currentUserLastMessageObj.publicLink||null
     this.emailsAuth=this.UI.currentUserLastMessageObj.emails.auth||null
-    this.emailsGoogle=this.UI.currentUserLastMessageObj.emails.google||null
-    this.emailsOnshape=this.UI.currentUserLastMessageObj.emails.onshape||null
     this.contract.level=(this.UI.currentUserLastMessageObj.contract||{}).level||null
   }
 
@@ -154,17 +145,12 @@ export class SettingsComponent {
   }
 
   updateEmails(){
-    if(this.emailsAuth!=this.UI.currentUserLastMessageObj.emails.auth
-      ||this.emailsGoogle!=this.UI.currentUserLastMessageObj.emails.google
-      ||this.emailsOnshape!=this.UI.currentUserLastMessageObj.emails.onshape
-    ){
+    if(this.emailsAuth!=this.UI.currentUserLastMessageObj.emails.auth){
       this.UI.createMessage({
         chain:this.UI.currentUser,
         text:'Updating my email addresses.',
         emails:{
-          auth:this.emailsAuth,
-          google:this.emailsGoogle,
-          onshape:this.emailsOnshape
+          auth:this.emailsAuth
         }
       })
       this.router.navigate(['chat',this.UI.currentUser])
