@@ -37,7 +37,7 @@ body {
 #main_container {
   margin: 0 auto;
   max-width: 100%;
-  height: calc(100vh - 125px);
+  height: calc(100vh - 88px);
   overflow-y: auto;
 }
 #login {

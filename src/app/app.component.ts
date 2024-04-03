@@ -18,8 +18,6 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
     </div>
     <div style="user-select:none">
       <div *ngIf="UI.currentUser" style="max-width:800px;margin:0 auto">
-        <span class="material-icons" style="font-size:25px;float:right;margin:5px;cursor:pointer" (click)="router.navigate(['apps'])">apps</span>
-        <span class="material-icons" style="font-size:25px;float:right;margin:5px;cursor:pointer" (click)="newMessage()">create</span>
         <div style="float:left;cursor:pointer" (click)="router.navigate(['profile',UI.currentUser])">
           <img *ngIf="UI.currentUserLastMessageObj?.imageUrlThumbUser" [src]="UI.currentUserLastMessageObj.imageUrlThumbUser" style="display:inline;float:left;margin:5px;object-fit:cover;width:35px;height:35px">
           <div style="float:left;margin:11px;font-size:12px">
@@ -27,9 +25,8 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
             <span style="margin-left:8px"> {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} growth</span>
           </div>
         </div>
-        <div style="clear:both">
-          <div class="buttonWhite" style="float:left;font-size:12px;line-height:20px;width:100px;margin:5px" (click)="router.navigate(['contribute'])">Contribute</div>
-          <div class="buttonBlack" style="float:left;font-size:12px;line-height:20px;width:100px;margin:5px" (click)="router.navigate(['exchange'])">Exchange</div>
+        <div style="float:right">
+          <div class="buttonBlack" style="float:left;font-size:10px;line-height:20px;width:140px;margin:7px" (click)="router.navigate(['contribute'])">Contribute / Exchange</div>
         </div>
       </div>
       <div class="seperator" style="width:100%;margin:0px"></div>
@@ -58,10 +55,6 @@ export class AppComponent {
     const fullScreenImage = document.getElementById('fullScreenImage') as HTMLImageElement;
     fullScreenImage.style.visibility = 'hidden';
     fullScreenImage.src = '';
-  }
-
-  newMessage() {
-    this.router.navigate(['chat',this.UI.newId()])
   }
 
 }

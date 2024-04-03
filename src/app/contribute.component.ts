@@ -28,6 +28,18 @@ import { environment } from "environments/environment.prod";
       <div class="sheet" style="width:500px;max-width:80%">
         <div class="seperator"></div>
         <div class="title">
+          Exchanging your credits
+        </div>
+        <div style="padding:10px;text-align:center">
+        <span style="font-size:12px">
+          Soon you will be able to exchange your credit with other members here. We are building this new feature, stay tuned.
+        </span>
+        </div>
+      </div>
+      <br />
+      <div class="sheet" style="width:500px;max-width:80%">
+        <div class="seperator"></div>
+        <div class="title">
           Your contribution will go towards
         </div>
         <div class="seperator"></div>
