@@ -35,6 +35,7 @@ import { environment } from "environments/environment.prod";
           Soon you will be able to exchange your credit with other members here. We are building this new feature, stay tuned.
         </span>
         </div>
+        <div class="seperator"></div>
       </div>
       <br />
       <div class="sheet" style="width:500px;max-width:80%">
