@@ -18,7 +18,7 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     statistics.transactionIn={}
     statistics.transactionOut={}
     statistics.purchaseCOIN={}
-    statistics.emailsMembersAuth=[]
+    statistics.emailsContributorsAuth=[]
     let listUsersResult1={}
     let listUsersResult2={}
     listUsersResult1=await admin.auth().listUsers(1000)
@@ -37,6 +37,7 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     })
     const results=await Promise.all(verifyMessageBatch)
     results.forEach((result)=>{
+      if (result.wallet.shareBalance>0)statistics.emailsContributorsAuth.push(result.emails.auth)
       statistics.wallet.shareBalance=((statistics.wallet||{}).shareBalance||0)+result.wallet.shareBalance
       statistics.PERRINNLimited.balance=((statistics.PERRINNLimited||{}).balance||0)+(result.PERRINNLimited.amount||0)
       statistics.interest.amount=((statistics.interest||{}).amount||0)+result.interest.amount
@@ -64,8 +65,8 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     })
 
     console.log(statistics.userCount+' users processed.')
-    console.log(statistics.emailsMembersAuth.length+' Contributors.')
-    console.log('Contributors Emails: '+JSON.stringify(statistics.emailsMembersAuth))
+    console.log(statistics.emailsContributorsAuth.length+' Contributors.')
+    console.log('Contributors Emails: '+JSON.stringify(statistics.emailsContributorsAuth))
 
   }
   catch(error){

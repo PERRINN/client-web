@@ -13,7 +13,7 @@ import firebase from 'firebase/compat/app';
   <div class="sheet" style="background-color:black">
     <div style="margin:15px">
       <span style="font-size:15px">{{
-        UI.PERRINNAdminLastMessageObj?.statistics?.emailsMembersAuth?.length
+        UI.PERRINNAdminLastMessageObj?.statistics?.emailsContributorsAuth?.length
       }}</span>
       <span style="font-size:12px"> members have contributed </span>
       <span style="font-size:15px">{{

@@ -135,7 +135,7 @@ import { environment } from "environments/environment.prod";
           </span>
           <br />
           <span style="font-size:15px">{{
-            UI.PERRINNAdminLastMessageObj?.statistics?.emailsMembersAuth?.length
+            UI.PERRINNAdminLastMessageObj?.statistics?.emailsContributorsAuth?.length
           }}</span>
           <span style="font-size:12px"> members have contributed </span>
           <span style="font-size:15px">{{
