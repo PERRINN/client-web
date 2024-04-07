@@ -191,6 +191,7 @@ export class UserInterfaceService {
   }
 
   openWindow(url){
+    event.stopPropagation()
     window.open(url,'_blank')
   }
 

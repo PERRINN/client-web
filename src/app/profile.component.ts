@@ -63,6 +63,7 @@ import firebase from 'firebase/compat/app'
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
             <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>(-60*message.payload.doc.data()?.eventDuration)">
+            <span *ngIf="message.payload.doc.data()?.eventLocation" class="buttonBlack" style="float:right;padding:5px;margin:10px;line-height:13px" (click)="UI.openWindow(message.payload.doc.data()?.eventLocation)">Join</span>
             <div style="float:left;min-width:90px;min-height:40px">
               <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer">event</span>
             </div>

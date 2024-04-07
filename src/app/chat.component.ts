@@ -49,6 +49,9 @@ import firebase from 'firebase/compat/app'
           </div>
         </div>
         <span class="material-icons-outlined" style="float:right;padding:7px" (click)="showImageGalleryClick()">{{showImageGallery?'question_answer':'collections'}}</span>
+        <div *ngIf="math.floor(eventDate/60000-UI.nowSeconds/60)>(-60*eventDuration)" style="clear:right">
+          <span *ngIf="eventLocation" class="buttonBlack" style="float:right;padding:5px;margin:10px;line-height:13px" (click)="UI.openWindow(eventLocation)">Join</span>
+        </div>
       </div>
       <div *ngIf="showChatDetails">
         <div style="float:left;font-size:12px;line-height:20px;margin:10px">< messages</div>
@@ -104,7 +107,7 @@ import firebase from 'firebase/compat/app'
     <div>
       <input style="width:60%;margin:10px" maxlength="200" [(ngModel)]="eventDescription" placeholder="Event description">
       <div style="font-size:12px;margin:10px">{{eventDate==0?'':eventDate|date:'EEEE d MMM h:mm a'}}</div>
-      <div class="buttonWhite" *ngIf="eventDate!=chatLastMessageObj?.eventDate||eventDescription!=chatLastMessageObj?.eventDescription||eventDuration!=chatLastMessageObj?.eventDuration" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()">Save event</div>
+      <div class="buttonWhite" *ngIf="eventDate!=chatLastMessageObj?.eventDate||eventDescription!=chatLastMessageObj?.eventDescription||eventDuration!=chatLastMessageObj?.eventDuration||eventLocation!=chatLastMessageObj?.eventLocation" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()">Save event</div>
       <ul class="listLight" style="float:left;width:200px;margin:10px">
         <li *ngFor="let date of eventDates;let first=first" (click)="first?eventDate=date:eventDate=(date+(eventDate/3600000/24-math.floor(eventDate/3600000/24))*3600000*24)" [class.selected]="math.floor(date/3600000/24)==math.floor(eventDate/3600000/24)">
           <div *ngIf="math.round(date/3600000/24)==(date/3600000/24)||first" style="float:left;width:100px;min-height:10px">{{date|date:'EEEE'}}</div>
@@ -119,6 +122,9 @@ import firebase from 'firebase/compat/app'
     </div>
     <span style="margin:10px">Event duration (hours)</span>
     <input style="width:30%;margin:10px" maxlength="20" [(ngModel)]="eventDuration" placeholder="Event duration">
+    <br/>
+    <span style="margin:10px">Event location</span>
+    <input style="width:50%;margin:10px" maxlength="200" [(ngModel)]="eventLocation" placeholder="Event location">
     <div class="buttonRed" *ngIf="chatLastMessageObj?.eventDate!=null" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="cancelEvent()">Cancel event</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
     <div>
@@ -305,6 +311,7 @@ export class ChatComponent {
   eventDate:any
   eventDescription:string
   eventDuration:number
+  eventLocation:string
   fund:any
   surveyDefault:any
   survey:any
@@ -334,6 +341,7 @@ export class ChatComponent {
       this.chatSubject=''
       this.eventDescription=''
       this.eventDuration=1
+      this.eventLocation=""
       this.fund={
         description:'add a description',
         amountGBPTarget:0,
@@ -399,6 +407,7 @@ export class ChatComponent {
           this.eventDescription=c.payload.doc.data()['eventDescription']
           this.eventDate=c.payload.doc.data()['eventDate']
           this.eventDuration=c.payload.doc.data()['eventDuration']
+          this.eventLocation=c.payload.doc.data()['eventLocation']
           this.fund=c.payload.doc.data()['fund']||this.fund
           this.survey=((c.payload.doc.data()['survey']||{})['createdTimestamp'])?c.payload.doc.data()['survey']:this.survey
         }
@@ -428,6 +437,7 @@ export class ChatComponent {
           this.eventDescription=c.payload.doc.data()['eventDescription']
           this.eventDate=c.payload.doc.data()['eventDate']
           this.eventDuration=c.payload.doc.data()['eventDuration']
+          this.eventLocation=c.payload.doc.data()['eventLocation']
           this.fund=c.payload.doc.data()['fund']||this.fund
           this.survey=((c.payload.doc.data()['survey']||{})['createdTimestamp'])?c.payload.doc.data()['survey']:this.survey
         }
@@ -499,7 +509,8 @@ export class ChatComponent {
       chain:this.chatLastMessageObj.chain||this.chatChain,
       eventDate:this.eventDate,
       eventDescription:this.eventDescription,
-      eventDuration:this.eventDuration
+      eventDuration:this.eventDuration,
+      eventLocation:this.eventLocation
     })
     this.resetChat()
   }
