@@ -101,7 +101,6 @@ export class SettingsComponent {
   }
 
   ngOnInit() {
-    this.UI.redirectUser()
   }
 
   updateName(){

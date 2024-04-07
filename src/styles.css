@@ -142,9 +142,6 @@ a:visited {
 .buttonRed:hover{
   opacity: 0.95;
 }
-.material-icons .material-icons-outlined {
-  color:#B0BAC0;
-}
 button {
   cursor: pointer;
   background-color: black;

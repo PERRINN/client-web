@@ -170,7 +170,7 @@ import { environment } from "environments/environment.prod";
         <div class="seperator"></div>
       </div>
       <br />
-      <div class="sheet" style="width:500px;max-width:80%">
+      <div *ngIf="UI.currentUser" class="sheet" style="width:500px;max-width:80%">
         <div class="seperator"></div>
         <div class="title">
           Which currency are you using?
@@ -192,7 +192,7 @@ import { environment } from "environments/environment.prod";
         <div class="seperator"></div>
       </div>
       <br />
-      <div class="sheet" style="width:500px;max-width:80%">
+      <div *ngIf="UI.currentUser" class="sheet" style="width:500px;max-width:80%">
         <div class="seperator"></div>
         <div class="title">
           How much would you like to contribute today?
@@ -214,7 +214,7 @@ import { environment } from "environments/environment.prod";
         <div class="seperator"></div>
       </div>
       <br />
-      <div
+      <div *ngIf="UI.currentUser"
         class="module form-module"
         style="width:500px;max-width:80%;border-style:solid"
       >
@@ -318,7 +318,6 @@ export class ContributeComponent {
   }
 
   ngOnInit() {
-    this.UI.redirectUser()
   }
 
   ngOnDestroy() {

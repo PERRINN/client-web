@@ -41,7 +41,7 @@ import firebase from 'firebase/compat/app'
           <div style="float:left;font-size:10px;width:55px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='chain'?'underline':'none'" (click)="mode='chain';refreshMessages()">chain</div>
           <div style="float:left;font-size:10px;width:85px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='10yearForecast'?'underline':'none'" (click)="mode='10yearForecast';refreshMessages()">10 year forecast</div>
         </div>
-        <div class="buttonBlack" *ngIf="UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="float:left;font-size:10px;padding:2px 4px 2px 4px;margin-right:5px">New message to {{focusUserLastMessageObj?.name}}</div>
+        <div class="buttonBlack" *ngIf="UI.currentUser&&UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="float:left;font-size:10px;padding:2px 4px 2px 4px;margin-right:5px">New message to {{focusUserLastMessageObj?.name}}</div>
       </div>
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
@@ -150,13 +150,13 @@ import firebase from 'firebase/compat/app'
                 <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer">settings</span>
                 <span style="font-size:15px">{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</span>
               </div>
-              <div *ngIf="(UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds" style="float:right;margin:5px 0 0 0;width:35px;height:20px;line-height:20px;font-size:10px;text-align:center"
+              <div *ngIf="UI.currentUser&&(UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds" style="float:right;margin:5px 0 0 0;width:35px;height:20px;line-height:20px;font-size:10px;text-align:center"
                 (click)="readFlagClick(message.payload.doc.id,(message.payload.doc.data()?.reads||{})[UI.currentUser])"
                 [style.background-color]="(message.payload.doc.data()?.reads||{})[UI.currentUser]?'#131B20':(message.payload.doc.data()?.recipients[UI.currentUser]?.mentionMessages||message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name))?'magenta':message.payload.doc.data()?.recipients[UI.currentUser]?'#D85140':message.payload.doc.data()?.recipients['xCxYTM0AD7aj5SKZ27iFaqJaXps1']?'#D85140':'#B0BAC0'"
                 [style.color]="(message.payload.doc.data()?.reads||{})[UI.currentUser]?'#131B20':whitesmoke">
                 {{message.payload.doc.data()?.recipients[UI.currentUser]?.unreadMessages}}
               </div>
-              <div *ngIf="(UI.currentUserLastMessageObj?.createdTimestamp/1000)>message.payload.doc.data()?.serverTimestamp?.seconds" style="float:right;margin:5px 0 0 0;width:35px;height:20px;line-height:20px;font-size:10px;text-align:center 0 0 3px"
+              <div *ngIf="UI.currentUser&&(UI.currentUserLastMessageObj?.createdTimestamp/1000)>message.payload.doc.data()?.serverTimestamp?.seconds" style="float:right;margin:5px 0 0 0;width:35px;height:20px;line-height:20px;font-size:10px;text-align:center 0 0 3px"
                 [style.background-color]="'#B0BAC0'"
                 [style.color]="'#B0BAC0'">
                 {{message.payload.doc.data()?.recipients[UI.currentUser]?.unreadMessages}}
@@ -280,7 +280,6 @@ export class ProfileComponent {
   }
 
   ngOnInit() {
-    this.UI.redirectUser()
   }
 
   refreshMessages(){

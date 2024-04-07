@@ -17,17 +17,14 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
     <div style="user-select:none">
-      <div *ngIf="UI.currentUser" style="max-width:800px;margin:0 auto">
-        <div style="float:left;cursor:pointer" (click)="router.navigate(['profile',UI.currentUser])">
-          <img *ngIf="UI.currentUserLastMessageObj?.imageUrlThumbUser" [src]="UI.currentUserLastMessageObj.imageUrlThumbUser" style="display:inline;float:left;margin:5px;object-fit:cover;width:35px;height:35px">
-          <div style="float:left;margin:11px;font-size:12px">
-            <span>{{UI.formatSharesToCurrency(null,UI.currentUserLastMessageObj?.wallet.shareBalance||0)}}</span>
-            <span style="margin-left:8px"> {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} growth</span>
-          </div>
+      <div style="max-width:800px;margin:0 auto">
+        <div *ngIf="!UI.currentUser" class="buttonWhite" style="float:left;line-height:20px;width:75px;margin:7px" (click)="router.navigate(['login'])">Login</div>
+        <div *ngIf="UI.currentUser" style="float:left;cursor:pointer" (click)="router.navigate(['profile',UI.currentUser])">
+          <img [src]="UI.currentUserLastMessageObj?.imageUrlThumbUser" style="display:inline;float:left;margin:5px;object-fit:cover;width:35px;height:35px">
+          <span style="margin:11px;font-size:14px;line-height:40px">{{UI.formatSharesToCurrency(null,UI.currentUserLastMessageObj?.wallet.shareBalance||0)}}</span>
         </div>
-        <div style="float:right">
-          <div class="buttonBlack" style="float:left;font-size:10px;line-height:20px;width:140px;margin:7px" (click)="router.navigate(['contribute'])">Contribute / Exchange</div>
-        </div>
+        <span style="margin:11px;font-size:14px;line-height:40px"> {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} growth</span>
+        <div class="buttonBlack" style="float:right;line-height:20px;width:100px;margin:7px" (click)="router.navigate(['contribute'])">Contribute</div>
       </div>
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>

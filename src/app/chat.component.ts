@@ -12,7 +12,7 @@ import firebase from 'firebase/compat/app'
   template:`
 
   <div class="sheet">
-    <div class="fixed" style="background-color:black;font-size:12px;cursor:pointer" (click)="showChatDetails=!showChatDetails">
+    <div class="fixed" style="background-color:black;font-size:12px;cursor:pointer" (click)="UI.currentUser?showChatDetails=!showChatDetails:''">
       <div *ngIf="!showChatDetails">
         <div style="float:left;width:80%;margin:0 5px 0 10px;min-height:40px">
           <div>
@@ -225,7 +225,7 @@ import firebase from 'firebase/compat/app'
               <span *ngIf="message.payload?.transactionOut?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.formatSharesToCurrency(null,-message.payload?.transactionOut?.amount)}} sent</span>
               <span *ngIf="message.payload?.userChain?.nextMessage=='none'&&message.payload?.wallet?.shareBalance!=undefined" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.formatSharesToCurrency(null,message.payload?.wallet?.shareBalance)}}</span>
             </div>
-            <div *ngIf="messageShowActions.includes(message.key)">
+            <div *ngIf="UI.currentUser&&messageShowActions.includes(message.key)">
               <div style="float:left;padding:5px;cursor:pointer;border-style:solid 1px 0 0" (click)="messageShowDetails.includes(message.key)?messageShowDetails.splice(messageShowDetails.indexOf(message.key),1):messageShowDetails.push(message.key)">Details</div>
             </div>
           </div>
@@ -245,7 +245,7 @@ import firebase from 'firebase/compat/app'
       <div class="bounce3"></div>
     </div>
     <div>
-      <ul style="list-style:none;">
+      <ul style="list-style:none">
         <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index" style="float:left;margin:5px;border-style:solid">
           <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" style="width:375px;height:200px;object-fit:contain" (click)="showFullScreenImage(message.payload?.chatImageUrlOriginal)">
           <div style="margin:5px;width:365px;height:45px">
@@ -257,8 +257,7 @@ import firebase from 'firebase/compat/app'
     </div>
   </div>
 
-
-  <div class="sheet" *ngIf="!showImageGallery">
+  <div class="sheet" *ngIf="UI.currentUser&&!showImageGallery">
     <div class="fixed" style="bottom:0;padding-bottom:25px">
       <span *ngIf="chatLastMessageObj?.chatSubject==null" style="margin:5px;font-size:10px">This message will be the subject of this chat</span>
       <div class="seperator" style="width:100%"></div>
@@ -353,7 +352,6 @@ export class ChatComponent {
   }
 
   ngOnInit(){
-    this.UI.redirectUser()
     this.refreshSearchLists()
   }
 
@@ -387,10 +385,10 @@ export class ChatComponent {
       var batch=this.afs.firestore.batch()
       var nextMessageRead=true
       changes.forEach(c=>{
-        if(!this.lastRead&&!nextMessageRead&&(c.payload.doc.data()['reads']||[])[this.UI.currentUser])this.lastRead=c.payload.doc.id
+        if(this.UI.currentUser&&!this.lastRead&&!nextMessageRead&&(c.payload.doc.data()['reads']||[])[this.UI.currentUser])this.lastRead=c.payload.doc.id
         nextMessageRead=(c.payload.doc.data()['reads']||[])[this.UI.currentUser]
         if(c.payload.doc.data()['lastMessage']){
-          if(!this.reads.includes(c.payload.doc.id))batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id),{serverTimestamp:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
+          if(this.UI.currentUser&&!this.reads.includes(c.payload.doc.id))batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id),{serverTimestamp:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
           this.reads.push(c.payload.doc.id)
           this.chatLastMessageObj=c.payload.doc.data()
           this.chatSubject=c.payload.doc.data()['chatSubject']
@@ -415,10 +413,10 @@ export class ChatComponent {
       var batch=this.afs.firestore.batch()
       var nextMessageRead=true
       changes.forEach(c=>{
-        if(!this.lastRead&&!nextMessageRead&&(c.payload.doc.data()['reads']||[])[this.UI.currentUser])this.lastRead=c.payload.doc.id
+        if(this.UI.currentUser&&!this.lastRead&&!nextMessageRead&&(c.payload.doc.data()['reads']||[])[this.UI.currentUser])this.lastRead=c.payload.doc.id
         nextMessageRead=(c.payload.doc.data()['reads']||[])[this.UI.currentUser]
         if(c.payload.doc.data()['lastMessage']){
-          if(!this.reads.includes(c.payload.doc.id))batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id),{serverTimestamp:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
+          if(this.UI.currentUser&&!this.reads.includes(c.payload.doc.id))batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id),{serverTimestamp:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
           this.reads.push(c.payload.doc.id)
           this.chatLastMessageObj=c.payload.doc.data()
           this.chatSubject=c.payload.doc.data()['chatSubject']

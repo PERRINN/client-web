@@ -9,16 +9,16 @@ import { Router, ActivatedRoute } from '@angular/router';
 
 @Injectable()
 export class UserInterfaceService {
-  loading: boolean;
-  currentUser: string;
-  currentUserEmail: string;
-  currentUserLastMessageObj: any;
-  PERRINNProfileLastMessageObj: any;
-  PERRINNAdminLastMessageObj: any;
-  nowSeconds: number;
-  tagFilters: any;
-  appSettingsPayment: any;
-  appSettingsCosts: any;
+  loading:boolean
+  currentUser:string
+  currentUserEmail:string
+  currentUserLastMessageObj:any
+  PERRINNProfileLastMessageObj:any
+  PERRINNAdminLastMessageObj:any
+  nowSeconds:number
+  tagFilters:any
+  appSettingsPayment:any
+  appSettingsCosts:any
 
   constructor(
     private afAuth: AngularFireAuth,
@@ -190,18 +190,8 @@ export class UserInterfaceService {
     this.router.navigate(['login'])
   }
 
-
-  redirectUser(){
-    this.afAuth.user.subscribe((auth) => {
-      if(auth==null)this.router.navigate(['login'])
-    })
-
-  }
-
-  
   openWindow(url){
     window.open(url,'_blank')
   }
-
 
 }

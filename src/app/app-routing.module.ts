@@ -14,8 +14,8 @@ const appRoutes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'directory', component: DirectoryComponent },
   { path: 'contribute', component: ContributeComponent },
-  { path: '',   redirectTo: '/login', pathMatch: 'full' },
-  { path: '**', component: LoginComponent }
+  { path: '',   redirectTo: 'profile/all', pathMatch: 'full' },
+  { path: '**', component: ProfileComponent }
 ];
 
 @NgModule({

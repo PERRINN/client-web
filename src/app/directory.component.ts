@@ -81,7 +81,6 @@ export class DirectoryComponent  {
   ){}
 
   ngOnInit() {
-    this.UI.redirectUser()
     this.refreshMembersList()
   }
 
