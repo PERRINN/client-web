@@ -22,12 +22,12 @@ import firebase from 'firebase/compat/app'
           <div style="width:100%;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical">
             <span *ngFor="let recipient of chatLastMessageObj?.recipientList;let last=last">{{recipient==UI.currentUser?'You':chatLastMessageObj?.recipients[recipient]?.name}}{{last?"":", "}}</span>
           </div>
-          <div *ngIf="math.floor(eventDate/60000-UI.nowSeconds/60)>-60" style="clear:both">
+          <div *ngIf="math.floor(eventDate/60000-UI.nowSeconds/60)>(-60*eventDuration)" style="clear:both">
             <span class="material-icons-outlined" style="float:left;font-size:20px;margin-right:5px">event</span>
             <div [style.background-color]="(math.floor((eventDate/1000-UI.nowSeconds)/60)>60*8)?'black':'red'" style="float:left;color:whitesmoke;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(eventDate/1000-UI.nowSeconds)}}</div>
-            <div *ngIf="math.floor(eventDate/60000-UI.nowSeconds/60)<=0&&math.floor(eventDate/60000-UI.nowSeconds/60)>-60" style="float:left;background-color:#D85140;color:whitesmoke;padding:0 5px 0 5px">Now</div>
-            <div style="float:left;margin:0 5px 0 5px">{{eventDescription}}</div>
-            <div style="float:left;margin:0 5px 0 0">{{eventDate|date:'EEEE d MMM HH:mm'}}</div>
+            <div *ngIf="math.floor(eventDate/60000-UI.nowSeconds/60)<=0&&math.floor(eventDate/60000-UI.nowSeconds/60)>(-60*eventDuration)" style="float:left;background-color:#D85140;color:whitesmoke;padding:0 5px 0 5px">Now</div>
+            <span style="margin:0 5px 0 5px">{{eventDescription}}</span>
+            <span style="margin:0 5px 0 0">{{eventDate|date:'EEEE d MMM h:mm a'}} ({{eventDuration}}h)</span>
           </div>
           <div *ngIf="fund?.active" style="clear:both">
             <span class="material-symbols-outlined" style="float:left;font-size:20px;margin-right:5px">crowdsource</span>
@@ -103,8 +103,8 @@ import firebase from 'firebase/compat/app'
     <div class="seperator" style="width:100%;margin:0px"></div>
     <div>
       <input style="width:60%;margin:10px" maxlength="200" [(ngModel)]="eventDescription" placeholder="Event description">
-      <div style="font-size:12px;margin:10px">{{eventDate==0?'':eventDate|date:'EEEE d MMM HH:mm'}}</div>
-      <div class="buttonWhite" *ngIf="eventDate!=chatLastMessageObj?.eventDate||eventDescription!=chatLastMessageObj?.eventDescription" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()">Save event</div>
+      <div style="font-size:12px;margin:10px">{{eventDate==0?'':eventDate|date:'EEEE d MMM h:mm a'}}</div>
+      <div class="buttonWhite" *ngIf="eventDate!=chatLastMessageObj?.eventDate||eventDescription!=chatLastMessageObj?.eventDescription||eventDuration!=chatLastMessageObj?.eventDuration" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()">Save event</div>
       <ul class="listLight" style="float:left;width:200px;margin:10px">
         <li *ngFor="let date of eventDates;let first=first" (click)="first?eventDate=date:eventDate=(date+(eventDate/3600000/24-math.floor(eventDate/3600000/24))*3600000*24)" [class.selected]="math.floor(date/3600000/24)==math.floor(eventDate/3600000/24)">
           <div *ngIf="math.round(date/3600000/24)==(date/3600000/24)||first" style="float:left;width:100px;min-height:10px">{{date|date:'EEEE'}}</div>
@@ -113,10 +113,12 @@ import firebase from 'firebase/compat/app'
       </ul>
       <ul class="listLight" style="clear:none;float:left;width:100px;text-align:center;margin:10px">
         <li *ngFor="let date of eventDates;let first=first" (click)="eventDate=date" [class.selected]="eventDate==date">
-          <div *ngIf="math.floor(date/3600000/24)==math.floor(eventDate/3600000/24)">{{date|date:'HH:mm'}}</div>
+          <div *ngIf="math.floor(date/3600000/24)==math.floor(eventDate/3600000/24)">{{date|date:'h:mm a'}}</div>
         </li>
       </ul>
     </div>
+    <span style="margin:10px">Event duration (hours)</span>
+    <input style="width:30%;margin:10px" maxlength="20" [(ngModel)]="eventDuration" placeholder="Event duration">
     <div class="buttonRed" *ngIf="chatLastMessageObj?.eventDate!=null" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="cancelEvent()">Cancel event</div>
     <div class="seperator" style="width:100%;margin:0px"></div>
     <div>
@@ -132,7 +134,7 @@ import firebase from 'firebase/compat/app'
     </div>
     <div class="seperator" style="width:100%;margin:0px"></div>
     <div>
-      <div *ngIf="survey.createdTimestamp" style="font-size:12px;margin:10px">created on {{survey.createdTimestamp|date:'EEEE d MMM HH:mm'}} expiring on {{survey.expiryTimestamp|date:'EEEE d MMM HH:mm'}}</div>
+      <div *ngIf="survey.createdTimestamp" style="font-size:12px;margin:10px">created on {{survey.createdTimestamp|date:'EEEE d MMM h:mm a'}} expiring on {{survey.expiryTimestamp|date:'EEEE d MMM h:mm a'}}</div>
       <span style="margin:10px">Duration of the survey (days)</span>
       <input style="width:40%;margin:10px" maxlength="200" [(ngModel)]="survey.durationDays">
       <input style="width:80%;margin:10px" maxlength="200" [(ngModel)]="survey.question">
@@ -176,7 +178,7 @@ import firebase from 'firebase/compat/app'
             <div>
               <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
                 <div style="font-size:12px;display:inline;float:left;margin:0px 10px 0px 5px">{{message.payload?.name}}</div>
-                <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)>43200" style="font-size:11px;margin:0px 10px 0px 10px">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'HH:mm'}}</div>
+                <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)>43200" style="font-size:11px;margin:0px 10px 0px 10px">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'h:mm a'}}</div>
                 <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)<=43200" style="font-size:11px;margin:0px 10px 0px 10px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</div>
               </div>
               <div style="clear:both;text-align:center">
@@ -302,6 +304,7 @@ export class ChatComponent {
   eventDates:any
   eventDate:any
   eventDescription:string
+  eventDuration:number
   fund:any
   surveyDefault:any
   survey:any
@@ -330,6 +333,7 @@ export class ChatComponent {
       this.messageNumberDisplay=15
       this.chatSubject=''
       this.eventDescription=''
+      this.eventDuration=1
       this.fund={
         description:'add a description',
         amountGBPTarget:0,
@@ -394,6 +398,7 @@ export class ChatComponent {
           this.chatSubject=c.payload.doc.data()['chatSubject']
           this.eventDescription=c.payload.doc.data()['eventDescription']
           this.eventDate=c.payload.doc.data()['eventDate']
+          this.eventDuration=c.payload.doc.data()['eventDuration']
           this.fund=c.payload.doc.data()['fund']||this.fund
           this.survey=((c.payload.doc.data()['survey']||{})['createdTimestamp'])?c.payload.doc.data()['survey']:this.survey
         }
@@ -422,6 +427,7 @@ export class ChatComponent {
           this.chatSubject=c.payload.doc.data()['chatSubject']
           this.eventDescription=c.payload.doc.data()['eventDescription']
           this.eventDate=c.payload.doc.data()['eventDate']
+          this.eventDuration=c.payload.doc.data()['eventDuration']
           this.fund=c.payload.doc.data()['fund']||this.fund
           this.survey=((c.payload.doc.data()['survey']||{})['createdTimestamp'])?c.payload.doc.data()['survey']:this.survey
         }
@@ -492,7 +498,8 @@ export class ChatComponent {
       text:'new event',
       chain:this.chatLastMessageObj.chain||this.chatChain,
       eventDate:this.eventDate,
-      eventDescription:this.eventDescription
+      eventDescription:this.eventDescription,
+      eventDuration:this.eventDuration
     })
     this.resetChat()
   }
