@@ -195,4 +195,10 @@ export class UserInterfaceService {
     window.open(url,'_blank')
   }
 
+  showFullScreenImage(src) {
+    const fullScreenImage=document.getElementById('fullScreenImage') as HTMLImageElement
+    fullScreenImage.src=src
+    fullScreenImage.style.visibility='visible'
+  }
+
 }

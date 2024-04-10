@@ -17,7 +17,7 @@ import firebase from 'firebase/compat/app'
     </div>
     <div *ngIf="scope!='all'" style="clear:both;background-color:black">
       <div style="float:left">
-        <img [src]="focusUserLastMessageObj?.imageUrlThumbUser" style="display:inline;float:left;margin:7px;object-fit:cover;width:75px;height:75px">
+        <img [src]="focusUserLastMessageObj?.imageUrlThumbUser" style="display:inline;float:left;margin:7px;object-fit:cover;width:75px;height:75px" (click)="UI.showFullScreenImage(focusUserLastMessageObj?.imageUrlOriginal)">
       </div>
       <div style="padding:10px">
         <div style="clear:both">
@@ -443,12 +443,6 @@ export class ProfileComponent {
     return this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(messageId).set({
       serverTimestamp:firebase.firestore.FieldValue.serverTimestamp()
     })
-  }
-
-  showFullScreenImage(src) {
-    const fullScreenImage=document.getElementById('fullScreenImage') as HTMLImageElement
-    fullScreenImage.src=src
-    fullScreenImage.style.visibility='visible'
   }
 
   newMessageToUser() {

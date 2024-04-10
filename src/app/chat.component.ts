@@ -188,7 +188,7 @@ import firebase from 'firebase/compat/app'
                 <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)<=43200" style="font-size:11px;margin:0px 10px 0px 10px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</div>
               </div>
               <div style="clear:both;text-align:center">
-                <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" style="width:70%;max-height:320px;object-fit:contain;margin:5px 10px 5px 5px" (click)="showFullScreenImage(message.payload?.chatImageUrlOriginal)">
+                <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" style="width:70%;max-height:320px;object-fit:contain;margin:5px 10px 5px 5px" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
               </div>
               <div style="margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
               <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{message.payload?.statistics?.userCount}} Members,</div>
@@ -255,7 +255,7 @@ import firebase from 'firebase/compat/app'
     <div>
       <ul style="list-style:none">
         <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index" style="float:left;margin:5px;border-style:solid">
-          <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" style="width:375px;height:200px;object-fit:contain" (click)="showFullScreenImage(message.payload?.chatImageUrlOriginal)">
+          <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" style="width:375px;height:200px;object-fit:contain" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
           <div style="margin:5px;width:365px;height:45px">
             <span>{{message.payload?.name}}: {{message.payload?.text}}</span>
           </div>
@@ -448,12 +448,6 @@ export class ChatComponent {
         payload:c.payload.doc.data()
       }))
     }))
-  }
-
-  showFullScreenImage(src) {
-    const fullScreenImage=document.getElementById('fullScreenImage') as HTMLImageElement
-    fullScreenImage.src=src
-    fullScreenImage.style.visibility='visible'
   }
 
   isMessageNewTimeGroup(messageServerTimestamp:any) {
