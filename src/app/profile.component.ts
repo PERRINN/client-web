@@ -46,6 +46,7 @@ import firebase from 'firebase/compat/app'
       <div class="seperator" style="width:100%;margin:0px"></div>
     </div>
     <div *ngIf="scope=='all'">
+      <span class="material-icons" style="float:right;margin:10px;cursor:pointer" (click)="UI.openWindow(UI.PERRINNProfileLastMessageObj?.publicLink)">link</span>
       <div class="material-icons" style="float:left;margin:10px;cursor:pointer" (click)="showTags=!showTags">filter_list</div>
       <div *ngIf="UI.tagFilters.length>0" style="float:left;font-size:10px;line-height:15px;padding:10px;cursor:pointer" (click)="UI.tagFilters=[];refreshMessages()">Clear {{UI.tagFilters.length}} filter{{UI.tagFilters.length>1?'s':''}}</div>
       <ul class="listLight" *ngIf="showTags">
