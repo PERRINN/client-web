@@ -298,7 +298,8 @@ module.exports = {
 
       //*******MESSAGE WRITES**********************
         //message event
-        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{eventDate:messageData.eventDate||chatPreviousMessageData.eventDate||null},{create:true})
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{eventDateStart:messageData.eventDateStart||chatPreviousMessageData.eventDateStart||null},{create:true})
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{eventDateEnd:messageData.eventDateEnd||chatPreviousMessageData.eventDateEnd||null},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{eventDescription:messageData.eventDescription||chatPreviousMessageData.eventDescription||null},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{eventDuration:messageData.eventDuration||chatPreviousMessageData.eventDuration||null},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{eventLocation:messageData.eventLocation||chatPreviousMessageData.eventLocation||null},{create:true})

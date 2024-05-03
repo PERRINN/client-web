@@ -63,7 +63,7 @@ import firebase from 'firebase/compat/app'
         <li *ngFor="let message of comingEvents|async;let first=first;let last=last"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
-            <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>(-60*message.payload.doc.data()?.eventDuration)">
+            <div *ngIf="message.payload.doc.data()?.eventDateEnd/60000>UI.nowSeconds/60">
             <span *ngIf="message.payload.doc.data()?.eventLocation" class="buttonBlack" style="float:right;padding:5px;margin:10px;line-height:13px" (click)="UI.openWindow(message.payload.doc.data()?.eventLocation)">Join</span>
             <div style="float:left;min-width:90px;min-height:40px">
               <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer">event</span>
@@ -73,11 +73,11 @@ import firebase from 'firebase/compat/app'
                 <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer">settings</span>
                 <span style="font-size:15px">{{message.payload.doc.data()?.chatSubject}}</span>
               </div>
-              <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>(-60*message.payload.doc.data()?.eventDuration)" style="width:80%">
-                <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>0" [style.background-color]="(math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>60*8)?'black':'#D85140'" style="float:left;color:whitesmoke;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(message.payload.doc.data()?.eventDate/1000-UI.nowSeconds)}}</div>
-                <div *ngIf="math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)<=0&&math.floor(message.payload.doc.data()?.eventDate/60000-UI.nowSeconds/60)>(-60*message.payload.doc.data()?.eventDuration)" style="float:left;background-color:#D85140;color:whitesmoke;padding:0 5px 0 5px">Now</div>
+              <div style="width:80%">
+                <div *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)>0" [style.background-color]="(math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)>60*8)?'black':'#D85140'" style="float:left;color:whitesmoke;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(message.payload.doc.data()?.eventDateStart/1000-UI.nowSeconds)}}</div>
+                <div *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)<=0&&message.payload.doc.data()?.eventDateEnd/60000>UI.nowSeconds/60" style="float:left;background-color:#D85140;color:whitesmoke;padding:0 5px 0 5px">Now</div>
                 <span style="margin:0 5px 0 5px">{{message.payload.doc.data()?.eventDescription}}</span>
-                <span style="margin:0 5px 0 0">{{message.payload.doc.data()?.eventDate|date:'EEEE d MMM h:mm a'}} ({{message.payload.doc.data()?.eventDuration}}h)</span>
+                <span style="margin:0 5px 0 0">{{message.payload.doc.data()?.eventDateStart|date:'EEEE d MMM h:mm a'}} ({{message.payload.doc.data()?.eventDuration}}h)</span>
               </div>
             </div>
             <div class="seperator"></div>
@@ -291,8 +291,8 @@ export class ProfileComponent {
         this.comingEvents=this.afs.collection<any>('PERRINNMessages',ref=>ref
           .where('lastMessage','==',true)
           .where('verified','==',true)
-          .orderBy('eventDate')
-          .where('eventDate','>',(this.UI.nowSeconds-3600)*1000)
+          .orderBy('eventDateEnd')
+          .where('eventDateEnd','>',this.UI.nowSeconds*1000)
         ).snapshotChanges().pipe(map(changes=>{
           return changes.map(c=>({payload:c.payload}))
         }))
@@ -327,8 +327,8 @@ export class ProfileComponent {
           .where('lastMessage','==',true)
           .where('tag','in',this.UI.tagFilters)
           .where('verified','==',true)
-          .orderBy('eventDate')
-          .where('eventDate','>',(this.UI.nowSeconds-3600)*1000)
+          .orderBy('eventDateEnd')
+          .where('eventDateEnd','>',this.UI.nowSeconds*1000)
         ).snapshotChanges().pipe(map(changes=>{
           return changes.map(c=>({payload:c.payload}))
         }))
@@ -402,8 +402,8 @@ export class ProfileComponent {
         .where('recipientList','array-contains-any',[this.scope,'xCxYTM0AD7aj5SKZ27iFaqJaXps1'])
         .where('lastMessage','==',true)
         .where('verified','==',true)
-        .orderBy('eventDate')
-        .where('eventDate','>',(this.UI.nowSeconds-3600)*1000)
+        .orderBy('eventDateEnd')
+        .where('eventDateEnd','>',this.UI.nowSeconds*1000)
       ).snapshotChanges().pipe(map(changes=>{
         return changes.map(c=>({payload:c.payload}))
       }))
