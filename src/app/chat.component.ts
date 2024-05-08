@@ -504,7 +504,7 @@ export class ChatComponent {
       text:'new event',
       chain:this.chatLastMessageObj.chain||this.chatChain,
       eventDateStart:this.eventDateStart,
-      eventDateEnd:this.eventDateStart+this.eventDuration*60000,
+      eventDateEnd:this.eventDateStart+this.eventDuration*3600000,
       eventDescription:this.eventDescription,
       eventDuration:this.eventDuration,
       eventLocation:this.eventLocation
