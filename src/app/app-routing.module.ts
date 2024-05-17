@@ -5,7 +5,7 @@ import { ChatComponent } from './chat.component';
 import { ProfileComponent } from './profile.component';
 import { SettingsComponent } from './settings.component';
 import { DirectoryComponent } from './directory.component';
-import { ContributeComponent } from './contribute.component';
+import { buyPRNComponent } from './buyPRN.component';
 
 const appRoutes: Routes = [
   { path: 'chat/:id', component: ChatComponent },
@@ -13,7 +13,7 @@ const appRoutes: Routes = [
   { path: 'settings', component: SettingsComponent },
   { path: 'login', component: LoginComponent },
   { path: 'directory', component: DirectoryComponent },
-  { path: 'contribute', component: ContributeComponent },
+  { path: 'buyPRN', component: buyPRNComponent },
   { path: '',   redirectTo: 'profile/all', pathMatch: 'full' },
   { path: '**', component: ProfileComponent }
 ];

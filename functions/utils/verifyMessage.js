@@ -291,11 +291,6 @@ module.exports = {
         }
         wallet.shareBalance=wallet.balance+(PERRINNLimited.amount||0)
 
-      //user status
-        let isContributor=false
-        if(wallet.shareBalance>0)isContributor=true
-        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{isContributor:isContributor},{create:true})
-
       //*******MESSAGE WRITES**********************
         //message event
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{eventDateStart:messageData.eventDateStart||chatPreviousMessageData.eventDateStart||null},{create:true})

@@ -9,6 +9,9 @@ const runtimeOpts={timeoutSeconds:540,memory:'1GB'}
 
 exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 hours').onRun(async(context) => {
   try{
+    const appSettingsCosts=await admin.firestore().doc('appSettings/costs').get()
+    const appSettingsContract=await admin.firestore().doc('appSettings/contract').get()
+    const appSettingsPayment=await admin.firestore().doc('appSettings/payment').get()
     const now=Date.now()
     let statistics={}
     statistics.wallet={}
@@ -18,6 +21,7 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     statistics.transactionIn={}
     statistics.transactionOut={}
     statistics.purchaseCOIN={}
+    statistics.PRN={}
     statistics.emailsContributorsAuth=[]
     let listUsersResult1={}
     let listUsersResult2={}
@@ -56,6 +60,16 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     statistics.serverTimestamp=admin.firestore.FieldValue.serverTimestamp()
     statistics.stripeBalance=await stripeObj.balance.retrieve()
 
+    //statistics last message
+    const statisticsLastMessages=await admin.firestore().collection('PERRINNMessages').where("user", "==", "FHk0zgOQUja7rsB9jxDISXzHaro2").where('verified','==',true).where('statistics.PRN.verified','==',true).orderBy('serverTimestamp','desc').limit(1).get()
+    let statisticsLastMessageData=(statisticsLastMessages.docs[0]!=undefined)?(statisticsLastMessages.docs[0]||{}).data():{}
+
+    //PRN price model
+    statistics.PRN.now=now
+    statistics.PRN.days=(now/1000/3600/24-statisticsLastMessageData.statistics.PRN.now/1000/3600/24)||0
+    statistics.PRN.index=statisticsLastMessageData.statistics.PRN.index*Math.exp(appSettingsCosts.data().interestRateYear*statistics.PRN.days/365)
+    statistics.PRN.verified=true
+
     createMessageUtils.createMessageAFS({
       user:'FHk0zgOQUja7rsB9jxDISXzHaro2',
       text:"New statistics:",
@@ -65,8 +79,8 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     })
 
     console.log(statistics.userCount+' users processed.')
-    console.log(statistics.emailsContributorsAuth.length+' Contributors.')
-    console.log('Contributors Emails: '+JSON.stringify(statistics.emailsContributorsAuth))
+    console.log(statistics.emailsContributorsAuth.length+' PRN holders.')
+    console.log('PRN holders emails: '+JSON.stringify(statistics.emailsContributorsAuth))
 
   }
   catch(error){

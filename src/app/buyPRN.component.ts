@@ -21,18 +21,18 @@ import firebase from "firebase/compat/app";
 import { environment } from "environments/environment.prod";
 
 @Component({
-  selector: "contribute",
+  selector: "buyPRN",
   template: `
     <div class="sheet">
       <br />
       <div class="sheet" style="width:500px;max-width:80%">
         <div class="seperator"></div>
         <div class="title">
-          Exchanging your credits
+          Selling your PRN tokens
         </div>
         <div style="padding:10px;text-align:center">
         <span style="font-size:12px">
-          Soon you will be able to exchange your credit with other members here. We are building this new feature, stay tuned.
+          Soon you will be able to sell or exchange your tokens with other members here. We are building this new feature, stay tuned.
         </span>
         </div>
         <div class="seperator"></div>
@@ -41,7 +41,7 @@ import { environment } from "environments/environment.prod";
       <div class="sheet" style="width:500px;max-width:80%">
         <div class="seperator"></div>
         <div class="title">
-          Your contribution will go towards
+          The capital raised from token sales goes towards
         </div>
         <div class="seperator"></div>
         <ul class="listLight">
@@ -131,7 +131,7 @@ import { environment } from "environments/environment.prod";
           >
           <br />
           <span style="font-size:12px">
-            In exchange for your contribution, you receive digital credits that you can later exchange with other members.
+            In exchange for your contribution, you receive digital tokens that you can later exchange with other members.
           </span>
           <br />
           <span style="font-size:15px">{{
@@ -159,7 +159,7 @@ import { environment } from "environments/environment.prod";
         </div>
         <div style="padding:10px;text-align:center">
           <span style="font-size:12px"
-            >Your credit is stored in your wallet.</span
+            >Your tokens are stored in your wallet.</span
           >
           <br />
           <span style="font-size:12px"
@@ -260,7 +260,7 @@ import { environment } from "environments/environment.prod";
     </div>
   `,
 })
-export class ContributeComponent {
+export class buyPRNComponent {
   cardNumber: string;
   expiryMonth: string;
   expiryYear: string;
