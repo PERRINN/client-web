@@ -25,7 +25,7 @@ import firebase from 'firebase/compat/app';
           <div>{{message.values?.name}}</div>
           <span *ngIf="message.values?.publicLink" class="material-icons-outlined" style="font-size:18px;line-height:10px">link</span>
         </div>
-        <div style="float:left;padding:10px;width:45%">
+        <div style="float:left;padding:10px;width:35%">
           <span style="font-size:10px"> {{message.values?.userPresentation}}</span>
           <span *ngIf="message.values?.contract?.signed" style="font-size:10px"> Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}.</span>
           <span *ngIf="message.values?.PERRINNLimited?.amount>0" style="font-size:10px"> {{UI.formatSharesToCurrency(null,message.values?.PERRINNLimited?.amount-message.values?.PERRINNLimited?.zeroInterestLoan1)}} from PERRINN Limited ownership.</span>
