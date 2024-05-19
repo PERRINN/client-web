@@ -19,6 +19,7 @@ export class UserInterfaceService {
   tagFilters:any
   appSettingsPayment:any
   appSettingsCosts:any
+  PRNPriceNow:number
 
   constructor(
     private afAuth: AngularFireAuth,
@@ -49,7 +50,7 @@ export class UserInterfaceService {
       } else {
         this.currentUser = null;
       }
-    });
+    })
     afs
       .collection<any>("PERRINNMessages", (ref) =>
         ref
@@ -61,7 +62,7 @@ export class UserInterfaceService {
       .valueChanges()
       .subscribe((snapshot) => {
         this.PERRINNProfileLastMessageObj = snapshot[0];
-      });
+    })
     afs
       .collection<any>("PERRINNMessages", (ref) =>
         ref
@@ -72,20 +73,21 @@ export class UserInterfaceService {
       )
       .valueChanges()
       .subscribe((snapshot) => {
-        this.PERRINNAdminLastMessageObj = snapshot[0];
-      });
+        this.PERRINNAdminLastMessageObj=snapshot[0]
+        this.PRNPriceNow=this.PERRINNAdminLastMessageObj.statistics.PRN.price*Math.exp(this.PERRINNAdminLastMessageObj.statistics.PRN.growthRate*(this.nowSeconds-this.PERRINNAdminLastMessageObj.statistics.PRN.now/1000)/3600/24/365)
+    })
     afs
       .doc<any>("appSettings/payment")
       .valueChanges()
       .subscribe((snapshot) => {
-        this.appSettingsPayment = snapshot;
-      });
-      afs
-        .doc<any>("appSettings/costs")
-        .valueChanges()
-        .subscribe((snapshot) => {
-          this.appSettingsCosts = snapshot;
-        });
+        this.appSettingsPayment=snapshot
+    })
+    afs
+      .doc<any>("appSettings/costs")
+      .valueChanges()
+      .subscribe((snapshot) => {
+        this.appSettingsCosts=snapshot
+    })
   }
 
   createMessage(messageObj) {
@@ -149,6 +151,50 @@ export class UserInterfaceService {
         this.appSettingsPayment.currencyList[currency].symbol +
         formatNumber(amountCurrency / 1000000, "en-US", "1.2-2") +
         "M"
+      );
+  }
+
+  formatSharesToPRN(amount) {
+    let amountPRN = amount / this.PRNPriceNow;
+    if (amountPRN < 0) amountPRN = -amountPRN;
+    if (amountPRN < 100)
+      return (
+        (amountPRN < 0 ? "-" : "") +
+        formatNumber(amountPRN, "en-US", "1.2-2") +
+        " PRN"
+      );
+    if (amountPRN < 1000)
+      return (
+        (amountPRN < 0 ? "-" : "") +
+        formatNumber(amountPRN, "en-US", "1.1-1") +
+        " PRN"
+      );
+    if (amountPRN < 10000)
+      return (
+        (amountPRN < 0 ? "-" : "") +
+        formatNumber(amountPRN, "en-US", "1.0-0") +
+        " PRN"
+      );
+    if (amountPRN < 100000)
+      return (
+        (amountPRN < 0 ? "-" : "") +
+        formatNumber(amountPRN / 1000, "en-US", "1.1-1") +
+        "K" +
+        " PRN"
+      );
+    if (amountPRN < 1000000)
+      return (
+        (amountPRN < 0 ? "-" : "") +
+        formatNumber(amountPRN / 1000, "en-US", "1.0-0") +
+        "K" +
+        " PRN"
+      );
+    else
+      return (
+        (amountPRN < 0 ? "-" : "") +
+        formatNumber(amountPRN / 1000000, "en-US", "1.2-2") +
+        "M" +
+        " PRN"
       );
   }
 

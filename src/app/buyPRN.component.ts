@@ -28,19 +28,6 @@ import { environment } from "environments/environment.prod";
       <div class="sheet" style="width:500px;max-width:80%">
         <div class="seperator"></div>
         <div class="title">
-          Selling your PRN tokens
-        </div>
-        <div style="padding:10px;text-align:center">
-        <span style="font-size:12px">
-          Soon you will be able to sell or exchange your tokens with other members here. We are building this new feature, stay tuned.
-        </span>
-        </div>
-        <div class="seperator"></div>
-      </div>
-      <br />
-      <div class="sheet" style="width:500px;max-width:80%">
-        <div class="seperator"></div>
-        <div class="title">
           The capital raised from token sales goes towards
         </div>
         <div class="seperator"></div>
@@ -130,42 +117,21 @@ import { environment } from "environments/environment.prod";
             >encrypted</span
           >
           <br />
-          <span style="font-size:12px">
-            In exchange for your contribution, you receive digital tokens that you can later exchange with other members.
-          </span>
+          <span style="font-size:12px">PRN tokens represent ownership of the PERRINN network.</span>
           <br />
-          <span style="font-size:15px">{{
-            UI.PERRINNAdminLastMessageObj?.statistics?.emailsContributorsAuth?.length
-          }}</span>
-          <span style="font-size:12px"> members have contributed </span>
-          <span style="font-size:15px">{{
-            UI.formatSharesToCurrency(
-              null,
-              UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance
-            )
-          }}</span>
-          <span style="font-size:12px"> worth of money and time.</span>
+          <span style="font-size:12px">{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsContributorsAuth?.length}} members own {{UI.formatSharesToPRN(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}} worth {{UI.formatSharesToCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}}.</span>
           <br />
-          <span style="font-size:12px">You can follow the impact of your contribution live on PERRINN.com.</span>
+          <span style="font-size:12px">You can follow the impact of your investment live on PERRINN.com</span>
         </div>
-        <div
-          style="background-color:black;padding:10px;text-align:center"
-        >
-          <span style="font-size:12px">Your digital credits grow at a rate of </span>
-          <span style="font-size:20px">{{
-            UI.appSettingsCosts?.interestRateYear | percent : "0.0"
-          }}</span>
-          <span style="font-size:12px"> a year.</span>
+        <div style="background-color:black;padding:10px;text-align:center">
+          <span style="font-size:12px">PRN price grows at a rate of {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} a year</span>
+          <br />
+          <span style="font-size:12px">Currently, 1 PRN costs {{UI.formatSharesToCurrency(currencySelected,UI.PRNPriceNow)}}</span>
         </div>
         <div style="padding:10px;text-align:center">
-          <span style="font-size:12px"
-            >Your tokens are stored in your wallet.</span
-          >
+          <span style="font-size:12px">Your tokens are stored in your wallet on PERRINN.com</span>
           <br />
-          <span style="font-size:12px"
-            >You can track the
-            interests added to your wallet every day.</span
-          >
+          <span style="font-size:12px">Soon you will be able to sell or exchange your tokens with other members here.</span>
         </div>
         <div class="seperator"></div>
       </div>
@@ -195,21 +161,19 @@ import { environment } from "environments/environment.prod";
       <div *ngIf="UI.currentUser" class="sheet" style="width:500px;max-width:80%">
         <div class="seperator"></div>
         <div class="title">
-          How much would you like to contribute today?
+          How much PRN would you like to buy?
         </div>
         <div style="padding:10px">
           <ul class="listLight">
             <li class="buttonBlack"
               *ngFor="let credit of creditList; let index = index"
               (click)="creditSelected = index; refreshAmountCharge()"
-              style="float:left;width:63px;margin:5px"
-              [style.border-color]="
-                creditSelected == index ? 'white' : 'black'
-              "
-            >
-              {{ credit | number : "1.0-0" }}
+              style="float:left;width:75px;margin:5px"
+              [style.border-color]="creditSelected == index ? 'white' : 'black'">
+            {{UI.formatSharesToCurrency(currencySelected,credit*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}
             </li>
           </ul>
+          <span *ngIf="creditSelected!=undefined&&currencySelected!=undefined" style="font-size:12px">You will pay {{UI.formatSharesToCurrency(currencySelected,creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}} and recieve {{UI.formatSharesToPRN(creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}.</span>
         </div>
         <div class="seperator"></div>
       </div>
@@ -293,8 +257,8 @@ export class buyPRNComponent {
     else this.currencySelected = "usd";
     this.processing = false;
     this.math = Math;
-    if(this.UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2')this.creditList=[1,200,500,1000]
-    else this.creditList=[100,200,500,1000]
+    if(this.UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2')this.creditList=[1,100,200,500,1000]
+    else this.creditList=[50,100,200,500,1000]
     this.currentFunds = this.afs
       .collection<any>("PERRINNMessages", (ref) =>
         ref

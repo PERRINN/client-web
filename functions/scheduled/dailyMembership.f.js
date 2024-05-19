@@ -67,7 +67,8 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     //PRN price model
     statistics.PRN.now=now
     statistics.PRN.days=(now/1000/3600/24-statisticsLastMessageData.statistics.PRN.now/1000/3600/24)||0
-    statistics.PRN.index=statisticsLastMessageData.statistics.PRN.index*Math.exp(appSettingsCosts.data().interestRateYear*statistics.PRN.days/365)
+    statistics.PRN.growthRate=appSettingsCosts.data().interestRateYear
+    statistics.PRN.price=statisticsLastMessageData.statistics.PRN.price*Math.exp(statistics.PRN.growthRate*statistics.PRN.days/365)
     statistics.PRN.verified=true
 
     createMessageUtils.createMessageAFS({

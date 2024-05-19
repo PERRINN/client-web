@@ -193,7 +193,7 @@ import firebase from 'firebase/compat/app'
               <div style="margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
               <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{message.payload?.statistics?.userCount}} Members,</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{message.payload?.statistics?.emailsContributorsAuth?.length}} PRN holders.</div>
-              <div *ngIf="message.payload?.statistics?.PRN?.index" style="margin:5px 5px 0 5px">PRN price index: {{message.payload?.statistics?.PRN?.index|number:'1.2-2'}}</div>
+              <div *ngIf="message.payload?.statistics?.PRN?.price" style="margin:5px 5px 0 5px">PRN price: {{UI.formatSharesToCurrency(null,message.payload?.statistics?.PRN?.price)}}</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{UI.formatSharesToCurrency(null,message.payload?.statistics?.wallet?.shareBalance)}} purchased,</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{UI.formatSharesToCurrency(null,message.payload?.statistics?.interest?.rateDay)}} interest paid to PRN holders per day.</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{UI.formatSharesToCurrency(null,message.payload?.statistics?.stripeBalance?.available[0]?.amount/100*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} available in the PERRINN fund</div>

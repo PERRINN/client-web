@@ -21,9 +21,9 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
         <div *ngIf="!UI.currentUser" class="buttonWhite" style="float:left;line-height:20px;width:75px;margin:7px" (click)="router.navigate(['login'])">Login</div>
         <div *ngIf="UI.currentUser" style="float:left;cursor:pointer" (click)="router.navigate(['profile',UI.currentUser])">
           <img [src]="UI.currentUserLastMessageObj?.imageUrlThumbUser" style="display:inline;float:left;margin:5px;object-fit:cover;width:35px;height:35px">
+          <span style="margin:11px;font-size:14px;line-height:40px">{{UI.formatSharesToPRN(UI.currentUserLastMessageObj?.wallet.shareBalance||0)}}</span>
           <span style="margin:11px;font-size:14px;line-height:40px">{{UI.formatSharesToCurrency(null,UI.currentUserLastMessageObj?.wallet.shareBalance||0)}}</span>
         </div>
-        <span style="margin:11px;font-size:14px;line-height:40px"> {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} growth</span>
         <div class="buttonBlack" style="float:right;line-height:20px;width:100px;margin:7px" (click)="router.navigate(['buyPRN'])">Buy PRN</div>
       </div>
       <div class="seperator" style="width:100%;margin:0px"></div>

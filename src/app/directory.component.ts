@@ -12,17 +12,7 @@ import firebase from 'firebase/compat/app';
   template:`
   <div class="sheet" style="background-color:black">
     <div style="margin:15px">
-      <span style="font-size:15px">{{
-        UI.PERRINNAdminLastMessageObj?.statistics?.emailsContributorsAuth?.length
-      }}</span>
-      <span style="font-size:12px"> members have contributed </span>
-      <span style="font-size:15px">{{
-        UI.formatSharesToCurrency(
-          null,
-          UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance
-        )
-      }}</span>
-      <span style="font-size:12px"> worth of money and time.</span>
+      <span style="font-size:12px">{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsContributorsAuth?.length}} members own {{UI.formatSharesToPRN(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}} worth {{UI.formatSharesToCurrency(null,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}}.</span>
     </div>
   <div class="seperator" style="width:100%;margin:0px"></div>
   </div>
@@ -42,7 +32,8 @@ import firebase from 'firebase/compat/app';
           <span *ngIf="message.values?.PERRINNLimited?.zeroInterestLoan1>0" style="font-size:10px"> {{UI.formatSharesToCurrency(null,message.values?.PERRINNLimited?.zeroInterestLoan1)}} from PERRINN Limited loan.</span>
           <span *ngIf="message.values?.PERRINNLimited?.amount>0&&message.values?.wallet?.balance>0" style="font-size:10px"> {{UI.formatSharesToCurrency(null,message.values?.wallet?.balance)}} from credit.</span>
         </div>
-        <div style="float:right;margin:10px;width:50px">
+        <div style="float:right;margin:10px;width:70px">
+          <div>{{UI.formatSharesToPRN(message.values?.wallet?.shareBalance||0)}}</div>
           <div>{{UI.formatSharesToCurrency(null,message.values?.wallet?.shareBalance||0)}}</div>
           <div style="font-size:10px">{{((message.values?.wallet?.shareBalance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance))|percent:'1.1-1'}}</div>
         </div>
