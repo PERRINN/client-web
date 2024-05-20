@@ -27,6 +27,34 @@ import { environment } from "environments/environment.prod";
       <br />
       <div class="sheet" style="width:500px;max-width:80%">
         <div class="seperator"></div>
+        <div class="title" style=";text-align:center">
+          <img src="./../assets/App icons/PRN token.png" style=";width:150px">
+        </div>
+        <div class="seperator"></div>
+        <div style="padding:10px;text-align:center">
+          <span>PRN tokens represent ownership of the PERRINN network.</span>
+          <br />
+          <span>{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsContributorsAuth?.length}} members own {{UI.formatSharesToPRN(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}} worth {{UI.formatSharesToCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}}.</span>
+          <br />
+          <span>You can follow the impact of your investment live on PERRINN.com</span>
+        </div>
+        <div style="background-color:black;padding:10px;text-align:center">
+          <span>PRN price grows at a rate of {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} a year</span>
+          <br />
+          <span>Currently, 1 PRN costs {{UI.formatSharesToCurrency(currencySelected,UI.PRNPriceNow)}}</span>
+        </div>
+        <div style="padding:10px;text-align:center">
+          <span class="material-symbols-outlined" style="font-size:30px">encrypted</span>
+          <br />
+          <span>Your tokens are stored in your wallet on PERRINN.com</span>
+          <br />
+          <span>Soon you will be able to sell or exchange your tokens with other members here.</span>
+        </div>
+        <div class="seperator"></div>
+      </div>
+      <br />
+      <div class="sheet" style="width:500px;max-width:80%">
+        <div class="seperator"></div>
         <div class="title">
           The capital raised from token sales goes towards
         </div>
@@ -106,36 +134,6 @@ import { environment } from "environments/environment.prod";
         </ul>
       </div>
       <br />
-      <div class="sheet" style="width:500px;max-width:80%">
-        <div class="seperator"></div>
-        <div class="title">
-          How it works
-        </div>
-        <div class="seperator"></div>
-        <div style="padding:10px;text-align:center">
-          <span class="material-symbols-outlined" style="font-size:30px"
-            >encrypted</span
-          >
-          <br />
-          <span style="font-size:12px">PRN tokens represent ownership of the PERRINN network.</span>
-          <br />
-          <span style="font-size:12px">{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsContributorsAuth?.length}} members own {{UI.formatSharesToPRN(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}} worth {{UI.formatSharesToCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}}.</span>
-          <br />
-          <span style="font-size:12px">You can follow the impact of your investment live on PERRINN.com</span>
-        </div>
-        <div style="background-color:black;padding:10px;text-align:center">
-          <span style="font-size:12px">PRN price grows at a rate of {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} a year</span>
-          <br />
-          <span style="font-size:12px">Currently, 1 PRN costs {{UI.formatSharesToCurrency(currencySelected,UI.PRNPriceNow)}}</span>
-        </div>
-        <div style="padding:10px;text-align:center">
-          <span style="font-size:12px">Your tokens are stored in your wallet on PERRINN.com</span>
-          <br />
-          <span style="font-size:12px">Soon you will be able to sell or exchange your tokens with other members here.</span>
-        </div>
-        <div class="seperator"></div>
-      </div>
-      <br />
       <div *ngIf="UI.currentUser" class="sheet" style="width:500px;max-width:80%">
         <div class="seperator"></div>
         <div class="title">
@@ -173,7 +171,7 @@ import { environment } from "environments/environment.prod";
             {{UI.formatSharesToCurrency(currencySelected,credit*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}
             </li>
           </ul>
-          <span *ngIf="creditSelected!=undefined&&currencySelected!=undefined" style="font-size:12px">You will pay {{UI.formatSharesToCurrency(currencySelected,creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}} and recieve {{UI.formatSharesToPRN(creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}.</span>
+          <span *ngIf="creditSelected!=undefined&&currencySelected!=undefined">You will pay {{UI.formatSharesToCurrency(currencySelected,creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}} and recieve {{UI.formatSharesToPRN(creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}.</span>
         </div>
         <div class="seperator"></div>
       </div>
