@@ -21,7 +21,7 @@ import firebase from 'firebase/compat/app'
       </div>
       <div style="padding:10px">
         <div style="clear:both">
-          <div style="float:left;width:300px">
+          <div style="float:left;width:250px">
             <span style="font-size:18px;line-height:30px">{{focusUserLastMessageObj?.name}} </span>
             <span style="font-size:14px;line-height:30px">{{UI.formatSharesToPRN(focusUserLastMessageObj?.wallet?.shareBalance||0)}} </span>
             <span style="font-size:14px;line-height:30px">{{UI.formatSharesToCurrency(null,focusUserLastMessageObj?.wallet?.shareBalance||0)}}</span>
