@@ -135,21 +135,21 @@ export class UserInterfaceService {
       return (
         (amount < 0 ? "-" : "") +
         this.appSettingsPayment.currencyList[currency].symbol +
-        formatNumber(amountCurrency / 1000, "en-US", "1.1-1") +
+        formatNumber(amountCurrency / 1000, "en-US", "1.2-2") +
         "K"
       );
     if (amountCurrency < 1000000)
       return (
         (amount < 0 ? "-" : "") +
         this.appSettingsPayment.currencyList[currency].symbol +
-        formatNumber(amountCurrency / 1000, "en-US", "1.0-0") +
+        formatNumber(amountCurrency / 1000, "en-US", "1.1-1") +
         "K"
       );
     else
       return (
         (amount < 0 ? "-" : "") +
         this.appSettingsPayment.currencyList[currency].symbol +
-        formatNumber(amountCurrency / 1000000, "en-US", "1.2-2") +
+        formatNumber(amountCurrency / 1000000, "en-US", "1.3-3") +
         "M"
       );
   }
@@ -157,6 +157,12 @@ export class UserInterfaceService {
   formatSharesToPRN(amount) {
     let amountPRN = amount / this.PRNPriceNow;
     if (amountPRN < 0) amountPRN = -amountPRN;
+    if (amountPRN < 10)
+      return (
+        (amountPRN < 0 ? "-" : "") +
+        formatNumber(amountPRN, "en-US", "1.3-3") +
+        " PRN"
+      );
     if (amountPRN < 100)
       return (
         (amountPRN < 0 ? "-" : "") +
@@ -178,21 +184,21 @@ export class UserInterfaceService {
     if (amountPRN < 100000)
       return (
         (amountPRN < 0 ? "-" : "") +
-        formatNumber(amountPRN / 1000, "en-US", "1.1-1") +
+        formatNumber(amountPRN / 1000, "en-US", "1.2-2") +
         "K" +
         " PRN"
       );
     if (amountPRN < 1000000)
       return (
         (amountPRN < 0 ? "-" : "") +
-        formatNumber(amountPRN / 1000, "en-US", "1.0-0") +
+        formatNumber(amountPRN / 1000, "en-US", "1.1-1") +
         "K" +
         " PRN"
       );
     else
       return (
         (amountPRN < 0 ? "-" : "") +
-        formatNumber(amountPRN / 1000000, "en-US", "1.2-2") +
+        formatNumber(amountPRN / 1000000, "en-US", "1.3-3") +
         "M" +
         " PRN"
       );
