@@ -37,6 +37,7 @@ import { environment } from "environments/environment.prod";
           <span>{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsContributorsAuth?.length}} members own {{UI.formatSharesToPRN(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}} worth {{UI.formatSharesToCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}}.</span>
           <br />
           <span>You can follow the impact of your investment live on PERRINN.com</span>
+          <div class="buttonWhite" style="margin:10px auto;width:150px;font-size:11px" (click)="router.navigate(['directory'])">PRN holders directory</div>
         </div>
         <div style="background-color:black;padding:10px;text-align:center">
           <span>PRN price grows at a rate of {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} a year</span>
