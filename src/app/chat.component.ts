@@ -78,9 +78,9 @@ import firebase from 'firebase/compat/app'
     <ul class="listLight">
       <li *ngFor="let team of teams | async">
         <div *ngIf="!(chatLastMessageObj?.recipients||{})[team.key]" style="padding:5px">
-          <div style="float:left;width:275px">
+          <div style="float:left;width:300px">
             <img [src]="team?.values?.imageUrlThumbUser" style="display:inline;float:left;margin:0 5px 0 10px;opacity:1;object-fit:cover;height:25px;width:25px">
-            <span>{{team.values?.name}} {{UI.formatSharesToCurrency(null,team.values?.wallet?.shareBalance||0)}}</span>
+            <span>{{team.values?.name}} {{UI.formatSharesToPRN(team.values?.wallet?.shareBalance||0)}} {{UI.formatSharesToCurrency(null,team.values?.wallet?.shareBalance||0)}}</span>
           </div>
           <div class="buttonWhite" style="float:left;width:50px;font-size:11px" (click)="addRecipient(team.values.user,team.values.name)">Add</div>
         </div>
@@ -100,8 +100,8 @@ import firebase from 'firebase/compat/app'
           </li>
         </ul>
       </div>
-      <div class="buttonWhite" *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.shareBalance&&transactionUser!=undefined" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="sendCredit(transactionAmount,transactionCode,transactionUser,transactionUserName)">
-        Send {{UI.appSettingsPayment.currencyList[UI.currentUserLastMessageObj.userCurrency].symbol}}{{transactionAmount}} to {{transactionUserName}}
+      <div class="buttonWhite" *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.shareBalance&&transactionUser!=undefined" style="clear:both;width:300px;font-size:10px;margin:10px" (click)="sendCredit(transactionAmount,transactionCode,transactionUser,transactionUserName)">
+        Send {{UI.formatSharesToPRN(transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}} or {{UI.formatSharesToCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}} to {{transactionUserName}}
       </div>
     <div class="seperator" style="width:100%;margin:0px"></div>
     <div>
@@ -194,8 +194,7 @@ import firebase from 'firebase/compat/app'
               <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{message.payload?.statistics?.userCount}} Members,</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{message.payload?.statistics?.emailsContributorsAuth?.length}} PRN holders.</div>
               <div *ngIf="message.payload?.statistics?.PRN?.price" style="margin:5px 5px 0 5px">PRN price: {{UI.formatSharesToCurrency(null,message.payload?.statistics?.PRN?.price)}}</div>
-              <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{UI.formatSharesToCurrency(null,message.payload?.statistics?.wallet?.shareBalance)}} purchased,</div>
-              <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{UI.formatSharesToCurrency(null,message.payload?.statistics?.interest?.rateDay)}} interest paid to PRN holders per day.</div>
+              <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{UI.formatSharesToCurrency(null,message.payload?.statistics?.wallet?.shareBalance)}} invested.</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{UI.formatSharesToCurrency(null,message.payload?.statistics?.stripeBalance?.available[0]?.amount/100*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} available in the PERRINN fund</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">({{UI.formatSharesToCurrency(null,message.payload?.statistics?.stripeBalance?.pending[0]?.amount/100*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} pending).</div>
               <div *ngIf="messageShowDetails.includes(message.key)" style="margin:5px">
