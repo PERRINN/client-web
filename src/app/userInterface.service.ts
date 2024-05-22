@@ -19,6 +19,7 @@ export class UserInterfaceService {
   tagFilters:any
   appSettingsPayment:any
   appSettingsCosts:any
+  appSettingsContract:any
   PRNPriceNow:number
 
   constructor(
@@ -87,6 +88,12 @@ export class UserInterfaceService {
       .valueChanges()
       .subscribe((snapshot) => {
         this.appSettingsCosts=snapshot
+    })
+    afs
+      .doc<any>("appSettings/contract")
+      .valueChanges()
+      .subscribe((snapshot) => {
+        this.appSettingsContract=snapshot
     })
   }
 
