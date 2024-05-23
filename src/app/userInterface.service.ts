@@ -152,11 +152,18 @@ export class UserInterfaceService {
         formatNumber(amountCurrency / 1000, "en-US", "1.1-1") +
         "K"
       );
-    else
+    if (amountCurrency < 10000000)
       return (
         (amount < 0 ? "-" : "") +
         this.appSettingsPayment.currencyList[currency].symbol +
         formatNumber(amountCurrency / 1000000, "en-US", "1.3-3") +
+        "M"
+      );
+    else
+      return (
+        (amount < 0 ? "-" : "") +
+        this.appSettingsPayment.currencyList[currency].symbol +
+        formatNumber(amountCurrency / 1000000, "en-US", "1.2-2") +
         "M"
       );
   }

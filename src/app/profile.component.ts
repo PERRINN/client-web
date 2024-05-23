@@ -40,7 +40,7 @@ import firebase from 'firebase/compat/app'
           <div style="float:left;font-size:10px;width:55px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='30days'?'underline':'none'" (click)="mode='30days';refreshMessages()">30 days</div>
           <div style="float:left;font-size:10px;width:55px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='24months'?'underline':'none'" (click)="mode='24months';refreshMessages()">24 months</div>
           <div style="float:left;font-size:10px;width:55px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='chain'?'underline':'none'" (click)="mode='chain';refreshMessages()">chain</div>
-          <div style="float:left;font-size:10px;width:85px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='10yearForecast'?'underline':'none'" (click)="mode='10yearForecast';refreshMessages()">10 year forecast</div>
+          <div style="float:left;font-size:10px;width:85px;text-align:center;line-height:25px;cursor:pointer" [style.text-decoration]="mode=='20yearForecast'?'underline':'none'" (click)="mode='20yearForecast';refreshMessages()">20 year forecast</div>
         </div>
         <div class="buttonBlack" *ngIf="UI.currentUser&&UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="float:left;font-size:10px;padding:2px 4px 2px 4px;margin-right:5px">New message to {{focusUserLastMessageObj?.name}}</div>
       </div>
@@ -200,14 +200,16 @@ import firebase from 'firebase/compat/app'
           </div>
         </li>
       </ul>
-      <div *ngIf="scope!='all'&&mode=='10yearForecast'">
+      <div *ngIf="scope!='all'&&mode=='20yearForecast'">
         <div style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0">Year</div>
+        <div style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0">Growth</div>
         <div style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0">Balance</div>
         <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Multiple</div>
         <div class="tableRow" style="clear:both">
           <ul>
-            <li *ngFor="let number of [1,2,3,4,5,6,7,8,9,10]" style="clear:both">
+            <li *ngFor="let number of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]" style="clear:both">
               <div style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0">{{number}}</div>
+              <div style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0">{{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}}</div>
               <div style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0">
                 {{UI.formatSharesToCurrency(null,focusUserLastMessageObj?.wallet?.shareBalance*math.exp(UI.appSettingsCosts?.interestRateYear*number))}}
               </div>
