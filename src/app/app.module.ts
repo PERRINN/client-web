@@ -27,6 +27,8 @@ import { AngularFireAuthModule } from '@angular/fire/compat/auth';
 import { Ng2ImgMaxModule } from 'ng2-img-max';
 import { environment } from '../environments/environment';
 
+import { AgChartsAngular } from 'ag-charts-angular';
+
 // Must export the config
 export const firebaseConfig = {
   apiKey: environment.FIREBASE_API_KEY,
@@ -61,6 +63,7 @@ export const firebaseConfig = {
     LinkyModule,
     Ng2ImgMaxModule,
     PipeModule.forRoot(),
+    AgChartsAngular,
   ],
   providers: [
     UserInterfaceService,

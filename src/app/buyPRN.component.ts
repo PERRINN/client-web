@@ -19,6 +19,7 @@ import {
 import { AngularFireAuth } from "@angular/fire/compat/auth";
 import firebase from "firebase/compat/app";
 import { environment } from "environments/environment.prod";
+import { AgChartOptions } from 'ag-charts-community';
 
 @Component({
   selector: "buyPRN",
@@ -42,7 +43,8 @@ import { environment } from "environments/environment.prod";
         <div style="background-color:black;padding:10px;text-align:center">
           <span>PRN price grows at a rate of {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} a year</span>
           <br />
-          <span>Currently, 1 PRN costs {{UI.formatSharesToCurrency(currencySelected,UI.PRNPriceNow)}}</span>
+          <span>1 PRN costs {{UI.formatSharesToCurrency(currencySelected,UI.PRNPriceNow)}}</span>
+          <div style="height:200px;margin-top:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
         </div>
         <div style="padding:10px;text-align:center">
           <span class="material-symbols-outlined" style="font-size:30px">encrypted</span>
@@ -240,6 +242,7 @@ export class buyPRNComponent {
   @ViewChild("cardElement") cardElement: ElementRef;
   processing: boolean;
   currentFunds: Observable<any[]>;
+  public chartOptions: AgChartOptions
 
   constructor(
     public afAuth: AngularFireAuth,
@@ -272,6 +275,18 @@ export class buyPRNComponent {
           return changes.map((c) => ({ payload: c.payload }));
         })
       );
+      this.chartOptions = {
+            title: { text: 'PRN price index' },
+            data: [
+              { year: 1296578670000, price: 1/Math.exp((this.UI.nowSeconds-1296578670)/3600/24/365*0.1) },
+              { year: this.UI.nowSeconds*1000-6*365*24*3600000, price: 1/Math.exp(6*0.1) },
+              { year: this.UI.nowSeconds*1000, price: 1 },
+              { year: this.UI.nowSeconds*1000+6*365*24*3600000, price: 1*Math.exp(6*0.1) },
+            ],
+            series: [{ type: 'line', xKey: 'year', yKey: 'price' }],
+            theme: 'ag-default-dark',
+            axes: [{ type: 'time', position: 'bottom' },{type: 'number',position: 'left',keys: ['price']}],
+      }
   }
 
   ngAfterViewInit() {
