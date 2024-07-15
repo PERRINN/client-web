@@ -20,7 +20,6 @@ export class UserInterfaceService {
   appSettingsPayment:any
   appSettingsCosts:any
   appSettingsContract:any
-  PRNPriceNow:number
 
   constructor(
     private afAuth: AngularFireAuth,
@@ -75,7 +74,6 @@ export class UserInterfaceService {
       .valueChanges()
       .subscribe((snapshot) => {
         this.PERRINNAdminLastMessageObj=snapshot[0]
-        this.PRNPriceNow=this.PERRINNAdminLastMessageObj.statistics.PRN.price*Math.exp(this.PERRINNAdminLastMessageObj.statistics.PRN.growthRate*(this.nowSeconds-this.PERRINNAdminLastMessageObj.statistics.PRN.now/1000)/3600/24/365)
     })
     afs
       .doc<any>("appSettings/payment")
@@ -168,53 +166,59 @@ export class UserInterfaceService {
       );
   }
 
-  formatSharesToPRN(amount) {
-    let amountPRN = amount / this.PRNPriceNow;
-    if (amountPRN < 0) amountPRN = -amountPRN;
-    if (amountPRN < 10)
+  formatSharesToPRNCurrency(currency, amount) {
+    if (currency == null) {
+      if (this.currentUserLastMessageObj!=undefined&&this.currentUserLastMessageObj.userCurrency!=undefined)
+        currency = this.currentUserLastMessageObj.userCurrency;
+      else currency = "usd";
+    }
+    let amountCurrency = amount / this.appSettingsPayment.currencyList[currency].toCOIN;
+    if (amountCurrency < 0) amountCurrency = -amountCurrency;
+    if (amountCurrency < 100)
       return (
-        (amountPRN < 0 ? "-" : "") +
-        formatNumber(amountPRN, "en-US", "1.3-3") +
-        " PRN"
+        (amount < 0 ? "-" : "") +
+        'PRN ' + this.appSettingsPayment.currencyList[currency].symbol +
+        formatNumber(amountCurrency, "en-US", "1.2-2")
       );
-    if (amountPRN < 100)
+    if (amountCurrency < 1000)
       return (
-        (amountPRN < 0 ? "-" : "") +
-        formatNumber(amountPRN, "en-US", "1.2-2") +
-        " PRN"
+        (amount < 0 ? "-" : "") +
+        'PRN ' + this.appSettingsPayment.currencyList[currency].symbol +
+        formatNumber(amountCurrency, "en-US", "1.1-1")
       );
-    if (amountPRN < 1000)
+    if (amountCurrency < 10000)
       return (
-        (amountPRN < 0 ? "-" : "") +
-        formatNumber(amountPRN, "en-US", "1.1-1") +
-        " PRN"
+        (amount < 0 ? "-" : "") +
+        'PRN ' + this.appSettingsPayment.currencyList[currency].symbol +
+        formatNumber(amountCurrency, "en-US", "1.0-0")
       );
-    if (amountPRN < 10000)
+    if (amountCurrency < 100000)
       return (
-        (amountPRN < 0 ? "-" : "") +
-        formatNumber(amountPRN, "en-US", "1.0-0") +
-        " PRN"
+        (amount < 0 ? "-" : "") +
+        'PRN ' + this.appSettingsPayment.currencyList[currency].symbol +
+        formatNumber(amountCurrency / 1000, "en-US", "1.2-2") +
+        "K"
       );
-    if (amountPRN < 100000)
+    if (amountCurrency < 1000000)
       return (
-        (amountPRN < 0 ? "-" : "") +
-        formatNumber(amountPRN / 1000, "en-US", "1.2-2") +
-        "K" +
-        " PRN"
+        (amount < 0 ? "-" : "") +
+        'PRN ' + this.appSettingsPayment.currencyList[currency].symbol +
+        formatNumber(amountCurrency / 1000, "en-US", "1.1-1") +
+        "K"
       );
-    if (amountPRN < 1000000)
+    if (amountCurrency < 10000000)
       return (
-        (amountPRN < 0 ? "-" : "") +
-        formatNumber(amountPRN / 1000, "en-US", "1.1-1") +
-        "K" +
-        " PRN"
+        (amount < 0 ? "-" : "") +
+        'PRN ' + this.appSettingsPayment.currencyList[currency].symbol +
+        formatNumber(amountCurrency / 1000000, "en-US", "1.3-3") +
+        "M"
       );
     else
       return (
-        (amountPRN < 0 ? "-" : "") +
-        formatNumber(amountPRN / 1000000, "en-US", "1.3-3") +
-        "M" +
-        " PRN"
+        (amount < 0 ? "-" : "") +
+        'PRN ' + this.appSettingsPayment.currencyList[currency].symbol +
+        formatNumber(amountCurrency / 1000000, "en-US", "1.2-2") +
+        "M"
       );
   }
 

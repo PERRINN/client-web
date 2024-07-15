@@ -21,7 +21,6 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     statistics.transactionIn={}
     statistics.transactionOut={}
     statistics.purchaseCOIN={}
-    statistics.PRN={}
     statistics.emailsContributorsAuth=[]
     let listUsersResult1={}
     let listUsersResult2={}
@@ -59,17 +58,6 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     })
     statistics.serverTimestamp=admin.firestore.FieldValue.serverTimestamp()
     statistics.stripeBalance=await stripeObj.balance.retrieve()
-
-    //statistics last message
-    const statisticsLastMessages=await admin.firestore().collection('PERRINNMessages').where("user", "==", "FHk0zgOQUja7rsB9jxDISXzHaro2").where('verified','==',true).where('statistics.PRN.verified','==',true).orderBy('serverTimestamp','desc').limit(1).get()
-    let statisticsLastMessageData=(statisticsLastMessages.docs[0]!=undefined)?(statisticsLastMessages.docs[0]||{}).data():{}
-
-    //PRN price model
-    statistics.PRN.now=now
-    statistics.PRN.days=(now/1000/3600/24-statisticsLastMessageData.statistics.PRN.now/1000/3600/24)||0
-    statistics.PRN.growthRate=appSettingsCosts.data().interestRateYear
-    statistics.PRN.price=statisticsLastMessageData.statistics.PRN.price*Math.exp(statistics.PRN.growthRate*statistics.PRN.days/365)
-    statistics.PRN.verified=true
 
     createMessageUtils.createMessageAFS({
       user:'FHk0zgOQUja7rsB9jxDISXzHaro2',

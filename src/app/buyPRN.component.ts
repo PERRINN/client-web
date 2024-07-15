@@ -35,15 +35,13 @@ import { AgChartOptions } from 'ag-charts-community';
         <div style="padding:10px;text-align:center">
           <span>PRN tokens represent ownership of the PERRINN network.</span>
           <br />
-          <span>{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsContributorsAuth?.length}} members own {{UI.formatSharesToPRN(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}} worth {{UI.formatSharesToCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}}.</span>
+          <span>{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsContributorsAuth?.length}} members own {{UI.formatSharesToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}}.</span>
           <br />
           <span>You can follow the impact of your investment live on PERRINN.com</span>
           <div class="buttonWhite" style="margin:10px auto;width:150px;font-size:11px" (click)="router.navigate(['directory'])">PRN holders directory</div>
         </div>
         <div style="background-color:black;padding:10px;text-align:center">
-          <span>PRN price grows at a rate of {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} a year</span>
-          <br />
-          <span>1 PRN costs {{UI.formatSharesToCurrency(currencySelected,UI.PRNPriceNow)}}</span>
+          <span>Your PRN amount grows at a rate of {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} a year</span>
           <div style="height:200px;margin-top:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
         </div>
         <div style="padding:10px;text-align:center">
@@ -112,7 +110,7 @@ import { AgChartOptions } from 'ag-charts-community';
                 <div style="float:left;margin:0 5px 0 5px">
                   target:
                   {{
-                    UI.formatSharesToCurrency(
+                    UI.formatSharesToPRNCurrency(
                       null,
                       message.payload.doc.data()?.fund?.amountGBPTarget *
                         UI.appSettingsPayment.currencyList["gbp"].toCOIN
@@ -123,7 +121,7 @@ import { AgChartOptions } from 'ag-charts-community';
                 <div style="float:left">
                   raised:
                   {{
-                    UI.formatSharesToCurrency(
+                    UI.formatSharesToPRNCurrency(
                       null,
                       message.payload.doc.data()?.fund?.amountGBPRaised *
                         UI.appSettingsPayment.currencyList["gbp"].toCOIN
@@ -174,7 +172,7 @@ import { AgChartOptions } from 'ag-charts-community';
             {{UI.formatSharesToCurrency(currencySelected,credit*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}
             </li>
           </ul>
-          <span *ngIf="creditSelected!=undefined&&currencySelected!=undefined">You will pay {{UI.formatSharesToCurrency(currencySelected,creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}} and recieve {{UI.formatSharesToPRN(creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}.</span>
+          <span *ngIf="creditSelected!=undefined&&currencySelected!=undefined">You will pay {{UI.formatSharesToCurrency(currencySelected,creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}} and recieve {{UI.formatSharesToPRNCurrency(currencySelected,creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}.</span>
         </div>
         <div class="seperator"></div>
       </div>
@@ -276,7 +274,7 @@ export class buyPRNComponent {
         })
       );
       this.chartOptions = {
-            title: { text: 'PRN price index' },
+            title: { text: 'PRN growth' },
             data: [
               { year: 1296578670000, price: 1/Math.exp((this.UI.nowSeconds-1296578670)/3600/24/365*0.1) },
               { year: this.UI.nowSeconds*1000-6*365*24*3600000, price: 1/Math.exp(6*0.1) },
