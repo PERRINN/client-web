@@ -276,10 +276,10 @@ export class buyPRNComponent {
       this.chartOptions = {
             title: { text: 'PRN growth' },
             data: [
-              { year: 1296578670000, price: 1/Math.exp((this.UI.nowSeconds-1296578670)/3600/24/365*0.1) },
-              { year: this.UI.nowSeconds*1000-6*365*24*3600000, price: 1/Math.exp(6*0.1) },
-              { year: this.UI.nowSeconds*1000, price: 1 },
-              { year: this.UI.nowSeconds*1000+6*365*24*3600000, price: 1*Math.exp(6*0.1) },
+              { year: 1296578670000, price: 1 },
+              { year: this.UI.nowSeconds*1000-6*365*24*3600000, price: Math.exp((this.UI.nowSeconds*1000-6*365*24*3600000-1296578670000)/1000/3600/24/365*0.1) },
+              { year: this.UI.nowSeconds*1000, price: Math.exp((this.UI.nowSeconds*1000-1296578670000)/1000/3600/24/365*0.1) },
+              { year: this.UI.nowSeconds*1000+6*365*24*3600000, price: Math.exp((this.UI.nowSeconds*1000+6*365*24*3600000-1296578670000)/1000/3600/24/365*0.1) },
             ],
             series: [{ type: 'line', xKey: 'year', yKey: 'price' }],
             theme: 'ag-default-dark',
