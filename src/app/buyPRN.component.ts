@@ -61,78 +61,27 @@ import { AgChartOptions } from 'ag-charts-community';
         </div>
         <div class="seperator"></div>
         <ul class="listLight">
-          <li
-            *ngFor="
-              let message of currentFunds | async;
-              let first = first;
-              let last = last
-            "
-          >
-            <div
-              *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget > 0"
-              style="cursor:default;padding:10px"
-            >
-              <span style="font-size:14px">{{
-                message.payload.doc.data()?.chatSubject
-              }}</span>
+          <li *ngFor="let message of currentFunds|async">
+            <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0&&(message.payload.doc.data()?.fund?.active||showPastFunds)" style="cursor:default;padding:10px">
+              <span style="font-size:14px">{{message.payload.doc.data()?.chatSubject}}</span>
               <div style="clear:both">
-                <div
-                  style="float:left;background-color:black;height:20px;width:65px;text-align:center;padding:0 5px 0 5px"
-                ></div>
-                <div
-                  style="float:left;height:20px;background-color:#D85140;margin-left:-65px"
-                  [style.width]="
-                    (message.payload.doc.data()?.fund?.amountGBPRaised /
-                      message.payload.doc.data()?.fund?.amountGBPTarget) *
-                      65 +
-                    'px'
-                  "
-                ></div>
-                <div
-                  style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;padding:0 5px 0 5px"
-                >
-                  {{
-                    message.payload.doc.data()?.fund?.amountGBPRaised /
-                      message.payload.doc.data()?.fund?.amountGBPTarget
-                      | percent : "1.0-0"
-                  }}
+                <div style="float:left;background-color:black;height:20px;width:65px;text-align:center;padding:0 5px 0 5px"></div>
+                <div style="float:left;height:20px;background-color:#D85140;margin-left:-65px"
+                  [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*65+'px'"></div>
+                <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;padding:0 5px 0 5px">
+                  {{message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget|percent:"1.0-0"}}
                 </div>
-                <div style="float:left;margin:0 5px 0 5px">
-                  {{
-                    message.payload.doc.data()?.fund?.daysLeft
-                      | number : "1.0-0"
-                  }}
-                  days left
-                </div>
-                <div style="float:left;margin:0 5px 0 5px">
-                  {{ message.payload.doc.data()?.fund?.description }},
-                </div>
-                <div style="float:left;margin:0 5px 0 5px">
-                  target:
-                  {{
-                    UI.formatSharesToPRNCurrency(
-                      null,
-                      message.payload.doc.data()?.fund?.amountGBPTarget *
-                        UI.appSettingsPayment.currencyList["gbp"].toCOIN
-                    )
-                  }}
-                  /
-                </div>
-                <div style="float:left">
-                  raised:
-                  {{
-                    UI.formatSharesToPRNCurrency(
-                      null,
-                      message.payload.doc.data()?.fund?.amountGBPRaised *
-                        UI.appSettingsPayment.currencyList["gbp"].toCOIN
-                    )
-                  }}
-                </div>
+                <div *ngIf="message.payload.doc.data()?.fund?.active" style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.daysLeft|number:"1.0-0"}} days left</div>
+                <div *ngIf="!message.payload.doc.data()?.fund?.active" style="float:left;margin:0 5px 0 5px">{{-message.payload.doc.data()?.fund?.daysLeft|number:"1.0-0"}} days ago</div>
+                <div style="float:left;margin:0 5px 0 5px">{{ message.payload.doc.data()?.fund?.description }},</div>
+                <div style="float:left;margin:0 5px 0 5px">target: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /</div>
+                <div style="float:left">raised: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}</div>
               </div>
             </div>
-            <div class="seperator"></div>
           </li>
         </ul>
+      <div class="buttonBlack" *ngIf="!showPastFunds" (click)="showPastFunds=!showPastFunds">Show past funds</div>
+      <div class="seperator"></div>
       </div>
       <br />
       <div *ngIf="UI.currentUser" class="sheet" style="width:500px;max-width:80%">
@@ -224,23 +173,24 @@ import { AgChartOptions } from 'ag-charts-community';
   `,
 })
 export class buyPRNComponent {
-  cardNumber: string;
-  expiryMonth: string;
-  expiryYear: string;
-  cvc: string;
-  amountSharesPurchased: number;
-  amountCharge: number;
-  currencySelected: string;
-  creditList: any;
-  creditSelected: number;
-  math: any;
-  card: any;
-  cardHandler = this.onChange.bind(this);
-  stripeMessage: string;
-  @ViewChild("cardElement") cardElement: ElementRef;
-  processing: boolean;
-  currentFunds: Observable<any[]>;
-  public chartOptions: AgChartOptions
+  cardNumber:string
+  expiryMonth:string
+  expiryYear:string
+  cvc:string
+  amountSharesPurchased:number
+  amountCharge:number
+  currencySelected:string
+  creditList:any
+  creditSelected:number
+  math:any
+  card:any
+  cardHandler = this.onChange.bind(this)
+  stripeMessage:string
+  @ViewChild("cardElement") cardElement:ElementRef
+  processing:boolean
+  currentFunds:Observable<any[]>
+  public chartOptions:AgChartOptions
+  showPastFunds:boolean
 
   constructor(
     public afAuth: AngularFireAuth,
@@ -255,7 +205,8 @@ export class buyPRNComponent {
       this.currencySelected =
         UI.currentUserLastMessageObj.userCurrency || "usd";
     else this.currencySelected = "usd";
-    this.processing = false;
+    this.processing=false
+    this.showPastFunds=false
     this.math = Math;
     if(this.UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2')this.creditList=[1,100,200,500,1000]
     else this.creditList=[50,100,200,500,1000]
@@ -264,8 +215,7 @@ export class buyPRNComponent {
         ref
           .where("lastMessage", "==", true)
           .where("verified", "==", true)
-          .where("fund.active", "==", true)
-          .orderBy("fund.daysLeft", "asc")
+          .orderBy("fund.daysLeft", "desc")
       )
       .snapshotChanges()
       .pipe(
