@@ -140,6 +140,15 @@ import firebase from 'firebase/compat/app'
         </li>
       </ul>
       <ul class="listLight">
+        <li *ngFor="let message of latestImages|async;let first=first;let last=last" style="float:left;width:20%"
+          (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
+          <div *ngIf="scope=='all'||mode=='inbox'">
+            <img [src]="message.payload.doc.data()?.chatImageUrlMedium" style="float:left;margin:2px;object-fit:cover;width:100%;height:90px">
+          </div>
+        </li>
+        <div class="seperator"></div>
+      </ul>
+      <ul class="listLight">
         <li *ngFor="let message of messages|async;let first=first;let last=last"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
@@ -233,6 +242,7 @@ export class ProfileComponent {
   comingEvents:Observable<any[]>
   currentFunds:Observable<any[]>
   currentSurveys:Observable<any[]>
+  latestImages:Observable<any[]>
   tags:Observable<any[]>
   scrollTeam:string
   focusUserLastMessageObj:any
@@ -314,6 +324,13 @@ export class ProfileComponent {
         ).snapshotChanges().pipe(map(changes=>{
           return changes.map(c=>({payload:c.payload}))
         }))
+        this.latestImages=this.afs.collection<any>('PERRINNMessages',ref=>ref
+          .where('verified','==',true)
+          .orderBy('chatImageTimestamp','desc')
+          .limit(5)
+        ).snapshotChanges().pipe(map(changes=>{
+          return changes.map(c=>({payload:c.payload}))
+        }))
         this.messages=this.afs.collection<any>('PERRINNMessages',ref=>ref
           .where('lastMessage','==',true)
           .where('verified','==',true)
@@ -349,6 +366,14 @@ export class ProfileComponent {
           .where('verified','==',true)
           .orderBy('survey.expiryTimestamp')
           .where('survey.expiryTimestamp','>=',this.UI.nowSeconds*1000)
+        ).snapshotChanges().pipe(map(changes=>{
+          return changes.map(c=>({payload:c.payload}))
+        }))
+        this.latestImages=this.afs.collection<any>('PERRINNMessages',ref=>ref
+          .where('verified','==',true)
+          .where('tag','in',this.UI.tagFilters)
+          .orderBy('chatImageTimestamp','desc')
+          .limit(5)
         ).snapshotChanges().pipe(map(changes=>{
           return changes.map(c=>({payload:c.payload}))
         }))
@@ -424,6 +449,14 @@ export class ProfileComponent {
         .where('verified','==',true)
         .orderBy('survey.expiryTimestamp')
         .where('survey.expiryTimestamp','>=',this.UI.nowSeconds*1000)
+      ).snapshotChanges().pipe(map(changes=>{
+        return changes.map(c=>({payload:c.payload}))
+      }))
+      this.latestImages=this.afs.collection<any>('PERRINNMessages',ref=>ref
+        .where('recipientList','array-contains-any',[this.scope,'xCxYTM0AD7aj5SKZ27iFaqJaXps1'])
+        .where('verified','==',true)
+        .orderBy('chatImageTimestamp','desc')
+        .limit(5)
       ).snapshotChanges().pipe(map(changes=>{
         return changes.map(c=>({payload:c.payload}))
       }))
