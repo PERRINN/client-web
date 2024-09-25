@@ -421,7 +421,7 @@ export class ChatComponent {
     }))
     else this.messages=this.afs.collection('PERRINNMessages',ref=>ref
       .where('chain','==',chain)
-      .orderBy('chatImageTimestamp','desc')
+      .orderBy('chatImageTimestamp','desc') 
       .limit(this.messageNumberDisplay)
     ).snapshotChanges().pipe(map(changes=>{
       this.UI.loading=false
