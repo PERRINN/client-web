@@ -85,7 +85,9 @@ module.exports = {
       }
       messageData.userPresentation=messageData.userPresentation||userPreviousMessageData.userPresentation||""
       messageData.userPresentation=messageData.userPresentation.substring(0,150)
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{name:messageData.name||userPreviousMessageData.name||null},{create:true})
+      messageData.name=messageData.name||userPreviousMessageData.name||null
+      if(messageData.name!=null)messageData.name=messageData.name.split(" ")[0]
+      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{name:messageData.name},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userCurrency:messageData.userCurrency||userPreviousMessageData.userCurrency||"usd"},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{publicLink:messageData.publicLink||userPreviousMessageData.publicLink||null},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userPresentation:messageData.userPresentation},{create:true})
