@@ -28,7 +28,7 @@ import firebase from 'firebase/compat/app'
             <br>
             <span style="font-size:10px">{{focusUserLastMessageObj?.userPresentation}}</span>
             <span *ngIf="focusUserLastMessageObj?.contract?.signed" style="font-size:10px"> Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
-            <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px">Waiting for contract signature (Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}})</span>
+            <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px">Waiting for contract signature (Level {{focusUserLastMessageObj?.contract?.level|number:'1.1-1'}})</span>
             <div class="buttonBlack" *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin:15px;font-size:10px" (click)=signContract()>Sign contract</div>
           </div>
           <div *ngIf="focusUserLastMessageObj?.user==UI.currentUser" class="material-icons" style="float:right;cursor:pointer" (click)="router.navigate(['settings'])">settings</div>
