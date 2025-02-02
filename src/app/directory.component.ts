@@ -34,7 +34,7 @@ import firebase from 'firebase/compat/app';
         </div>
         <div style="float:right;margin:10px;width:60px">
           <div>{{UI.formatSharesToPRNCurrency(null,message.values?.wallet?.shareBalance||0)}}</div>
-          <div style="font-size:10px">{{((message.values?.wallet?.shareBalance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance))|percent:'1.1-1'}}</div>
+          <div *ngIf="((message.values?.wallet?.shareBalance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance))>0.001" style="font-size:10px">{{((message.values?.wallet?.shareBalance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance))|percent:'1.1-1'}}</div>
         </div>
       </div>
       <div class="seperator"></div>
