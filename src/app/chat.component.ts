@@ -214,7 +214,6 @@ import firebase from 'firebase/compat/app'
                 <div class="seperator" style="width:100%"></div>
                 <div style="font-size:10px">wallet {{message.payload?.wallet|json}}</div>
                 <div class="seperator" style="width:100%"></div>
-                <div style="font-size:10px">PERRINNLimited {{message.payload?.PERRINNLimited|json}}</div>
                 <div class="seperator" style="width:100%"></div>
                 <div style="font-size:10px">fund {{message.payload?.fund|json}}</div>
                 <div class="seperator" style="width:100%"></div>

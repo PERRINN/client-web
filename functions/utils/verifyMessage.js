@@ -280,18 +280,7 @@ module.exports = {
         interest.amount=Math.max(0,interest.amountBase*(Math.exp(interest.rateYear/365*interest.days)-1))
         interest.amountCummulate=(((userPreviousMessageData.interest||{}).amountCummulate)||0)+interest.amount
         wallet.balance=Math.round((Number(wallet.balance)+Number((interest.amount)||0))*100000)/100000
-
-      //*******PERRINN Limited*************************
-        let PERRINNLimited=userPreviousMessageData.PERRINNLimited||{}
-        if(PERRINNLimited.shares!=undefined){
-          PERRINNLimited.sharesDistribution=PERRINNLimited.shares/PERRINNLimited.sharesTotal
-          PERRINNLimited.investment1GBPToday=PERRINNLimited.investment1GBP*Math.exp(appSettingsCosts.data().interestRateYear*(now/1000/3600/24-PERRINNLimited.investment1Timestamp.seconds/3600/24)/365)
-          PERRINNLimited.investment1Today=PERRINNLimited.investment1GBPToday*appSettingsPayment.data().currencyList['gbp'].toCOIN
-          PERRINNLimited.zeroInterestLoan1=PERRINNLimited.zeroInterestLoan1GBP*appSettingsPayment.data().currencyList['gbp'].toCOIN
-          PERRINNLimited.zeroInterestLoan1Total=PERRINNLimited.zeroInterestLoan1GBPTotal*appSettingsPayment.data().currencyList['gbp'].toCOIN
-          PERRINNLimited.amount=(PERRINNLimited.investment1Today-PERRINNLimited.zeroInterestLoan1Total)*PERRINNLimited.sharesDistribution+PERRINNLimited.zeroInterestLoan1
-        }
-        wallet.shareBalance=wallet.balance+(PERRINNLimited.amount||0)
+        wallet.shareBalance=wallet.balance
 
       //*******MESSAGE WRITES**********************
         //message event
@@ -312,7 +301,6 @@ module.exports = {
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{emails:emails},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{fund:fund},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{survey:survey},{create:true})
-        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{PERRINNLimited:PERRINNLimited},{create:true})
         //message verified
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{verified:true},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{verifiedTimestamp:admin.firestore.FieldValue.serverTimestamp()},{create:true})
@@ -367,8 +355,7 @@ module.exports = {
         transactionOut:transactionOut,
         purchaseCOIN:purchaseCOIN,
         contract:contract,
-        interest:interest,
-        PERRINNLimited:PERRINNLimited
+        interest:interest
       }
 
     }

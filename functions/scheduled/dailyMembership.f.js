@@ -15,7 +15,6 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     const now=Date.now()
     let statistics={}
     statistics.wallet={}
-    statistics.PERRINNLimited={}
     statistics.interest={}
     statistics.contract={}
     statistics.transactionIn={}
@@ -42,7 +41,6 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     results.forEach((result)=>{
       if (result.wallet.shareBalance>0)statistics.emailsContributorsAuth.push(result.emails.auth)
       statistics.wallet.shareBalance=((statistics.wallet||{}).shareBalance||0)+result.wallet.shareBalance
-      statistics.PERRINNLimited.balance=((statistics.PERRINNLimited||{}).balance||0)+(result.PERRINNLimited.amount||0)
       statistics.interest.amount=((statistics.interest||{}).amount||0)+result.interest.amount
       statistics.interest.rateDay=statistics.wallet.shareBalance*(Math.exp(result.interest.rateYear/365)-1)
       statistics.interest.amountCummulate=((statistics.interest||{}).amountCummulate||0)+result.interest.amountCummulate
