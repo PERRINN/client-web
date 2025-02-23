@@ -80,7 +80,7 @@ import firebase from 'firebase/compat/app'
         <div *ngIf="!(chatLastMessageObj?.recipients||{})[team.key]" style="padding:5px">
           <div style="float:left;width:300px">
             <img [src]="team?.values?.imageUrlThumbUser" style="display:inline;float:left;margin:0 5px 0 10px;opacity:1;object-fit:cover;height:25px;width:25px">
-            <span>{{team.values?.name}} {{UI.formatSharesToPRNCurrency(null,team.values?.wallet?.shareBalance||0)}}</span>
+            <span>{{team.values?.name}} {{UI.formatSharesToPRNCurrency(null,team.values?.wallet?.balance||0)}}</span>
           </div>
           <div class="buttonWhite" style="float:left;width:50px;font-size:11px" (click)="addRecipient(team.values.user,team.values.name)">Add</div>
         </div>
@@ -90,7 +90,7 @@ import firebase from 'firebase/compat/app'
     <span style="margin:10px">Sending PRN {{UI.appSettingsPayment.currencyList[UI.currentUserLastMessageObj.userCurrency].designation}}:</span>
       <input style="width:200px;margin:10px" maxlength="500" [(ngModel)]="transactionAmount" placeholder="amount">
       <input style="width:150px;margin:10px" maxlength="500" [(ngModel)]="transactionCode" placeholder="Code (optional)">
-      <div *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.shareBalance">
+      <div *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance">
         <ul class="listLight" style="margin:10px">
           <li *ngFor="let recipient of chatLastMessageObj?.recipientList" style="float:left">
             <div style="float:left;cursor:pointer" (click)="transactionUser=recipient;transactionUserName=chatLastMessageObj?.recipients[recipient].name">
@@ -100,7 +100,7 @@ import firebase from 'firebase/compat/app'
           </li>
         </ul>
       </div>
-      <div class="buttonWhite" *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.shareBalance&&transactionUser!=undefined" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="sendCredit(transactionAmount,transactionCode,transactionUser,transactionUserName)">
+      <div class="buttonWhite" *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance&&transactionUser!=undefined" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="sendCredit(transactionAmount,transactionCode,transactionUser,transactionUserName)">
         Send {{UI.formatSharesToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}} to {{transactionUserName}}
       </div>
     <div class="seperator" style="width:100%;margin:0px"></div>
@@ -193,7 +193,7 @@ import firebase from 'firebase/compat/app'
               <div style="margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
               <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{message.payload?.statistics?.userCount}} Members,</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{message.payload?.statistics?.emailsContributorsAuth?.length}} PRN holders.</div>
-              <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{UI.formatSharesToPRNCurrency(null,message.payload?.statistics?.wallet?.shareBalance)}} invested.</div>
+              <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{UI.formatSharesToPRNCurrency(null,message.payload?.statistics?.wallet?.balance)}} invested.</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{UI.formatSharesToCurrency(null,message.payload?.statistics?.stripeBalance?.available[0]?.amount/100*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} available in the PERRINN fund</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">({{UI.formatSharesToCurrency(null,message.payload?.statistics?.stripeBalance?.pending[0]?.amount/100*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} pending).</div>
               <div *ngIf="messageShowDetails.includes(message.key)" style="margin:5px">
@@ -229,7 +229,7 @@ import firebase from 'firebase/compat/app'
               <span *ngIf="message.payload?.purchaseCOIN?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.formatSharesToPRNCurrency(null,message.payload?.purchaseCOIN?.amount)}} purchased</span>
               <span *ngIf="message.payload?.transactionIn?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.formatSharesToPRNCurrency(null,message.payload?.transactionIn?.amount)}} received</span>
               <span *ngIf="message.payload?.transactionOut?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.formatSharesToPRNCurrency(null,-message.payload?.transactionOut?.amount)}} sent</span>
-              <span *ngIf="message.payload?.userChain?.nextMessage=='none'&&message.payload?.wallet?.shareBalance!=undefined" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.formatSharesToPRNCurrency(null,message.payload?.wallet?.shareBalance)}}</span>
+              <span *ngIf="message.payload?.userChain?.nextMessage=='none'&&message.payload?.wallet?.balance!=undefined" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.formatSharesToPRNCurrency(null,message.payload?.wallet?.balance)}}</span>
             </div>
             <div *ngIf="UI.currentUser&&messageShowActions.includes(message.key)">
               <div style="float:left;padding:5px;cursor:pointer;border-style:solid 1px 0 0" (click)="messageShowDetails.includes(message.key)?messageShowDetails.splice(messageShowDetails.indexOf(message.key),1):messageShowDetails.push(message.key)">Details</div>

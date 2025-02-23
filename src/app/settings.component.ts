@@ -23,7 +23,7 @@ import firebase from 'firebase/compat/app';
   </div>
   <div style="margin:15px">
     <span style="font-size:18px">{{UI.currentUserLastMessageObj?.name}} </span>
-    <span style="font-size:18px">{{UI.formatSharesToPRNCurrency(null,UI.currentUserLastMessageObj?.wallet?.shareBalance||0)}} </span>
+    <span style="font-size:18px">{{UI.formatSharesToPRNCurrency(null,UI.currentUserLastMessageObj?.wallet?.balance||0)}} </span>
   </div>
   <span style="font-size:10px;margin-left:15px">{{UI.currentUserLastMessageObj?.userPresentation}} Level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
   <span *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px">Waiting for contract signature (Level {{UI.currentUserLastMessageObj?.contract?.level}})</span>

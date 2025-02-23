@@ -35,7 +35,7 @@ import { AgChartOptions } from 'ag-charts-community';
         <div style="padding:10px;text-align:center">
           <span>PRN tokens represent ownership of the PERRINN network.</span>
           <br />
-          <span>{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsContributorsAuth?.length}} members own {{UI.formatSharesToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.shareBalance)}}.</span>
+          <span>{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsContributorsAuth?.length}} members own {{UI.formatSharesToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}.</span>
           <br />
           <span>You can follow the impact of your investment live on PERRINN.com</span>
           <div class="buttonWhite" style="margin:10px auto;width:150px;font-size:11px" (click)="router.navigate(['directory'])">PRN holders directory</div>

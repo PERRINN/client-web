@@ -280,7 +280,6 @@ module.exports = {
         interest.amount=Math.max(0,interest.amountBase*(Math.exp(interest.rateYear/365*interest.days)-1))
         interest.amountCummulate=(((userPreviousMessageData.interest||{}).amountCummulate)||0)+interest.amount
         wallet.balance=Math.round((Number(wallet.balance)+Number((interest.amount)||0))*100000)/100000
-        wallet.shareBalance=wallet.balance
 
       //*******MESSAGE WRITES**********************
         //message event
