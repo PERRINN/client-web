@@ -7,32 +7,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
 
 @Component({
   selector:'login',
-  template:`
-  <div id="login">
-    <div class="module form-module" style="max-width:450px">
-      <div class="form">
-        <form>
-          <div class="buttonBlack" [hidden]="action=='register'" style="font-size:12px;line-height:15px;width:150px;padding:4px;margin:10px auto" (click)="action='register';messageUser=''">New member</div>
-          <div class="buttonBlack" [hidden]="action=='login'" style="font-size:12px;line-height:15px;width:150px;padding:4px;margin:10px auto" (click)="action='login';messageUser=''">Existing member</div>
-          <div *ngIf="action=='login'||action=='register'">
-            <input maxlength="500" [(ngModel)]="email" name="email" type="text" placeholder="Email *" (keyup)="messageUser=''" autofocus required/>
-            <input maxlength="500" [(ngModel)]="password" name="password" type="password" placeholder="Password *" (keyup)="messageUser=''" required/>
-          </div>
-          <div *ngIf="action=='login'">
-            <div class="buttonWhite" style="font-size:14px;line-height:25px;width:200px;padding:4px;margin:10px auto" (click)="login(email,password)">Login</div>
-            <div class="buttonBlack" style="width:125px;font-size:10px;margin:10px auto" (click)="resetPassword(email)">Forgot password?</div>
-          </div>
-          <div *ngIf="action=='register'">
-            <input maxlength="500" [(ngModel)]="passwordConfirm" name="passwordConfirm" type="password" placeholder="Confirm password *" (keyup)="messageUser=''"/>
-            <input maxlength="500" [(ngModel)]="name" name="name" type="text" placeholder="First name (one word) *" (keyup)="messageUser=''"/>
-            <div class="buttonWhite" style="font-size:14px;text-align:center;line-height:25px;width:200px;padding:4px;margin:10px auto" (click)="register(email,password,passwordConfirm,name)">Register</div>
-          </div>
-          <div *ngIf="messageUser" style="text-align:center;padding:10px;color:#D85140">{{messageUser}}</div>
-        </form>
-      </div>
-    </div>
-  </div>
-  `,
+  templateUrl:'./login.component.html',
 })
 
 export class LoginComponent  {
