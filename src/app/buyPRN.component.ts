@@ -33,7 +33,7 @@ import { AgChartOptions } from 'ag-charts-community';
         </div>
         <div class="seperator"></div>
         <div style="padding:10px;text-align:center">
-          <span>PRN tokens represent ownership of the PERRINN network.</span>
+          <span>PRN tokens represent ownership of the PERRINN team.</span>
           <br />
           <span>{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsContributorsAuth?.length}} members own {{UI.formatSharesToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}.</span>
           <br />
