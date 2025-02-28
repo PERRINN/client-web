@@ -39,10 +39,10 @@ exports=module.exports=functions.runWith(runtimeOpts).pubsub.schedule('every 24 
     })
     const results=await Promise.all(verifyMessageBatch)
     results.forEach((result)=>{
-      if (result.wallet.shareBalance>0)statistics.emailsContributorsAuth.push(result.emails.auth)
-      statistics.wallet.shareBalance=((statistics.wallet||{}).shareBalance||0)+result.wallet.shareBalance
+      if (result.wallet.balance>0)statistics.emailsContributorsAuth.push(result.emails.auth)
+      statistics.wallet.balance=((statistics.wallet||{}).balance||0)+result.wallet.balance
       statistics.interest.amount=((statistics.interest||{}).amount||0)+result.interest.amount
-      statistics.interest.rateDay=statistics.wallet.shareBalance*(Math.exp(result.interest.rateYear/365)-1)
+      statistics.interest.rateDay=statistics.wallet.balance*(Math.exp(result.interest.rateYear/365)-1)
       statistics.interest.amountCummulate=((statistics.interest||{}).amountCummulate||0)+result.interest.amountCummulate
       statistics.contract.amount=((statistics.contract||{}).amount||0)+result.contract.amount
       statistics.contract.amountCummulate=((statistics.contract||{}).amountCummulate||0)+result.contract.amountCummulate
