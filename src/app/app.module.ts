@@ -5,12 +5,12 @@ import { HttpClientModule } from '@angular/common/http';
 
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
-import { ChatComponent }  from './chat.component';
-import { LoginComponent }  from './login.component';
-import { ProfileComponent }  from './profile.component';
-import { SettingsComponent }  from './settings.component';
-import { DirectoryComponent }  from './directory.component';
-import { buyPRNComponent }  from './buyPRN.component';
+import { ChatComponent }  from './chat/chat.component';
+import { LoginComponent }  from './login/login.component';
+import { ProfileComponent }  from './profile/profile.component';
+import { SettingsComponent }  from './settings/settings.component';
+import { DirectoryComponent }  from './directory/directory.component';
+import { buyPRNComponent }  from './buyPRN/buyPRN.component';
 import { LinkyModule } from 'angular-linky';
 
 import { PipeModule }    from './pipes.module';
