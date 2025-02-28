@@ -19,5 +19,7 @@
     ],
     "module": "es2015"
   },
-
+  // "angularCompilerOptions": {
+  //   "strictTemplates": true
+  // }
 }
