@@ -11,7 +11,7 @@ import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 import { Router } from "@angular/router";
-import { UserInterfaceService } from "../userInterface.service";
+import { UserInterfaceService } from "./../userInterface.service";
 import {
   AngularFirestore,
   AngularFirestoreCollection,
