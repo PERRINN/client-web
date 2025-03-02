@@ -281,6 +281,11 @@ module.exports = {
         interest.amountCummulate=(((userPreviousMessageData.interest||{}).amountCummulate)||0)+interest.amount
         wallet.balance=Math.round((Number(wallet.balance)+Number((interest.amount)||0))*100000)/100000
 
+      //*******TIME BASED LOCKING (integral of balance for that period of time)*************************
+        let locking={}
+        locking.amount=interest.amountBase*(Math.exp(interest.rateYear/365*interest.days)-1)/(interest.rateYear/365)
+        locking.amountCummulate=(((userPreviousMessageData.locking||{}).amountCummulate)||0)+locking.amount
+
       //*******MESSAGE WRITES**********************
         //message event
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{eventDateStart:messageData.eventDateStart||chatPreviousMessageData.eventDateStart||null},{create:true})
@@ -296,6 +301,7 @@ module.exports = {
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{transactionIn:transactionIn},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{contract:contract},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{interest:interest},{create:true})
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{locking:locking},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{wallet:wallet},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{emails:emails},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{fund:fund},{create:true})
