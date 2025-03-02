@@ -24,7 +24,6 @@ perrinn-62d6932fce8e.json
 *.sublime-workspace
 
 # IDE - VSCode
-.vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
@@ -64,3 +63,4 @@ functions/lib
 .angular/
 src/environments/environment.dev.ts
 src/environments/environment.prod.ts
+config.bat

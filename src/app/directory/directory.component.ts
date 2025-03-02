@@ -33,7 +33,7 @@ export class DirectoryComponent  {
     .where('verified','==',true)
     .where('wallet.balance','>',0)
     .orderBy('wallet.balance',"desc")
-    .limit(100))
+    .limit(200))
     .snapshotChanges().pipe(map(changes => {
       return changes.map(c => ({
         key:c.payload.doc.id,
