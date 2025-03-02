@@ -27,7 +27,7 @@
 *::-webkit-scrollbar-track {
     background-color: #131B20;
 }
-html body {
+body {
   border: 0;
   background-color:#222C32;
   color: #B0BAC0;
@@ -58,6 +58,9 @@ a:visited {
   background-color:black;
   width: 100%;
   user-select: none;
+}
+.menu span:hover, .menu img:hover{
+  opacity: 0.6;
 }
 .menu .iconSmall {
   cursor: pointer;
@@ -106,15 +109,18 @@ a:visited {
 .buttonBlack {
   cursor: pointer;
   background-color: black;
-  color: #B0BAC0;
+  color: whitesmoke;
   margin: 0 auto;
   text-align:center;
   border-style:solid;
   padding:3px;
-  border-color:#B0BAC0;
+  border-color:whitesmoke;
+  border-radius: 4px;
 }
 .buttonBlack:hover{
-  opacity: 0.95;
+  background-color:rgba(67,67,67,0.67);
+  color: #B0BAC0;
+  border-color: #B0BAC0;
 }
 .buttonWhite {
   cursor: pointer;
@@ -124,9 +130,13 @@ a:visited {
   text-align:center;
   border-style:solid;
   padding:3px;
+  border-color:black;
+  border-radius: 4px;
 }
 .buttonWhite:hover{
-  opacity: 0.95;
+  background-color:rgba(56,118,29,0.5);
+  color: whitesmoke;
+  border-color:whitesmoke;
 }
 .buttonRed {
   cursor: pointer;
