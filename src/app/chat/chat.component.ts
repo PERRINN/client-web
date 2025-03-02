@@ -3,7 +3,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
 import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
 import { Router, ActivatedRoute } from '@angular/router'
-import { UserInterfaceService } from '../userInterface.service'
+import { UserInterfaceService } from './../userInterface.service'
 import { AngularFireStorage } from '@angular/fire/compat/storage'
 import firebase from 'firebase/compat/app'
 
