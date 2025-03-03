@@ -221,7 +221,7 @@ import firebase from 'firebase/compat/app'
               <div style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0">{{number}}</div>
               <div style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0">{{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}}</div>
               <div style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0">
-                {{UI.formatSharesToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance*math.exp(UI.appSettingsCosts?.interestRateYear*number))}}
+                {{UI.formatSharesToCurrency(null,focusUserLastMessageObj?.wallet?.balance*math.exp(UI.appSettingsCosts?.interestRateYear*number))}}
               </div>
               <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{math.exp(UI.appSettingsCosts?.interestRateYear*number)|number:'1.1-1'}}X</div>
             </li>
