@@ -18,7 +18,7 @@ import {
 } from "@angular/fire/compat/firestore";
 import { AngularFireAuth } from "@angular/fire/compat/auth";
 import firebase from "firebase/compat/app";
-import { environment } from "environments/environment.prod";
+import { environment } from '../environments/environment';
 import { AgChartOptions } from 'ag-charts-community';
 
 @Component({

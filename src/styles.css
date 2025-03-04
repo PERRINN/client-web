@@ -116,7 +116,7 @@ a:visited {
   border-color:#B0BAC0;
 }
 .buttonBlack:hover{
-  opacity: 0.95;
+  background-color:#333;
 }
 .buttonWhite {
   cursor: pointer;
@@ -290,9 +290,6 @@ progress::-webkit-progress-value {
   background-color:#0e0e0e;
   object-fit:contain;
   cursor: pointer;
-}
-.fullScreenImage:hover{
-  opacity: 1;
 }
 .imageWithZoom {
   cursor: pointer;
