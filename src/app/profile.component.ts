@@ -6,6 +6,7 @@ import { Router, ActivatedRoute } from '@angular/router'
 import { UserInterfaceService } from './userInterface.service'
 import { AngularFireAuth } from '@angular/fire/compat/auth'
 import firebase from 'firebase/compat/app'
+import { AgChartOptions } from 'ag-charts-community'
 
 @Component({
   selector:'profile',
@@ -42,10 +43,10 @@ import firebase from 'firebase/compat/app'
           </div>
         </div>
       </div>
-      <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='inbox'?'#B0BAC0':'black'" (click)="mode='inbox';refreshMessages()">inbox</div>
-      <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='daily'?'#B0BAC0':'black'" (click)="mode='daily';refreshMessages()">daily</div>
-      <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='monthly'?'#B0BAC0':'black'" (click)="mode='monthly';refreshMessages()">monthly</div>
-      <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='chain'?'#B0BAC0':'black'" (click)="mode='chain';refreshMessages()">chain</div>
+      <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='inbox'?'#B0BAC0':'black'" (click)="mode='inbox';refreshMessages();refreshChart()">inbox</div>
+      <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='daily'?'#B0BAC0':'black'" (click)="mode='daily';refreshMessages();refreshChart()">daily</div>
+      <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='monthly'?'#B0BAC0':'black'" (click)="mode='monthly';refreshMessages();refreshChart()">monthly</div>
+      <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='chain'?'#B0BAC0':'black'" (click)="mode='chain';refreshMessages();refreshChart()">chain</div>
       <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='forecast'?'#B0BAC0':'black'" (click)="mode='forecast';refreshMessages()">forecast</div>
       <div class="buttonBlack" *ngIf="UI.currentUser&&UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="clear:both;width:250px;margin:5px;font-size:11px">New message to {{focusUserLastMessageObj?.name}}</div>
       <div class="seperator" style="width:100%;margin:0px"></div>
@@ -153,6 +154,7 @@ import firebase from 'firebase/compat/app'
         </li>
         <div class="seperator"></div>
       </ul>
+      <div *ngIf="scope!='all'&&(mode=='daily'||mode=='monthly'||mode=='chain')" style="height:400px;margin:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
       <ul class="listLight">
         <li *ngFor="let message of messages|async;let first=first;let last=last"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
@@ -263,6 +265,7 @@ export class ProfileComponent {
   math:any
   messageNumberDisplay:number
   showTags:boolean
+  chartOptions:AgChartOptions
 
   constructor(
     public afAuth:AngularFireAuth,
@@ -277,6 +280,19 @@ export class ProfileComponent {
     this.scope=''
     this.mode='inbox'
     this.scrollTeam=''
+    this.chartOptions = {
+          title: { text: 'PRN Balance' },
+          series: [
+            { type: 'line', xKey: 'timestamp', yKey: 'balance', marker: { size: 0 }},
+            { type: 'line', xKey: 'timestamp', yKey: 'interest', marker: { size: 0 } },
+            { type: 'line', xKey: 'timestamp', yKey: 'contract', marker: { size: 0 } }
+          ],
+          theme: 'ag-default-dark',
+          axes: [
+            {type: 'time', position: 'bottom' },
+            {type: 'number',position: 'left',keys: ['balance','interest','contract']}
+          ],
+      }
     this.route.params.subscribe(params => {
       this.scope=params.id
       afs.collection<any>('PERRINNMessages',ref=>ref
@@ -478,6 +494,19 @@ export class ProfileComponent {
     }
   }
 
+  refreshChart(){
+    this.messages.subscribe(messages => {
+      let newData = messages.map(message => (
+        {timestamp:message.payload.doc.data().verifiedTimestamp.seconds*1000,
+          balance:message.payload.doc.data().wallet.balance,
+          interest:message.payload.doc.data().interest.amountCummulate,
+          contract:message.payload.doc.data().contract.amountCummulate
+        }
+      ));
+      this.chartOptions = { ...this.chartOptions, data: newData };
+    });
+  }
+
   readFlagClick(messageId,readFlag){
     event.stopPropagation()
     if(readFlag)return this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(messageId).delete()
@@ -521,6 +550,7 @@ export class ProfileComponent {
   loadMore() {
     this.messageNumberDisplay+=15
     this.refreshMessages()
+    this.refreshChart()
   }
 
 }

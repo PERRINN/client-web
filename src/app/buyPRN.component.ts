@@ -189,7 +189,7 @@ export class buyPRNComponent {
   @ViewChild("cardElement") cardElement:ElementRef
   processing:boolean
   currentFunds:Observable<any[]>
-  public chartOptions:AgChartOptions
+  chartOptions:AgChartOptions
   showPastFunds:boolean
 
   constructor(

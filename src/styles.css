@@ -313,9 +313,6 @@ iframe {
 img {
   image-orientation:from-image;
 }
-img:hover {
-  opacity: 0.95;
-}
 .chatButton{
   cursor:pointer;
   font-size:14px;
