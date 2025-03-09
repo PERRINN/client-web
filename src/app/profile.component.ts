@@ -280,7 +280,6 @@ export class ProfileComponent {
     this.mode='inbox'
     this.scrollTeam=''
     this.chartOptions = {
-          title: { text: 'User history' },
           series: [
             { type: 'line', xKey: 'timestamp', yKey: 'balance', marker: { size: 0 }},
             { type: 'line', xKey: 'timestamp', yKey: 'purchase', marker: { size: 0 } },
