@@ -14,7 +14,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
         <span class="material-icons" style="float:left;margin:5px 45px 5px 45px;font-size:30px;cursor:pointer" (click)="router.navigate(['directory'])">list</span>
         <span class="material-icons-outlined" style="float:left;margin:5px 45px 5px 45px;font-size:30px;height:30px;cursor:pointer" onclick="window.open('https://discover.perrinn.com','_blank')">info</span>
       </div>
-      <div class="seperator" style="width:100%;margin:0px"></div>
+      <div class="separator" style="width:100%;margin:0px"></div>
     </div>
     <div style="user-select:none">
       <div style="max-width:800px;margin:0 auto">
@@ -25,7 +25,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
         </div>
         <div class="buttonBlack" style="float:right;line-height:20px;width:100px;margin:7px" (click)="router.navigate(['buyPRN'])">Buy PRN</div>
       </div>
-      <div class="seperator" style="width:100%;margin:0px"></div>
+      <div class="separator" style="width:100%;margin:0px"></div>
     </div>
     <div id='main_container'>
       <router-outlet></router-outlet>
