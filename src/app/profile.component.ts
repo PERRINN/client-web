@@ -43,10 +43,9 @@ import { AgChartOptions } from 'ag-charts-community'
           </div>
         </div>
       </div>
-      <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='inbox'?'#B0BAC0':'black'" (click)="mode='inbox';refreshMessages();refreshChart()">inbox</div>
-      <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='daily'?'#B0BAC0':'black'" (click)="mode='daily';refreshMessages();refreshChart()">daily</div>
-      <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='monthly'?'#B0BAC0':'black'" (click)="mode='monthly';refreshMessages();refreshChart()">monthly</div>
-      <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='chain'?'#B0BAC0':'black'" (click)="mode='chain';refreshMessages();refreshChart()">chain</div>
+      <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='inbox'?'#B0BAC0':'black'" (click)="mode='inbox';refreshMessages()">inbox</div>
+      <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='history'?'#B0BAC0':'black'" (click)="mode='history';refreshMessages();refreshChart()">history</div>
+      <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='chain'?'#B0BAC0':'black'" (click)="mode='chain';refreshMessages()">chain</div>
       <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='forecast'?'#B0BAC0':'black'" (click)="mode='forecast';refreshMessages()">forecast</div>
       <div class="buttonBlack" *ngIf="UI.currentUser&&UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="clear:both;width:250px;margin:5px;font-size:11px">New message to {{focusUserLastMessageObj?.name}}</div>
       <div class="seperator" style="width:100%;margin:0px"></div>
@@ -154,7 +153,7 @@ import { AgChartOptions } from 'ag-charts-community'
         </li>
         <div class="seperator"></div>
       </ul>
-      <div *ngIf="scope!='all'&&(mode=='daily'||mode=='monthly'||mode=='chain')" style="height:400px;margin:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
+      <div *ngIf="scope!='all'&&mode=='history'" style="height:400px;margin:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
       <ul class="listLight">
         <li *ngFor="let message of messages|async;let first=first;let last=last"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
@@ -188,7 +187,7 @@ import { AgChartOptions } from 'ag-charts-community'
             </div>
             <div class="seperator"></div>
           </div>
-          <div *ngIf="scope!='all'&&(mode=='daily'||mode=='monthly'||mode=='chain')">
+          <div *ngIf="scope!='all'&&mode=='chain'">
             <div *ngIf="first">
               <div style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Date</div>
               <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Days</div>
@@ -238,7 +237,7 @@ import { AgChartOptions } from 'ag-charts-community'
         <div class="bounce2"></div>
         <div class="bounce3"></div>
       </div>
-      <div class="buttonWhite" *ngIf="!UI.loading" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</div>
+      <div class="buttonWhite" *ngIf="!UI.loading&&mode!='history'&&mode!='forecast'" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</div>
       <div class="seperator"></div>
     </div>
   </div>
@@ -281,16 +280,18 @@ export class ProfileComponent {
     this.mode='inbox'
     this.scrollTeam=''
     this.chartOptions = {
-          title: { text: 'PRN Balance' },
+          title: { text: 'User history' },
           series: [
             { type: 'line', xKey: 'timestamp', yKey: 'balance', marker: { size: 0 }},
+            { type: 'line', xKey: 'timestamp', yKey: 'purchase', marker: { size: 0 } },
+            { type: 'line', xKey: 'timestamp', yKey: 'transaction', marker: { size: 0 } },
             { type: 'line', xKey: 'timestamp', yKey: 'interest', marker: { size: 0 } },
             { type: 'line', xKey: 'timestamp', yKey: 'contract', marker: { size: 0 } }
           ],
           theme: 'ag-default-dark',
           axes: [
             {type: 'time', position: 'bottom' },
-            {type: 'number',position: 'left',keys: ['balance','interest','contract']}
+            {type: 'number',position: 'left',keys: ['balance','purchase','transaction','interest','contract']}
           ],
       }
     this.route.params.subscribe(params => {
@@ -410,25 +411,12 @@ export class ProfileComponent {
         }))
       }
     }
-    else if(this.mode=='daily'){
-      this.messages=this.afs.collection<any>('PERRINNMessages',ref=>ref
-        .where('user','==',this.scope)
-        .where('verified','==',true)
-        .where('userChain.newDay','==',true)
-        .orderBy('serverTimestamp','desc')
-        .limit(this.messageNumberDisplay)
-      ).snapshotChanges().pipe(map(changes=>{
-        this.UI.loading=false
-        return changes.reverse().map(c=>({payload:c.payload}))
-      }))
-    }
-    else if(this.mode=='monthly'){
+    else if(this.mode=='history'){
       this.messages=this.afs.collection<any>('PERRINNMessages',ref=>ref
         .where('user','==',this.scope)
         .where('verified','==',true)
         .where('userChain.newMonth','==',true)
         .orderBy('serverTimestamp','desc')
-        .limit(this.messageNumberDisplay)
       ).snapshotChanges().pipe(map(changes=>{
         this.UI.loading=false
         return changes.reverse().map(c=>({payload:c.payload}))
@@ -496,11 +484,13 @@ export class ProfileComponent {
 
   refreshChart(){
     this.messages.subscribe(messages => {
-      let newData = messages.map(message => (
+      let newData = messages.map((message,index)=>(
         {timestamp:message.payload.doc.data().verifiedTimestamp.seconds*1000,
-          balance:message.payload.doc.data().wallet.balance,
-          interest:message.payload.doc.data().interest.amountCummulate,
-          contract:message.payload.doc.data().contract.amountCummulate
+          balance:(message.payload.doc.data().wallet||{}).balance||0,
+          purchase:((message.payload.doc.data().purchaseCOIN||{}).amountCummulate||0),
+          transaction:((message.payload.doc.data().transactionIn||{}).amountCummulate||0)-((message.payload.doc.data().transactionOut||{}).amountCummulate||0),
+          interest:((message.payload.doc.data().interest||{}).amountCummulate||0),
+          contract:((message.payload.doc.data().contract||{}).amountCummulate||0)
         }
       ));
       this.chartOptions = { ...this.chartOptions, data: newData };
@@ -550,7 +540,6 @@ export class ProfileComponent {
   loadMore() {
     this.messageNumberDisplay+=15
     this.refreshMessages()
-    this.refreshChart()
   }
 
 }
