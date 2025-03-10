@@ -27,13 +27,13 @@ import firebase from 'firebase/compat/app';
   </div>
   <span style="font-size:10px;margin-left:15px">{{UI.currentUserLastMessageObj?.userPresentation}} Level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
   <span *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px">Waiting for contract signature (Level {{UI.currentUserLastMessageObj?.contract?.level}})</span>
-  <div class="seperator" style="width:100%;margin:0px"></div>
+  <div class="separator" style="width:100%;margin:0px"></div>
   </div>
   <div class='sheet'>
       <div style="font-size:14px;margin:20px">Your name (preferably your first name)</div>
       <input [(ngModel)]="name" placeholder="First name">
       <div class="buttonWhite" (click)="updateName()" style="font-size:12px;width:200px;padding:2px;margin:10px">Update my name</div>
-    <div class="seperator" style="width:100%;margin:0px"></div>
+    <div class="separator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px">Your preferred currency</div>
       <div style="padding:10px">
         <ul class="listLight">
@@ -46,23 +46,23 @@ import firebase from 'firebase/compat/app';
           </li>
         </ul>
       </div>
-    <div class="seperator" style="width:100%;margin:0px"></div>
+    <div class="separator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px">Your short presentation</div>
       <div style="font-size:10px;margin:20px">Your short presentation helps other members get to know you.</div>
       <div style="font-size:10px;margin:10px 20px 0 20px">I am someone who is:</div>
       <input [(ngModel)]="userPresentation" placeholder="Your short presentation" maxlength="150">
       <div class="buttonWhite" (click)="updateUserPresentation()" style="font-size:12px;width:200px;padding:2px;margin:10px">Update my presentation</div>
-    <div class="seperator" style="width:100%;margin:0px"></div>
+    <div class="separator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px">Your public link</div>
       <div style="font-size:10px;margin:20px 20px 0 20px">Add view only public link so other members can view your documents, website, code and more.</div>
       <input [(ngModel)]="publicLink" placeholder="Add a link">
       <div class="buttonWhite" (click)="updatePublicLink()" style="font-size:12px;width:200px;padding:2px;margin:10px">Update my link</div>
-    <div class="seperator" style="width:100%;margin:0px"></div>
+    <div class="separator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px">Your email address</div>
       <div style="font-size:10px;margin:10px 20px 0 20px">Authentication address.</div>
       <input [(ngModel)]="emailsAuth" placeholder="Enter your authentication email">
       <div class="buttonWhite" (click)="updateEmails()" style="font-size:12px;width:250px;padding:2px;margin:10px">Update my email address</div>
-    <div class="seperator" style="width:100%;margin:0px"></div>
+    <div class="separator" style="width:100%;margin:0px"></div>
       <div style="font-size:14px;margin:20px">Your PERRINN contract</div>
       <div style="font-size:10px;margin:20px">This contract is between you and PERRINN team. When these settings are updated, they will need to be approved before taking effect. You or PERRINN can cancel this contract at any time.</div>
       <div style="font-size:10px;margin:15px 20px 0 20px">Level [1-10] defines the level of experience / capacity to resolve problems independently. Level 1 is university student with no experience, 10 is expert (10+ years experience in the field). After signature your level will increase automatically with time at a rate of +1 per year.</div>
@@ -72,9 +72,9 @@ import firebase from 'firebase/compat/app';
       <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:15px;font-size:10px">Signature valid for level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}, you will receive {{UI.formatSharesToPRNCurrency(null,UI.appSettingsContract.hourlyRateLevel1*UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted)}} per hour when you declare working hours.</div>
       <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:15px;font-size:10px">Waiting for contract signature</div>
       <div class="buttonWhite" (click)="updateContract()" style="clear:both;font-size:12px;width:200px;padding:2px;margin:10px">Update my contract</div>
-    <div class="seperator" style="width:100%;margin:0px"></div>
+    <div class="separator" style="width:100%;margin:0px"></div>
   <div class="buttonRed" style="width:100px;margin:25px auto" (click)="this.UI.logout()">logout</div>
-  <div class="seperator" style="width:100%;margin-bottom:250px"></div>
+  <div class="separator" style="width:100%;margin-bottom:250px"></div>
   `,
 })
 export class SettingsComponent {

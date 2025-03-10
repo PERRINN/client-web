@@ -14,7 +14,7 @@ import { AgChartOptions } from 'ag-charts-community'
   <div class='sheet'>
     <div *ngIf="scope=='all'&&UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined" style="line-height:0px;clear:both">
       <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="width:100%">
-      <div class="seperator" style="width:100%;margin:0px"></div>
+      <div class="separator" style="width:100%;margin:0px"></div>
     </div>
     <div *ngIf="scope!='all'" style="clear:both;background-color:black">
       <div style="float:left">
@@ -48,7 +48,7 @@ import { AgChartOptions } from 'ag-charts-community'
       <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='chain'?'#B0BAC0':'black'" (click)="mode='chain';refreshMessages()">chain</div>
       <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='forecast'?'#B0BAC0':'black'" (click)="mode='forecast';refreshMessages()">forecast</div>
       <div class="buttonBlack" *ngIf="UI.currentUser&&UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="clear:both;width:250px;margin:5px;font-size:11px">New message to {{focusUserLastMessageObj?.name}}</div>
-      <div class="seperator" style="width:100%;margin:0px"></div>
+      <div class="separator" style="width:100%;margin:0px"></div>
     </div>
     <div *ngIf="scope=='all'">
       <span class="material-icons" style="float:right;margin:10px;cursor:pointer" (click)="UI.openWindow(UI.PERRINNProfileLastMessageObj?.publicLink)">link</span>
@@ -61,7 +61,7 @@ import { AgChartOptions } from 'ag-charts-community'
           {{message.payload.doc.data()?.tag}}
         </li>
       </ul>
-      <div class="seperator" style="width:100%;margin:0px"></div>
+      <div class="separator" style="width:100%;margin:0px"></div>
     </div>
     <div>
       <ul class="listLight">
@@ -85,7 +85,7 @@ import { AgChartOptions } from 'ag-charts-community'
                 <span style="margin:0 5px 0 0">{{message.payload.doc.data()?.eventDateStart|date:'EEEE d MMM h:mm a'}} ({{message.payload.doc.data()?.eventDuration}}h)</span>
               </div>
             </div>
-            <div class="seperator"></div>
+            <div class="separator"></div>
           </div>
           </div>
         </li>
@@ -114,7 +114,7 @@ import { AgChartOptions } from 'ag-charts-community'
               </div>
             </div>
             </div>
-            <div class="seperator"></div>
+            <div class="separator"></div>
           </div>
         </li>
       </ul>
@@ -140,7 +140,7 @@ import { AgChartOptions } from 'ag-charts-community'
               </div>
             </div>
             </div>
-            <div class="seperator"></div>
+            <div class="separator"></div>
           </div>
         </li>
       </ul>
@@ -151,7 +151,7 @@ import { AgChartOptions } from 'ag-charts-community'
             <img [src]="message.payload.doc.data()?.chatImageUrlMedium" style="float:left;margin:2px;object-fit:cover;width:100%;height:90px">
           </div>
         </li>
-        <div class="seperator"></div>
+        <div class="separator"></div>
       </ul>
       <div *ngIf="scope!='all'&&mode=='history'" style="height:400px;margin:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
       <ul class="listLight">
@@ -185,7 +185,7 @@ import { AgChartOptions } from 'ag-charts-community'
                 <span>{{message.payload.doc.data()?.text}}</span>
               </div>
             </div>
-            <div class="seperator"></div>
+            <div class="separator"></div>
           </div>
           <div *ngIf="scope!='all'&&mode=='chain'">
             <div *ngIf="first">
@@ -238,7 +238,7 @@ import { AgChartOptions } from 'ag-charts-community'
         <div class="bounce3"></div>
       </div>
       <div class="buttonWhite" *ngIf="!UI.loading&&mode!='history'&&mode!='forecast'" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</div>
-      <div class="seperator"></div>
+      <div class="separator"></div>
     </div>
   </div>
   `,

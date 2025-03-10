@@ -27,8 +27,6 @@
 *::-webkit-scrollbar-track {
     background-color: #131B20;
 }
-html {
-}
 body {
   border: 0;
   background-color:#222C32;
@@ -88,7 +86,7 @@ a:visited {
 .listLight li {
   cursor: pointer;
 }
-.seperator {
+.separator {
   border-style: solid;
   border-width: 0px 0px 1px 0px;
   clear: both;

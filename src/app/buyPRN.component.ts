@@ -27,11 +27,11 @@ import { AgChartOptions } from 'ag-charts-community';
     <div class="sheet">
       <br />
       <div class="sheet" style="width:500px;max-width:80%">
-        <div class="seperator"></div>
+        <div class="separator"></div>
         <div class="title" style=";text-align:center">
           <img src="./../assets/App icons/PRN token.png" style=";width:150px">
         </div>
-        <div class="seperator"></div>
+        <div class="separator"></div>
         <div style="padding:10px;text-align:center">
           <span>PRN tokens represent ownership of the PERRINN team.</span>
           <br />
@@ -51,15 +51,15 @@ import { AgChartOptions } from 'ag-charts-community';
           <br />
           <span>Soon you will be able to sell or exchange your tokens with other members here.</span>
         </div>
-        <div class="seperator"></div>
+        <div class="separator"></div>
       </div>
       <br />
       <div class="sheet" style="width:500px;max-width:80%">
-        <div class="seperator"></div>
+        <div class="separator"></div>
         <div class="title">
           The capital raised from token sales goes towards
         </div>
-        <div class="seperator"></div>
+        <div class="separator"></div>
         <ul class="listLight">
           <li *ngFor="let message of currentFunds|async">
             <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0&&(message.payload.doc.data()?.fund?.active||showPastFunds)" style="cursor:default;padding:10px">
@@ -81,11 +81,11 @@ import { AgChartOptions } from 'ag-charts-community';
           </li>
         </ul>
       <div class="buttonBlack" *ngIf="!showPastFunds" (click)="showPastFunds=!showPastFunds">Show past funds</div>
-      <div class="seperator"></div>
+      <div class="separator"></div>
       </div>
       <br />
       <div *ngIf="UI.currentUser" class="sheet" style="width:500px;max-width:80%">
-        <div class="seperator"></div>
+        <div class="separator"></div>
         <div class="title">
           Which currency are you using?
         </div>
@@ -103,11 +103,11 @@ import { AgChartOptions } from 'ag-charts-community';
             </li>
           </ul>
         </div>
-        <div class="seperator"></div>
+        <div class="separator"></div>
       </div>
       <br />
       <div *ngIf="UI.currentUser" class="sheet" style="width:500px;max-width:80%">
-        <div class="seperator"></div>
+        <div class="separator"></div>
         <div class="title">
           How much PRN would you like to buy?
         </div>
@@ -123,7 +123,7 @@ import { AgChartOptions } from 'ag-charts-community';
           </ul>
           <span *ngIf="creditSelected!=undefined&&currencySelected!=undefined">You will pay {{UI.formatSharesToCurrency(currencySelected,creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}} and recieve {{UI.formatSharesToPRNCurrency(currencySelected,creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}.</span>
         </div>
-        <div class="seperator"></div>
+        <div class="separator"></div>
       </div>
       <br />
       <div *ngIf="UI.currentUser"
@@ -168,7 +168,7 @@ import { AgChartOptions } from 'ag-charts-community';
         </div>
       </div>
       <br />
-      <div class="seperator" style="width:100%;margin:0px"></div>
+      <div class="separator" style="width:100%;margin:0px"></div>
     </div>
   `,
 })
