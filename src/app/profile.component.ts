@@ -187,7 +187,7 @@ import { AgChartOptions } from 'ag-charts-community'
             </div>
             <div class="separator"></div>
           </div>
-          <div *ngIf="scope!='all'&&mode=='chain'">
+          <div *ngIf="scope!='all'&&(mode=='chain'||mode=='history')">
             <div *ngIf="first">
               <div style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Date</div>
               <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Days</div>
@@ -198,8 +198,9 @@ import { AgChartOptions } from 'ag-charts-community'
               <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Transaction</div>
               <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Interest</div>
               <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Contract</div>
+              <div style="float:left;text-align:center;width:150px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Message</div>
             </div>
-            <div class="tableRow">
+            <div class="tableRow" style="user-select:text">
               <div style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{(message.payload.doc.data()?.verifiedTimestamp?.seconds*1000)|date:'d MMM'}}</div>
               <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':(message.payload.doc.data()?.verifiedTimestamp?.seconds-previousTimestamp.seconds)/3600/24|number:'1.2-2'}}</div>
               <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':(message.payload.doc.data()?.userChain?.index-previousIndex)}}</div>
@@ -209,6 +210,7 @@ import { AgChartOptions } from 'ag-charts-community'
               <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.transactionIn?.amountCummulate||0)-(message.payload.doc.data()?.transactionOut?.amountCummulate||0)-previousAmountTransactionCummulate)|blankIfZero}}</div>
               <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.interest?.amountCummulate||0)-previousAmountInterestCummulate)|blankIfZero}}</div>
               <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.contract?.amountCummulate||0)-previousContractAmountCummulate)|blankIfZero}}</div>
+              <div style="float:left;text-align:center;width:150px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{message.payload.doc.data()?.userChain?.currentMessage}}</div>
             </div>
             {{storeMessageValues(message.payload.doc.data())}}
           </div>
@@ -290,7 +292,20 @@ export class ProfileComponent {
           theme: 'ag-default-dark',
           axes: [
             {type: 'time', position: 'bottom' },
-            {type: 'number',position: 'left',keys: ['balance','purchase','transaction','interest','contract']}
+            {
+              type: 'number',
+              position: 'left',
+              min: 0,
+              keys: ['balance','purchase','transaction','interest','contract'],
+              label: {
+                formatter: (params) => {
+                  const value = params.value;
+                  if (value >= 1_000_000) return (value / 1_000_000).toFixed(1) + 'M'; // 1M+
+                  if (value >= 1_000) return (value / 1_000).toFixed(1) + 'K'; // 1K+
+                  return value.toString(); // Keep as-is if < 1000
+                }
+              }
+            }
           ],
       }
     this.route.params.subscribe(params => {
@@ -485,11 +500,11 @@ export class ProfileComponent {
     this.messages.subscribe(messages => {
       let newData = messages.map((message,index)=>(
         {timestamp:message.payload.doc.data().verifiedTimestamp.seconds*1000,
-          balance:(message.payload.doc.data().wallet||{}).balance||0,
-          purchase:((message.payload.doc.data().purchaseCOIN||{}).amountCummulate||0),
-          transaction:((message.payload.doc.data().transactionIn||{}).amountCummulate||0)-((message.payload.doc.data().transactionOut||{}).amountCummulate||0),
-          interest:((message.payload.doc.data().interest||{}).amountCummulate||0),
-          contract:((message.payload.doc.data().contract||{}).amountCummulate||0)
+          balance:this.UI.convertSharesToCurrency(null,(message.payload.doc.data().wallet||{}).balance||0),
+          purchase:this.UI.convertSharesToCurrency(null,((message.payload.doc.data().purchaseCOIN||{}).amountCummulate||0)),
+          transaction:this.UI.convertSharesToCurrency(null,((message.payload.doc.data().transactionIn||{}).amountCummulate||0)-((message.payload.doc.data().transactionOut||{}).amountCummulate||0)),
+          interest:this.UI.convertSharesToCurrency(null,((message.payload.doc.data().interest||{}).amountCummulate||0)),
+          contract:this.UI.convertSharesToCurrency(null,((message.payload.doc.data().contract||{}).amountCummulate||0))
         }
       ));
       this.chartOptions = { ...this.chartOptions, data: newData };

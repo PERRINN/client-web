@@ -110,13 +110,22 @@ export class UserInterfaceService {
     return this.afs.collection("PERRINNMessages").add(messageObj);
   }
 
+  convertSharesToCurrency(currency,amount){
+    if (currency == null) {
+      if (this.currentUserLastMessageObj!=undefined&&this.currentUserLastMessageObj.userCurrency!=undefined)
+        currency = this.currentUserLastMessageObj.userCurrency;
+      else currency = "usd";
+    }
+    return amount/this.appSettingsPayment.currencyList[currency].toCOIN
+  }
+
   formatSharesToCurrency(currency, amount) {
     if (currency == null) {
       if (this.currentUserLastMessageObj!=undefined&&this.currentUserLastMessageObj.userCurrency!=undefined)
         currency = this.currentUserLastMessageObj.userCurrency;
       else currency = "usd";
     }
-    let amountCurrency = amount / this.appSettingsPayment.currencyList[currency].toCOIN;
+    let amountCurrency = this.convertSharesToCurrency(currency,amount);
     if (amountCurrency < 0) amountCurrency = -amountCurrency;
     if (amountCurrency < 100)
       return (
