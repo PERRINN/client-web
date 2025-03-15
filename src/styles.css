@@ -138,6 +138,10 @@ a:visited {
   color: whitesmoke;
   border-color:whitesmoke;
 }
+.buttonWhite:disabled{
+  opacity:0.5;
+  pointer-events:none;
+}
 .buttonRed {
   cursor: pointer;
   background-color:#A73E30;
@@ -214,6 +218,7 @@ input {
 }
 .form-module .form {
   padding: 20px;
+  text-align: center;
 }
 .form-module .top {
   width: 100%;
