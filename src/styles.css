@@ -59,6 +59,9 @@ a:visited {
   width: 100%;
   user-select: none;
 }
+.menu span:hover, .menu img:hover{
+  opacity: 0.6;
+}
 .menu .iconSmall {
   cursor: pointer;
   text-align: center;
@@ -106,15 +109,18 @@ a:visited {
 .buttonBlack {
   cursor: pointer;
   background-color: black;
-  color: #B0BAC0;
+  color: whitesmoke;
   margin: 0 auto;
   text-align:center;
   border-style:solid;
   padding:3px;
-  border-color:#B0BAC0;
+  border-color:whitesmoke;
+  border-radius: 4px;
 }
 .buttonBlack:hover{
-  background-color:#333;
+  background-color:rgba(67,67,67,0.67);
+  color: #B0BAC0;
+  border-color: #B0BAC0;
 }
 .buttonWhite {
   cursor: pointer;
@@ -124,21 +130,31 @@ a:visited {
   text-align:center;
   border-style:solid;
   padding:3px;
+  border-color:black;
+  border-radius: 4px;
 }
 .buttonWhite:hover{
-  opacity: 0.95;
+  background-color:rgba(56,118,29,0.5);
+  color: whitesmoke;
+  border-color:whitesmoke;
 }
 .buttonRed {
   cursor: pointer;
-  background-color:#D85140;
-  color: #B0BAC0;
+  background-color:#A73E30;
+  color: whitesmoke;
   margin: 0 auto;
   text-align:center;
-  border-style:none;
+  border-style:solid;
   padding:3px;
+  border-color:#131B20;
+  border-radius: 4px;
 }
 .buttonRed:hover{
-  opacity: 0.95;
+  opacity:0.85;
+  border-style:solid;
+  border-color:black;
+  color: whitesmoke;
+  border-color:whitesmoke;
 }
 button {
   cursor: pointer;
