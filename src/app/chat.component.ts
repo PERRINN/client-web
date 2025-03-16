@@ -32,7 +32,7 @@ import firebase from 'firebase/compat/app'
           <div *ngIf="fund?.active" style="clear:both">
             <span class="material-symbols-outlined" style="float:left;font-size:20px;margin-right:5px">crowdsource</span>
             <div style="float:left;background-color:black;height:20px;width:65px;text-align:center;color:whitesmoke;padding:0 5px 0 5px"></div>
-            <div style="float:left;height:20px;background-color:#D85140;margin-left:-65px" [style.width]="(fund?.amountGBPRaised/fund?.amountGBPTarget)*65+'px'"></div>
+            <div style="float:left;height:20px;background-color:#38761D;margin-left:-65px" [style.width]="(fund?.amountGBPRaised/fund?.amountGBPTarget)*65+'px'"></div>
             <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;color:whitesmoke;padding:0 5px 0 5px">{{(fund?.amountGBPRaised/fund?.amountGBPTarget)|percent:'1.0-0'}}</div>
             <div style="float:left;margin:0 5px 0 5px">{{fund.daysLeft|number:'1.0-0'}} days left</div>
             <div style="float:left;margin:0 5px 0 0">{{fund.description}},</div>

@@ -118,9 +118,7 @@ a:visited {
   border-radius: 4px;
 }
 .buttonBlack:hover{
-  background-color:rgba(67,67,67,0.67);
-  color: #B0BAC0;
-  border-color: #B0BAC0;
+  background-color:#333;
 }
 .buttonWhite {
   cursor: pointer;
@@ -156,7 +154,6 @@ a:visited {
 .buttonRed:hover{
   opacity:0.85;
   border-style:solid;
-  border-color:black;
   color: whitesmoke;
   border-color:whitesmoke;
 }
@@ -184,6 +181,25 @@ input {
   box-sizing: border-box;
   -webkit-transition: 0.3s ease;
   transition: 0.3s ease;
+  border-radius: 4px;
+}
+.alertRed {
+  padding: 7.5px;
+  margin-bottom: 10px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background-color: rgba(255,96,76,0.13);
+  border-color: #D85140;
+  color: #D85140;
+}
+.alertGreen {
+  padding: 7.5px;
+  margin-bottom: 10px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background-color: #dff0d8;
+  border-color: #38761D;
+  color: #38761D;
 }
 .textAreaInput {
   resize: none;
