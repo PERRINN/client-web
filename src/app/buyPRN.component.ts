@@ -66,7 +66,7 @@ import { AgChartOptions } from 'ag-charts-community';
               <span style="font-size:14px">{{message.payload.doc.data()?.chatSubject}}</span>
               <div style="clear:both">
                 <div style="float:left;background-color:black;height:20px;width:65px;text-align:center;padding:0 5px 0 5px"></div>
-                <div style="float:left;height:20px;background-color:#D85140;margin-left:-65px"
+                <div style="float:left;height:20px;background-color:#38761D;margin-left:-65px"
                   [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*65+'px'"></div>
                 <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;padding:0 5px 0 5px">
                   {{message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget|percent:"1.0-0"}}

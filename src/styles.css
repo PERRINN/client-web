@@ -116,9 +116,15 @@ a:visited {
   padding:3px;
   border-color:whitesmoke;
   border-radius: 4px;
+  transition: 0.1s ease;
+  border-width: 1px;
 }
 .buttonBlack:hover{
   background-color:#333;
+}
+.buttonBlack:disabled{
+  opacity:0.5;
+  pointer-events:none;
 }
 .buttonWhite {
   cursor: pointer;
@@ -130,6 +136,8 @@ a:visited {
   padding:3px;
   border-color:black;
   border-radius: 4px;
+  transition: 0.1s ease;
+  border-width: 1px;
 }
 .buttonWhite:hover{
   background-color:rgba(56,118,29,0.5);
@@ -150,6 +158,8 @@ a:visited {
   padding:3px;
   border-color:#131B20;
   border-radius: 4px;
+  transition: 0.1s ease;
+  border-width: 1px;
 }
 .buttonRed:hover{
   opacity:0.85;
