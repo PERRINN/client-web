@@ -148,7 +148,7 @@ import { AgChartOptions } from 'ag-charts-community'
         <li *ngFor="let message of latestImages|async;let first=first;let last=last" style="float:left;width:20%"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
-            <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" style="float:left;margin:2px;object-fit:contain;width:100%;height:90px">
+            <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" style="float:left;object-fit:contain;width:100%;height:90px">
           </div>
         </li>
         <div class="separator"></div>
