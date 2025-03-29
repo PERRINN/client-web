@@ -193,33 +193,6 @@ input {
   transition: 0.3s ease;
   border-radius: 4px;
 }
-.alertRed {
-  padding: 7.5px;
-  margin-bottom: 10px;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  background-color: rgba(255,96,76,0.13);
-  border-color: #D85140;
-  color: #D85140;
-}
-.alertBlue {
-  padding: 7.5px;
-  margin-bottom: 10px;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  background-color: #a0daf7b4;
-  border-color: #153F7E;
-  color: #153F7E;
-}
-.alertGreen {
-  padding: 7.5px;
-  margin-bottom: 10px;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  background-color: #dff0d8;
-  border-color: #38761D;
-  color: #38761D;
-}
 .textAreaInput {
   resize: none;
   overflow-y: scroll;

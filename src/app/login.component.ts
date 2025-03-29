@@ -14,37 +14,20 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
         <form #f="ngForm">
           <div class="buttonBlack" [hidden]="action=='register'" style="font-size:12px;line-height:15px;width:150px;padding:4px;margin:10px auto" (click)="action='register';messageUser=''">New member</div>
           <div class="buttonBlack" [hidden]="action=='login'" style="font-size:12px;line-height:15px;width:150px;padding:4px;margin:10px auto" (click)="action='login';messageUser=''">Existing member</div>
-          <div *ngIf="action=='login'">
+          <div *ngIf="action=='login' || action=='register'">
             <input maxlength="500" [(ngModel)]="email" name="email" type="text" placeholder="Email *" (keyup)="messageUser=''" autofocus required #e="ngModel"/>
             <input maxlength="500" [(ngModel)]="password" name="password" type="password" placeholder="Password *" (keyup)="messageUser=''" required #p="ngModel"/>
+          </div>
+          <div *ngIf="action=='login'">
             <button class="buttonWhite" style="font-size:14px;line-height:25px;width:200px;padding:4px;margin:10px auto" (click)="login(email,password)" [disabled]="f.invalid">Login</button>
             <div class="buttonBlack" style="width:125px;font-size:10px;margin:10px auto" (click)="resetPassword(email)">Forgot password?</div>
-            <div *ngIf="e.invalid && e.touched && messageUser == null || p.invalid && p.touched && messageUser == null" class="alertGreen">
-              Enter your email & password, then click on "Login".
-              <br/> <br/> New here? Click on "New member" to create an account.
-            </div>
-            <div *ngIf="messageUser == 'An email has been sent to you.'" class="alertGreen">{{messageUser}}</div>
-            <div *ngIf="messageUser == 'Firebase: Error (auth/missing-email).'" class="alertBlue">Please write your email above, then click on "Forgot password?" to receive a link to reset it.</div>
-            <div *ngIf="messageUser == 'Firebase: The email address is badly formatted. (auth/invalid-email).'" class="alertRed">Please enter a valid email address to log in or to reset your password.</div>
-            <div *ngIf="messageUser && messageUser !== 'An email has been sent to you.' && messageUser !== 'Firebase: Error (auth/missing-email).' && messageUser !== 'Firebase: The email address is badly formatted. (auth/invalid-email).'" class="alertRed">{{messageUser}}</div>
-            <div *ngIf="messageUser == 'Firebase: The email address is badly formatted. (auth/invalid-email).' || messageUser == 'Firebase: There is no user record corresponding to this identifier. The user may have been deleted. (auth/user-not-found).' || messageUser == 'Wrong password.'" class="alertGreen">New here? Click on "New member" to create an account.</div>
           </div>
           <div *ngIf="action=='register'">
-            <input maxlength="500" [(ngModel)]="email" name="email" type="text" placeholder="Email *" (keyup)="messageUser=''" autofocus required #e="ngModel"/>
-            <input maxlength="500" [(ngModel)]="password" name="password" type="password" placeholder="Password *" (keyup)="messageUser=''" required #p="ngModel"/>
             <input maxlength="500" [(ngModel)]="passwordConfirm" name="passwordConfirm" type="password" placeholder="Confirm password *" (keyup)="messageUser=''" #c="ngModel" required/>
             <input maxlength="500" [(ngModel)]="name" name="name" type="text" placeholder="First name (one word) *" (keyup)="messageUser=''" #n="ngModel" pattern="[A-Za-z0-9]{2,}" required/>
             <button type="button" class="buttonWhite" style="font-size:14px;text-align:center;line-height:25px;width:200px;padding:4px;margin:10px auto" (click)="register(email,password,passwordConfirm,name)" [disabled]="f.invalid">Register</button>
-            <div *ngIf="e.invalid && e.touched || p.invalid && p.touched || c.invalid && c.touched || n.invalid && n.errors.required && n.touched" class="alertGreen">
-              You need to fill all the fields.
-            </div>
-            <div *ngIf="n.invalid && n.errors.pattern && n.touched" class="alertGreen">
-              You need to write your first name in one word. 
-              <br/>
-              (letters & numbers)
-            </div>
-            <div *ngIf="messageUser" class="alertRed">{{messageUser}}</div>
           </div>
+            <div *ngIf="messageUser" style="text-align:center;padding:10px;color:#D85140">{{messageUser}}</div>
         </form>
       </div>
     </div>
@@ -81,7 +64,7 @@ export class LoginComponent  {
       const errorCode = error.code;
       const errorMessage = error.message;
       if (errorCode === 'auth/wrong-password') {
-        this.messageUser = 'Wrong password.';
+        this.messageUser = 'Wrong password';
       } else {
         this.messageUser = errorMessage;
       }
