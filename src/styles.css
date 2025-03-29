@@ -244,6 +244,24 @@ input {
   font-size: 10px;
   text-decoration: none;
 }
+.password {
+  position:relative
+}
+.password .password-icon {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 25px;
+  color: #757566;
+  transition: all 0.2s;
+  right: 20px;
+}
+.password .password-icon:hover {
+  cursor: pointer;
+  color: rgba(245, 245, 245, 0.60);
+}
 hr {
     display: block;
     margin: 10px 10px 10px 10px;

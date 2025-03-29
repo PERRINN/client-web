@@ -16,14 +16,26 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
           <div class="buttonBlack" [hidden]="action=='login'" style="font-size:12px;line-height:15px;width:150px;padding:4px;margin:10px auto" (click)="action='login';messageUser=''">Existing member</div>
           <div *ngIf="action=='login' || action=='register'">
             <input maxlength="500" [(ngModel)]="email" name="email" type="text" placeholder="Email *" (keyup)="messageUser=''" autofocus required #e="ngModel"/>
-            <input maxlength="500" [(ngModel)]="password" name="password" type="password" placeholder="Password *" (keyup)="messageUser=''" required #p="ngModel"/>
+            <label class="password">
+              <input maxlength="500" [(ngModel)]="password" name="password" [type]="passwordVisibility" [style]="focusPassword" placeholder="Password *" (keyup)="messageUser=''" required #p="ngModel"/>
+              <div class="password-icon" (mousedown)="showPassword()" (touchstart)="showPassword()" (mouseup)="hidePassword()" (touchend)="hidePassword()">
+                <span class="material-icons-outlined" id="visibility-outlined" [style]="iconOutlined">visibility</span>
+                <span class="material-icons" id="visibility" [style]="icon">visibility</span>
+              </div>
+            </label>
           </div>
           <div *ngIf="action=='login'">
             <button class="buttonWhite" style="font-size:14px;line-height:25px;width:200px;padding:4px;margin:10px auto" (click)="login(email,password)" [disabled]="f.invalid">Login</button>
             <div class="buttonBlack" style="width:125px;font-size:10px;margin:10px auto" (click)="resetPassword(email)">Forgot password?</div>
           </div>
           <div *ngIf="action=='register'">
-            <input maxlength="500" [(ngModel)]="passwordConfirm" name="passwordConfirm" type="password" placeholder="Confirm password *" (keyup)="messageUser=''" #c="ngModel" required/>
+            <label class="password">
+              <input maxlength="500" [(ngModel)]="passwordConfirm" name="passwordConfirm" [type]="passwordConfirmVisibility" [style]="focusPasswordConfirm" type="password" placeholder="Confirm password *" (keyup)="messageUser=''" #c="ngModel" required/>
+              <div class="password-icon" (mousedown)="showPasswordConfirm()" (touchstart)="showPasswordConfirm()" (mouseup)="hidePasswordConfirm()" (touchend)="hidePasswordConfirm()">
+                <span class="material-icons-outlined" id="visibilityConfirm-outlined" [style]="iconOutlinedConfirm">visibility</span>
+                <span class="material-icons" id="visibilityConfirm" [style]="iconConfirm">visibility</span>
+              </div>
+            </label>
             <input maxlength="500" [(ngModel)]="name" name="name" type="text" placeholder="First name (one word) *" (keyup)="messageUser=''" #n="ngModel" pattern="[A-Za-z0-9]{2,}" required/>
             <button type="button" class="buttonWhite" style="font-size:14px;text-align:center;line-height:25px;width:200px;padding:4px;margin:10px auto" (click)="register(email,password,passwordConfirm,name)" [disabled]="f.invalid">Register</button>
           </div>
@@ -44,6 +56,14 @@ export class LoginComponent  {
   message:string
   messageUser:string
   action:string
+  passwordVisibility:string = "password"
+  passwordConfirmVisibility:string = "password"
+  iconOutlined:string = "display:block"
+  icon:string = "display:none"
+  iconOutlinedConfirm:string = "display:block"
+  iconConfirm:string = "display:none"
+  focusPassword:string
+  focusPasswordConfirm:string
 
   constructor(
     public afAuth:AngularFireAuth,
@@ -69,6 +89,34 @@ export class LoginComponent  {
         this.messageUser = errorMessage;
       }
     });
+  }
+
+  showPassword() {
+    this.passwordVisibility="text";
+    this.iconOutlined="display:none";
+    this.icon="display:block";
+    this.focusPassword="border-style:solid; border-width: 1px; border-color:#757566;"
+  }
+
+  hidePassword() {
+    this.passwordVisibility="password";
+    this.iconOutlined="display:block";
+    this.icon="display:none";
+    this.focusPassword="";
+  }
+
+  showPasswordConfirm() {
+    this.passwordConfirmVisibility="text";
+    this.iconOutlinedConfirm="display:none";
+    this.iconConfirm="display:block";
+    this.focusPasswordConfirm="border-style:solid; border-width: 1px; border-color:#757566;"
+  }
+
+  hidePasswordConfirm() {
+    this.passwordConfirmVisibility="password";
+    this.iconOutlinedConfirm="display:block";
+    this.iconConfirm="display:none";
+    this.focusPasswordConfirm="";
   }
 
   resetPassword(email:string) {
