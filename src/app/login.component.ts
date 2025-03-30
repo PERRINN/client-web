@@ -92,31 +92,19 @@ export class LoginComponent  {
   }
 
   showPassword() {
-    this.passwordVisibility="text";
-    this.iconOutlined="display:none";
-    this.icon="display:block";
-    this.focusPassword="border-style:solid; border-width: 1px; border-color:#757566;"
+    [this.passwordVisibility,this.iconOutlined,this.icon,this.focusPassword] = this.UI.fieldShowHide("show");
   }
 
   hidePassword() {
-    this.passwordVisibility="password";
-    this.iconOutlined="display:block";
-    this.icon="display:none";
-    this.focusPassword="";
+    [this.passwordVisibility,this.iconOutlined,this.icon,this.focusPassword] = this.UI.fieldShowHide("hide");
   }
 
   showPasswordConfirm() {
-    this.passwordConfirmVisibility="text";
-    this.iconOutlinedConfirm="display:none";
-    this.iconConfirm="display:block";
-    this.focusPasswordConfirm="border-style:solid; border-width: 1px; border-color:#757566;"
+    [this.passwordConfirmVisibility,this.iconOutlinedConfirm,this.iconConfirm,this.focusPasswordConfirm] = this.UI.fieldShowHide("show");
   }
 
   hidePasswordConfirm() {
-    this.passwordConfirmVisibility="password";
-    this.iconOutlinedConfirm="display:block";
-    this.iconConfirm="display:none";
-    this.focusPasswordConfirm="";
+    [this.passwordConfirmVisibility,this.iconOutlinedConfirm,this.iconConfirm,this.focusPasswordConfirm] = this.UI.fieldShowHide("hide");
   }
 
   resetPassword(email:string) {

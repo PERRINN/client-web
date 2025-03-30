@@ -228,4 +228,24 @@ export class UserInterfaceService {
     fullScreenImage.style.visibility='visible'
   }
 
+  fieldShowHide(effect:string){
+    let visibility:string;
+    let outlinedEyeStyle:string;
+    let fullEyeStyle:string;
+    let focus:string;
+    if (effect === "show") {
+      visibility = "text";
+      outlinedEyeStyle ="display:none";
+      fullEyeStyle ="display:block";
+      focus = "border-style:solid; border-width: 1px; border-color:#757566;"
+    }
+    else if (effect === "hide") {
+      visibility = "password";
+      outlinedEyeStyle ="display:block";
+      fullEyeStyle ="display:none";
+      focus = ""
+    }
+    return [visibility, outlinedEyeStyle, fullEyeStyle, focus];
+  }
+
 }
