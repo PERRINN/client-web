@@ -18,7 +18,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
             <input maxlength="500" [(ngModel)]="email" name="email" type="text" placeholder="Email *" (keyup)="messageUser=''" autofocus required #e="ngModel"/>
             <label class="password">
               <input maxlength="500" [(ngModel)]="password" name="password" [type]="passwordVisibility" [style]="focusPassword" placeholder="Password *" (keyup)="messageUser=''" required #p="ngModel"/>
-              <div class="password-icon" (mousedown)="showPassword()" (touchstart)="showPassword()" (mouseup)="hidePassword()" (touchend)="hidePassword()">
+              <div class="password-icon" (mousedown)="toggleField('password','show')" (touchstart)="toggleField('password','show')" (mouseup)="toggleField('password','hide')" (touchend)="toggleField('password','hide')">
                 <span class="material-icons-outlined" id="visibility-outlined" [style]="iconOutlined">visibility</span>
                 <span class="material-icons" id="visibility" [style]="icon">visibility</span>
               </div>
@@ -31,7 +31,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
           <div *ngIf="action=='register'">
             <label class="password">
               <input maxlength="500" [(ngModel)]="passwordConfirm" name="passwordConfirm" [type]="passwordConfirmVisibility" [style]="focusPasswordConfirm" type="password" placeholder="Confirm password *" (keyup)="messageUser=''" #c="ngModel" required/>
-              <div class="password-icon" (mousedown)="showPasswordConfirm()" (touchstart)="showPasswordConfirm()" (mouseup)="hidePasswordConfirm()" (touchend)="hidePasswordConfirm()">
+              <div class="password-icon" (mousedown)="toggleField('passwordConfirm','show')" (touchstart)="toggleField('passwordConfirm','show')" (mouseup)="toggleField('passwordConfirm','hide')" (touchend)="toggleField('passwordConfirm','hide')">
                 <span class="material-icons-outlined" id="visibilityConfirm-outlined" [style]="iconOutlinedConfirm">visibility</span>
                 <span class="material-icons" id="visibilityConfirm" [style]="iconConfirm">visibility</span>
               </div>
@@ -91,20 +91,13 @@ export class LoginComponent  {
     });
   }
 
-  showPassword() {
-    [this.passwordVisibility,this.iconOutlined,this.icon,this.focusPassword] = this.UI.fieldShowHide("show");
-  }
-
-  hidePassword() {
-    [this.passwordVisibility,this.iconOutlined,this.icon,this.focusPassword] = this.UI.fieldShowHide("hide");
-  }
-
-  showPasswordConfirm() {
-    [this.passwordConfirmVisibility,this.iconOutlinedConfirm,this.iconConfirm,this.focusPasswordConfirm] = this.UI.fieldShowHide("show");
-  }
-
-  hidePasswordConfirm() {
-    [this.passwordConfirmVisibility,this.iconOutlinedConfirm,this.iconConfirm,this.focusPasswordConfirm] = this.UI.fieldShowHide("hide");
+  toggleField(field:string, effect:string) {
+    if (field === 'password'){
+      [this.passwordVisibility,this.iconOutlined,this.icon,this.focusPassword] = this.UI.fieldShowHide(effect);
+    }
+    else if (field === 'passwordConfirm'){
+      [this.passwordConfirmVisibility,this.iconOutlinedConfirm,this.iconConfirm,this.focusPasswordConfirm] = this.UI.fieldShowHide(effect);
+    }
   }
 
   resetPassword(email:string) {
