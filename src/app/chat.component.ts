@@ -24,8 +24,8 @@ import firebase from 'firebase/compat/app'
           </div>
           <div *ngIf="eventDateEnd/60000>UI.nowSeconds/60" style="clear:both">
             <span class="material-icons-outlined" style="float:left;font-size:20px;margin-right:5px">event</span>
-            <div [style.background-color]="(math.floor((eventDateStart/1000-UI.nowSeconds)/60)>60*8)?'black':'red'" style="float:left;color:whitesmoke;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(eventDateStart/1000-UI.nowSeconds)}}</div>
-            <div *ngIf="math.floor(eventDateStart/60000-UI.nowSeconds/60)<=0&&eventDateEnd/60000>UI.nowSeconds/60" style="float:left;background-color:#D85140;color:whitesmoke;padding:0 5px 0 5px">Now</div>
+            <div [style.background-color]="(math.floor((eventDateStart/1000-UI.nowSeconds)/60)>60*8)?'black':'#38761D'" style="float:left;color:whitesmoke;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(eventDateStart/1000-UI.nowSeconds)}}</div>
+            <div *ngIf="math.floor(eventDateStart/60000-UI.nowSeconds/60)<=0&&eventDateEnd/60000>UI.nowSeconds/60" style="float:left;background-color:#7BC463;color:whitesmoke;padding:0 5px 0 5px">Now</div>
             <span style="margin:0 5px 0 5px">{{eventDescription}}</span>
             <span style="margin:0 5px 0 0">{{eventDateStart|date:'EEEE d MMM h:mm a'}} ({{eventDuration}}h)</span>
           </div>
@@ -41,11 +41,11 @@ import firebase from 'firebase/compat/app'
           </div>
           <div *ngIf="(UI.nowSeconds<survey?.expiryTimestamp/1000)&&survey?.createdTimestamp" style="clear:both">
             <span class="material-icons-outlined" style="float:left;font-size:20px;margin-right:5px">poll</span>
-            <div [style.background-color]="(math.floor(survey.expiryTimestamp/3600000-UI.nowSeconds/3600)>8)?'black':'red'" style="float:left;color:whitesmoke;padding:0 5px 0 5px">{{UI.formatSecondsToDhm2(survey.expiryTimestamp/1000-UI.nowSeconds)}} left</div>
+            <div [style.background-color]="(math.floor(survey.expiryTimestamp/3600000-UI.nowSeconds/3600)>8)?'black':'#38761D'" style="float:left;color:whitesmoke;padding:0 5px 0 5px">{{UI.formatSecondsToDhm2(survey.expiryTimestamp/1000-UI.nowSeconds)}} left</div>
             <div style="float:left;margin:0 5px 0 5px">{{survey.question}}</div>
             <span *ngFor="let answer of survey.answers;let last=last" style="float:left;margin:0 5px 0 5px">{{answer.answer}} ({{(answer.votes.length/survey.totalVotes)|percent:'1.0-0'}})</span>
             <span style="float:left;margin:0 5px 0 5px">{{survey.totalVotes}} vote{{survey.totalVotes>1?'s':''}}</span>
-            <div *ngIf="!chatLastMessageObj?.recipients[UI.currentUser]?.voteIndexPlusOne" style="clear:both;color:#D85140;margin:0 5px 0 5px">vote now</div>
+            <div *ngIf="!chatLastMessageObj?.recipients[UI.currentUser]?.voteIndexPlusOne" style="clear:both;color:whitesmoke;font-weight:bold;margin:0 5px 0 5px">Vote now</div>
           </div>
         </div>
         <span class="material-icons-outlined" style="float:right;padding:7px" (click)="showImageGalleryClick()">{{showImageGallery?'question_answer':'collections'}}</span>
@@ -179,7 +179,7 @@ import firebase from 'firebase/compat/app'
             <img [src]="message.payload?.imageUrlThumbUser" style="cursor:pointer;display:inline;float:left;margin:0 10px 10px 10px; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
           </div>
           <div [style.background-color]="(message.payload?.user==UI.currentUser)?'#222C32':'black'"
-                style="cursor:text;margin:0 10px 5px 60px;user-select:text;border-color:magenta"
+                style="cursor:text;margin:0 10px 5px 60px;user-select:text;border-color:#16FE4A"
                 [style.border-style]="(message.payload?.text.includes(UI.currentUserLastMessageObj?.name))?'solid':'none'">
             <div>
               <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
