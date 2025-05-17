@@ -24,7 +24,7 @@ import firebase from 'firebase/compat/app'
           </div>
           <div *ngIf="eventDateEnd/60000>UI.nowSeconds/60" style="clear:both">
             <span class="material-icons-outlined" style="float:left;font-size:20px;margin-right:5px">event</span>
-            <div [style.background-color]="(math.floor((eventDateStart/1000-UI.nowSeconds)/60)>60*8)?'black':'#38761D'" style="float:left;color:whitesmoke;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(eventDateStart/1000-UI.nowSeconds)}}</div>
+            <div *ngIf="math.floor(eventDateStart/60000-UI.nowSeconds/60)>0" [style.background-color]="(math.floor((eventDateStart/1000-UI.nowSeconds)/60)>60*8)?'black':'#38761D'" style="float:left;color:whitesmoke;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(eventDateStart/1000-UI.nowSeconds)}}</div>
             <div *ngIf="math.floor(eventDateStart/60000-UI.nowSeconds/60)<=0&&eventDateEnd/60000>UI.nowSeconds/60" style="float:left;background-color:#7BC463;color:whitesmoke;padding:0 5px 0 5px">Now</div>
             <span style="margin:0 5px 0 5px">{{eventDescription}}</span>
             <span style="margin:0 5px 0 0">{{eventDateStart|date:'EEEE d MMM h:mm a'}} ({{eventDuration}}h)</span>
