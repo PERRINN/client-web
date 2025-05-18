@@ -43,7 +43,16 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
         </form>
       </div>
     </div>
-  </div>
+  </div>   
+  <div id="socialmedia">
+    <script src="https://platform.linkedin.com/in.js" type="text/javascript"> lang: en_US</script>
+    <script type="IN/FollowCompany" data-id="10888343" data-counter="bottom"></script>
+    <button class="socialmediabutton" style="border-color: #0A66C2">
+      <a style="color: whitesmoke ; align:center; justify-content: center; flex-direction:column; text-align: center" href="https://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=nico-perrin" target="_blank"><img style="max-height: 100% ; max-width: 100%" src="./../assets/App icons/LI-In-Bug.png"> Follow Nico Perrin</a>
+    </button>
+    <a class="socialmediabutton" style="border-color: #FF0000" href="https://www.youtube.com/@PERRINN424WeAreATeam" target="_blank"> Watch PERRINN 424 videos</a>
+    <a class="socialmediabutton" style="border-color: #25D366" href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank"> Join our community</a>.
+  </div>  
   `,
 })
 
