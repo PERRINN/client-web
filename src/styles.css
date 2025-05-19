@@ -407,18 +407,40 @@ img {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 7px;
+  padding: 5px;
   text-align: center;
   outline: none;
-  text-decoration: none !important;
   color: #ffffff !important;
   background-color: #222C32;
-  width: 300px;
+  width: 210px;
   height: 64px;
   border-radius: 16px;
   border-style: solid;
+  border-width: thin;
+  margin: 10px;
+}
+
+.socialmediabutton:hover {
   border-width: medium;
-  margin: 15px;
+  background-color: #131B20;
+}
+
+.socialmediabutton a {
+  color: whitesmoke; 
+  display: table; 
+  text-decoration: none !important;
+}
+
+.socialmediabutton span:hover {
+  font-weight: bold;
+}
+
+.socialmediabutton img {
+  max-height: 40px;
+  max-width: 40px; 
+  display: table-cell; 
+  vertical-align:middle;
+  margin: 5px;
 }
 
 #socialmedia {

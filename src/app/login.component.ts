@@ -45,13 +45,30 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
     </div>
   </div>   
   <div id="socialmedia">
-    <script src="https://platform.linkedin.com/in.js" type="text/javascript"> lang: en_US</script>
-    <script type="IN/FollowCompany" data-id="10888343" data-counter="bottom"></script>
-    <button class="socialmediabutton" style="border-color: #0A66C2">
-      <a style="color: whitesmoke ; align:center; justify-content: center; flex-direction:column; text-align: center" href="https://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=nico-perrin" target="_blank"><img style="max-height: 100% ; max-width: 100%" src="./../assets/App icons/LI-In-Bug.png"> Follow Nico Perrin</a>
+    <button class="socialmediabutton" style="border-color: #0A66C2;">
+      <a href="https://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=nico-perrin" target="_blank">
+      <img src="./../assets/App icons/LI-In-Bug.png"> 
+      <span style="display: table-cell; vertical-align:middle;">Follow Nico Perrin</span>
+      </a>
     </button>
-    <a class="socialmediabutton" style="border-color: #FF0000" href="https://www.youtube.com/@PERRINN424WeAreATeam" target="_blank"> Watch PERRINN 424 videos</a>
-    <a class="socialmediabutton" style="border-color: #25D366" href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank"> Join our community</a>.
+    <button class="socialmediabutton" style="border-color: #25D366">
+      <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank">
+      <img src="./../assets/App icons/Digital_Glyph_Green.png"> 
+      <span style="display: table-cell; vertical-align:middle;">Join the community</span>
+      </a>
+    </button>
+    <button class="socialmediabutton" style="border-color: #FF0000;">
+      <a href="https://www.youtube.com/@PERRINN424WeAreATeam" target="_blank">
+      <img src="./../assets/App icons/yt_logo_rgb_light.png"> 
+      <span style="display: table-cell; vertical-align:middle;">Watch our videos</span>
+      </a>
+    </button>
+    <button class="socialmediabutton" style="border-color: #FFFFFF;">
+      <a href="https://github.com/PERRINN" target="_blank">
+      <img src="./../assets/App icons/github-mark-white.png"> 
+      <span style="display: table-cell; vertical-align:middle;">Download our code</span>
+      </a>
+    </button>
   </div>  
   `,
 })
