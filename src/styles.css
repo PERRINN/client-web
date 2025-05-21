@@ -408,21 +408,18 @@ img {
   flex-direction: column;
   justify-content: center;
   padding: 5px;
-  text-align: center;
-  outline: none;
-  color: #ffffff !important;
+  outline: thin solid;
+  border-radius: 16px;
+  color: whitesmoke !important;
   background-color: #222C32;
   width: 210px;
   height: 64px;
-  border-radius: 16px;
-  border-style: solid;
-  border-width: thin;
-  margin: 10px;
 }
 
 .socialmediabutton:hover {
-  border-width: medium;
   background-color: #131B20;
+  transition: 0.1s ease;
+  outline-width: medium;
 }
 
 .socialmediabutton a {
@@ -433,6 +430,7 @@ img {
 
 .socialmediabutton span:hover {
   font-weight: bold;
+  transition: 0.1s ease;
 }
 
 .socialmediabutton img {

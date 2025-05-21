@@ -45,25 +45,25 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
     </div>
   </div>   
   <div id="socialmedia">
-    <button class="socialmediabutton" style="border-color: #0A66C2;">
+    <button class="socialmediabutton" style="outline-color: #0A66C2;">
       <a href="https://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=nico-perrin" target="_blank">
       <img src="./../assets/App icons/LI-In-Bug.png"> 
       <span style="display: table-cell; vertical-align:middle;">Follow Nico Perrin</span>
       </a>
     </button>
-    <button class="socialmediabutton" style="border-color: #25D366">
+    <button class="socialmediabutton" style="outline-color: #25D366">
       <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank">
       <img src="./../assets/App icons/Digital_Glyph_Green.png"> 
       <span style="display: table-cell; vertical-align:middle;">Join the community</span>
       </a>
     </button>
-    <button class="socialmediabutton" style="border-color: #FF0000;">
+    <button class="socialmediabutton" style="outline-color: #FF0000;">
       <a href="https://www.youtube.com/@PERRINN424WeAreATeam" target="_blank">
       <img src="./../assets/App icons/yt_logo_rgb_light.png"> 
       <span style="display: table-cell; vertical-align:middle;">Watch our videos</span>
       </a>
     </button>
-    <button class="socialmediabutton" style="border-color: #FFFFFF;">
+    <button class="socialmediabutton" style="outline-color: #FFFFFF;">
       <a href="https://github.com/PERRINN" target="_blank">
       <img src="./../assets/App icons/github-mark-white.png"> 
       <span style="display: table-cell; vertical-align:middle;">Download our code</span>
