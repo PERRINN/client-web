@@ -44,13 +44,21 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
       </div>
     </div>
   </div>   
-  <div id="socialmedia">
-    <button class="socialmediabutton" style="outline-color: #0A66C2;">
-      <a href="https://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=nico-perrin" target="_blank">
+  <div id="socialmediaLI">
+    <button class="socialmediabutton LI" style="outline-color: #0A66C2;">
+      <a href="https://www.linkedin.com/company/perrinn" target="_blank">
       <img src="./../assets/App icons/LI-In-Bug.png"> 
-      <span style="display: table-cell; vertical-align:middle;">Follow Nico Perrin</span>
+      <span style="display: table-cell; vertical-align:middle;">Follow <br/> PERRINN 424</span>
       </a>
     </button>
+    <button class="socialmediabutton LI" style="outline-color: #0A66C2;">
+      <a href="https://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=nico-perrin" target="_blank">
+      <img src="./../assets/App icons/LI-In-Bug.png"> 
+      <span style="display: table-cell; vertical-align:middle;">Follow <br/> Nico Perrin</span>
+      </a>
+    </button>
+</div>
+  <div id="socialmedia">
     <button class="socialmediabutton" style="outline-color: #25D366">
       <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank">
       <img src="./../assets/App icons/Digital_Glyph_Green.png"> 

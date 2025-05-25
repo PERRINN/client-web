@@ -40,7 +40,6 @@ body {
 }
 #login {
   width: 10000px;
-  padding: 10px 0 10px 0;
   font-family: 'RobotoDraft', 'Roboto', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -403,6 +402,24 @@ img {
   animation-delay: -0.16s;
 }
 
+#socialmedia {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+#socialmediaLI {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: -25px;
+}
+
+#socialmediaLI .LI {
+  width: 165px;
+  height: 64px;
+}
+
 .socialmediabutton {
   display: flex;
   flex-direction: column;
@@ -412,8 +429,9 @@ img {
   border-radius: 16px;
   color: whitesmoke !important;
   background-color: #222C32;
-  width: 210px;
+  width: 220px;
   height: 64px;
+  margin: 5.5px;
 }
 
 .socialmediabutton:hover {
@@ -422,15 +440,15 @@ img {
   outline-width: medium;
 }
 
+.socialmediabutton:hover span {
+  font-weight: bold;
+  transition: 0.1s ease;
+}
+
 .socialmediabutton a {
   color: whitesmoke; 
   display: table; 
   text-decoration: none !important;
-}
-
-.socialmediabutton span:hover {
-  font-weight: bold;
-  transition: 0.1s ease;
 }
 
 .socialmediabutton img {
@@ -439,12 +457,6 @@ img {
   display: table-cell; 
   vertical-align:middle;
   margin: 5px;
-}
-
-#socialmedia {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
 }
 
 @-webkit-keyframes sk-bouncedelay {
