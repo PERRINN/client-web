@@ -46,6 +46,11 @@ body {
   display: table-cell;
   vertical-align: middle;
 }
+
+#login .form {
+  padding-top: 0px;
+}
+
 a:link {
   color:#999;
 }
@@ -402,18 +407,14 @@ img {
   animation-delay: -0.16s;
 }
 
-#socialmedia, #socialmediaLI, #socialmediaWA, #socialmediaYTGH {
+#socialmedia, #socialmedialinks {
   display: flex;
   align-items: center;
+  flex-direction: column;
 }
 
 #socialmedia {
-  flex-direction: column;
-  margin-top: 75px;
-}
-
-#socialmediaLI, #socialmediaWA, #socialmediaYTGH {
-  justify-content: center;
+  margin-top: 30px;
 }
 
 .socialmediabutton {
@@ -425,8 +426,8 @@ img {
   border-radius: 4px;
   color: whitesmoke !important;
   background-color: #222C32;
-  width: 115px;
-  height: 40px;
+  width: 155px;
+  height: 35px;
   margin: 5px;
 }
 
@@ -436,29 +437,23 @@ img {
   text-decoration: none !important;
 }
 
+.socialmediabutton img {
+  max-height: 25px;
+  max-width: 25px; 
+  display: table-cell; 
+  vertical-align:middle;
+  margin: 5px;
+  margin-left: 0px;
+  filter: grayscale(100%);
+}
+
 .socialmediabutton span {
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .socialmediabutton:hover {
   background-color: #131B20;
   transition: 0.1s ease;
-}
-
-.LI:hover {
-  outline-color: #0A66C2;
-}
-
-.WA:hover {
-  outline-color: #25D366
-}
-
-.YT:hover {
-  outline-color: #FF0000;
-}
-
-.GH:hover {
-  outline-color: #FFFFFF;
 }
 
 @-webkit-keyframes sk-bouncedelay {
