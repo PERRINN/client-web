@@ -39,45 +39,47 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
             <input maxlength="500" [(ngModel)]="name" name="name" type="text" placeholder="First name (one word) *" (keyup)="messageUser=''" #n="ngModel" pattern="[A-Za-z0-9]{2,}" required/>
             <button type="button" class="buttonWhite" style="font-size:14px;text-align:center;line-height:25px;width:200px;padding:4px;margin:10px auto" (click)="register(email,password,passwordConfirm,name)" [disabled]="f.invalid">Register</button>
           </div>
-            <div *ngIf="messageUser" style="text-align:center;padding:10px;color:#D85140">{{messageUser}}</div>
+          <div *ngIf="messageUser" style="text-align:center;padding:10px;color:#D85140">{{messageUser}}</div>
         </form>
       </div>
     </div>
-  </div>   
-  <div id="socialmediaLI">
-    <button class="socialmediabutton LI" style="outline-color: #0A66C2;">
-      <a href="https://www.linkedin.com/company/perrinn" target="_blank">
-      <img src="./../assets/App icons/LI-In-Bug.png"> 
-      <span style="display: table-cell; vertical-align:middle;">Follow <br/> PERRINN 424</span>
-      </a>
-    </button>
-    <button class="socialmediabutton LI" style="outline-color: #0A66C2;">
-      <a href="https://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=nico-perrin" target="_blank">
-      <img src="./../assets/App icons/LI-In-Bug.png"> 
-      <span style="display: table-cell; vertical-align:middle;">Follow <br/> Nico Perrin</span>
-      </a>
-    </button>
-</div>
-  <div id="socialmedia">
-    <button class="socialmediabutton" style="outline-color: #25D366">
-      <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank">
-      <img src="./../assets/App icons/Digital_Glyph_Green.png"> 
-      <span style="display: table-cell; vertical-align:middle;">Join the community</span>
-      </a>
-    </button>
-    <button class="socialmediabutton" style="outline-color: #FF0000;">
-      <a href="https://www.youtube.com/@PERRINN424WeAreATeam" target="_blank">
-      <img src="./../assets/App icons/yt_logo_rgb_light.png"> 
-      <span style="display: table-cell; vertical-align:middle;">Watch our videos</span>
-      </a>
-    </button>
-    <button class="socialmediabutton" style="outline-color: #FFFFFF;">
-      <a href="https://github.com/PERRINN" target="_blank">
-      <img src="./../assets/App icons/github-mark-white.png"> 
-      <span style="display: table-cell; vertical-align:middle;">Download our code</span>
-      </a>
-    </button>
   </div>  
+  <div id="socialmedia">
+    <button class="buttonBlack" style="margin: 5px; font-size: 11px" (click)="toggleSocialMedia()">Find us on social media</button>
+    <span [hidden]="hidelinks">
+      <div id="socialmediaLI">
+        <button class="socialmediabutton LI">
+          <a href="https://www.linkedin.com/company/perrinn" target="_blank">
+          <span style="display: table-cell; vertical-align:middle;">Follow PERRINN 424<br/>on LinkedIn</span>
+          </a>
+        </button>
+        <button class="socialmediabutton LI">
+          <a href="https://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=nico-perrin" target="_blank">
+          <span style="display: table-cell; vertical-align:middle;">Follow Nico Perrin<br/>on LinkedIn</span>
+          </a>
+        </button>
+      </div>
+      <div id="socialmediaWA">
+        <button class="socialmediabutton WA">
+          <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank">
+          <span style="display: table-cell; vertical-align:middle;">Join the community<br/>on WhatsApp</span>
+          </a>
+        </button>
+      </div>
+      <div id="socialmediaYTGH">
+        <button class="socialmediabutton YT">
+          <a href="https://www.youtube.com/@PERRINN424WeAreATeam" target="_blank">
+          <span style="display: table-cell; vertical-align:middle;">Watch our videos<br/>on Youtube</span>
+          </a>
+        </button>
+        <button class="socialmediabutton GH">
+          <a href="https://github.com/PERRINN" target="_blank">
+          <span style="display: table-cell; vertical-align:middle;">Download our code<br/>on GitHub</span>
+          </a>
+        </button>
+      </div> 
+    </span> 
+  </div>
   `,
 })
 
@@ -98,6 +100,7 @@ export class LoginComponent  {
   iconConfirm:string = "display:none"
   focusPassword:string
   focusPasswordConfirm:string
+  hidelinks: boolean = true;
 
   constructor(
     public afAuth:AngularFireAuth,
@@ -179,6 +182,10 @@ export class LoginComponent  {
         });
       });
     }
+  }
+
+  toggleSocialMedia() {
+    this.hidelinks = !this.hidelinks;
   }
 
 }

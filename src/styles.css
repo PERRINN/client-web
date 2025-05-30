@@ -402,22 +402,18 @@ img {
   animation-delay: -0.16s;
 }
 
+#socialmedia, #socialmediaLI, #socialmediaWA, #socialmediaYTGH {
+  display: flex;
+  align-items: center;
+}
+
 #socialmedia {
-  display: flex;
-  align-items: center;
   flex-direction: column;
+  margin-top: 75px;
 }
 
-#socialmediaLI {
-  display: flex;
-  align-items: center;
+#socialmediaLI, #socialmediaWA, #socialmediaYTGH {
   justify-content: center;
-  margin-top: -25px;
-}
-
-#socialmediaLI .LI {
-  width: 165px;
-  height: 64px;
 }
 
 .socialmediabutton {
@@ -426,23 +422,12 @@ img {
   justify-content: center;
   padding: 5px;
   outline: thin solid;
-  border-radius: 16px;
+  border-radius: 4px;
   color: whitesmoke !important;
   background-color: #222C32;
-  width: 220px;
-  height: 64px;
-  margin: 5.5px;
-}
-
-.socialmediabutton:hover {
-  background-color: #131B20;
-  transition: 0.1s ease;
-  outline-width: medium;
-}
-
-.socialmediabutton:hover span {
-  font-weight: bold;
-  transition: 0.1s ease;
+  width: 115px;
+  height: 40px;
+  margin: 5px;
 }
 
 .socialmediabutton a {
@@ -451,12 +436,29 @@ img {
   text-decoration: none !important;
 }
 
-.socialmediabutton img {
-  max-height: 40px;
-  max-width: 40px; 
-  display: table-cell; 
-  vertical-align:middle;
-  margin: 5px;
+.socialmediabutton span {
+  font-size: 10px;
+}
+
+.socialmediabutton:hover {
+  background-color: #131B20;
+  transition: 0.1s ease;
+}
+
+.LI:hover {
+  outline-color: #0A66C2;
+}
+
+.WA:hover {
+  outline-color: #25D366
+}
+
+.YT:hover {
+  outline-color: #FF0000;
+}
+
+.GH:hover {
+  outline-color: #FFFFFF;
 }
 
 @-webkit-keyframes sk-bouncedelay {
