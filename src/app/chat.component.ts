@@ -179,7 +179,7 @@ import firebase from 'firebase/compat/app'
             <img [src]="message.payload?.imageUrlThumbUser" style="cursor:pointer;display:inline;float:left;margin:0 10px 10px 10px; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
           </div>
           <div [style.background-color]="(message.payload?.user==UI.currentUser)?'#222C32':'black'"
-                style="cursor:text;margin:0 10px 5px 60px;user-select:text;border-color:#16FE4A"
+                style="cursor:text;margin:0 10px 5px 60px;user-select:text;border-color:#5BBF2F"
                 [style.border-style]="(message.payload?.text.includes(UI.currentUserLastMessageObj?.name))?'solid':'none'">
             <div>
               <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">

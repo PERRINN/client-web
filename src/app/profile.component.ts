@@ -173,7 +173,7 @@ import { AgChartOptions } from 'ag-charts-community'
               </div>
               <div *ngIf="UI.currentUser&&(UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds" style="float:right;margin:5px 0 0 0;width:35px;height:20px;line-height:20px;font-size:10px;text-align:center"
                 (click)="readFlagClick(message.payload.doc.id,(message.payload.doc.data()?.reads||{})[UI.currentUser])"
-                [style.background-color]="(message.payload.doc.data()?.reads||{})[UI.currentUser]?'#131B20':(message.payload.doc.data()?.recipients[UI.currentUser]?.mentionMessages||message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name))?'#16FE4A':message.payload.doc.data()?.recipients[UI.currentUser]?'#38761D':'#B0BAC0'"
+                [style.background-color]="(message.payload.doc.data()?.reads||{})[UI.currentUser]?'#131B20':(message.payload.doc.data()?.recipients[UI.currentUser]?.mentionMessages||message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name))?'#5BBF2F':message.payload.doc.data()?.recipients[UI.currentUser]?'#38761D':'#B0BAC0'"
                 [style.color]="(message.payload.doc.data()?.reads||{})[UI.currentUser]?'#131B20':whitesmoke">
                 {{message.payload.doc.data()?.recipients[UI.currentUser]?.unreadMessages}}
               </div>

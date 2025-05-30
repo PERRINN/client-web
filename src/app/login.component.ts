@@ -45,42 +45,37 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
     </div>
   </div>  
   <div id="socialmedia">
-    <button class="buttonBlack" style="margin: 5px; font-size: 11px" (click)="toggleSocialMedia()">Find us on social media</button>
-    <span [hidden]="hidelinks">
-      <div id="socialmedialinks">
-        <button class="socialmediabutton">
-          <a href="https://www.linkedin.com/company/perrinn" target="_blank">
-          <img src="./../assets/App icons/InBug-White.png"> 
-          <span style="display: table-cell; vertical-align:middle;">Follow PERRINN 424</span>
-          </a>
-        </button>
-        <button class="socialmediabutton">
-          <a href="https://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=nico-perrin" target="_blank">
-          <img src="./../assets/App icons/InBug-White.png"> 
-          <span style="display: table-cell; vertical-align:middle;">Follow Nico Perrin</span>
-          </a>
-        </button>
-        <button class="socialmediabutton">
-          <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank">
-          <img src="./../assets/App icons/Digital_Glyph_White.png"> 
-          <span style="display: table-cell; vertical-align:middle;">Join the community</span>
-          </a>
-        </button>
-        <button class="socialmediabutton">
-          <a href="https://www.youtube.com/@PERRINN424WeAreATeam" target="_blank">
-          <img src="./../assets/App icons/yt_logo_mono_white.png"> 
-          <span style="display: table-cell; vertical-align:middle;">Watch our videos</span>
-          </a>
-        </button>
-        <button class="socialmediabutton">
-          <a href="https://github.com/PERRINN" target="_blank">
-          <img src="./../assets/App icons/github-mark-white.png"> 
-          <span style="display: table-cell; vertical-align:middle;">Download our code</span>
-          </a>
-        </button>
-      </div> 
-    </span> 
-  </div>
+    <button class="socialmediabutton">
+      <a href="https://www.linkedin.com/company/perrinn" target="_blank">
+      <img src="./../assets/App icons/InBug-White.png"> 
+      <span style="display: table-cell; vertical-align:middle;">Follow PERRINN 424</span>
+      </a>
+    </button>
+    <button class="socialmediabutton">
+      <a href="https://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=nico-perrin" target="_blank">
+      <img src="./../assets/App icons/InBug-White.png"> 
+      <span style="display: table-cell; vertical-align:middle;">Follow Nico Perrin</span>
+      </a>
+    </button>
+    <button class="socialmediabutton">
+      <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank">
+      <img src="./../assets/App icons/Digital_Glyph_White.png"> 
+      <span style="display: table-cell; vertical-align:middle;">Join the community</span>
+      </a>
+    </button>
+    <button class="socialmediabutton">
+      <a href="https://www.youtube.com/@PERRINN424WeAreATeam" target="_blank">
+      <img src="./../assets/App icons/yt_logo_mono_white.png"> 
+      <span style="display: table-cell; vertical-align:middle;">Watch our videos</span>
+      </a>
+    </button>
+    <button class="socialmediabutton">
+      <a href="https://github.com/PERRINN" target="_blank">
+      <img src="./../assets/App icons/github-mark-white.png"> 
+      <span style="display: table-cell; vertical-align:middle;">Download our code</span>
+      </a>
+    </button>
+  </div> 
   `,
 })
 
