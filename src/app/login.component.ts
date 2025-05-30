@@ -96,7 +96,6 @@ export class LoginComponent  {
   iconConfirm:string = "display:none"
   focusPassword:string
   focusPasswordConfirm:string
-  hidelinks: boolean = true;
 
   constructor(
     public afAuth:AngularFireAuth,
@@ -178,10 +177,6 @@ export class LoginComponent  {
         });
       });
     }
-  }
-
-  toggleSocialMedia() {
-    this.hidelinks = !this.hidelinks;
   }
 
 }
