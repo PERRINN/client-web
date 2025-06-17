@@ -192,29 +192,29 @@ import { AgChartOptions } from 'ag-charts-community'
             <div class="separator"></div>
           </div>
           <div *ngIf="scope!='all'&&(mode=='chain'||mode=='history')">
-            <div *ngIf="first">
-              <div style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Date</div>
-              <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Days</div>
-              <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Messages</div>
-              <div style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Balance</div>
-              <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Change</div>
-              <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Purchase</div>
-              <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Transaction</div>
-              <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Interest</div>
-              <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Contract</div>
-              <div style="float:left;text-align:center;width:150px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Message</div>
+            <div *ngIf="first" style="display:flex; overflow-x:auto">
+              <div style="float:left;text-align:center;min-width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Date</div>
+              <div style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Days</div>
+              <div style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Messages</div>
+              <div style="float:left;text-align:center;min-width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Balance</div>
+              <div style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Change</div>
+              <div style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Purchase</div>
+              <div style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Transaction</div>
+              <div style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Interest</div>
+              <div style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Contract</div>
+              <div style="float:left;text-align:center;min-width:150px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Message</div>
             </div>
-            <div class="tableRow" style="user-select:text">
-              <div style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{(message.payload.doc.data()?.verifiedTimestamp?.seconds*1000)|date:'d MMM'}}</div>
-              <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':(message.payload.doc.data()?.verifiedTimestamp?.seconds-previousTimestamp.seconds)/3600/24|number:'1.2-2'}}</div>
-              <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':(message.payload.doc.data()?.userChain?.index-previousIndex)}}</div>
-              <div style="float:left;text-align:center;width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{UI.formatSharesToCurrency(null,message.payload.doc.data()?.wallet?.balance)}}</div>
-              <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,message.payload.doc.data()?.wallet?.balance-previousBalance)}}</div>
-              <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.purchaseCOIN?.amountCummulate||0)-previousPurchaseCOINAmountCummulate)|blankIfZero}}</div>
-              <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.transactionIn?.amountCummulate||0)-(message.payload.doc.data()?.transactionOut?.amountCummulate||0)-previousAmountTransactionCummulate)|blankIfZero}}</div>
-              <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.interest?.amountCummulate||0)-previousAmountInterestCummulate)|blankIfZero}}</div>
-              <div style="float:left;text-align:center;width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.contract?.amountCummulate||0)-previousContractAmountCummulate)|blankIfZero}}</div>
-              <div style="float:left;text-align:center;width:150px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{message.payload.doc.data()?.userChain?.currentMessage}}</div>
+            <div class="tableRow" style="user-select:text" style="display:flex; overflow-x:auto">
+              <div style="float:left;text-align:center;min-width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{(message.payload.doc.data()?.verifiedTimestamp?.seconds*1000)|date:'d MMM YYY'}}</div>
+              <div style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':(message.payload.doc.data()?.verifiedTimestamp?.seconds-previousTimestamp.seconds)/3600/24|number:'1.2-2'}}</div>
+              <div style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':(message.payload.doc.data()?.userChain?.index-previousIndex)}}</div>
+              <div style="float:left;text-align:center;min-width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{UI.formatSharesToCurrency(null,message.payload.doc.data()?.wallet?.balance)}}</div>
+              <div style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,message.payload.doc.data()?.wallet?.balance-previousBalance)}}</div>
+              <div style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.purchaseCOIN?.amountCummulate||0)-previousPurchaseCOINAmountCummulate)|blankIfZero}}</div>
+              <div style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.transactionIn?.amountCummulate||0)-(message.payload.doc.data()?.transactionOut?.amountCummulate||0)-previousAmountTransactionCummulate)|blankIfZero}}</div>
+              <div style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.interest?.amountCummulate||0)-previousAmountInterestCummulate)|blankIfZero}}</div>
+              <div style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.contract?.amountCummulate||0)-previousContractAmountCummulate)|blankIfZero}}</div>
+              <div style="float:left;text-align:center;min-width:150px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{message.payload.doc.data()?.userChain?.currentMessage}}</div>
             </div>
             {{storeMessageValues(message.payload.doc.data())}}
           </div>
