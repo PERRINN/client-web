@@ -191,35 +191,33 @@ import { AgChartOptions } from 'ag-charts-community'
             </div>
             <div class="separator"></div>
           </div>
-          <div style="overflow-x: auto">
             <table *ngIf="scope!='all'&&(mode=='chain'||mode=='history')">
               <tr *ngIf="first" style="display: flex">
-                <th style="float:left;text-align:center;min-width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Date</th>
-                <th style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Days</th>
-                <th style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Messages</th>
-                <th style="float:left;text-align:center;min-width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Balance</th>
-                <th style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Change</th>
-                <th style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Purchase</th>
-                <th style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Transaction</th>
-                <th style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Interest</th>
-                <th style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Contract</th>
-                <th style="float:left;text-align:center;min-width:150px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">Message</th>
+                <th class="th-date">Date</th>
+                <th class="th-days">Days</th>
+                <th class="th-messages">Messages</th>
+                <th class="th-balance">Balance</th>
+                <th class="th-change">Change</th>
+                <th class="th-purchase">Purchase</th>
+                <th class="th-transaction">Transaction</th>
+                <th class="th-interest">Interest</th>
+                <th class="th-contract">Contract</th>
+                <th class="th-message">Message</th>
               </tr>
               <tr class="tableRow" style="user-select:text; display: flex">
-                <th style="float:left;text-align:center;min-width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{(message.payload.doc.data()?.verifiedTimestamp?.seconds*1000)|date:'d MMM YYY'}}</th>
-                <th style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':(message.payload.doc.data()?.verifiedTimestamp?.seconds-previousTimestamp.seconds)/3600/24|number:'1.2-2'}}</th>
-                <th style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':(message.payload.doc.data()?.userChain?.index-previousIndex)}}</th>
-                <th style="float:left;text-align:center;min-width:75px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{UI.formatSharesToCurrency(null,message.payload.doc.data()?.wallet?.balance)}}</th>
-                <th style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,message.payload.doc.data()?.wallet?.balance-previousBalance)}}</th>
-                <th style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.purchaseCOIN?.amountCummulate||0)-previousPurchaseCOINAmountCummulate)|blankIfZero}}</th>
-                <th style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.transactionIn?.amountCummulate||0)-(message.payload.doc.data()?.transactionOut?.amountCummulate||0)-previousAmountTransactionCummulate)|blankIfZero}}</th>
-                <th style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.interest?.amountCummulate||0)-previousAmountInterestCummulate)|blankIfZero}}</th>
-                <th style="float:left;text-align:center;min-width:65px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.contract?.amountCummulate||0)-previousContractAmountCummulate)|blankIfZero}}</th>
-                <th style="float:left;text-align:center;min-width:150px;height:20px;border-style:solid;border-width:0 1px 1px 0;font-size:10px">{{message.payload.doc.data()?.userChain?.currentMessage}}</th>
+                <th class="th-date">{{(message.payload.doc.data()?.verifiedTimestamp?.seconds*1000)|date:'d MMM YYY'}}</th>
+                <th class="th-days">{{first?'':(message.payload.doc.data()?.verifiedTimestamp?.seconds-previousTimestamp.seconds)/3600/24|number:'1.2-2'}}</th>
+                <th class="th-messages">{{first?'':(message.payload.doc.data()?.userChain?.index-previousIndex)}}</th>
+                <th class="th-balance">{{UI.formatSharesToCurrency(null,message.payload.doc.data()?.wallet?.balance)}}</th>
+                <th class="th-change">{{first?'':UI.formatSharesToCurrency(null,message.payload.doc.data()?.wallet?.balance-previousBalance)}}</th>
+                <th class="th-purchase">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.purchaseCOIN?.amountCummulate||0)-previousPurchaseCOINAmountCummulate)|blankIfZero}}</th>
+                <th class="th-transaction">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.transactionIn?.amountCummulate||0)-(message.payload.doc.data()?.transactionOut?.amountCummulate||0)-previousAmountTransactionCummulate)|blankIfZero}}</th>
+                <th class="th-interest">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.interest?.amountCummulate||0)-previousAmountInterestCummulate)|blankIfZero}}</th>
+                <th class="th-contract">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.contract?.amountCummulate||0)-previousContractAmountCummulate)|blankIfZero}}</th>
+                <th class="th-message">{{message.payload.doc.data()?.userChain?.currentMessage}}</th>
               </tr>
               {{storeMessageValues(message.payload.doc.data())}}
             </table>
-          </div>
         </li>
       </ul>
       <div *ngIf="scope!='all'&&mode=='forecast'">
