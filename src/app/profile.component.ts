@@ -47,10 +47,10 @@ import { AgChartOptions } from 'ag-charts-community'
           </div>
         </div>
       </div>
-      <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='inbox'?'#B0BAC0':'black'" (click)="mode='inbox';refreshMessages()">inbox</div>
-      <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='history'?'#B0BAC0':'black'" (click)="mode='history';refreshMessages();refreshChart()">history</div>
-      <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='chain'?'#B0BAC0':'black'" (click)="mode='chain';refreshMessages()">chain</div>
-      <div class="buttonBlack" style="float:left;width:75px;margin:5px;font-size:11px" [style.border-color]="mode=='forecast'?'#B0BAC0':'black'" (click)="mode='forecast';refreshMessages()">forecast</div>
+      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='inbox'?'#B0BAC0':'black'" (click)="mode='inbox';refreshMessages()">inbox</div>
+      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='history'?'#B0BAC0':'black'" (click)="mode='history';refreshMessages();refreshChart()">history</div>
+      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='chain'?'#B0BAC0':'black'" (click)="mode='chain';refreshMessages()">chain</div>
+      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='forecast'?'#B0BAC0':'black'" (click)="mode='forecast';refreshMessages()">forecast</div>
       <div class="buttonBlack" *ngIf="UI.currentUser&&UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="clear:both;width:250px;margin:5px;font-size:11px">New message to {{focusUserLastMessageObj?.name}}</div>
       <div class="separator" style="width:100%;margin:0px"></div>
     </div>

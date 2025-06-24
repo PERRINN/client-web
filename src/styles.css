@@ -462,11 +462,7 @@ th {
   font-size:10px
 }
 
-.th-date, .th-balance {
-  min-width: 75px;
-}
-
-.th-days, .th-messages, .th-change, .th-purchase, .th-transaction, .th-interest, .th-contract {
+.th-days, .th-messages, .th-change, .th-transaction {
   min-width: 65px;
 }
 
@@ -474,16 +470,32 @@ th {
   min-width: 150px;
 }
 
-@media (max-width:760px)
+@media (max-width:410px)
 {
-  .th-message {
-    display: none;
+  .th-date {
+    min-width:70px;
+  }
+  .th-balance {
+    min-width:55px;
+  }
+  .th-purchase, .th-interest, .th-contract {
+    min-width:50px;
   }
 }
 
-@media (max-width:610px)
+@media (min-width:410px)
 {
-  .th-messages {
+  .th-balance, .th-interest, .th-contract {
+    min-width:65px;
+  }
+  .th-date, .th-purchase {
+    min-width:75px;
+  }
+}
+
+@media (max-width:480px)
+{
+  .th-change {
     display: none;
   }
 }
@@ -495,19 +507,18 @@ th {
   }
 }
 
-@media (max-width:480px)
+@media (max-width:610px)
 {
-  .th-change {
+  .th-messages {
     display: none;
   }
 }
 
-@media (max-width:410px)
+@media (max-width:760px)
 {
-  tr .th-balance {
-    width:30px;
+  .th-message {
+    display: none;
   }
- 
 }
 
 @-webkit-keyframes sk-bouncedelay {
