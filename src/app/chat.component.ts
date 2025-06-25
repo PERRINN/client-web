@@ -88,7 +88,7 @@ import firebase from 'firebase/compat/app'
     </ul>
     <div class="separator" style="width:100%;margin:0px"></div>
     <span style="margin:10px">Sending PRN {{UI.appSettingsPayment.currencyList[UI.currentUserLastMessageObj.userCurrency].designation}}:</span>
-      <input style="width:200px;margin:10px" maxlength="500" [(ngModel)]="transactionAmount" placeholder="amount">
+      <input style="width:200px;margin:10px" maxlength="500" [(ngModel)]="transactionAmount" placeholder="Amount">
       <input style="width:150px;margin:10px" maxlength="500" [(ngModel)]="transactionCode" placeholder="Code (optional)">
       <div *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance">
         <ul class="listLight" style="margin:10px">
@@ -340,7 +340,7 @@ export class ChatComponent {
       this.chatSubject=''
       this.eventDescription=''
       this.eventDuration=1
-      this.eventLocation=""
+      this.eventLocation="https://meet.google.com/ebp-djfh-aht"
       this.fund={
         description:'add a description',
         amountGBPTarget:0,
@@ -407,7 +407,7 @@ export class ChatComponent {
           this.eventDateStart=c.payload.doc.data()['eventDateStart']
           this.eventDateEnd=c.payload.doc.data()['eventDateEnd']
           this.eventDuration=c.payload.doc.data()['eventDuration']
-          this.eventLocation=c.payload.doc.data()['eventLocation']
+          this.eventLocation=c.payload.doc.data()['eventLocation']||this.eventLocation
           this.fund=c.payload.doc.data()['fund']||this.fund
           this.survey=((c.payload.doc.data()['survey']||{})['createdTimestamp'])?c.payload.doc.data()['survey']:this.survey
         }
@@ -437,7 +437,7 @@ export class ChatComponent {
           this.eventDescription=c.payload.doc.data()['eventDescription']
           this.eventDateStart=c.payload.doc.data()['eventDateStart']
           this.eventDuration=c.payload.doc.data()['eventDuration']
-          this.eventLocation=c.payload.doc.data()['eventLocation']
+          this.eventLocation=c.payload.doc.data()['eventLocation']||this.eventLocation
           this.fund=c.payload.doc.data()['fund']||this.fund
           this.survey=((c.payload.doc.data()['survey']||{})['createdTimestamp'])?c.payload.doc.data()['survey']:this.survey
         }
