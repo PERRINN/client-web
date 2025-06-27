@@ -39,14 +39,6 @@ import firebase from 'firebase/compat/app'
             <div style="float:left;margin:0 5px 0 0">target: {{UI.formatSharesToCurrency(null,fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /</div>
             <div style="float:left">raised: {{UI.formatSharesToCurrency(null,fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}</div>
           </div>
-          <div *ngIf="(UI.nowSeconds<survey?.expiryTimestamp/1000)&&survey?.createdTimestamp" style="clear:both">
-            <span class="material-icons-outlined" style="float:left;font-size:20px;margin-right:5px">poll</span>
-            <div [style.background-color]="(math.floor(survey.expiryTimestamp/3600000-UI.nowSeconds/3600)>8)?'black':'#38761D'" style="float:left;color:whitesmoke;padding:0 5px 0 5px">{{UI.formatSecondsToDhm2(survey.expiryTimestamp/1000-UI.nowSeconds)}} left</div>
-            <div style="float:left;margin:0 5px 0 5px">{{survey.question}}</div>
-            <span *ngFor="let answer of survey.answers;let last=last" style="float:left;margin:0 5px 0 5px">{{answer.answer}} ({{(answer.votes.length/survey.totalVotes)|percent:'1.0-0'}})</span>
-            <span style="float:left;margin:0 5px 0 5px">{{survey.totalVotes}} vote{{survey.totalVotes>1?'s':''}}</span>
-            <div *ngIf="!chatLastMessageObj?.recipients[UI.currentUser]?.voteIndexPlusOne" style="clear:both;color:whitesmoke;font-weight:bold;margin:0 5px 0 5px">Vote now</div>
-          </div>
         </div>
         <span class="material-icons-outlined" style="float:right;padding:7px" (click)="showImageGalleryClick()">{{showImageGallery?'question_answer':'collections'}}</span>
         <div *ngIf="eventDateEnd/60000>UI.nowSeconds/60" style="clear:right">
@@ -138,26 +130,6 @@ import firebase from 'firebase/compat/app'
       <input style="width:30%;margin:10px" maxlength="10" [(ngModel)]="fund.daysLeft">
       <div class="buttonWhite" *ngIf="fund.description!=chatLastMessageObj?.fund?.description||fund.amountGBPTarget!=chatLastMessageObj?.fund?.amountGBPTarget||fund.daysLeft!=chatLastMessageObj?.fund?.daysLeft" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveFund()">Save fund</div>
     </div>
-    <div class="separator" style="width:100%;margin:0px"></div>
-    <div>
-      <div *ngIf="survey.createdTimestamp" style="font-size:12px;margin:10px">created on {{survey.createdTimestamp|date:'EEEE d MMM h:mm a'}} expiring on {{survey.expiryTimestamp|date:'EEEE d MMM h:mm a'}}</div>
-      <span style="margin:10px">Duration of the survey (days)</span>
-      <input style="width:40%;margin:10px" maxlength="200" [(ngModel)]="survey.durationDays">
-      <input style="width:80%;margin:10px" maxlength="200" [(ngModel)]="survey.question">
-      <div class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveSurvey()">Save survey</div>
-      <ul class="listLight" style="margin:10px">
-        <li *ngFor="let answer of survey.answers;let i=index">
-          <div>
-            <div style="float:left;width:50px;margin:15px 5px 5px 0px">
-              <div class="buttonWhite" *ngIf="!answer?.votes.includes(UI.currentUser)" style="width:100%;font-size:10px" (click)="voteSurvey(i)">Vote</div>
-            </div>
-            <input style="float:left;width:70%" [(ngModel)]="survey.answers[i].answer">
-          </div>
-          <span *ngFor="let user of answer?.votes;let last=last">{{user==UI.currentUser?'You':chatLastMessageObj?.recipients[user]?.name}}{{last?"":", "}}</span>
-        </li>
-      </ul>
-      <div class="buttonWhite" style="width:75px;margin:10px;font-size:10px" (click)="survey.answers.push({answer:'new answer',votes:[]})">Add answer</div>
-    </div>
     <div class="separator" style="width:100%;margin-bottom:150px"></div>
   </div>
 
@@ -216,8 +188,6 @@ import firebase from 'firebase/compat/app'
                 <div class="separator" style="width:100%"></div>
                 <div class="separator" style="width:100%"></div>
                 <div style="font-size:10px">fund {{message.payload?.fund|json}}</div>
-                <div class="separator" style="width:100%"></div>
-                <div style="font-size:10px">survey {{message.payload?.survey|json}}</div>
                 <div class="separator" style="width:100%"></div>
                 <div style="font-size:10px">{{message.payload|json}}</div>
               </div>
@@ -286,6 +256,7 @@ import firebase from 'firebase/compat/app'
   </div>
     `
 })
+
 export class ChatComponent {
   draftMessage:string
   imageTimestamp:string
@@ -312,8 +283,6 @@ export class ChatComponent {
   eventDuration:number
   eventLocation:string
   fund:any
-  surveyDefault:any
-  survey:any
   messageShowActions:[]
   lastRead:string
   showImageGallery:boolean
@@ -346,16 +315,6 @@ export class ChatComponent {
         amountGBPTarget:0,
         daysLeft:30
       }
-      this.surveyDefault={
-        question:'Survey question',
-        durationDays:7,
-        answers:[
-          {answer:'Answer A',votes:[]},
-          {answer:'Answer B',votes:[]},
-          {answer:'Answer C',votes:[]}
-        ]
-      }
-      this.survey=this.surveyDefault
       this.refreshMessages(params.id)
       this.refresheventDateList()
       this.resetChat()
@@ -409,7 +368,6 @@ export class ChatComponent {
           this.eventDuration=c.payload.doc.data()['eventDuration']
           this.eventLocation=c.payload.doc.data()['eventLocation']||this.eventLocation
           this.fund=c.payload.doc.data()['fund']||this.fund
-          this.survey=((c.payload.doc.data()['survey']||{})['createdTimestamp'])?c.payload.doc.data()['survey']:this.survey
         }
       })
       batch.commit()
@@ -439,7 +397,6 @@ export class ChatComponent {
           this.eventDuration=c.payload.doc.data()['eventDuration']
           this.eventLocation=c.payload.doc.data()['eventLocation']||this.eventLocation
           this.fund=c.payload.doc.data()['fund']||this.fund
-          this.survey=((c.payload.doc.data()['survey']||{})['createdTimestamp'])?c.payload.doc.data()['survey']:this.survey
         }
       })
       batch.commit()
@@ -525,24 +482,6 @@ export class ChatComponent {
       text:'edited fund',
       chain:this.chatLastMessageObj.chain||this.chatChain,
       fund:this.fund
-    })
-    this.resetChat()
-  }
-
-  saveSurvey() {
-    this.UI.createMessage({
-      text:'Survey saved',
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      survey:this.survey
-    })
-    this.resetChat()
-  }
-
-  voteSurvey(i) {
-    this.UI.createMessage({
-      text:'Survey vote '+this.survey.answers[i].answer,
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      survey:{voteIndexPlusOne:i+1}
     })
     this.resetChat()
   }
