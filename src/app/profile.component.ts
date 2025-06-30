@@ -82,15 +82,15 @@ import { AgChartOptions } from 'ag-charts-community'
                 <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer">settings</span>
                 <span style="font-size:15px">{{message.payload.doc.data()?.chatSubject}}</span>
               </div>
-              <div style="width:80%">
-                <div *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)>0" [style.background-color]="(math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)>60*8)?'black':'#38761D'" style="float:left;color:whitesmoke;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(message.payload.doc.data()?.eventDateStart/1000-UI.nowSeconds)}}</div>
-                <div *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)<=0&&message.payload.doc.data()?.eventDateEnd/60000>UI.nowSeconds/60" style="float:left;background-color:#7BC463;color:whitesmoke;padding:0 5px 0 5px">Now</div>
-                <span style="margin:0 5px 0 5px">{{message.payload.doc.data()?.eventDescription}}</span>
-                <span style="margin:0 5px 0 0">{{message.payload.doc.data()?.eventDateStart|date:'EEEE d MMM h:mm a'}} ({{message.payload.doc.data()?.eventDuration}}h)</span>
+                <div style="width:80%">
+                  <div *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)>0" [style.background-color]="(math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)>60*8)?'black':'#38761D'" style="float:left;color:whitesmoke;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(message.payload.doc.data()?.eventDateStart/1000-UI.nowSeconds)}}</div>
+                  <div *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)<=0&&message.payload.doc.data()?.eventDateEnd/60000>UI.nowSeconds/60" style="float:left;background-color:#7BC463;color:whitesmoke;padding:0 5px 0 5px">Now</div>
+                  <span style="margin:0 5px 0 5px">{{message.payload.doc.data()?.eventDescription}}</span>
+                  <span style="margin:0 5px 0 0">{{message.payload.doc.data()?.eventDateStart|date:'EEEE d MMM h:mm a'}} ({{message.payload.doc.data()?.eventDuration}}h)</span>
+                </div>
               </div>
+              <div class="separator"></div>
             </div>
-            <div class="separator"></div>
-          </div>
           </div>
         </li>
       </ul>
@@ -115,32 +115,6 @@ import { AgChartOptions } from 'ag-charts-community'
                 <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.description}},</div>
                 <div style="float:left;margin:0 5px 0 5px">target: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /</div>
                 <div style="float:left">raised: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}</div>
-              </div>
-            </div>
-            </div>
-            <div class="separator"></div>
-          </div>
-        </li>
-      </ul>
-      <ul class="listLight">
-        <li *ngFor="let message of currentSurveys|async;let first=first;let last=last"
-          (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
-          <div *ngIf="scope=='all'||mode=='inbox'">
-            <div *ngIf="(UI.nowSeconds<message.payload.doc.data()?.survey?.expiryTimestamp/1000)&&message.payload.doc.data()?.survey?.createdTimestamp">
-            <div style="float:left;min-width:90px;min-height:40px">
-              <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer">poll</span>
-            </div>
-            <div>
-              <div style="float:left;margin-top:10px;width:60%;white-space:nowrap;text-overflow:ellipsis">
-                <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer">settings</span>
-                <span style="font-size:15px">{{message.payload.doc.data()?.chatSubject}}</span>
-              </div>
-              <div style="clear:both">
-                <div [style.background-color]="(math.floor(message.payload.doc.data()?.survey.expiryTimestamp/3600000-UI.nowSeconds/3600)>8)?'black':'#38761D'" style="float:left;color:whitesmoke;padding:0 5px 0 5px">{{UI.formatSecondsToDhm2(message.payload.doc.data()?.survey.expiryTimestamp/1000-UI.nowSeconds)}} left</div>
-                <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.survey.question}}</div>
-                <span *ngFor="let answer of message.payload.doc.data()?.survey.answers;let last=last" style="float:left;margin:0 5px 0 5px">{{answer.answer}} ({{(answer.votes.length/message.payload.doc.data()?.survey.totalVotes)|percent:'1.0-0'}})</span>
-                <span style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.survey.totalVotes}} vote{{message.payload.doc.data()?.survey.totalVotes>1?'s':''}}</span>
-                <div *ngIf="!message.payload.doc.data()?.recipients[UI.currentUser]?.voteIndexPlusOne" style="clear:both;color:whitesmoke;font-weight:bold;margin:0 5px 0 5px">Vote now</div>
               </div>
             </div>
             </div>
@@ -253,7 +227,6 @@ export class ProfileComponent {
   messages:Observable<any[]>
   comingEvents:Observable<any[]>
   currentFunds:Observable<any[]>
-  currentSurveys:Observable<any[]>
   latestImages:Observable<any[]>
   tags:Observable<any[]>
   scrollTeam:string
@@ -356,14 +329,6 @@ export class ProfileComponent {
         ).snapshotChanges().pipe(map(changes=>{
           return changes.map(c=>({payload:c.payload}))
         }))
-        this.currentSurveys=this.afs.collection<any>('PERRINNMessages',ref=>ref
-          .where('lastMessage','==',true)
-          .where('verified','==',true)
-          .orderBy('survey.expiryTimestamp')
-          .where('survey.expiryTimestamp','>=',this.UI.nowSeconds*1000)
-        ).snapshotChanges().pipe(map(changes=>{
-          return changes.map(c=>({payload:c.payload}))
-        }))
         this.latestImages=this.afs.collection<any>('PERRINNMessages',ref=>ref
           .where('verified','==',true)
           .orderBy('chatImageTimestamp','desc')
@@ -397,15 +362,6 @@ export class ProfileComponent {
           .where('verified','==',true)
           .where('fund.active','==',true)
           .orderBy('fund.daysLeft','asc')
-        ).snapshotChanges().pipe(map(changes=>{
-          return changes.map(c=>({payload:c.payload}))
-        }))
-        this.currentSurveys=this.afs.collection<any>('PERRINNMessages',ref=>ref
-          .where('lastMessage','==',true)
-          .where('tag','in',this.UI.tagFilters)
-          .where('verified','==',true)
-          .orderBy('survey.expiryTimestamp')
-          .where('survey.expiryTimestamp','>=',this.UI.nowSeconds*1000)
         ).snapshotChanges().pipe(map(changes=>{
           return changes.map(c=>({payload:c.payload}))
         }))
@@ -467,15 +423,6 @@ export class ProfileComponent {
         .where('verified','==',true)
         .where('fund.active','==',true)
         .orderBy('fund.daysLeft','asc')
-      ).snapshotChanges().pipe(map(changes=>{
-        return changes.map(c=>({payload:c.payload}))
-      }))
-      this.currentSurveys=this.afs.collection<any>('PERRINNMessages',ref=>ref
-        .where('recipientList','array-contains-any',[this.scope])
-        .where('lastMessage','==',true)
-        .where('verified','==',true)
-        .orderBy('survey.expiryTimestamp')
-        .where('survey.expiryTimestamp','>=',this.UI.nowSeconds*1000)
       ).snapshotChanges().pipe(map(changes=>{
         return changes.map(c=>({payload:c.payload}))
       }))
