@@ -176,26 +176,6 @@ module.exports = {
       fund.daysLeft=Math.round(fund.daysLeft*10)/10
       fund.active=(fund.amountGBPTarget>0&&fund.daysLeft>0)?true:false
 
-      //*******SURVEY**********
-      let survey={}
-      survey.durationDays=((messageData.survey||{}).durationDays)||((chatPreviousMessageData.survey||{}).durationDays)||null
-      survey.question=((messageData.survey||{}).question)||((chatPreviousMessageData.survey||{}).question)||null
-      survey.answers=((messageData.survey||{}).answers)||((chatPreviousMessageData.survey||{}).answers)||[]
-      survey.createdTimestamp=((messageData.survey||{}).createdTimestamp)||((chatPreviousMessageData.survey||{}).createdTimestamp)||null
-      survey.expiryTimestamp=(survey.createdTimestamp+survey.durationDays*24*3600000)||null
-      survey.voteIndexPlusOne=((messageData.survey||{}).voteIndexPlusOne)||null
-      survey.totalVotes=0
-      if (!survey.createdTimestamp&&survey.question)survey.createdTimestamp=now
-      survey.answers.forEach((answer,i)=>{
-        if(!survey.answers[i].votes)survey.answers[i].votes=[]
-        if(survey.voteIndexPlusOne==(i+1)&&!survey.answers[i].votes.includes(user))survey.answers[i].votes.push(user)
-        if(survey.voteIndexPlusOne&&survey.voteIndexPlusOne!=(i+1)&&survey.answers[i].votes.includes(user))survey.answers[i].votes.splice(survey.answers[i].votes.indexOf(user),1)
-        survey.totalVotes+=survey.answers[i].votes.length
-        answer.votes.forEach(voteUser=>{
-          batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${voteUser}.voteIndexPlusOne`]:i+1},{create:true})
-        })
-      })
-
       //*******INSTANT CREDIT/DEBIT*********************
         //message transaction out
         let transactionOut={}
@@ -305,7 +285,6 @@ module.exports = {
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{wallet:wallet},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{emails:emails},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{fund:fund},{create:true})
-        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{survey:survey},{create:true})
         //message verified
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{verified:true},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{verifiedTimestamp:admin.firestore.FieldValue.serverTimestamp()},{create:true})
