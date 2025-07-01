@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core'
+import { Component } from '@angular/core'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
@@ -9,7 +9,6 @@ import firebase from 'firebase/compat/app'
 
 @Component({
   selector:'chat',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template:`
 
   <div class="sheet">
@@ -52,7 +51,6 @@ import firebase from 'firebase/compat/app'
       <div class="separator" style="width:100%;margin:0px"></div>
     </div>
   </div>
-
 
   <div class="sheet" *ngIf="showChatDetails" style="padding-top:40px">
     <input [(ngModel)]="chatSubject" style="width:60%;margin:10px" placeholder="What is the subject of this chat?">
@@ -100,6 +98,14 @@ import firebase from 'firebase/compat/app'
     <div>
       <input style="width:60%;margin:10px" maxlength="200" [(ngModel)]="eventDescription" placeholder="Event description">
       <div style="font-size:12px;margin:10px">{{eventDateStart==0?'':eventDateStart|date:'EEEE d MMM h:mm a'}}</div>
+      <div class="container" style="overflow:visible">
+        <mat-form-field style="overflow:visible" appearance="fill">
+          <mat-label>Pick a date</mat-label>
+          <input matInput [matDatepicker]="picker">
+          <mat-datepicker-toggle matIconSuffix [for]="picker"/>
+          <mat-datepicker #picker panelClass="custom-datepicker-panel"/>
+        </mat-form-field>
+      </div>
       <div class="buttonWhite" *ngIf="eventDateStart!=chatLastMessageObj?.eventDateStart||eventDescription!=chatLastMessageObj?.eventDescription||eventDuration!=chatLastMessageObj?.eventDuration||eventLocation!=chatLastMessageObj?.eventLocation" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()">Save event</div>
       <ul class="listLight" style="float:left;width:200px;margin:10px">
         <li *ngFor="let date of eventDateList;let first=first" (click)="first?eventDateStart=date:eventDateStart=(date+(eventDateStart/3600000/24-math.floor(eventDateStart/3600000/24))*3600000*24)" [class.selected]="math.floor(date/3600000/24)==math.floor(eventDateStart/3600000/24)">

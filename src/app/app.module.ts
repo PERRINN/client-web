@@ -32,7 +32,7 @@ import { AgChartsAngular } from 'ag-charts-angular';
 import {MatDatepickerModule} from '@angular/material/datepicker';
 import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
-import {NativeDateAdapter} from '@angular/material/core';
+import {MatNativeDateModule} from '@angular/material/core';
 
 // Must export the config
 export const firebaseConfig = {
@@ -71,11 +71,11 @@ export const firebaseConfig = {
     AgChartsAngular,
     MatFormFieldModule, 
     MatInputModule, 
-    MatDatepickerModule
+    MatDatepickerModule,
+    MatNativeDateModule
   ],
   providers: [
-    UserInterfaceService,
-    NativeDateAdapter
+    UserInterfaceService
   ],
   bootstrap: [AppComponent]
 })

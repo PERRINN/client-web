@@ -535,3 +535,7 @@ th {
     transform: scale(1.0);
   }
 }
+
+.custom-datepicker-panel {
+  z-index: 10000 !important;
+}
