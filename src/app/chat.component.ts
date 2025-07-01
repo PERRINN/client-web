@@ -1,4 +1,4 @@
-import { Component } from '@angular/core'
+import { Component, ChangeDetectionStrategy } from '@angular/core'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
@@ -9,6 +9,7 @@ import firebase from 'firebase/compat/app'
 
 @Component({
   selector:'chat',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template:`
 
   <div class="sheet">
