@@ -98,15 +98,18 @@ import firebase from 'firebase/compat/app'
     <div>
       <input style="width:60%;margin:10px" maxlength="200" [(ngModel)]="eventDescription" placeholder="Event description">
       <div style="font-size:12px;margin:10px">{{eventDateStart==0?'':eventDateStart|date:'EEEE d MMM h:mm a'}}</div>
-      <div class="container" style="overflow:visible">
-        <mat-form-field style="overflow:visible" appearance="fill">
-          <mat-label>Pick a date</mat-label>
-          <input matInput [matDatepicker]="picker">
-          <mat-datepicker-toggle matIconSuffix [for]="picker"/>
-          <mat-datepicker #picker panelClass="custom-datepicker-panel"/>
-        </mat-form-field>
-      </div>
-      <div class="buttonWhite" *ngIf="eventDateStart!=chatLastMessageObj?.eventDateStart||eventDescription!=chatLastMessageObj?.eventDescription||eventDuration!=chatLastMessageObj?.eventDuration||eventLocation!=chatLastMessageObj?.eventLocation" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()">Save event</div>
+      <select [(ngModel)]="ngDropdown" id="dropdownDate" class='form-control'>
+      <option *ngFor="let date of eventDateListShort;let first=first" [selected]="date === ngDropDown" [value]="date">
+        {{ date|date:'EEEE' }}
+        {{ date|date:'d MMM' }}
+      </option>
+      </select>
+      <select [(ngModel)]="eventTimeStart" id="dropdownTime" class='form-control'>
+      <option *ngFor="let date of eventTimeListShort;let first=first" [selected]="date === eventTimeStart" [value]="date">
+      <div>{{date|date:'h:mm a'}}</div>
+      </option>
+      </select>
+      <div class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()">Save event</div>
       <ul class="listLight" style="float:left;width:200px;margin:10px">
         <li *ngFor="let date of eventDateList;let first=first" (click)="first?eventDateStart=date:eventDateStart=(date+(eventDateStart/3600000/24-math.floor(eventDateStart/3600000/24))*3600000*24)" [class.selected]="math.floor(date/3600000/24)==math.floor(eventDateStart/3600000/24)">
           <div *ngIf="math.round(date/3600000/24)==(date/3600000/24)||first" style="float:left;width:100px;min-height:10px">{{date|date:'EEEE'}}</div>
@@ -284,6 +287,9 @@ export class ChatComponent {
   showChatDetails:boolean
   math:any
   eventDateList:any
+  eventDateListShort:any;
+  eventTimeListShort:any;
+  eventTimeStart:any;
   eventDateStart:any
   eventDateEnd:any
   eventDescription:string
@@ -293,7 +299,8 @@ export class ChatComponent {
   messageShowActions:[]
   lastRead:string
   showImageGallery:boolean
-
+  ngDropdown:any
+  
   constructor(
     public afs:AngularFirestore,
     public router:Router,
@@ -346,10 +353,21 @@ export class ChatComponent {
 
   refresheventDateList(){
     var i
+    var j=0;
     this.eventDateList=[]
+    this.eventDateListShort=[];
+    this.eventTimeListShort=[];
     for(i=0;i<2200;i++){
-      this.eventDateList[i]=(Math.ceil(this.UI.nowSeconds/3600)+i/2)*3600000
+      this.eventDateList[i]=((Math.ceil(this.UI.nowSeconds/3600))+i/2)*3600000
+      if (i==0 || Math.round((Math.ceil(this.UI.nowSeconds/3600)+i/2)/24)==(Math.ceil(this.UI.nowSeconds/3600)+i/2)/24) {
+        this.eventDateListShort[j]=this.eventDateList[i];
+        j+=1;
+      };
+      if (i<48) {
+        this.eventTimeListShort[i] = (i-2)*1800000;
+      }
     }
+    this.ngDropdown = this.eventDateList[0]
   }
 
   refreshMessages(chain) {
@@ -462,11 +480,12 @@ export class ChatComponent {
   }
 
   saveEvent() {
+    this.eventDateStart = this.ngDropdown + this.eventTimeStart;
     this.UI.createMessage({
       text:'new event',
       chain:this.chatLastMessageObj.chain||this.chatChain,
       eventDateStart:this.eventDateStart,
-      eventDateEnd:this.eventDateStart+this.eventDuration*3600000,
+      eventDateEnd: this.eventDateStart + this.eventDuration*3600000,
       eventDescription:this.eventDescription,
       eventDuration:this.eventDuration,
       eventLocation:this.eventLocation

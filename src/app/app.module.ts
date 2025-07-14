@@ -29,11 +29,6 @@ import { environment } from '../environments/environment';
 
 import { AgChartsAngular } from 'ag-charts-angular';
 
-import {MatDatepickerModule} from '@angular/material/datepicker';
-import {MatInputModule} from '@angular/material/input';
-import {MatFormFieldModule} from '@angular/material/form-field';
-import {MatNativeDateModule} from '@angular/material/core';
-
 // Must export the config
 export const firebaseConfig = {
   apiKey: environment.FIREBASE_API_KEY,
@@ -69,10 +64,6 @@ export const firebaseConfig = {
     Ng2ImgMaxModule,
     PipeModule.forRoot(),
     AgChartsAngular,
-    MatFormFieldModule, 
-    MatInputModule, 
-    MatDatepickerModule,
-    MatNativeDateModule
   ],
   providers: [
     UserInterfaceService
