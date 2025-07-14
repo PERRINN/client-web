@@ -23,7 +23,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
           <img [src]="UI.currentUserLastMessageObj?.imageUrlThumbUser" style="display:inline;float:left;margin:5px;object-fit:cover;width:35px;height:35px">
           <span style="margin:11px;font-size:14px;line-height:40px">{{UI.formatSharesToPRNCurrency(null,UI.currentUserLastMessageObj?.wallet?.balance||0)}}</span>
         </div>
-        <button class="buttonBlack" style="float:right;line-height:20px;width:100px;margin:7px" (click)="router.navigate(['buyPRN'])" [disabled]='this.router.url.startsWith("/buyPRN")'>Buy PRN</button>
+        <button class="buttonBlack" style="float:right;line-height:20px;width:100px;margin:7px" (click)="router.navigate(['getPRN'])" [disabled]='this.router.url.startsWith("/getPRN")'>Get PRN</button>
       </div>
       <div class="separator" style="width:100%;margin:0px"></div>
     </div>

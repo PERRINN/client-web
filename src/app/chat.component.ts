@@ -282,8 +282,6 @@ export class ChatComponent {
   eventDuration:number
   eventLocation:string
   fund:any
-  surveyDefault:any
-  survey:any
   messageShowActions:[]
   lastRead:string
   showImageGallery:boolean
@@ -316,16 +314,6 @@ export class ChatComponent {
         amountGBPTarget:0,
         daysLeft:30
       }
-      this.surveyDefault={
-        question:'Survey question',
-        durationDays:7,
-        answers:[
-          {answer:'Answer A',votes:[]},
-          {answer:'Answer B',votes:[]},
-          {answer:'Answer C',votes:[]}
-        ]
-      }
-      this.survey=this.surveyDefault
       this.refreshMessages(params.id)
       this.refresheventDateList()
       this.resetChat()
@@ -379,7 +367,6 @@ export class ChatComponent {
           this.eventDuration=c.payload.doc.data()['eventDuration']
           this.eventLocation=c.payload.doc.data()['eventLocation']
           this.fund=c.payload.doc.data()['fund']||this.fund
-          this.survey=((c.payload.doc.data()['survey']||{})['createdTimestamp'])?c.payload.doc.data()['survey']:this.survey
         }
       })
       batch.commit()
@@ -409,7 +396,6 @@ export class ChatComponent {
           this.eventDuration=c.payload.doc.data()['eventDuration']
           this.eventLocation=c.payload.doc.data()['eventLocation']
           this.fund=c.payload.doc.data()['fund']||this.fund
-          this.survey=((c.payload.doc.data()['survey']||{})['createdTimestamp'])?c.payload.doc.data()['survey']:this.survey
         }
       })
       batch.commit()
@@ -495,24 +481,6 @@ export class ChatComponent {
       text:'edited fund',
       chain:this.chatLastMessageObj.chain||this.chatChain,
       fund:this.fund
-    })
-    this.resetChat()
-  }
-
-  saveSurvey() {
-    this.UI.createMessage({
-      text:'Survey saved',
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      survey:this.survey
-    })
-    this.resetChat()
-  }
-
-  voteSurvey(i) {
-    this.UI.createMessage({
-      text:'Survey vote '+this.survey.answers[i].answer,
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      survey:{voteIndexPlusOne:i+1}
     })
     this.resetChat()
   }
