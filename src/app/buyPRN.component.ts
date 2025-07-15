@@ -22,7 +22,7 @@ import { environment } from '../environments/environment';
 import { AgChartOptions } from 'ag-charts-community';
 
 @Component({
-  selector: "getPRN",
+  selector: "buyPRN",
   template: `
     <div class="sheet">
       <br />
@@ -172,7 +172,7 @@ import { AgChartOptions } from 'ag-charts-community';
     </div>
   `,
 })
-export class getPRNComponent {
+export class buyPRNComponent {
   cardNumber:string
   expiryMonth:string
   expiryYear:string
