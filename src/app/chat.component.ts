@@ -82,6 +82,7 @@ import firebase from 'firebase/compat/app'
     <span style="margin:10px">Sending PRN {{UI.appSettingsPayment.currencyList[UI.currentUserLastMessageObj.userCurrency].designation}}:</span>
       <input style="width:200px;margin:10px" maxlength="500" [(ngModel)]="transactionAmount" placeholder="amount">
       <input style="width:150px;margin:10px" maxlength="500" [(ngModel)]="transactionCode" placeholder="Code (optional)">
+      <input style="width:90%;margin:10px" maxlength="500" [(ngModel)]="transactionReference" placeholder="reference">
       <div *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance">
         <ul class="listLight" style="margin:10px">
           <li *ngFor="let recipient of chatLastMessageObj?.recipientList" style="float:left">
@@ -92,8 +93,11 @@ import firebase from 'firebase/compat/app'
           </li>
         </ul>
       </div>
-      <div class="buttonWhite" *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance&&transactionUser!=undefined" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="sendCredit(transactionAmount,transactionCode,transactionUser,transactionUserName)">
+      <div class="buttonWhite" *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance&&transactionUser!=undefined&&transactionReference!=''&&transactionReference!=undefined" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionOut(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference)">
         Send {{UI.formatSharesToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}} to {{transactionUserName}}
+      </div>
+      <div class="buttonWhite" *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance&&transactionUser==undefined&&transactionReference!=''&&transactionReference!=undefined" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionOut(transactionAmount,transactionCode,null,null,transactionReference)">
+        Create pending transaction of {{UI.formatSharesToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}}
       </div>
     <div class="separator" style="width:100%;margin:0px"></div>
     <div>
@@ -440,14 +444,15 @@ export class ChatComponent {
     this.resetChat()
   }
 
-  sendCredit(transactionAmount,transactionCode,transactionUser,transactionUserName){
+  createTransactionOut(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference){
     this.UI.createMessage({
-      text:'sending '+this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].symbol+transactionAmount+' to '+transactionUserName+((transactionCode||null)?' using code ':'')+((transactionCode||null)?transactionCode:''),
+      text:'sending '+this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].symbol+transactionAmount+' to '+(transactionUserName?transactionUserName:'(pending)')+((transactionCode||null)?' using code ':'')+((transactionCode||null)?transactionCode:'')+' (Reference: '+transactionReference+')',
       chain:this.chatLastMessageObj.chain||this.chatChain,
       transactionOut:{
         user:transactionUser,
         amount:transactionAmount*this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN,
-        code:transactionCode||null
+        code:transactionCode||null,
+        reference:transactionReference||null
       }
     })
     this.resetChat()

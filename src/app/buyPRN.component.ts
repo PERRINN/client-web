@@ -10,7 +10,7 @@ import { Component, NgZone } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
-import { Router } from "@angular/router";
+import { Router, ActivatedRoute } from '@angular/router'
 import { UserInterfaceService } from "./userInterface.service";
 import {
   AngularFirestore,
@@ -26,6 +26,17 @@ import { AgChartOptions } from 'ag-charts-community';
   template: `
     <div class="sheet">
       <br />
+      <div *ngIf="transactionOutMessageObj" class="sheet" style="width:500px;max-width:80%">
+        <div class="separator"></div>
+        <div class="title">
+          There is a pending transaction ready for you.
+          <br />
+          <br />
+          {{transactionOutMessageObj.name}} is sending you {{UI.formatSharesToPRNCurrency(null,transactionOutMessageObj.transactionOut.amount||0)}} 
+          (Reference: {{transactionOutMessageObj.transactionOut.reference}}).
+        </div>
+        <div class="separator"></div>
+      </div>
       <div class="sheet" style="width:500px;max-width:80%">
         <div class="separator"></div>
         <div class="title" style=";text-align:center">
@@ -177,6 +188,8 @@ export class buyPRNComponent {
   expiryMonth:string
   expiryYear:string
   cvc:string
+  transactionIn:string
+  transactionOutMessageObj:any
   amountSharesPurchased:number
   amountCharge:number
   currencySelected:string
@@ -199,12 +212,32 @@ export class buyPRNComponent {
     private _zone: NgZone,
     public UI: UserInterfaceService,
     private cd: ChangeDetectorRef,
+    private route:ActivatedRoute,
     private http: HttpClient
   ) {
     if (UI.currentUserLastMessageObj != undefined)
       this.currencySelected =
         UI.currentUserLastMessageObj.userCurrency || "usd";
     else this.currencySelected = "usd";
+    this.route.params.subscribe(params=>{
+      this.afs
+      .doc<any>(`PERRINNMessages/${params.id}`)
+      .valueChanges()
+      .subscribe(
+        (document) => {
+          if (document) {
+            console.log('Document retrieved:', document);
+            this.transactionOutMessageObj = document; // Save the document as transactionOutMessageObj
+          } else {
+            console.log('No document found with the given ID.');
+            this.transactionOutMessageObj = null; // Handle the case where no document is found
+          }
+        },
+        (error) => {
+          console.error('Error retrieving document:', error);
+        }
+      );
+    })
     this.processing=false
     this.showPastFunds=false
     this.math = Math;

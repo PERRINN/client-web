@@ -187,6 +187,7 @@ module.exports = {
         transactionOut.imageUrlThumb=transactionOutUserLastMessageData.imageUrlThumbUser||null
         transactionOut.amount=Number(((messageData.transactionOut||{}).amount)||0)
         transactionOut.code=(messageData.transactionOut||{}).code||null
+        transactionOut.reference=(messageData.transactionOut||{}).reference||null
         transactionOut.amountCummulate=Number(((userPreviousMessageData.transactionOut||{}).amountCummulate)||0)+transactionOut.amount
         //message transaction in
         let transactionIn={}
