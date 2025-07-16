@@ -1,14 +1,16 @@
-const admin = require('firebase-admin')
+const { getFirestore, FieldValue } = require('firebase-admin/firestore')
 const createMessageUtils = require('./createMessage')
 const updateFundsUtils = require('./updateFunds')
+const admin = require('firebase-admin');
 
 module.exports = {
 
   verifyMessage:async(messageId,messageData)=>{
 
-    const user=messageData.user
-    const now=Date.now()
-    var batch = admin.firestore().batch()
+    const firestore = getFirestore();
+    const user = messageData.user;
+    const now = Date.now();
+    var batch = firestore.batch();
 
     try{
 

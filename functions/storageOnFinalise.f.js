@@ -1,23 +1,22 @@
-const functions = require('firebase-functions')
-const admin = require('firebase-admin')
-try { admin.initializeApp() } catch (e) {}
-const gcs = require('@google-cloud/storage')({
-  keyFilename:'perrinn-d5fc1-c86aeb94515d.json',
-});
+const { onObjectFinalized } = require('firebase-functions/v2/storage');
+const admin = require('firebase-admin');
+try { admin.initializeApp(); } catch (e) {}
 
-exports=module.exports=functions.storage.object().onFinalize(async(data,context)=>{
-  try{
-    const object=data;
-    const filePath=object.name;
-    const fileName=filePath.split('/').pop();
-    const imageID=fileName.substring(0,13);
-    const bucket=gcs.bucket(object.bucket);
-    const file=bucket.file(filePath);
-    const config={
-      action:'read',
-      expires:'01-01-2501'
+exports.storageOnFinalise = onObjectFinalized(async (event) => {
+  try {
+    const object = event;
+    const filePath = object.name;
+    const fileName = filePath.split('/').pop();
+    const imageID = fileName.substring(0, 13);
+
+    const bucket = admin.storage().bucket(object.bucket); // Simpler and works
+
+    const file = bucket.file(filePath);
+    const config = {
+      action: 'read',
+      expires: '01-01-2501',
     };
-    const url=await file.getSignedUrl(config)
+    const [url] = await file.getSignedUrl(config);
     const messagesUser=await admin.firestore().collection('PERRINNMessages').where('userImageTimestamp','==',imageID).get()
     const messagesChat=await admin.firestore().collection('PERRINNMessages').where('chatImageTimestamp','==',imageID).get()
     var batch = admin.firestore().batch();

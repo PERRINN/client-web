@@ -1,7 +1,7 @@
 const functions = require('firebase-functions')
 const admin = require('firebase-admin')
 const createMessageUtils = require('./createMessage')
-const stripeObj = require('stripe')(functions.config().stripe.token)
+const stripeObj = require('stripe')(process.env.STRIPE_TOKEN) // Replace functions.config().stripe.token with process.env.STRIPE_TOKEN
 
 module.exports = {
 

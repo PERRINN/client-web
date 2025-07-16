@@ -1,36 +1,37 @@
-const functions = require("firebase-functions");
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const admin = require("firebase-admin");
 try {
   admin.initializeApp();
 } catch (e) {}
-const createMessageUtils = require("../../utils/createMessage");
+const createMessageUtils = require("./utils/createMessage");
 
-exports = module.exports = functions.firestore
-  .document("PERRINNTeams/{user}/payments/{chargeID}")
-  .onCreate((data, context) => {
+exports.dbTeamPaymentsOnCreate = onDocumentCreated(
+  "PERRINNTeams/{user}/payments/{chargeID}",
+  (event) => {
     return admin
       .auth()
-      .getUser(context.params.user)
+      .getUser(event.params.user)
       .then(function (userRecord) {
         var email = userRecord.toJSON().email;
-        const val = data.data();
+        const val = event.data;
         if (val === null || val.id || val.error) return null;
         const source = val.source;
         source.email = email;
 
         if (source.status === "succeeded") {
           let messageObj = {
-            user: context.params.user,
-            chain: context.params.user,
+            user: event.params.user,
+            chain: event.params.user,
             userCurrency: val.currency,
             text: "Contributed " + val.amountCharge / 100 + val.currency,
             purchaseCOIN: {
-              chargeID: context.params.chargeID,
+              chargeID: event.params.chargeID,
               amount: val.amountSharesPurchased,
             },
           };
           createMessageUtils.createMessageAFS(messageObj);
         }
-        return data.ref.set(source, { merge: true });
+        return event.data.ref.set(source, { merge: true });
       });
-  });
+  }
+);
