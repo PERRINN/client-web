@@ -4,7 +4,7 @@ try { admin.initializeApp(); } catch (e) {}
 
 exports.storageOnFinalise = onObjectFinalized(async (event) => {
   try {
-    const object = event;
+    const object = event.data;
     const filePath = object.name;
     const fileName = filePath.split('/').pop();
     const imageID = fileName.substring(0, 13);
@@ -21,28 +21,28 @@ exports.storageOnFinalise = onObjectFinalized(async (event) => {
     const messagesChat=await admin.firestore().collection('PERRINNMessages').where('chatImageTimestamp','==',imageID).get()
     var batch = admin.firestore().batch();
     if(fileName.substring(0,fileName.lastIndexOf('.')).endsWith('_180x180')){
-      batch.update(admin.firestore().collection('Images').doc(imageID),{imageUrlThumb:url[0]},{create:true})
+      batch.update(admin.firestore().collection('Images').doc(imageID),{imageUrlThumb:url},{create:true})
     }
     if(fileName.substring(0,fileName.lastIndexOf('.')).endsWith('_540x540')){
-      batch.update(admin.firestore().collection('Images').doc(imageID),{imageUrlMedium:url[0]},{create:true})
+      batch.update(admin.firestore().collection('Images').doc(imageID),{imageUrlMedium:url},{create:true})
     }
     messagesUser.forEach(message=>{
       if(fileName.substring(0,fileName.lastIndexOf('.')).endsWith('_180x180')){
-        batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{imageUrlThumbUser:url[0]},{create:true})
+        batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{imageUrlThumbUser:url},{create:true})
         batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{imageResized:true},{create:true})
       }
       if(fileName.substring(0,fileName.lastIndexOf('.')).endsWith('_540x540')){
-        batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{imageUrlMedium:url[0]},{create:true})
+        batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{imageUrlMedium:url},{create:true})
         batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{imageResized:true},{create:true})
       }
     })
     messagesChat.forEach(message=>{
       if(fileName.substring(0,fileName.lastIndexOf('.')).endsWith('_180x180')){
-        batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{chatImageUrlThumb:url[0]},{create:true})
+        batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{chatImageUrlThumb:url},{create:true})
         batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{imageResized:true},{create:true})
       }
       if(fileName.substring(0,fileName.lastIndexOf('.')).endsWith('_540x540')){
-        batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{chatImageUrlMedium:url[0]},{create:true})
+        batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{chatImageUrlMedium:url},{create:true})
         batch.update(admin.firestore().collection('PERRINNMessages').doc(message.id),{imageResized:true},{create:true})
       }
     })
