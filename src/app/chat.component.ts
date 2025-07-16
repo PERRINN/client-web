@@ -98,15 +98,15 @@ import firebase from 'firebase/compat/app'
     <div>
       <input style="width:60%;margin:10px" maxlength="200" [(ngModel)]="eventDescription" placeholder="Event description">
       <div style="font-size:12px;margin:10px">{{eventDateStart==0?'':eventDateStart|date:'EEEE d MMM h:mm a'}}</div>
-      <select [(ngModel)]="ngDropdown" id="dropdownDate" class='form-control'>
+      <select [(ngModel)]="ngDropDown" id="dropdownDate" class='form-control'>
       <option *ngFor="let date of eventDateListShort;let first=first" [selected]="date === ngDropDown" [value]="date">
         {{ date|date:'EEEE' }}
         {{ date|date:'d MMM' }}
       </option>
       </select>
       <select [(ngModel)]="eventTimeStart" id="dropdownTime" class='form-control'>
-      <option *ngFor="let date of eventTimeListShort;let first=first" [selected]="date === eventTimeStart" [value]="date">
-      <div>{{date|date:'h:mm a'}}</div>
+      <option *ngFor="let date of eventTimeListShort; let first=first" [selected]="date === eventTimeStart" [value]="date">
+      {{date|date:'h:mm a'}}
       </option>
       </select>
       <div class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()">Save event</div>
@@ -299,7 +299,7 @@ export class ChatComponent {
   messageShowActions:[]
   lastRead:string
   showImageGallery:boolean
-  ngDropdown:any
+  ngDropDown:any
   
   constructor(
     public afs:AngularFirestore,
@@ -365,9 +365,10 @@ export class ChatComponent {
       };
       if (i<48) {
         this.eventTimeListShort[i] = (i-2)*1800000;
-      }
+      };
     }
-    this.ngDropdown = this.eventDateList[0]
+    this.ngDropDown = this.eventDateList[0];
+    this.eventTimeStart = this.eventTimeListShort[24];
   }
 
   refreshMessages(chain) {
@@ -480,7 +481,7 @@ export class ChatComponent {
   }
 
   saveEvent() {
-    this.eventDateStart = this.ngDropdown + this.eventTimeStart;
+    this.eventDateStart = this.ngDropDown + this.eventTimeStart;
     this.UI.createMessage({
       text:'new event',
       chain:this.chatLastMessageObj.chain||this.chatChain,
