@@ -14,6 +14,7 @@ const appRoutes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'directory', component: DirectoryComponent },
   { path: 'buyPRN/:id', component: buyPRNComponent },
+  { path: 'buyPRN', redirectTo: 'buyPRN/', pathMatch: 'full' },
   { path: '',   redirectTo: 'profile/all', pathMatch: 'full' },
   { path: '**', component: ProfileComponent }
 ];
