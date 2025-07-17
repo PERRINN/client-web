@@ -102,6 +102,7 @@ import firebase from 'firebase/compat/app'
       <option *ngFor="let date of eventDateListShort;let first=first" [selected]="date === ngDropDown" [value]="date">
         {{ date|date:'EEEE' }}
         {{ date|date:'d MMM' }}
+        {{date|date:'h:mm a'}}
       </option>
       </select>
       <select [(ngModel)]="eventTimeStart" id="dropdownTime" class='form-control'>
@@ -110,17 +111,6 @@ import firebase from 'firebase/compat/app'
       </option>
       </select>
       <div class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()">Save event</div>
-      <ul class="listLight" style="float:left;width:200px;margin:10px">
-        <li *ngFor="let date of eventDateList;let first=first" (click)="first?eventDateStart=date:eventDateStart=(date+(eventDateStart/3600000/24-math.floor(eventDateStart/3600000/24))*3600000*24)" [class.selected]="math.floor(date/3600000/24)==math.floor(eventDateStart/3600000/24)">
-          <div *ngIf="math.round(date/3600000/24)==(date/3600000/24)||first" style="float:left;width:100px;min-height:10px">{{date|date:'EEEE'}}</div>
-          <div *ngIf="math.round(date/3600000/24)==(date/3600000/24)||first" style="float:left;min-height:10px">{{date|date:'d MMM'}}</div>
-        </li>
-      </ul>
-      <ul class="listLight" style="clear:none;float:left;width:100px;text-align:center;margin:10px">
-        <li *ngFor="let date of eventDateList;let first=first" (click)="eventDateStart=date" [class.selected]="eventDateStart==date">
-          <div *ngIf="math.floor(date/3600000/24)==math.floor(eventDateStart/3600000/24)">{{date|date:'h:mm a'}}</div>
-        </li>
-      </ul>
     </div>
     <span style="margin:10px">Event duration (hours)</span>
     <input style="width:30%;margin:10px" maxlength="20" [(ngModel)]="eventDuration" placeholder="Event duration">
@@ -289,7 +279,7 @@ export class ChatComponent {
   eventDateList:any
   eventDateListShort:any;
   eventTimeListShort:any;
-  eventTimeStart:any;
+  eventTimeStart:number;
   eventDateStart:any
   eventDateEnd:any
   eventDescription:string
@@ -299,7 +289,7 @@ export class ChatComponent {
   messageShowActions:[]
   lastRead:string
   showImageGallery:boolean
-  ngDropDown:any
+  ngDropDown:number
   
   constructor(
     public afs:AngularFirestore,
@@ -368,7 +358,7 @@ export class ChatComponent {
       };
     }
     this.ngDropDown = this.eventDateList[0];
-    this.eventTimeStart = this.eventTimeListShort[24];
+    this.eventTimeStart = this.eventTimeListShort[4];
   }
 
   refreshMessages(chain) {
@@ -481,7 +471,13 @@ export class ChatComponent {
   }
 
   saveEvent() {
-    this.eventDateStart = this.ngDropDown + this.eventTimeStart;
+    console.log(this.ngDropDown/86400000);
+    if (this.ngDropDown == this.eventDateListShort[0]){
+      this.eventDateStart = Math.ceil(this.ngDropDown/86400000) + this.eventTimeStart*1 - 3600000;
+    }
+    else {
+      this.eventDateStart = this.ngDropDown*1 + this.eventTimeStart*1 - 3600000;
+    }
     this.UI.createMessage({
       text:'new event',
       chain:this.chatLastMessageObj.chain||this.chatChain,
