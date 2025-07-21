@@ -102,12 +102,16 @@ import firebase from 'firebase/compat/app'
       <option *ngFor="let date of eventDateListShort;let first=first" [selected]="date === ngDropDown" [value]="date">
         {{ date|date:'EEEE' }}
         {{ date|date:'d MMM' }}
+      </option>
+      </select>
+      <select *ngIf="ngDropDown==eventDateListShort[0]" [(ngModel)]="eventTimeStart" id="dropdownTime" class='form-control'>
+      <option *ngFor="let date of eventTimeListShort; let first=first" [selected]="date === eventTimeStart" [value]="date">
         {{date|date:'h:mm a'}}
       </option>
       </select>
-      <select [(ngModel)]="eventTimeStart" id="dropdownTime" class='form-control'>
-      <option *ngFor="let date of eventTimeListShort; let first=first" [selected]="date === eventTimeStart" [value]="date">
-      {{date|date:'h:mm a'}}
+      <select *ngIf="ngDropDown!=eventDateListShort[0]" [(ngModel)]="eventTimeStart" id="dropdownTime" class='form-control'>
+      <option *ngFor="let date of eventTimeList; let first=first" [selected]="date === eventTimeStart" [value]="date">
+        {{date|date:'h:mm a'}}
       </option>
       </select>
       <div class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()">Save event</div>
@@ -278,6 +282,7 @@ export class ChatComponent {
   math:any
   eventDateList:any
   eventDateListShort:any;
+  eventTimeList:any;
   eventTimeListShort:any;
   eventTimeStart:number;
   eventDateStart:any
@@ -346,7 +351,7 @@ export class ChatComponent {
     var j=0;
     this.eventDateList=[]
     this.eventDateListShort=[];
-    this.eventTimeListShort=[];
+    this.eventTimeList=[];
     for(i=0;i<2200;i++){
       this.eventDateList[i]=((Math.ceil(this.UI.nowSeconds/3600))+i/2)*3600000
       if (i==0 || Math.round((Math.ceil(this.UI.nowSeconds/3600)+i/2)/24)==(Math.ceil(this.UI.nowSeconds/3600)+i/2)/24) {
@@ -354,11 +359,14 @@ export class ChatComponent {
         j+=1;
       };
       if (i<48) {
-        this.eventTimeListShort[i] = (i-2)*1800000;
+        this.eventTimeList[i] = (i-2)*1800000;
+        if (Math.round(this.eventDateList[i]/43200000)==(Math.round(this.UI.nowSeconds/3600)+i/2)/24) {
+          this.eventTimeListShort[i] = this.eventDateList[i]%43200000 + (i-2)*1800000;
+        }
       };
     }
     this.ngDropDown = this.eventDateList[0];
-    this.eventTimeStart = this.eventTimeListShort[4];
+    this.eventTimeStart = this.eventTimeList[4];
   }
 
   refreshMessages(chain) {
@@ -473,7 +481,7 @@ export class ChatComponent {
   saveEvent() {
     console.log(this.ngDropDown/86400000);
     if (this.ngDropDown == this.eventDateListShort[0]){
-      this.eventDateStart = Math.ceil(this.ngDropDown/86400000) + this.eventTimeStart*1 - 3600000;
+      this.eventDateStart = 43200000 * Math.floor(this.ngDropDown/43200000) + this.eventTimeStart*1 - 3600000;
     }
     else {
       this.eventDateStart = this.ngDropDown*1 + this.eventTimeStart*1 - 3600000;
