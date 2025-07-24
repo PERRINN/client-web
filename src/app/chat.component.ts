@@ -284,7 +284,6 @@ export class ChatComponent {
   eventDateListShort:any;
   eventTimeList:any;
   eventTimeListShort:any;
-  eventTimeListCustom:any;
   eventTimeStart:number;
   eventDateStart:any
   eventDateEnd:any
@@ -353,7 +352,6 @@ export class ChatComponent {
     this.eventDateList=[]
     this.eventDateListShort=[];
     this.eventTimeList=[];
-    this.eventTimeListCustom=[];
     this.eventTimeListShort=[];
     for(i=0;i<2200;i++){
       this.eventDateList[i]=((Math.ceil(this.UI.nowSeconds/3600))+i/2)*3600000
@@ -363,17 +361,20 @@ export class ChatComponent {
       };
       if (i<48) {
         this.eventTimeList[i] = (i-2)*1800000;
-        this.eventTimeListCustom[i] = (i-2)*1800000 + Math.floor(this.UI.nowSeconds/43200000)*43200000 - this.UI.nowSeconds + 9000000;
+        this.eventTimeListShort[i] = (i-4)*1800000 + Math.floor(this.UI.nowSeconds/86400)*86400000 - this.UI.nowSeconds*1000;
       };
     }
-    this.eventTimeListShort = this.eventTimeListCustom.filter(function(number) {
+    console.log(this.eventTimeListShort);
+    this.eventTimeListShort = this.eventTimeListShort.filter(function(number) {
       return number >= 0;
     });
     this.eventTimeListShort.forEach((element, index, array) => {
-      array[index] = element - Math.floor(this.UI.nowSeconds/43200000)*43200000 + this.UI.nowSeconds - 9000000;
+      array[index] = element - Math.floor(this.UI.nowSeconds/86400)*86400000 + this.UI.nowSeconds*1000 + 3600000;
     });
     this.ngDropDown = this.eventDateListShort[1];
     this.eventTimeStart = this.eventTimeList[47];
+    console.log(this.eventTimeList);
+    console.log(this.eventTimeListShort);
   }
 
   refreshMessages(chain) {
