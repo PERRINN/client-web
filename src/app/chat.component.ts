@@ -53,9 +53,11 @@ import firebase from 'firebase/compat/app'
   </div>
 
   <div class="sheet" *ngIf="showChatDetails" style="padding-top:40px">
+    <div style="font-size:12px;margin:10px">Chat topic :</div>
     <input [(ngModel)]="chatSubject" style="width:60%;margin:10px" placeholder="What is the subject of this chat?">
     <div *ngIf="chatLastMessageObj?.chatSubject!=chatSubject&&chatSubject" style="float:right;width:75px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:whitesmoke;background-color:black;cursor:pointer" (click)="saveNewSubject()">Save</div>
-    <div class="separator" style="width:100%;margin:0px"></div>
+    <div class="separator" style="width:100%;margin:10px 0px 15px 0px"></div>
+    <div style="font-size:12px;margin:10px">Members following this chat :</div>
     <ul class="listLight" style="margin:10px">
       <li *ngFor="let recipient of chatLastMessageObj?.recipientList" style="float:left">
         <div style="float:left;cursor:pointer" (click)="router.navigate(['profile',recipient])">
@@ -77,7 +79,7 @@ import firebase from 'firebase/compat/app'
         </div>
       </li>
     </ul>
-    <div class="separator" style="width:100%;margin:0px"></div>
+    <div class="separator" style="width:100%;margin:10px 0px 10px 0px"></div>
     <span style="margin:10px">Sending PRN {{UI.appSettingsPayment.currencyList[UI.currentUserLastMessageObj.userCurrency].designation}}:</span>
       <input style="width:200px;margin:10px" maxlength="500" [(ngModel)]="transactionAmount" placeholder="Amount">
       <input style="width:150px;margin:10px" maxlength="500" [(ngModel)]="transactionCode" placeholder="Code (optional)">
@@ -94,10 +96,11 @@ import firebase from 'firebase/compat/app'
       <div class="buttonWhite" *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance&&transactionUser!=undefined" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="sendCredit(transactionAmount,transactionCode,transactionUser,transactionUserName)">
         Send {{UI.formatSharesToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}} to {{transactionUserName}}
       </div>
-    <div class="separator" style="width:100%;margin:0px"></div>
+    <div class="separator" style="width:100%;margin:10px 0px 10px 0px"></div>
     <div>
+      <div style="font-size:12px;margin:10px">Event : {{eventDateStart==0?'':eventDateStart|date:'EEEE d MMM h:mm a'}}</div>
       <input style="width:60%;margin:10px" maxlength="200" [(ngModel)]="eventDescription" placeholder="Event description">
-      <div style="font-size:12px;margin:10px">{{eventDateStart==0?'':eventDateStart|date:'EEEE d MMM h:mm a'}}</div>
+      <br/>
       <select [(ngModel)]="ngDropDown" id="dropdownDate" class='form-control'>
       <option *ngFor="let date of eventDateListShort;let first=first" [selected]="date === ngDropDown" [value]="date">
         {{ date|date:'EEEE' }}
@@ -114,16 +117,18 @@ import firebase from 'firebase/compat/app'
         {{date|date:'h:mm a'}}
       </option>
       </select>
-      <div class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()">Save event</div>
     </div>
     <span style="margin:10px">Event duration (hours)</span>
     <input style="width:30%;margin:10px" maxlength="20" [(ngModel)]="eventDuration" placeholder="Event duration">
     <br/>
     <span style="margin:10px">Event location</span>
     <input style="width:50%;margin:10px" maxlength="200" [(ngModel)]="eventLocation" placeholder="Event location">
-    <div class="buttonRed" *ngIf="chatLastMessageObj?.eventDateStart!=null" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="cancelEvent()">Cancel event</div>
-    <div class="separator" style="width:100%;margin:0px"></div>
+    <br/>
+    <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()">Save event</button>
+    <button class="buttonRed" *ngIf="chatLastMessageObj?.eventDateStart!=null" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="cancelEvent()">Cancel event</button>
+    <div class="separator" style="width:100%;margin:15px 0px 10px 0px"></div>
     <div>
+      <div style="font-size:12px;margin:10px">Fundraising :</div>
       <span style="margin:10px">Fund description</span>
       <input style="width:60%;margin:10px" maxlength="200" [(ngModel)]="fund.description">
       <br/>
@@ -134,7 +139,7 @@ import firebase from 'firebase/compat/app'
       <input style="width:30%;margin:10px" maxlength="10" [(ngModel)]="fund.daysLeft">
       <div class="buttonWhite" *ngIf="fund.description!=chatLastMessageObj?.fund?.description||fund.amountGBPTarget!=chatLastMessageObj?.fund?.amountGBPTarget||fund.daysLeft!=chatLastMessageObj?.fund?.daysLeft" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveFund()">Save fund</div>
     </div>
-    <div class="separator" style="width:100%;margin-bottom:150px"></div>
+    <div class="separator" style="width:100%;margin:10px 0px 150px 0px"></div>
   </div>
 
   <div class="sheet" id="chat_window" *ngIf="!showChatDetails&&!showImageGallery" style="padding:100px 0 0 0;overflow-y:auto;height:100%" scrollable>
@@ -364,7 +369,6 @@ export class ChatComponent {
         this.eventTimeListShort[i] = (i-4)*1800000 + Math.floor(this.UI.nowSeconds/86400)*86400000 - this.UI.nowSeconds*1000;
       };
     }
-    console.log(this.eventTimeListShort);
     this.eventTimeListShort = this.eventTimeListShort.filter(function(number) {
       return number >= 0;
     });
@@ -373,8 +377,6 @@ export class ChatComponent {
     });
     this.ngDropDown = this.eventDateListShort[1];
     this.eventTimeStart = this.eventTimeList[47];
-    console.log(this.eventTimeList);
-    console.log(this.eventTimeListShort);
   }
 
   refreshMessages(chain) {
@@ -487,7 +489,6 @@ export class ChatComponent {
   }
 
   saveEvent() {
-    console.log(this.ngDropDown/86400000);
     if (this.ngDropDown == this.eventDateListShort[0]){
       this.eventDateStart = 43200000 * Math.floor(this.ngDropDown/43200000) + this.eventTimeStart*1 - 3600000;
     }
@@ -510,10 +511,10 @@ export class ChatComponent {
     this.UI.createMessage({
       text:'cancelling event',
       chain:this.chatLastMessageObj.chain||this.chatChain,
-      eventDateStart:this.UI.nowSeconds*1000-3600000,
+      eventDateStart:'0',
       eventDateEnd:this.UI.nowSeconds*1000-3600000
     })
-    this.resetChat()
+    this.resetChat();
   }
 
   saveFund() {
