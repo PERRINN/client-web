@@ -53,7 +53,7 @@ import firebase from 'firebase/compat/app'
   </div>
 
   <div class="sheet" *ngIf="showChatDetails" style="padding-top:40px">
-    <div style="font-size:12px;margin:10px">Chat topic :</div>
+    <div style="font-size:12px;margin:10px">Chat name :</div>
     <input [(ngModel)]="chatSubject" style="width:60%;margin:10px" placeholder="What is the subject of this chat?">
     <div *ngIf="chatLastMessageObj?.chatSubject!=chatSubject&&chatSubject" style="float:right;width:75px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:whitesmoke;background-color:black;cursor:pointer" (click)="saveNewSubject()">Save</div>
     <div class="separator" style="width:100%;margin:10px 0px 15px 0px"></div>
@@ -98,8 +98,8 @@ import firebase from 'firebase/compat/app'
       </div>
     <div class="separator" style="width:100%;margin:10px 0px 10px 0px"></div>
     <div>
-      <div style="font-size:12px;margin:10px">Event : {{eventDateStart==0?'':eventDateStart|date:'EEEE d MMM h:mm a'}}</div>
-      <input style="width:60%;margin:10px" maxlength="200" [(ngModel)]="eventDescription" placeholder="Event description">
+      <div style="font-size:12px;margin:10px">Event :<span *ngIf="eventDateStart!=0" style="font-size:12px;margin:10px">{{eventDescription}} {{eventDateStart==0?'':eventDateStart|date:'EEEE d MMM h:mm a'}} ({{eventDuration}}h) [location: {{eventLocation}}]</span></div>
+      <input style="width:60%;margin:10px" maxlength="200" [(ngModel)]="eventDescriptionChoice" placeholder="Event description">
       <br/>
       <select [(ngModel)]="ngDropDown" id="dropdownDate" class='form-control'>
       <option *ngFor="let date of eventDateListShort;let first=first" [selected]="date === ngDropDown" [value]="date">
@@ -119,10 +119,10 @@ import firebase from 'firebase/compat/app'
       </select>
     </div>
     <span style="margin:10px">Event duration (hours)</span>
-    <input style="width:30%;margin:10px" maxlength="20" [(ngModel)]="eventDuration" placeholder="Event duration">
+    <input style="width:30%;margin:10px" maxlength="20" [(ngModel)]="eventDurationChoice" placeholder="Event duration">
     <br/>
     <span style="margin:10px">Event location</span>
-    <input style="width:50%;margin:10px" maxlength="200" [(ngModel)]="eventLocation" placeholder="Event location">
+    <input style="width:50%;margin:10px" maxlength="200" [(ngModel)]="eventLocationChoice" placeholder="Event location">
     <br/>
     <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()">Save event</button>
     <button class="buttonRed" *ngIf="chatLastMessageObj?.eventDateStart!=null" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="cancelEvent()">Cancel event</button>
@@ -295,6 +295,9 @@ export class ChatComponent {
   eventDescription:string
   eventDuration:number
   eventLocation:string
+  eventDescriptionChoice:string;
+  eventDurationChoice:number;
+  eventLocationChoice:string;
   fund:any
   messageShowActions:[]
   lastRead:string
@@ -321,9 +324,9 @@ export class ChatComponent {
       this.previousMessageUser=''
       this.messageNumberDisplay=15
       this.chatSubject=''
-      this.eventDescription=''
-      this.eventDuration=1
-      this.eventLocation="https://meet.google.com/ebp-djfh-aht"
+      this.eventDescriptionChoice='';
+      this.eventDurationChoice=1;
+      this.eventLocationChoice="https://meet.google.com/ebp-djfh-aht";
       this.fund={
         description:'add a description',
         amountGBPTarget:0,
@@ -333,6 +336,7 @@ export class ChatComponent {
       this.refresheventDateList()
       this.resetChat()
     })
+    console.log(this.eventLocationChoice);
   }
 
   ngOnInit(){
@@ -396,12 +400,25 @@ export class ChatComponent {
           this.reads.push(c.payload.doc.id)
           this.chatLastMessageObj=c.payload.doc.data()
           this.chatSubject=c.payload.doc.data()['chatSubject']
-          this.eventDescription=c.payload.doc.data()['eventDescription']
-          this.eventDateStart=c.payload.doc.data()['eventDateStart']
-          this.eventDateEnd=c.payload.doc.data()['eventDateEnd']
-          this.eventDuration=c.payload.doc.data()['eventDuration']
-          this.eventLocation=c.payload.doc.data()['eventLocation']||this.eventLocation
           this.fund=c.payload.doc.data()['fund']||this.fund
+          if (c.payload.doc.data()['eventDateStart']!=0){
+            this.eventDescription=c.payload.doc.data()['eventDescription'];
+            this.eventDateStart=c.payload.doc.data()['eventDateStart'];
+            this.eventDateEnd=c.payload.doc.data()['eventDateEnd'];
+            this.eventDuration=c.payload.doc.data()['eventDuration'];
+            this.eventLocation=c.payload.doc.data()['eventLocation']||this.eventLocation;
+            this.eventDescriptionChoice = this.eventDescription;
+            this.eventDurationChoice = this.eventDuration;
+            this.eventLocationChoice = this.eventLocation;
+          }
+          else {
+            this.eventDescription='';
+            this.eventDateStart=0;
+            this.eventDateEnd=0;
+            this.eventDuration=0;
+            this.eventLocation="https://meet.google.com/ebp-djfh-aht";
+          };
+        
         }
       })
       batch.commit()
@@ -426,11 +443,24 @@ export class ChatComponent {
           this.reads.push(c.payload.doc.id)
           this.chatLastMessageObj=c.payload.doc.data()
           this.chatSubject=c.payload.doc.data()['chatSubject']
-          this.eventDescription=c.payload.doc.data()['eventDescription']
-          this.eventDateStart=c.payload.doc.data()['eventDateStart']
-          this.eventDuration=c.payload.doc.data()['eventDuration']
-          this.eventLocation=c.payload.doc.data()['eventLocation']||this.eventLocation
           this.fund=c.payload.doc.data()['fund']||this.fund
+          if (c.payload.doc.data()['eventDateStart']!=0){
+            this.eventDescription=c.payload.doc.data()['eventDescription'];
+            this.eventDateStart=c.payload.doc.data()['eventDateStart'];
+            this.eventDateEnd=c.payload.doc.data()['eventDateEnd'];
+            this.eventDuration=c.payload.doc.data()['eventDuration'];
+            this.eventLocation=c.payload.doc.data()['eventLocation']||this.eventLocation;
+            this.eventDescriptionChoice = this.eventDescription;
+            this.eventDurationChoice = this.eventDuration;
+            this.eventLocationChoice = this.eventLocation;
+          }
+          else {
+            this.eventDescription='';
+            this.eventDateStart=0;
+            this.eventDateEnd=0;
+            this.eventDuration=0;
+            this.eventLocation="https://meet.google.com/ebp-djfh-aht";
+          };
         }
       })
       batch.commit()
@@ -489,6 +519,9 @@ export class ChatComponent {
   }
 
   saveEvent() {
+    this.eventDescription = this.eventDescriptionChoice||'Next event';
+    this.eventDuration = this.eventDurationChoice||1;
+    this.eventLocation = this.eventLocationChoice||"https://meet.google.com/ebp-djfh-aht";
     if (this.ngDropDown == this.eventDateListShort[0]){
       this.eventDateStart = 43200000 * Math.floor(this.ngDropDown/43200000) + this.eventTimeStart*1 - 3600000;
     }
