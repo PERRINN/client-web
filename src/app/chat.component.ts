@@ -96,7 +96,7 @@ import firebase from 'firebase/compat/app'
       <div class="buttonWhite" *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance&&transactionUser!=undefined&&transactionReference!=''&&transactionReference!=undefined" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionOut(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference)">
         Send {{UI.formatSharesToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}} to {{transactionUserName}}
       </div>
-      <div class="buttonWhite" *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance&&transactionUser==undefined&&transactionReference!=''&&transactionReference!=undefined" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionOut(transactionAmount,transactionCode,null,null,transactionReference)">
+      <div class="buttonWhite" *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance&&transactionUser==undefined&&transactionReference!=''&&transactionReference!=undefined" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionPending(transactionAmount,transactionCode,null,null,transactionReference)">
         Create pending transaction of {{UI.formatSharesToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}}
       </div>
     <div class="separator" style="width:100%;margin:0px"></div>
@@ -177,6 +177,8 @@ import firebase from 'firebase/compat/app'
                 <div style="font-size:10px">Email addresses {{message.payload?.emails|json}}</div>
                 <div class="separator" style="width:100%"></div>
                 <div style="font-size:10px">userChain {{message.payload?.userChain|json}}</div>
+                <div class="separator" style="width:100%"></div>
+                <div style="font-size:10px">transactionPending {{message.payload?.transactionPending|json}}</div>
                 <div class="separator" style="width:100%"></div>
                 <div style="font-size:10px">transactionOut {{message.payload?.transactionOut|json}}</div>
                 <div class="separator" style="width:100%"></div>
@@ -446,10 +448,23 @@ export class ChatComponent {
 
   createTransactionOut(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference){
     this.UI.createMessage({
-      text:'sending '+this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].symbol+transactionAmount+' to '+(transactionUserName?transactionUserName:'(pending)')+((transactionCode||null)?' using code ':'')+((transactionCode||null)?transactionCode:'')+' (Reference: '+transactionReference+')',
+      text:'sending '+this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].symbol+transactionAmount+' to '+transactionUserName+((transactionCode||null)?' using code ':'')+((transactionCode||null)?transactionCode:'')+' (Reference: '+transactionReference+')',
       chain:this.chatLastMessageObj.chain||this.chatChain,
       transactionOut:{
         user:transactionUser,
+        amount:transactionAmount*this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN,
+        code:transactionCode||null,
+        reference:transactionReference||null
+      }
+    })
+    this.resetChat()
+  }
+
+  createTransactionPending(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference){
+    this.UI.createMessage({
+      text:'creating a pending transaction of '+this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].symbol+transactionAmount+((transactionCode||null)?' using code ':'')+((transactionCode||null)?transactionCode:'')+' (Reference: '+transactionReference+')',
+      chain:this.chatLastMessageObj.chain||this.chatChain,
+      transactionPending:{
         amount:transactionAmount*this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN,
         code:transactionCode||null,
         reference:transactionReference||null

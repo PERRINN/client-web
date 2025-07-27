@@ -26,17 +26,27 @@ import { AgChartOptions } from 'ag-charts-community';
   template: `
     <div class="sheet">
       <br />
-      <div *ngIf="transactionOutMessageObj" class="sheet" style="width:500px;max-width:80%">
+      <div *ngIf="transactionPendingMessageObj" class="sheet" style="width:500px;max-width:80%">
         <div class="separator"></div>
-        <div class="title">
-          There is a pending transaction ready for you.
-          <br />
-          <br />
-          {{transactionOutMessageObj.name}} is sending you {{UI.formatSharesToPRNCurrency(null,transactionOutMessageObj.transactionOut.amount||0)}} 
-          (Reference: {{transactionOutMessageObj.transactionOut.reference}}).
+        <div *ngIf="!transactionPendingMessageObj?.transactionPending?.activated">
+          <div class="title">
+            There is a pending transaction ready for you.
+          </div>
+          <div style="padding:10px;text-align:center">
+            <span>{{transactionPendingMessageObj.name}} is sending you {{UI.formatSharesToPRNCurrency(null,transactionPendingMessageObj.transactionPending.amount||0)}} (Reference: {{transactionPendingMessageObj.transactionPending.reference}}).</span>
+            <button *ngIf="!UI.currentUser" class="buttonWhite" style="margin:10px auto;width:150px;font-size:11px" (click)="router.navigate(['login'])" [disabled]='this.router.url.startsWith("/login")'>Login</button>
+            <div *ngIf="UI.currentUser&&!UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonWhite" style="margin:10px auto;width:200px;font-size:11px" (click)="router.navigate(['settings'])">Update you profile picture</div>
+            <div *ngIf="UI.currentUser&&UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonWhite" style="margin:10px auto;width:150px;font-size:11px" (click)="activateTransactionPending(transactionPendingMessage)">Activate transaction</div>
+          </div>
+        </div>
+        <div *ngIf="transactionPendingMessageObj?.transactionPending?.activated">
+          <div class="title">
+            This transaction has already been activated.
+          </div>
         </div>
         <div class="separator"></div>
       </div>
+      <br />
       <div class="sheet" style="width:500px;max-width:80%">
         <div class="separator"></div>
         <div class="title" style=";text-align:center">
@@ -188,8 +198,8 @@ export class buyPRNComponent {
   expiryMonth:string
   expiryYear:string
   cvc:string
-  transactionIn:string
-  transactionOutMessageObj:any
+  transactionPendingMessage:string
+  transactionPendingMessageObj:any
   amountSharesPurchased:number
   amountCharge:number
   currencySelected:string
@@ -220,6 +230,7 @@ export class buyPRNComponent {
         UI.currentUserLastMessageObj.userCurrency || "usd";
     else this.currencySelected = "usd";
     this.route.params.subscribe(params=>{
+      this.transactionPendingMessage=params.id
       this.afs
       .doc<any>(`PERRINNMessages/${params.id}`)
       .valueChanges()
@@ -227,10 +238,10 @@ export class buyPRNComponent {
         (document) => {
           if (document) {
             console.log('Document retrieved:', document);
-            this.transactionOutMessageObj = document; // Save the document as transactionOutMessageObj
+            this.transactionPendingMessageObj = document; // Save the document as transactionPendingMessageObj
           } else {
             console.log('No document found with the given ID.');
-            this.transactionOutMessageObj = null; // Handle the case where no document is found
+            this.transactionPendingMessageObj = null; // Handle the case where no document is found
           }
         },
         (error) => {
@@ -393,4 +404,19 @@ export class buyPRNComponent {
     }
     if (paymentIntent) this.onSuccess(paymentIntent);
   };
+
+  activateTransactionPending(transactionPendingMessage) {
+    if (!transactionPendingMessage) {
+      console.error("No transaction message provided");
+      return;
+    }
+    this.UI.createMessage({
+      chain: this.UI.currentUser,
+      text: "Activating transaction " + transactionPendingMessage,
+      transactionPending: {
+        activateTransactionPending: transactionPendingMessage
+      },
+    });
+    this.router.navigate(['chat', this.UI.currentUser]);
+  }
 }
