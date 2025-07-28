@@ -215,14 +215,23 @@ input {
   color: #131B20;
   text-align: center;
 }
-.message .general {
-  background: #1db217;
+.form-control{
+  padding: 5px 10px;
+  background-color: #313B20;
+  color: #B0BAC0;
+  width: 150px;
+  height: 30px;
+  text-align: center;
+  margin: 10px 10px 10px 10px;
+  border-radius: 4px;
 }
-.message .important {
-  background: #e08600;
+option:checked{
+  background-color: red;
+  color: #2D3941;
 }
-.message .urgent {
-  background: #ff4300;
+option:hover{
+ 
+  box-shadow: 0 0 10px 100px #4ddc3b inset;
 }
 /* Form Module */
 .form-module {
@@ -534,17 +543,4 @@ th {
     -webkit-transform: scale(1.0);
     transform: scale(1.0);
   }
-}
-
-.form-control{
-  padding: 5px 10px;
-  background-color: rgb(52, 119, 179);
-  color: white;
-  border-color: black;
-  width: 200px;
-  height: 30px;
-}
-option:hover{
-  background-color: white;
-  color: rgb(52, 119, 179);
 }

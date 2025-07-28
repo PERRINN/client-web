@@ -102,7 +102,7 @@ import firebase from 'firebase/compat/app'
       <input style="width:60%;margin:10px" maxlength="200" [(ngModel)]="eventDescriptionChoice" placeholder="Event description">
       <br/>
       <select [(ngModel)]="ngDropDown" id="dropdownDate" class='form-control'>
-      <option *ngFor="let date of eventDateListShort;let first=first" [selected]="date === ngDropDown" [value]="date">
+      <option *ngFor="let date of eventDateListShort; let first=first" [selected]="date === ngDropDown" [value]="date">
         {{ date|date:'EEEE' }}
         {{ date|date:'d MMM' }}
       </option>
