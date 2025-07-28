@@ -5,7 +5,7 @@ const admin = require('firebase-admin');
 
 module.exports = {
 
-  verifyMessage:async(messageId,messageData)=>{
+  verifyMessage:async(messageId,messageData,stripeObj)=>{
 
     const firestore = getFirestore();
     const user = messageData.user;
@@ -98,7 +98,7 @@ module.exports = {
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{imageUrlThumbUser:userImageData.imageUrlThumb||messageData.imageUrlThumbUser||userPreviousMessageData.imageUrlThumbUser||null},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{imageUrlMedium:userImageData.imageUrlMedium||messageData.imageUrlMedium||userPreviousMessageData.imageUrlMedium||null},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{imageUrlOriginal:messageData.imageUrlOriginal||userPreviousMessageData.imageUrlOriginal||null},{create:true})
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{isImageUserUpdated:(messageData.imageUrlOriginal||userPreviousMessageData.imageUrlOriginal||null).includes("2024-03-09")?false:true},{create:true})
+      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{isImageUserUpdated:(messageData.imageUrlOriginal||userPreviousMessageData.imageUrlOriginal||"").includes("2024-03-09")?false:true},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{createdTimestamp:messageData.createdTimestamp},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${user}.name`]:messageData.name||userPreviousMessageData.name||null},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${user}.imageUrlThumb`]:messageData.imageUrlThumbUser||userPreviousMessageData.imageUrlThumbUser||null},{create:true})
@@ -363,7 +363,7 @@ module.exports = {
         }
 
         //update funds
-        if(fund.amountGBPTargetUpdated||(purchaseCOIN.amount>0))updateFundsUtils.updateFunds()
+        if(fund.amountGBPTargetUpdated||(purchaseCOIN.amount>0))updateFundsUtils.updateFunds(stripeObj)
 
       return {
         user:user,
