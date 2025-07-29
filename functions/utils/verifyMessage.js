@@ -1,14 +1,16 @@
-const admin = require('firebase-admin')
+const { getFirestore, FieldValue } = require('firebase-admin/firestore')
 const createMessageUtils = require('./createMessage')
 const updateFundsUtils = require('./updateFunds')
+const admin = require('firebase-admin');
 
 module.exports = {
 
-  verifyMessage:async(messageId,messageData)=>{
+  verifyMessage:async(messageId,messageData,stripeObj)=>{
 
-    const user=messageData.user
-    const now=Date.now()
-    var batch = admin.firestore().batch()
+    const firestore = getFirestore();
+    const user = messageData.user;
+    const now = Date.now();
+    var batch = firestore.batch();
 
     try{
 
@@ -96,6 +98,7 @@ module.exports = {
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{imageUrlThumbUser:userImageData.imageUrlThumb||messageData.imageUrlThumbUser||userPreviousMessageData.imageUrlThumbUser||null},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{imageUrlMedium:userImageData.imageUrlMedium||messageData.imageUrlMedium||userPreviousMessageData.imageUrlMedium||null},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{imageUrlOriginal:messageData.imageUrlOriginal||userPreviousMessageData.imageUrlOriginal||null},{create:true})
+      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{isImageUserUpdated:(messageData.imageUrlOriginal||userPreviousMessageData.imageUrlOriginal||"").includes("2024-03-09")?false:true},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{createdTimestamp:messageData.createdTimestamp},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${user}.name`]:messageData.name||userPreviousMessageData.name||null},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${user}.imageUrlThumb`]:messageData.imageUrlThumbUser||userPreviousMessageData.imageUrlThumbUser||null},{create:true})
@@ -176,27 +179,14 @@ module.exports = {
       fund.daysLeft=Math.round(fund.daysLeft*10)/10
       fund.active=(fund.amountGBPTarget>0&&fund.daysLeft>0)?true:false
 
-      //*******SURVEY**********
-      let survey={}
-      survey.durationDays=((messageData.survey||{}).durationDays)||((chatPreviousMessageData.survey||{}).durationDays)||null
-      survey.question=((messageData.survey||{}).question)||((chatPreviousMessageData.survey||{}).question)||null
-      survey.answers=((messageData.survey||{}).answers)||((chatPreviousMessageData.survey||{}).answers)||[]
-      survey.createdTimestamp=((messageData.survey||{}).createdTimestamp)||((chatPreviousMessageData.survey||{}).createdTimestamp)||null
-      survey.expiryTimestamp=(survey.createdTimestamp+survey.durationDays*24*3600000)||null
-      survey.voteIndexPlusOne=((messageData.survey||{}).voteIndexPlusOne)||null
-      survey.totalVotes=0
-      if (!survey.createdTimestamp&&survey.question)survey.createdTimestamp=now
-      survey.answers.forEach((answer,i)=>{
-        if(!survey.answers[i].votes)survey.answers[i].votes=[]
-        if(survey.voteIndexPlusOne==(i+1)&&!survey.answers[i].votes.includes(user))survey.answers[i].votes.push(user)
-        if(survey.voteIndexPlusOne&&survey.voteIndexPlusOne!=(i+1)&&survey.answers[i].votes.includes(user))survey.answers[i].votes.splice(survey.answers[i].votes.indexOf(user),1)
-        survey.totalVotes+=survey.answers[i].votes.length
-        answer.votes.forEach(voteUser=>{
-          batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${voteUser}.voteIndexPlusOne`]:i+1},{create:true})
-        })
-      })
-
       //*******INSTANT CREDIT/DEBIT*********************
+        //message transaction pending
+        let transactionPending={}
+        transactionPending.amount=Number(((messageData.transactionPending||{}).amount)||0)
+        transactionPending.code=(messageData.transactionPending||{}).code||null
+        transactionPending.reference=(messageData.transactionPending||{}).reference||null
+        transactionPending.activateTransactionPending=(messageData.activateTransactionPending||{}).reference||null
+        transactionPending.activated=(messageData.activateTransactionPending||{}).activated||false
         //message transaction out
         let transactionOut={}
         const transactionOutUserLastMessages=await admin.firestore().collection('PERRINNMessages').where('user','==',(messageData.transactionOut||{}).user||null).where('verified','==',true).orderBy('serverTimestamp','desc').limit(1).get()
@@ -207,6 +197,7 @@ module.exports = {
         transactionOut.imageUrlThumb=transactionOutUserLastMessageData.imageUrlThumbUser||null
         transactionOut.amount=Number(((messageData.transactionOut||{}).amount)||0)
         transactionOut.code=(messageData.transactionOut||{}).code||null
+        transactionOut.reference=(messageData.transactionOut||{}).reference||null
         transactionOut.amountCummulate=Number(((userPreviousMessageData.transactionOut||{}).amountCummulate)||0)+transactionOut.amount
         //message transaction in
         let transactionIn={}
@@ -297,6 +288,7 @@ module.exports = {
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{statistics:messageData.statistics||userPreviousMessageData.statistics||{}},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{userChain:userChain},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{purchaseCOIN:purchaseCOIN},{create:true})
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{transactionPending:transactionPending},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{transactionOut:transactionOut},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{transactionIn:transactionIn},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{contract:contract},{create:true})
@@ -305,7 +297,6 @@ module.exports = {
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{wallet:wallet},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{emails:emails},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{fund:fund},{create:true})
-        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{survey:survey},{create:true})
         //message verified
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{verified:true},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{verifiedTimestamp:admin.firestore.FieldValue.serverTimestamp()},{create:true})
@@ -313,11 +304,33 @@ module.exports = {
         await batch.commit()
 
       //*******MESSAGES CREATION**********
+        //transaction pending activation
+        if((messageData.transactionPending||{}).activateTransactionPending||null){
+          const transactionPendingMessage=await (await admin.firestore().doc('PERRINNMessages/'+(messageData.transactionPending||{}).activateTransactionPending).get()).data()||{}
+          if(transactionPendingMessage.transactionPending||{}){
+            if(!((transactionPendingMessage.transactionPending||{}).activated||false)){
+              createMessageUtils.createMessageAFS({
+                user:transactionPendingMessage.user,
+                text:"Activating transaction (reference: "+(transactionPendingMessage.transactionPending.reference||null)+")",
+                chain:messageData.chain,
+                transactionOut:{
+                  user:user,
+                  amount:transactionPendingMessage.transactionPending.amount||0,
+                  code:transactionPendingMessage.transactionPending.code||null,
+                  reference:transactionPendingMessage.transactionPending.reference||null
+                }
+              })
+              //mark original transaction pending as verified
+              await admin.firestore().doc('PERRINNMessages/'+(messageData.transactionPending||{}).activateTransactionPending).update({"transactionPending.activated":true},{create:true})
+            }
+          }
+        }
+
         //transaction out
         if(!transactionOut.message&&transactionOut.amount>0&&transactionOut.user){
           createMessageUtils.createMessageAFS({
             user:transactionOut.user,
-            text:transactionOut.amount+" Shares received",
+            text:"PRN tokens received",
             chain:messageData.chain,
             transactionIn:{
               user:user,
@@ -350,12 +363,13 @@ module.exports = {
         }
 
         //update funds
-        if(fund.amountGBPTargetUpdated||(purchaseCOIN.amount>0))updateFundsUtils.updateFunds()
+        if(fund.amountGBPTargetUpdated||(purchaseCOIN.amount>0))updateFundsUtils.updateFunds(stripeObj)
 
       return {
         user:user,
         emails:emails,
         wallet:wallet,
+        transactionPending:transactionPending,
         transactionIn:transactionIn,
         transactionOut:transactionOut,
         purchaseCOIN:purchaseCOIN,
@@ -366,7 +380,7 @@ module.exports = {
     }
     catch(error){
       console.log('user '+user+' message '+messageId+' error '+error)
-      return admin.firestore().doc('PERRINNMessages/'+messageId).update({verified:false})
+      return
     }
 
   },

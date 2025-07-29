@@ -1,11 +1,9 @@
-const functions = require('firebase-functions')
 const admin = require('firebase-admin')
 const createMessageUtils = require('./createMessage')
-const stripeObj = require('stripe')(functions.config().stripe.token)
 
 module.exports = {
 
-  updateFunds:async(messageObj)=>{
+  updateFunds:async(stripeObj)=>{
     try{
       let stripeBalance=await stripeObj.balance.retrieve()
       let amountGBPRaisedPERRINN=stripeBalance.available[0].amount/100+stripeBalance.pending[0].amount/100

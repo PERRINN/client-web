@@ -1,4 +1,4 @@
-const admin = require('firebase-admin')
+const { getFirestore, FieldValue } = require('firebase-admin/firestore')
 
 module.exports = {
 
@@ -9,9 +9,9 @@ module.exports = {
       for(let i=0;i<20;i++){
         autoId+=chars.charAt(Math.floor(Math.random()*chars.length))
       }
-      messageObj.serverTimestamp=admin.firestore.FieldValue.serverTimestamp()
+      messageObj.serverTimestamp=FieldValue.serverTimestamp()
       messageObj.chain=messageObj.chain||autoId
-      return admin.firestore().collection('PERRINNMessages').add(messageObj)
+      return getFirestore().collection('PERRINNMessages').add(messageObj)
     }
     catch(error){
       console.log(error)
