@@ -53,10 +53,10 @@ import firebase from 'firebase/compat/app'
   </div>
 
   <div class="sheet" *ngIf="showChatDetails" style="padding-top:40px">
-    <div style="font-size:12px;margin:10px">Chat name :</div>
+    <div style="font-size:12px;margin:20px 10px 10px 10px">Chat name :</div>
     <input [(ngModel)]="chatSubject" style="width:60%;margin:10px" placeholder="What is the subject of this chat?">
     <div *ngIf="chatLastMessageObj?.chatSubject!=chatSubject&&chatSubject" style="float:right;width:75px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:whitesmoke;background-color:black;cursor:pointer" (click)="saveNewSubject()">Save</div>
-    <div class="separator" style="width:100%;margin:10px 0px 15px 0px"></div>
+    <div class="separator" style="width:100%;margin:10px 0px 20px 0px"></div>
     <div style="font-size:12px;margin:10px">Members following this chat :</div>
     <ul class="listLight" style="margin:10px">
       <li *ngFor="let recipient of chatLastMessageObj?.recipientList" style="float:left">
@@ -100,7 +100,7 @@ import firebase from 'firebase/compat/app'
     <div class="buttonWhite" *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance&&transactionUser==undefined&&transactionReference!=''&&transactionReference!=undefined" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionPending(transactionAmount,transactionCode,null,null,transactionReference)">
       Create pending transaction of {{UI.formatSharesToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}}
     </div>
-    <div class="separator" style="width:100%;margin:0px"></div>
+    <div class="separator" style="width:100%;margin:10px 0px 10px 0px"></div>
     <div>
       <div style="font-size:12px;margin:10px">Event :<span *ngIf="eventDateStart!=0" style="font-size:12px;margin:10px">{{eventDescription}} {{eventDateStart==0?'':eventDateStart|date:'EEEE d MMM h:mm a'}} ({{eventDuration}}h) [location: {{eventLocation}}]</span></div>
       <input style="width:60%;margin:10px" maxlength="200" [(ngModel)]="eventDescriptionChoice" placeholder="Event description">
