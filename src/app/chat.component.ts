@@ -101,18 +101,18 @@ import firebase from 'firebase/compat/app'
       <div style="font-size:12px;margin:10px">Event :<span *ngIf="eventDateStart!=0" style="font-size:12px;margin:10px">{{eventDescription}} {{eventDateStart==0?'':eventDateStart|date:'EEEE d MMM h:mm a'}} ({{eventDuration}}h) [location: {{eventLocation}}]</span></div>
       <input style="width:60%;margin:10px" maxlength="200" [(ngModel)]="eventDescriptionChoice" placeholder="Event description">
       <br/>
-      <select [(ngModel)]="ngDropDown" id="dropdownDate" class='form-control'>
+      <select [(ngModel)]="ngDropDown">
       <option *ngFor="let date of eventDateListShort; let first=first" [selected]="date === ngDropDown" [value]="date">
         {{ date|date:'EEEE' }}
         {{ date|date:'d MMM' }}
       </option>
       </select>
-      <select *ngIf="ngDropDown==eventDateListShort[0]" [(ngModel)]="eventTimeStart" id="dropdownTime" class='form-control'>
+      <select *ngIf="ngDropDown==eventDateListShort[0]" [(ngModel)]="eventTimeStart">
       <option *ngFor="let date of eventTimeListShort; let first=first" [selected]="date === eventTimeStart" [value]="date">
         {{date|date:'h:mm a'}}
       </option>
       </select>
-      <select *ngIf="ngDropDown!=eventDateListShort[0]" [(ngModel)]="eventTimeStart" id="dropdownTime" class='form-control'>
+      <select *ngIf="ngDropDown!=eventDateListShort[0]" [(ngModel)]="eventTimeStart">
       <option *ngFor="let date of eventTimeList; let first=first" [selected]="date === eventTimeStart" [value]="date">
         {{date|date:'h:mm a'}}
       </option>

@@ -215,24 +215,25 @@ input {
   color: #131B20;
   text-align: center;
 }
-.form-control{
+select {
   padding: 5px 10px;
-  background-color: #313B20;
+  background-color: #2D3941;
   color: #B0BAC0;
-  width: 150px;
+  width: 160px;
   height: 30px;
   text-align: center;
   margin: 10px 10px 10px 10px;
   border-radius: 4px;
 }
-option:checked{
-  background-color: red;
-  color: #2D3941;
+option {
+  color: #757575;
+  background-color: #2D3941;
 }
-option:hover{
- 
-  box-shadow: 0 0 10px 100px #4ddc3b inset;
+option:checked {
+  color: #B0BAC0;
+  background-color: #2D3941;
 }
+
 /* Form Module */
 .form-module {
   margin: 0 auto;
