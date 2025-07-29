@@ -342,7 +342,6 @@ export class ChatComponent {
       this.refresheventDateList()
       this.resetChat()
     })
-    console.log(this.eventLocationChoice);
   }
 
   ngOnInit(){
