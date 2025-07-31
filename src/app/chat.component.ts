@@ -1,4 +1,4 @@
-import { Component } from '@angular/core'
+import { Component, createNgModuleRef } from '@angular/core'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
@@ -109,11 +109,14 @@ import firebase from 'firebase/compat/app'
         <option *ngFor="let date of eventDateListShort; let first=first" [selected]="date === ngDropDown" [value]="date">
           {{ date|date:'EEEE' }}
           {{ date|date:'d MMM' }}
+          <!-- {{ date|date:'h:mm a'}} -->
         </option>
       </select>
       <select *ngIf="ngDropDown==eventDateListShort[0]" [(ngModel)]="eventTimeStart">
         <option *ngFor="let date of eventTimeListShort; let first=first" [selected]="date === eventTimeStart" [value]="date">
-          {{date|date:'h:mm a'}}
+          <!-- {{ date|date:'EEEE' }}
+          {{ date|date:'d MMM' }} -->
+          {{ date|date:'h:mm a'}}
         </option>
       </select>
       <select *ngIf="ngDropDown!=eventDateListShort[0]" [(ngModel)]="eventTimeStart">
@@ -129,6 +132,7 @@ import firebase from 'firebase/compat/app'
     <input style="width:50%;margin:10px" maxlength="200" [(ngModel)]="eventLocationChoice" placeholder="Event location">
     <br/>
     <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()">Save event</button>
+    <!-- [disabled]='this.router.url.startsWith("/login")' -->
     <button class="buttonRed" *ngIf="chatLastMessageObj?.eventDateStart!=null" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="cancelEvent()">Cancel event</button>
     <div class="separator" style="width:100%;margin:15px 0px 10px 0px"></div>
     <div>
@@ -304,12 +308,13 @@ export class ChatComponent {
   eventDescriptionChoice:string;
   eventDurationChoice:number;
   eventLocationChoice:string;
+  savedEvent:number;
   fund:any
   messageShowActions:[]
   lastRead:string
   showImageGallery:boolean
   ngDropDown:number
-  
+    
   constructor(
     public afs:AngularFirestore,
     public router:Router,
@@ -342,6 +347,21 @@ export class ChatComponent {
       this.refresheventDateList()
       this.resetChat()
     })
+    
+    // this.refreshEventParams = () => { console.log("arrowFunction" + this.eventDateStart);
+    // if (this.eventDateStart !=0 && this.eventDateStart != undefined) { 
+    //   this.ngDropDown = this.eventDateList[0] + (Math.floor(this.eventDateStart/86400000) - Math.floor(this.UI.nowSeconds/86400));
+    //   this.eventTimeStart = 3600000 + this.eventDateStart - 86400000 * Math.floor(this.ngDropDown/86400000);
+    //   console.log( "refreshEventDateList if" + this.ngDropDown);
+    //   console.log("refreshEventDateList if eventTimeStart" + this.eventTimeStart);
+    //   console.log("refreshEventDateList if eventDateStart" + this.eventDateStart);
+    // }
+    // else {
+    //   this.ngDropDown = this.eventDateListShort[1];
+    //   this.eventTimeStart = this.eventTimeList[47];
+    //   console.log("refreshEventDateList else eventDateStart" + this.eventDateStart);
+    // }};
+    // console.log("Constructor eventDateStart" + this.eventDateStart)
   }
 
   ngOnInit(){
@@ -379,13 +399,17 @@ export class ChatComponent {
       };
     }
     this.eventTimeListShort = this.eventTimeListShort.filter(function(number) {
-      return number >= 0;
+      return number >= -3600000;
     });
     this.eventTimeListShort.forEach((element, index, array) => {
       array[index] = element - Math.floor(this.UI.nowSeconds/86400)*86400000 + this.UI.nowSeconds*1000 + 3600000;
     });
     this.ngDropDown = this.eventDateListShort[1];
     this.eventTimeStart = this.eventTimeList[47];
+  }
+
+  refreshEventParams = () => {
+    
   }
 
   refreshMessages(chain) {
@@ -492,6 +516,8 @@ export class ChatComponent {
     this.previousMessageServerTimestamp=message.serverTimestamp||{seconds:this.UI.nowSeconds*1000}
   }
 
+  storeEventParams = event => this.savedEvent=event;
+
   scrollToBottom(scrollMessageTimestamp:number) {
     if (scrollMessageTimestamp != this.scrollMessageTimestamp) {
       const element=document.getElementById('chat_window')
@@ -541,7 +567,7 @@ export class ChatComponent {
     this.eventDuration = this.eventDurationChoice||1;
     this.eventLocation = this.eventLocationChoice||"https://meet.google.com/ebp-djfh-aht";
     if (this.ngDropDown == this.eventDateListShort[0]){
-      this.eventDateStart = 43200000 * Math.floor(this.ngDropDown/43200000) + this.eventTimeStart*1 - 3600000;
+      this.eventDateStart = 86400000 * Math.floor(this.ngDropDown/86400000) + this.eventTimeStart*1 - 3600000;
     }
     else {
       this.eventDateStart = this.ngDropDown*1 + this.eventTimeStart*1 - 3600000;
@@ -556,6 +582,7 @@ export class ChatComponent {
       eventLocation:this.eventLocation
     })
     this.resetChat()
+    // console.log("saveEvent eventDateStart" + this.eventDateStart);
   }
 
   cancelEvent() {
@@ -566,6 +593,7 @@ export class ChatComponent {
       eventDateEnd:this.UI.nowSeconds*1000-3600000
     })
     this.resetChat();
+    // console.log("cancelEvent eventDateStart" + this.eventDateStart);
   }
 
   saveFund() {
