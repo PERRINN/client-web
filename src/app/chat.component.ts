@@ -347,7 +347,6 @@ export class ChatComponent {
       this.refresheventDateList()
       this.resetChat()
     })
-    
     // this.refreshEventParams = () => { console.log("arrowFunction" + this.eventDateStart);
     // if (this.eventDateStart !=0 && this.eventDateStart != undefined) { 
     //   this.ngDropDown = this.eventDateList[0] + (Math.floor(this.eventDateStart/86400000) - Math.floor(this.UI.nowSeconds/86400));
@@ -406,10 +405,6 @@ export class ChatComponent {
     });
     this.ngDropDown = this.eventDateListShort[1];
     this.eventTimeStart = this.eventTimeList[47];
-  }
-
-  refreshEventParams = () => {
-    
   }
 
   refreshMessages(chain) {
