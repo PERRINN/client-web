@@ -55,7 +55,7 @@ import firebase from 'firebase/compat/app'
 
   <div class="sheet" *ngIf="showChatDetails" style="padding-top:40px">
     <input [(ngModel)]="chatSubject" style="width:60%;margin:10px" placeholder="What is the subject of this chat?">
-    <div *ngIf="chatLastMessageObj?.chatSubject!=chatSubject&&chatSubject" style="float:right;width:75px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:whitesmoke;background-color:black;cursor:pointer" (click)="saveNewSubject()">Save</div>
+    <button class="buttonBlack" style="float:right;width:75px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:whitesmoke;background-color:black;cursor:pointer; padding:0px" (click)="saveNewSubject()" [disabled]="chatLastMessageObj?.chatSubject==chatSubject&&chatSubject">Save</button>
     <div class="separator" style="width:100%;margin:0px"></div>
     <ul class="listLight" style="margin:10px">
       <li *ngFor="let recipient of chatLastMessageObj?.recipientList" style="float:left">
@@ -93,17 +93,17 @@ import firebase from 'firebase/compat/app'
           </li>
         </ul>
       </div>
-      <div class="buttonWhite" *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance&&transactionUser!=undefined&&transactionReference!=''&&transactionReference!=undefined" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionOut(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference)">
+      <button class="buttonWhite" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionOut(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference)" [disabled]="!(transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance&&transactionUser!=undefined&&transactionReference!=''&&transactionReference!=undefined)">
         Send {{UI.formatSharesToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}} to {{transactionUserName}}
-      </div>
-      <div class="buttonWhite" *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance&&transactionUser==undefined&&transactionReference!=''&&transactionReference!=undefined" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionPending(transactionAmount,transactionCode,null,null,transactionReference)">
+      </button>
+      <button class="buttonWhite" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionPending(transactionAmount,transactionCode,null,null,transactionReference)" [disabled]="!(transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance&&transactionUser==undefined&&transactionReference!=''&&transactionReference!=undefined)">
         Create pending transaction of {{UI.formatSharesToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}}
-      </div>
+      </button>
     <div class="separator" style="width:100%;margin:0px"></div>
     <div>
       <input style="width:60%;margin:10px" maxlength="200" [(ngModel)]="eventDescription" placeholder="Event description">
       <div style="font-size:12px;margin:10px">{{eventDateStart==0?'':eventDateStart|date:'EEEE d MMM h:mm a'}}</div>
-      <div class="buttonWhite" *ngIf="eventDateStart!=chatLastMessageObj?.eventDateStart||eventDescription!=chatLastMessageObj?.eventDescription||eventDuration!=chatLastMessageObj?.eventDuration||eventLocation!=chatLastMessageObj?.eventLocation" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()">Save event</div>
+      <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px;display:block" (click)="saveEvent()" [disabled]="!(eventDateStart!=chatLastMessageObj?.eventDateStart||eventDescription!=chatLastMessageObj?.eventDescription||eventDuration!=chatLastMessageObj?.eventDuration||eventLocation!=chatLastMessageObj?.eventLocation)">Save event</button>
       <ul class="listLight" style="float:left;width:200px;margin:10px">
         <li *ngFor="let date of eventDateList;let first=first" (click)="first?eventDateStart=date:eventDateStart=(date+(eventDateStart/3600000/24-math.floor(eventDateStart/3600000/24))*3600000*24)" [class.selected]="math.floor(date/3600000/24)==math.floor(eventDateStart/3600000/24)">
           <div *ngIf="math.round(date/3600000/24)==(date/3600000/24)||first" style="float:left;width:100px;min-height:10px">{{date|date:'EEEE'}}</div>
@@ -121,7 +121,7 @@ import firebase from 'firebase/compat/app'
     <br/>
     <span style="margin:10px">Event location</span>
     <input style="width:50%;margin:10px" maxlength="200" [(ngModel)]="eventLocation" placeholder="Event location">
-    <div class="buttonRed" *ngIf="chatLastMessageObj?.eventDateStart!=null" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="cancelEvent()">Cancel event</div>
+    <button class="buttonRed" *ngIf="chatLastMessageObj?.eventDateStart!=null" style="clear:both;width:100px;font-size:10px;margin:10px;display:block" (click)="cancelEvent()" [disabled]="!(eventDateEnd/60000>UI.nowSeconds/60)">Cancel event</button>
     <div class="separator" style="width:100%;margin:0px"></div>
     <div>
       <span style="margin:10px">Fund description</span>
@@ -132,7 +132,7 @@ import firebase from 'firebase/compat/app'
       <br/>
       <span style="margin:10px">Days left</span>
       <input style="width:30%;margin:10px" maxlength="10" [(ngModel)]="fund.daysLeft">
-      <div class="buttonWhite" *ngIf="fund.description!=chatLastMessageObj?.fund?.description||fund.amountGBPTarget!=chatLastMessageObj?.fund?.amountGBPTarget||fund.daysLeft!=chatLastMessageObj?.fund?.daysLeft" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveFund()">Save fund</div>
+      <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px;display:block" (click)="saveFund()" [disabled]="!(fund.description!=chatLastMessageObj?.fund?.description||fund.amountGBPTarget!=chatLastMessageObj?.fund?.amountGBPTarget||fund.daysLeft!=chatLastMessageObj?.fund?.daysLeft)">Save fund</button>
     </div>
     <div class="separator" style="width:100%;margin-bottom:150px"></div>
   </div>

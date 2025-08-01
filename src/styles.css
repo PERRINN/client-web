@@ -171,6 +171,10 @@ a:visited {
   color: whitesmoke;
   border-color:whitesmoke;
 }
+.buttonRed:disabled{
+  opacity:0.5;
+  pointer-events:none;
+}
 button {
   cursor: pointer;
   background-color: black;
