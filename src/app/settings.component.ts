@@ -28,6 +28,8 @@ import firebase from 'firebase/compat/app';
   <span style="font-size:10px;margin-left:15px">{{UI.currentUserLastMessageObj?.userPresentation}} Level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
   <span *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px">Waiting for contract signature (Level {{UI.currentUserLastMessageObj?.contract?.level}})</span>
   <div class="separator" style="width:100%;margin:0px"></div>
+  <span style="margin:15px;font-size:10px">{{UI.hasTouch?"On mobile (touch screen)":"On desktop / laptop"}}</span>
+  <span style="margin:15px;font-size:10px">{{UI.isStandalone?"On home screen":"In the browser"}}</span>
   </div>
   <div class='sheet'>
       <div style="font-size:14px;margin:20px">Your name (preferably your first name)</div>

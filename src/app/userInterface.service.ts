@@ -20,12 +20,24 @@ export class UserInterfaceService {
   appSettingsPayment:any
   appSettingsCosts:any
   appSettingsContract:any
+  hasTouch:boolean
+  isStandalone:boolean
 
   constructor(
     private afAuth: AngularFireAuth,
     public router:Router,
     public afs: AngularFirestore
   ) {
+
+    this.hasTouch = false;
+    if ('maxTouchPoints' in navigator) {
+      this.hasTouch = navigator.maxTouchPoints > 0;
+    } else {
+      const mQ = window.matchMedia && matchMedia('(pointer:coarse)');
+      this.hasTouch = mQ ? mQ.matches : ('orientation' in window); // fallback for older iOS
+    }
+    this.isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
+
     this.tagFilters = [];
     this.nowSeconds = Math.floor(Date.now() / 1000);
     setInterval(() => {
