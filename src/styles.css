@@ -31,6 +31,8 @@ body {
   border: 0;
   background-color:#222C32;
   color: #B0BAC0;
+  overscroll-behavior-x: none;
+  touch-action: pan-y;
 }
 #main_container {
   margin: 0 auto;
