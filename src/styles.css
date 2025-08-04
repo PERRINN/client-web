@@ -221,15 +221,7 @@ input {
   color: #131B20;
   text-align: center;
 }
-.message .general {
-  background: #1db217;
-}
-.message .important {
-  background: #e08600;
-}
-.message .urgent {
-  background: #ff4300;
-}
+
 /* Form Module */
 .form-module {
   margin: 0 auto;
