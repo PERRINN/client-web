@@ -221,6 +221,24 @@ input {
   color: #131B20;
   text-align: center;
 }
+select {
+  padding: 5px 10px;
+  background-color: #2D3941;
+  color: #B0BAC0;
+  width: 200px;
+  height: 30px;
+  text-align: center;
+  margin: 10px 10px 10px 10px;
+  border-radius: 4px;
+}
+option {
+  color: #757575;
+  background-color: #2D3941;
+}
+option:checked {
+  color: #B0BAC0;
+  background-color: #2D3941;
+}
 
 /* Form Module */
 .form-module {
