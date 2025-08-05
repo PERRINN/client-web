@@ -221,15 +221,25 @@ input {
   color: #131B20;
   text-align: center;
 }
-.message .general {
-  background: #1db217;
+select {
+  padding: 5px 10px;
+  background-color: #2D3941;
+  color: #B0BAC0;
+  width: 200px;
+  height: 30px;
+  text-align: center;
+  margin: 10px 10px 10px 10px;
+  border-radius: 4px;
 }
-.message .important {
-  background: #e08600;
+option {
+  color: #757575;
+  background-color: #2D3941;
 }
-.message .urgent {
-  background: #ff4300;
+option:checked {
+  color: #B0BAC0;
+  background-color: #2D3941;
 }
+
 /* Form Module */
 .form-module {
   margin: 0 auto;
