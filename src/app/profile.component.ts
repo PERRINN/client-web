@@ -18,7 +18,7 @@ import { AgChartOptions } from 'ag-charts-community'
     </div>
     <div *ngIf="scope!='all'" style="clear:both;background-color:black">
       <div style="float:left">
-        <img [src]="focusUserLastMessageObj?.imageUrlThumbUser" style="display:inline;float:left;margin:7px;object-fit:cover;width:100px;height:100px;cursor:pointer" (click)="UI.showFullScreenImage(focusUserLastMessageObj?.imageUrlOriginal)">
+        <img [src]="focusUserLastMessageObj?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, focusUserLastMessageObj)" style="display:inline;float:left;margin:7px;object-fit:cover;width:100px;height:100px;cursor:pointer" (click)="UI.showFullScreenImage(focusUserLastMessageObj?.imageUrlOriginal)">
       </div>
       <div style="padding:10px">
         <div style="clear:both">
@@ -126,7 +126,7 @@ import { AgChartOptions } from 'ag-charts-community'
         <li *ngFor="let message of latestImages|async;let first=first;let last=last" style="float:left;width:20%"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
-            <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" (error)="UI.handleImageError($event, message.payload.doc.data())" style="float:left;object-fit:contain;width:100%;height:90px">
+            <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload.doc.data())" style="float:left;object-fit:contain;width:100%;height:90px">
           </div>
         </li>
         <div class="separator"></div>
@@ -137,7 +137,7 @@ import { AgChartOptions } from 'ag-charts-community'
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
             <div style="float:left;min-width:84px;min-height:40px">
-              <img [src]="message.payload.doc.data()?.imageUrlThumbUser" style="float:left;margin:12px 2px 12px 4px;object-fit:cover;height:40px;width:40px">
+              <img [src]="message.payload.doc.data()?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload.doc.data())" style="float:left;margin:12px 2px 12px 4px;object-fit:cover;height:40px;width:40px">
               <img *ngIf="message.payload.doc.data()?.recipientList[1]" [src]="message.payload.doc.data()?.recipients[message.payload.doc.data()?.recipientList[1]]?.imageUrlThumb" style="float:left;margin:12px 4px 12px 2px;object-fit:cover;height:25px;width:25px">
             </div>
             <div>

@@ -71,7 +71,7 @@ import firebase from 'firebase/compat/app'
       <li *ngFor="let team of teams | async">
         <div *ngIf="!(chatLastMessageObj?.recipients||{})[team.key]" style="padding:5px">
           <div style="float:left;width:300px">
-            <img [src]="team?.values?.imageUrlThumbUser" style="display:inline;float:left;margin:0 5px 0 10px;opacity:1;object-fit:cover;height:25px;width:25px">
+            <img [src]="team?.values?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, team?.values)" style="display:inline;float:left;margin:0 5px 0 10px;opacity:1;object-fit:cover;height:25px;width:25px">
             <span>{{team.values?.name}} {{UI.formatSharesToPRNCurrency(null,team.values?.wallet?.balance||0)}}</span>
           </div>
           <div class="buttonWhite" style="float:left;width:50px;font-size:11px" (click)="addRecipient(team.values.user,team.values.name)">Add</div>
@@ -152,7 +152,7 @@ import firebase from 'firebase/compat/app'
           </div>
           <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" style="clear:both;width:100%;height:15px"></div>
           <div *ngIf="message.payload?.imageUrlThumbUser&&(isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first)" style="float:left;width:60px;min-height:10px">
-            <img [src]="message.payload?.imageUrlThumbUser" style="cursor:pointer;display:inline;float:left;margin:0 10px 10px 10px; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
+            <img [src]="message.payload?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload)" style="cursor:pointer;display:inline;float:left;margin:0 10px 10px 10px; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
           </div>
           <div [style.background-color]="(message.payload?.user==UI.currentUser)?'#222C32':'black'"
                 style="cursor:text;margin:0 10px 5px 60px;user-select:text;border-color:#5BBF2F"
@@ -164,7 +164,7 @@ import firebase from 'firebase/compat/app'
                 <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)<=43200" style="font-size:11px;margin:0px 10px 0px 10px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</div>
               </div>
               <div style="clear:both;text-align:center">
-                <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" (error)="UI.handleImageError($event, message.payload)" style="width:70%;max-height:320px;object-fit:contain;margin:5px 10px 5px 5px" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
+                <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" (error)="UI.handleChatImageError($event, message.payload)" style="width:70%;max-height:320px;object-fit:contain;margin:5px 10px 5px 5px" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
               </div>
               <div style="margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
               <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{message.payload?.statistics?.userCount}} Members,</div>

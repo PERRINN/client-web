@@ -260,10 +260,16 @@ export class UserInterfaceService {
     return [visibility, outlinedEyeStyle, fullEyeStyle, focus];
   }
 
-   handleImageError(event: Event, message: any) {
+   handleChatImageError(event: Event, message: any) {
     const img = event.target as HTMLImageElement;
     // Fallback to Original URL
     if (message?.chatImageUrlOriginal) img.src = message.chatImageUrlOriginal
+  }
+
+   handleUserImageError(event: Event, message: any) {
+    const img = event.target as HTMLImageElement;
+    // Fallback to Original URL
+    if (message?.imageUrlOriginal) img.src = message.imageUrlOriginal
   }
 
 }
