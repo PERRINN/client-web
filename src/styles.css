@@ -360,6 +360,9 @@ iframe {
 img {
   image-orientation:from-image;
 }
+.image-fallback {
+  filter: grayscale(100%);
+}
 .chatButton{
   cursor:pointer;
   font-size:14px;
