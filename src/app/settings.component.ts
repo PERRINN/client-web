@@ -207,6 +207,8 @@ export class SettingsComponent {
           chatImageUrlThumb:url,
           chatImageUrlMedium:url,
           chatImageUrlOriginal:url,
+          imageUrlThumbUser:url,
+          imageUrlMedium:url,
           imageUrlOriginal:url
         })
         this.router.navigate(['chat',this.UI.currentUser])

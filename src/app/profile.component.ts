@@ -18,7 +18,7 @@ import { AgChartOptions } from 'ag-charts-community'
     </div>
     <div *ngIf="scope!='all'" style="clear:both;background-color:black">
       <div style="float:left">
-        <img [src]="focusUserLastMessageObj?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, focusUserLastMessageObj)" style="display:inline;float:left;margin:7px;object-fit:cover;width:100px;height:100px;cursor:pointer" (click)="UI.showFullScreenImage(focusUserLastMessageObj?.imageUrlOriginal)">
+        <img [src]="focusUserLastMessageObj?.imageUrlMediumUser" (error)="UI.handleUserImageError($event, focusUserLastMessageObj)" style="display:inline;float:left;margin:7px;object-fit:cover;width:100px;height:100px;cursor:pointer" (click)="UI.showFullScreenImage(focusUserLastMessageObj?.imageUrlOriginal)">
       </div>
       <div style="padding:10px">
         <div style="clear:both">
