@@ -7,6 +7,7 @@ import { UserInterfaceService } from './userInterface.service'
 import { AngularFireAuth } from '@angular/fire/compat/auth'
 import firebase from 'firebase/compat/app'
 import { AgChartOptions } from 'ag-charts-community'
+import { ChangeDetectorRef } from '@angular/core'
 
 @Component({
   selector:'profile',
@@ -254,7 +255,8 @@ export class ProfileComponent {
     public afs:AngularFirestore,
     public router:Router,
     public UI:UserInterfaceService,
-    private route:ActivatedRoute
+    private route:ActivatedRoute,
+    private cd: ChangeDetectorRef
   ) {
     this.showTags=false
     this.math=Math
@@ -311,6 +313,9 @@ export class ProfileComponent {
   }
 
   ngOnInit() {
+    setTimeout(() => {
+      this.cd.detectChanges()
+    }, 10)
   }
 
   refreshMessages(){
