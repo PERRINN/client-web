@@ -12,6 +12,10 @@ import { AgChartOptions } from 'ag-charts-community'
   selector:'profile',
   template:`
   <div class='sheet'>
+      <div *ngIf="UI.hasTouch&&!UI.isStandalone"
+        style="background-color:rgb(255, 251, 221); color: #333; text-align: center; font-size: 10px; border-radius: 0px">
+      Add this app to your home screen for a better experience.
+    </div>
     <div *ngIf="scope=='all'&&UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined" style="line-height:0px;clear:both">
       <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="width:100%">
       <div class="separator" style="width:100%;margin:0px"></div>
