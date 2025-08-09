@@ -1,3 +1,11 @@
+@import '~@angular/material/prebuilt-themes/indigo-pink.css';
+
+/* Customize Material components to match app palette */
+.mat-toolbar {
+  background-color: #222C32;
+  color: #B0BAC0;
+}
+
 *, *:before, *:after {
   box-sizing: border-box;
   font-family: verdana;

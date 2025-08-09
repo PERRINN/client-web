@@ -2,6 +2,11 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
@@ -54,6 +59,7 @@ export const firebaseConfig = {
     BrowserModule,
     FormsModule,
     HttpClientModule,
+    BrowserAnimationsModule,
     AngularFireModule.initializeApp(firebaseConfig),
     AngularFirestoreModule.enablePersistence({synchronizeTabs:true}),
     AngularFireStorageModule,
@@ -64,6 +70,10 @@ export const firebaseConfig = {
     Ng2ImgMaxModule,
     PipeModule.forRoot(),
     AgChartsAngular,
+    MatButtonModule,
+    MatInputModule,
+    MatToolbarModule,
+    MatFormFieldModule,
   ],
   providers: [
     UserInterfaceService,
