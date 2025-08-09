@@ -41,7 +41,7 @@ import { ChangeDetectorRef } from '@angular/core'
             <span style="font-size:10px">{{focusUserLastMessageObj?.userPresentation}}</span>
             <span *ngIf="focusUserLastMessageObj?.contract?.signed" style="font-size:10px"> Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
             <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px">Waiting for contract signature (Level {{focusUserLastMessageObj?.contract?.level|number:'1.1-1'}})</span>
-            <div class="buttonBlack" *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin:15px;font-size:10px" (click)=signContract()>Sign contract</div>
+              <button mat-stroked-button *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin:15px;font-size:10px" (click)=signContract()>Sign contract</button>
             <br>
             <span style="font-size:10px">Created in {{focusUserLastMessageObj?.createdTimestamp|date:'MMMM yyyy'}}</span>
             <br>
@@ -52,11 +52,11 @@ import { ChangeDetectorRef } from '@angular/core'
           </div>
         </div>
       </div>
-      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='inbox'?'#B0BAC0':'black'" (click)="mode='inbox';refreshMessages()">inbox</div>
-      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='history'?'#B0BAC0':'black'" (click)="mode='history';refreshMessages();refreshChart()">history</div>
-      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='chain'?'#B0BAC0':'black'" (click)="mode='chain';refreshMessages()">chain</div>
-      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='forecast'?'#B0BAC0':'black'" (click)="mode='forecast';refreshMessages()">forecast</div>
-      <div class="buttonBlack" *ngIf="UI.currentUser&&UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="clear:both;width:250px;margin:5px;font-size:11px">New message to {{focusUserLastMessageObj?.name}}</div>
+        <button mat-stroked-button style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='inbox'?'#B0BAC0':'black'" (click)="mode='inbox';refreshMessages()">inbox</button>
+        <button mat-stroked-button style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='history'?'#B0BAC0':'black'" (click)="mode='history';refreshMessages();refreshChart()">history</button>
+        <button mat-stroked-button style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='chain'?'#B0BAC0':'black'" (click)="mode='chain';refreshMessages()">chain</button>
+        <button mat-stroked-button style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='forecast'?'#B0BAC0':'black'" (click)="mode='forecast';refreshMessages()">forecast</button>
+        <button mat-raised-button color="primary" *ngIf="UI.currentUser&&UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="clear:both;width:250px;margin:5px;font-size:11px">New message to {{focusUserLastMessageObj?.name}}</button>
       <div class="separator" style="width:100%;margin:0px"></div>
     </div>
     <div *ngIf="scope=='all'">
@@ -78,7 +78,7 @@ import { ChangeDetectorRef } from '@angular/core'
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
             <div *ngIf="message.payload.doc.data()?.eventDateEnd/60000>UI.nowSeconds/60">
-            <span *ngIf="message.payload.doc.data()?.eventLocation" class="buttonBlack" style="float:right;padding:5px;margin:10px;line-height:13px" (click)="UI.openWindow(message.payload.doc.data()?.eventLocation)">Join</span>
+              <button *ngIf="message.payload.doc.data()?.eventLocation" mat-stroked-button style="float:right;padding:5px;margin:10px;line-height:13px" (click)="UI.openWindow(message.payload.doc.data()?.eventLocation);$event.stopPropagation()">Join</button>
             <div style="float:left;min-width:90px;min-height:40px">
               <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer">event</span>
             </div>
