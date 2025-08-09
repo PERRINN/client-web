@@ -63,7 +63,7 @@ import firebase from 'firebase/compat/app'
           <img [src]="chatLastMessageObj?.recipients[recipient]?.imageUrlThumb" style="float:left;object-fit:cover;height:25px;width:25px;margin:3px 3px 3px 10px">
           <div style="float:left;margin:10px 5px 3px 3px;font-size:12px;line-height:10px;font-family:sans-serif">{{chatLastMessageObj?.recipients[recipient]?.name}}</div>
         </div>
-        <div style="float:left;cursor:pointer;margin:10px 15px 3px 3px;font-size:12px;line-height:10px;font-family:sans-serif;color:#D85140" (click)="removeRecipient(recipient,chatLastMessageObj?.recipients[recipient]?.name)">X</div>
+        <div style="float:left;cursor:pointer;margin:10px 15px 3px 3px;font-size:12px;line-height:10px;font-family:sans-serif;color:var(--accent-color)" (click)="removeRecipient(recipient,chatLastMessageObj?.recipients[recipient]?.name)">X</div>
       </li>
     </ul>
     <input style="width:60%;margin:10px" maxlength="500" (keyup)="refreshSearchLists()" [(ngModel)]="searchFilter" placeholder="Add member">
@@ -154,7 +154,7 @@ import firebase from 'firebase/compat/app'
           <div *ngIf="message.payload?.imageUrlThumbUser&&(isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first)" style="float:left;width:60px;min-height:10px">
             <img [src]="message.payload?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload)" style="cursor:pointer;display:inline;float:left;margin:0 10px 10px 10px; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
           </div>
-          <div [style.background-color]="(message.payload?.user==UI.currentUser)?'#222C32':'black'"
+          <div [style.background-color]="(message.payload?.user==UI.currentUser)?'var(--primary-color)':'black'"
                 style="cursor:text;margin:0 10px 5px 60px;user-select:text;border-color:#5BBF2F"
                 [style.border-style]="(message.payload?.text.includes(UI.currentUserLastMessageObj?.name))?'solid':'none'">
             <div>
@@ -255,7 +255,7 @@ import firebase from 'firebase/compat/app'
       <div *ngIf="!draftMessage&&!imageDownloadUrl" style="float:right;width:10%;cursor:pointer">
         <input type="file" name="chatImage" id="chatImage" class="inputfile" (change)="onImageChange($event)" accept="image/*">
         <label class="buttonUploadImage" for="chatImage" id="buttonFile">
-        <span class="material-icons-outlined" style="margin:15px 5px 5px 5px;font-size:30px;color:#B0BAC0">photo_camera</span>
+        <span class="material-icons-outlined" style="margin:15px 5px 5px 5px;font-size:30px;color:var(--secondary-color)">photo_camera</span>
         </label>
       </div>
     </div>
