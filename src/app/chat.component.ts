@@ -8,8 +8,8 @@ import { AngularFireStorage } from '@angular/fire/compat/storage'
 import firebase from 'firebase/compat/app'
 
 @Component({
-  selector:'chat',
-  template:`
+  selector: 'chat',
+  template: `
 
   <div class="sheet">
     <div class="fixed" style="background-color:black;font-size:12px;cursor:pointer" (click)="UI.currentUser?showChatDetails=!showChatDetails:''">
@@ -71,7 +71,7 @@ import firebase from 'firebase/compat/app'
       <li *ngFor="let team of teams | async">
         <div *ngIf="!(chatLastMessageObj?.recipients||{})[team.key]" style="padding:5px">
           <div style="float:left;width:300px">
-            <img [src]="team?.values?.imageUrlThumbUser" style="display:inline;float:left;margin:0 5px 0 10px;opacity:1;object-fit:cover;height:25px;width:25px">
+            <img [src]="team?.values?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, team?.values)" style="display:inline;float:left;margin:0 5px 0 10px;opacity:1;object-fit:cover;height:25px;width:25px">
             <span>{{team.values?.name}} {{UI.formatSharesToPRNCurrency(null,team.values?.wallet?.balance||0)}}</span>
           </div>
           <div class="buttonWhite" style="float:left;width:50px;font-size:11px" (click)="addRecipient(team.values.user,team.values.name)">Add</div>
@@ -155,7 +155,7 @@ import firebase from 'firebase/compat/app'
           </div>
           <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" style="clear:both;width:100%;height:15px"></div>
           <div *ngIf="message.payload?.imageUrlThumbUser&&(isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first)" style="float:left;width:60px;min-height:10px">
-            <img [src]="message.payload?.imageUrlThumbUser" style="cursor:pointer;display:inline;float:left;margin:0 10px 10px 10px; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
+            <img [src]="message.payload?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload)" style="cursor:pointer;display:inline;float:left;margin:0 10px 10px 10px; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
           </div>
           <div [style.background-color]="(message.payload?.user==UI.currentUser)?'#222C32':'black'"
                 style="cursor:text;margin:0 10px 5px 60px;user-select:text;border-color:#5BBF2F"
@@ -167,7 +167,7 @@ import firebase from 'firebase/compat/app'
                 <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)<=43200" style="font-size:11px;margin:0px 10px 0px 10px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</div>
               </div>
               <div style="clear:both;text-align:center">
-                <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" style="width:70%;max-height:320px;object-fit:contain;margin:5px 10px 5px 5px" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
+                <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" (error)="UI.handleChatImageError($event, message.payload)" style="width:70%;max-height:320px;object-fit:contain;margin:5px 10px 5px 5px" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
               </div>
               <div style="margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
               <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{message.payload?.statistics?.userCount}} Members,</div>
@@ -304,26 +304,26 @@ constructor(
     private route:ActivatedRoute,
     private storage:AngularFireStorage,
   ) {
-    this.math=Math
-    this.UI.loading=true
-    this.reads=[]
-    this.route.params.subscribe(params=>{
-      this.lastRead=null
-      this.chatChain=params.id
-      this.messageShowActions=[]
-      this.messageShowDetails=[]
-      this.chatLastMessageObj={}
-      this.previousMessageServerTimestamp={seconds:this.UI.nowSeconds*1000}
-      this.previousMessageUser=''
-      this.messageNumberDisplay=15
-      this.chatSubject=''
-      this.eventDescription=''
-      this.eventDuration=1
-      this.eventLocation=""
-      this.fund={
-        description:'add a description',
-        amountGBPTarget:0,
-        daysLeft:30
+    this.math = Math
+    this.UI.loading = true
+    this.reads = []
+    this.route.params.subscribe(params => {
+      this.lastRead = null
+      this.chatChain = params.id
+      this.messageShowActions = []
+      this.messageShowDetails = []
+      this.chatLastMessageObj = {}
+      this.previousMessageServerTimestamp = { seconds: this.UI.nowSeconds * 1000 }
+      this.previousMessageUser = ''
+      this.messageNumberDisplay = 15
+      this.chatSubject = ''
+      this.eventDescription = ''
+      this.eventDuration = 1
+      this.eventLocation = ""
+      this.fund = {
+        description: 'add a description',
+        amountGBPTarget: 0,
+        daysLeft: 30
       }
       this.refreshMessages(params.id)
       this.refresheventDateList()
@@ -343,144 +343,144 @@ constructor(
     this.refreshSearchLists()
   }
 
-  showImageGalleryClick(){
+  showImageGalleryClick() {
     event.stopPropagation()
-    this.showImageGallery=!this.showImageGallery
-    this.refreshMessages(this.chatLastMessageObj.chain||this.chatChain)
+    this.showImageGallery = !this.showImageGallery
+    this.refreshMessages(this.chatLastMessageObj.chain || this.chatChain)
   }
 
-  loadMore(){
-    this.UI.loading=true
-    this.messageNumberDisplay+=15
-    this.refreshMessages(this.chatLastMessageObj.chain||this.chatChain)
+  loadMore() {
+    this.UI.loading = true
+    this.messageNumberDisplay += 15
+    this.refreshMessages(this.chatLastMessageObj.chain || this.chatChain)
   }
 
-  refresheventDateList(){
+  refresheventDateList() {
     var i
-    this.eventDateList=[]
-    for(i=0;i<2200;i++){
-      this.eventDateList[i]=(Math.ceil(this.UI.nowSeconds/3600)+i/2)*3600000
+    this.eventDateList = []
+    for (i = 0; i < 2200; i++) {
+      this.eventDateList[i] = (Math.ceil(this.UI.nowSeconds / 3600) + i / 2) * 3600000
     }
   }
 
   refreshMessages(chain) {
-    if(!this.showImageGallery)this.messages=this.afs.collection('PERRINNMessages',ref=>ref
-      .where('chain','==',chain)
-      .orderBy('serverTimestamp','desc')
+    if (!this.showImageGallery) this.messages = this.afs.collection('PERRINNMessages', ref => ref
+      .where('chain', '==', chain)
+      .orderBy('serverTimestamp', 'desc')
       .limit(this.messageNumberDisplay)
-    ).snapshotChanges().pipe(map(changes=>{
-      this.UI.loading=false
-      var batch=this.afs.firestore.batch()
-      var nextMessageRead=true
-      changes.forEach(c=>{
-        if(this.UI.currentUser&&!this.lastRead&&!nextMessageRead&&(c.payload.doc.data()['reads']||[])[this.UI.currentUser])this.lastRead=c.payload.doc.id
-        nextMessageRead=(c.payload.doc.data()['reads']||[])[this.UI.currentUser]
-        if(c.payload.doc.data()['lastMessage']){
-          if(this.UI.currentUser&&!this.reads.includes(c.payload.doc.id))batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id),{serverTimestamp:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
+    ).snapshotChanges().pipe(map(changes => {
+      this.UI.loading = false
+      var batch = this.afs.firestore.batch()
+      var nextMessageRead = true
+      changes.forEach(c => {
+        if (this.UI.currentUser && !this.lastRead && !nextMessageRead && (c.payload.doc.data()['reads'] || [])[this.UI.currentUser]) this.lastRead = c.payload.doc.id
+        nextMessageRead = (c.payload.doc.data()['reads'] || [])[this.UI.currentUser]
+        if (c.payload.doc.data()['lastMessage']) {
+          if (this.UI.currentUser && !this.reads.includes(c.payload.doc.id)) batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id), { serverTimestamp: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
           this.reads.push(c.payload.doc.id)
-          this.chatLastMessageObj=c.payload.doc.data()
-          this.chatSubject=c.payload.doc.data()['chatSubject']
-          this.eventDescription=c.payload.doc.data()['eventDescription']
-          this.eventDateStart=c.payload.doc.data()['eventDateStart']
-          this.eventDateEnd=c.payload.doc.data()['eventDateEnd']
-          this.eventDuration=c.payload.doc.data()['eventDuration']
-          this.eventLocation=c.payload.doc.data()['eventLocation']
-          this.fund=c.payload.doc.data()['fund']||this.fund
+          this.chatLastMessageObj = c.payload.doc.data()
+          this.chatSubject = c.payload.doc.data()['chatSubject']
+          this.eventDescription = c.payload.doc.data()['eventDescription']
+          this.eventDateStart = c.payload.doc.data()['eventDateStart']
+          this.eventDateEnd = c.payload.doc.data()['eventDateEnd']
+          this.eventDuration = c.payload.doc.data()['eventDuration']
+          this.eventLocation = c.payload.doc.data()['eventLocation']
+          this.fund = c.payload.doc.data()['fund'] || this.fund
         }
       })
       batch.commit()
-      return changes.reverse().map(c=>({
-        key:c.payload.doc.id,
-        payload:c.payload.doc.data()
+      return changes.reverse().map(c => ({
+        key: c.payload.doc.id,
+        payload: c.payload.doc.data()
       }))
     }))
-    else this.messages=this.afs.collection('PERRINNMessages',ref=>ref
-      .where('chain','==',chain)
-      .orderBy('chatImageTimestamp','desc')
+    else this.messages = this.afs.collection('PERRINNMessages', ref => ref
+      .where('chain', '==', chain)
+      .orderBy('chatImageTimestamp', 'desc')
       .limit(this.messageNumberDisplay)
-    ).snapshotChanges().pipe(map(changes=>{
-      this.UI.loading=false
-      var batch=this.afs.firestore.batch()
-      var nextMessageRead=true
-      changes.forEach(c=>{
-        if(this.UI.currentUser&&!this.lastRead&&!nextMessageRead&&(c.payload.doc.data()['reads']||[])[this.UI.currentUser])this.lastRead=c.payload.doc.id
-        nextMessageRead=(c.payload.doc.data()['reads']||[])[this.UI.currentUser]
-        if(c.payload.doc.data()['lastMessage']){
-          if(this.UI.currentUser&&!this.reads.includes(c.payload.doc.id))batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id),{serverTimestamp:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
+    ).snapshotChanges().pipe(map(changes => {
+      this.UI.loading = false
+      var batch = this.afs.firestore.batch()
+      var nextMessageRead = true
+      changes.forEach(c => {
+        if (this.UI.currentUser && !this.lastRead && !nextMessageRead && (c.payload.doc.data()['reads'] || [])[this.UI.currentUser]) this.lastRead = c.payload.doc.id
+        nextMessageRead = (c.payload.doc.data()['reads'] || [])[this.UI.currentUser]
+        if (c.payload.doc.data()['lastMessage']) {
+          if (this.UI.currentUser && !this.reads.includes(c.payload.doc.id)) batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id), { serverTimestamp: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
           this.reads.push(c.payload.doc.id)
-          this.chatLastMessageObj=c.payload.doc.data()
-          this.chatSubject=c.payload.doc.data()['chatSubject']
-          this.eventDescription=c.payload.doc.data()['eventDescription']
-          this.eventDateStart=c.payload.doc.data()['eventDateStart']
-          this.eventDuration=c.payload.doc.data()['eventDuration']
-          this.eventLocation=c.payload.doc.data()['eventLocation']
-          this.fund=c.payload.doc.data()['fund']||this.fund
+          this.chatLastMessageObj = c.payload.doc.data()
+          this.chatSubject = c.payload.doc.data()['chatSubject']
+          this.eventDescription = c.payload.doc.data()['eventDescription']
+          this.eventDateStart = c.payload.doc.data()['eventDateStart']
+          this.eventDuration = c.payload.doc.data()['eventDuration']
+          this.eventLocation = c.payload.doc.data()['eventLocation']
+          this.fund = c.payload.doc.data()['fund'] || this.fund
         }
       })
       batch.commit()
-      return changes.map(c=>({
-        key:c.payload.doc.id,
-        payload:c.payload.doc.data()
+      return changes.map(c => ({
+        key: c.payload.doc.id,
+        payload: c.payload.doc.data()
       }))
     }))
   }
 
-  isMessageNewTimeGroup(messageServerTimestamp:any) {
-    let isMessageNewTimeGroup:boolean
-    isMessageNewTimeGroup=Math.abs(messageServerTimestamp.seconds - this.previousMessageServerTimestamp.seconds) > 60 * 60 * 4
+  isMessageNewTimeGroup(messageServerTimestamp: any) {
+    let isMessageNewTimeGroup: boolean
+    isMessageNewTimeGroup = Math.abs(messageServerTimestamp.seconds - this.previousMessageServerTimestamp.seconds) > 60 * 60 * 4
     return isMessageNewTimeGroup
   }
 
-  isMessageNewUserGroup(user:any,messageServerTimestamp:any) {
-    let isMessageNewUserGroup:boolean
-    isMessageNewUserGroup=Math.abs(messageServerTimestamp.seconds - this.previousMessageServerTimestamp.seconds) > 60 * 5 || (user != this.previousMessageUser)
+  isMessageNewUserGroup(user: any, messageServerTimestamp: any) {
+    let isMessageNewUserGroup: boolean
+    isMessageNewUserGroup = Math.abs(messageServerTimestamp.seconds - this.previousMessageServerTimestamp.seconds) > 60 * 5 || (user != this.previousMessageUser)
     return isMessageNewUserGroup
   }
 
   storeMessageValues(message) {
-    this.previousMessageUser=message.user
-    this.previousMessageServerTimestamp=message.serverTimestamp||{seconds:this.UI.nowSeconds*1000}
+    this.previousMessageUser = message.user
+    this.previousMessageServerTimestamp = message.serverTimestamp || { seconds: this.UI.nowSeconds * 1000 }
   }
 
-  scrollToBottom(scrollMessageTimestamp:number) {
+  scrollToBottom(scrollMessageTimestamp: number) {
     if (scrollMessageTimestamp != this.scrollMessageTimestamp) {
-      const element=document.getElementById('chat_window')
-      element.scrollTop=element.scrollHeight
-      this.scrollMessageTimestamp=scrollMessageTimestamp
+      const element = document.getElementById('chat_window')
+      element.scrollTop = element.scrollHeight
+      this.scrollMessageTimestamp = scrollMessageTimestamp
     }
   }
 
   saveNewSubject() {
     this.UI.createMessage({
-      text:'Changing subject to '+this.chatSubject,
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      chatSubject:this.chatSubject,
+      text: 'Changing subject to ' + this.chatSubject,
+      chain: this.chatLastMessageObj.chain || this.chatChain,
+      chatSubject: this.chatSubject,
     })
     this.resetChat()
   }
 
-  createTransactionOut(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference){
+  createTransactionOut(transactionAmount, transactionCode, transactionUser, transactionUserName, transactionReference) {
     this.UI.createMessage({
-      text:'sending '+this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].symbol+transactionAmount+' to '+transactionUserName+((transactionCode||null)?' using code ':'')+((transactionCode||null)?transactionCode:'')+' (Reference: '+transactionReference+')',
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      transactionOut:{
-        user:transactionUser,
-        amount:transactionAmount*this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN,
-        code:transactionCode||null,
-        reference:transactionReference||null
+      text: 'sending ' + this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].symbol + transactionAmount + ' to ' + transactionUserName + ((transactionCode || null) ? ' using code ' : '') + ((transactionCode || null) ? transactionCode : '') + ' (Reference: ' + transactionReference + ')',
+      chain: this.chatLastMessageObj.chain || this.chatChain,
+      transactionOut: {
+        user: transactionUser,
+        amount: transactionAmount * this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN,
+        code: transactionCode || null,
+        reference: transactionReference || null
       }
     })
     this.resetChat()
   }
 
-  createTransactionPending(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference){
+  createTransactionPending(transactionAmount, transactionCode, transactionUser, transactionUserName, transactionReference) {
     this.UI.createMessage({
-      text:'creating a pending transaction of '+this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].symbol+transactionAmount+((transactionCode||null)?' using code ':'')+((transactionCode||null)?transactionCode:'')+' (Reference: '+transactionReference+')',
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      transactionPending:{
-        amount:transactionAmount*this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN,
-        code:transactionCode||null,
-        reference:transactionReference||null
+      text: 'creating a pending transaction of ' + this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].symbol + transactionAmount + ((transactionCode || null) ? ' using code ' : '') + ((transactionCode || null) ? transactionCode : '') + ' (Reference: ' + transactionReference + ')',
+      chain: this.chatLastMessageObj.chain || this.chatChain,
+      transactionPending: {
+        amount: transactionAmount * this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN,
+        code: transactionCode || null,
+        reference: transactionReference || null
       }
     })
     this.resetChat()
@@ -488,127 +488,127 @@ constructor(
 
   saveEvent() {
     this.UI.createMessage({
-      text:'new event',
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      eventDateStart:this.eventDateStart,
-      eventDateEnd:this.eventDateStart+this.eventDuration*3600000,
-      eventDescription:this.eventDescription,
-      eventDuration:this.eventDuration,
-      eventLocation:this.eventLocation
+      text: 'new event',
+      chain: this.chatLastMessageObj.chain || this.chatChain,
+      eventDateStart: this.eventDateStart,
+      eventDateEnd: this.eventDateStart + this.eventDuration * 3600000,
+      eventDescription: this.eventDescription,
+      eventDuration: this.eventDuration,
+      eventLocation: this.eventLocation
     })
     this.resetChat()
   }
 
   cancelEvent() {
     this.UI.createMessage({
-      text:'cancelling event',
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      eventDateStart:this.UI.nowSeconds*1000-3600000,
-      eventDateEnd:this.UI.nowSeconds*1000-3600000
+      text: 'cancelling event',
+      chain: this.chatLastMessageObj.chain || this.chatChain,
+      eventDateStart: this.UI.nowSeconds * 1000 - 3600000,
+      eventDateEnd: this.UI.nowSeconds * 1000 - 3600000
     })
     this.resetChat()
   }
 
   saveFund() {
     this.UI.createMessage({
-      text:'edited fund',
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      fund:this.fund
+      text: 'edited fund',
+      chain: this.chatLastMessageObj.chain || this.chatChain,
+      fund: this.fund
     })
     this.resetChat()
   }
 
   addMessage() {
     this.UI.createMessage({
-      text:this.draftMessage,
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      chatImageTimestamp:this.imageTimestamp,
-      chatImageUrlThumb:this.imageDownloadUrl,
-      chatImageUrlMedium:this.imageDownloadUrl,
-      chatImageUrlOriginal:this.imageDownloadUrl
+      text: this.draftMessage,
+      chain: this.chatLastMessageObj.chain || this.chatChain,
+      chatImageTimestamp: this.imageTimestamp,
+      chatImageUrlThumb: this.imageDownloadUrl,
+      chatImageUrlMedium: this.imageDownloadUrl,
+      chatImageUrlOriginal: this.imageDownloadUrl
     })
     this.resetChat()
   }
 
-  addRecipient(user,name) {
+  addRecipient(user, name) {
     this.UI.createMessage({
-      text:'adding '+name+' to this chat.',
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      recipientList:[user]
+      text: 'adding ' + name + ' to this chat.',
+      chain: this.chatLastMessageObj.chain || this.chatChain,
+      recipientList: [user]
     })
     this.resetChat()
   }
 
-  removeRecipient(user,name){
+  removeRecipient(user, name) {
     this.UI.createMessage({
-      text:'removing '+name+' from this chat.',
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      recipientListToBeRemoved:[user]
+      text: 'removing ' + name + ' from this chat.',
+      chain: this.chatLastMessageObj.chain || this.chatChain,
+      recipientListToBeRemoved: [user]
     })
     this.resetChat()
   }
 
-  onImageChange(event:any) {
-    const image=event.target.files[0]
-    const uploader=document.getElementById('uploader') as HTMLInputElement
-    const storageRef=this.storage.ref('images/' + Date.now() + image.name)
-    const task=storageRef.put(image)
+  onImageChange(event: any) {
+    const image = event.target.files[0]
+    const uploader = document.getElementById('uploader') as HTMLInputElement
+    const storageRef = this.storage.ref('images/' + Date.now() + image.name)
+    const task = storageRef.put(image)
 
-    task.snapshotChanges().subscribe((snapshot)=>{
-      document.getElementById('buttonFile').style.visibility='hidden'
-      document.getElementById('uploader').style.visibility='visible'
+    task.snapshotChanges().subscribe((snapshot) => {
+      document.getElementById('buttonFile').style.visibility = 'hidden'
+      document.getElementById('uploader').style.visibility = 'visible'
 
-      const percentage=(snapshot.bytesTransferred / snapshot.totalBytes) * 100
-      uploader.value=percentage.toString()
+      const percentage = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+      uploader.value = percentage.toString()
     },
-    (err:any)=>{
-      document.getElementById('buttonFile').style.visibility='visible'
-      document.getElementById('uploader').style.visibility='hidden'
-      uploader.value='0'
-    },
-    ()=>{
-      uploader.value='0'
-      document.getElementById('buttonFile').style.visibility='visible'
-      document.getElementById('uploader').style.visibility='hidden'
-      this.imageTimestamp=task.task.snapshot.ref.name.substring(0, 13)
-      storageRef.getDownloadURL().subscribe(url=>{
-        this.imageDownloadUrl=url
-        event.target.value=''
+      (err: any) => {
+        document.getElementById('buttonFile').style.visibility = 'visible'
+        document.getElementById('uploader').style.visibility = 'hidden'
+        uploader.value = '0'
+      },
+      () => {
+        uploader.value = '0'
+        document.getElementById('buttonFile').style.visibility = 'visible'
+        document.getElementById('uploader').style.visibility = 'hidden'
+        this.imageTimestamp = task.task.snapshot.ref.name.substring(0, 13)
+        storageRef.getDownloadURL().subscribe(url => {
+          this.imageDownloadUrl = url
+          event.target.value = ''
+        })
       })
-    })
   }
 
   refreshSearchLists() {
     if (this.searchFilter) {
       if (this.searchFilter.length > 1) {
-        this.teams=this.afs.collection('PERRINNMessages', ref=>ref
-        .where('userChain.nextMessage','==','none')
-        .where('verified','==',true)
-        .where('nameLowerCase','>=',this.searchFilter.toLowerCase())
-        .where('nameLowerCase','<=',this.searchFilter.toLowerCase()+'\uf8ff')
-        .orderBy('nameLowerCase')
-        .limit(20))
-        .snapshotChanges().pipe(map(changes=>{
-          return changes.map(c=>({
-            key:c.payload.doc.id,
-            values:c.payload.doc.data()
+        this.teams = this.afs.collection('PERRINNMessages', ref => ref
+          .where('userChain.nextMessage', '==', 'none')
+          .where('verified', '==', true)
+          .where('nameLowerCase', '>=', this.searchFilter.toLowerCase())
+          .where('nameLowerCase', '<=', this.searchFilter.toLowerCase() + '\uf8ff')
+          .orderBy('nameLowerCase')
+          .limit(20))
+          .snapshotChanges().pipe(map(changes => {
+            return changes.map(c => ({
+              key: c.payload.doc.id,
+              values: c.payload.doc.data()
+            }))
           }))
-        }))
       }
     } else {
-      this.teams=null
+      this.teams = null
     }
   }
 
-  resetChat(){
-    this.searchFilter=null
-    this.teams=null
-    this.draftMessage=''
-    this.imageTimestamp=null
-    this.imageDownloadUrl=null
-    this.showChatDetails=false
-    this.messageShowDetails=[]
-    this.messageShowActions=[]
+  resetChat() {
+    this.searchFilter = null
+    this.teams = null
+    this.draftMessage = ''
+    this.imageTimestamp = null
+    this.imageDownloadUrl = null
+    this.showChatDetails = false
+    this.messageShowDetails = []
+    this.messageShowActions = []
   }
 
 }

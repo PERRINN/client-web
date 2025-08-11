@@ -20,7 +20,7 @@ import firebase from 'firebase/compat/app';
   <ul class="listLight">
     <li *ngFor="let message of messages | async">
       <div (click)="router.navigate(['profile',message.values.user])">
-        <img [src]="message?.values.imageUrlThumbUser" style="float:left;margin:10px;opacity:1;object-fit:cover;height:50px;width:50px">
+        <img [src]="message?.values.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message?.values)" style="float:left;margin:10px;opacity:1;object-fit:cover;height:50px;width:50px">
         <div style="float:left;padding:10px;width:55%">
           <div>{{message.values?.name}}</div>
           <span *ngIf="message.values?.publicLink" class="material-icons-outlined" style="font-size:18px;line-height:10px">link</span>
@@ -39,7 +39,7 @@ import firebase from 'firebase/compat/app';
   <ul class="listLight" style="margin:10px">
     <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="float:left;object-fit:cover;width:100%">
     <li *ngFor="let message of messages | async" style="float:left" (click)="router.navigate(['profile',message.values.user])">
-      <img [src]="message?.values.imageUrlThumbUser" style="float:left;object-fit:cover;height:77px;width:77px">
+      <img [src]="message?.values.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message?.values)" style="float:left;object-fit:cover;height:77px;width:77px">
     </li>
   </ul>
   <div class="separator" style="width:100%;margin:0px;cursor:default"></div>

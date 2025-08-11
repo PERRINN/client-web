@@ -12,7 +12,7 @@ import firebase from 'firebase/compat/app';
   selector:'settings',
   template:`
   <div class="sheet" style="background-color:black">
-  <img class="imageWithZoom" [src]="UI.currentUserLastMessageObj?.imageUrlMedium||UI.currentUserLastMessageObj?.imageUrlThumbUser" style="object-fit:cover;margin:10px;height:200px;width:200px" (click)="UI.showFullScreenImage(UI.currentUserLastMessageObj?.imageUrlOriginal)"
+  <img class="imageWithZoom" [src]="UI.currentUserLastMessageObj?.imageUrlMedium||UI.currentUserLastMessageObj?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, UI.currentUserLastMessageObj)" style="object-fit:cover;margin:10px;height:200px;width:200px" (click)="UI.showFullScreenImage(UI.currentUserLastMessageObj?.imageUrlOriginal)"
   onerror="this.onerror=null;this.src='https://storage.googleapis.com/perrinn-d5fc1.appspot.com/images%2F1585144867972Screen%20Shot%202018-03-16%20at%2015.05.10_180x180.png?GoogleAccessId=firebase-adminsdk-rh8x2%40perrinn-d5fc1.iam.gserviceaccount.com&Expires=16756761600&Signature=I3Kem9n6zYjSNijnKOx%2FAOUAg65GN3xf8OD1qD4uo%2BayOFblFIgfn81uPWRTzhGg14lJdyhz3Yx%2BiCXuYCIdYnduqMZcIjtHE6WR%2BPo74ckemuxIKx3N24tlBJ6DgkfgqwmIkw%2F%2FKotm8Cz%2Fq%2FbIZm%2FvAOi2dpBHqrHiIFXYb8AVYnhP1osUhVvyzapgYJEBZJcHur7v6uqrSKwQ4DfeHHinbJpvkX3wjM6Nxabi3kVABdGcGqMoAPGCTZJMzNj8xddAXuECbptQprd9LlnQOuL4tuDfLMAOUXTHmJVhJEBrquxQi8iPRjnLOvnqF8s2We0SOxprqEuwbZyxSgH05Q%3D%3D'">
   <br/>
   <div>
@@ -207,6 +207,8 @@ export class SettingsComponent {
           chatImageUrlThumb:url,
           chatImageUrlMedium:url,
           chatImageUrlOriginal:url,
+          imageUrlThumbUser:url,
+          imageUrlMedium:url,
           imageUrlOriginal:url
         })
         this.router.navigate(['chat',this.UI.currentUser])
