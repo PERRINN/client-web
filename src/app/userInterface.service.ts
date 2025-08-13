@@ -6,6 +6,9 @@ import { map } from 'rxjs/operators'
 import firebase from 'firebase/compat/app'
 import { formatNumber } from '@angular/common'
 import { Router, ActivatedRoute } from '@angular/router';
+import { isDevMode } from '@angular/core';
+import { environment } from '../environments/environment';
+
 
 @Injectable()
 export class UserInterfaceService {
@@ -22,12 +25,32 @@ export class UserInterfaceService {
   appSettingsContract:any
   hasTouch:boolean
   isStandalone:boolean
-
+  public isDev: boolean;
+  public revolutMode: 'sandbox' | 'prod';
+  
   constructor(
     private afAuth: AngularFireAuth,
     public router:Router,
     public afs: AngularFirestore
   ) {
+
+    const host = location.hostname;
+    this.isDev =
+      isDevMode() ||
+      host === 'localhost' ||
+      host === '127.0.0.1' ||
+      !environment.production;
+    
+    this.revolutMode = this.isDev ? 'sandbox' : 'prod';
+    
+    // Optional: quick visibility
+    console.log('Env detect →', {
+      isDevMode: isDevMode(),
+      prodFlag: environment.production,
+      host,
+      isDev: this.isDev,
+      revolutMode: this.revolutMode,
+    });
 
     this.hasTouch = false;
     if ('maxTouchPoints' in navigator) {

@@ -20,6 +20,16 @@ import { AngularFireAuth } from "@angular/fire/compat/auth";
 import firebase from "firebase/compat/app";
 import { environment } from '../environments/environment';
 import { AgChartOptions } from 'ag-charts-community';
+import RevolutCheckout from '@revolut/checkout';
+
+import { firstValueFrom } from 'rxjs';
+
+interface RevolutOrderResponse {
+  id: string;
+  token: string;      // ✅ add this
+  mode: 'prod' | 'sandbox'; // ✅ add if missing
+  // ... other fields you use
+}
 
 @Component({
   selector: "buyPRN",
@@ -142,54 +152,21 @@ import { AgChartOptions } from 'ag-charts-community';
             {{UI.formatSharesToCurrency(currencySelected,credit*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}
             </li>
           </ul>
-          <span *ngIf="creditSelected!=undefined&&currencySelected!=undefined">You will pay {{UI.formatSharesToCurrency(currencySelected,creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}} and recieve {{UI.formatSharesToPRNCurrency(currencySelected,creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}.</span>
+          <br />
+          <div *ngIf="creditSelected!=undefined&&currencySelected!=undefined" style="text-align:center">
+            You will pay {{UI.formatSharesToCurrency(currencySelected,creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}} and recieve {{UI.formatSharesToPRNCurrency(currencySelected,creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}.
+          </div>
         </div>
+        <br />
+      <div class="buttonWhite" *ngIf="UI.currentUser && !processing && creditSelected!=undefined && currencySelected!=undefined"
+              (click)="payWithRevolutLink()"
+              style="width:200px;margin:10px auto;font-size:14px;text-align:center;line-height:25px;padding:4px">
+        Go to checkout
+      </div>
         <div class="separator"></div>
       </div>
       <br />
-      <div *ngIf="UI.currentUser"
-        class="module form-module"
-        style="width:500px;max-width:80%;border-style:solid"
-      >
-        <div class="title">
-          Credit or debit card
-        </div>
-        <div class="form" style="background-color:#ddd">
-          <form (ngSubmit)="createStripeToken()" class="checkout">
-            <div id="form-field">
-              <div id="card-info" #cardElement></div>
-              <br />
-              <button
-                *ngIf="
-                  !processing &&
-                  creditSelected != undefined &&
-                  currencySelected != undefined
-                "
-                id="submit-button"
-                type="submit"
-              >
-                Pay
-                {{
-                  UI.formatSharesToCurrency(
-                    currencySelected,
-                    (amountCharge / 100) *
-                      UI.appSettingsPayment.currencyList[currencySelected].toCOIN
-                  )
-                }}
-              </button>
-              <br />
-              <mat-error id="card-errors" role="alert" *ngIf="stripeMessage" style="color:#333">
-                &nbsp;{{ stripeMessage }}
-              </mat-error>
-            </div>
-            <div style="float:right">
-              <img src="./../assets/App icons/poweredByStripe2.png" style="width:175px"/>
-            </div>
-          </form>
-        </div>
-      </div>
-      <br />
-      <div class="separator" style="width:100%;margin:0px"></div>
+      <div class="separator" style="width:100%;margin-top:150px"></div>
     </div>
   `,
 })
@@ -206,15 +183,11 @@ export class buyPRNComponent {
   creditList:any
   creditSelected:number
   math:any
-  card:any
-  cardHandler = this.onChange.bind(this)
-  stripeMessage:string
-  @ViewChild("cardElement") cardElement:ElementRef
   processing:boolean
   currentFunds:Observable<any[]>
   chartOptions:AgChartOptions
   showPastFunds:boolean
-
+  
   constructor(
     public afAuth: AngularFireAuth,
     public afs: AngularFirestore,
@@ -223,7 +196,7 @@ export class buyPRNComponent {
     public UI: UserInterfaceService,
     private cd: ChangeDetectorRef,
     private route:ActivatedRoute,
-    private http: HttpClient
+    private http: HttpClient,
   ) {
     if (UI.currentUserLastMessageObj != undefined)
       this.currencySelected =
@@ -252,8 +225,6 @@ export class buyPRNComponent {
     this.processing=false
     this.showPastFunds=false
     this.math = Math;
-    if(this.UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2')this.creditList=[1,100,200,500,1000]
-    else this.creditList=[50,100,200,500,1000]
     this.currentFunds = this.afs
       .collection<any>("PERRINNMessages", (ref) =>
         ref
@@ -281,78 +252,21 @@ export class buyPRNComponent {
       }
   }
 
-  ngAfterViewInit() {
-    this.card = elements.create("card");
-    this.card.mount(this.cardElement.nativeElement);
-    this.card.addEventListener("change", this.cardHandler);
-  }
-
   ngOnInit() {
-  }
-
-  ngOnDestroy() {
-    if (this.card) {
-      this.card.destroy();
-    }
-  }
-
-  onChange({ error }) {
-    if (error) this.stripeMessage = error.message;
-    else this.stripeMessage = null;
-    this.cd.detectChanges();
-  }
-  async createStripeToken() {
-    this.processing = true;
-    this.createPaymentIntent(this.amountCharge, this.currencySelected);
-    // const { token, error } = await stripe.createToken(this.card);
-    // if (token) this.onSuccess(token);
-    // else this.onError(error);
-  }
-  onSuccess(paymentIntent) {
-    this.card.destroy();
-    this.stripeMessage = "processing payment";
-    this.afs
-      .collection("PERRINNTeams/" + this.UI.currentUser + "/payments")
-      .add({
-        source: paymentIntent,
-        amountSharesPurchased: this.amountSharesPurchased,
-        amountCharge: this.amountCharge,
-        currency: this.currencySelected,
-        user: this.UI.currentUser,
-        serverTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      })
-      .then((chargeID) => {
-        this.afs
-          .doc<any>(
-            "PERRINNTeams/" + this.UI.currentUser + "/payments/" + chargeID.id
-          )
-          .valueChanges()
-          .subscribe((payment) => {
-            if (payment.status)
-              this.stripeMessage = `Payment ${payment.status}`;
-          });
-      });
-  }
-  onError(error) {
-    this.processing = false;
-    if (error.message) this.stripeMessage = error.message;
-  }
-
+    // credit list
+    this.creditList = this.UI.isDev
+      ? [1, 100, 200, 500, 1000]
+      : [50, 100, 200, 500, 1000];  }
+  
   refreshAmountCharge() {
-    if (
-      this.creditSelected != undefined &&
-      this.currencySelected != undefined
-    ) {
-      this.amountCharge = Number(
-        ((this.creditList[this.creditSelected] || 0) * 100).toFixed(0)
-      );
+    if (this.creditSelected != undefined && this.currencySelected != undefined) {
+      this.amountCharge = Number(((this.creditList[this.creditSelected] || 0) * 100).toFixed(0));
       this.amountSharesPurchased = Number(
-        (this.amountCharge / 100) *
-          this.UI.appSettingsPayment.currencyList[this.currencySelected].toCOIN
+        (this.amountCharge / 100) * this.UI.appSettingsPayment.currencyList[this.currencySelected].toCOIN
       );
     }
   }
-
+  
   objectToArray(obj) {
     if (obj == null) {
       return [];
@@ -361,49 +275,6 @@ export class buyPRNComponent {
       return [key, obj[key]];
     });
   }
-
-  createPaymentIntent(amount: number, currency: string) {
-    const url = "https://api.stripe.com/v1/payment_intents";
-    var urlencoded = new URLSearchParams();
-    urlencoded.append("amount", amount.toString());
-    urlencoded.append("currency", currency);
-    urlencoded.append("receipt_email", this.UI.currentUserEmail);
-    urlencoded.append(
-      "description",
-      `${this.amountSharesPurchased} Shares to ${this.UI.currentUserEmail}`
-    );
-    const params = {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Bearer ${environment.STRIPE_SECRET}`,
-      },
-    };
-    const res = this.http.post(url, urlencoded, params).subscribe(
-      (success) => {
-        this.submitPayment(success);
-      },
-      ({ error: { error } }) => {
-        console.log(error);
-        this.stripeMessage = error.errorMessage;
-      }
-    );
-    return res;
-  }
-
-  submitPayment = async (intent) => {
-    console.log("success");
-    const data = {
-      payment_method: { card: this.card },
-    };
-    const { paymentIntent, error } = await stripe.confirmCardPayment(
-      intent.client_secret,
-      data
-    );
-    if (error) {
-      this.onError(error);
-    }
-    if (paymentIntent) this.onSuccess(paymentIntent);
-  };
 
   activateTransactionPending(transactionPendingMessage) {
     if (!transactionPendingMessage) {
@@ -419,4 +290,34 @@ export class buyPRNComponent {
     });
     this.router.navigate(['chat', this.UI.currentUser]);
   }
+
+  async payWithRevolutLink() {
+    // Open a blank tab immediately on click
+    const newWindow = window.open('', '_blank');
+  
+    try {
+      const mode = this.UI.revolutMode === 'prod' ? 'prod' : 'sandbox';
+      const body = {
+        amount: this.amountCharge,
+        currency: (this.currencySelected || 'usd').toUpperCase(),
+        email: this.UI.currentUserEmail,
+        reference: `PRN-${Date.now()}`,
+        description: `Credit ${this.UI.formatSharesToPRNCurrency(this.currencySelected,this.creditList[this.creditSelected]*this.UI.appSettingsPayment.currencyList[this.currencySelected].toCOIN)} to ${this.UI.currentUserEmail}`,
+        mode
+      };
+  
+      const fnUrl = 'https://us-central1-perrinn-d5fc1.cloudfunctions.net/createRevolutOrder';
+      const order: any = await firstValueFrom(this.http.post(fnUrl, body));
+  
+      if (order.checkout_url) {
+        newWindow.location.href = order.checkout_url; // Load Revolut in the tab we opened
+      } else {
+        newWindow.close();
+      }
+    } catch (err) {
+      console.error(err);
+      if (newWindow) newWindow.close();
+    }
+  }
+  
 }
