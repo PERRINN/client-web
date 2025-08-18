@@ -105,15 +105,16 @@ import firebase from 'firebase/compat/app'
     <div>
       <!-- First dropdown for the date -->
       <select [(ngModel)]="selectedDate" (change)="onDateChange($event)" style="float:left;width:200px;margin:10px">
-        <option *ngFor="let date of eventDateList; let first=first" [value]="date">
+        <option *ngFor="let date of eventDateListShort; let first=first" [value]="date">
           {{date | date:'EEEE'}}
           {{date | date:'d MMM'}}
+          {{date | date:'h:mm a'}}
         </option>
       </select>
       <!-- Second dropdown for hour -->
       <select [(ngModel)]="selectedTime" (change)="onTimeChange($event)" style="clear:none;float:left;width:100px;text-align:center;margin:10px">
-        <option *ngFor="let date of eventDateList; let first=first" [value]="date">
-          {{date | date:'h:mm a'}}
+        <option *ngFor="let time of eventTimeList; let first=first" [value]="date">
+          {{time | date:'h:mm a'}}
         </option>
       </select>
     </div>
@@ -265,6 +266,7 @@ import firebase from 'firebase/compat/app'
   </div>
     `
 })
+
 export class ChatComponent {
   draftMessage:string
   imageTimestamp:string
@@ -296,6 +298,8 @@ export class ChatComponent {
   showImageGallery:boolean
   selectedDate: number;
   selectedTime: number;
+  eventDateListShort: any;
+  eventTimeList: any;
 
 constructor(
     public afs:AngularFirestore,
@@ -332,11 +336,11 @@ constructor(
   }
 
   onDateChange(event: any) {
-    this.eventDateStart = this.selectedDate;
-  }
-
-  onTimeChange(event: any) {
-    this.eventDateStart = this.selectedTime;
+    this.eventTimeList = [];
+    var j;
+    for (j = 0; j < 48; j++) {
+      this.eventTimeList[j] = this.selectedDate + j * 3600000 / 2;
+    }
   }
 
   ngOnInit(){
@@ -357,10 +361,16 @@ constructor(
 
   refresheventDateList() {
     var i
-    this.eventDateList = []
+    this.eventDateList = [];
+    this.eventDateListShort = [];
     for (i = 0; i < 2200; i++) {
-      this.eventDateList[i] = (Math.ceil(this.UI.nowSeconds / 3600) + i / 2) * 3600000
+      this.eventDateList[i] = (Math.ceil(this.UI.nowSeconds / 3600) + i / 2) * 3600000;
+      if (this.math.round(this.eventDateList[i]/3600000/24)==(this.eventDateList[i]/3600000/24)) {
+        this.eventDateListShort[i] = (Math.floor(this.UI.nowSeconds / 3600) + i / 2) * 3600000;
+      }
     }
+    this.eventDateListShort = this.eventDateListShort.filter(item => item !== null && item !== undefined);
+    this.eventDateListShort = [Math.floor(this.UI.nowSeconds / 3600 / 24)*24*3600000, ...this.eventDateListShort];
   }
 
   refreshMessages(chain) {
