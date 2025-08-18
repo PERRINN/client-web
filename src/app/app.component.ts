@@ -22,6 +22,8 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
         <div *ngIf="UI.currentUser" style="float:left;cursor:pointer" (click)="router.navigate(['profile',UI.currentUser])">
           <img *ngIf="UI.currentUserLastMessageObj" [src]="UI.currentUserLastMessageObj?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, UI.currentUserLastMessageObj)" style="display:inline;float:left;margin:5px;object-fit:cover;width:35px;height:35px">
           <span style="margin:11px;font-size:14px;line-height:40px">{{UI.formatSharesToPRNCurrency(null,UI.currentUserLastMessageObj?.wallet?.balance||0)}}</span>
+          <span style="font-size:14px;line-height:40px;color:#ff6666"> {{UI.isDev ? 'DEV' : ''}}</span>
+          <span style="font-size:14px;line-height:40px;color:#ff6666"> {{UI.revolutMode=='sandbox'?'sandbox':''}}</span>
         </div>
         <button class="buttonBlack" style="float:right;line-height:20px;width:100px;margin:7px" (click)="router.navigate(['buyPRN',''])" [disabled]='this.router.url.startsWith("/buyPRN")'>Buy PRN</button>
       </div>
