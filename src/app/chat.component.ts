@@ -112,9 +112,11 @@ import firebase from 'firebase/compat/app'
         </option>
       </select>
       <!-- Second dropdown for hour -->
-      <select [(ngModel)]="selectedTime" (change)="onTimeChange($event)" style="clear:none;float:left;width:100px;text-align:center;margin:10px">
-        <option *ngFor="let time of eventTimeList; let first=first" [value]="date">
-          {{time | date:'h:mm a'}}
+      <select [(ngModel)]="selectedTime" style="clear:none;float:left;width:200px;text-align:center;margin:10px">
+        <option *ngFor="let date of eventTimeList; let first=first" [value]="date">
+          {{date | date:'EEEE'}}
+          {{date | date:'d MMM'}}
+          {{date | date:'h:mm a'}}
         </option>
       </select>
     </div>
@@ -339,7 +341,7 @@ constructor(
     this.eventTimeList = [];
     var j;
     for (j = 0; j < 48; j++) {
-      this.eventTimeList[j] = this.selectedDate + j * 3600000 / 2;
+      this.eventTimeList[j] = this.selectedDate*1 + j * 3600000 / 2;
     }
   }
 
@@ -366,11 +368,28 @@ constructor(
     for (i = 0; i < 2200; i++) {
       this.eventDateList[i] = (Math.ceil(this.UI.nowSeconds / 3600) + i / 2) * 3600000;
       if (this.math.round(this.eventDateList[i]/3600000/24)==(this.eventDateList[i]/3600000/24)) {
-        this.eventDateListShort[i] = (Math.floor(this.UI.nowSeconds / 3600) + i / 2) * 3600000;
+        this.eventDateListShort[i] = (Math.ceil(this.UI.nowSeconds / 3600) + i / 2) * 3600000;
       }
     }
     this.eventDateListShort = this.eventDateListShort.filter(item => item !== null && item !== undefined);
     this.eventDateListShort = [Math.floor(this.UI.nowSeconds / 3600 / 24)*24*3600000, ...this.eventDateListShort];
+  }
+
+  eventTimeListInit() {
+    this.selectedDate = Math.floor(this.eventDateStart / 3600000 / 24)*24*3600000;
+    this.selectedTime = this.eventDateStart;
+    this.eventTimeList = [];
+    var j; 
+    if (this.selectedDate != undefined) {   
+      for (j = 0; j < 48; j++) {
+        this.eventTimeList[j] = this.selectedDate*1 + j * 3600000 / 2;
+      }
+    }
+    else {
+      for (j = 0; j < 48; j++) {
+        this.eventTimeList[j] = Math.floor(this.UI.nowSeconds / 3600 / 24)*24*3600000 + j * 3600000 / 2;
+      }
+    }
   }
 
   refreshMessages(chain) {
@@ -396,6 +415,7 @@ constructor(
           this.eventDuration = c.payload.doc.data()['eventDuration']
           this.eventLocation = c.payload.doc.data()['eventLocation']
           this.fund = c.payload.doc.data()['fund'] || this.fund
+          this.eventTimeListInit();
         }
       })
       batch.commit()
@@ -425,6 +445,7 @@ constructor(
           this.eventDuration = c.payload.doc.data()['eventDuration']
           this.eventLocation = c.payload.doc.data()['eventLocation']
           this.fund = c.payload.doc.data()['fund'] || this.fund
+          this.eventTimeListInit();
         }
       })
       batch.commit()
@@ -432,7 +453,7 @@ constructor(
         key: c.payload.doc.id,
         payload: c.payload.doc.data()
       }))
-    }))
+    }))        
   }
 
   isMessageNewTimeGroup(messageServerTimestamp: any) {
@@ -497,6 +518,7 @@ constructor(
   }
 
   saveEvent() {
+    this.eventDateStart = this.selectedTime;
     this.UI.createMessage({
       text: 'new event',
       chain: this.chatLastMessageObj.chain || this.chatChain,
