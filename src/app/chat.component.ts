@@ -126,7 +126,7 @@ import firebase from 'firebase/compat/app'
     <span style="margin:10px">Event location</span>
     <input style="width:50%;margin:10px" maxlength="200" [(ngModel)]="eventLocation" placeholder="Event location">
     <br/>
-    <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()" [disabled]="!(eventDateStart!=chatLastMessageObj?.eventDateStart||eventDescription!=chatLastMessageObj?.eventDescription||eventDuration!=chatLastMessageObj?.eventDuration||eventLocation!=chatLastMessageObj?.eventLocation)">Save event</button>
+    <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()" [disabled]="!(eventDateStart!=chatLastMessageObj?.eventDateStart||eventDescription!=chatLastMessageObj?.eventDescription||eventDuration!=chatLastMessageObj?.eventDuration||eventLocation!=chatLastMessageObj?.eventLocation||selectedTime!=chatLastMessageObj?.eventDateStart)">Save event</button>
     <button class="buttonRed" *ngIf="chatLastMessageObj?.eventDateStart!=null" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="cancelEvent()" [disabled]="!(eventDateEnd/60000>UI.nowSeconds/60)">Cancel event</button>
     <div class="separator" style="width:100%;margin:0px"></div>
     <div>
@@ -302,6 +302,12 @@ export class ChatComponent {
   selectedTime: number;
   eventDateListShort: any;
   eventTimeList: any;
+  testDay: any;
+  dayOfToday: number;
+  dateOfThatDay: Date;
+  dateOfThisDay: Date;
+  midnightOfThatDay: any;
+  midnightOfThisDay: any;
 
 constructor(
     public afs:AngularFirestore,
@@ -338,11 +344,20 @@ constructor(
   }
 
   onDateChange(event: any) {
-    this.eventTimeList = [];
-    var j;
-    for (j = 0; j < 48; j++) {
-      this.eventTimeList[j] = this.selectedDate*1 + j * 3600000 / 2;
-    }
+    this.eventTimeListInit();
+    //I search the hour:min corresponding to the timeslot previously selected to reinject it as the current selected timeslot (on another day)
+    console.log(this.selectedTime);
+    console.log(this.selectedDate);
+    this.dateOfThatDay = new Date(Number(this.selectedTime));
+    console.log(this.dateOfThatDay);
+    this.dateOfThisDay = new Date(Number(this.selectedDate));
+    console.log(this.selectedDate);
+    this.midnightOfThatDay = new Date(this.dateOfThatDay.getFullYear(), this.dateOfThatDay.getMonth(), this.dateOfThatDay.getDate());
+    console.log(this.midnightOfThatDay);
+    this.midnightOfThisDay = new Date(this.dateOfThisDay.getFullYear(), this.dateOfThisDay.getMonth(), this.dateOfThisDay.getDate());
+    console.log(this.midnightOfThisDay);
+    this.selectedTime = this.midnightOfThisDay.getTime() + (this.dateOfThatDay.getTime() - this.midnightOfThatDay.getTime());
+    console.log(this.selectedTime);
   }
 
   ngOnInit(){
@@ -376,19 +391,51 @@ constructor(
   }
 
   eventTimeListInit() {
-    this.selectedDate = Math.floor(this.eventDateStart / 3600000 / 24)*24*3600000;
-    this.selectedTime = this.eventDateStart;
     this.eventTimeList = [];
-    var j; 
-    if (this.selectedDate != undefined) {   
-      for (j = 0; j < 48; j++) {
+    if (this.selectedDate != undefined && this.selectedDate > (this.UI.nowSeconds*1000 - 3600000)) {   
+      for (let j = 0; j < 48; j++) {
         this.eventTimeList[j] = this.selectedDate*1 + j * 3600000 / 2;
       }
     }
     else {
-      for (j = 0; j < 48; j++) {
+      for (let j = 0; j < 48; j++) {
         this.eventTimeList[j] = Math.floor(this.UI.nowSeconds / 3600 / 24)*24*3600000 + j * 3600000 / 2;
       }
+    }
+    //Adding 48 timeslots before the first of the current list
+    for (let i=0; i < 48; i++) {
+      this.eventTimeList = [this.eventTimeList[0]-1800000, ...this.eventTimeList];
+    }
+    //Suppression of every time slot which is 'the day after' or 'the day before' in the second dropdown menu
+    this.dayOfToday = new Date(this.eventTimeList[48]).getDate();
+    this.testDay = [];
+    for (let j=0; j < 96; j++) {
+      this.eventTimeList[j] = new Date(this.eventTimeList[j]);
+      this.testDay[j] = this.eventTimeList[j].getDate();
+      if (this.testDay[j] != this.dayOfToday) {
+        this.eventTimeList[j] = null;
+      }
+      else {
+        this.eventTimeList[j] = (this.eventTimeList[j]).getTime();
+      }
+    }
+    this.eventTimeList = this.eventTimeList.filter(item => item !== null);
+    //Suppression of every time slot which is too much 'in the past' compared to current time in second dropdown menu
+    for (let j=0; j < this.eventTimeList.length; j++) {
+      if (this.eventTimeList[j] < this.UI.nowSeconds * 1000 - 5400000) {
+        this.eventTimeList[j] = null;
+      }
+    }
+    this.eventTimeList = this.eventTimeList.filter(item => item !== null);
+  }
+
+  selectedDateTimeInit() {
+    this.selectedTime = this.eventDateStart;
+    if (this.eventDateStart != undefined && this.eventDateStart > (this.UI.nowSeconds*1000 - 3600000)) {
+      this.selectedDate = Math.floor(this.eventDateStart / 3600000 / 24)*24*3600000;
+    }
+    else {
+      this.selectedDate = this.eventDateListShort[0];
     }
   }
 
@@ -415,6 +462,7 @@ constructor(
           this.eventDuration = c.payload.doc.data()['eventDuration']
           this.eventLocation = c.payload.doc.data()['eventLocation']
           this.fund = c.payload.doc.data()['fund'] || this.fund
+          this.selectedDateTimeInit();
           this.eventTimeListInit();
         }
       })
@@ -445,6 +493,7 @@ constructor(
           this.eventDuration = c.payload.doc.data()['eventDuration']
           this.eventLocation = c.payload.doc.data()['eventLocation']
           this.fund = c.payload.doc.data()['fund'] || this.fund
+          this.selectedDateTimeInit();
           this.eventTimeListInit();
         }
       })
