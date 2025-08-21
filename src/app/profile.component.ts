@@ -13,6 +13,11 @@ import { ChangeDetectorRef } from '@angular/core'
   selector:'profile',
   template:`
   <div class='sheet'>
+    <div *ngIf="UI.currentUserLastMessageObj&&!UI.currentUserLastMessageObj?.isImageUserUpdated"
+          style="background-color:rgb(255, 251, 221); color: #333; text-align: center; font-size: 10px; border-radius: 0px; cursor:pointer"
+          (click)="router.navigate(['settings'])">
+        Add a profile picture.
+    </div>
       <div *ngIf="UI.hasTouch&&!UI.isStandalone"
         style="background-color:rgb(255, 251, 221); color: #333; text-align: center; font-size: 10px; border-radius: 0px">
       Add this app to your home screen for a better experience.
