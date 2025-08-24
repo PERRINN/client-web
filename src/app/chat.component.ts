@@ -414,27 +414,14 @@ export class ChatComponent {
         nextMessageRead = (c.payload.doc.data()['reads'] || [])[this.UI.currentUser]
         if (c.payload.doc.data()['lastMessage']) {
           if (this.UI.currentUser && !this.reads.includes(c.payload.doc.id)) batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id), { serverTimestamp: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
-          this.reads.push(c.payload.doc.id)
-          this.chatLastMessageObj=c.payload.doc.data()
-          this.chatSubject=c.payload.doc.data()['chatSubject']
-          this.fund=c.payload.doc.data()['fund']||this.fund
-          if (c.payload.doc.data()['eventDateStart']!=0){
-            this.eventDescription=c.payload.doc.data()['eventDescription'];
-            this.eventDateStart=c.payload.doc.data()['eventDateStart'];
-            this.eventDateEnd=c.payload.doc.data()['eventDateEnd'];
-            this.eventDuration=c.payload.doc.data()['eventDuration'];
-            this.eventLocation=c.payload.doc.data()['eventLocation']||this.eventLocation;
-            this.eventDescriptionChoice = this.eventDescription;
-            this.eventDurationChoice = this.eventDuration;
-            this.eventLocationChoice = this.eventLocation;
-          }
-          else {
-            this.eventDescription='';
-            this.eventDateStart=0;
-            this.eventDateEnd=0;
-            this.eventDuration=0;
-            this.eventLocation="https://meet.google.com/ebp-djfh-aht";
-          };
+            this.chatLastMessageObj = c.payload.doc.data()
+          this.chatSubject = c.payload.doc.data()['chatSubject']
+          this.eventDescription = c.payload.doc.data()['eventDescription']
+          this.eventDateStart = c.payload.doc.data()['eventDateStart']
+          this.eventDateEnd = c.payload.doc.data()['eventDateEnd']
+          this.eventDuration = c.payload.doc.data()['eventDuration']
+          this.eventLocation = c.payload.doc.data()['eventLocation']
+          this.fund = c.payload.doc.data()['fund'] || this.fund
         }
       })
       batch.commit()
@@ -457,26 +444,13 @@ export class ChatComponent {
         if (c.payload.doc.data()['lastMessage']) {
           if (this.UI.currentUser && !this.reads.includes(c.payload.doc.id)) batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id), { serverTimestamp: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
           this.reads.push(c.payload.doc.id)
-          this.chatLastMessageObj=c.payload.doc.data()
-          this.chatSubject=c.payload.doc.data()['chatSubject']
-          this.fund=c.payload.doc.data()['fund']||this.fund
-          if (c.payload.doc.data()['eventDateStart']!=0){
-            this.eventDescription=c.payload.doc.data()['eventDescription'];
-            this.eventDateStart=c.payload.doc.data()['eventDateStart'];
-            this.eventDateEnd=c.payload.doc.data()['eventDateEnd'];
-            this.eventDuration=c.payload.doc.data()['eventDuration'];
-            this.eventLocation=c.payload.doc.data()['eventLocation']||this.eventLocation;
-            this.eventDescriptionChoice = this.eventDescription;
-            this.eventDurationChoice = this.eventDuration;
-            this.eventLocationChoice = this.eventLocation;
-          }
-          else {
-            this.eventDescription='';
-            this.eventDateStart=0;
-            this.eventDateEnd=0;
-            this.eventDuration=0;
-            this.eventLocation="https://meet.google.com/ebp-djfh-aht";
-          };
+          this.chatLastMessageObj = c.payload.doc.data()
+          this.chatSubject = c.payload.doc.data()['chatSubject']
+          this.eventDescription = c.payload.doc.data()['eventDescription']
+          this.eventDateStart = c.payload.doc.data()['eventDateStart']
+          this.eventDuration = c.payload.doc.data()['eventDuration']
+          this.eventLocation = c.payload.doc.data()['eventLocation']
+          this.fund = c.payload.doc.data()['fund'] || this.fund
         }
       })
       batch.commit()

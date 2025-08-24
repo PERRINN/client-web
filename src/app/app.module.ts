@@ -66,7 +66,7 @@ export const firebaseConfig = {
     AgChartsAngular,
   ],
   providers: [
-    UserInterfaceService
+    UserInterfaceService,
   ],
   bootstrap: [AppComponent]
 })
