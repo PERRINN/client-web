@@ -414,7 +414,8 @@ export class ChatComponent {
         nextMessageRead = (c.payload.doc.data()['reads'] || [])[this.UI.currentUser]
         if (c.payload.doc.data()['lastMessage']) {
           if (this.UI.currentUser && !this.reads.includes(c.payload.doc.id)) batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id), { serverTimestamp: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
-            this.chatLastMessageObj = c.payload.doc.data()
+          this.reads.push(c.payload.doc.id)
+          this.chatLastMessageObj = c.payload.doc.data()
           this.chatSubject = c.payload.doc.data()['chatSubject']
           this.eventDescription = c.payload.doc.data()['eventDescription']
           this.eventDateStart = c.payload.doc.data()['eventDateStart']
