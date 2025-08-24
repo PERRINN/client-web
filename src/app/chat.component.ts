@@ -345,19 +345,12 @@ constructor(
 
   onDateChange(event: any) {
     this.eventTimeListInit();
-    //I search the hour:min corresponding to the timeslot previously selected to reinject it as the current selected timeslot (on another day)
-    console.log(this.selectedTime);
-    console.log(this.selectedDate);
+    //Search the hour:min corresponding to the timeslot previously selected to reinject it as the current selected timeslot (on another day)
     this.dateOfThatDay = new Date(Number(this.selectedTime));
-    console.log(this.dateOfThatDay);
     this.dateOfThisDay = new Date(Number(this.selectedDate));
-    console.log(this.selectedDate);
     this.midnightOfThatDay = new Date(this.dateOfThatDay.getFullYear(), this.dateOfThatDay.getMonth(), this.dateOfThatDay.getDate());
-    console.log(this.midnightOfThatDay);
     this.midnightOfThisDay = new Date(this.dateOfThisDay.getFullYear(), this.dateOfThisDay.getMonth(), this.dateOfThisDay.getDate());
-    console.log(this.midnightOfThisDay);
     this.selectedTime = this.midnightOfThisDay.getTime() + (this.dateOfThatDay.getTime() - this.midnightOfThatDay.getTime());
-    console.log(this.selectedTime);
   }
 
   ngOnInit(){
@@ -432,10 +425,11 @@ constructor(
   selectedDateTimeInit() {
     this.selectedTime = this.eventDateStart;
     if (this.eventDateStart != undefined && this.eventDateStart > (this.UI.nowSeconds*1000 - 3600000)) {
-      this.selectedDate = Math.floor(this.eventDateStart / 3600000 / 24)*24*3600000;
+      this.selectedDate = Math.ceil(this.eventDateStart / 3600000 / 24)*24*3600000;
     }
     else {
       this.selectedDate = this.eventDateListShort[0];
+      console.log("cheers");
     }
   }
 
