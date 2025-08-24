@@ -6,6 +6,9 @@ import { map } from 'rxjs/operators'
 import firebase from 'firebase/compat/app'
 import { formatNumber } from '@angular/common'
 import { Router, ActivatedRoute } from '@angular/router';
+import { isDevMode } from '@angular/core';
+import { environment } from '../environments/environment';
+
 
 @Injectable()
 export class UserInterfaceService {
@@ -20,12 +23,44 @@ export class UserInterfaceService {
   appSettingsPayment:any
   appSettingsCosts:any
   appSettingsContract:any
-
+  hasTouch:boolean
+  isStandalone:boolean
+  public isDev: boolean;
+  public revolutMode: 'sandbox' | 'prod';
+  
   constructor(
     private afAuth: AngularFireAuth,
     public router:Router,
     public afs: AngularFirestore
   ) {
+
+    const host = location.hostname;
+    this.isDev =
+      isDevMode() ||
+      host === 'localhost' ||
+      host === '127.0.0.1' ||
+      !environment.production;
+    
+    this.revolutMode = this.isDev ? 'sandbox' : 'prod';
+    
+    // Optional: quick visibility
+    console.log('Env detect →', {
+      isDevMode: isDevMode(),
+      prodFlag: environment.production,
+      host,
+      isDev: this.isDev,
+      revolutMode: this.revolutMode,
+    });
+
+    this.hasTouch = false;
+    if ('maxTouchPoints' in navigator) {
+      this.hasTouch = navigator.maxTouchPoints > 0;
+    } else {
+      const mQ = window.matchMedia && matchMedia('(pointer:coarse)');
+      this.hasTouch = mQ ? mQ.matches : ('orientation' in window); // fallback for older iOS
+    }
+    this.isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
+
     this.tagFilters = [];
     this.nowSeconds = Math.floor(Date.now() / 1000);
     setInterval(() => {
@@ -246,6 +281,22 @@ export class UserInterfaceService {
       focus = ""
     }
     return [visibility, outlinedEyeStyle, fullEyeStyle, focus];
+  }
+
+  handleChatImageError(event: Event, message: any) {
+    const img = event.target as HTMLImageElement;
+    // Add a class to visually mark it
+    img.classList.add('image-fallback');
+    // Fallback to Original URL
+    if (message?.chatImageUrlOriginal) img.src = message.chatImageUrlOriginal
+  }
+
+  handleUserImageError(event: Event, message: any) {
+    const img = event.target as HTMLImageElement;
+    // Add a class to visually mark it
+    img.classList.add('image-fallback');
+    // Fallback to Original URL
+    if (message?.imageUrlOriginal) img.src = message.imageUrlOriginal
   }
 
 }

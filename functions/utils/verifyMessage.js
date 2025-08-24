@@ -380,7 +380,7 @@ module.exports = {
     }
     catch(error){
       console.log('user '+user+' message '+messageId+' error '+error)
-      return
+      return ({})
     }
 
   },

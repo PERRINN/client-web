@@ -12,11 +12,8 @@ exports.storageOnFinalise = onObjectFinalized(async (event) => {
     const bucket = admin.storage().bucket(object.bucket); // Simpler and works
 
     const file = bucket.file(filePath);
-    const config = {
-      action: 'read',
-      expires: '01-01-2501',
-    };
-    const [url] = await file.getSignedUrl(config);
+    await file.makePublic();
+    const url = `https://storage.googleapis.com/${object.bucket}/${encodeURIComponent(filePath)}`;
     const messagesUser=await admin.firestore().collection('PERRINNMessages').where('userImageTimestamp','==',imageID).get()
     const messagesChat=await admin.firestore().collection('PERRINNMessages').where('chatImageTimestamp','==',imageID).get()
     var batch = admin.firestore().batch();

@@ -10,6 +10,5 @@ export const environment = {
   FIREBASE_DATABASE_URL: 'string',
   FIREBASE_PROJECT_ID: 'string',
   FIREBASE_STORAGE_BUCKET: 'string',
-  FIREBASE_MESSAGING_SENDER_ID: 'string',
-  STRIPE_SECRET: 'string'
+  FIREBASE_MESSAGING_SENDER_ID: 'string'
 };

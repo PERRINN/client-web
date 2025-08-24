@@ -12,6 +12,7 @@ const teamReadsOnCreate = require('./dbTeamReadsOnCreate.f.js');
 const teamReadsOnDelete = require('./dbTeamReadsOnDelete.f.js');
 const storageFinalise = require('./storageOnFinalise.f.js');
 const dailyMembership = require('./scheduledDailyMembership.f.js');
+const createRevolutOrder = require('./createRevolutOrder.f.js');
 
 // Export functions
 exports.dbMessagesOnCreate = verifyMessageUtils.dbMessagesOnCreate;
@@ -20,3 +21,4 @@ exports.dbTeamReadsOnCreate = teamReadsOnCreate.dbTeamReadsOnCreate;
 exports.dbTeamReadsOnDelete = teamReadsOnDelete.dbTeamReadsOnDelete;
 exports.storageOnFinalise = storageFinalise.storageOnFinalise;
 exports.scheduledDailyMembership = dailyMembership.scheduledDailyMembership;
+exports.createRevolutOrder = createRevolutOrder.createRevolutOrder;

@@ -7,18 +7,28 @@ import { UserInterfaceService } from './userInterface.service'
 import { AngularFireAuth } from '@angular/fire/compat/auth'
 import firebase from 'firebase/compat/app'
 import { AgChartOptions } from 'ag-charts-community'
+import { ChangeDetectorRef } from '@angular/core'
 
 @Component({
   selector:'profile',
   template:`
   <div class='sheet'>
+    <div *ngIf="UI.currentUserLastMessageObj&&!UI.currentUserLastMessageObj?.isImageUserUpdated"
+          style="background-color:rgb(255, 251, 221); color: #333; text-align: center; font-size: 10px; border-radius: 0px; cursor:pointer"
+          (click)="router.navigate(['settings'])">
+        Add a profile picture.
+    </div>
+      <div *ngIf="UI.hasTouch&&!UI.isStandalone"
+        style="background-color:rgb(255, 251, 221); color: #333; text-align: center; font-size: 10px; border-radius: 0px">
+      Add this app to your home screen for a better experience.
+    </div>
     <div *ngIf="scope=='all'&&UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined" style="line-height:0px;clear:both">
       <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="width:100%">
       <div class="separator" style="width:100%;margin:0px"></div>
     </div>
     <div *ngIf="scope!='all'" style="clear:both;background-color:black">
       <div style="float:left">
-        <img [src]="focusUserLastMessageObj?.imageUrlThumbUser" style="display:inline;float:left;margin:7px;object-fit:cover;width:100px;height:100px;cursor:pointer" (click)="UI.showFullScreenImage(focusUserLastMessageObj?.imageUrlOriginal)">
+        <img *ngIf="focusUserLastMessageObj" [src]="focusUserLastMessageObj?.imageUrlMedium" (error)="UI.handleUserImageError($event, focusUserLastMessageObj)" style="display:inline;float:left;margin:7px;object-fit:cover;width:100px;height:100px;cursor:pointer" (click)="UI.showFullScreenImage(focusUserLastMessageObj?.imageUrlOriginal)">
       </div>
       <div style="padding:10px">
         <div style="clear:both">
@@ -126,7 +136,7 @@ import { AgChartOptions } from 'ag-charts-community'
         <li *ngFor="let message of latestImages|async;let first=first;let last=last" style="float:left;width:20%"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
-            <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" style="float:left;object-fit:contain;width:100%;height:90px">
+            <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload.doc.data())" style="float:left;object-fit:contain;width:100%;height:90px">
           </div>
         </li>
         <div class="separator"></div>
@@ -137,7 +147,7 @@ import { AgChartOptions } from 'ag-charts-community'
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
             <div style="float:left;min-width:84px;min-height:40px">
-              <img [src]="message.payload.doc.data()?.imageUrlThumbUser" style="float:left;margin:12px 2px 12px 4px;object-fit:cover;height:40px;width:40px">
+              <img [src]="message.payload.doc.data()?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload.doc.data())" style="float:left;margin:12px 2px 12px 4px;object-fit:cover;height:40px;width:40px">
               <img *ngIf="message.payload.doc.data()?.recipientList[1]" [src]="message.payload.doc.data()?.recipients[message.payload.doc.data()?.recipientList[1]]?.imageUrlThumb" style="float:left;margin:12px 4px 12px 2px;object-fit:cover;height:25px;width:25px">
             </div>
             <div>
@@ -250,7 +260,8 @@ export class ProfileComponent {
     public afs:AngularFirestore,
     public router:Router,
     public UI:UserInterfaceService,
-    private route:ActivatedRoute
+    private route:ActivatedRoute,
+    private cd: ChangeDetectorRef
   ) {
     this.showTags=false
     this.math=Math
@@ -307,6 +318,9 @@ export class ProfileComponent {
   }
 
   ngOnInit() {
+    setTimeout(() => {
+      this.cd.detectChanges()
+    }, 10)
   }
 
   refreshMessages(){

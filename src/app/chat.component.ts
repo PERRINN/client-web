@@ -8,8 +8,8 @@ import { AngularFireStorage } from '@angular/fire/compat/storage'
 import firebase from 'firebase/compat/app'
 
 @Component({
-  selector:'chat',
-  template:`
+  selector: 'chat',
+  template: `
 
   <div class="sheet">
     <div class="fixed" style="background-color:black;font-size:12px;cursor:pointer" (click)="UI.currentUser?showChatDetails=!showChatDetails:''">
@@ -55,9 +55,8 @@ import firebase from 'firebase/compat/app'
   <div class="sheet" *ngIf="showChatDetails" style="padding-top:40px">
     <div style="font-size:12px;margin:20px 10px 10px 10px">Chat name :</div>
     <input [(ngModel)]="chatSubject" style="width:60%;margin:10px" placeholder="What is the subject of this chat?">
-    <div *ngIf="chatLastMessageObj?.chatSubject!=chatSubject&&chatSubject" style="float:right;width:75px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:whitesmoke;background-color:black;cursor:pointer" (click)="saveNewSubject()">Save</div>
-    <div class="separator" style="width:100%;margin:10px 0px 20px 0px"></div>
-    <div style="font-size:12px;margin:10px">Members following this chat :</div>
+    <button class="buttonBlack" style="float:right;width:75px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:whitesmoke;background-color:black;cursor:pointer; padding:0px" (click)="saveNewSubject()" [disabled]="chatLastMessageObj?.chatSubject==chatSubject&&chatSubject">Save</button>
+    <div class="separator" style="width:100%;margin:0px"></div>
     <ul class="listLight" style="margin:10px">
       <li *ngFor="let recipient of chatLastMessageObj?.recipientList" style="float:left">
         <div style="float:left;cursor:pointer" (click)="router.navigate(['profile',recipient])">
@@ -72,7 +71,7 @@ import firebase from 'firebase/compat/app'
       <li *ngFor="let team of teams | async">
         <div *ngIf="!(chatLastMessageObj?.recipients||{})[team.key]" style="padding:5px">
           <div style="float:left;width:300px">
-            <img [src]="team?.values?.imageUrlThumbUser" style="display:inline;float:left;margin:0 5px 0 10px;opacity:1;object-fit:cover;height:25px;width:25px">
+            <img [src]="team?.values?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, team?.values)" style="display:inline;float:left;margin:0 5px 0 10px;opacity:1;object-fit:cover;height:25px;width:25px">
             <span>{{team.values?.name}} {{UI.formatSharesToPRNCurrency(null,team.values?.wallet?.balance||0)}}</span>
           </div>
           <div class="buttonWhite" style="float:left;width:50px;font-size:11px" (click)="addRecipient(team.values.user,team.values.name)">Add</div>
@@ -81,16 +80,39 @@ import firebase from 'firebase/compat/app'
     </ul>
     <div class="separator" style="width:100%;margin:10px 0px 10px 0px"></div>
     <span style="margin:10px">Sending PRN {{UI.appSettingsPayment.currencyList[UI.currentUserLastMessageObj.userCurrency].designation}}:</span>
-    <input style="width:200px;margin:10px" maxlength="500" [(ngModel)]="transactionAmount" placeholder="Amount">
-    <input style="width:150px;margin:10px" maxlength="500" [(ngModel)]="transactionCode" placeholder="Code (optional)">
-    <input style="width:90%;margin:10px" maxlength="500" [(ngModel)]="transactionReference" placeholder="reference">
-    <div *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance">
-      <ul class="listLight" style="margin:10px">
-        <li *ngFor="let recipient of chatLastMessageObj?.recipientList" style="float:left">
-          <div style="float:left;cursor:pointer" (click)="transactionUser=recipient;transactionUserName=chatLastMessageObj?.recipients[recipient].name">
-            <img [src]="chatLastMessageObj?.recipients[recipient]?.imageUrlThumb" style="float:left;object-fit:cover;height:25px;width:25px;margin:3px 3px 3px 10px">
-            <div style="float:left;margin:10px 5px 3px 3px;font-family:sans-serif">{{chatLastMessageObj?.recipients[recipient]?.name}}</div>
-          </div>
+      <input style="width:200px;margin:10px" maxlength="500" [(ngModel)]="transactionAmount" placeholder="amount">
+      <input style="width:150px;margin:10px" maxlength="500" [(ngModel)]="transactionCode" placeholder="Code (optional)">
+      <input style="width:90%;margin:10px" maxlength="500" [(ngModel)]="transactionReference" placeholder="reference">
+      <div *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance">
+        <ul class="listLight" style="margin:10px">
+          <li *ngFor="let recipient of chatLastMessageObj?.recipientList" style="float:left">
+            <div style="float:left;cursor:pointer" (click)="transactionUser=recipient;transactionUserName=chatLastMessageObj?.recipients[recipient].name">
+              <img [src]="chatLastMessageObj?.recipients[recipient]?.imageUrlThumb" style="float:left;object-fit:cover;height:25px;width:25px;margin:3px 3px 3px 10px">
+              <div style="float:left;margin:10px 5px 3px 3px;font-family:sans-serif">{{chatLastMessageObj?.recipients[recipient]?.name}}</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <button class="buttonWhite" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionOut(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference)" [disabled]="!(transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance&&transactionUser!=undefined&&transactionReference!=''&&transactionReference!=undefined)">
+        Send {{UI.formatSharesToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}} to {{transactionUserName}}
+      </button>
+      <button class="buttonWhite" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionPending(transactionAmount,transactionCode,null,null,transactionReference)" [disabled]="!(transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance&&transactionUser==undefined&&transactionReference!=''&&transactionReference!=undefined)">
+        Create pending transaction of {{UI.formatSharesToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}}
+      </button>
+    <div class="separator" style="width:100%;margin:0px"></div>
+    <div>
+      <input style="width:60%;margin:10px" maxlength="200" [(ngModel)]="eventDescription" placeholder="Event description">
+      <div style="font-size:12px;margin:10px">{{eventDateStart==0?'':eventDateStart|date:'EEEE d MMM h:mm a'}}</div>
+      <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px;display:block" (click)="saveEvent()" [disabled]="!(eventDateStart!=chatLastMessageObj?.eventDateStart||eventDescription!=chatLastMessageObj?.eventDescription||eventDuration!=chatLastMessageObj?.eventDuration||eventLocation!=chatLastMessageObj?.eventLocation)">Save event</button>
+      <ul class="listLight" style="float:left;width:200px;margin:10px">
+        <li *ngFor="let date of eventDateList;let first=first" (click)="first?eventDateStart=date:eventDateStart=(date+(eventDateStart/3600000/24-math.floor(eventDateStart/3600000/24))*3600000*24)" [class.selected]="math.floor(date/3600000/24)==math.floor(eventDateStart/3600000/24)">
+          <div *ngIf="math.round(date/3600000/24)==(date/3600000/24)||first" style="float:left;width:100px;min-height:10px">{{date|date:'EEEE'}}</div>
+          <div *ngIf="math.round(date/3600000/24)==(date/3600000/24)||first" style="float:left;min-height:10px">{{date|date:'d MMM'}}</div>
+        </li>
+      </ul>
+      <ul class="listLight" style="clear:none;float:left;width:100px;text-align:center;margin:10px">
+        <li *ngFor="let date of eventDateList;let first=first" (click)="eventDateStart=date" [class.selected]="eventDateStart==date">
+          <div *ngIf="math.floor(date/3600000/24)==math.floor(eventDateStart/3600000/24)">{{date|date:'h:mm a'}}</div>
         </li>
       </ul>
     </div>
@@ -129,12 +151,9 @@ import firebase from 'firebase/compat/app'
     <input style="width:30%;margin:10px" maxlength="20" [(ngModel)]="eventDurationChoice" placeholder="Event duration">
     <br/>
     <span style="margin:10px">Event location</span>
-    <input style="width:50%;margin:10px" maxlength="200" [(ngModel)]="eventLocationChoice" placeholder="Event location">
-    <br/>
-    <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()">Save event</button>
-    <!-- [disabled]='this.router.url.startsWith("/login")' -->
-    <button class="buttonRed" *ngIf="chatLastMessageObj?.eventDateStart!=null" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="cancelEvent()">Cancel event</button>
-    <div class="separator" style="width:100%;margin:15px 0px 10px 0px"></div>
+    <input style="width:50%;margin:10px" maxlength="200" [(ngModel)]="eventLocation" placeholder="Event location">
+    <button class="buttonRed" *ngIf="chatLastMessageObj?.eventDateStart!=null" style="clear:both;width:100px;font-size:10px;margin:10px;display:block" (click)="cancelEvent()" [disabled]="!(eventDateEnd/60000>UI.nowSeconds/60)">Cancel event</button>
+    <div class="separator" style="width:100%;margin:0px"></div>
     <div>
       <div style="font-size:12px;margin:10px">Fundraising :</div>
       <span style="margin:10px">Fund description</span>
@@ -145,7 +164,7 @@ import firebase from 'firebase/compat/app'
       <br/>
       <span style="margin:10px">Days left</span>
       <input style="width:30%;margin:10px" maxlength="10" [(ngModel)]="fund.daysLeft">
-      <div class="buttonWhite" *ngIf="fund.description!=chatLastMessageObj?.fund?.description||fund.amountGBPTarget!=chatLastMessageObj?.fund?.amountGBPTarget||fund.daysLeft!=chatLastMessageObj?.fund?.daysLeft" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveFund()">Save fund</div>
+      <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px;display:block" (click)="saveFund()" [disabled]="!(fund.description!=chatLastMessageObj?.fund?.description||fund.amountGBPTarget!=chatLastMessageObj?.fund?.amountGBPTarget||fund.daysLeft!=chatLastMessageObj?.fund?.daysLeft)">Save fund</button>
     </div>
     <div class="separator" style="width:100%;margin:10px 0px 150px 0px"></div>
   </div>
@@ -165,7 +184,7 @@ import firebase from 'firebase/compat/app'
           </div>
           <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" style="clear:both;width:100%;height:15px"></div>
           <div *ngIf="message.payload?.imageUrlThumbUser&&(isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first)" style="float:left;width:60px;min-height:10px">
-            <img [src]="message.payload?.imageUrlThumbUser" style="cursor:pointer;display:inline;float:left;margin:0 10px 10px 10px; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
+            <img [src]="message.payload?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload)" style="cursor:pointer;display:inline;float:left;margin:0 10px 10px 10px; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
           </div>
           <div [style.background-color]="(message.payload?.user==UI.currentUser)?'#222C32':'black'"
                 style="cursor:text;margin:0 10px 5px 60px;user-select:text;border-color:#5BBF2F"
@@ -177,7 +196,7 @@ import firebase from 'firebase/compat/app'
                 <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)<=43200" style="font-size:11px;margin:0px 10px 0px 10px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</div>
               </div>
               <div style="clear:both;text-align:center">
-                <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" style="width:70%;max-height:320px;object-fit:contain;margin:5px 10px 5px 5px" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
+                <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" (error)="UI.handleChatImageError($event, message.payload)" style="width:70%;max-height:320px;object-fit:contain;margin:5px 10px 5px 5px" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
               </div>
               <div style="margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
               <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{message.payload?.statistics?.userCount}} Members,</div>
@@ -316,11 +335,11 @@ export class ChatComponent {
   ngDropDown:number
     
   constructor(
-    public afs:AngularFirestore,
-    public router:Router,
-    public UI:UserInterfaceService,
-    private route:ActivatedRoute,
-    private storage:AngularFireStorage,
+    public afs: AngularFirestore,
+    public router: Router,
+    public UI: UserInterfaceService,
+    private route: ActivatedRoute,
+    private storage: AngularFireStorage,
   ) {
     this.math=Math
     this.UI.loading=true
@@ -363,23 +382,23 @@ export class ChatComponent {
     // console.log("Constructor eventDateStart" + this.eventDateStart)
   }
 
-  ngOnInit(){
+  ngOnInit() {
     this.refreshSearchLists()
   }
 
-  showImageGalleryClick(){
+  showImageGalleryClick() {
     event.stopPropagation()
-    this.showImageGallery=!this.showImageGallery
-    this.refreshMessages(this.chatLastMessageObj.chain||this.chatChain)
+    this.showImageGallery = !this.showImageGallery
+    this.refreshMessages(this.chatLastMessageObj.chain || this.chatChain)
   }
 
-  loadMore(){
-    this.UI.loading=true
-    this.messageNumberDisplay+=15
-    this.refreshMessages(this.chatLastMessageObj.chain||this.chatChain)
+  loadMore() {
+    this.UI.loading = true
+    this.messageNumberDisplay += 15
+    this.refreshMessages(this.chatLastMessageObj.chain || this.chatChain)
   }
 
-  refresheventDateList(){
+  refresheventDateList() {
     var i
     var j=0;
     this.eventDateList=[]
@@ -408,19 +427,19 @@ export class ChatComponent {
   }
 
   refreshMessages(chain) {
-    if(!this.showImageGallery)this.messages=this.afs.collection('PERRINNMessages',ref=>ref
-      .where('chain','==',chain)
-      .orderBy('serverTimestamp','desc')
+    if (!this.showImageGallery) this.messages = this.afs.collection('PERRINNMessages', ref => ref
+      .where('chain', '==', chain)
+      .orderBy('serverTimestamp', 'desc')
       .limit(this.messageNumberDisplay)
-    ).snapshotChanges().pipe(map(changes=>{
-      this.UI.loading=false
-      var batch=this.afs.firestore.batch()
-      var nextMessageRead=true
-      changes.forEach(c=>{
-        if(this.UI.currentUser&&!this.lastRead&&!nextMessageRead&&(c.payload.doc.data()['reads']||[])[this.UI.currentUser])this.lastRead=c.payload.doc.id
-        nextMessageRead=(c.payload.doc.data()['reads']||[])[this.UI.currentUser]
-        if(c.payload.doc.data()['lastMessage']){
-          if(this.UI.currentUser&&!this.reads.includes(c.payload.doc.id))batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id),{serverTimestamp:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
+    ).snapshotChanges().pipe(map(changes => {
+      this.UI.loading = false
+      var batch = this.afs.firestore.batch()
+      var nextMessageRead = true
+      changes.forEach(c => {
+        if (this.UI.currentUser && !this.lastRead && !nextMessageRead && (c.payload.doc.data()['reads'] || [])[this.UI.currentUser]) this.lastRead = c.payload.doc.id
+        nextMessageRead = (c.payload.doc.data()['reads'] || [])[this.UI.currentUser]
+        if (c.payload.doc.data()['lastMessage']) {
+          if (this.UI.currentUser && !this.reads.includes(c.payload.doc.id)) batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id), { serverTimestamp: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
           this.reads.push(c.payload.doc.id)
           this.chatLastMessageObj=c.payload.doc.data()
           this.chatSubject=c.payload.doc.data()['chatSubject']
@@ -445,24 +464,24 @@ export class ChatComponent {
         }
       })
       batch.commit()
-      return changes.reverse().map(c=>({
-        key:c.payload.doc.id,
-        payload:c.payload.doc.data()
+      return changes.reverse().map(c => ({
+        key: c.payload.doc.id,
+        payload: c.payload.doc.data()
       }))
     }))
-    else this.messages=this.afs.collection('PERRINNMessages',ref=>ref
-      .where('chain','==',chain)
-      .orderBy('chatImageTimestamp','desc')
+    else this.messages = this.afs.collection('PERRINNMessages', ref => ref
+      .where('chain', '==', chain)
+      .orderBy('chatImageTimestamp', 'desc')
       .limit(this.messageNumberDisplay)
-    ).snapshotChanges().pipe(map(changes=>{
-      this.UI.loading=false
-      var batch=this.afs.firestore.batch()
-      var nextMessageRead=true
-      changes.forEach(c=>{
-        if(this.UI.currentUser&&!this.lastRead&&!nextMessageRead&&(c.payload.doc.data()['reads']||[])[this.UI.currentUser])this.lastRead=c.payload.doc.id
-        nextMessageRead=(c.payload.doc.data()['reads']||[])[this.UI.currentUser]
-        if(c.payload.doc.data()['lastMessage']){
-          if(this.UI.currentUser&&!this.reads.includes(c.payload.doc.id))batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id),{serverTimestamp:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
+    ).snapshotChanges().pipe(map(changes => {
+      this.UI.loading = false
+      var batch = this.afs.firestore.batch()
+      var nextMessageRead = true
+      changes.forEach(c => {
+        if (this.UI.currentUser && !this.lastRead && !nextMessageRead && (c.payload.doc.data()['reads'] || [])[this.UI.currentUser]) this.lastRead = c.payload.doc.id
+        nextMessageRead = (c.payload.doc.data()['reads'] || [])[this.UI.currentUser]
+        if (c.payload.doc.data()['lastMessage']) {
+          if (this.UI.currentUser && !this.reads.includes(c.payload.doc.id)) batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id), { serverTimestamp: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
           this.reads.push(c.payload.doc.id)
           this.chatLastMessageObj=c.payload.doc.data()
           this.chatSubject=c.payload.doc.data()['chatSubject']
@@ -487,71 +506,69 @@ export class ChatComponent {
         }
       })
       batch.commit()
-      return changes.map(c=>({
-        key:c.payload.doc.id,
-        payload:c.payload.doc.data()
+      return changes.map(c => ({
+        key: c.payload.doc.id,
+        payload: c.payload.doc.data()
       }))
     }))
   }
 
-  isMessageNewTimeGroup(messageServerTimestamp:any) {
-    let isMessageNewTimeGroup:boolean
-    isMessageNewTimeGroup=Math.abs(messageServerTimestamp.seconds - this.previousMessageServerTimestamp.seconds) > 60 * 60 * 4
+  isMessageNewTimeGroup(messageServerTimestamp: any) {
+    let isMessageNewTimeGroup: boolean
+    isMessageNewTimeGroup = Math.abs(messageServerTimestamp.seconds - this.previousMessageServerTimestamp.seconds) > 60 * 60 * 4
     return isMessageNewTimeGroup
   }
 
-  isMessageNewUserGroup(user:any,messageServerTimestamp:any) {
-    let isMessageNewUserGroup:boolean
-    isMessageNewUserGroup=Math.abs(messageServerTimestamp.seconds - this.previousMessageServerTimestamp.seconds) > 60 * 5 || (user != this.previousMessageUser)
+  isMessageNewUserGroup(user: any, messageServerTimestamp: any) {
+    let isMessageNewUserGroup: boolean
+    isMessageNewUserGroup = Math.abs(messageServerTimestamp.seconds - this.previousMessageServerTimestamp.seconds) > 60 * 5 || (user != this.previousMessageUser)
     return isMessageNewUserGroup
   }
 
   storeMessageValues(message) {
-    this.previousMessageUser=message.user
-    this.previousMessageServerTimestamp=message.serverTimestamp||{seconds:this.UI.nowSeconds*1000}
+    this.previousMessageUser = message.user
+    this.previousMessageServerTimestamp = message.serverTimestamp || { seconds: this.UI.nowSeconds * 1000 }
   }
 
-  storeEventParams = event => this.savedEvent=event;
-
-  scrollToBottom(scrollMessageTimestamp:number) {
+  scrollToBottom(scrollMessageTimestamp: number) {
     if (scrollMessageTimestamp != this.scrollMessageTimestamp) {
-      const element=document.getElementById('chat_window')
-      element.scrollTop=element.scrollHeight
-      this.scrollMessageTimestamp=scrollMessageTimestamp
+      const element = document.getElementById('chat_window')
+      element.scrollTop = element.scrollHeight
+      this.scrollMessageTimestamp = scrollMessageTimestamp
     }
   }
 
   saveNewSubject() {
     this.UI.createMessage({
-      text:'Changing subject to '+this.chatSubject,
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      chatSubject:this.chatSubject,
+      text: 'Changing subject to ' + this.chatSubject,
+      chain: this.chatLastMessageObj.chain || this.chatChain,
+      chatSubject: this.chatSubject,
     })
     this.resetChat()
   }
 
-  createTransactionOut(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference){
+  createTransactionOut(transactionAmount, transactionCode, transactionUser, transactionUserName, transactionReference) {
     this.UI.createMessage({
-      text:'sending '+this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].symbol+transactionAmount+' to '+transactionUserName+((transactionCode||null)?' using code ':'')+((transactionCode||null)?transactionCode:'')+' (Reference: '+transactionReference+')',
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      transactionOut:{
-        user:transactionUser,
-        amount:transactionAmount*this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN,
-        code:transactionCode||null,
-        reference:transactionReference||null
+      text: 'sending ' + this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].symbol + transactionAmount + ' to ' + transactionUserName + ((transactionCode || null) ? ' using code ' : '') + ((transactionCode || null) ? transactionCode : '') + ' (Reference: ' + transactionReference + ')',
+      chain: this.chatLastMessageObj.chain || this.chatChain,
+      transactionOut: {
+        user: transactionUser,
+        amount: transactionAmount * this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN,
+        code: transactionCode || null,
+        reference: transactionReference || null
       }
     })
     this.resetChat()
   }
 
-  createTransactionPending(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference){
+  createTransactionPending(transactionAmount, transactionCode, transactionUser, transactionUserName, transactionReference) {
     this.UI.createMessage({
-      text:'creating a pending transaction of '+this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].symbol+transactionAmount+((transactionCode||null)?' using code ':'')+((transactionCode||null)?transactionCode:'')+' (Reference: '+transactionReference+')',
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      transactionPending:{
-        amount:transactionAmount*this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN,
-        code:transactionCode||null,
-        reference:transactionReference||null
+      text: 'creating a pending transaction of ' + this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].symbol + transactionAmount + ((transactionCode || null) ? ' using code ' : '') + ((transactionCode || null) ? transactionCode : '') + ' (Reference: ' + transactionReference + ')',
+      chain: this.chatLastMessageObj.chain || this.chatChain,
+      transactionPending: {
+        amount: transactionAmount * this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN,
+        code: transactionCode || null,
+        reference: transactionReference || null
       }
     })
     this.resetChat()
@@ -568,13 +585,13 @@ export class ChatComponent {
       this.eventDateStart = this.ngDropDown*1 + this.eventTimeStart*1 - 3600000;
     }
     this.UI.createMessage({
-      text:'new event',
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      eventDateStart:this.eventDateStart,
-      eventDateEnd: this.eventDateStart + this.eventDuration*3600000,
-      eventDescription:this.eventDescription,
-      eventDuration:this.eventDuration,
-      eventLocation:this.eventLocation
+      text: 'new event',
+      chain: this.chatLastMessageObj.chain || this.chatChain,
+      eventDateStart: this.eventDateStart,
+      eventDateEnd: this.eventDateStart + this.eventDuration * 3600000,
+      eventDescription: this.eventDescription,
+      eventDuration: this.eventDuration,
+      eventLocation: this.eventLocation
     })
     this.resetChat()
     // console.log("saveEvent eventDateStart" + this.eventDateStart);
@@ -582,10 +599,10 @@ export class ChatComponent {
 
   cancelEvent() {
     this.UI.createMessage({
-      text:'cancelling event',
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      eventDateStart:'0',
-      eventDateEnd:this.UI.nowSeconds*1000-3600000
+      text: 'cancelling event',
+      chain: this.chatLastMessageObj.chain || this.chatChain,
+      eventDateStart: this.UI.nowSeconds * 1000 - 3600000,
+      eventDateEnd: this.UI.nowSeconds * 1000 - 3600000
     })
     this.resetChat();
     // console.log("cancelEvent eventDateStart" + this.eventDateStart);
@@ -593,104 +610,104 @@ export class ChatComponent {
 
   saveFund() {
     this.UI.createMessage({
-      text:'edited fund',
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      fund:this.fund
+      text: 'edited fund',
+      chain: this.chatLastMessageObj.chain || this.chatChain,
+      fund: this.fund
     })
     this.resetChat()
   }
 
   addMessage() {
     this.UI.createMessage({
-      text:this.draftMessage,
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      chatImageTimestamp:this.imageTimestamp,
-      chatImageUrlThumb:this.imageDownloadUrl,
-      chatImageUrlMedium:this.imageDownloadUrl,
-      chatImageUrlOriginal:this.imageDownloadUrl
+      text: this.draftMessage,
+      chain: this.chatLastMessageObj.chain || this.chatChain,
+      chatImageTimestamp: this.imageTimestamp,
+      chatImageUrlThumb: this.imageDownloadUrl,
+      chatImageUrlMedium: this.imageDownloadUrl,
+      chatImageUrlOriginal: this.imageDownloadUrl
     })
     this.resetChat()
   }
 
-  addRecipient(user,name) {
+  addRecipient(user, name) {
     this.UI.createMessage({
-      text:'adding '+name+' to this chat.',
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      recipientList:[user]
+      text: 'adding ' + name + ' to this chat.',
+      chain: this.chatLastMessageObj.chain || this.chatChain,
+      recipientList: [user]
     })
     this.resetChat()
   }
 
-  removeRecipient(user,name){
+  removeRecipient(user, name) {
     this.UI.createMessage({
-      text:'removing '+name+' from this chat.',
-      chain:this.chatLastMessageObj.chain||this.chatChain,
-      recipientListToBeRemoved:[user]
+      text: 'removing ' + name + ' from this chat.',
+      chain: this.chatLastMessageObj.chain || this.chatChain,
+      recipientListToBeRemoved: [user]
     })
     this.resetChat()
   }
 
-  onImageChange(event:any) {
-    const image=event.target.files[0]
-    const uploader=document.getElementById('uploader') as HTMLInputElement
-    const storageRef=this.storage.ref('images/' + Date.now() + image.name)
-    const task=storageRef.put(image)
+  onImageChange(event: any) {
+    const image = event.target.files[0]
+    const uploader = document.getElementById('uploader') as HTMLInputElement
+    const storageRef = this.storage.ref('images/' + Date.now() + image.name)
+    const task = storageRef.put(image)
 
-    task.snapshotChanges().subscribe((snapshot)=>{
-      document.getElementById('buttonFile').style.visibility='hidden'
-      document.getElementById('uploader').style.visibility='visible'
+    task.snapshotChanges().subscribe((snapshot) => {
+      document.getElementById('buttonFile').style.visibility = 'hidden'
+      document.getElementById('uploader').style.visibility = 'visible'
 
-      const percentage=(snapshot.bytesTransferred / snapshot.totalBytes) * 100
-      uploader.value=percentage.toString()
+      const percentage = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+      uploader.value = percentage.toString()
     },
-    (err:any)=>{
-      document.getElementById('buttonFile').style.visibility='visible'
-      document.getElementById('uploader').style.visibility='hidden'
-      uploader.value='0'
-    },
-    ()=>{
-      uploader.value='0'
-      document.getElementById('buttonFile').style.visibility='visible'
-      document.getElementById('uploader').style.visibility='hidden'
-      this.imageTimestamp=task.task.snapshot.ref.name.substring(0, 13)
-      storageRef.getDownloadURL().subscribe(url=>{
-        this.imageDownloadUrl=url
-        event.target.value=''
+      (err: any) => {
+        document.getElementById('buttonFile').style.visibility = 'visible'
+        document.getElementById('uploader').style.visibility = 'hidden'
+        uploader.value = '0'
+      },
+      () => {
+        uploader.value = '0'
+        document.getElementById('buttonFile').style.visibility = 'visible'
+        document.getElementById('uploader').style.visibility = 'hidden'
+        this.imageTimestamp = task.task.snapshot.ref.name.substring(0, 13)
+        storageRef.getDownloadURL().subscribe(url => {
+          this.imageDownloadUrl = url
+          event.target.value = ''
+        })
       })
-    })
   }
 
   refreshSearchLists() {
     if (this.searchFilter) {
       if (this.searchFilter.length > 1) {
-        this.teams=this.afs.collection('PERRINNMessages', ref=>ref
-        .where('userChain.nextMessage','==','none')
-        .where('verified','==',true)
-        .where('nameLowerCase','>=',this.searchFilter.toLowerCase())
-        .where('nameLowerCase','<=',this.searchFilter.toLowerCase()+'\uf8ff')
-        .orderBy('nameLowerCase')
-        .limit(20))
-        .snapshotChanges().pipe(map(changes=>{
-          return changes.map(c=>({
-            key:c.payload.doc.id,
-            values:c.payload.doc.data()
+        this.teams = this.afs.collection('PERRINNMessages', ref => ref
+          .where('userChain.nextMessage', '==', 'none')
+          .where('verified', '==', true)
+          .where('nameLowerCase', '>=', this.searchFilter.toLowerCase())
+          .where('nameLowerCase', '<=', this.searchFilter.toLowerCase() + '\uf8ff')
+          .orderBy('nameLowerCase')
+          .limit(20))
+          .snapshotChanges().pipe(map(changes => {
+            return changes.map(c => ({
+              key: c.payload.doc.id,
+              values: c.payload.doc.data()
+            }))
           }))
-        }))
       }
     } else {
-      this.teams=null
+      this.teams = null
     }
   }
 
-  resetChat(){
-    this.searchFilter=null
-    this.teams=null
-    this.draftMessage=''
-    this.imageTimestamp=null
-    this.imageDownloadUrl=null
-    this.showChatDetails=false
-    this.messageShowDetails=[]
-    this.messageShowActions=[]
+  resetChat() {
+    this.searchFilter = null
+    this.teams = null
+    this.draftMessage = ''
+    this.imageTimestamp = null
+    this.imageDownloadUrl = null
+    this.showChatDetails = false
+    this.messageShowDetails = []
+    this.messageShowActions = []
   }
 
 }
