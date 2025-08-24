@@ -97,8 +97,8 @@ import { ChangeDetectorRef } from '@angular/core'
                   <div *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)<=0&&message.payload.doc.data()?.eventDateEnd/60000>UI.nowSeconds/60" style="float:left;background-color:#7BC463;color:whitesmoke;padding:0 5px 0 5px">Now</div>
                   <span style="margin:0 5px 0 5px">{{message.payload.doc.data()?.eventDescription}}</span>
                   <span style="margin:0 5px 0 0">{{message.payload.doc.data()?.eventDateStart|date:'EEEE d MMM h:mm a'}} ({{message.payload.doc.data()?.eventDuration}}h)</span>
+                  </div>
                 </div>
-              </div>
               <div class="separator"></div>
             </div>
           </div>
