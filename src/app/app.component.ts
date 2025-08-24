@@ -12,7 +12,8 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
       <div style="width:320px;display:block;margin: 0 auto">
         <img src="./../assets/App icons/Perrinn_02.png" style="cursor:pointer;float:left;width:30px;margin:5px 45px 5px 5px" (click)="router.navigate(['profile','all'])">
         <span class="material-icons" style="float:left;margin:5px 45px 5px 45px;font-size:30px;cursor:pointer" (click)="router.navigate(['directory'])">list</span>
-        <span class="material-icons-outlined" style="float:left;margin:5px 45px 5px 45px;font-size:30px;height:30px;cursor:pointer" onclick="window.open('https://discover.perrinn.com','_blank')">info</span>
+         <span class="material-icons-outlined" style="float:left;margin:5px 45px 5px 45px;font-size:30px;height:30px;cursor:pointer" onclick="window.open('https://discover.perrinn.com','_blank')">info</span>
+         <span class="material-icons" style="float:left;margin:5px 45px 5px 45px;font-size:30px;cursor:pointer" (click)="toggleTheme()">brightness_6</span>
       </div>
       <div class="separator" style="width:100%;margin:0px"></div>
     </div>
@@ -34,7 +35,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
     </div>
   `,
 })
-export class AppComponent {
+  export class AppComponent {
 
   constructor(
     public router:Router,
@@ -53,6 +54,10 @@ export class AppComponent {
     const fullScreenImage = document.getElementById('fullScreenImage') as HTMLImageElement;
     fullScreenImage.style.visibility = 'hidden';
     fullScreenImage.src = '';
+  }
+
+  toggleTheme() {
+    document.body.classList.toggle('light-theme');
   }
 
 }

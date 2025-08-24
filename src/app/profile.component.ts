@@ -57,10 +57,10 @@ import { ChangeDetectorRef } from '@angular/core'
           </div>
         </div>
       </div>
-      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='inbox'?'#B0BAC0':'black'" (click)="mode='inbox';refreshMessages()">inbox</div>
-      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='history'?'#B0BAC0':'black'" (click)="mode='history';refreshMessages();refreshChart()">history</div>
-      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='chain'?'#B0BAC0':'black'" (click)="mode='chain';refreshMessages()">chain</div>
-      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='forecast'?'#B0BAC0':'black'" (click)="mode='forecast';refreshMessages()">forecast</div>
+      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='inbox'?'var(--secondary-color)':'black'" (click)="mode='inbox';refreshMessages()">inbox</div>
+      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='history'?'var(--secondary-color)':'black'" (click)="mode='history';refreshMessages();refreshChart()">history</div>
+      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='chain'?'var(--secondary-color)':'black'" (click)="mode='chain';refreshMessages()">chain</div>
+      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='forecast'?'var(--secondary-color)':'black'" (click)="mode='forecast';refreshMessages()">forecast</div>
       <div class="buttonBlack" *ngIf="UI.currentUser&&UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="clear:both;width:250px;margin:5px;font-size:11px">New message to {{focusUserLastMessageObj?.name}}</div>
       <div class="separator" style="width:100%;margin:0px"></div>
     </div>
@@ -157,13 +157,13 @@ import { ChangeDetectorRef } from '@angular/core'
               </div>
               <div *ngIf="UI.currentUser&&(UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds" style="float:right;margin:5px 0 0 0;width:35px;height:20px;line-height:20px;font-size:10px;text-align:center"
                 (click)="readFlagClick(message.payload.doc.id,(message.payload.doc.data()?.reads||{})[UI.currentUser])"
-                [style.background-color]="(message.payload.doc.data()?.reads||{})[UI.currentUser]?'#131B20':(message.payload.doc.data()?.recipients[UI.currentUser]?.mentionMessages||message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name))?'#5BBF2F':message.payload.doc.data()?.recipients[UI.currentUser]?'#38761D':'#B0BAC0'"
-                [style.color]="(message.payload.doc.data()?.reads||{})[UI.currentUser]?'#131B20':whitesmoke">
+                [style.background-color]="(message.payload.doc.data()?.reads||{})[UI.currentUser]?'var(--surface-color)':(message.payload.doc.data()?.recipients[UI.currentUser]?.mentionMessages||message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name))?'#5BBF2F':message.payload.doc.data()?.recipients[UI.currentUser]?'#38761D':'var(--secondary-color)'"
+                [style.color]="(message.payload.doc.data()?.reads||{})[UI.currentUser]?'var(--surface-color)':whitesmoke">
                 {{message.payload.doc.data()?.recipients[UI.currentUser]?.unreadMessages}}
               </div>
               <div *ngIf="UI.currentUser&&(UI.currentUserLastMessageObj?.createdTimestamp/1000)>message.payload.doc.data()?.serverTimestamp?.seconds" style="float:right;margin:5px 0 0 0;width:35px;height:20px;line-height:20px;font-size:10px;text-align:center 0 0 3px"
-                [style.background-color]="'#B0BAC0'"
-                [style.color]="'#B0BAC0'">
+                [style.background-color]="'var(--secondary-color)'"
+                [style.color]="'var(--secondary-color)'">
                 {{message.payload.doc.data()?.recipients[UI.currentUser]?.unreadMessages}}
               </div>
               <div style="float:right;margin-top:10px;color:#999;font-size:11px;margin-right:10px;width:40px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</div>
