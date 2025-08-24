@@ -1,4 +1,4 @@
-import { Component, createNgModuleRef } from '@angular/core'
+import { Component } from '@angular/core'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
