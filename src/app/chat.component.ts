@@ -561,7 +561,7 @@ constructor(
   }
 
   saveEvent() {
-    this.eventDateStart = this.selectedTime;
+    this.eventDateStart = this.selectedTime*1;
     this.UI.createMessage({
       text: 'new event',
       chain: this.chatLastMessageObj.chain || this.chatChain,
