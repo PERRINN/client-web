@@ -126,7 +126,7 @@ import firebase from 'firebase/compat/app'
     <span style="margin:10px">Event location</span>
     <input style="width:50%;margin:10px" maxlength="200" [(ngModel)]="eventLocation" placeholder="Event location">
     <br/>
-    <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()" [disabled]="!(eventDateStart!=chatLastMessageObj?.eventDateStart||eventDescription!=chatLastMessageObj?.eventDescription||eventDuration!=chatLastMessageObj?.eventDuration||eventLocation!=chatLastMessageObj?.eventLocation||selectedTime!=chatLastMessageObj?.eventDateStart)">Save event</button>
+    <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()" [disabled]="!(eventDescription!=chatLastMessageObj?.eventDescription||eventDuration!=chatLastMessageObj?.eventDuration||eventLocation!=chatLastMessageObj?.eventLocation||selectedTime!=chatLastMessageObj?.eventDateStart)">Save event</button>
     <button class="buttonRed" *ngIf="chatLastMessageObj?.eventDateStart!=null" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="cancelEvent()" [disabled]="!(eventDateEnd/60000>UI.nowSeconds/60)">Cancel event</button>
     <div class="separator" style="width:100%;margin:0px"></div>
     <div>
@@ -308,6 +308,7 @@ export class ChatComponent {
   dateOfThisDay: Date;
   midnightOfThatDay: any;
   midnightOfThisDay: any;
+  theDate: any;
 
 constructor(
     public afs:AngularFirestore,
@@ -422,14 +423,14 @@ constructor(
     this.eventTimeList = this.eventTimeList.filter(item => item !== null);
   }
 
-  selectedDateTimeInit() {
+  selectedDateInit() {
     this.selectedTime = this.eventDateStart;
     if (this.eventDateStart != undefined && this.eventDateStart > (this.UI.nowSeconds*1000 - 3600000)) {
-      this.selectedDate = Math.ceil(this.eventDateStart / 3600000 / 24)*24*3600000;
+      this.theDate = new Date(Number(this.eventDateStart));
+      this.selectedDate = new Date(this.theDate.getFullYear(), this.theDate.getMonth(), this.theDate.getDate()).getTime() - new Date().getTimezoneOffset()*60000;
     }
     else {
       this.selectedDate = this.eventDateListShort[0];
-      console.log("cheers");
     }
   }
 
@@ -456,7 +457,7 @@ constructor(
           this.eventDuration = c.payload.doc.data()['eventDuration']
           this.eventLocation = c.payload.doc.data()['eventLocation']
           this.fund = c.payload.doc.data()['fund'] || this.fund
-          this.selectedDateTimeInit();
+          this.selectedDateInit();
           this.eventTimeListInit();
         }
       })
@@ -487,7 +488,7 @@ constructor(
           this.eventDuration = c.payload.doc.data()['eventDuration']
           this.eventLocation = c.payload.doc.data()['eventLocation']
           this.fund = c.payload.doc.data()['fund'] || this.fund
-          this.selectedDateTimeInit();
+          this.selectedDateInit();
           this.eventTimeListInit();
         }
       })
