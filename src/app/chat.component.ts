@@ -123,7 +123,7 @@ import firebase from 'firebase/compat/app'
     <span style="margin:10px">Event location</span>
     <input style="width:50%;margin:10px" maxlength="200" [(ngModel)]="eventLocationChoice" placeholder="Event location">
     <br/>
-    <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()" [disabled]="!((eventDescriptionChoice!=chatLastMessageObj?.eventDescription||eventDurationChoice!=chatLastMessageObj?.eventDuration||eventLocationChoice!=chatLastMessageObj?.eventLocation||selectedTime!=chatLastMessageObj?.eventDateStart) && (selectedTime % 1800000) == 0)">Save event</button>
+    <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()" [disabled]="!((eventDescriptionChoice!=chatLastMessageObj?.eventDescription||eventDurationChoice!=chatLastMessageObj?.eventDuration||eventLocationChoice!=chatLastMessageObj?.eventLocation||selectedTime!=chatLastMessageObj?.eventDateStart) && (selectedTime % 1800000) == 0 && (selectedTime != null))">Save event</button>
     <button class="buttonRed" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="cancelEvent()" [disabled]="!(eventDateEnd/60000>UI.nowSeconds/60)">Cancel event</button>
     <div class="separator" style="width:100%;margin-top:10px;margin-bottom:10px"></div>
     <div>
@@ -309,6 +309,7 @@ export class ChatComponent {
   eventDescriptionChoice:string;
   eventDurationChoice:number;
   eventLocationChoice:string;
+  googleMeet = "https://meet.google.com/ebp-djfh-aht";
 
 constructor(
     public afs:AngularFirestore,
@@ -332,7 +333,7 @@ constructor(
       this.chatSubject = ''
       this.eventDescription = '';
       this.eventDuration = 1;
-      this.eventLocation = "https://meet.google.com/ebp-djfh-aht";
+      this.eventLocation = this.googleMeet;
       this.fund = {
         description: 'add a description',
         amountGBPTarget: 0,
@@ -587,7 +588,7 @@ constructor(
       chain: this.chatLastMessageObj.chain || this.chatChain,
       eventDateStart: this.UI.nowSeconds * 1000 - 3600000,
       eventDateEnd: this.UI.nowSeconds * 1000 - 3600000,
-      eventLocation: "https://meet.google.com/ebp-djfh-aht"
+      eventLocation: this.googleMeet
     })
     this.resetChat()
   }
