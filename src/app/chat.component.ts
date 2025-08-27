@@ -54,10 +54,10 @@ import firebase from 'firebase/compat/app'
 
 
   <div class="sheet" *ngIf="showChatDetails" style="padding-top:40px">
-    <input [(ngModel)]="chatSubject" style="width:60%;margin:10px" placeholder="What is the subject of this chat?">
-    <button class="buttonBlack" style="float:right;width:75px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:10px;color:whitesmoke;background-color:black;cursor:pointer; padding:0px" (click)="saveNewSubject()" [disabled]="chatLastMessageObj?.chatSubject==chatSubject&&chatSubject">Save</button>
-    <div class="separator" style="width:100%;margin:0px"></div>
-    <ul class="listLight" style="margin:10px">
+    <input [(ngModel)]="chatSubject" style="width:60%;margin:15px 10px 10px 10px" placeholder="What is the subject of this chat?">
+    <button class="buttonBlack" style="float:right;width:75px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:15px 10px 10px 10px;color:whitesmoke;background-color:black;cursor:pointer; padding:0px" (click)="saveNewSubject()" [disabled]="chatLastMessageObj?.chatSubject==chatSubject&&chatSubject">Save</button>
+    <div class="separator" style="width:100%;margin-top:10px;margin-bottom:10px"></div>
+    <ul class="listLight" style="margin:15px">
       <li *ngFor="let recipient of chatLastMessageObj?.recipientList" style="float:left">
         <div style="float:left;cursor:pointer" (click)="router.navigate(['profile',recipient])">
           <img [src]="chatLastMessageObj?.recipients[recipient]?.imageUrlThumb" style="float:left;object-fit:cover;height:25px;width:25px;margin:3px 3px 3px 10px">
@@ -78,7 +78,7 @@ import firebase from 'firebase/compat/app'
         </div>
       </li>
     </ul>
-    <div class="separator" style="width:100%;margin:0px"></div>
+    <div class="separator" style="width:100%;margin-top:10px;margin-bottom:10px"></div>
     <span style="margin:10px">Sending PRN {{UI.appSettingsPayment.currencyList[UI.currentUserLastMessageObj.userCurrency].designation}}:</span>
       <input style="width:200px;margin:10px" maxlength="500" [(ngModel)]="transactionAmount" placeholder="amount">
       <input style="width:150px;margin:10px" maxlength="500" [(ngModel)]="transactionCode" placeholder="Code (optional)">
@@ -99,36 +99,33 @@ import firebase from 'firebase/compat/app'
       <button class="buttonWhite" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionPending(transactionAmount,transactionCode,null,null,transactionReference)" [disabled]="!(transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance&&transactionUser==undefined&&transactionReference!=''&&transactionReference!=undefined)">
         Create pending transaction of {{UI.formatSharesToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}}
       </button>
-    <div class="separator" style="width:100%;margin:0px"></div>
+    <div class="separator" style="width:100%;margin-top:10px;margin-bottom:10px"></div>
     <div style="font-size:12px;margin:10px">Event :<span *ngIf="eventDateEnd/60000>UI.nowSeconds/60" style="font-size:12px;margin:10px">{{eventDescription}} {{eventDateStart==0?'':eventDateStart|date:'EEEE d MMM h:mm a'}} ({{eventDuration}}h) [location: {{eventLocation}}]</span></div>
-    <input style="width:60%;margin:10px;display:block" maxlength="200" [(ngModel)]="eventDescription" placeholder="Event description">
+    <input style="width:60%;margin:10px;display:block" maxlength="200" [(ngModel)]="eventDescriptionChoice" placeholder="Event description">
     <div>
       <!-- First dropdown for the date -->
       <select [(ngModel)]="selectedDate" (change)="onDateChange($event)" style="float:left;width:200px;margin:10px">
         <option *ngFor="let date of eventDateListShort; let first=first" [value]="date">
           {{date | date:'EEEE'}}
           {{date | date:'d MMM'}}
-          {{date | date:'h:mm a'}}
         </option>
       </select>
       <!-- Second dropdown for hour -->
-      <select [(ngModel)]="selectedTime" style="clear:none;float:left;width:200px;text-align:center;margin:10px">
+      <select [(ngModel)]="selectedTime" style="clear:none;float:left;width:100px;text-align:center;margin:10px">
         <option *ngFor="let date of eventTimeList; let first=first" [value]="date">
-          {{date | date:'EEEE'}}
-          {{date | date:'d MMM'}}
           {{date | date:'h:mm a'}}
         </option>
       </select>
     </div>
     <span style="margin:10px">Event duration (hours)</span>
-    <input style="width:30%;margin:10px" maxlength="20" [(ngModel)]="eventDuration" placeholder="Event duration">
+    <input style="width:30%;margin:10px" maxlength="20" [(ngModel)]="eventDurationChoice" placeholder="Event duration">
     <br/>
     <span style="margin:10px">Event location</span>
-    <input style="width:50%;margin:10px" maxlength="200" [(ngModel)]="eventLocation" placeholder="Event location">
+    <input style="width:50%;margin:10px" maxlength="200" [(ngModel)]="eventLocationChoice" placeholder="Event location">
     <br/>
-    <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()" [disabled]="!(eventDescription!=chatLastMessageObj?.eventDescription||eventDuration!=chatLastMessageObj?.eventDuration||eventLocation!=chatLastMessageObj?.eventLocation||selectedTime!=chatLastMessageObj?.eventDateStart)">Save event</button>
-    <button class="buttonRed" *ngIf="chatLastMessageObj?.eventDateStart!=null" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="cancelEvent()" [disabled]="!(eventDateEnd/60000>UI.nowSeconds/60)">Cancel event</button>
-    <div class="separator" style="width:100%;margin:0px"></div>
+    <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()" [disabled]="!((eventDescriptionChoice!=chatLastMessageObj?.eventDescription||eventDurationChoice!=chatLastMessageObj?.eventDuration||eventLocationChoice!=chatLastMessageObj?.eventLocation||selectedTime!=chatLastMessageObj?.eventDateStart) && (selectedTime % 1800000) == 0)">Save event</button>
+    <button class="buttonRed" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="cancelEvent()" [disabled]="!(eventDateEnd/60000>UI.nowSeconds/60)">Cancel event</button>
+    <div class="separator" style="width:100%;margin-top:10px;margin-bottom:10px"></div>
     <div>
       <span style="margin:10px">Fund description</span>
       <input style="width:60%;margin:10px" maxlength="200" [(ngModel)]="fund.description">
@@ -140,7 +137,7 @@ import firebase from 'firebase/compat/app'
       <input style="width:30%;margin:10px" maxlength="10" [(ngModel)]="fund.daysLeft">
       <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px;display:block" (click)="saveFund()" [disabled]="!(fund.description!=chatLastMessageObj?.fund?.description||fund.amountGBPTarget!=chatLastMessageObj?.fund?.amountGBPTarget||fund.daysLeft!=chatLastMessageObj?.fund?.daysLeft)">Save fund</button>
     </div>
-    <div class="separator" style="width:100%;margin-bottom:150px"></div>
+    <div class="separator" style="width:100%;margin-top:10px;margin-bottom:150px"></div>
   </div>
 
   <div class="sheet" id="chat_window" *ngIf="!showChatDetails&&!showImageGallery" style="padding:100px 0 0 0;overflow-y:auto;height:100%" scrollable>
@@ -309,6 +306,9 @@ export class ChatComponent {
   midnightOfThatDay: any;
   midnightOfThisDay: any;
   theDate: any;
+  eventDescriptionChoice:string;
+  eventDurationChoice:number;
+  eventLocationChoice:string;
 
 constructor(
     public afs:AngularFirestore,
@@ -330,9 +330,9 @@ constructor(
       this.previousMessageUser = ''
       this.messageNumberDisplay = 15
       this.chatSubject = ''
-      this.eventDescription = ''
-      this.eventDuration = 1
-      this.eventLocation = ""
+      this.eventDescription = '';
+      this.eventDuration = 1;
+      this.eventLocation = "https://meet.google.com/ebp-djfh-aht";
       this.fund = {
         description: 'add a description',
         amountGBPTarget: 0,
@@ -424,6 +424,9 @@ constructor(
   }
 
   selectedDateInit() {
+    this.eventDescriptionChoice = this.eventDescription;
+    this.eventDurationChoice = this.eventDuration;
+    this.eventLocationChoice = this.eventLocation;
     this.selectedTime = this.eventDateStart;
     if (this.eventDateStart != undefined && this.eventDateStart > (this.UI.nowSeconds*1000 - 3600000)) {
       this.theDate = new Date(Number(this.eventDateStart));
@@ -454,8 +457,8 @@ constructor(
           this.eventDescription = c.payload.doc.data()['eventDescription']
           this.eventDateStart = c.payload.doc.data()['eventDateStart']
           this.eventDateEnd = c.payload.doc.data()['eventDateEnd']
-          this.eventDuration = c.payload.doc.data()['eventDuration']
-          this.eventLocation = c.payload.doc.data()['eventLocation']
+          this.eventDuration = c.payload.doc.data()['eventDuration'] || this.eventDuration
+          this.eventLocation = c.payload.doc.data()['eventLocation'] || this.eventLocation
           this.fund = c.payload.doc.data()['fund'] || this.fund
           this.selectedDateInit();
           this.eventTimeListInit();
@@ -485,8 +488,8 @@ constructor(
           this.chatSubject = c.payload.doc.data()['chatSubject']
           this.eventDescription = c.payload.doc.data()['eventDescription']
           this.eventDateStart = c.payload.doc.data()['eventDateStart']
-          this.eventDuration = c.payload.doc.data()['eventDuration']
-          this.eventLocation = c.payload.doc.data()['eventLocation']
+          this.eventDuration = c.payload.doc.data()['eventDuration'] || this.eventDuration
+          this.eventLocation = c.payload.doc.data()['eventLocation'] || this.eventLocation
           this.fund = c.payload.doc.data()['fund'] || this.fund
           this.selectedDateInit();
           this.eventTimeListInit();
@@ -563,6 +566,9 @@ constructor(
 
   saveEvent() {
     this.eventDateStart = this.selectedTime*1;
+    this.eventDescription = this.eventDescriptionChoice;
+    this.eventDuration = this.eventDurationChoice*1;
+    this.eventLocation = this.eventLocationChoice;
     this.UI.createMessage({
       text: 'new event',
       chain: this.chatLastMessageObj.chain || this.chatChain,
@@ -580,7 +586,8 @@ constructor(
       text: 'cancelling event',
       chain: this.chatLastMessageObj.chain || this.chatChain,
       eventDateStart: this.UI.nowSeconds * 1000 - 3600000,
-      eventDateEnd: this.UI.nowSeconds * 1000 - 3600000
+      eventDateEnd: this.UI.nowSeconds * 1000 - 3600000,
+      eventLocation: "https://meet.google.com/ebp-djfh-aht"
     })
     this.resetChat()
   }
