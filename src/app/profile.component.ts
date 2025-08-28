@@ -24,7 +24,6 @@ import { ChangeDetectorRef } from '@angular/core'
     </div>
     <div *ngIf="scope=='all'&&UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined" style="line-height:0px;clear:both">
       <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="width:100%">
-      <div class="separator" style="width:100%;margin:0px"></div>
     </div>
     <div *ngIf="scope!='all'" style="clear:both;background-color:black">
       <div style="float:left">
@@ -46,7 +45,7 @@ import { ChangeDetectorRef } from '@angular/core'
             <span style="font-size:10px">{{focusUserLastMessageObj?.userPresentation}}</span>
             <span *ngIf="focusUserLastMessageObj?.contract?.signed" style="font-size:10px"> Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
             <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px">Waiting for contract signature (Level {{focusUserLastMessageObj?.contract?.level|number:'1.1-1'}})</span>
-            <div class="buttonBlack" *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin:15px;font-size:10px" (click)=signContract()>Sign contract</div>
+            <div class="buttonWhite" *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin:15px;font-size:10px" (click)=signContract()>Sign contract</div>
             <br>
             <span style="font-size:10px">Created in {{focusUserLastMessageObj?.createdTimestamp|date:'MMMM yyyy'}}</span>
             <br>
@@ -57,12 +56,11 @@ import { ChangeDetectorRef } from '@angular/core'
           </div>
         </div>
       </div>
-      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='inbox'?'#B0BAC0':'black'" (click)="mode='inbox';refreshMessages()">inbox</div>
-      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='history'?'#B0BAC0':'black'" (click)="mode='history';refreshMessages();refreshChart()">history</div>
-      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='chain'?'#B0BAC0':'black'" (click)="mode='chain';refreshMessages()">chain</div>
-      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.border-color]="mode=='forecast'?'#B0BAC0':'black'" (click)="mode='forecast';refreshMessages()">forecast</div>
+      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.background-color]="mode=='inbox'?'grey':'black'" (click)="mode='inbox';refreshMessages()">inbox</div>
+      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.background-color]="mode=='history'?'grey':'black'" (click)="mode='history';refreshMessages();refreshChart()">history</div>
+      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.background-color]="mode=='chain'?'grey':'black'" (click)="mode='chain';refreshMessages()">chain</div>
+      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.background-color]="mode=='forecast'?'grey':'black'" (click)="mode='forecast';refreshMessages()">forecast</div>
       <div class="buttonBlack" *ngIf="UI.currentUser&&UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="clear:both;width:250px;margin:5px;font-size:11px">New message to {{focusUserLastMessageObj?.name}}</div>
-      <div class="separator" style="width:100%;margin:0px"></div>
     </div>
     <div *ngIf="scope=='all'">
       <span class="material-icons" style="float:right;margin:10px;cursor:pointer" (click)="UI.openWindow(UI.PERRINNProfileLastMessageObj?.publicLink)">link</span>
@@ -70,12 +68,11 @@ import { ChangeDetectorRef } from '@angular/core'
       <div *ngIf="UI.tagFilters.length>0" style="float:left;font-size:10px;line-height:15px;padding:10px;cursor:pointer" (click)="UI.tagFilters=[];refreshMessages()">Clear {{UI.tagFilters.length}} filter{{UI.tagFilters.length>1?'s':''}}</div>
       <ul class="listLight" *ngIf="showTags">
         <li class="buttonBlack" *ngFor="let message of tags|async" style="float:left;width:100px;margin:5px;font-size:11px"
-          [style.border-color]="UI.tagFilters.includes(message.payload.doc.data()?.tag)?'white':'black'"
+          [style.background-color]="UI.tagFilters.includes(message.payload.doc.data()?.tag)?'grey':'black'"
           (click)="UI.tagFilters.includes(message.payload.doc.data()?.tag)?UI.tagFilters.splice(UI.tagFilters.indexOf(message.payload.doc.data()?.tag),1):UI.tagFilters.push(message.payload.doc.data()?.tag);refreshMessages()">
           {{message.payload.doc.data()?.tag}}
         </li>
       </ul>
-      <div class="separator" style="width:100%;margin:0px"></div>
     </div>
     <div>
       <ul class="listLight">
@@ -83,7 +80,7 @@ import { ChangeDetectorRef } from '@angular/core'
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
             <div *ngIf="message.payload.doc.data()?.eventDateEnd/60000>UI.nowSeconds/60">
-            <span *ngIf="message.payload.doc.data()?.eventLocation" class="buttonBlack" style="float:right;padding:5px;margin:10px;line-height:13px" (click)="UI.openWindow(message.payload.doc.data()?.eventLocation)">Join</span>
+            <span *ngIf="message.payload.doc.data()?.eventLocation" class="buttonWhite" style="float:right;margin:10px;width:50px" (click)="UI.openWindow(message.payload.doc.data()?.eventLocation)">Join</span>
             <div style="float:left;min-width:90px;min-height:40px">
               <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer">event</span>
             </div>
@@ -99,7 +96,6 @@ import { ChangeDetectorRef } from '@angular/core'
                 <span style="margin:0 5px 0 0">{{message.payload.doc.data()?.eventDateStart|date:'EEEE d MMM h:mm a'}} ({{message.payload.doc.data()?.eventDuration}}h)</span>
               </div>
             </div>
-            <div class="separator"></div>
           </div>
           </div>
         </li>
@@ -128,7 +124,6 @@ import { ChangeDetectorRef } from '@angular/core'
               </div>
             </div>
             </div>
-            <div class="separator"></div>
           </div>
         </li>
       </ul>
@@ -139,7 +134,6 @@ import { ChangeDetectorRef } from '@angular/core'
             <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload.doc.data())" style="float:left;object-fit:contain;width:100%;height:90px">
           </div>
         </li>
-        <div class="separator"></div>
       </ul>
       <div *ngIf="scope!='all'&&mode=='history'" style="height:400px;margin:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
       <ul class="listLight">
@@ -173,7 +167,6 @@ import { ChangeDetectorRef } from '@angular/core'
                 <span>{{message.payload.doc.data()?.text}}</span>
               </div>
             </div>
-            <div class="separator"></div>
           </div>
             <table *ngIf="scope!='all'&&(mode=='chain'||mode=='history')">
               <tr *ngIf="first" style="display: flex">
@@ -228,7 +221,6 @@ import { ChangeDetectorRef } from '@angular/core'
         <div class="bounce3"></div>
       </div>
       <div class="buttonWhite" *ngIf="!UI.loading&&mode!='history'&&mode!='forecast'" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</div>
-      <div class="separator"></div>
     </div>
   </div>
   `,

@@ -37,7 +37,6 @@ interface RevolutOrderResponse {
     <div class="sheet">
       <br />
       <div *ngIf="transactionPendingMessageObj" class="sheet" style="width:500px;max-width:80%">
-        <div class="separator"></div>
         <div *ngIf="!transactionPendingMessageObj?.transactionPending?.activated">
           <div class="title">
             There is a pending transaction ready for you.
@@ -54,15 +53,12 @@ interface RevolutOrderResponse {
             This transaction has already been activated.
           </div>
         </div>
-        <div class="separator"></div>
       </div>
       <br />
       <div class="sheet" style="width:500px;max-width:80%">
-        <div class="separator"></div>
         <div class="title" style=";text-align:center">
           <img src="./../assets/App icons/PRN token.png" style=";width:150px">
         </div>
-        <div class="separator"></div>
         <div style="padding:10px;text-align:center">
           <span>PRN tokens represent ownership of the PERRINN team.</span>
           <br />
@@ -82,15 +78,12 @@ interface RevolutOrderResponse {
           <br />
           <span>Soon you will be able to sell or exchange your tokens with other members here.</span>
         </div>
-        <div class="separator"></div>
       </div>
       <br />
       <div class="sheet" style="width:500px;max-width:80%">
-        <div class="separator"></div>
         <div class="title">
           The capital raised from token sales goes towards
         </div>
-        <div class="separator"></div>
         <ul class="listLight">
           <li *ngFor="let message of currentFunds|async">
             <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0&&(message.payload.doc.data()?.fund?.active||showPastFunds)" style="cursor:default;padding:10px">
@@ -111,12 +104,10 @@ interface RevolutOrderResponse {
             </div>
           </li>
         </ul>
-      <div class="buttonBlack" *ngIf="!showPastFunds" (click)="showPastFunds=!showPastFunds">Show past funds</div>
-      <div class="separator"></div>
+      <div class="buttonWhite" *ngIf="!showPastFunds" style="margin:10px auto;width:150px" (click)="showPastFunds=!showPastFunds">Show past funds</div>
       </div>
       <br />
       <div *ngIf="UI.currentUser" class="sheet" style="width:500px;max-width:80%">
-        <div class="separator"></div>
         <div class="title">
           Which currency are you using?
         </div>
@@ -126,19 +117,17 @@ interface RevolutOrderResponse {
               *ngFor="let currency of objectToArray(UI.appSettingsPayment.currencyList)"
               (click)="currencySelected = currency[0]; refreshAmountCharge()"
               style="float:left;width:125px;margin:5px"
-              [style.border-color]="
-                currencySelected == currency[0] ? 'white' : 'black'
+              [style.background-color]="
+                currencySelected == currency[0] ? 'grey' : 'black'
               "
             >
               {{ currency[1].designation }}
             </li>
           </ul>
         </div>
-        <div class="separator"></div>
       </div>
       <br />
       <div *ngIf="UI.currentUser" class="sheet" style="width:500px;max-width:80%">
-        <div class="separator"></div>
         <div class="title">
           How much PRN would you like to buy?
         </div>
@@ -148,7 +137,7 @@ interface RevolutOrderResponse {
               *ngFor="let credit of creditList; let index = index"
               (click)="creditSelected = index; refreshAmountCharge()"
               style="float:left;width:75px;margin:5px"
-              [style.border-color]="creditSelected == index ? 'white' : 'black'">
+              [style.background-color]="creditSelected == index ? 'grey' : 'black'">
             {{UI.formatSharesToCurrency(currencySelected,credit*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}
             </li>
           </ul>
@@ -162,13 +151,13 @@ interface RevolutOrderResponse {
               (click)="payWithRevolutLink()"
               style="width:200px;margin:10px auto;font-size:14px;text-align:center;line-height:25px;padding:4px">
         Go to checkout
-      </div>
-        <div class="separator"></div>
-      </div>
-      <br />
-      <div class="separator" style="width:100%;margin-top:150px"></div>
     </div>
-  `,
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    `,
 })
 export class buyPRNComponent {
   cardNumber:string

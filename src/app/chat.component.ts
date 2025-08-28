@@ -42,21 +42,19 @@ import firebase from 'firebase/compat/app'
         </div>
         <span class="material-icons-outlined" style="float:right;padding:7px" (click)="showImageGalleryClick()">{{showImageGallery?'question_answer':'collections'}}</span>
         <div *ngIf="eventDateEnd/60000>UI.nowSeconds/60" style="clear:right">
-          <span *ngIf="eventLocation" class="buttonBlack" style="float:right;padding:5px;margin:10px;line-height:13px" (click)="UI.openWindow(eventLocation)">Join</span>
+          <span *ngIf="eventLocation" class="buttonWhite" style="float:right;margin:10px;width:50px" (click)="UI.openWindow(eventLocation)">Join</span>
         </div>
       </div>
       <div *ngIf="showChatDetails">
         <div style="float:left;font-size:12px;line-height:20px;margin:10px">< messages</div>
       </div>
-      <div class="separator" style="width:100%;margin:0px"></div>
     </div>
   </div>
 
 
   <div class="sheet" *ngIf="showChatDetails" style="padding-top:40px">
     <input [(ngModel)]="chatSubject" style="width:60%;margin:15px 10px 10px 10px" placeholder="What is the subject of this chat?">
-    <button class="buttonBlack" style="float:right;width:75px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:15px 10px 10px 10px;color:whitesmoke;background-color:black;cursor:pointer; padding:0px" (click)="saveNewSubject()" [disabled]="chatLastMessageObj?.chatSubject==chatSubject&&chatSubject">Save</button>
-    <div class="separator" style="width:100%;margin-top:10px;margin-bottom:10px"></div>
+    <button class="buttonWhite" style="float:right;width:75px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:15px 10px 10px 10px;color:whitesmoke;background-color:black;cursor:pointer; padding:0px" (click)="saveNewSubject()" [disabled]="chatLastMessageObj?.chatSubject==chatSubject&&chatSubject">Save</button>
     <ul class="listLight" style="margin:15px">
       <li *ngFor="let recipient of chatLastMessageObj?.recipientList" style="float:left">
         <div style="float:left;cursor:pointer" (click)="router.navigate(['profile',recipient])">
@@ -78,7 +76,6 @@ import firebase from 'firebase/compat/app'
         </div>
       </li>
     </ul>
-    <div class="separator" style="width:100%;margin-top:10px;margin-bottom:10px"></div>
     <span style="margin:10px">Sending PRN {{UI.appSettingsPayment.currencyList[UI.currentUserLastMessageObj.userCurrency].designation}}:</span>
       <input style="width:200px;margin:10px" maxlength="500" [(ngModel)]="transactionAmount" placeholder="amount">
       <input style="width:150px;margin:10px" maxlength="500" [(ngModel)]="transactionCode" placeholder="Code (optional)">
@@ -99,7 +96,6 @@ import firebase from 'firebase/compat/app'
       <button class="buttonWhite" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionPending(transactionAmount,transactionCode,null,null,transactionReference)" [disabled]="!(transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance&&transactionUser==undefined&&transactionReference!=''&&transactionReference!=undefined)">
         Create pending transaction of {{UI.formatSharesToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}}
       </button>
-    <div class="separator" style="width:100%;margin-top:10px;margin-bottom:10px"></div>
     <div style="font-size:12px;margin:10px">Event :<span *ngIf="eventDateEnd/60000>UI.nowSeconds/60" style="font-size:12px;margin:10px">{{eventDescription}} {{eventDateStart==0?'':eventDateStart|date:'EEEE d MMM h:mm a'}} ({{eventDuration}}h) [location: {{eventLocation}}]</span></div>
     <input style="width:60%;margin:10px;display:block" maxlength="200" [(ngModel)]="eventDescriptionChoice" placeholder="Event description">
     <div>
@@ -125,7 +121,6 @@ import firebase from 'firebase/compat/app'
     <br/>
     <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()" [disabled]="!((eventDescriptionChoice!=chatLastMessageObj?.eventDescription||eventDurationChoice!=chatLastMessageObj?.eventDuration||eventLocationChoice!=chatLastMessageObj?.eventLocation||selectedTime!=chatLastMessageObj?.eventDateStart) && (selectedTime % 1800000) == 0 && (selectedTime != null))">Save event</button>
     <button class="buttonRed" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="cancelEvent()" [disabled]="!(eventDateEnd/60000>UI.nowSeconds/60)">Cancel event</button>
-    <div class="separator" style="width:100%;margin-top:10px;margin-bottom:10px"></div>
     <div>
       <span style="margin:10px">Fund description</span>
       <input style="width:60%;margin:10px" maxlength="200" [(ngModel)]="fund.description">
@@ -136,8 +131,12 @@ import firebase from 'firebase/compat/app'
       <span style="margin:10px">Days left</span>
       <input style="width:30%;margin:10px" maxlength="10" [(ngModel)]="fund.daysLeft">
       <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px;display:block" (click)="saveFund()" [disabled]="!(fund.description!=chatLastMessageObj?.fund?.description||fund.amountGBPTarget!=chatLastMessageObj?.fund?.amountGBPTarget||fund.daysLeft!=chatLastMessageObj?.fund?.daysLeft)">Save fund</button>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
     </div>
-    <div class="separator" style="width:100%;margin-top:10px;margin-bottom:150px"></div>
   </div>
 
   <div class="sheet" id="chat_window" *ngIf="!showChatDetails&&!showImageGallery" style="padding:100px 0 0 0;overflow-y:auto;height:100%" scrollable>
@@ -176,28 +175,16 @@ import firebase from 'firebase/compat/app'
               <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{UI.formatSharesToCurrency(null,message.payload?.statistics?.stripeBalance?.available[0]?.amount/100*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} available in the PERRINN fund</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">({{UI.formatSharesToCurrency(null,message.payload?.statistics?.stripeBalance?.pending[0]?.amount/100*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} pending).</div>
               <div *ngIf="messageShowDetails.includes(message.key)" style="margin:5px">
-                <div class="separator" style="width:100%"></div>
                 <div style="font-size:10px">Email addresses {{message.payload?.emails|json}}</div>
-                <div class="separator" style="width:100%"></div>
                 <div style="font-size:10px">userChain {{message.payload?.userChain|json}}</div>
-                <div class="separator" style="width:100%"></div>
                 <div style="font-size:10px">transactionPending {{message.payload?.transactionPending|json}}</div>
-                <div class="separator" style="width:100%"></div>
                 <div style="font-size:10px">transactionOut {{message.payload?.transactionOut|json}}</div>
-                <div class="separator" style="width:100%"></div>
                 <div style="font-size:10px">transactionIn {{message.payload?.transactionIn|json}}</div>
-                <div class="separator" style="width:100%"></div>
                 <div style="font-size:10px">Share purchase {{message.payload?.purchaseCOIN|json}}</div>
-                <div class="separator" style="width:100%"></div>
                 <div style="font-size:10px">interest {{message.payload?.interest|json}}</div>
-                <div class="separator" style="width:100%"></div>
                 <div style="font-size:10px">contract {{message.payload?.contract|json}}</div>
-                <div class="separator" style="width:100%"></div>
                 <div style="font-size:10px">wallet {{message.payload?.wallet|json}}</div>
-                <div class="separator" style="width:100%"></div>
-                <div class="separator" style="width:100%"></div>
                 <div style="font-size:10px">fund {{message.payload?.fund|json}}</div>
-                <div class="separator" style="width:100%"></div>
                 <div style="font-size:10px">{{message.payload|json}}</div>
               </div>
             </div>
@@ -245,7 +232,6 @@ import firebase from 'firebase/compat/app'
   <div class="sheet" *ngIf="UI.currentUser&&!showImageGallery">
     <div class="fixed" style="bottom:0;padding-bottom:25px">
       <span *ngIf="chatLastMessageObj?.chatSubject==null" style="margin:5px;font-size:10px">This message will be the subject of this chat</span>
-      <div class="separator" style="width:100%"></div>
       <div style="clear:both;float:left;width:90%">
         <input autocapitalize="none" style="float:left;padding:10px;resize:none;overflow-y:scroll"  [style.width]="imageDownloadUrl?'80%':'95%'" maxlength="500" (keyup.enter)="addMessage()" [(ngModel)]="draftMessage" placeholder="Reply all">
         <div *ngIf="imageDownloadUrl" style="float:left;width:15%">

@@ -14,7 +14,6 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
         <span class="material-icons" style="float:left;margin:5px 45px 5px 45px;font-size:30px;cursor:pointer" (click)="router.navigate(['directory'])">list</span>
         <span class="material-icons-outlined" style="float:left;margin:5px 45px 5px 45px;font-size:30px;height:30px;cursor:pointer" onclick="window.open('https://discover.perrinn.com','_blank')">info</span>
       </div>
-      <div class="separator" style="width:100%;margin:0px"></div>
     </div>
     <div style="user-select:none">
       <div style="max-width:800px;margin:0 auto">
@@ -25,9 +24,8 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
           <span style="font-size:14px;line-height:40px;color:#ff6666"> {{UI.isDev ? 'DEV' : ''}}</span>
           <span style="font-size:14px;line-height:40px;color:#ff6666"> {{UI.revolutMode=='sandbox'?'sandbox':''}}</span>
         </div>
-        <button class="buttonBlack" style="float:right;line-height:20px;width:100px;margin:7px" (click)="router.navigate(['buyPRN',''])" [disabled]='this.router.url.startsWith("/buyPRN")'>Buy PRN</button>
+        <button class="buttonWhite" style="float:right;line-height:20px;width:100px;margin:7px" (click)="router.navigate(['buyPRN',''])" [disabled]='this.router.url.startsWith("/buyPRN")'>Buy PRN</button>
       </div>
-      <div class="separator" style="width:100%;margin:0px"></div>
     </div>
     <div id='main_container'>
       <router-outlet></router-outlet>
