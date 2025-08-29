@@ -11,72 +11,78 @@ import firebase from 'firebase/compat/app'
   selector: 'chat',
   template: `
 
-  <div class="sheet">
-    <div class="fixed" style="background-color:black;font-size:12px;cursor:pointer" (click)="UI.currentUser?showChatDetails=!showChatDetails:''">
-      <div *ngIf="!showChatDetails">
-        <div style="float:left;width:80%;margin:0 5px 0 10px;min-height:40px">
-          <div>
-            <span *ngIf="chatLastMessageObj?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0">settings</span>
-            <div style="float:left">{{chatLastMessageObj?.chatSubject}}</div>
-          </div>
-          <div style="width:100%;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical">
-            <span *ngFor="let recipient of chatLastMessageObj?.recipientList;let last=last">{{recipient==UI.currentUser?'You':chatLastMessageObj?.recipients[recipient]?.name}}{{last?"":", "}}</span>
-          </div>
-          <div *ngIf="eventDateEnd/60000>UI.nowSeconds/60" style="clear:both">
-            <span class="material-icons-outlined" style="float:left;font-size:20px;margin-right:5px">event</span>
-            <div *ngIf="math.floor(eventDateStart/60000-UI.nowSeconds/60)>0" [style.background-color]="(math.floor((eventDateStart/1000-UI.nowSeconds)/60)>60*8)?'black':'#38761D'" style="float:left;color:whitesmoke;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(eventDateStart/1000-UI.nowSeconds)}}</div>
-            <div *ngIf="math.floor(eventDateStart/60000-UI.nowSeconds/60)<=0&&eventDateEnd/60000>UI.nowSeconds/60" style="float:left;background-color:#7BC463;color:whitesmoke;padding:0 5px 0 5px">Now</div>
-            <span style="margin:0 5px 0 5px">{{eventDescription}}</span>
-            <span style="margin:0 5px 0 0">{{eventDateStart|date:'EEEE d MMM h:mm a'}} ({{eventDuration}}h)</span>
-          </div>
-          <div *ngIf="fund?.active" style="clear:both">
-            <span class="material-symbols-outlined" style="float:left;font-size:20px;margin-right:5px">crowdsource</span>
-            <div style="float:left;background-color:black;height:20px;width:65px;text-align:center;color:whitesmoke;padding:0 5px 0 5px"></div>
-            <div style="float:left;height:20px;background-color:#38761D;margin-left:-65px" [style.width]="(fund?.amountGBPRaised/fund?.amountGBPTarget)*65+'px'"></div>
-            <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;color:whitesmoke;padding:0 5px 0 5px">{{(fund?.amountGBPRaised/fund?.amountGBPTarget)|percent:'1.0-0'}}</div>
-            <div style="float:left;margin:0 5px 0 5px">{{fund.daysLeft|number:'1.0-0'}} days left</div>
-            <div style="float:left;margin:0 5px 0 0">{{fund.description}},</div>
-            <div style="float:left;margin:0 5px 0 0">target: {{UI.formatSharesToCurrency(null,fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /</div>
-            <div style="float:left">raised: {{UI.formatSharesToCurrency(null,fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}</div>
-          </div>
+  <div style="position:sticky;top:0;z-index:999;width:100%;background-color:black;font-size:12px;cursor:pointer" (click)="UI.currentUser?showChatDetails=!showChatDetails:''">
+    <div *ngIf="!showChatDetails">
+      <div style="float:left;width:80%;margin:0 5px 0 10px;min-height:40px">
+        <div>
+          <span *ngIf="chatLastMessageObj?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0">settings</span>
+          <div style="float:left">{{chatLastMessageObj?.chatSubject}}</div>
         </div>
-        <span class="material-icons-outlined" style="float:right;padding:7px" (click)="showImageGalleryClick()">{{showImageGallery?'question_answer':'collections'}}</span>
-        <div *ngIf="eventDateEnd/60000>UI.nowSeconds/60" style="clear:right">
-          <span *ngIf="eventLocation" class="buttonWhite" style="float:right;margin:10px;width:50px" (click)="UI.openWindow(eventLocation)">Join</span>
+        <div style="width:100%;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical">
+          <span *ngFor="let recipient of chatLastMessageObj?.recipientList;let last=last">{{recipient==UI.currentUser?'You':chatLastMessageObj?.recipients[recipient]?.name}}{{last?"":", "}}</span>
+        </div>
+        <div *ngIf="eventDateEnd/60000>UI.nowSeconds/60" style="clear:both">
+          <span class="material-icons-outlined" style="float:left;font-size:20px;margin-right:5px">event</span>
+          <div *ngIf="math.floor(eventDateStart/60000-UI.nowSeconds/60)>0" [style.background-color]="(math.floor((eventDateStart/1000-UI.nowSeconds)/60)>60*8)?'black':'#38761D'" style="float:left;color:whitesmoke;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(eventDateStart/1000-UI.nowSeconds)}}</div>
+          <div *ngIf="math.floor(eventDateStart/60000-UI.nowSeconds/60)<=0&&eventDateEnd/60000>UI.nowSeconds/60" style="float:left;background-color:#7BC463;color:whitesmoke;padding:0 5px 0 5px">Now</div>
+          <span style="margin:0 5px 0 5px">{{eventDescription}}</span>
+          <span style="margin:0 5px 0 0">{{eventDateStart|date:'EEEE d MMM h:mm a'}} ({{eventDuration}}h)</span>
+        </div>
+        <div *ngIf="fund?.active" style="clear:both">
+          <span class="material-symbols-outlined" style="float:left;font-size:20px;margin-right:5px">crowdsource</span>
+          <div style="float:left;background-color:black;height:20px;width:65px;text-align:center;color:whitesmoke;padding:0 5px 0 5px"></div>
+          <div style="float:left;height:20px;background-color:#38761D;margin-left:-65px" [style.width]="(fund?.amountGBPRaised/fund?.amountGBPTarget)*65+'px'"></div>
+          <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;color:whitesmoke;padding:0 5px 0 5px">{{(fund?.amountGBPRaised/fund?.amountGBPTarget)|percent:'1.0-0'}}</div>
+          <div style="float:left;margin:0 5px 0 5px">{{fund.daysLeft|number:'1.0-0'}} days left</div>
+          <div style="float:left;margin:0 5px 0 0">{{fund.description}},</div>
+          <div style="float:left;margin:0 5px 0 0">target: {{UI.formatSharesToCurrency(null,fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /</div>
+          <div style="float:left">raised: {{UI.formatSharesToCurrency(null,fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}</div>
         </div>
       </div>
-      <div *ngIf="showChatDetails">
-        <div style="float:left;font-size:12px;line-height:20px;margin:10px">< messages</div>
+      <span class="material-icons-outlined" style="float:right;padding:7px" (click)="showImageGalleryClick()">{{showImageGallery?'question_answer':'collections'}}</span>
+      <div *ngIf="eventDateEnd/60000>UI.nowSeconds/60" style="clear:right">
+        <button *ngIf="eventLocation" class="buttonWhite" style="float:right;margin:10px;width:50px" (click)="UI.openWindow(eventLocation)">Join</button>
       </div>
+    </div>
+    <div *ngIf="showChatDetails">
+      <div style="float:left;font-size:12px;line-height:20px;margin:10px">< messages</div>
     </div>
   </div>
 
+  <div *ngIf="showChatDetails" style="padding-top:40px">
+    <div class="island">
+      <input [(ngModel)]="chatSubject" style="width:60%" placeholder="What is the subject of this chat?">
+      <button class="buttonWhite" style="width:75px" (click)="saveNewSubject()" [disabled]="chatLastMessageObj?.chatSubject==chatSubject&&chatSubject">Save</button>
+    </div>
+    <br/>
 
-  <div class="sheet" *ngIf="showChatDetails" style="padding-top:40px">
-    <input [(ngModel)]="chatSubject" style="width:60%;margin:15px 10px 10px 10px" placeholder="What is the subject of this chat?">
-    <button class="buttonWhite" style="float:right;width:75px;height:20px;text-align:center;line-height:18px;font-size:10px;margin:15px 10px 10px 10px;color:whitesmoke;background-color:black;cursor:pointer; padding:0px" (click)="saveNewSubject()" [disabled]="chatLastMessageObj?.chatSubject==chatSubject&&chatSubject">Save</button>
-    <ul class="listLight" style="margin:15px">
-      <li *ngFor="let recipient of chatLastMessageObj?.recipientList" style="float:left">
-        <div style="float:left;cursor:pointer" (click)="router.navigate(['profile',recipient])">
-          <img [src]="chatLastMessageObj?.recipients[recipient]?.imageUrlThumb" style="float:left;object-fit:cover;height:25px;width:25px;margin:3px 3px 3px 10px">
-          <div style="float:left;margin:10px 5px 3px 3px;font-size:12px;line-height:10px;font-family:sans-serif">{{chatLastMessageObj?.recipients[recipient]?.name}}</div>
-        </div>
-        <div style="float:left;cursor:pointer;margin:10px 15px 3px 3px;font-size:12px;line-height:10px;font-family:sans-serif;color:#D85140" (click)="removeRecipient(recipient,chatLastMessageObj?.recipients[recipient]?.name)">X</div>
-      </li>
-    </ul>
-    <input style="width:60%;margin:10px" maxlength="500" (keyup)="refreshSearchLists()" [(ngModel)]="searchFilter" placeholder="Add member">
-    <ul class="listLight">
-      <li *ngFor="let team of teams | async">
-        <div *ngIf="!(chatLastMessageObj?.recipients||{})[team.key]" style="padding:5px">
-          <div style="float:left;width:300px">
-            <img [src]="team?.values?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, team?.values)" style="display:inline;float:left;margin:0 5px 0 10px;opacity:1;object-fit:cover;height:25px;width:25px">
-            <span>{{team.values?.name}} {{UI.formatSharesToPRNCurrency(null,team.values?.wallet?.balance||0)}}</span>
+    <div class="island">
+      <ul class="listLight" style="margin:15px">
+        <li *ngFor="let recipient of chatLastMessageObj?.recipientList" style="float:left">
+          <div style="float:left;cursor:pointer" (click)="router.navigate(['profile',recipient])">
+            <img [src]="chatLastMessageObj?.recipients[recipient]?.imageUrlThumb" style="float:left;object-fit:cover;height:25px;width:25px;margin:3px 3px 3px 10px">
+            <div style="float:left;margin:10px 5px 3px 3px;font-size:12px;line-height:10px;font-family:sans-serif">{{chatLastMessageObj?.recipients[recipient]?.name}}</div>
           </div>
-          <button class="buttonWhite" style="float:left;width:50px;font-size:11px" (click)="addRecipient(team.values.user,team.values.name)">Add</button>
-        </div>
-      </li>
-    </ul>
-    <span style="margin:10px">Sending PRN {{UI.appSettingsPayment.currencyList[UI.currentUserLastMessageObj.userCurrency].designation}}:</span>
+          <div style="float:left;cursor:pointer;margin:10px 15px 3px 3px;font-size:12px;line-height:10px;font-family:sans-serif;color:#D85140" (click)="removeRecipient(recipient,chatLastMessageObj?.recipients[recipient]?.name)">X</div>
+        </li>
+      </ul>
+      <input style="width:60%;margin:10px" maxlength="500" (keyup)="refreshSearchLists()" [(ngModel)]="searchFilter" placeholder="Add member">
+      <ul class="listLight">
+        <li *ngFor="let team of teams | async">
+          <div *ngIf="!(chatLastMessageObj?.recipients||{})[team.key]" style="padding:5px">
+            <div style="float:left;width:300px">
+              <img [src]="team?.values?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, team?.values)" style="display:inline;float:left;margin:0 5px 0 10px;opacity:1;object-fit:cover;height:25px;width:25px">
+              <span>{{team.values?.name}} {{UI.formatSharesToPRNCurrency(null,team.values?.wallet?.balance||0)}}</span>
+            </div>
+            <button class="buttonWhite" style="float:left;width:50px;font-size:11px" (click)="addRecipient(team.values.user,team.values.name)">Add</button>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <br/>
+
+    <div class="island">
+      <span style="margin:10px">Sending PRN {{UI.appSettingsPayment.currencyList[UI.currentUserLastMessageObj.userCurrency].designation}}:</span>
       <input style="width:200px;margin:10px" maxlength="500" [(ngModel)]="transactionAmount" placeholder="amount">
       <input style="width:150px;margin:10px" maxlength="500" [(ngModel)]="transactionCode" placeholder="Code (optional)">
       <input style="width:90%;margin:10px" maxlength="500" [(ngModel)]="transactionReference" placeholder="reference">
@@ -96,32 +102,39 @@ import firebase from 'firebase/compat/app'
       <button class="buttonWhite" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionPending(transactionAmount,transactionCode,null,null,transactionReference)" [disabled]="!(transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance&&transactionUser==undefined&&transactionReference!=''&&transactionReference!=undefined)">
         Create pending transaction of {{UI.formatSharesToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}}
       </button>
-    <div style="font-size:12px;margin:10px">Event :<span *ngIf="eventDateEnd/60000>UI.nowSeconds/60" style="font-size:12px;margin:10px">{{eventDescription}} {{eventDateStart==0?'':eventDateStart|date:'EEEE d MMM h:mm a'}} ({{eventDuration}}h) [location: {{eventLocation}}]</span></div>
-    <input style="width:60%;margin:10px;display:block" maxlength="200" [(ngModel)]="eventDescriptionChoice" placeholder="Event description">
-    <div>
-      <!-- First dropdown for the date -->
-      <select [(ngModel)]="selectedDate" (change)="onDateChange($event)" style="float:left;width:200px;margin:10px">
-        <option *ngFor="let date of eventDateListShort; let first=first" [value]="date">
-          {{date | date:'EEEE'}}
-          {{date | date:'d MMM'}}
-        </option>
-      </select>
-      <!-- Second dropdown for hour -->
-      <select [(ngModel)]="selectedTime" style="clear:none;float:left;width:100px;text-align:center;margin:10px">
-        <option *ngFor="let date of eventTimeList; let first=first" [value]="date">
-          {{date | date:'h:mm a'}}
-        </option>
-      </select>
     </div>
-    <span style="margin:10px">Event duration (hours)</span>
-    <input style="width:30%;margin:10px" maxlength="20" [(ngModel)]="eventDurationChoice" placeholder="Event duration">
     <br/>
-    <span style="margin:10px">Event location</span>
-    <input style="width:50%;margin:10px" maxlength="200" [(ngModel)]="eventLocationChoice" placeholder="Event location">
+
+    <div class="island">
+      <div class="title">Event :<span *ngIf="eventDateEnd/60000>UI.nowSeconds/60" style="font-size:12px;margin:10px">{{eventDescription}} {{eventDateStart==0?'':eventDateStart|date:'EEEE d MMM h:mm a'}} ({{eventDuration}}h) [location: {{eventLocation}}]</span></div>
+      <input style="width:60%;margin:10px;display:block" maxlength="200" [(ngModel)]="eventDescriptionChoice" placeholder="Event description">
+      <div>
+        <!-- First dropdown for the date -->
+        <select [(ngModel)]="selectedDate" (change)="onDateChange($event)" style="float:left;width:200px;margin:10px">
+          <option *ngFor="let date of eventDateListShort; let first=first" [value]="date">
+            {{date | date:'EEEE'}}
+            {{date | date:'d MMM'}}
+          </option>
+        </select>
+        <!-- Second dropdown for hour -->
+        <select [(ngModel)]="selectedTime" style="clear:none;float:left;width:100px;text-align:center;margin:10px">
+          <option *ngFor="let date of eventTimeList; let first=first" [value]="date">
+            {{date | date:'h:mm a'}}
+          </option>
+        </select>
+      </div>
+      <span style="margin:10px">Event duration (hours)</span>
+      <input style="width:30%;margin:10px" maxlength="20" [(ngModel)]="eventDurationChoice" placeholder="Event duration">
+      <br/>
+      <span style="margin:10px">Event location</span>
+      <input style="width:50%;margin:10px" maxlength="200" [(ngModel)]="eventLocationChoice" placeholder="Event location">
+      <br/>
+      <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()" [disabled]="!((eventDescriptionChoice!=chatLastMessageObj?.eventDescription||eventDurationChoice!=chatLastMessageObj?.eventDuration||eventLocationChoice!=chatLastMessageObj?.eventLocation||selectedTime!=chatLastMessageObj?.eventDateStart) && (selectedTime % 1800000) == 0 && (selectedTime != null))">Save event</button>
+      <button class="buttonRed" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="cancelEvent()" [disabled]="!(eventDateEnd/60000>UI.nowSeconds/60)">Cancel event</button>
+    </div>
     <br/>
-    <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="saveEvent()" [disabled]="!((eventDescriptionChoice!=chatLastMessageObj?.eventDescription||eventDurationChoice!=chatLastMessageObj?.eventDuration||eventLocationChoice!=chatLastMessageObj?.eventLocation||selectedTime!=chatLastMessageObj?.eventDateStart) && (selectedTime % 1800000) == 0 && (selectedTime != null))">Save event</button>
-    <button class="buttonRed" style="clear:both;width:100px;font-size:10px;margin:10px" (click)="cancelEvent()" [disabled]="!(eventDateEnd/60000>UI.nowSeconds/60)">Cancel event</button>
-    <div>
+    
+    <div class="island">
       <span style="margin:10px">Fund description</span>
       <input style="width:60%;margin:10px" maxlength="200" [(ngModel)]="fund.description">
       <br/>
@@ -131,32 +144,27 @@ import firebase from 'firebase/compat/app'
       <span style="margin:10px">Days left</span>
       <input style="width:30%;margin:10px" maxlength="10" [(ngModel)]="fund.daysLeft">
       <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px;display:block" (click)="saveFund()" [disabled]="!(fund.description!=chatLastMessageObj?.fund?.description||fund.amountGBPTarget!=chatLastMessageObj?.fund?.amountGBPTarget||fund.daysLeft!=chatLastMessageObj?.fund?.daysLeft)">Save fund</button>
-      <br/>
-      <br/>
-      <br/>
-      <br/>
-      <br/>
     </div>
   </div>
 
-  <div class="sheet" id="chat_window" *ngIf="!showChatDetails&&!showImageGallery" style="padding:100px 0 0 0;overflow-y:auto;height:100%" scrollable>
+  <div *ngIf="!showChatDetails&&!showImageGallery">
     <div class="spinner" *ngIf="UI.loading">
       <div class="bounce1"></div>
       <div class="bounce2"></div>
       <div class="bounce3"></div>
     </div>
     <div>
-      <ul style="list-style:none;">
+      <ul>
         <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index">
-          <div *ngIf="isMessageNewTimeGroup(message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" style="padding:15px">
-            <button class="buttonWhite" *ngIf="first" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</button>
-            <div style="margin:0 auto;text-align:center">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'fullDate'}}</div>
+          <div class="island" style="margin-top:25px;margin-bottom:25px;max-width:250px" *ngIf="isMessageNewTimeGroup(message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
+              <button class="buttonWhite" *ngIf="first" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</button>
+              <div style="margin:0 auto;text-align:center">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'fullDate'}}</div>
           </div>
           <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" style="clear:both;width:100%;height:15px"></div>
           <div *ngIf="message.payload?.imageUrlThumbUser&&(isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first)" style="float:left;width:60px;min-height:10px">
             <img [src]="message.payload?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload)" style="cursor:pointer;display:inline;float:left;margin:0 10px 10px 10px; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
           </div>
-          <div [style.background-color]="(message.payload?.user==UI.currentUser)?'#222C32':'black'"
+          <div [style.background-color]="(message.payload?.user==UI.currentUser)?'#222C32':'#222'"
                 style="cursor:text;margin:0 10px 5px 60px;user-select:text;border-color:#5BBF2F"
                 [style.border-style]="(message.payload?.text.includes(UI.currentUserLastMessageObj?.name))?'solid':'none'">
             <div>
@@ -198,7 +206,7 @@ import firebase from 'firebase/compat/app'
               <span *ngIf="message.payload?.userChain?.nextMessage=='none'&&message.payload?.wallet?.balance!=undefined" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.formatSharesToPRNCurrency(null,message.payload?.wallet?.balance)}}</span>
             </div>
             <div *ngIf="UI.currentUser&&messageShowActions.includes(message.key)">
-              <div style="float:left;padding:5px;cursor:pointer;border-style:solid 1px 0 0" (click)="messageShowDetails.includes(message.key)?messageShowDetails.splice(messageShowDetails.indexOf(message.key),1):messageShowDetails.push(message.key)">Details</div>
+              <div style="float:left;padding:5px;cursor:pointer" (click)="messageShowDetails.includes(message.key)?messageShowDetails.splice(messageShowDetails.indexOf(message.key),1):messageShowDetails.push(message.key)">Details</div>
             </div>
           </div>
           <div *ngIf="lastRead==message.key" style="margin:0 auto;text-align:center;font-size:12px;margin:35px 0 35px 0;border-style:solid;border-width:0 0 1px 0">Last read</div>
@@ -210,7 +218,7 @@ import firebase from 'firebase/compat/app'
     </div>
   </div>
 
-  <div class="sheet" id="chat_window" *ngIf="!showChatDetails&&showImageGallery" style="padding:50px 0 0 0;overflow-y:auto;height:100%" scrollable>
+  <div *ngIf="!showChatDetails&&showImageGallery">
     <div class="spinner" *ngIf="UI.loading">
       <div class="bounce1"></div>
       <div class="bounce2"></div>
@@ -218,38 +226,33 @@ import firebase from 'firebase/compat/app'
     </div>
     <div>
       <ul style="list-style:none">
-        <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index" style="float:left;margin:5px;border-style:solid">
+        <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index" style="float:left;margin:5px">
           <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" style="width:375px;height:200px;object-fit:contain" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
-          <div style="margin:5px;width:365px;height:45px">
-            <span>{{message.payload?.name}}: {{message.payload?.text}}</span>
-          </div>
         </li>
       </ul>
       <div style="height:100px;width:100%"></div>
     </div>
   </div>
 
-  <div class="sheet" *ngIf="UI.currentUser&&!showImageGallery">
-    <div class="fixed" style="bottom:0;padding-bottom:25px">
-      <span *ngIf="chatLastMessageObj?.chatSubject==null" style="margin:5px;font-size:10px">This message will be the subject of this chat</span>
-      <div style="clear:both;float:left;width:90%">
-        <input autocapitalize="none" style="float:left;padding:10px;resize:none;overflow-y:scroll"  [style.width]="imageDownloadUrl?'80%':'95%'" maxlength="500" (keyup.enter)="addMessage()" [(ngModel)]="draftMessage" placeholder="Reply all">
-        <div *ngIf="imageDownloadUrl" style="float:left;width:15%">
-          <img [src]="imageDownloadUrl" style="object-fit:cover;height:53px;margin:0 auto">
-        </div>
-      </div>
-      <div *ngIf="draftMessage||imageDownloadUrl" style="float:right;width:10%;cursor:pointer">
-        <span class="material-icons-outlined" style="margin:15px 5px 5px 5px;font-size:30px" (click)="addMessage()">send</span>
-      </div>
-      <div *ngIf="!draftMessage&&!imageDownloadUrl" style="float:right;width:10%;cursor:pointer">
-        <input type="file" name="chatImage" id="chatImage" class="inputfile" (change)="onImageChange($event)" accept="image/*">
-        <label class="buttonUploadImage" for="chatImage" id="buttonFile">
-        <span class="material-icons-outlined" style="margin:15px 5px 5px 5px;font-size:30px;color:#B0BAC0">photo_camera</span>
-        </label>
+  <div *ngIf="UI.currentUser&&!showImageGallery" style="position:sticky;z-index:999;width:100%;background-color:black;bottom:0;padding-bottom:25px">
+    <span *ngIf="chatLastMessageObj?.chatSubject==null" style="margin:5px;font-size:10px">This message will be the subject of this chat</span>
+    <div style="clear:both;float:left;width:90%">
+      <input autocapitalize="none" style="float:left;padding:10px;resize:none"  [style.width]="imageDownloadUrl?'80%':'95%'" maxlength="500" (keyup.enter)="addMessage()" [(ngModel)]="draftMessage" placeholder="Reply all">
+      <div *ngIf="imageDownloadUrl" style="float:left;width:15%">
+        <img [src]="imageDownloadUrl" style="object-fit:cover;height:53px;margin:0 auto">
       </div>
     </div>
+    <div *ngIf="draftMessage||imageDownloadUrl" style="float:right;width:10%;cursor:pointer">
+      <span class="material-icons-outlined" style="margin:15px 5px 5px 5px;font-size:30px" (click)="addMessage()">send</span>
+    </div>
+    <div *ngIf="!draftMessage&&!imageDownloadUrl" style="float:right;width:10%;cursor:pointer">
+      <input type="file" name="chatImage" id="chatImage" class="inputfile" (change)="onImageChange($event)" accept="image/*">
+      <label class="buttonUploadImage" for="chatImage" id="buttonFile">
+      <span class="material-icons-outlined" style="margin:15px 5px 5px 5px;font-size:30px;color:#B0BAC0">photo_camera</span>
+      </label>
+    </div>
   </div>
-    `
+`
 })
 
 export class ChatComponent {
@@ -509,8 +512,8 @@ constructor(
 
   scrollToBottom(scrollMessageTimestamp: number) {
     if (scrollMessageTimestamp != this.scrollMessageTimestamp) {
-      const element = document.getElementById('chat_window')
-      element.scrollTop = element.scrollHeight
+//      const element = document.getElementById('chat_window')
+//      element.scrollTop = element.scrollHeight
       this.scrollMessageTimestamp = scrollMessageTimestamp
     }
   }

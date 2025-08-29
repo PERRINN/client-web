@@ -10,12 +10,17 @@ import firebase from 'firebase/compat/app';
 @Component({
   selector:'directory',
   template:`
-  <div class="sheet" style="background-color:black">
+  <div class="island">
     <div style="margin:15px">
-      <span style="font-size:12px">{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsContributorsAuth?.length}} members own {{UI.formatSharesToPRNCurrency(null,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}.</span>
+      <span class="title">{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsContributorsAuth?.length}} members own {{UI.formatSharesToPRNCurrency(null,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}.</span>
     </div>
   </div>
-  <div class='sheet'>
+  <ul class="listLight" style="margin:10px">
+    <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="float:left;object-fit:cover;width:100%">
+    <li *ngFor="let message of messages | async" style="float:left" (click)="router.navigate(['profile',message.values.user])">
+      <img [src]="message?.values.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message?.values)" style="float:left;object-fit:cover;height:50px;width:50px">
+    </li>
+  </ul>
   <ul class="listLight">
     <li *ngFor="let message of messages | async">
       <div (click)="router.navigate(['profile',message.values.user])">
@@ -34,18 +39,11 @@ import firebase from 'firebase/compat/app';
     </li>
   </ul>
   <ul class="listLight" style="margin:10px">
-    <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="float:left;object-fit:cover;width:100%">
-    <li *ngFor="let message of messages | async" style="float:left" (click)="router.navigate(['profile',message.values.user])">
-      <img [src]="message?.values.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message?.values)" style="float:left;object-fit:cover;height:77px;width:77px">
-    </li>
-  </ul>
-  <ul class="listLight" style="margin:10px">
     <li *ngFor="let message of messages | async" style="float:left;cursor:text;user-select:text">
       <span>{{message.values?.name}} </span>
       <span>{{UI.formatSharesToPRNCurrency(null,message.values?.wallet?.balance||0)}}&nbsp;&nbsp;</span>
     </li>
   </ul>
-  </div>
   `,
 })
 

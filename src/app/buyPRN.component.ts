@@ -34,134 +34,134 @@ interface RevolutOrderResponse {
 @Component({
   selector: "buyPRN",
   template: `
-    <div class="sheet">
-      <br />
-      <div *ngIf="transactionPendingMessageObj" class="sheet" style="width:500px;max-width:80%">
-        <div *ngIf="!transactionPendingMessageObj?.transactionPending?.activated">
-          <div class="title">
-            There is a pending transaction ready for you.
-          </div>
-          <div style="padding:10px;text-align:center">
-            <span>{{transactionPendingMessageObj.name}} is sending you {{UI.formatSharesToPRNCurrency(null,transactionPendingMessageObj.transactionPending.amount||0)}} (Reference: {{transactionPendingMessageObj.transactionPending.reference}}).</span>
-            <button *ngIf="!UI.currentUser" class="buttonWhite" style="margin:10px auto;width:150px;font-size:11px" (click)="router.navigate(['login'])" [disabled]='this.router.url.startsWith("/login")'>Login</button>
-            <button *ngIf="UI.currentUser&&!UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonWhite" style="margin:10px auto;width:200px;font-size:11px" (click)="router.navigate(['settings'])">Update you profile picture</button>
-            <button *ngIf="UI.currentUser&&UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonWhite" style="margin:10px auto;width:150px;font-size:11px" (click)="activateTransactionPending(transactionPendingMessage)">Activate transaction</button>
-          </div>
-        </div>
-        <div *ngIf="transactionPendingMessageObj?.transactionPending?.activated">
-          <div class="title">
-            This transaction has already been activated.
-          </div>
-        </div>
-      </div>
-      <br />
-      <div class="sheet" style="width:500px;max-width:80%">
-        <div class="title" style=";text-align:center">
-          <img src="./../assets/App icons/PRN token.png" style=";width:150px">
-        </div>
-        <div style="padding:10px;text-align:center">
-          <span>PRN tokens represent ownership of the PERRINN team.</span>
-          <br />
-          <span>{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsContributorsAuth?.length}} members own {{UI.formatSharesToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}.</span>
-          <br />
-          <span>You can follow the impact of your investment live on PERRINN.com</span>
-          <button class="buttonWhite" style="margin:10px auto;width:150px;font-size:11px" (click)="router.navigate(['directory'])">PRN holders directory</button>
-        </div>
-        <div style="background-color:black;padding:10px;text-align:center">
-          <span>Your PRN amount grows at a rate of {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} a year</span>
-          <div style="height:200px;margin-top:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
-        </div>
-        <div style="padding:10px;text-align:center">
-          <span class="material-symbols-outlined" style="font-size:30px">encrypted</span>
-          <br />
-          <span>Your tokens are stored in your wallet on PERRINN.com</span>
-          <br />
-          <span>Soon you will be able to sell or exchange your tokens with other members here.</span>
-        </div>
-      </div>
-      <br />
-      <div class="sheet" style="width:500px;max-width:80%">
+  <div style="max-width:500px;margin:0 auto">
+    <div *ngIf="transactionPendingMessageObj" class="island">
+      <div *ngIf="!transactionPendingMessageObj?.transactionPending?.activated">
         <div class="title">
-          The capital raised from token sales goes towards
+          There is a pending transaction ready for you.
         </div>
-        <ul class="listLight">
-          <li *ngFor="let message of currentFunds|async">
-            <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0&&(message.payload.doc.data()?.fund?.active||showPastFunds)" style="cursor:default;padding:10px">
-              <span style="font-size:14px">{{message.payload.doc.data()?.chatSubject}}</span>
-              <div style="clear:both">
-                <div style="float:left;background-color:black;height:20px;width:65px;text-align:center;padding:0 5px 0 5px"></div>
-                <div style="float:left;height:20px;background-color:#38761D;margin-left:-65px"
-                  [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*65+'px'"></div>
-                <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;padding:0 5px 0 5px">
-                  {{message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget|percent:"1.0-0"}}
-                </div>
-                <div *ngIf="message.payload.doc.data()?.fund?.active" style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.daysLeft|number:"1.0-0"}} days left</div>
-                <div *ngIf="!message.payload.doc.data()?.fund?.active" style="float:left;margin:0 5px 0 5px">{{-message.payload.doc.data()?.fund?.daysLeft|number:"1.0-0"}} days ago</div>
-                <div style="float:left;margin:0 5px 0 5px">{{ message.payload.doc.data()?.fund?.description }},</div>
-                <div style="float:left;margin:0 5px 0 5px">target: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /</div>
-                <div style="float:left">raised: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}</div>
+        <div style="padding:10px;text-align:center">
+          <span>{{transactionPendingMessageObj.name}} is sending you {{UI.formatSharesToPRNCurrency(null,transactionPendingMessageObj.transactionPending.amount||0)}} (Reference: {{transactionPendingMessageObj.transactionPending.reference}}).</span>
+          <button *ngIf="!UI.currentUser" class="buttonWhite" style="margin:10px auto;width:150px;font-size:11px" (click)="router.navigate(['login'])" [disabled]='this.router.url.startsWith("/login")'>Login</button>
+          <button *ngIf="UI.currentUser&&!UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonWhite" style="margin:10px auto;width:200px;font-size:11px" (click)="router.navigate(['settings'])">Update you profile picture</button>
+          <button *ngIf="UI.currentUser&&UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonWhite" style="margin:10px auto;width:150px;font-size:11px" (click)="activateTransactionPending(transactionPendingMessage)">Activate transaction</button>
+        </div>
+      </div>
+      <div *ngIf="transactionPendingMessageObj?.transactionPending?.activated">
+        <div class="title">
+          This transaction has already been activated.
+        </div>
+      </div>
+    </div>
+    <br/>
+    <div class="island">
+      <div style="text-align:center">
+        <img src="./../assets/App icons/PRN token.png" style=";width:150px">
+      </div>
+      <div style="padding:10px;text-align:center">
+        <span>PRN tokens represent ownership of the PERRINN team.</span>
+        <br />
+        <span>{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsContributorsAuth?.length}} members own {{UI.formatSharesToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}.</span>
+        <br />
+        <span>You can follow the impact of your investment live on PERRINN.com</span>
+        <br />
+        <button class="buttonWhite" style="margin:10px auto;width:150px;font-size:11px" (click)="router.navigate(['directory'])">PRN holders directory</button>
+      </div>
+      <div style="background-color:black;padding:10px;text-align:center">
+        <span>Your PRN amount grows at a rate of {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} a year</span>
+        <div style="height:200px;margin-top:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
+      </div>
+      <div style="padding:10px;text-align:center">
+        <span class="material-symbols-outlined" style="font-size:30px">encrypted</span>
+        <br />
+        <span>Your tokens are stored in your wallet on PERRINN.com</span>
+        <br />
+        <span>Soon you will be able to sell or exchange your tokens with other members here.</span>
+      </div>
+    </div>
+    <br/>
+    <div class="island">
+      <div class="title">
+        The capital raised from token sales goes towards
+      </div>
+      <ul class="listLight">
+        <li *ngFor="let message of currentFunds|async" style="padding:0px">
+          <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0&&(message.payload.doc.data()?.fund?.active||showPastFunds)" style="cursor:default;padding:10px">
+            <span style="font-size:14px">{{message.payload.doc.data()?.chatSubject}}</span>
+            <div style="clear:both">
+              <div style="float:left;background-color:black;height:20px;width:65px;text-align:center;padding:0 5px 0 5px"></div>
+              <div style="float:left;height:20px;background-color:#38761D;margin-left:-65px"
+                [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*65+'px'"></div>
+              <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;padding:0 5px 0 5px">
+                {{message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget|percent:"1.0-0"}}
               </div>
+              <div *ngIf="message.payload.doc.data()?.fund?.active" style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.daysLeft|number:"1.0-0"}} days left</div>
+              <div *ngIf="!message.payload.doc.data()?.fund?.active" style="float:left;margin:0 5px 0 5px">{{-message.payload.doc.data()?.fund?.daysLeft|number:"1.0-0"}} days ago</div>
+              <div style="float:left;margin:0 5px 0 5px">{{ message.payload.doc.data()?.fund?.description }},</div>
+              <div style="float:left;margin:0 5px 0 5px">target: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /</div>
+              <div style="float:left">raised: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}</div>
             </div>
+          </div>
+        </li>
+      </ul>
+      <button class="buttonWhite" *ngIf="!showPastFunds" style="margin:10px auto;width:150px" (click)="showPastFunds=!showPastFunds">Show past funds</button>
+    </div>
+    <br/>
+    <div *ngIf="UI.currentUser" class="island">
+      <div class="title">
+        Which currency are you using?
+      </div>
+      <div style="padding:10px">
+        <ul class="listLight">
+          <li>
+            <button class="buttonBlack"
+              *ngFor="let currency of objectToArray(UI.appSettingsPayment.currencyList)"
+              (click)="currencySelected = currency[0]; refreshAmountCharge()"
+              style="float:left;width:125px;margin:5px"
+              [style.background-color]="
+                currencySelected == currency[0] ? 'darkGreen' : 'black'
+              "
+            >
+              {{ currency[1].designation }}
+            </button>
           </li>
         </ul>
-      <button class="buttonWhite" *ngIf="!showPastFunds" style="margin:10px auto;width:150px" (click)="showPastFunds=!showPastFunds">Show past funds</button>
       </div>
-      <br />
-      <div *ngIf="UI.currentUser" class="sheet" style="width:500px;max-width:80%">
-        <div class="title">
-          Which currency are you using?
-        </div>
-        <div style="padding:10px">
-          <ul class="listLight">
-            <li>
-              <button class="buttonBlack"
-                *ngFor="let currency of objectToArray(UI.appSettingsPayment.currencyList)"
-                (click)="currencySelected = currency[0]; refreshAmountCharge()"
-                style="float:left;width:125px;margin:5px"
-                [style.background-color]="
-                  currencySelected == currency[0] ? 'darkGreen' : 'black'
-                "
-              >
-                {{ currency[1].designation }}
-              </button>
-            </li>
-          </ul>
-        </div>
+      <div class="title">
+        How much PRN would you like to buy?
       </div>
-      <br />
-      <div *ngIf="UI.currentUser" class="sheet" style="width:500px;max-width:80%">
-        <div class="title">
-          How much PRN would you like to buy?
-        </div>
-        <div style="padding:10px">
-          <ul class="listLight">
-            <li>
-              <button class="buttonBlack"
-                *ngFor="let credit of creditList; let index = index"
-                (click)="creditSelected = index; refreshAmountCharge()"
-                style="float:left;width:75px;margin:5px"
-                [style.background-color]="creditSelected == index ? 'darkGreen' : 'black'">
-              {{UI.formatSharesToCurrency(currencySelected,credit*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}
-              </button>
-            </li>
-          </ul>
-          <br />
-          <div *ngIf="creditSelected!=undefined&&currencySelected!=undefined" style="text-align:center">
-            You will pay {{UI.formatSharesToCurrency(currencySelected,creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}} and recieve {{UI.formatSharesToPRNCurrency(currencySelected,creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}.
-          </div>
-        </div>
+      <div style="padding:10px">
+        <ul class="listLight">
+          <li>
+            <button class="buttonBlack"
+              *ngFor="let credit of creditList; let index = index"
+              (click)="creditSelected = index; refreshAmountCharge()"
+              style="float:left;width:75px;margin:5px"
+              [style.background-color]="creditSelected == index ? 'darkGreen' : 'black'">
+            {{UI.formatSharesToCurrency(currencySelected,credit*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}
+            </button>
+          </li>
+        </ul>
         <br />
+        <div *ngIf="creditSelected!=undefined&&currencySelected!=undefined" style="text-align:center">
+          You will pay {{UI.formatSharesToCurrency(currencySelected,creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}} and recieve {{UI.formatSharesToPRNCurrency(currencySelected,creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}.
+        </div>
+      </div>
+      <br />
       <button class="buttonWhite" *ngIf="UI.currentUser && !processing && creditSelected!=undefined && currencySelected!=undefined"
               (click)="payWithRevolutLink()"
               style="width:200px;margin:10px auto;font-size:14px;line-height:25px;padding:4px">
         Go to checkout
     </button>
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    `,
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+  </div>
+</div>
+`,
 })
 export class buyPRNComponent {
   cardNumber:string
