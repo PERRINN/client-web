@@ -18,7 +18,7 @@ import firebase from 'firebase/compat/app';
   <div>
     <input type="file" name="chatImage" id="chatImage" class="inputfile" (change)="onImageChange($event)" accept="image/*">
     <label class="buttonUploadImage" for="chatImage" id="buttonFile">
-    <div class="buttonWhite" style="font-size:12px;text-align:center;width:250px;padding:2px;margin:10px">Upload a new profile picture</div>
+    <button class="buttonWhite" style="font-size:12px;text-align:center;width:250px;padding:2px;margin:10px">Upload a new profile picture</button>
     </label>
   </div>
   <div style="margin:15px">
@@ -68,7 +68,7 @@ import firebase from 'firebase/compat/app';
       <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:15px;font-size:10px">Signature valid for level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}, you will receive {{UI.formatSharesToPRNCurrency(null,UI.appSettingsContract.hourlyRateLevel1*UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted)}} per hour when you declare working hours.</div>
       <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:15px;font-size:10px">Waiting for contract signature</div>
       <button class="buttonWhite" (click)="updateContract()" style="clear:both;font-size:12px;width:200px;padding:2px;margin:10px;display:block" [disabled]="contract.level==UI.currentUserLastMessageObj?.contract?.level">Update my contract</button>
-  <div class="buttonRed" style="width:100px;margin:25px auto" (click)="this.UI.logout()">logout</div>
+  <button class="buttonRed" style="width:100px;margin:25px auto" (click)="this.UI.logout()">logout</button>
   `,
 })
 export class SettingsComponent {

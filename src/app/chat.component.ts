@@ -72,7 +72,7 @@ import firebase from 'firebase/compat/app'
             <img [src]="team?.values?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, team?.values)" style="display:inline;float:left;margin:0 5px 0 10px;opacity:1;object-fit:cover;height:25px;width:25px">
             <span>{{team.values?.name}} {{UI.formatSharesToPRNCurrency(null,team.values?.wallet?.balance||0)}}</span>
           </div>
-          <div class="buttonWhite" style="float:left;width:50px;font-size:11px" (click)="addRecipient(team.values.user,team.values.name)">Add</div>
+          <button class="buttonWhite" style="float:left;width:50px;font-size:11px" (click)="addRecipient(team.values.user,team.values.name)">Add</button>
         </div>
       </li>
     </ul>
@@ -149,7 +149,7 @@ import firebase from 'firebase/compat/app'
       <ul style="list-style:none;">
         <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index">
           <div *ngIf="isMessageNewTimeGroup(message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" style="padding:15px">
-            <div class="buttonWhite" *ngIf="first" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</div>
+            <button class="buttonWhite" *ngIf="first" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</button>
             <div style="margin:0 auto;text-align:center">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'fullDate'}}</div>
           </div>
           <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" style="clear:both;width:100%;height:15px"></div>

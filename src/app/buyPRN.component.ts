@@ -44,8 +44,8 @@ interface RevolutOrderResponse {
           <div style="padding:10px;text-align:center">
             <span>{{transactionPendingMessageObj.name}} is sending you {{UI.formatSharesToPRNCurrency(null,transactionPendingMessageObj.transactionPending.amount||0)}} (Reference: {{transactionPendingMessageObj.transactionPending.reference}}).</span>
             <button *ngIf="!UI.currentUser" class="buttonWhite" style="margin:10px auto;width:150px;font-size:11px" (click)="router.navigate(['login'])" [disabled]='this.router.url.startsWith("/login")'>Login</button>
-            <div *ngIf="UI.currentUser&&!UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonWhite" style="margin:10px auto;width:200px;font-size:11px" (click)="router.navigate(['settings'])">Update you profile picture</div>
-            <div *ngIf="UI.currentUser&&UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonWhite" style="margin:10px auto;width:150px;font-size:11px" (click)="activateTransactionPending(transactionPendingMessage)">Activate transaction</div>
+            <button *ngIf="UI.currentUser&&!UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonWhite" style="margin:10px auto;width:200px;font-size:11px" (click)="router.navigate(['settings'])">Update you profile picture</button>
+            <button *ngIf="UI.currentUser&&UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonWhite" style="margin:10px auto;width:150px;font-size:11px" (click)="activateTransactionPending(transactionPendingMessage)">Activate transaction</button>
           </div>
         </div>
         <div *ngIf="transactionPendingMessageObj?.transactionPending?.activated">
@@ -65,7 +65,7 @@ interface RevolutOrderResponse {
           <span>{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsContributorsAuth?.length}} members own {{UI.formatSharesToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}.</span>
           <br />
           <span>You can follow the impact of your investment live on PERRINN.com</span>
-          <div class="buttonWhite" style="margin:10px auto;width:150px;font-size:11px" (click)="router.navigate(['directory'])">PRN holders directory</div>
+          <button class="buttonWhite" style="margin:10px auto;width:150px;font-size:11px" (click)="router.navigate(['directory'])">PRN holders directory</button>
         </div>
         <div style="background-color:black;padding:10px;text-align:center">
           <span>Your PRN amount grows at a rate of {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} a year</span>
@@ -104,7 +104,7 @@ interface RevolutOrderResponse {
             </div>
           </li>
         </ul>
-      <div class="buttonWhite" *ngIf="!showPastFunds" style="margin:10px auto;width:150px" (click)="showPastFunds=!showPastFunds">Show past funds</div>
+      <button class="buttonWhite" *ngIf="!showPastFunds" style="margin:10px auto;width:150px" (click)="showPastFunds=!showPastFunds">Show past funds</button>
       </div>
       <br />
       <div *ngIf="UI.currentUser" class="sheet" style="width:500px;max-width:80%">
@@ -113,15 +113,17 @@ interface RevolutOrderResponse {
         </div>
         <div style="padding:10px">
           <ul class="listLight">
-            <li class="buttonBlack"
-              *ngFor="let currency of objectToArray(UI.appSettingsPayment.currencyList)"
-              (click)="currencySelected = currency[0]; refreshAmountCharge()"
-              style="float:left;width:125px;margin:5px"
-              [style.background-color]="
-                currencySelected == currency[0] ? 'darkGreen' : 'black'
-              "
-            >
-              {{ currency[1].designation }}
+            <li>
+              <button class="buttonBlack"
+                *ngFor="let currency of objectToArray(UI.appSettingsPayment.currencyList)"
+                (click)="currencySelected = currency[0]; refreshAmountCharge()"
+                style="float:left;width:125px;margin:5px"
+                [style.background-color]="
+                  currencySelected == currency[0] ? 'darkGreen' : 'black'
+                "
+              >
+                {{ currency[1].designation }}
+              </button>
             </li>
           </ul>
         </div>
@@ -133,12 +135,14 @@ interface RevolutOrderResponse {
         </div>
         <div style="padding:10px">
           <ul class="listLight">
-            <li class="buttonBlack"
-              *ngFor="let credit of creditList; let index = index"
-              (click)="creditSelected = index; refreshAmountCharge()"
-              style="float:left;width:75px;margin:5px"
-              [style.background-color]="creditSelected == index ? 'darkGreen' : 'black'">
-            {{UI.formatSharesToCurrency(currencySelected,credit*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}
+            <li>
+              <button class="buttonBlack"
+                *ngFor="let credit of creditList; let index = index"
+                (click)="creditSelected = index; refreshAmountCharge()"
+                style="float:left;width:75px;margin:5px"
+                [style.background-color]="creditSelected == index ? 'darkGreen' : 'black'">
+              {{UI.formatSharesToCurrency(currencySelected,credit*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}
+              </button>
             </li>
           </ul>
           <br />
@@ -147,11 +151,11 @@ interface RevolutOrderResponse {
           </div>
         </div>
         <br />
-      <div class="buttonWhite" *ngIf="UI.currentUser && !processing && creditSelected!=undefined && currencySelected!=undefined"
+      <button class="buttonWhite" *ngIf="UI.currentUser && !processing && creditSelected!=undefined && currencySelected!=undefined"
               (click)="payWithRevolutLink()"
-              style="width:200px;margin:10px auto;font-size:14px;text-align:center;line-height:25px;padding:4px">
+              style="width:200px;margin:10px auto;font-size:14px;line-height:25px;padding:4px">
         Go to checkout
-    </div>
+    </button>
     <br />
     <br />
     <br />

@@ -45,7 +45,7 @@ import { ChangeDetectorRef } from '@angular/core'
             <span style="font-size:10px">{{focusUserLastMessageObj?.userPresentation}}</span>
             <span *ngIf="focusUserLastMessageObj?.contract?.signed" style="font-size:10px"> Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
             <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px">Waiting for contract signature (Level {{focusUserLastMessageObj?.contract?.level|number:'1.1-1'}})</span>
-            <div class="buttonWhite" *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin:15px;font-size:10px" (click)=signContract()>Sign contract</div>
+            <button class="buttonWhite" *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin:15px;font-size:10px" (click)=signContract()>Sign contract</button>
             <br>
             <span style="font-size:10px">Created in {{focusUserLastMessageObj?.createdTimestamp|date:'MMMM yyyy'}}</span>
             <br>
@@ -80,7 +80,7 @@ import { ChangeDetectorRef } from '@angular/core'
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
             <div *ngIf="message.payload.doc.data()?.eventDateEnd/60000>UI.nowSeconds/60">
-            <span *ngIf="message.payload.doc.data()?.eventLocation" class="buttonWhite" style="float:right;margin:10px;width:50px" (click)="UI.openWindow(message.payload.doc.data()?.eventLocation)">Join</span>
+            <button *ngIf="message.payload.doc.data()?.eventLocation" class="buttonWhite" style="float:right;margin:10px;width:50px" (click)="UI.openWindow(message.payload.doc.data()?.eventLocation)">Join</button>
             <div style="float:left;min-width:90px;min-height:40px">
               <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer">event</span>
             </div>
@@ -220,7 +220,7 @@ import { ChangeDetectorRef } from '@angular/core'
         <div class="bounce2"></div>
         <div class="bounce3"></div>
       </div>
-      <div class="buttonWhite" *ngIf="!UI.loading&&mode!='history'&&mode!='forecast'" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</div>
+      <button class="buttonWhite" *ngIf="!UI.loading&&mode!='history'&&mode!='forecast'" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</button>
     </div>
   </div>
   `,

@@ -80,14 +80,8 @@ a:visited {
   background-color: #222C32;
 }
 .buttonBlack {
-  cursor: pointer;
   background-color: black;
   color: whitesmoke;
-  margin: 0 auto;
-  text-align:center;
-  padding:3px;
-  border-radius: 5px;
-  transition: 0.1s ease;
 }
 .buttonBlack:hover{
   background-color:darkGreen;
@@ -97,14 +91,8 @@ a:visited {
   pointer-events:none;
 }
 .buttonWhite {
-  cursor: pointer;
   background-color:whitesmoke;
   color: black;
-  margin: 0 auto;
-  text-align:center;
-  padding:3px;
-  border-radius: 5px;
-  transition: 0.1s ease;
 }
 .buttonWhite:hover{
   background-color:darkGreen;
@@ -115,14 +103,8 @@ a:visited {
   pointer-events:none;
 }
 .buttonRed {
-  cursor: pointer;
   background-color:#A73E30;
   color: whitesmoke;
-  margin: 0 auto;
-  text-align:center;
-  padding:3px;
-  border-radius: 5px;
-  transition: 0.1s ease;
 }
 .buttonRed:hover{
   opacity:0.85;
@@ -134,16 +116,16 @@ a:visited {
 }
 button {
   cursor: pointer;
-  background-color: black;
-  width: 90%;
-  max-width: 250px;
-  padding: 7px;
-  margin: 10px;
-  color: #B0BAC0;
   -webkit-transition: 0.3s ease;
-  transition: 0.3s ease;
-  text-align:center;
+  transition: 0.1s ease;
   user-select: none;
+  margin: 0 auto;
+  text-align:center;
+  padding:3px;
+  border-radius: 5px;
+  box-shadow: none;              /* No shadow */
+  outline: none;                 /* No blue outline unless focused */
+  border: 1px solid transparent; /* Flat edge */
 }
 input {
   background-color:#2D3941;
