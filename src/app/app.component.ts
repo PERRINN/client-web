@@ -8,12 +8,10 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
   template: `
     <img class="fullScreenImage" id="fullScreenImage" (click)="hideFullScreenImage()">
     <progress value='0' max='100' id='uploader'>0%</progress>
-    <div class='menu'>
-      <div style="width:320px;display:block;margin: 0 auto">
-        <img src="./../assets/App icons/Perrinn_02.png" style="cursor:pointer;float:left;width:30px;margin:5px 45px 5px 5px" (click)="router.navigate(['profile','all'])">
-        <span class="material-icons" style="float:left;margin:5px 45px 5px 45px;font-size:30px;cursor:pointer" (click)="router.navigate(['directory'])">list</span>
-        <span class="material-icons-outlined" style="float:left;margin:5px 45px 5px 45px;font-size:30px;height:30px;cursor:pointer" onclick="window.open('https://discover.perrinn.com','_blank')">info</span>
-      </div>
+    <div style="width:320px;display:block;margin: 0 auto">
+      <img src="./../assets/App icons/Perrinn_02.png" style="cursor:pointer;float:left;width:30px;margin:5px 45px 5px 5px" (click)="router.navigate(['profile','all'])">
+      <span class="material-icons" style="float:left;margin:5px 45px 5px 45px;font-size:30px;cursor:pointer" (click)="router.navigate(['directory'])">list</span>
+      <span class="material-icons-outlined" style="float:left;margin:5px 45px 5px 45px;font-size:30px;height:30px;cursor:pointer" onclick="window.open('https://discover.perrinn.com','_blank')">info</span>
     </div>
     <div style="user-select:none">
       <div style="max-width:800px;margin:0 auto">
