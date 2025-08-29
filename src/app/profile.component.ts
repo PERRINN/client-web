@@ -56,10 +56,10 @@ import { ChangeDetectorRef } from '@angular/core'
           </div>
         </div>
       </div>
-      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.background-color]="mode=='inbox'?'grey':'black'" (click)="mode='inbox';refreshMessages()">inbox</div>
-      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.background-color]="mode=='history'?'grey':'black'" (click)="mode='history';refreshMessages();refreshChart()">history</div>
-      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.background-color]="mode=='chain'?'grey':'black'" (click)="mode='chain';refreshMessages()">chain</div>
-      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.background-color]="mode=='forecast'?'grey':'black'" (click)="mode='forecast';refreshMessages()">forecast</div>
+      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.background-color]="mode=='inbox'?'darkGreen':'black'" (click)="mode='inbox';refreshMessages()">inbox</div>
+      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.background-color]="mode=='history'?'darkGreen':'black'" (click)="mode='history';refreshMessages();refreshChart()">history</div>
+      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.background-color]="mode=='chain'?'darkGreen':'black'" (click)="mode='chain';refreshMessages()">chain</div>
+      <div class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.background-color]="mode=='forecast'?'darkGreen':'black'" (click)="mode='forecast';refreshMessages()">forecast</div>
       <div class="buttonBlack" *ngIf="UI.currentUser&&UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="clear:both;width:250px;margin:5px;font-size:11px">New message to {{focusUserLastMessageObj?.name}}</div>
     </div>
     <div *ngIf="scope=='all'">
@@ -68,7 +68,7 @@ import { ChangeDetectorRef } from '@angular/core'
       <div *ngIf="UI.tagFilters.length>0" style="float:left;font-size:10px;line-height:15px;padding:10px;cursor:pointer" (click)="UI.tagFilters=[];refreshMessages()">Clear {{UI.tagFilters.length}} filter{{UI.tagFilters.length>1?'s':''}}</div>
       <ul class="listLight" *ngIf="showTags">
         <li class="buttonBlack" *ngFor="let message of tags|async" style="float:left;width:100px;margin:5px;font-size:11px"
-          [style.background-color]="UI.tagFilters.includes(message.payload.doc.data()?.tag)?'grey':'black'"
+          [style.background-color]="UI.tagFilters.includes(message.payload.doc.data()?.tag)?'darkGreen':'black'"
           (click)="UI.tagFilters.includes(message.payload.doc.data()?.tag)?UI.tagFilters.splice(UI.tagFilters.indexOf(message.payload.doc.data()?.tag),1):UI.tagFilters.push(message.payload.doc.data()?.tag);refreshMessages()">
           {{message.payload.doc.data()?.tag}}
         </li>

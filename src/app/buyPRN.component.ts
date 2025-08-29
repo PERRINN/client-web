@@ -118,7 +118,7 @@ interface RevolutOrderResponse {
               (click)="currencySelected = currency[0]; refreshAmountCharge()"
               style="float:left;width:125px;margin:5px"
               [style.background-color]="
-                currencySelected == currency[0] ? 'grey' : 'black'
+                currencySelected == currency[0] ? 'darkGreen' : 'black'
               "
             >
               {{ currency[1].designation }}
@@ -137,7 +137,7 @@ interface RevolutOrderResponse {
               *ngFor="let credit of creditList; let index = index"
               (click)="creditSelected = index; refreshAmountCharge()"
               style="float:left;width:75px;margin:5px"
-              [style.background-color]="creditSelected == index ? 'grey' : 'black'">
+              [style.background-color]="creditSelected == index ? 'darkGreen' : 'black'">
             {{UI.formatSharesToCurrency(currencySelected,credit*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}
             </li>
           </ul>

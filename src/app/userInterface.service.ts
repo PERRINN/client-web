@@ -53,12 +53,15 @@ export class UserInterfaceService {
     });
 
     this.hasTouch = false;
-    if ('maxTouchPoints' in navigator) {
-      this.hasTouch = navigator.maxTouchPoints > 0;
-    } else {
-      const mQ = window.matchMedia && matchMedia('(pointer:coarse)');
-      this.hasTouch = mQ ? mQ.matches : ('orientation' in window); // fallback for older iOS
+
+    if ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 0) {
+      // Filter false positives on desktops
+      const mQ = matchMedia('(pointer:coarse)');
+      this.hasTouch = mQ && mQ.matches;
+    } else if ('ontouchstart' in window) {
+      this.hasTouch = true;
     }
+
     this.isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
 
     this.tagFilters = [];

@@ -40,7 +40,7 @@ import firebase from 'firebase/compat/app';
           <li class="buttonBlack" *ngFor="let currency of objectToArray(UI.appSettingsPayment.currencyList)"
             (click)="UI.currentUserLastMessageObj?.userCurrency==currency[0]?'':updateUserCurrency(currency[0])"
             style="float:left;width:125px;padding:5px;margin:5px"
-            [style.background-color]="UI.currentUserLastMessageObj?.userCurrency==currency[0]?'grey':'black'"
+            [style.background-color]="UI.currentUserLastMessageObj?.userCurrency==currency[0]?'darkGreen':'black'"
             [style.pointer-events]="UI.currentUserLastMessageObj?.userCurrency==currency[0]?'none':'auto'" [style.opacity]="UI.currentUserLastMessageObj?.userCurrency==currency[0]?'0.75':'1.0'">
             {{currency[1].designation}}
           </li>
