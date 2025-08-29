@@ -220,6 +220,7 @@ hr {
   z-index: 999;
 }
 .title {
+  color:white;
   padding:10px;
   font-size: 14px;
   clear:both;
