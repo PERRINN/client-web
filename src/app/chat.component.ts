@@ -234,24 +234,35 @@ import firebase from 'firebase/compat/app'
     </div>
   </div>
 
-  <div *ngIf="UI.currentUser&&!showImageGallery" style="position:sticky;z-index:999;width:100%;background-color:black;bottom:0;padding-bottom:25px">
-    <span *ngIf="chatLastMessageObj?.chatSubject==null" style="margin:5px;font-size:10px">This message will be the subject of this chat</span>
-    <div style="clear:both;float:left;width:90%">
-      <input autocapitalize="none" style="float:left;padding:10px;resize:none"  [style.width]="imageDownloadUrl?'80%':'95%'" maxlength="500" (keyup.enter)="addMessage()" [(ngModel)]="draftMessage" placeholder="Reply all">
-      <div *ngIf="imageDownloadUrl" style="float:left;width:15%">
-        <img [src]="imageDownloadUrl" style="object-fit:cover;height:53px;margin:0 auto">
-      </div>
-    </div>
-    <div *ngIf="draftMessage||imageDownloadUrl" style="float:right;width:10%;cursor:pointer">
-      <span class="material-icons-outlined" style="margin:15px 5px 5px 5px;font-size:30px" (click)="addMessage()">send</span>
-    </div>
-    <div *ngIf="!draftMessage&&!imageDownloadUrl" style="float:right;width:10%;cursor:pointer">
-      <input type="file" name="chatImage" id="chatImage" class="inputfile" (change)="onImageChange($event)" accept="image/*">
-      <label class="buttonUploadImage" for="chatImage" id="buttonFile">
-      <span class="material-icons-outlined" style="margin:15px 5px 5px 5px;font-size:30px;color:#B0BAC0">photo_camera</span>
-      </label>
+  <div *ngIf="UI.currentUser&&!showImageGallery"
+     style="position:sticky;z-index:999;width:100%;background-color:black;bottom:0;padding-bottom:25px;overflow:visible">
+  <span *ngIf="chatLastMessageObj?.chatSubject==null" style="margin:5px;font-size:10px">This message will be the subject of this chat</span>
+  <div style="clear:both;float:left;width:90%">
+    <textarea #msgBox
+      autocapitalize="none"
+      rows="1"
+      style="float:left;padding:10px;resize:none;overflow-y:hidden;white-space:pre-wrap;word-break:break-word"
+      [style.width]="imageDownloadUrl?'80%':'95%'"
+      maxlength="500"
+      (input)="autoResize(msgBox)"
+      (keyup.enter)="addMessage()"
+      [(ngModel)]="draftMessage"
+      placeholder="Reply all"></textarea>
+    <div *ngIf="imageDownloadUrl" style="float:left;width:15%">
+      <img [src]="imageDownloadUrl" style="object-fit:cover;height:53px;margin:0 auto">
     </div>
   </div>
+  <div *ngIf="draftMessage||imageDownloadUrl" style="float:right;width:10%;cursor:pointer">
+    <span class="material-icons-outlined" style="margin:15px 5px 5px 5px;font-size:30px" (click)="addMessage()">send</span>
+  </div>
+  <div *ngIf="!draftMessage&&!imageDownloadUrl" style="float:right;width:10%;cursor:pointer">
+    <input type="file" name="chatImage" id="chatImage" class="inputfile" (change)="onImageChange($event)" accept="image/*">
+    <label class="buttonUploadImage" for="chatImage" id="buttonFile">
+      <span class="material-icons-outlined" style="margin:15px 5px 5px 5px;font-size:30px;color:#B0BAC0">photo_camera</span>
+    </label>
+  </div>
+</div>
+
 `
 })
 
@@ -682,6 +693,11 @@ constructor(
     this.showChatDetails = false
     this.messageShowDetails = []
     this.messageShowActions = []
+  }
+
+  autoResize(el: HTMLTextAreaElement) {
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
   }
 
 }

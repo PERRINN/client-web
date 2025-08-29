@@ -122,31 +122,24 @@ input {
   color: #B0BAC0;
   width: 90%;
   padding: 10px;
-  margin: 5px 10px 5px 10px;
-  box-sizing: border-box;
+  margin: 5px;
   -webkit-transition: 0.3s ease;
   transition: 0.3s ease;
   box-shadow: none;              /* No shadow */
   outline: none;                 /* No blue outline unless focused */
   border: 1px solid transparent; /* Flat edge */
 }
-.textAreaInput {
-  resize: none;
-  overflow-y: scroll;
+textarea {
+  background-color:#2D3941;
+  color: #B0BAC0;
   width: 90%;
   padding: 10px;
-  margin: 5px 10px 5px 10px;
-  box-sizing: border-box;
+  margin: 5px;
   -webkit-transition: 0.3s ease;
   transition: 0.3s ease;
-  background-color: black;
-}
-.message {
-  font-size: 10px;
-  background: #1db217;
-  box-sizing: border-box;
-  color: #131B20;
-  text-align: center;
+  box-shadow: none;              /* No shadow */
+  outline: none;                 /* No blue outline unless focused */
+  border: 1px solid transparent; /* Flat edge */
 }
 select {
   padding: 5px 10px;
