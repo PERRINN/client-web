@@ -1,17 +1,24 @@
 import { Component } from '@angular/core'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
-import { map } from 'rxjs/operators'
 import { Router, ActivatedRoute } from '@angular/router'
 import { UserInterfaceService } from './userInterface.service'
 import { AngularFireStorage } from '@angular/fire/compat/storage'
 import firebase from 'firebase/compat/app'
+import { map, tap, take } from 'rxjs/operators';
+import { NgZone } from '@angular/core';
 
 @Component({
   selector: 'chat',
   template: `
 
-  <div style="position:sticky;top:0;z-index:999;width:100%;background-color:black;font-size:12px;cursor:pointer" (click)="UI.currentUser?showChatDetails=!showChatDetails:''">
+  <div style="padding-top:100px;padding-bottom:100px">
+  <div
+    style="position:fixed; z-index:999; background:black; padding-bottom:25px; cursor:pointer"
+    [style.top.px]="containerTop"
+    [style.left.px]="containerLeft"
+    [style.width.px]="containerWidth"
+    (click)="UI.currentUser ? (showChatDetails = !showChatDetails) : '';showChatDetails?scrollMainToTop():scrollMainToBottom()">
     <div *ngIf="!showChatDetails">
       <div style="float:left;width:80%;margin:0 5px 0 10px;min-height:40px">
         <div>
@@ -45,7 +52,7 @@ import firebase from 'firebase/compat/app'
       </div>
     </div>
     <div *ngIf="showChatDetails">
-      <div style="float:left;font-size:12px;line-height:20px;margin:10px">< messages</div>
+      <div style="float:left;color:white;margin:10px">< messages</div>
     </div>
   </div>
 
@@ -212,10 +219,8 @@ import firebase from 'firebase/compat/app'
           </div>
           <div *ngIf="lastRead==message.key" style="margin:0 auto;text-align:center;font-size:12px;margin:35px 0 35px 0;border-style:solid;border-width:0 0 1px 0">Last read</div>
           {{storeMessageValues(message.payload)}}
-          {{(last||i==(messageNumberDisplay-1))?scrollToBottom(message.payload?.serverTimestamp?.seconds):''}}
         </li>
       </ul>
-      <div style="height:150px;width:100%"></div>
     </div>
   </div>
 
@@ -236,31 +241,34 @@ import firebase from 'firebase/compat/app'
   </div>
 
   <div *ngIf="UI.currentUser&&!showImageGallery"
-     style="position:sticky;z-index:999;width:100%;background-color:black;bottom:0;padding-bottom:25px;overflow:visible">
-  <span *ngIf="chatLastMessageObj?.chatSubject==null" style="margin:5px;font-size:10px">This message will be the subject of this chat</span>
-  <div style="clear:both;float:left;width:90%">
-    <textarea #msgBox
-      autocapitalize="none"
-      rows="1"
-      style="float:left;padding:10px;resize:none;overflow-y:hidden;white-space:pre-wrap;word-break:break-word"
-      [style.width]="imageDownloadUrl?'80%':'95%'"
-      maxlength="500"
-      (input)="autoResize(msgBox)"
-      (keyup.enter)="addMessage()"
-      [(ngModel)]="draftMessage"
-      placeholder="Reply all"></textarea>
-    <div *ngIf="imageDownloadUrl" style="float:left;width:15%">
-      <img [src]="imageDownloadUrl" style="object-fit:cover;height:53px;margin:0 auto">
+    style="position:fixed; bottom:0; z-index:999; background:black; padding-bottom:20px"
+    [style.left.px]="containerLeft"
+    [style.width.px]="containerWidth">
+    <span *ngIf="chatLastMessageObj?.chatSubject==null" style="margin:5px;font-size:10px">This message will be the subject of this chat</span>
+    <div style="clear:both;float:left;width:90%">
+      <textarea #msgBox
+        autocapitalize="none"
+        rows="1"
+        style="float:left;padding:10px;resize:none;overflow-y:hidden;white-space:pre-wrap;word-break:break-word"
+        [style.width]="imageDownloadUrl?'80%':'95%'"
+        maxlength="500"
+        (input)="autoResize(msgBox)"
+        (keyup.enter)="addMessage()"
+        [(ngModel)]="draftMessage"
+        placeholder="Reply all"></textarea>
+      <div *ngIf="imageDownloadUrl" style="float:left;width:15%">
+        <img [src]="imageDownloadUrl" style="object-fit:cover;height:53px;margin:0 auto">
+      </div>
     </div>
-  </div>
-  <div *ngIf="draftMessage||imageDownloadUrl" style="float:right;width:10%;cursor:pointer">
-    <span class="material-icons-outlined" style="color:green;margin:15px 5px 5px 5px;font-size:30px" (click)="addMessage()">send</span>
-  </div>
-  <div *ngIf="!draftMessage&&!imageDownloadUrl" style="float:right;width:10%;cursor:pointer">
-    <input type="file" name="chatImage" id="chatImage" class="inputfile" (change)="onImageChange($event)" accept="image/*">
-    <label class="buttonUploadImage" for="chatImage" id="buttonFile">
-      <span class="material-icons-outlined" style="margin:15px 5px 5px 5px;font-size:30px;color:#B0BAC0">photo_camera</span>
-    </label>
+    <div *ngIf="draftMessage||imageDownloadUrl" style="float:right;width:10%;cursor:pointer">
+      <span class="material-icons-outlined" style="color:white;margin:15px 5px 5px 5px;font-size:30px" (click)="addMessage()">send</span>
+    </div>
+    <div *ngIf="!draftMessage&&!imageDownloadUrl" style="float:right;width:10%;cursor:pointer">
+      <input type="file" name="chatImage" id="chatImage" class="inputfile" (change)="onImageChange($event)" accept="image/*">
+      <label class="buttonUploadImage" for="chatImage" id="buttonFile">
+        <span class="material-icons-outlined" style="margin:15px 5px 5px 5px;font-size:30px;color:#B0BAC0">photo_camera</span>
+      </label>
+    </div>
   </div>
 </div>
 
@@ -273,7 +281,6 @@ export class ChatComponent {
   imageDownloadUrl:string
   messageNumberDisplay:number
   lastChatVisitTimestamp:number
-  scrollMessageTimestamp:number
   previousMessageServerTimestamp:any
   previousMessageUser:string
   messageShowDetails:[]
@@ -311,6 +318,10 @@ export class ChatComponent {
   eventDurationChoice:number;
   eventLocationChoice:string;
   googleMeet = "https://meet.google.com/ebp-djfh-aht";
+  containerTop = 0;
+  containerBottom = 0;
+  containerLeft = 0;
+  containerWidth = 0;
 
 constructor(
     public afs:AngularFirestore,
@@ -318,6 +329,7 @@ constructor(
     public UI:UserInterfaceService,
     private route:ActivatedRoute,
     private storage:AngularFireStorage,
+    private zone: NgZone,
   ) {
     this.math = Math
     this.UI.loading = true
@@ -359,6 +371,19 @@ constructor(
   ngOnInit(){
     this.refreshSearchLists()
   }
+
+  ngAfterViewInit() {
+    this.updateFixedOffsets();
+    window.addEventListener('resize', this.updateFixedOffsets);
+  }
+
+  updateFixedOffsets = () => {
+    const r = document.getElementById('secondary_container').getBoundingClientRect();
+    this.containerTop = r.top;
+    this.containerBottom = window.innerHeight - r.bottom;
+    this.containerLeft = r.left;
+    this.containerWidth = r.width;
+  };
 
   showImageGalleryClick() {
     event.stopPropagation()
@@ -467,11 +492,15 @@ constructor(
         }
       })
       batch.commit()
-      return changes.reverse().map(c => ({
-        key: c.payload.doc.id,
-        payload: c.payload.doc.data()
-      }))
-    }))
+        return changes.reverse().map(c => ({
+          key: c.payload.doc.id,
+          payload: c.payload.doc.data()
+        }))
+      }),
+      tap(() => {
+        this.zone.onStable.pipe(take(1)).subscribe(() => this.scrollMainToBottom());
+      })
+    )
     else this.messages = this.afs.collection('PERRINNMessages', ref => ref
       .where('chain', '==', chain)
       .orderBy('chatImageTimestamp', 'desc')
@@ -522,12 +551,14 @@ constructor(
     this.previousMessageServerTimestamp = message.serverTimestamp || { seconds: this.UI.nowSeconds * 1000 }
   }
 
-  scrollToBottom(scrollMessageTimestamp: number) {
-    if (scrollMessageTimestamp != this.scrollMessageTimestamp) {
-//      const element = document.getElementById('chat_window')
-//      element.scrollTop = element.scrollHeight
-      this.scrollMessageTimestamp = scrollMessageTimestamp
-    }
+  scrollMainToBottom() {
+    const mc = document.getElementById('main_container');
+    if (mc) mc.scrollTop = mc.scrollHeight;
+  }
+  
+  scrollMainToTop() {
+    const mc = document.getElementById('main_container');
+    if (mc) mc.scrollTop = 0;
   }
 
   saveNewSubject() {

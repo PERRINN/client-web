@@ -26,7 +26,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
       </div>
     </div>
     <div id='main_container'>
-      <div style="max-width:800px;margin:0 auto;padding:10px">
+      <div id='secondary_container' style="max-width:800px;margin:0 auto;padding:10px">
         <router-outlet></router-outlet>
       </div>
     </div>
