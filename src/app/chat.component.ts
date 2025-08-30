@@ -16,7 +16,7 @@ import firebase from 'firebase/compat/app'
       <div style="float:left;width:80%;margin:0 5px 0 10px;min-height:40px">
         <div>
           <span *ngIf="chatLastMessageObj?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0">settings</span>
-          <div style="float:left">{{chatLastMessageObj?.chatSubject}}</div>
+          <div style="float:left;color:white">{{chatLastMessageObj?.chatSubject}}</div>
         </div>
         <div style="width:100%;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical">
           <span *ngFor="let recipient of chatLastMessageObj?.recipientList;let last=last">{{recipient==UI.currentUser?'You':chatLastMessageObj?.recipients[recipient]?.name}}{{last?"":", "}}</span>
@@ -52,7 +52,8 @@ import firebase from 'firebase/compat/app'
   <div *ngIf="showChatDetails" style="padding-top:40px">
     <div class="island">
       <input [(ngModel)]="chatSubject" style="width:60%" placeholder="What is the subject of this chat?">
-      <button class="buttonWhite" style="width:75px" (click)="saveNewSubject()" [disabled]="chatLastMessageObj?.chatSubject==chatSubject&&chatSubject">Save</button>
+      <br/>
+      <button class="buttonWhite" style="width:125px" (click)="saveNewSubject()" [disabled]="chatLastMessageObj?.chatSubject==chatSubject&&chatSubject">Save subject</button>
     </div>
     <br/>
 
@@ -253,7 +254,7 @@ import firebase from 'firebase/compat/app'
     </div>
   </div>
   <div *ngIf="draftMessage||imageDownloadUrl" style="float:right;width:10%;cursor:pointer">
-    <span class="material-icons-outlined" style="margin:15px 5px 5px 5px;font-size:30px" (click)="addMessage()">send</span>
+    <span class="material-icons-outlined" style="color:green;margin:15px 5px 5px 5px;font-size:30px" (click)="addMessage()">send</span>
   </div>
   <div *ngIf="!draftMessage&&!imageDownloadUrl" style="float:right;width:10%;cursor:pointer">
     <input type="file" name="chatImage" id="chatImage" class="inputfile" (change)="onImageChange($event)" accept="image/*">

@@ -33,34 +33,34 @@ import { ChangeDetectorRef } from '@angular/core'
     <div style="padding:10px">
       <div style="clear:both">
         <div>
-          <span style="font-size:18px;line-height:30px">{{focusUserLastMessageObj?.name}} </span>
-          <span style="font-size:14px;line-height:30px">{{UI.formatSharesToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance||0)}}</span>
+          <span style="color:white;font-size:18px;line-height:30px">{{focusUserLastMessageObj?.name}} </span>
+          <span style="color:white;font-size:18px;line-height:30px">{{UI.formatSharesToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance||0)}}</span>
           <span *ngIf="focusUserLastMessageObj?.publicLink" class="material-icons-outlined" style="font-size:18px;line-height:10px;margin-left:10px;cursor:pointer" (click)="UI.openWindow(focusUserLastMessageObj?.publicLink)">link</span>
           <br>
-          <span *ngIf="focusUserLastMessageObj?.locking?.amountCummulate>1" style="font-size:10px">PRN has been locked for {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} days</span>
-          <span *ngIf="focusUserLastMessageObj?.locking?.amountCummulate<=1" style="font-size:10px">PRN has been locked for {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} day</span>
+          <span *ngIf="focusUserLastMessageObj?.locking?.amountCummulate>1">PRN has been locked for {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} days</span>
+          <span *ngIf="focusUserLastMessageObj?.locking?.amountCummulate<=1">PRN has been locked for {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} day</span>
           <br>
-          <span style="font-size:10px">Earning {{UI.formatSharesToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance*(math.exp(UI.appSettingsCosts?.interestRateYear/365)-1))}} per day from interest</span>
+          <span>Earning {{UI.formatSharesToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance*(math.exp(UI.appSettingsCosts?.interestRateYear/365)-1))}} per day from interest</span>
           <br>
-          <span style="font-size:10px">{{focusUserLastMessageObj?.userPresentation}}</span>
-          <span *ngIf="focusUserLastMessageObj?.contract?.signed" style="font-size:10px"> Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
-          <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed" style="margin:15px;font-size:10px">Waiting for contract signature (Level {{focusUserLastMessageObj?.contract?.level|number:'1.1-1'}})</span>
-          <button class="buttonWhite" *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin:15px;font-size:10px" (click)=signContract()>Sign contract</button>
+          <span>{{focusUserLastMessageObj?.userPresentation}}</span>
+          <span *ngIf="focusUserLastMessageObj?.contract?.signed"> Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
+          <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed" style="margin:15px">Waiting for contract signature (Level {{focusUserLastMessageObj?.contract?.level|number:'1.1-1'}})</span>
+          <button class="buttonWhite" *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin:15px" (click)=signContract()>Sign contract</button>
           <br>
-          <span style="font-size:10px">Created in {{focusUserLastMessageObj?.createdTimestamp|date:'MMMM yyyy'}}</span>
+          <span>Created in {{focusUserLastMessageObj?.createdTimestamp|date:'MMMM yyyy'}}</span>
           <br>
-          <span *ngIf="focusUserLastMessageObj?.userChain?.index>1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)>1" style="font-size:10px">{{focusUserLastMessageObj?.userChain?.index}} messages, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</span>
-          <span *ngIf="focusUserLastMessageObj?.userChain?.index>1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)<=1" style="font-size:10px">{{focusUserLastMessageObj?.userChain?.index}} messages, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} day ago</span>
-          <span *ngIf="focusUserLastMessageObj?.userChain?.index<=1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)>1" style="font-size:10px">{{focusUserLastMessageObj?.userChain?.index}} message, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</span>
-          <span *ngIf="focusUserLastMessageObj?.userChain?.index<=1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)<=1" style="font-size:10px">{{focusUserLastMessageObj?.userChain?.index}} message, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} day ago</span>
+          <span *ngIf="focusUserLastMessageObj?.userChain?.index>1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)>1">{{focusUserLastMessageObj?.userChain?.index}} messages, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</span>
+          <span *ngIf="focusUserLastMessageObj?.userChain?.index>1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)<=1">{{focusUserLastMessageObj?.userChain?.index}} messages, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} day ago</span>
+          <span *ngIf="focusUserLastMessageObj?.userChain?.index<=1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)>1">{{focusUserLastMessageObj?.userChain?.index}} message, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</span>
+          <span *ngIf="focusUserLastMessageObj?.userChain?.index<=1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)<=1">{{focusUserLastMessageObj?.userChain?.index}} message, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} day ago</span>
         </div>
       </div>
     </div>
-    <button class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.background-color]="mode=='inbox'?'darkGreen':'black'" (click)="mode='inbox';refreshMessages()">inbox</button>
-    <button class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.background-color]="mode=='history'?'darkGreen':'black'" (click)="mode='history';refreshMessages();refreshChart()">history</button>
-    <button class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.background-color]="mode=='chain'?'darkGreen':'black'" (click)="mode='chain';refreshMessages()">chain</button>
-    <button class="buttonBlack" style="float:left;width:74px;margin:5px;font-size:11px" [style.background-color]="mode=='forecast'?'darkGreen':'black'" (click)="mode='forecast';refreshMessages()">forecast</button>
-    <button class="buttonBlack" *ngIf="UI.currentUser&&UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="clear:both;width:250px;margin:5px;font-size:11px">New message to {{focusUserLastMessageObj?.name}}</button>
+    <button class="buttonBlack" style="float:left;width:74px;margin:5px" [style.background-color]="mode=='inbox'?'darkGreen':'black'" (click)="mode='inbox';refreshMessages()">inbox</button>
+    <button class="buttonBlack" style="float:left;width:74px;margin:5px" [style.background-color]="mode=='history'?'darkGreen':'black'" (click)="mode='history';refreshMessages();refreshChart()">history</button>
+    <button class="buttonBlack" style="float:left;width:74px;margin:5px" [style.background-color]="mode=='chain'?'darkGreen':'black'" (click)="mode='chain';refreshMessages()">chain</button>
+    <button class="buttonBlack" style="float:left;width:74px;margin:5px" [style.background-color]="mode=='forecast'?'darkGreen':'black'" (click)="mode='forecast';refreshMessages()">forecast</button>
+    <button class="buttonBlack" *ngIf="UI.currentUser&&UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="clear:both;width:250px;margin:5px">New message to {{focusUserLastMessageObj?.name}}</button>
     <div *ngIf="focusUserLastMessageObj?.user==UI.currentUser" class="material-icons" style="float:right;cursor:pointer" (click)="router.navigate(['settings'])">settings</div>
   </div>
 
@@ -68,9 +68,9 @@ import { ChangeDetectorRef } from '@angular/core'
   <div class="island" *ngIf="scope=='all'">
     <span class="material-icons" style="float:right;margin:10px;cursor:pointer" (click)="UI.openWindow(UI.PERRINNProfileLastMessageObj?.publicLink)">link</span>
     <div class="material-icons" style="float:left;margin:10px;cursor:pointer" (click)="showTags=!showTags">filter_list</div>
-    <div *ngIf="UI.tagFilters.length>0" style="float:left;font-size:10px;line-height:15px;padding:10px;cursor:pointer" (click)="UI.tagFilters=[];refreshMessages()">Clear {{UI.tagFilters.length}} filter{{UI.tagFilters.length>1?'s':''}}</div>
+    <div *ngIf="UI.tagFilters.length>0" style="float:left;line-height:15px;padding:10px;cursor:pointer" (click)="UI.tagFilters=[];refreshMessages()">Clear {{UI.tagFilters.length}} filter{{UI.tagFilters.length>1?'s':''}}</div>
     <ul class="listLight" *ngIf="showTags">
-      <li class="buttonBlack" *ngFor="let message of tags|async" style="float:left;width:100px;margin:5px;font-size:11px"
+      <li class="buttonBlack" *ngFor="let message of tags|async" style="float:left;width:100px;margin:5px"
         [style.background-color]="UI.tagFilters.includes(message.payload.doc.data()?.tag)?'darkGreen':'black'"
         (click)="UI.tagFilters.includes(message.payload.doc.data()?.tag)?UI.tagFilters.splice(UI.tagFilters.indexOf(message.payload.doc.data()?.tag),1):UI.tagFilters.push(message.payload.doc.data()?.tag);refreshMessages()">
         {{message.payload.doc.data()?.tag}}
@@ -153,18 +153,18 @@ import { ChangeDetectorRef } from '@angular/core'
                 <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer">settings</span>
                 <span style="color:white;font-size:15px">{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</span>
               </div>
-              <div *ngIf="UI.currentUser&&(UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds" style="float:right;margin:5px 0 0 0;width:35px;height:20px;line-height:20px;font-size:10px;text-align:center"
+              <div *ngIf="UI.currentUser&&(UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds" style="float:right;margin:5px 0 0 0;width:35px;height:20px;line-height:20px;text-align:center"
                 (click)="readFlagClick(message.payload.doc.id,(message.payload.doc.data()?.reads||{})[UI.currentUser])"
                 [style.background-color]="(message.payload.doc.data()?.reads||{})[UI.currentUser]?'#131B20':(message.payload.doc.data()?.recipients[UI.currentUser]?.mentionMessages||message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name))?'#5BBF2F':message.payload.doc.data()?.recipients[UI.currentUser]?'#38761D':'#B0BAC0'"
                 [style.color]="(message.payload.doc.data()?.reads||{})[UI.currentUser]?'#131B20':whitesmoke">
                 {{message.payload.doc.data()?.recipients[UI.currentUser]?.unreadMessages}}
               </div>
-              <div *ngIf="UI.currentUser&&(UI.currentUserLastMessageObj?.createdTimestamp/1000)>message.payload.doc.data()?.serverTimestamp?.seconds" style="float:right;margin:5px 0 0 0;width:35px;height:20px;line-height:20px;font-size:10px;text-align:center 0 0 3px"
+              <div *ngIf="UI.currentUser&&(UI.currentUserLastMessageObj?.createdTimestamp/1000)>message.payload.doc.data()?.serverTimestamp?.seconds" style="float:right;margin:5px 0 0 0;width:35px;height:20px;line-height:20px;text-align:center 0 0 3px"
                 [style.background-color]="'#B0BAC0'"
                 [style.color]="'#B0BAC0'">
                 {{message.payload.doc.data()?.recipients[UI.currentUser]?.unreadMessages}}
               </div>
-              <div style="float:right;margin-top:10px;color:#999;font-size:11px;margin-right:10px;width:40px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</div>
+              <div style="float:right;margin-top:10px;color:#999;margin-right:10px;width:40px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</div>
               <div style="clear:both;float:left;margin-bottom:10px;width:90%;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">
                 <span>{{message.payload.doc.data()?.name}}:&nbsp;</span>
                 <span *ngIf="message.payload.doc.data()?.imageResized" class="material-icons-outlined" style="font-size:15px;line-height:12px;margin-right:2px">aspect_ratio</span>

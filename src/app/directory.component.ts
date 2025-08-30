@@ -26,14 +26,14 @@ import firebase from 'firebase/compat/app';
       <div (click)="router.navigate(['profile',message.values.user])">
         <img [src]="message?.values.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message?.values)" style="float:left;margin:10px;opacity:1;object-fit:cover;height:50px;width:50px">
         <div style="float:left;padding:10px;width:55%">
-          <div>{{message.values?.name}}</div>
+          <div style="color:white">{{message.values?.name}}</div>
           <span *ngIf="message.values?.publicLink" class="material-icons-outlined" style="font-size:18px;line-height:10px">link</span>
-          <span style="font-size:10px"> {{message.values?.userPresentation}}</span>
-          <span *ngIf="message.values?.contract?.signed" style="font-size:10px"> Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}.</span>
+          <span> {{message.values?.userPresentation}}</span>
+          <span *ngIf="message.values?.contract?.signed"> Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}.</span>
         </div>
         <div style="float:right;margin:10px;width:60px">
           <div>{{UI.formatSharesToPRNCurrency(null,message.values?.wallet?.balance||0)}}</div>
-          <div *ngIf="((message.values?.wallet?.balance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance))>0.001" style="font-size:10px">{{((message.values?.wallet?.balance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance))|percent:'1.1-1'}}</div>
+          <div *ngIf="((message.values?.wallet?.balance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance))>0.001">{{((message.values?.wallet?.balance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance))|percent:'1.1-1'}}</div>
         </div>
       </div>
     </li>
