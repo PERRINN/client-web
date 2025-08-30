@@ -61,7 +61,7 @@ import { ChangeDetectorRef } from '@angular/core'
     <button class="buttonBlack" style="float:left;width:74px;margin:5px" [style.background-color]="mode=='chain'?'darkGreen':'black'" (click)="mode='chain';refreshMessages()">chain</button>
     <button class="buttonBlack" style="float:left;width:74px;margin:5px" [style.background-color]="mode=='forecast'?'darkGreen':'black'" (click)="mode='forecast';refreshMessages()">forecast</button>
     <button class="buttonBlack" *ngIf="UI.currentUser&&UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="clear:both;width:250px;margin:5px">New message to {{focusUserLastMessageObj?.name}}</button>
-    <div *ngIf="focusUserLastMessageObj?.user==UI.currentUser" class="material-icons" style="float:right;cursor:pointer" (click)="router.navigate(['settings'])">settings</div>
+    <button class="buttonBlack" *ngIf="focusUserLastMessageObj?.user==UI.currentUser" class="material-icons" style="float:right" (click)="router.navigate(['settings'])">settings</button>
   </div>
 
 
