@@ -66,8 +66,8 @@ import { ChangeDetectorRef } from '@angular/core'
 
 
   <div class="island" *ngIf="scope=='all'">
-    <span class="material-icons" style="float:right;margin:10px;cursor:pointer" (click)="UI.openWindow(UI.PERRINNProfileLastMessageObj?.publicLink)">link</span>
-    <div class="material-icons" style="float:left;margin:10px;cursor:pointer" (click)="showTags=!showTags">filter_list</div>
+    <span class="material-icons" style="float:right;cursor:pointer" (click)="UI.openWindow(UI.PERRINNProfileLastMessageObj?.publicLink)">link</span>
+    <div class="material-icons" style="float:left;cursor:pointer" (click)="showTags=!showTags">filter_list</div>
     <div *ngIf="UI.tagFilters.length>0" style="float:left;line-height:15px;padding:10px;cursor:pointer" (click)="UI.tagFilters=[];refreshMessages()">Clear {{UI.tagFilters.length}} filter{{UI.tagFilters.length>1?'s':''}}</div>
     <ul class="listLight" *ngIf="showTags">
       <li class="buttonBlack" *ngFor="let message of tags|async" style="float:left;width:100px;margin:5px"
