@@ -1,4 +1,4 @@
-import { Component } from '@angular/core'
+import { Component, NgZone, ViewChild, ElementRef } from '@angular/core';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
 import { Router, ActivatedRoute } from '@angular/router'
@@ -6,7 +6,6 @@ import { UserInterfaceService } from './userInterface.service'
 import { AngularFireStorage } from '@angular/fire/compat/storage'
 import firebase from 'firebase/compat/app'
 import { map, tap, take } from 'rxjs/operators';
-import { NgZone } from '@angular/core';
 
 @Component({
   selector: 'chat',
@@ -276,6 +275,7 @@ import { NgZone } from '@angular/core';
 })
 
 export class ChatComponent {
+  @ViewChild('msgBox') msgBox!: ElementRef<HTMLTextAreaElement>;
   draftMessage:string
   imageTimestamp:string
   imageDownloadUrl:string
@@ -725,7 +725,14 @@ constructor(
     this.showChatDetails = false
     this.messageShowDetails = []
     this.messageShowActions = []
+  
+    // wait for view to settle, then resize if textarea exists
+    this.zone.onStable.pipe(take(1)).subscribe(() => {
+      const el = this.msgBox?.nativeElement;
+      if (el) this.autoResize(el);
+    });
   }
+  
 
   autoResize(el: HTMLTextAreaElement) {
     el.style.height = 'auto';
