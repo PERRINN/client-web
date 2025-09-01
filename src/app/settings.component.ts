@@ -26,6 +26,7 @@ import firebase from 'firebase/compat/app';
     <span style="font-size:18px">{{UI.formatSharesToPRNCurrency(null,UI.currentUserLastMessageObj?.wallet?.balance||0)}} </span>
   </div>
   <span style="margin-left:15px">{{UI.currentUserLastMessageObj?.userPresentation}} Level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
+<br>
   <span *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="margin:15px">Waiting for contract signature (Level {{UI.currentUserLastMessageObj?.contract?.level}})</span>
   <span style="margin:15px">{{UI.hasTouch?"On mobile (touch screen)":"On desktop / laptop"}}</span>
   <span style="margin:15px">{{UI.isStandalone?"On home screen":"In the browser"}}</span>
@@ -78,13 +79,13 @@ import firebase from 'firebase/compat/app';
     <div style="margin:20px">This contract is between you and PERRINN team. When these settings are updated, they will need to be approved before taking effect. You or PERRINN can cancel this contract at any time.</div>
     <div style="margin:15px 20px 0 20px">Level [1-10] defines the level of experience / capacity to resolve problems independently. Level 1 is university student with no experience, 10 is expert (10+ years experience in the field). After signature your level will increase automatically with time at a rate of +1 per year.</div>
     <input [(ngModel)]="contract.level" placeholder="Contract level">
-    <div *ngIf="!UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:15px">No contract registered.</div>
-    <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:15px">Contract number {{UI.currentUserLastMessageObj?.contract?.createdTimestamp}}</div>
-    <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:15px">Signature valid for level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}, you will receive {{UI.formatSharesToPRNCurrency(null,UI.appSettingsContract.hourlyRateLevel1*UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted)}} per hour when you declare working hours.</div>
-    <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:15px">Waiting for contract signature</div>
-    <button class="buttonWhite" (click)="updateContract()" style="clear:both;font-size:12px;width:200px;padding:2px;margin:10px" [disabled]="contract.level==UI.currentUserLastMessageObj?.contract?.level">Update my contract</button>
+    <button class="buttonWhite" (click)="updateContract()" style="clear:both;font-size:12px;width:200px;padding:2px;margin:10px auto;display:block" [disabled]="contract.level==UI.currentUserLastMessageObj?.contract?.level">Update my contract</button>
+    <div *ngIf="!UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:10px 10px 5px 15px">No contract registered.</div>
+    <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:10px 10px 5px 15px">Contract number {{UI.currentUserLastMessageObj?.contract?.createdTimestamp}}</div>
+    <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:5px 10px 10px 15px">Signature valid for level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}, you will receive {{UI.formatSharesToPRNCurrency(null,UI.appSettingsContract.hourlyRateLevel1*UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted)}} per hour when you declare working hours.</div>
+    <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:5px 10px 10px 15px">Waiting for contract signature</div>
   </div>
-  <button class="buttonRed" style="width:100px;margin:25px auto" (click)="this.UI.logout()">logout</button>
+  <button class="buttonRed" style="width:100px;margin:25px auto; display: block" (click)="this.UI.logout()">logout</button>
   `,
 })
 export class SettingsComponent {
