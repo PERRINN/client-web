@@ -331,51 +331,6 @@ img {
   animation-delay: -0.16s;
 }
 
-#socialmedia {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  margin-top: 50px;
-}
-
-.socialmediabutton {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 5px;
-  outline: thin solid;
-  color: whitesmoke !important;
-  background-color: #222C32;
-  width: 160px;
-  height: 35px;
-  margin: 5px;
-}
-
-.socialmediabutton a {
-  color: whitesmoke; 
-  display: table; 
-  text-decoration: none !important;
-}
-
-.socialmediabutton img {
-  max-height: 25px;
-  max-width: 25px; 
-  display: table-cell; 
-  vertical-align:middle;
-  margin: 5px;
-  margin-left: 0px;
-  filter: grayscale(100%);
-}
-
-.socialmediabutton span {
-  font-size: 11px;
-}
-
-.socialmediabutton:hover {
-  background-color: #131B20;
-  transition: 0.1s ease;
-}
-
 th {
   float:left;
   text-align:center;

@@ -66,7 +66,34 @@ import { ChangeDetectorRef } from '@angular/core'
 
 
   <div class="island" *ngIf="scope=='all'">
-    <span class="material-icons" style="float:right;cursor:pointer" (click)="UI.openWindow(UI.PERRINNProfileLastMessageObj?.publicLink)">link</span>
+    <button class="buttonBlack" style="float:right;height:25px;width:45px;margin-right:10px"
+            (click)="UI.openWindow(UI.PERRINNProfileLastMessageObj?.publicLink)">
+            <span style="line-height:13px" class="material-icons">link</span>
+    </button>
+    <button class="buttonBlack" style="float:right;height:25px;width:45px;margin-right:10px">
+            <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank">
+            <img src="./../assets/App icons/Digital_Glyph_White.png"
+            style="width:100%;height:100%;object-fit:contain;display:block"> 
+            </a>
+    </button>
+    <button class="buttonBlack" style="float:right;height:25px;width:45px;margin-right:10px">
+            <a href="https://www.youtube.com/@PERRINN424WeAreATeam" target="_blank">
+            <img src="./../assets/App icons/yt_logo_mono_white.png"
+            style="width:100%;height:100%;object-fit:contain;display:block"> 
+            </a>
+    </button>
+    <button class="buttonBlack" style="float:right;height:25px;width:45px;margin-right:10px">
+            <a href="https://www.linkedin.com/company/perrinn" target="_blank">
+            <img src="./../assets/App icons/InBug-White.png"
+            style="width:100%;height:100%;object-fit:contain;display:block"> 
+            </a>
+    </button>
+    <button class="buttonBlack" style="float:right;height:25px;width:45px;margin-right:10px">
+            <a href="https://github.com/PERRINN" target="_blank">
+            <img src="./../assets/App icons/github-mark-white.png"
+            style="width:100%;height:100%;object-fit:contain;display:block"> 
+            </a>
+    </button>
     <div class="material-icons" style="float:left;cursor:pointer" (click)="showTags=!showTags">filter_list</div>
     <div *ngIf="UI.tagFilters.length>0" style="float:left;line-height:15px;padding:10px;cursor:pointer" (click)="UI.tagFilters=[];refreshMessages()">Clear {{UI.tagFilters.length}} filter{{UI.tagFilters.length>1?'s':''}}</div>
     <ul class="listLight" *ngIf="showTags">
