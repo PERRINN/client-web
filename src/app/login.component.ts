@@ -14,8 +14,8 @@ import { first } from 'rxjs/operators';
     <div class="module form-module" style="max-width:450px">
       <div class="form">
         <form #f="ngForm">
-          <button class="buttonBlack" [hidden]="action=='register'" style="font-size:12px;line-height:15px;width:150px;padding:4px;margin:10px auto" (click)="action='register';messageUser=''">New member</button>
-          <button class="buttonBlack" [hidden]="action=='login'" style="font-size:12px;line-height:15px;width:150px;padding:4px;margin:10px auto" (click)="action='login';messageUser=''">Existing member</button>
+          <div class="buttonLight" [hidden]="action=='register'" style="font-size:12px;line-height:15px;width:150px;padding:4px;margin:10px auto" (click)="action='register';messageUser=''">New member</div>
+          <div class="buttonLight" [hidden]="action=='login'" style="font-size:12px;line-height:15px;width:150px;padding:4px;margin:10px auto" (click)="action='login';messageUser=''">Existing member</div>
           <div *ngIf="action=='login' || action=='register'">
             <input maxlength="500" [(ngModel)]="email" name="email" type="text" placeholder="Email *" (keyup)="messageUser=''" autofocus required #e="ngModel"/>
             <label class="password">
@@ -29,7 +29,7 @@ import { first } from 'rxjs/operators';
           <div *ngIf="action=='login'">
             <button class="buttonWhite" style="font-size:14px;line-height:25px;width:200px;padding:4px;margin:10px auto" (click)="login(email,password)" [disabled]="f.invalid">Login</button>
             <br/>
-            <button class="buttonBlack" style="width:125px;font-size:10px;margin:10px auto" (click)="resetPassword(email)">Forgot password?</button>
+            <div class="buttonLight" style="width:125px;font-size:10px;margin:10px auto;padding:3px;" (click)="resetPassword(email)">Forgot password?</div>
           </div>
           <div *ngIf="action=='register'">
             <label class="password">
