@@ -117,22 +117,6 @@ button {
   outline: none;                 /* No blue outline unless focused */
   border: 1px solid transparent; /* Flat edge */
 }
-.buttonLight {
-  background-color: black;
-  color: rgba(245, 245, 245, 0.7);
-  cursor: pointer;
-  user-select: none;
-  box-shadow: none;              /* No shadow */
-  outline: none;                 /* No blue outline unless focused */
-  border: 1px solid rgba(245, 245, 245, 0.7);; /* Flat edge */
-  cursor:pointer;
-}
-.buttonLight:hover {
-  color: gray;
-  border: 1px solid gray;
-  transition: 0.1s ease;
-  -webkit-transition: 0.1s ease;
-}
 input {
   background-color:#2D3941;
   color: #B0BAC0;
