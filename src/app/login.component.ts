@@ -14,8 +14,8 @@ import { first } from 'rxjs/operators';
     <div class="module form-module" style="max-width:450px">
       <div class="form">
         <form #f="ngForm">
-          <button class="buttonBlack" [hidden]="action=='register'" style="font-size:12px;line-height:15px;width:150px;padding:4px;margin:10px auto" (click)="action='register';messageUser=''">New member</button>
-          <button class="buttonBlack" [hidden]="action=='login'" style="font-size:12px;line-height:15px;width:150px;padding:4px;margin:10px auto" (click)="action='login';messageUser=''">Existing member</button>
+          <div class="buttonBlack" [hidden]="action=='register'" style="font-size:12px;line-height:15px;width:150px;padding:4px;margin:10px auto" (click)="action='register';messageUser=''">New member</div>
+          <div class="buttonBlack" [hidden]="action=='login'" style="font-size:12px;line-height:15px;width:150px;padding:4px;margin:10px auto" (click)="action='login';messageUser=''">Existing member</div>
           <div *ngIf="action=='login' || action=='register'">
             <input maxlength="500" [(ngModel)]="email" name="email" type="text" placeholder="Email *" (keyup)="messageUser=''" autofocus required #e="ngModel"/>
             <label class="password">
