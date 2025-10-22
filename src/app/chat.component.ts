@@ -19,7 +19,7 @@ import { map, tap, take } from 'rxjs/operators';
     [style.width.px]="containerWidth"
     (click)="UI.currentUser ? (showChatDetails = !showChatDetails) : '';showChatDetails?scrollMainToTop():scrollMainToBottom()">
     <div *ngIf="!showChatDetails">
-      <div style="float:left;width:80%;margin:0 5px 0 10px;min-height:40px">
+      <div style="float:left;width:75%;margin:0 5px 0 10px;min-height:40px">
         <div>
           <span *ngIf="chatLastMessageObj?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0">settings</span>
           <div style="float:left;color:white">{{chatLastMessageObj?.chatSubject}}</div>
