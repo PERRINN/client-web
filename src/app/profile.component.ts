@@ -96,7 +96,7 @@ import { ChangeDetectorRef } from '@angular/core'
     </button>
     <div class="material-icons" style="float:left;cursor:pointer" (click)="showTags=!showTags">filter_list</div>
     <div *ngIf="UI.tagFilters.length>0" style="float:left;line-height:15px;padding:10px;cursor:pointer" (click)="UI.tagFilters=[];refreshMessages()">Clear {{UI.tagFilters.length}} filter{{UI.tagFilters.length>1?'s':''}}</div>
-    <ul class="listLight" *ngIf="showTags">
+    <ul class="list1Light" *ngIf="showTags">
       <li class="buttonBlack" *ngFor="let message of tags|async" style="float:left;width:100px;margin:5px"
         [style.background-color]="UI.tagFilters.includes(message.payload.doc.data()?.tag)?'darkGreen':'black'"
         (click)="UI.tagFilters.includes(message.payload.doc.data()?.tag)?UI.tagFilters.splice(UI.tagFilters.indexOf(message.payload.doc.data()?.tag),1):UI.tagFilters.push(message.payload.doc.data()?.tag);refreshMessages()">
@@ -106,7 +106,7 @@ import { ChangeDetectorRef } from '@angular/core'
   </div>
 
     <div>
-      <ul class="listLight">
+      <ul *ngIf="mode!='forecast'" class="list2Light">
         <li *ngFor="let message of comingEvents|async;let first=first;let last=last"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
@@ -131,7 +131,7 @@ import { ChangeDetectorRef } from '@angular/core'
           </div>
         </li>
       </ul>
-      <ul class="listLight">
+      <ul *ngIf="mode!='forecast'" class="list3Light">
         <li *ngFor="let message of currentFunds|async;let first=first;let last=last"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
@@ -158,7 +158,7 @@ import { ChangeDetectorRef } from '@angular/core'
           </div>
         </li>
       </ul>
-      <ul class="listLight">
+      <ul *ngIf="mode!='forecast'" class="list4Light">
         <li *ngFor="let message of latestImages|async;let first=first;let last=last" style="float:left;width:20%"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
@@ -166,8 +166,8 @@ import { ChangeDetectorRef } from '@angular/core'
           </div>
         </li>
       </ul>
-      <div *ngIf="scope!='all'&&mode=='history'" style="height:400px;margin:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
-      <ul class="listLight">
+      <div *ngIf="scope!='all'&& mode=='history'" style="height:400px;margin:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
+      <ul *ngIf="mode!='forecast'" class="list5Light">
         <li *ngFor="let message of messages|async;let first=first;let last=last"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
@@ -228,7 +228,7 @@ import { ChangeDetectorRef } from '@angular/core'
             </table>
         </li>
       </ul>
-      <div *ngIf="scope!='all'&&mode=='forecast'">
+      <div *ngIf="scope!='all'&& mode=='forecast'">
         <div style="float:left;text-align:center;width:75px;height:20px;font-size:10px">Year</div>
         <div style="float:left;text-align:center;width:75px;height:20px;font-size:10px">Growth</div>
         <div style="float:left;text-align:center;width:75px;height:20px;font-size:10px">Balance</div>
@@ -422,6 +422,9 @@ export class ProfileComponent {
           return changes.map(c=>({payload:c.payload}))
         }))
       }
+    }
+    else if(this.mode=='forecast'){
+      this.UI.loading=false
     }
     else if(this.mode=='history'){
       this.messages=this.afs.collection<any>('PERRINNMessages',ref=>ref

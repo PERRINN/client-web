@@ -362,10 +362,10 @@ th {
 @media (min-width:410px)
 {
   .th-balance, .th-interest, .th-contract {
-    min-width:65px;
+    min-width:62px;
   }
   .th-date, .th-purchase {
-    min-width:75px;
+    min-width:72px;
   }
 }
 
