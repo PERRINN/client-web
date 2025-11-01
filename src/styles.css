@@ -346,7 +346,20 @@ th {
   min-width: 150px;
 }
 
-@media (max-width:410px)
+@media (max-width:370px)
+{
+  .th-date {
+    min-width:65px;
+  }
+  .th-balance {
+    min-width:55px;
+  }
+  .th-purchase, .th-interest, .th-contract {
+    min-width:50px;
+  }
+}
+
+@media (min-width:370px)
 {
   .th-date {
     min-width:70px;
@@ -361,11 +374,11 @@ th {
 
 @media (min-width:410px)
 {
-  .th-balance, .th-interest, .th-contract {
-    min-width:61px;
+  .th-interest, .th-contract {
+    min-width:55px;
   }
-  .th-date, .th-purchase {
-    min-width:71px;
+  .th-purchase {
+    min-width:70px;
   }
 }
 
