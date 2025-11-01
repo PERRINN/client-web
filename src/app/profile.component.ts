@@ -106,7 +106,7 @@ import { ChangeDetectorRef } from '@angular/core'
   </div>
 
     <div>
-      <ul *ngIf="!['forecast', 'history', 'chain'].includes(mode)" class="listLight">
+      <ul *ngIf="mode=='inbox' || scope=='all'" class="listLight">
         <li *ngFor="let message of comingEvents|async;let first=first;let last=last"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
@@ -131,7 +131,7 @@ import { ChangeDetectorRef } from '@angular/core'
           </div>
         </li>
       </ul>
-      <ul *ngIf="!['forecast', 'history', 'chain'].includes(mode)" class="listLight">
+      <ul *ngIf="mode=='inbox' || scope=='all'" class="listLight">
         <li *ngFor="let message of currentFunds|async;let first=first;let last=last"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
@@ -158,7 +158,7 @@ import { ChangeDetectorRef } from '@angular/core'
           </div>
         </li>
       </ul>
-      <ul *ngIf="!['forecast', 'history', 'chain'].includes(mode)" class="listLight">
+      <ul *ngIf="mode=='inbox' || scope=='all'" class="listLight">
         <li *ngFor="let message of latestImages|async;let first=first;let last=last" style="float:left;width:20%"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
@@ -167,7 +167,7 @@ import { ChangeDetectorRef } from '@angular/core'
         </li>
       </ul>
       <div *ngIf="scope!='all'&& mode=='history'" style="height:400px;margin:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
-      <ul *ngIf="mode!='forecast'" class="listLight">
+      <ul *ngIf="mode!='forecast' || scope=='all'" class="listLight">
         <li *ngFor="let message of messages|async;let first=first;let last=last"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
@@ -252,7 +252,7 @@ import { ChangeDetectorRef } from '@angular/core'
         <div class="bounce3"></div>
       </div>
       <div class="island">
-        <button class="buttonWhite" *ngIf="!UI.loading&&mode!='history'&&mode!='forecast'" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</button>
+        <button class="buttonWhite" *ngIf="(!UI.loading && !['forecast', 'history'].includes(mode)) || scope=='all'" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</button>
       </div>
     </div>
   `,
