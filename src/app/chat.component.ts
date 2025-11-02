@@ -176,7 +176,7 @@ import { map, tap, take } from 'rxjs/operators';
                 [style.border-style]="(message.payload?.text.includes(UI.currentUserLastMessageObj?.name))?'solid':'none'">
             <div>
               <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
-                <div style="font-size:12px;display:inline;float:left;margin:0px 10px 0px 5px">{{message.payload?.name}}</div>
+                <div style="font-size:12px;display:inline;float:left;margin:0px 10px 0px 5px">{{message.payload?.name}} {{message.payload?.automaticMessage?"(Automatic)":""}}</div>
                 <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)>43200" style="font-size:11px;margin:0px 10px 0px 10px">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'h:mm a'}}</div>
                 <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)<=43200" style="font-size:11px;margin:0px 10px 0px 10px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</div>
               </div>

@@ -11,6 +11,7 @@ module.exports = {
       }
       messageObj.serverTimestamp=FieldValue.serverTimestamp()
       messageObj.chain=messageObj.chain||autoId
+      messageObj.automaticMessage=true
       return getFirestore().collection('PERRINNMessages').add(messageObj)
     }
     catch(error){

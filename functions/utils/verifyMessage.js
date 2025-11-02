@@ -1,6 +1,5 @@
 const { getFirestore, FieldValue } = require('firebase-admin/firestore')
 const createMessageUtils = require('./createMessage')
-const updateFundsUtils = require('./updateFunds')
 const admin = require('firebase-admin');
 
 module.exports = {
@@ -361,9 +360,6 @@ module.exports = {
             chain:'PERRINNUsersStateSnapshot',
           })
         }
-
-        //update funds
-        if(fund.amountGBPTargetUpdated||(purchaseCOIN.amount>0))updateFundsUtils.updateFunds(stripeObj)
 
       return {
         user:user,
