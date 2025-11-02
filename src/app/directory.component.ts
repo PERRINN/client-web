@@ -10,7 +10,7 @@ import firebase from 'firebase/compat/app';
 @Component({
   selector:'directory',
   template:`
-  <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="float:left;object-fit:cover;width:100%">
+  <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="float:left;object-fit:cover;width:100%;margin-bottom:5px">
   <div class="island">
     <div style="margin:5px">
       <span class="title">{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsContributorsAuth?.length}} members own {{UI.formatSharesToPRNCurrency(null,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}.</span>
