@@ -176,13 +176,14 @@ import { map, tap, take } from 'rxjs/operators';
                 [style.border-style]="(message.payload?.text.includes(UI.currentUserLastMessageObj?.name))?'solid':'none'">
             <div>
               <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
-                <div style="font-size:12px;display:inline;float:left;margin:0px 10px 0px 5px">{{message.payload?.name}} {{message.payload?.automaticMessage?"(Automatic)":""}}</div>
+                <div style="font-size:12px;display:inline;float:left;margin:0px 10px 0px 5px">{{message.payload?.name}}</div>
                 <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)>43200" style="font-size:11px;margin:0px 10px 0px 10px">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'h:mm a'}}</div>
                 <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)<=43200" style="font-size:11px;margin:0px 10px 0px 10px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</div>
               </div>
               <div style="clear:both;text-align:center">
                 <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" (error)="UI.handleChatImageError($event, message.payload)" style="width:70%;max-height:320px;object-fit:contain;margin:5px 10px 5px 5px" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
               </div>
+              <div style="margin:5px 5px 0 5px;float:left">{{message.payload?.automaticMessage?"(Automatic)":""}}</div>
               <div style="margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
               <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{message.payload?.statistics?.userCount}} Members,</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{message.payload?.statistics?.emailsContributorsAuth?.length}} PRN holders.</div>
