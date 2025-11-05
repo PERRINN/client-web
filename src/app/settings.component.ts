@@ -16,9 +16,23 @@ import firebase from 'firebase/compat/app';
   onerror="this.onerror=null;this.src='https://storage.googleapis.com/perrinn-d5fc1.appspot.com/images%2F1585144867972Screen%20Shot%202018-03-16%20at%2015.05.10_180x180.png?GoogleAccessId=firebase-adminsdk-rh8x2%40perrinn-d5fc1.iam.gserviceaccount.com&Expires=16756761600&Signature=I3Kem9n6zYjSNijnKOx%2FAOUAg65GN3xf8OD1qD4uo%2BayOFblFIgfn81uPWRTzhGg14lJdyhz3Yx%2BiCXuYCIdYnduqMZcIjtHE6WR%2BPo74ckemuxIKx3N24tlBJ6DgkfgqwmIkw%2F%2FKotm8Cz%2Fq%2FbIZm%2FvAOi2dpBHqrHiIFXYb8AVYnhP1osUhVvyzapgYJEBZJcHur7v6uqrSKwQ4DfeHHinbJpvkX3wjM6Nxabi3kVABdGcGqMoAPGCTZJMzNj8xddAXuECbptQprd9LlnQOuL4tuDfLMAOUXTHmJVhJEBrquxQi8iPRjnLOvnqF8s2We0SOxprqEuwbZyxSgH05Q%3D%3D'">
   <br/>
   <div>
-    <input type="file" name="chatImage" id="chatImage" class="inputfile" (change)="onImageChange($event)" accept="image/*">
-    <label class="buttonUploadImage" for="chatImage" id="buttonFile">
-    <button class="buttonWhite" style="font-size:12px;text-align:center;width:250px;padding:2px;margin:10px">Upload a new profile picture</button>
+    <!-- Hidden file input -->
+    <input
+      type="file"
+      id="chatImage"
+      (change)="onImageChange($event)"
+      accept="image/*"
+      style="display: none;"
+    />
+
+    <!-- Label acts as the clickable button -->
+    <label
+      for="chatImage"
+      id="buttonFile"
+      class="buttonWhite"
+      style="font-size:12px;text-align:center;width:250px;padding:2px;margin:10px;cursor:pointer;display:inline-block;"
+    >
+      Upload a new profile picture
     </label>
   </div>
   <div style="margin:15px">
