@@ -410,6 +410,13 @@ th {
   }
 }
 
+@media (pointer:fine) and (hover:hover)
+{
+  #scroll-images {
+    padding-bottom: 16px;
+  }
+}
+
 @-webkit-keyframes sk-bouncedelay {
   0%, 80%, 100% { -webkit-transform: scale(0) }
   40% { -webkit-transform: scale(1.0) }

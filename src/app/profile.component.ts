@@ -158,8 +158,8 @@ import { ChangeDetectorRef } from '@angular/core'
           </div>
         </li>
       </ul>
-      <ul *ngIf="mode=='inbox' || scope=='all'" class="listLight">
-        <li *ngFor="let message of latestImages|async;let first=first;let last=last" style="float:left;width:20%"
+      <ul *ngIf="mode=='inbox' || scope=='all'" style="overflow-x: auto; flex-wrap: nowrap; display: flex" class="listLight" id="scroll-images">
+        <li *ngFor="let message of latestImages|async;let first=first;let last=last" style="flex: 0 0 auto; width: 20%"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
             <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload.doc.data())" style="float:left;object-fit:contain;width:100%;height:90px">
@@ -370,7 +370,7 @@ export class ProfileComponent {
         this.latestImages=this.afs.collection<any>('PERRINNMessages',ref=>ref
           .where('verified','==',true)
           .orderBy('chatImageTimestamp','desc')
-          .limit(5)
+          .limit(50)
         ).snapshotChanges().pipe(map(changes=>{
           return changes.map(c=>({payload:c.payload}))
         }))
@@ -407,7 +407,7 @@ export class ProfileComponent {
           .where('verified','==',true)
           .where('tag','in',this.UI.tagFilters)
           .orderBy('chatImageTimestamp','desc')
-          .limit(5)
+          .limit(50)
         ).snapshotChanges().pipe(map(changes=>{
           return changes.map(c=>({payload:c.payload}))
         }))
@@ -471,7 +471,7 @@ export class ProfileComponent {
         .where('recipientList','array-contains-any',[this.scope])
         .where('verified','==',true)
         .orderBy('chatImageTimestamp','desc')
-        .limit(5)
+        .limit(50)
       ).snapshotChanges().pipe(map(changes=>{
         return changes.map(c=>({payload:c.payload}))
       }))
