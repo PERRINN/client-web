@@ -514,7 +514,7 @@ export class ProfileComponent {
   newMessageToUser() {
     let ID=this.UI.newId()
     this.UI.createMessage({
-      text:'Starting a new chat.',
+      text:'General - Starting a new chat.',
       chain:ID,
       recipientList:[this.focusUserLastMessageObj.user]
     })
