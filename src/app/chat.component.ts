@@ -11,9 +11,9 @@ import { map, tap, take } from 'rxjs/operators';
   selector: 'chat',
   template: `
 
-  <div style="padding-top:100px;padding-bottom:100px">
+  <div [ngStyle]="{'padding-top' : showChatDetails ? '0px' : showImageGallery ? '40px' : '100px' , 'padding-bottom' : !UI.currentUser||showChatDetails||showImageGallery ? '0px' : '90px'}">
   <div
-    style="position:fixed; z-index:999; background:black; padding-bottom:25px; cursor:pointer"
+    style="position:fixed; z-index:999; background:black; padding-bottom:10px; cursor:pointer"
     [style.top.px]="containerTop"
     [style.left.px]="containerLeft"
     [style.width.px]="containerWidth"
@@ -55,7 +55,7 @@ import { map, tap, take } from 'rxjs/operators';
     </div>
   </div>
 
-  <div *ngIf="showChatDetails" style="padding-top:40px">
+  <div *ngIf="showChatDetails" style="padding-top: 50px">
     <div class="island">
       <input [(ngModel)]="chatSubject" style="width:60%" placeholder="What is the subject of this chat?">
       <br/>
@@ -236,11 +236,10 @@ import { map, tap, take } from 'rxjs/operators';
           <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" style="width:375px;height:200px;object-fit:contain" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
         </li>
       </ul>
-      <div style="height:100px;width:100%"></div>
     </div>
   </div>
 
-  <div *ngIf="UI.currentUser&&!showImageGallery"
+  <div *ngIf="UI.currentUser&&!showImageGallery&&!showChatDetails"
     style="position:fixed; bottom:0; z-index:999; background:black; padding-bottom:20px"
     [style.left.px]="containerLeft"
     [style.width.px]="containerWidth">
