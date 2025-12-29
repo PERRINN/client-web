@@ -11,7 +11,7 @@ import { map, tap, take } from 'rxjs/operators';
   selector: 'chat',
   template: `
 
-  <div [ngStyle]="{'padding-top' : showChatDetails ? '0px' : showImageGallery ? '40px' : '100px' , 'padding-bottom' : !UI.currentUser||showChatDetails||showImageGallery ? '0px' : '90px'}">
+  <div [ngStyle]="{'padding-top' : showChatDetails ? '0px' : showImageGallery ? '40px' : '20px' , 'padding-bottom' : !UI.currentUser||showChatDetails||showImageGallery ? '0px' : '90px'}">
   <div
     style="position:fixed; z-index:999; background:black; padding-bottom:10px; cursor:pointer"
     [style.top.px]="containerTop"
@@ -236,6 +236,9 @@ import { map, tap, take } from 'rxjs/operators';
           <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" style="width:375px;height:200px;object-fit:contain" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
         </li>
       </ul>
+    </div>
+    <div class="island" style="margin-top:25px;margin-bottom:25px;max-width:250px">
+      <button class="buttonWhite" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</button>
     </div>
   </div>
 
