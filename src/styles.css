@@ -268,6 +268,7 @@ progress::-webkit-progress-value {
 }
 .imageWithZoom {
   cursor: pointer;
+  box-shadow: 0 0 2px whitesmoke;
 }
 .inputTitle {
   width: 100%;
