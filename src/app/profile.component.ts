@@ -43,6 +43,7 @@ import { ChangeDetectorRef } from '@angular/core'
           <span>Earning {{UI.formatSharesToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance*(math.exp(UI.appSettingsCosts?.interestRateYear/365)-1))}} per day from interest</span>
           <br>
           <span>{{focusUserLastMessageObj?.userPresentation}}</span>
+          <br>
           <span *ngIf="focusUserLastMessageObj?.contract?.signed"> Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
           <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed" style="margin:15px">Waiting for contract signature (Level {{focusUserLastMessageObj?.contract?.level|number:'1.1-1'}})</span>
           <button class="buttonWhite" *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin:15px" (click)=signContract()>Sign contract</button>
