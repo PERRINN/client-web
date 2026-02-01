@@ -75,7 +75,7 @@ a:visited {
   color: whitesmoke;
 }
 .buttonBlack:hover{
-  background-color:darkGreen;
+  box-shadow: 0 0 3px whitesmoke;
 }
 .buttonBlack:disabled{
   opacity:0.5;
