@@ -39,7 +39,7 @@ import firebase from 'firebase/compat/app';
       </div>
     </li>
   </ul>
-  <ul class="listLight" style="margin:10px">
+  <ul style="margin:10px">
     <li *ngFor="let message of messages | async" style="float:left;cursor:text;user-select:text">
       <span>{{message.values?.name}} </span>
       <span>{{UI.formatSharesToPRNCurrency(null,message.values?.wallet?.balance||0)}}&nbsp;&nbsp;</span>
