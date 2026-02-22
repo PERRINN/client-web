@@ -24,7 +24,7 @@ import { ChangeDetectorRef } from '@angular/core'
     Add this app to your home screen for a better experience.
   </div>
 
-  <div *ngIf="scope=='all'&&UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined" style="line-height:0px;clear:both">
+  <div *ngIf="scope=='all'&&UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined" style="line-height:0px;margin-bottom:15px;clear:both">
     <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="width:100%">
   </div>
 
