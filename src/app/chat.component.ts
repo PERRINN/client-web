@@ -163,15 +163,15 @@ import { map, tap, take } from 'rxjs/operators';
     <div>
       <ul>
         <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index">
-          <div class="island" style="margin-top:25px;margin-bottom:25px;max-width:250px" *ngIf="isMessageNewTimeGroup(message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
-              <button class="buttonWhite" *ngIf="first" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</button>
+          <button class="buttonWhite" *ngIf="first" [disabled]="isLoadMoreDisabled" style="width:200px;margin:75px auto 10px auto;display:flex;justify-content: center" (click)="loadMore()">Load more</button>
+          <div class="island" id="date" style="margin-top:25px;margin-bottom:25px;max-width:240px" *ngIf="isMessageNewTimeGroup(message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
               <div style="margin:0 auto;text-align:center">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'fullDate'}}</div>
           </div>
-          <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" style="clear:both;width:100%;height:15px"></div>
+          <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" style="clear:both;width:100%;height:5px"></div>
           <div *ngIf="message.payload?.imageUrlThumbUser&&(isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first)" style="float:left;width:60px;min-height:10px">
             <img [src]="message.payload?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload)" style="cursor:pointer;display:inline;float:left;margin:0 10px 10px 10px; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
           </div>
-          <div [style.background-color]="(message.payload?.user==UI.currentUser)?'#222C32':'#222'"
+          <div [style.background-color]="(message.payload?.user==UI.currentUser)?'#2D3A42':'#1C1C1C'"
                 style="cursor:text;margin:0 10px 5px 60px;user-select:text;border-color:#5BBF2F"
                 [style.border-style]="(message.payload?.text.includes(UI.currentUserLastMessageObj?.name))?'solid':'none'">
             <div>
@@ -238,7 +238,7 @@ import { map, tap, take } from 'rxjs/operators';
       </ul>
     </div>
     <div class="island" style="margin-top:25px;margin-bottom:25px;max-width:250px">
-      <button class="buttonWhite" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</button>
+      <button class="buttonWhite" style="width:200px;margin:10px auto" [disabled]="isLoadMoreDisabled" (click)="loadMore()">Load more</button>
     </div>
   </div>
 
@@ -325,6 +325,7 @@ export class ChatComponent {
   containerBottom = 0;
   containerLeft = 0;
   containerWidth = 0;
+  isLoadMoreDisabled = false;
 
 constructor(
     public afs:AngularFirestore,
@@ -474,6 +475,7 @@ constructor(
       .limit(this.messageNumberDisplay)
     ).snapshotChanges().pipe(map(changes => {
       this.UI.loading = false
+      this.isLoadMoreDisabled = changes.length < this.messageNumberDisplay;
       var batch = this.afs.firestore.batch()
       var nextMessageRead = true
       changes.forEach(c => {
@@ -510,6 +512,7 @@ constructor(
       .limit(this.messageNumberDisplay)
     ).snapshotChanges().pipe(map(changes => {
       this.UI.loading = false
+      this.isLoadMoreDisabled = changes.length < this.messageNumberDisplay;
       var batch = this.afs.firestore.batch()
       var nextMessageRead = true
       changes.forEach(c => {

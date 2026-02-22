@@ -219,6 +219,11 @@ hr {
   position: fixed;
   z-index: 999;
 }
+#date {
+  padding: 2.5px;
+  color: #1F1F1F;
+  background-color: #a7a7a7;
+}
 .title {
   color:white;
   padding:10px;
