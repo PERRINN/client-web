@@ -64,31 +64,6 @@ import { map, tap, take } from 'rxjs/operators';
     <br/>
 
     <div class="island">
-      <ul class="listLight" style="margin:15px">
-        <li *ngFor="let recipient of chatLastMessageObj?.recipientList" style="float:left">
-          <div style="float:left;cursor:pointer" (click)="router.navigate(['profile',recipient])">
-            <img [src]="chatLastMessageObj?.recipients[recipient]?.imageUrlThumb" style="float:left;object-fit:cover;height:25px;width:25px;margin:3px 3px 3px 10px">
-            <div style="float:left;margin:10px 5px 3px 3px;font-size:12px;line-height:10px;font-family:sans-serif">{{chatLastMessageObj?.recipients[recipient]?.name}}</div>
-          </div>
-          <div style="float:left;cursor:pointer;margin:10px 15px 3px 3px;font-size:12px;line-height:10px;font-family:sans-serif;color:#D85140" (click)="removeRecipient(recipient,chatLastMessageObj?.recipients[recipient]?.name)">X</div>
-        </li>
-      </ul>
-      <input style="width:60%;margin:10px" maxlength="500" (keyup)="refreshSearchLists()" [(ngModel)]="searchFilter" placeholder="Add member">
-      <ul class="listLight">
-        <li *ngFor="let team of teams | async">
-          <div *ngIf="!(chatLastMessageObj?.recipients||{})[team.key]" style="padding:5px">
-            <div style="float:left;width:300px">
-              <img [src]="team?.values?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, team?.values)" style="display:inline;float:left;margin:0 5px 0 10px;opacity:1;object-fit:cover;height:25px;width:25px">
-              <span>{{team.values?.name}} {{UI.formatSharesToPRNCurrency(null,team.values?.wallet?.balance||0)}}</span>
-            </div>
-            <button class="buttonWhite" style="float:left;width:50px;font-size:11px" (click)="addRecipient(team.values.user,team.values.name)">Add</button>
-          </div>
-        </li>
-      </ul>
-    </div>
-    <br/>
-
-    <div class="island">
       <span style="margin:10px">Sending PRN {{UI.appSettingsPayment.currencyList[UI.currentUserLastMessageObj.userCurrency].designation}}:</span>
       <input style="width:200px;margin:10px" maxlength="500" [(ngModel)]="transactionAmount" placeholder="amount">
       <input style="width:150px;margin:10px" maxlength="500" [(ngModel)]="transactionCode" placeholder="Code (optional)">
@@ -648,15 +623,6 @@ constructor(
       chatImageUrlThumb: this.imageDownloadUrl,
       chatImageUrlMedium: this.imageDownloadUrl,
       chatImageUrlOriginal: this.imageDownloadUrl
-    })
-    this.resetChat()
-  }
-
-  addRecipient(user, name) {
-    this.UI.createMessage({
-      text: 'adding ' + name + ' to this chat.',
-      chain: this.chatLastMessageObj.chain || this.chatChain,
-      recipientList: [user]
     })
     this.resetChat()
   }
