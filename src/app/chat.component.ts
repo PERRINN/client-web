@@ -21,7 +21,6 @@ import { map, tap, take } from 'rxjs/operators';
     <div *ngIf="!showChatDetails">
       <div style="float:left;width:75%;margin:0 5px 0 10px;min-height:40px">
         <div>
-          <span *ngIf="chatLastMessageObj?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0">settings</span>
           <div style="float:left;color:white">{{chatLastMessageObj?.chatSubject}}</div>
         </div>
         <div style="width:100%;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical">
@@ -160,11 +159,9 @@ import { map, tap, take } from 'rxjs/operators';
               </div>
               <div style="margin:5px 5px 0 5px;float:left">{{message.payload?.automaticMessage?"(Automatic)":""}}</div>
               <div style="margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
-              <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{message.payload?.statistics?.userCount}} Members,</div>
-              <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{message.payload?.statistics?.emailsContributorsAuth?.length}} PRN holders.</div>
+              <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{message.payload?.statistics?.userCount}} users,</div>
+              <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{message.payload?.statistics?.emailsContributorsAuth?.length}} members.</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{UI.formatSharesToPRNCurrency(null,message.payload?.statistics?.wallet?.balance)}} invested.</div>
-              <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{UI.formatSharesToCurrency(null,message.payload?.statistics?.stripeBalance?.available[0]?.amount/100*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} available in the PERRINN fund</div>
-              <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">({{UI.formatSharesToCurrency(null,message.payload?.statistics?.stripeBalance?.pending[0]?.amount/100*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} pending).</div>
               <div *ngIf="messageShowDetails.includes(message.key)" style="margin:5px">
                 <div style="font-size:10px">Email addresses {{message.payload?.emails|json}}</div>
                 <div style="font-size:10px">userChain {{message.payload?.userChain|json}}</div>

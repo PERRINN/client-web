@@ -19,7 +19,6 @@ export class UserInterfaceService {
   PERRINNProfileLastMessageObj:any
   PERRINNAdminLastMessageObj:any
   nowSeconds:number
-  tagFilters:any
   appSettingsPayment:any
   appSettingsCosts:any
   appSettingsContract:any
@@ -64,7 +63,6 @@ export class UserInterfaceService {
 
     this.isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
 
-    this.tagFilters = [];
     this.nowSeconds = Math.floor(Date.now() / 1000);
     setInterval(() => {
       this.nowSeconds = Math.floor(Date.now() / 1000);

@@ -4,8 +4,6 @@ try { admin.initializeApp() } catch (e) {}
 const verifyMessageUtils = require('./utils/verifyMessage')
 const createMessageUtils = require('./utils/createMessage')
 const { defineSecret } = require('firebase-functions/params')
-const STRIPE_SECRET_KEY = defineSecret('STRIPE_SECRET_KEY')
-const stripe = require('stripe')
 
 exports.scheduledDailyMembership = onSchedule(
   {
@@ -13,11 +11,9 @@ exports.scheduledDailyMembership = onSchedule(
     timeoutSeconds: 540,
     memory: '1GiB',
     timeZone: 'Etc/UTC',
-    secrets: [STRIPE_SECRET_KEY] // 🔥 this makes the secret available
   },
   async (context) => {
     try {
-      const stripeObj = stripe(STRIPE_SECRET_KEY.value())
       const appSettingsCosts=await admin.firestore().doc('appSettings/costs').get()
       const appSettingsContract=await admin.firestore().doc('appSettings/contract').get()
       const appSettingsPayment=await admin.firestore().doc('appSettings/payment').get()
@@ -29,6 +25,7 @@ exports.scheduledDailyMembership = onSchedule(
       statistics.transactionIn={}
       statistics.transactionOut={}
       statistics.purchaseCOIN={}
+      statistics.membership={}
       statistics.emailsContributorsAuth=[]
       let listUsersResult1={}
       let listUsersResult2={}
@@ -43,7 +40,7 @@ exports.scheduledDailyMembership = onSchedule(
       var verifyMessageBatch=[]
       lastUserMessages.forEach((lastUserMessage)=>{
         if(lastUserMessage.docs[0]!=undefined){
-          verifyMessageBatch.push(verifyMessageUtils.verifyMessage(lastUserMessage.docs[0].id,lastUserMessage.docs[0].data(),stripeObj))
+          verifyMessageBatch.push(verifyMessageUtils.verifyMessage(lastUserMessage.docs[0].id,lastUserMessage.docs[0].data()))
         }
       })
       const results=await Promise.all(verifyMessageBatch)
@@ -64,7 +61,6 @@ exports.scheduledDailyMembership = onSchedule(
         statistics.userCount=(statistics.userCount||0)+1
       })
       statistics.serverTimestamp=admin.firestore.FieldValue.serverTimestamp()
-      statistics.stripeBalance=await stripeObj.balance.retrieve()
   
       createMessageUtils.createMessageAFS({
         user:'FHk0zgOQUja7rsB9jxDISXzHaro2',

@@ -4,7 +4,7 @@ const admin = require('firebase-admin');
 
 module.exports = {
 
-  verifyMessage:async(messageId,messageData,stripeObj)=>{
+  verifyMessage:async(messageId,messageData)=>{
 
     const firestore = getFirestore();
     const user = messageData.user;
@@ -117,30 +117,11 @@ module.exports = {
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{lastMessage:chatLastMessage})
 
       //message chat Subject
-      if(messageData.chain==user)messageData.chatSubject='User settings for '+messageData.name||userPreviousMessageData.name||"user"
+      if(messageData.chain==user)messageData.chatSubject=messageData.name||userPreviousMessageData.name||"user"
       if(messageData.chain=='PERRINNUsersStateSnapshot')messageData.chatSubject='User State Snapshot'
       messageData.chatSubject=messageData.chatSubject||chatPreviousMessageData.chatSubject||messageData.text||""
       messageData.chatSubject=messageData.chatSubject.substring(0,60)
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{chatSubject:messageData.chatSubject},{create:true})
-
-      //tag chain
-      messageData.tag=messageData.chatSubject.split(" ")[0]||null
-      let tagPreviousMessageData={}
-      const tagPreviousLastMessages=await admin.firestore().collection('PERRINNMessages').where('tag','==',messageData.tag).where('tagLastMessage','==',true).get()
-      let tagLastMessage=true
-      tagPreviousLastMessages.forEach(message=>{
-        if(message.data().serverTimestamp<messageData.serverTimestamp&&messageId!=message.id){
-          batch.update(admin.firestore().doc('PERRINNMessages/'+message.id),{tagLastMessage:false})
-          tagPreviousMessageData=message.data()
-        } else if (message.data().serverTimestamp>messageData.serverTimestamp&&messageId!=message.id) {
-          tagLastMessage=false
-        }
-      })
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{tag:messageData.tag})
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{tagLastMessage:tagLastMessage})
-
-      //settings
-      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{isSettings:messageData.chain==user})
 
       //message recipientList (merge with user, transactionOut user, previous chat list and remove duplicates and remove undefined and null and remove from the ToBeRemoved list)
       messageData.recipientList=[user].concat([(messageData.transactionOut||{}).user]||[]).concat(messageData.recipientList||[]).concat(chatPreviousMessageData.recipientList||[])

@@ -21,8 +21,7 @@
     "node-fetch": "^3.3.2",
     "nodemailer": "^6.4.1",
     "request": "^2.88.0",
-    "request-promise": "^4.2.4",
-    "stripe": "^7.6.0"
+    "request-promise": "^4.2.4"
   },
   "private": true,
   "engines": {

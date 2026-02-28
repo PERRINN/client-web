@@ -95,15 +95,6 @@ import { ChangeDetectorRef } from '@angular/core'
             style="width:100%;height:100%;object-fit:contain;display:block"> 
             </a>
     </button>
-    <div class="material-icons" style="float:left;cursor:pointer" (click)="showTags=!showTags">filter_list</div>
-    <div *ngIf="UI.tagFilters.length>0" style="float:left;line-height:15px;padding:5px 10px;cursor:pointer" (click)="UI.tagFilters=[];refreshMessages()">Clear {{UI.tagFilters.length}} filter{{UI.tagFilters.length>1?'s':''}}</div>
-    <ul class="listLight" *ngIf="showTags">
-      <li class="buttonBlack" *ngFor="let message of tags|async" style="float:left;width:100px;margin:5px"
-        [style.background-color]="UI.tagFilters.includes(message.payload.doc.data()?.tag)?'darkGreen':'black'"
-        (click)="UI.tagFilters.includes(message.payload.doc.data()?.tag)?UI.tagFilters.splice(UI.tagFilters.indexOf(message.payload.doc.data()?.tag),1):UI.tagFilters.push(message.payload.doc.data()?.tag);refreshMessages()">
-        {{message.payload.doc.data()?.tag}}
-      </li>
-    </ul>
   </div>
 
     <div>
@@ -118,7 +109,6 @@ import { ChangeDetectorRef } from '@angular/core'
             </div>
             <div>
               <div style="float:left;margin-top:10px;width:60%;white-space:nowrap;text-overflow:ellipsis">
-                <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer">settings</span>
                 <span style="color:white;font-size:15px">{{message.payload.doc.data()?.chatSubject}}</span>
               </div>
               <div style="width:80%">
@@ -142,7 +132,6 @@ import { ChangeDetectorRef } from '@angular/core'
             </div>
             <div>
               <div style="float:left;margin-top:10px;width:60%;white-space:nowrap;text-overflow:ellipsis">
-                <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer">settings</span>
                 <span style="color:white;font-size:15px">{{message.payload.doc.data()?.chatSubject}}</span>
               </div>
               <div style="clear:both">
@@ -178,7 +167,6 @@ import { ChangeDetectorRef } from '@angular/core'
             </div>
             <div>
               <div style="float:left;margin-top:10px;width:60%;white-space:nowrap;text-overflow:ellipsis">
-                <span *ngIf="message.payload.doc.data()?.isSettings" class="material-icons" style="float:left;font-size:15px;margin:2px 5px 0 0;cursor:pointer">settings</span>
                 <span style="color:white;font-size:15px">{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</span>
               </div>
               <div *ngIf="UI.currentUser&&(UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds" style="float:right;margin:5px 0 0 0;width:35px;height:20px;line-height:20px;text-align:center"
@@ -263,7 +251,6 @@ export class ProfileComponent {
   comingEvents:Observable<any[]>
   currentFunds:Observable<any[]>
   latestImages:Observable<any[]>
-  tags:Observable<any[]>
   scrollTeam:string
   focusUserLastMessageObj:any
   scope:string
@@ -277,7 +264,6 @@ export class ProfileComponent {
   previousAmountTransactionCummulate:number
   math:any
   messageNumberDisplay:number
-  showTags:boolean
   chartOptions:AgChartOptions
 
   constructor(
@@ -288,7 +274,6 @@ export class ProfileComponent {
     private route:ActivatedRoute,
     private cd: ChangeDetectorRef
   ) {
-    this.showTags=false
     this.math=Math
     this.messageNumberDisplay=30
     this.scope=''
@@ -330,14 +315,6 @@ export class ProfileComponent {
       ).valueChanges().subscribe(snapshot=>{
         this.focusUserLastMessageObj=snapshot[0]
       })
-      this.tags=this.afs.collection<any>('PERRINNMessages',ref=>ref
-        .where('lastMessage','==',true)
-        .where('tagLastMessage','==',true)
-        .where('verified','==',true)
-        .orderBy('tag','asc')
-      ).snapshotChanges().pipe(map(changes=>{
-        return changes.map(c=>({payload:c.payload}))
-      }))
       this.refreshMessages()
     })
   }
@@ -351,78 +328,38 @@ export class ProfileComponent {
   refreshMessages(){
     this.UI.loading=true
     if(this.scope=='all'){
-      if(this.UI.tagFilters.length==0){
-        this.comingEvents=this.afs.collection<any>('PERRINNMessages',ref=>ref
-          .where('lastMessage','==',true)
-          .where('verified','==',true)
-          .orderBy('eventDateEnd')
-          .where('eventDateEnd','>',this.UI.nowSeconds*1000)
-        ).snapshotChanges().pipe(map(changes=>{
-          return changes.map(c=>({payload:c.payload}))
-        }))
-        this.currentFunds=this.afs.collection<any>('PERRINNMessages',ref=>ref
-          .where('lastMessage','==',true)
-          .where('verified','==',true)
-          .where('fund.active','==',true)
-          .orderBy('fund.daysLeft','asc')
-        ).snapshotChanges().pipe(map(changes=>{
-          return changes.map(c=>({payload:c.payload}))
-        }))
-        this.latestImages=this.afs.collection<any>('PERRINNMessages',ref=>ref
-          .where('verified','==',true)
-          .orderBy('chatImageTimestamp','desc')
-          .limit(50)
-        ).snapshotChanges().pipe(map(changes=>{
-          return changes.map(c=>({payload:c.payload}))
-        }))
-        this.messages=this.afs.collection<any>('PERRINNMessages',ref=>ref
-          .where('lastMessage','==',true)
-          .where('verified','==',true)
-          .orderBy('serverTimestamp','desc')
-          .limit(this.messageNumberDisplay)
-        ).snapshotChanges().pipe(map(changes=>{
-          this.UI.loading=false
-          return changes.map(c=>({payload:c.payload}))
-        }))
-      }
-      else{
-        this.comingEvents=this.afs.collection<any>('PERRINNMessages',ref=>ref
-          .where('lastMessage','==',true)
-          .where('tag','in',this.UI.tagFilters)
-          .where('verified','==',true)
-          .orderBy('eventDateEnd')
-          .where('eventDateEnd','>',this.UI.nowSeconds*1000)
-        ).snapshotChanges().pipe(map(changes=>{
-          return changes.map(c=>({payload:c.payload}))
-        }))
-        this.currentFunds=this.afs.collection<any>('PERRINNMessages',ref=>ref
-          .where('lastMessage','==',true)
-          .where('tag','in',this.UI.tagFilters)
-          .where('verified','==',true)
-          .where('fund.active','==',true)
-          .orderBy('fund.daysLeft','asc')
-        ).snapshotChanges().pipe(map(changes=>{
-          return changes.map(c=>({payload:c.payload}))
-        }))
-        this.latestImages=this.afs.collection<any>('PERRINNMessages',ref=>ref
-          .where('verified','==',true)
-          .where('tag','in',this.UI.tagFilters)
-          .orderBy('chatImageTimestamp','desc')
-          .limit(50)
-        ).snapshotChanges().pipe(map(changes=>{
-          return changes.map(c=>({payload:c.payload}))
-        }))
-        this.messages=this.afs.collection<any>('PERRINNMessages',ref=>ref
-          .where('lastMessage','==',true)
-          .where('tag','in',this.UI.tagFilters)
-          .where('verified','==',true)
-          .orderBy('serverTimestamp','desc')
-          .limit(this.messageNumberDisplay)
-        ).snapshotChanges().pipe(map(changes=>{
-          this.UI.loading=false
-          return changes.map(c=>({payload:c.payload}))
-        }))
-      }
+      this.comingEvents=this.afs.collection<any>('PERRINNMessages',ref=>ref
+        .where('lastMessage','==',true)
+        .where('verified','==',true)
+        .orderBy('eventDateEnd')
+        .where('eventDateEnd','>',this.UI.nowSeconds*1000)
+      ).snapshotChanges().pipe(map(changes=>{
+        return changes.map(c=>({payload:c.payload}))
+      }))
+      this.currentFunds=this.afs.collection<any>('PERRINNMessages',ref=>ref
+        .where('lastMessage','==',true)
+        .where('verified','==',true)
+        .where('fund.active','==',true)
+        .orderBy('fund.daysLeft','asc')
+      ).snapshotChanges().pipe(map(changes=>{
+        return changes.map(c=>({payload:c.payload}))
+      }))
+      this.latestImages=this.afs.collection<any>('PERRINNMessages',ref=>ref
+        .where('verified','==',true)
+        .orderBy('chatImageTimestamp','desc')
+        .limit(50)
+      ).snapshotChanges().pipe(map(changes=>{
+        return changes.map(c=>({payload:c.payload}))
+      }))
+      this.messages=this.afs.collection<any>('PERRINNMessages',ref=>ref
+        .where('lastMessage','==',true)
+        .where('verified','==',true)
+        .orderBy('serverTimestamp','desc')
+        .limit(this.messageNumberDisplay)
+      ).snapshotChanges().pipe(map(changes=>{
+        this.UI.loading=false
+        return changes.map(c=>({payload:c.payload}))
+      }))
     }
     else if(this.mode=='forecast'){
       this.UI.loading=false
