@@ -55,6 +55,16 @@ interface RevolutOrderResponse {
     </div>
     <br/>
     <div class="island">
+      <div class="title">
+        Membership
+      </div>
+      <div style="padding:10px;text-align:center">
+        <span>To be a member, you need to own a minimum of {{UI.formatSharesToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.membership?.amountRequired)}}.</span>
+        <span> This required amount grows at a rate of {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} a year.</span>
+      </div>
+    </div>
+    <br/>
+    <div class="island">
       <div style="text-align:center">
         <img src="./../assets/App icons/PRN token.png" style=";width:150px">
       </div>

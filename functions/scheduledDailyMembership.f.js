@@ -25,7 +25,6 @@ exports.scheduledDailyMembership = onSchedule(
       statistics.transactionIn={}
       statistics.transactionOut={}
       statistics.purchaseCOIN={}
-      statistics.membership={}
       statistics.emailsContributorsAuth=[]
       let listUsersResult1={}
       let listUsersResult2={}
@@ -64,10 +63,9 @@ exports.scheduledDailyMembership = onSchedule(
   
       createMessageUtils.createMessageAFS({
         user:'FHk0zgOQUja7rsB9jxDISXzHaro2',
-        text:"New statistics:",
+        text:"Daily updates.",
         statistics:statistics,
-        chain:'PERRINNStatistics',
-        chatSubject:'PERRINN statistics'
+        chain:'FHk0zgOQUja7rsB9jxDISXzHaro2'
       })
   
       console.log(statistics.userCount+' users processed.')

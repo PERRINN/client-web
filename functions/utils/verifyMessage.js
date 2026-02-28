@@ -257,6 +257,12 @@ module.exports = {
         locking.amount=interest.amountBase*(Math.exp(interest.rateYear/365*interest.days)-1)/(interest.rateYear/365)
         locking.amountCummulate=(((userPreviousMessageData.locking||{}).amountCummulate)||0)+locking.amount
 
+      //*******MEMBERSHIP**********************
+        let membership={}
+        membership.amountRequiredBase=(((messageData.membership||{}).amountRequired)||((chatPreviousMessageData.membership||{}).amountRequired)||0)
+        membership.amountRequiredOffset=Math.max(0,membership.amountRequiredBase*(Math.exp(interest.rateYear/365*interest.days)-1))
+        membership.amountRequired=membership.amountRequiredBase+membership.amountRequiredOffset
+
       //*******MESSAGE WRITES**********************
         //message event
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{eventDateStart:messageData.eventDateStart||chatPreviousMessageData.eventDateStart||null},{create:true})
@@ -277,6 +283,7 @@ module.exports = {
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{wallet:wallet},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{emails:emails},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{fund:fund},{create:true})
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{membership:membership},{create:true})
         //message verified
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{verified:true},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{verifiedTimestamp:admin.firestore.FieldValue.serverTimestamp()},{create:true})
