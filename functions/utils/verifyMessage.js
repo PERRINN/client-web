@@ -262,6 +262,7 @@ module.exports = {
         membership.amountRequiredBase=(((messageData.membership||{}).amountRequired)||((chatPreviousMessageData.membership||{}).amountRequired)||0)
         membership.amountRequiredOffset=Math.max(0,membership.amountRequiredBase*(Math.exp(interest.rateYear/365*interest.days)-1))
         membership.amountRequired=membership.amountRequiredBase+membership.amountRequiredOffset
+        membership.amountRequiredWithMargin=membership.amountRequired*0.98
 
       //*******MESSAGE WRITES**********************
         //message event
@@ -351,7 +352,6 @@ module.exports = {
 
       return {
         user:user,
-        emails:emails,
         wallet:wallet,
         transactionPending:transactionPending,
         transactionIn:transactionIn,

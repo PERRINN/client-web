@@ -18,10 +18,11 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
         <button *ngIf="!UI.currentUser" class="buttonWhite" style="float:left;margin:3.5px 0px;width:75px" (click)="router.navigate(['login'])" [disabled]='this.router.url.startsWith("/login")'>Login</button>
         <div *ngIf="UI.currentUser" style="float:left;cursor:pointer;height:35px; justify-content:center" (click)="router.navigate(['profile',UI.currentUser])">
           <img *ngIf="UI.currentUserLastMessageObj" [src]="UI.currentUserLastMessageObj?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, UI.currentUserLastMessageObj)" style="display:inline;float:left;object-fit:cover;width:35px;height:35px">
-          <span style="margin-left:11px;font-size:14px;line-height:35px">{{UI.formatSharesToPRNCurrency(null,UI.currentUserLastMessageObj?.wallet?.balance||0)}}</span>
-          <span style="margin-left:11px;font-size:14px;line-height:35px;color:#ff6666"> {{UI.isDev ? 'DEV' : ''}}</span>
-          <span style="font-size:14px;line-height:35px;color:#ff6666"> {{UI.revolutMode=='sandbox'?'sandbox':''}}</span>
+          <span style="margin-left:11px;font-size:14px;line-height:35px">{{UI.formatSharesToPRNCurrency(null,UI.currentUserWalletBalanceForUI||0)}}</span>
         </div>
+        <span *ngIf="UI.isDev" style="margin-left:11px;float:left;cursor:pointer;font-size:14px;line-height:35px;color:#ff6666" (click)="UI.toggleProfileSimulatorZeroPRN()">Zero PRN {{UI.profileSimulatorZeroPRN ? '(ON)' : '(OFF)'}}</span>
+        <span *ngIf="UI.isDev" style="float:left;margin-left:11px;font-size:14px;line-height:35px;color:#ff6666">DEV</span>
+        <span *ngIf="UI.revolutMode" style="float:left;margin-left:5px;font-size:14px;line-height:35px;color:#ff6666">sandbox</span>
         <button class="buttonWhite" style="float:right;width:100px; margin:3.5px 0px" (click)="router.navigate(['buyPRN',''])" [disabled]='this.router.url.startsWith("/buyPRN")'>Buy PRN</button>
       </div>
     </div>

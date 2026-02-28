@@ -59,8 +59,13 @@ interface RevolutOrderResponse {
         Membership
       </div>
       <div style="padding:10px;text-align:center">
-        <span>To be a member, you need to own a minimum of {{UI.formatSharesToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.membership?.amountRequired)}}.</span>
-        <span> This required amount grows at a rate of {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} a year.</span>
+        <span>Membership starts with {{UI.formatSharesToCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.membership?.amountRequired)}} in PRN token.</span>
+        <br /><br />
+        <span>It's not a subscription. There are no recurring payments. It's a one-time commitment — and once you're in, you're in for life.</span>
+        <br /><br />
+        <span>The entry threshold increases by {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} each year as the network grows. But so does the value of the PRN token you hold. Your place in the team strengthens over time.</span>
+        <br /><br />
+        <span>Early members shape the future. Belonging isn't rented here — it's earned, and it lasts.</span>
       </div>
     </div>
     <br/>
@@ -71,7 +76,7 @@ interface RevolutOrderResponse {
       <div style="padding:10px;text-align:center">
         <span>PRN tokens represent ownership of the PERRINN team.</span>
         <br />
-        <span>{{UI.PERRINNAdminLastMessageObj?.statistics?.emailsContributorsAuth?.length}} members own {{UI.formatSharesToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}.</span>
+        <span>{{UI.PERRINNAdminLastMessageObj?.statistics?.membersCount}} members own {{UI.formatSharesToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}.</span>
         <br />
         <span>You can follow the impact of your investment live on PERRINN.com</span>
         <br />
@@ -148,13 +153,13 @@ interface RevolutOrderResponse {
               (click)="creditSelected = index; refreshAmountCharge()"
               style="float:left;width:75px;margin:5px"
               [style.background-color]="creditSelected == index ? 'darkGreen' : 'black'">
-            {{UI.formatSharesToCurrency(currencySelected,credit*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}
+            {{UI.formatSharesToCurrency(currencySelected,credit)}}
             </button>
           </li>
         </ul>
         <br />
         <div *ngIf="creditSelected!=undefined&&currencySelected!=undefined" style="text-align:center">
-          You will pay {{UI.formatSharesToCurrency(currencySelected,creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}} and recieve {{UI.formatSharesToPRNCurrency(currencySelected,creditList[creditSelected]*UI.appSettingsPayment.currencyList[currencySelected].toCOIN)}}.
+          You will pay {{UI.formatSharesToCurrency(currencySelected,creditList[creditSelected])}} and recieve {{UI.formatSharesToPRNCurrency(currencySelected,creditList[creditSelected])}}.
         </div>
       </div>
       <br />
@@ -258,12 +263,12 @@ export class buyPRNComponent {
   ngOnInit() {
     // credit list
     this.creditList = this.UI.isDev
-      ? [1, 100, 200, 500, 1000]
-      : [50, 100, 200, 500, 1000];  }
+      ? [1, this.UI.PERRINNAdminLastMessageObj.membership.amountRequired, 200, 500, 1000]
+      : [this.UI.PERRINNAdminLastMessageObj.membership.amountRequired, 200, 500, 1000];  }
   
   refreshAmountCharge() {
     if (this.creditSelected != undefined && this.currencySelected != undefined) {
-      this.amountCharge = Number(((this.creditList[this.creditSelected] || 0) * 100).toFixed(0));
+      this.amountCharge = Number(((this.creditList[this.creditSelected] / this.UI.appSettingsPayment.currencyList[this.currencySelected].toCOIN || 0) * 100).toFixed(0));
       this.amountSharesPurchased = Number(
         (this.amountCharge / 100) * this.UI.appSettingsPayment.currencyList[this.currencySelected].toCOIN
       );
@@ -305,7 +310,7 @@ export class buyPRNComponent {
         currency: (this.currencySelected || 'usd').toUpperCase(),
         email: this.UI.currentUserEmail,
         reference: `PRN-${Date.now()}`,
-        description: `Credit ${this.UI.formatSharesToPRNCurrency(this.currencySelected,this.creditList[this.creditSelected]*this.UI.appSettingsPayment.currencyList[this.currencySelected].toCOIN)} to ${this.UI.currentUserEmail}`,
+        description: `Credit ${this.UI.formatSharesToPRNCurrency(this.currencySelected,this.creditList[this.creditSelected])} to ${this.UI.currentUserEmail}`,
         mode
       };
   

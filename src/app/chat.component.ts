@@ -46,7 +46,10 @@ import { map, tap, take } from 'rxjs/operators';
       </div>
       <span class="material-icons-outlined" style="float:right;padding:7px" (click)="showImageGalleryClick()">{{showImageGallery?'question_answer':'collections'}}</span>
       <div *ngIf="eventDateEnd/60000>UI.nowSeconds/60" style="clear:right">
-        <button *ngIf="eventLocation" class="buttonWhite" style="float:right;margin:10px;width:50px" (click)="UI.openWindow(eventLocation)">Join</button>
+        <button *ngIf="eventLocation" class="buttonWhite" style="float:right;margin:10px;width:75px" [disabled]="!UI.isCurrentUserMember" (click)="UI.openWindow(eventLocation)">
+          <span>Join</span>
+          <span style="margin-left:5px;font-size:18px;line-height:16px" class="material-icons-outlined" *ngIf="!UI.isCurrentUserMember">lock</span>
+        </button>
       </div>
     </div>
     <div *ngIf="showChatDetails">
@@ -67,7 +70,7 @@ import { map, tap, take } from 'rxjs/operators';
       <input style="width:200px;margin:10px" maxlength="500" [(ngModel)]="transactionAmount" placeholder="amount">
       <input style="width:150px;margin:10px" maxlength="500" [(ngModel)]="transactionCode" placeholder="Code (optional)">
       <input style="width:90%;margin:10px" maxlength="500" [(ngModel)]="transactionReference" placeholder="reference">
-      <div *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance">
+      <div *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserWalletBalanceForUI">
         <ul class="listLight" style="margin:10px">
           <li *ngFor="let recipient of chatLastMessageObj?.recipientList" style="float:left">
             <div style="float:left;cursor:pointer" (click)="transactionUser=recipient;transactionUserName=chatLastMessageObj?.recipients[recipient].name">
@@ -77,10 +80,10 @@ import { map, tap, take } from 'rxjs/operators';
           </li>
         </ul>
       </div>
-      <button class="buttonWhite" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionOut(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference)" [disabled]="!(transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance&&transactionUser!=undefined&&transactionReference!=''&&transactionReference!=undefined)">
+      <button class="buttonWhite" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionOut(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference)" [disabled]="!(transactionAmount>0&&transactionAmount<=UI.currentUserWalletBalanceForUI&&transactionUser!=undefined&&transactionReference!=''&&transactionReference!=undefined)">
         Send {{UI.formatSharesToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}} to {{transactionUserName}}
       </button>
-      <button class="buttonWhite" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionPending(transactionAmount,transactionCode,null,null,transactionReference)" [disabled]="!(transactionAmount>0&&transactionAmount<=UI.currentUserLastMessageObj?.wallet?.balance&&transactionUser==undefined&&transactionReference!=''&&transactionReference!=undefined)">
+      <button class="buttonWhite" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionPending(transactionAmount,transactionCode,null,null,transactionReference)" [disabled]="!(transactionAmount>0&&transactionAmount<=UI.currentUserWalletBalanceForUI&&transactionUser==undefined&&transactionReference!=''&&transactionReference!=undefined)">
         Create pending transaction of {{UI.formatSharesToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}}
       </button>
     </div>
@@ -160,10 +163,9 @@ import { map, tap, take } from 'rxjs/operators';
               <div style="margin:5px 5px 0 5px;float:left">{{message.payload?.automaticMessage?"(Automatic)":""}}</div>
               <div style="margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
               <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{message.payload?.statistics?.userCount}} users,</div>
-              <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{message.payload?.statistics?.emailsContributorsAuth?.length}} members.</div>
+              <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{message.payload?.statistics?.membersCount}} members.</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{UI.formatSharesToPRNCurrency(null,message.payload?.statistics?.wallet?.balance)}} invested.</div>
               <div *ngIf="messageShowDetails.includes(message.key)" style="margin:5px">
-                <div style="font-size:10px">Email addresses {{message.payload?.emails|json}}</div>
                 <div style="font-size:10px">userChain {{message.payload?.userChain|json}}</div>
                 <div style="font-size:10px">transactionPending {{message.payload?.transactionPending|json}}</div>
                 <div style="font-size:10px">transactionOut {{message.payload?.transactionOut|json}}</div>

@@ -103,7 +103,10 @@ import { ChangeDetectorRef } from '@angular/core'
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
             <div *ngIf="message.payload.doc.data()?.eventDateEnd/60000>UI.nowSeconds/60">
-            <button *ngIf="message.payload.doc.data()?.eventLocation" class="buttonWhite" style="float:right;margin:10px;width:50px" (click)="UI.openWindow(message.payload.doc.data()?.eventLocation)">Join</button>
+            <button *ngIf="message.payload.doc.data()?.eventLocation" class="buttonWhite" style="float:right;margin:10px;width:75px" [disabled]="!UI.isCurrentUserMember" (click)="UI.openWindow(message.payload.doc.data()?.eventLocation)">
+              <span>Join</span>
+              <span style="margin-left:5px;font-size:18px;line-height:16px" class="material-icons-outlined" *ngIf="!UI.isCurrentUserMember">lock</span>
+            </button>
             <div style="float:left;min-width:90px;min-height:40px">
               <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer">event</span>
             </div>

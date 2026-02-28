@@ -8,6 +8,7 @@ import { formatNumber } from '@angular/common'
 import { Router, ActivatedRoute } from '@angular/router';
 import { isDevMode } from '@angular/core';
 import { environment } from '../environments/environment';
+import { profile } from 'console'
 
 
 @Injectable()
@@ -24,6 +25,9 @@ export class UserInterfaceService {
   appSettingsContract:any
   hasTouch:boolean
   isStandalone:boolean
+  profileSimulatorZeroPRN:boolean
+  currentUserWalletBalanceForUI:number
+  isCurrentUserMember:boolean
   public isDev: boolean;
   public revolutMode: 'sandbox' | 'prod';
   
@@ -32,6 +36,8 @@ export class UserInterfaceService {
     public router:Router,
     public afs: AngularFirestore
   ) {
+
+    this.profileSimulatorZeroPRN = false;
 
     const host = location.hostname;
     this.isDev =
@@ -82,6 +88,9 @@ export class UserInterfaceService {
           .valueChanges()
           .subscribe((snapshot) => {
             this.currentUserLastMessageObj = snapshot[0];
+            this.currentUserWalletBalanceForUI = this.currentUserLastMessageObj?.wallet?.balance || 0;
+            this.profileSimulatorZeroPRN = false;
+            this.refreshIsCurrentUserMember()
           });
       } else {
         this.currentUser = null;
@@ -129,6 +138,12 @@ export class UserInterfaceService {
       .subscribe((snapshot) => {
         this.appSettingsContract=snapshot
     })
+  }
+
+  toggleProfileSimulatorZeroPRN() {
+    this.profileSimulatorZeroPRN = !this.profileSimulatorZeroPRN;
+    this.currentUserWalletBalanceForUI = this.profileSimulatorZeroPRN ? 0 : this.currentUserLastMessageObj?.wallet?.balance || 0;
+    this.refreshIsCurrentUserMember()
   }
 
   createMessage(messageObj) {
@@ -300,4 +315,9 @@ export class UserInterfaceService {
     if (message?.imageUrlOriginal) img.src = message.imageUrlOriginal
   }
 
+  refreshIsCurrentUserMember() {
+    if (this.currentUserWalletBalanceForUI >= this.PERRINNAdminLastMessageObj?.membership?.amountRequired) {
+      this.isCurrentUserMember = true;
+    } else this.isCurrentUserMember = false;
+  }
 }
