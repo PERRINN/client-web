@@ -16,6 +16,7 @@ module.exports = {
       const appSettingsCosts=await admin.firestore().doc('appSettings/costs').get()
       const appSettingsContract=await admin.firestore().doc('appSettings/contract').get()
       const appSettingsPayment=await admin.firestore().doc('appSettings/payment').get()
+      const PERRINNAdminLastMessages=await admin.firestore().collection('PERRINNMessages').where('user','==','FHk0zgOQUja7rsB9jxDISXzHaro2').where('verified','==',true).orderBy('serverTimestamp','desc').limit(1).get()
 
       //user chain
       let userChain={}
@@ -259,10 +260,16 @@ module.exports = {
 
       //*******MEMBERSHIP**********************
         let membership={}
-        membership.amountRequiredBase=(((messageData.membership||{}).amountRequired)||((chatPreviousMessageData.membership||{}).amountRequired)||0)
-        membership.amountRequiredOffset=Math.max(0,membership.amountRequiredBase*(Math.exp(interest.rateYear/365*interest.days)-1))
-        membership.amountRequired=membership.amountRequiredBase+membership.amountRequiredOffset
-        membership.amountRequiredWithMargin=membership.amountRequired*0.98
+        if(user=='FHk0zgOQUja7rsB9jxDISXzHaro2'){
+          membership.amountRequiredBase=(((messageData.membership||{}).amountRequired)||((chatPreviousMessageData.membership||{}).amountRequired)||0)
+          membership.amountRequiredOffset=Math.max(0,membership.amountRequiredBase*(Math.exp(interest.rateYear/365*interest.days)-1))
+          membership.amountRequired=membership.amountRequiredBase+membership.amountRequiredOffset
+          membership.amountRequiredWithMargin=membership.amountRequired*0.98
+        } else {
+          membership.amountRequired=PERRINNAdminLastMessages.docs[0]!=undefined?Number((PERRINNAdminLastMessages.docs[0].data()||{}).membership.amountRequired)||0:0
+          membership.amountRequiredWithMargin=PERRINNAdminLastMessages.docs[0]!=undefined?Number((PERRINNAdminLastMessages.docs[0].data()||{}).membership.amountRequiredWithMargin)||0:0
+        }
+        membership.isMember=wallet.balance>=membership.amountRequiredWithMargin
 
       //*******MESSAGE WRITES**********************
         //message event
@@ -358,7 +365,8 @@ module.exports = {
         transactionOut:transactionOut,
         purchaseCOIN:purchaseCOIN,
         contract:contract,
-        interest:interest
+        interest:interest,
+        membership:membership
       }
 
     }

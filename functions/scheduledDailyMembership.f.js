@@ -43,7 +43,7 @@ exports.scheduledDailyMembership = onSchedule(
       })
       const results=await Promise.all(verifyMessageBatch)
       results.forEach((result)=>{
-        if (((result.wallet||{}).balance||0)>0)statistics.membersCount=(statistics.membersCount||0)+1
+        if ((result.membership||{}).isMember||false)statistics.membersCount=(statistics.membersCount||0)+1
         statistics.wallet.balance=((statistics.wallet||{}).balance||0)+((result.wallet||{}).balance||0)
         statistics.interest.amount=((statistics.interest||{}).amount||0)+((result.interest||{}).amount||0)
         statistics.interest.rateDay=statistics.wallet.balance*(Math.exp(((result.interest||{}).yearRate||0)/365)-1)

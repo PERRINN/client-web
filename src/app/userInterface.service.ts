@@ -25,8 +25,7 @@ export class UserInterfaceService {
   appSettingsContract:any
   hasTouch:boolean
   isStandalone:boolean
-  profileSimulatorZeroPRN:boolean
-  currentUserWalletBalanceForUI:number
+  profileSimulatorNonMember:boolean
   isCurrentUserMember:boolean
   public isDev: boolean;
   public revolutMode: 'sandbox' | 'prod';
@@ -37,7 +36,7 @@ export class UserInterfaceService {
     public afs: AngularFirestore
   ) {
 
-    this.profileSimulatorZeroPRN = false;
+    this.profileSimulatorNonMember = false;
 
     const host = location.hostname;
     this.isDev =
@@ -88,9 +87,8 @@ export class UserInterfaceService {
           .valueChanges()
           .subscribe((snapshot) => {
             this.currentUserLastMessageObj = snapshot[0];
-            this.currentUserWalletBalanceForUI = this.currentUserLastMessageObj?.wallet?.balance || 0;
-            this.profileSimulatorZeroPRN = false;
-            this.refreshIsCurrentUserMember()
+            this.isCurrentUserMember = this.currentUserLastMessageObj?.membership?.isMember || false;
+            this.profileSimulatorNonMember = false;
           });
       } else {
         this.currentUser = null;
@@ -140,10 +138,9 @@ export class UserInterfaceService {
     })
   }
 
-  toggleProfileSimulatorZeroPRN() {
-    this.profileSimulatorZeroPRN = !this.profileSimulatorZeroPRN;
-    this.currentUserWalletBalanceForUI = this.profileSimulatorZeroPRN ? 0 : this.currentUserLastMessageObj?.wallet?.balance || 0;
-    this.refreshIsCurrentUserMember()
+  toggleprofileSimulatorNonMember() {
+    this.profileSimulatorNonMember = !this.profileSimulatorNonMember;
+    this.isCurrentUserMember = this.profileSimulatorNonMember ? false : (this.currentUserLastMessageObj?.membership?.isMember || false);
   }
 
   createMessage(messageObj) {
@@ -315,9 +312,4 @@ export class UserInterfaceService {
     if (message?.imageUrlOriginal) img.src = message.imageUrlOriginal
   }
 
-  refreshIsCurrentUserMember() {
-    if (this.currentUserWalletBalanceForUI >= this.PERRINNAdminLastMessageObj?.membership?.amountRequired) {
-      this.isCurrentUserMember = true;
-    } else this.isCurrentUserMember = false;
-  }
 }

@@ -70,7 +70,7 @@ import { map, tap, take } from 'rxjs/operators';
       <input style="width:200px;margin:10px" maxlength="500" [(ngModel)]="transactionAmount" placeholder="amount">
       <input style="width:150px;margin:10px" maxlength="500" [(ngModel)]="transactionCode" placeholder="Code (optional)">
       <input style="width:90%;margin:10px" maxlength="500" [(ngModel)]="transactionReference" placeholder="reference">
-      <div *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserWalletBalanceForUI">
+      <div *ngIf="transactionAmount>0&&transactionAmount<=UI.currentUserIsMember">
         <ul class="listLight" style="margin:10px">
           <li *ngFor="let recipient of chatLastMessageObj?.recipientList" style="float:left">
             <div style="float:left;cursor:pointer" (click)="transactionUser=recipient;transactionUserName=chatLastMessageObj?.recipients[recipient].name">
@@ -80,10 +80,10 @@ import { map, tap, take } from 'rxjs/operators';
           </li>
         </ul>
       </div>
-      <button class="buttonWhite" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionOut(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference)" [disabled]="!(transactionAmount>0&&transactionAmount<=UI.currentUserWalletBalanceForUI&&transactionUser!=undefined&&transactionReference!=''&&transactionReference!=undefined)">
+      <button class="buttonWhite" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionOut(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference)" [disabled]="!(transactionAmount>0&&transactionAmount<=UI.currentUserIsMember&&transactionUser!=undefined&&transactionReference!=''&&transactionReference!=undefined)">
         Send {{UI.formatSharesToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}} to {{transactionUserName}}
       </button>
-      <button class="buttonWhite" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionPending(transactionAmount,transactionCode,null,null,transactionReference)" [disabled]="!(transactionAmount>0&&transactionAmount<=UI.currentUserWalletBalanceForUI&&transactionUser==undefined&&transactionReference!=''&&transactionReference!=undefined)">
+      <button class="buttonWhite" style="clear:both;width:250px;font-size:10px;margin:10px" (click)="createTransactionPending(transactionAmount,transactionCode,null,null,transactionReference)" [disabled]="!(transactionAmount>0&&transactionAmount<=UI.currentUserIsMember&&transactionUser==undefined&&transactionReference!=''&&transactionReference!=undefined)">
         Create pending transaction of {{UI.formatSharesToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}}
       </button>
     </div>
