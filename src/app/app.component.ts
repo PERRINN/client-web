@@ -21,7 +21,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
           <span style="margin-left:11px;font-size:14px;line-height:35px">{{UI.formatSharesToPRNCurrency(null,UI.currentUserLastMessageObj?.wallet?.balance||0)}}</span>
           <span *ngIf="UI.isCurrentUserMember" class="material-icons" style="margin-left:4px;font-size:16px;line-height:14px;color:#1DA1F2">check_circle</span>
         </div>
-        <span *ngIf="UI.isDev" style="margin-left:11px;float:left;cursor:pointer;font-size:14px;line-height:35px;color:#ff6666" (click)="UI.toggleprofileSimulatorNonMember()">Non Member {{UI.profileSimulatorNonMember ? '(ON)' : '(OFF)'}}</span>
+        <span *ngIf="UI.isDev||UI.profileSimulatorNonMember" style="margin-left:11px;float:left;cursor:pointer;font-size:14px;line-height:35px;color:#ff6666" (click)="UI.toggleprofileSimulatorNonMember()">Non Member {{UI.profileSimulatorNonMember ? '(ON)' : '(OFF)'}}</span>
         <span *ngIf="UI.isDev" style="float:left;margin-left:11px;font-size:14px;line-height:35px;color:#ff6666">DEV</span>
         <span *ngIf="UI.revolutMode=='sandbox'" style="float:left;margin-left:5px;font-size:14px;line-height:35px;color:#ff6666">sandbox</span>
         <button class="buttonWhite" style="float:right;width:100px; margin:3.5px 0px" (click)="router.navigate(['buyPRN',''])" [disabled]='this.router.url.startsWith("/buyPRN")'>Buy PRN</button>

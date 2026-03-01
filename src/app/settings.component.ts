@@ -100,6 +100,11 @@ import firebase from 'firebase/compat/app';
     <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:5px 10px 10px 15px">Waiting for contract signature</div>
   </div>
   <br/>
+  <div class="island">
+    <div class="title">Profile simulator (for UI dev)</div>
+    <button class="buttonWhite" (click)="UI.toggleprofileSimulatorNonMember()" style="clear:both;font-size:12px;width:200px;padding:2px;margin:10px auto;display:block">Non member {{UI.profileSimulatorNonMember ? '(ON)' : '(OFF)'}} </button>
+  </div>
+  <br/>
   <button class="buttonRed" style="width:100px;margin:25px auto; display: block" (click)="this.UI.logout()">logout</button>
   `,
 })
