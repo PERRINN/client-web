@@ -152,11 +152,11 @@ import { ChangeDetectorRef } from '@angular/core'
         </li>
       </ul>
       <ul *ngIf="mode=='inbox' || scope=='all'" style="overflow-x: auto; flex-wrap: nowrap; display: flex" class="listLight" id="scroll-images">
-        <li *ngFor="let message of latestImages|async;let first=first;let last=last" style="flex: 0 0 auto; width: 20%"
-          (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
-          <div *ngIf="scope=='all'||mode=='inbox'">
-            <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload.doc.data())" style="float:left;object-fit:contain;width:100%;height:90px">
+        <li *ngFor="let message of latestImages|async;let first=first;let last=last" style="cursor:default;flex: 0 0 auto; width: 20%">
+          <div *ngIf="scope=='all'||mode=='inbox'" (click)="UI.showFullScreenImage(message.payload.doc.data()?.chatImageUrlOriginal)">
+            <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload.doc.data())" style="cursor:pointer;float:left;object-fit:contain;width:100%;height:90px">
           </div>
+          <div style="cursor:pointer;float:right;padding:10px;color:#999;margin-right:10px;width:35px;font-size:11px" (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</div>
         </li>
       </ul>
       <div *ngIf="scope!='all'&& mode=='history'" style="height:400px;margin:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
