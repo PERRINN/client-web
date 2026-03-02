@@ -165,6 +165,7 @@ import { map, tap, take } from 'rxjs/operators';
               <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{message.payload?.statistics?.userCount}} users,</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{message.payload?.statistics?.membersCount}} members.</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{UI.formatSharesToPRNCurrency(null,message.payload?.statistics?.wallet?.balance)}} invested.</div>
+              <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{UI.formatSharesToPRNCurrency(null,message.payload?.membership?.amountRequired)}} membership threashold.</div>
               <div *ngIf="messageShowDetails.includes(message.key)" style="margin:5px">
                 <div style="font-size:10px">userChain {{message.payload?.userChain|json}}</div>
                 <div style="font-size:10px">transactionPending {{message.payload?.transactionPending|json}}</div>
