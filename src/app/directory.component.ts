@@ -13,7 +13,7 @@ import firebase from 'firebase/compat/app';
   <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="float:left;object-fit:cover;width:100%;margin-bottom:15px">
   <div class="island">
     <div style="margin:5px">
-      <span class="title">{{UI.PERRINNAdminLastMessageObj?.statistics?.membersCount}} members own {{UI.formatSharesToPRNCurrency(null,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}.</span>
+      <span class="title">{{UI.PERRINNAdminLastMessageObj?.statistics?.membersCount}} members own {{UI.convertAndFormatPRNToPRNCurrency(null,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}.</span>
     </div>
   </div>
   <ul class="listLight" style="margin:10px">
@@ -33,7 +33,7 @@ import firebase from 'firebase/compat/app';
           <span *ngIf="message.values?.contract?.signed"> Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}.</span>
         </div>
         <div style="float:right;margin:10px;width:60px">
-          <div>{{UI.formatSharesToPRNCurrency(null,message.values?.wallet?.balance||0)}}</div>
+          <div>{{UI.convertAndFormatPRNToPRNCurrency(null,message.values?.wallet?.balance||0)}}</div>
           <div *ngIf="((message.values?.wallet?.balance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance))>0.001">{{((message.values?.wallet?.balance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance))|percent:'1.1-1'}}</div>
         </div>
       </div>
@@ -42,7 +42,7 @@ import firebase from 'firebase/compat/app';
   <ul style="margin:10px">
     <li *ngFor="let message of messages | async" style="float:left;cursor:text;user-select:text">
       <span>{{message.values?.name}} </span>
-      <span>{{UI.formatSharesToPRNCurrency(null,message.values?.wallet?.balance||0)}}&nbsp;&nbsp;</span>
+      <span>{{UI.convertAndFormatPRNToPRNCurrency(null,message.values?.wallet?.balance||0)}}&nbsp;&nbsp;</span>
     </li>
   </ul>
   `,

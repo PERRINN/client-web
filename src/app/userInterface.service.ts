@@ -158,7 +158,7 @@ export class UserInterfaceService {
     return this.afs.collection("PERRINNMessages").add(messageObj);
   }
 
-  convertSharesToCurrency(currency,amount){
+  convertPRNToCurrency(currency,amount){
     if (currency == null) {
       if (this.currentUserLastMessageObj!=undefined&&this.currentUserLastMessageObj.userCurrency!=undefined)
         currency = this.currentUserLastMessageObj.userCurrency;
@@ -167,13 +167,13 @@ export class UserInterfaceService {
     return amount/this.appSettingsPayment.currencyList[currency].toCOIN
   }
 
-  formatSharesToCurrency(currency, amount) {
+  formatCurrency(currency, amount) {
     if (currency == null) {
       if (this.currentUserLastMessageObj!=undefined&&this.currentUserLastMessageObj.userCurrency!=undefined)
         currency = this.currentUserLastMessageObj.userCurrency;
       else currency = "usd";
     }
-    let amountCurrency = this.convertSharesToCurrency(currency,amount);
+    let amountCurrency = amount;
     if (amountCurrency < 0) amountCurrency = -amountCurrency;
     if (amountCurrency < 100)
       return (
@@ -223,8 +223,25 @@ export class UserInterfaceService {
       );
   }
 
-  formatSharesToPRNCurrency(currency, amount) {
-    return 'PRN ' + this.formatSharesToCurrency(currency, amount)
+  convertAndFormatPRNToCurrency(currency, amount) {
+    if (currency == null) {
+      if (this.currentUserLastMessageObj!=undefined&&this.currentUserLastMessageObj.userCurrency!=undefined)
+        currency = this.currentUserLastMessageObj.userCurrency;
+      else currency = "usd";
+    }
+    return this.formatCurrency(currency, this.convertPRNToCurrency(currency, amount));
+  }
+
+  convertAndFormatPRNToPRNCurrency(currency, amount) {
+    return 'PRN ' + this.convertAndFormatPRNToCurrency(currency, amount)
+  }
+
+  formatPRNCurrency(currency, amount) {
+    return 'PRN ' + this.formatCurrency(currency, amount)
+  }
+
+  convertAndRoundUpAndFormatPRNToCurrency(currency, amount) {
+    return this.formatCurrency(currency, this.roundUpByMagnitude(this.convertPRNToCurrency(currency, amount)));
   }
 
   formatSecondsToDhm2(seconds) {
@@ -294,6 +311,26 @@ export class UserInterfaceService {
       focus = ""
     }
     return [visibility, outlinedEyeStyle, fullEyeStyle, focus];
+  }
+
+  /**
+   * Rounds a number UP based on its magnitude:
+   * < 100    → nearest 1
+   * < 1,000  → nearest 10
+   * < 10,000 → nearest 100
+   * < 100,000 → nearest 1,000
+   * etc.
+   */
+  roundUpByMagnitude(value: number): number {
+    if (value <= 0) return 0;
+
+    const absValue = Math.abs(value);
+
+    // Determine magnitude (10^(digits - 2))
+    const digits = Math.floor(Math.log10(absValue)) + 1;
+    const step = Math.pow(10, Math.max(0, digits - 2));
+
+    return Math.ceil(value / step) * step;
   }
 
   handleChatImageError(event: Event, message: any) {

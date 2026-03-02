@@ -18,7 +18,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
         <button *ngIf="!UI.currentUser" class="buttonWhite" style="float:left;margin:3.5px 0px;width:75px" (click)="router.navigate(['login'])" [disabled]='this.router.url.startsWith("/login")'>Login</button>
         <div *ngIf="UI.currentUser" style="float:left;cursor:pointer;height:35px; justify-content:center" (click)="router.navigate(['profile',UI.currentUser])">
           <img *ngIf="UI.currentUserLastMessageObj" [src]="UI.currentUserLastMessageObj?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, UI.currentUserLastMessageObj)" style="display:inline;float:left;object-fit:cover;width:35px;height:35px">
-          <span style="margin-left:11px;font-size:14px;line-height:35px">{{UI.formatSharesToPRNCurrency(null,UI.currentUserLastMessageObj?.wallet?.balance||0)}}</span>
+          <span style="margin-left:11px;font-size:14px;line-height:35px">{{UI.convertAndFormatPRNToPRNCurrency(null,UI.currentUserLastMessageObj?.wallet?.balance||0)}}</span>
           <span *ngIf="UI.isCurrentUserMember" class="material-icons" style="margin-left:4px;font-size:16px;line-height:14px;color:#1DA1F2">check_circle</span>
         </div>
         <span *ngIf="UI.isDev||UI.profileSimulatorNonMember" style="margin-left:11px;float:left;cursor:pointer;font-size:11px;line-height:35px;color:#ff6666" (click)="UI.toggleprofileSimulatorNonMember()">Non Member {{UI.profileSimulatorNonMember ? '(ON)' : '(OFF)'}}</span>

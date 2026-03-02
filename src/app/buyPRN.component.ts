@@ -41,7 +41,7 @@ interface RevolutOrderResponse {
           There is a pending transaction ready for you.
         </div>
         <div style="padding:10px;text-align:center">
-          <span>{{transactionPendingMessageObj.name}} is sending you {{UI.formatSharesToPRNCurrency(null,transactionPendingMessageObj.transactionPending.amount||0)}} (Reference: {{transactionPendingMessageObj.transactionPending.reference}}).</span>
+          <span>{{transactionPendingMessageObj.name}} is sending you {{UI.convertAndFormatPRNToPRNCurrency(null,transactionPendingMessageObj.transactionPending.amount||0)}} (Reference: {{transactionPendingMessageObj.transactionPending.reference}}).</span>
           <button *ngIf="!UI.currentUser" class="buttonWhite" style="margin:10px auto;width:150px;font-size:11px" (click)="router.navigate(['login'])" [disabled]='this.router.url.startsWith("/login")'>Login</button>
           <button *ngIf="UI.currentUser&&!UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonWhite" style="margin:10px auto;width:200px;font-size:11px" (click)="router.navigate(['settings'])">Update you profile picture</button>
           <button *ngIf="UI.currentUser&&UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonWhite" style="margin:10px auto;width:150px;font-size:11px" (click)="activateTransactionPending(transactionPendingMessage)">Activate transaction</button>
@@ -59,7 +59,7 @@ interface RevolutOrderResponse {
         Membership
       </div>
       <div style="padding:10px;text-align:center">
-        <span>Membership starts with {{UI.formatSharesToCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.membership?.amountRequired)}} in PRN token.</span>
+        <span>Membership starts with {{UI.convertAndRoundUpAndFormatPRNToCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.membership?.amountRequired)}} in PRN token.</span>
         <br /><br />
         <span>It's not a subscription. There are no recurring payments. It's a one-time commitment — and once you're in, you're in for life.</span>
         <br /><br />
@@ -76,7 +76,7 @@ interface RevolutOrderResponse {
       <div style="padding:10px;text-align:center">
         <span>PRN tokens represent ownership of the PERRINN team.</span>
         <br />
-        <span>{{UI.PERRINNAdminLastMessageObj?.statistics?.membersCount}} members own {{UI.formatSharesToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}.</span>
+        <span>{{UI.PERRINNAdminLastMessageObj?.statistics?.membersCount}} members own {{UI.convertAndFormatPRNToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}.</span>
         <br />
         <span>You can follow the impact of your investment live on PERRINN.com</span>
         <br />
@@ -113,8 +113,8 @@ interface RevolutOrderResponse {
               <div *ngIf="message.payload.doc.data()?.fund?.active" style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.daysLeft|number:"1.0-0"}} days left</div>
               <div *ngIf="!message.payload.doc.data()?.fund?.active" style="float:left;margin:0 5px 0 5px">{{-message.payload.doc.data()?.fund?.daysLeft|number:"1.0-0"}} days ago</div>
               <div style="float:left;margin:0 5px 0 5px">{{ message.payload.doc.data()?.fund?.description }},</div>
-              <div style="float:left;margin:0 5px 0 5px">target: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /</div>
-              <div style="float:left">raised: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}</div>
+              <div style="float:left;margin:0 5px 0 5px">target: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /</div>
+              <div style="float:left">raised: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}</div>
             </div>
           </div>
         </li>
@@ -131,7 +131,7 @@ interface RevolutOrderResponse {
           <li>
             <button class="buttonBlack"
               *ngFor="let currency of objectToArray(UI.appSettingsPayment.currencyList)"
-              (click)="currencySelected = currency[0]; refreshAmountCharge()"
+              (click)="currencySelected = currency[0]; refreshCreditList(); refreshAmountCharge()"
               style="float:left;width:125px;margin:5px"
               [style.background-color]="
                 currencySelected == currency[0] ? 'darkGreen' : 'black'
@@ -153,13 +153,13 @@ interface RevolutOrderResponse {
               (click)="creditSelected = index; refreshAmountCharge()"
               style="float:left;width:75px;margin:5px"
               [style.background-color]="creditSelected == index ? 'darkGreen' : 'black'">
-            {{UI.formatSharesToCurrency(currencySelected,credit)}}
+            {{UI.formatCurrency(currencySelected,credit)}}
             </button>
           </li>
         </ul>
         <br />
         <div *ngIf="creditSelected!=undefined&&currencySelected!=undefined" style="text-align:center">
-          You will pay {{UI.formatSharesToCurrency(currencySelected,creditList[creditSelected])}} and recieve {{UI.formatSharesToPRNCurrency(currencySelected,creditList[creditSelected])}}.
+          You will pay {{UI.formatCurrency(currencySelected,creditList[creditSelected])}} and recieve {{UI.formatPRNCurrency(currencySelected,creditList[creditSelected])}}.
         </div>
       </div>
       <br />
@@ -188,6 +188,7 @@ export class buyPRNComponent {
   amountSharesPurchased:number
   amountCharge:number
   currencySelected:string
+  creditListPRN:any
   creditList:any
   creditSelected:number
   math:any
@@ -262,13 +263,32 @@ export class buyPRNComponent {
 
   ngOnInit() {
     // credit list
-    this.creditList = this.UI.isDev
-      ? [1, this.UI.PERRINNAdminLastMessageObj.membership.amountRequired, 200, 500, 1000]
-      : [this.UI.PERRINNAdminLastMessageObj.membership.amountRequired, 200, 500, 1000];  }
-  
+    this.creditListPRN = this.UI.isDev
+      ? [1, this.UI.PERRINNAdminLastMessageObj.membership.amountRequired,
+        this.UI.PERRINNAdminLastMessageObj.membership.amountRequired*2,
+        this.UI.PERRINNAdminLastMessageObj.membership.amountRequired*4,
+        this.UI.PERRINNAdminLastMessageObj.membership.amountRequired*10,
+        this.UI.PERRINNAdminLastMessageObj.membership.amountRequired*20,
+      ]
+      : [this.UI.PERRINNAdminLastMessageObj.membership.amountRequired,
+        this.UI.PERRINNAdminLastMessageObj.membership.amountRequired*2,
+        this.UI.PERRINNAdminLastMessageObj.membership.amountRequired*4,
+        this.UI.PERRINNAdminLastMessageObj.membership.amountRequired*10,
+        this.UI.PERRINNAdminLastMessageObj.membership.amountRequired*20,
+      ]
+    this.refreshCreditList();
+  }
+
+  refreshCreditList() {
+    // take the credit list in PRN and convert it to the selected currency
+    this.creditList = this.creditListPRN.map((creditPRN) => {
+      return this.UI.roundUpByMagnitude(this.UI.convertPRNToCurrency(this.currencySelected, creditPRN));
+    });
+  }
+
   refreshAmountCharge() {
     if (this.creditSelected != undefined && this.currencySelected != undefined) {
-      this.amountCharge = Number(((this.creditList[this.creditSelected] / this.UI.appSettingsPayment.currencyList[this.currencySelected].toCOIN || 0) * 100).toFixed(0));
+      this.amountCharge = Number(((this.creditList[this.creditSelected] || 0) * 100).toFixed(0));
       this.amountSharesPurchased = Number(
         (this.amountCharge / 100) * this.UI.appSettingsPayment.currencyList[this.currencySelected].toCOIN
       );
@@ -310,7 +330,7 @@ export class buyPRNComponent {
         currency: (this.currencySelected || 'usd').toUpperCase(),
         email: this.UI.currentUserEmail,
         reference: `PRN-${Date.now()}`,
-        description: `Credit ${this.UI.formatSharesToPRNCurrency(this.currencySelected,this.creditList[this.creditSelected])} to ${this.UI.currentUserEmail}`,
+        description: `Credit ${this.UI.formatPRNCurrency(this.currencySelected,this.creditList[this.creditSelected])} to ${this.UI.currentUserEmail}`,
         mode
       };
   

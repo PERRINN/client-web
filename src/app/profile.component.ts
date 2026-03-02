@@ -34,13 +34,13 @@ import { ChangeDetectorRef } from '@angular/core'
       <div style="clear:both">
         <div>
           <span style="color:white;font-size:18px;line-height:30px">{{focusUserLastMessageObj?.name}} </span>
-          <span style="color:white;font-size:18px;line-height:30px">{{UI.formatSharesToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance||0)}}</span>
+          <span style="color:white;font-size:18px;line-height:30px">{{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance||0)}}</span>
           <span *ngIf="focusUserLastMessageObj?.publicLink" class="material-icons-outlined" style="font-size:18px;line-height:10px;margin-left:10px;cursor:pointer" (click)="UI.openWindow(focusUserLastMessageObj?.publicLink)">link</span>
           <br>
           <span *ngIf="focusUserLastMessageObj?.locking?.amountCummulate>1">PRN has been locked for {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} days</span>
           <span *ngIf="focusUserLastMessageObj?.locking?.amountCummulate<=1">PRN has been locked for {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} day</span>
           <br>
-          <span>Earning {{UI.formatSharesToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance*(math.exp(UI.appSettingsCosts?.interestRateYear/365)-1))}} per day from interest</span>
+          <span>Earning {{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance*(math.exp(UI.appSettingsCosts?.interestRateYear/365)-1))}} per day from interest</span>
           <br>
           <span>{{focusUserLastMessageObj?.userPresentation}}</span>
           <br>
@@ -143,8 +143,8 @@ import { ChangeDetectorRef } from '@angular/core'
                 <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;color:whitesmoke;padding:0 5px 0 5px">{{(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)|percent:'1.0-0'}}</div>
                 <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.daysLeft|number:'1.0-0'}} days left</div>
                 <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.description}},</div>
-                <div style="float:left;margin:0 5px 0 5px">target: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /</div>
-                <div style="float:left">raised: {{UI.formatSharesToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}</div>
+                <div style="float:left;margin:0 5px 0 5px">target: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /</div>
+                <div style="float:left">raised: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}</div>
               </div>
             </div>
             </div>
@@ -208,12 +208,12 @@ import { ChangeDetectorRef } from '@angular/core'
                 <th class="th-date">{{(message.payload.doc.data()?.verifiedTimestamp?.seconds*1000)|date:'d MMM YYY'}}</th>
                 <th class="th-days">{{first?'':(message.payload.doc.data()?.verifiedTimestamp?.seconds-previousTimestamp.seconds)/3600/24|number:'1.2-2'}}</th>
                 <th class="th-messages">{{first?'':(message.payload.doc.data()?.userChain?.index-previousIndex)}}</th>
-                <th class="th-balance">{{UI.formatSharesToCurrency(null,message.payload.doc.data()?.wallet?.balance)}}</th>
-                <th class="th-change">{{first?'':UI.formatSharesToCurrency(null,message.payload.doc.data()?.wallet?.balance-previousBalance)}}</th>
-                <th class="th-purchase">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.purchaseCOIN?.amountCummulate||0)-previousPurchaseCOINAmountCummulate)|blankIfZero}}</th>
-                <th class="th-transaction">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.transactionIn?.amountCummulate||0)-(message.payload.doc.data()?.transactionOut?.amountCummulate||0)-previousAmountTransactionCummulate)|blankIfZero}}</th>
-                <th class="th-interest">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.interest?.amountCummulate||0)-previousAmountInterestCummulate)|blankIfZero}}</th>
-                <th class="th-contract">{{first?'':UI.formatSharesToCurrency(null,(message.payload.doc.data()?.contract?.amountCummulate||0)-previousContractAmountCummulate)|blankIfZero}}</th>
+                <th class="th-balance">{{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.wallet?.balance)}}</th>
+                <th class="th-change">{{first?'':UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.wallet?.balance-previousBalance)}}</th>
+                <th class="th-purchase">{{first?'':UI.convertAndFormatPRNToCurrency(null,(message.payload.doc.data()?.purchaseCOIN?.amountCummulate||0)-previousPurchaseCOINAmountCummulate)|blankIfZero}}</th>
+                <th class="th-transaction">{{first?'':UI.convertAndFormatPRNToCurrency(null,(message.payload.doc.data()?.transactionIn?.amountCummulate||0)-(message.payload.doc.data()?.transactionOut?.amountCummulate||0)-previousAmountTransactionCummulate)|blankIfZero}}</th>
+                <th class="th-interest">{{first?'':UI.convertAndFormatPRNToCurrency(null,(message.payload.doc.data()?.interest?.amountCummulate||0)-previousAmountInterestCummulate)|blankIfZero}}</th>
+                <th class="th-contract">{{first?'':UI.convertAndFormatPRNToCurrency(null,(message.payload.doc.data()?.contract?.amountCummulate||0)-previousContractAmountCummulate)|blankIfZero}}</th>
                 <th class="th-message">{{message.payload.doc.data()?.userChain?.currentMessage}}</th>
               </tr>
               {{storeMessageValues(message.payload.doc.data())}}
@@ -231,7 +231,7 @@ import { ChangeDetectorRef } from '@angular/core'
               <div style="float:left;text-align:center;width:75px;height:20px;font-size:10px">{{number}}</div>
               <div style="float:left;text-align:center;width:75px;height:20px;font-size:10px">{{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}}</div>
               <div style="float:left;text-align:center;width:75px;height:20px;font-size:10px">
-                {{UI.formatSharesToCurrency(null,focusUserLastMessageObj?.wallet?.balance*math.exp(UI.appSettingsCosts?.interestRateYear*number))}}
+                {{UI.convertAndFormatPRNToCurrency(null,focusUserLastMessageObj?.wallet?.balance*math.exp(UI.appSettingsCosts?.interestRateYear*number))}}
               </div>
               <div style="float:left;text-align:center;width:65px;height:20px;font-size:10px">{{math.exp(UI.appSettingsCosts?.interestRateYear*number)|number:'1.1-1'}}x</div>
             </li>
@@ -433,11 +433,11 @@ export class ProfileComponent {
     this.messages.subscribe(messages => {
       let newData = messages.map((message,index)=>(
         {timestamp:message.payload.doc.data().verifiedTimestamp.seconds*1000,
-          balance:this.UI.convertSharesToCurrency(null,(message.payload.doc.data().wallet||{}).balance||0),
-          purchase:this.UI.convertSharesToCurrency(null,((message.payload.doc.data().purchaseCOIN||{}).amountCummulate||0)),
-          transaction:this.UI.convertSharesToCurrency(null,((message.payload.doc.data().transactionIn||{}).amountCummulate||0)-((message.payload.doc.data().transactionOut||{}).amountCummulate||0)),
-          interest:this.UI.convertSharesToCurrency(null,((message.payload.doc.data().interest||{}).amountCummulate||0)),
-          contract:this.UI.convertSharesToCurrency(null,((message.payload.doc.data().contract||{}).amountCummulate||0))
+          balance:this.UI.convertPRNToCurrency(null,(message.payload.doc.data().wallet||{}).balance||0),
+          purchase:this.UI.convertPRNToCurrency(null,((message.payload.doc.data().purchaseCOIN||{}).amountCummulate||0)),
+          transaction:this.UI.convertPRNToCurrency(null,((message.payload.doc.data().transactionIn||{}).amountCummulate||0)-((message.payload.doc.data().transactionOut||{}).amountCummulate||0)),
+          interest:this.UI.convertPRNToCurrency(null,((message.payload.doc.data().interest||{}).amountCummulate||0)),
+          contract:this.UI.convertPRNToCurrency(null,((message.payload.doc.data().contract||{}).amountCummulate||0))
         }
       ));
       this.chartOptions = { ...this.chartOptions, data: newData };
