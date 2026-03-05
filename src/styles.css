@@ -564,10 +564,6 @@ app-root .buttonPrimary:hover:not(:disabled) {
   transform: translateY(-1px);
 }
 
-app-root .buttonPrimary.highlightMember {
-  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-}
-
 app-root .buttonSecondary {
   border: 1px solid rgba(16, 185, 129, 0.3);
   color: #10b981;
@@ -988,6 +984,103 @@ app-root profile .profileContainer {
 app-root profile .island {
   box-shadow: 0 8px 24px rgba(2, 8, 23, 0.25);
   margin-bottom: 16px;
+}
+
+app-root profile .nonMemberIsland {
+  margin-top: 12px;
+  background:
+    radial-gradient(circle at 18% 15%, rgba(255, 255, 255, 0.22) 0, rgba(255, 255, 255, 0) 38%),
+    linear-gradient(135deg, #059669 0%, #047857 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 14px 34px rgba(5, 150, 105, 0.34);
+  padding: 24px 22px;
+  text-align: center;
+  color: #ffffff;
+}
+
+app-root profile .nonMemberIslandIconWrap {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 12px auto;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.12);
+}
+
+app-root profile .nonMemberIslandIcon {
+  font-size: 28px;
+  color: #ffffff;
+  line-height: 1;
+}
+
+app-root profile .nonMemberIslandTitle {
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin-bottom: 18px;
+  text-shadow: 0 2px 8px rgba(4, 120, 87, 0.34);
+}
+
+app-root profile .nonMemberIslandButton {
+  margin: 0 auto;
+  min-width: 230px;
+  font-size: 14px;
+  font-weight: 800;
+  padding: 11px 20px;
+  background: #ffffff;
+  color: #047857;
+  border: none;
+  box-shadow: 0 10px 24px rgba(2, 8, 23, 0.22);
+}
+
+app-root profile .nonMemberIslandButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(2, 8, 23, 0.28);
+}
+
+app-root profile .nonMemberIslandFooter {
+  margin-top: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: rgba(255, 255, 255, 0.96);
+}
+
+app-root profile .nonMemberChatLock {
+  font-size: 16px;
+  color: rgba(148, 163, 184, 0.8);
+  opacity: 0.75;
+  line-height: 1;
+  pointer-events: none;
+}
+
+app-root profile .guardedChatItem {
+  position: relative;
+}
+
+app-root profile .nonMemberView .guardedChatItem,
+app-root profile .nonMemberView .guardedChatItem * {
+  cursor: default !important;
+}
+
+app-root profile .nonMemberView .listLight li.guardedChatItem:hover {
+  background: rgba(15, 23, 42, 0.35);
+  border-color: rgba(16, 185, 129, 0.08);
+}
+
+app-root profile .nonMemberView .imageCarousel .guardedChatItem:hover {
+  background: rgba(15, 23, 42, 0.55);
+  border-color: rgba(16, 185, 129, 0.14);
+}
+
+app-root profile .nonMemberChatLockCorner {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
 }
 
 app-root profile .listLight {

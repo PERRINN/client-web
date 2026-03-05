@@ -42,7 +42,7 @@ import { filter, interval } from 'rxjs';
         <span *ngIf="UI.isDev" class="devFlag">DEV</span>
         <span *ngIf="UI.revolutMode=='sandbox'" class="devFlag">sandbox</span>
 
-        <button class="buttonPrimary buyBtn" [class.highlightMember]="!UI.isCurrentUserMember" (click)="router.navigate(['buyPRN',''])" [disabled]='this.router.url.startsWith("/buyPRN")'>
+        <button class="buttonPrimary buyBtn" (click)="router.navigate(['buyPRN',''])" [disabled]='this.router.url.startsWith("/buyPRN")'>
           Buy PRN
         </button>
       </div>

@@ -14,7 +14,7 @@ import { ChangeDetectorRef } from '@angular/core'
   template:`
 
   <div class="profileModern">
-  <div class="profileContainer">
+  <div class="profileContainer" [class.nonMemberView]="!UI.isCurrentUserMember">
 
   <div class="island" *ngIf="UI.currentUserLastMessageObj&&!UI.currentUserLastMessageObj?.isImageUserUpdated"
         style="background-color:rgb(255, 251, 221); color: #333; cursor:pointer"
@@ -136,10 +136,10 @@ import { ChangeDetectorRef } from '@angular/core'
             No upcoming events.
           </li>
 
-          <li *ngFor="let message of events; let i = index"
+          <li class="guardedChatItem" *ngFor="let message of events; let i = index"
             [style.display]="showAllEvents || i===0 ? 'block' : 'none'"
-            (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
-            <div *ngIf="scope=='all'||mode=='inbox'" style="padding:10px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.12); background: rgba(16, 185, 129, 0.03);">
+            (click)="openListedChat(message.payload.doc.data()?.chain)">
+            <div *ngIf="scope=='all'||mode=='inbox'" class="guardedChatItem" style="padding:10px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.12); background: rgba(16, 185, 129, 0.03);">
               <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:6px;">
                 <div style="display:flex; gap:10px; min-width:0;">
                   <span class="material-icons-outlined" style="font-size:22px; color:#10b981; margin-top:1px;">event</span>
@@ -152,7 +152,6 @@ import { ChangeDetectorRef } from '@angular/core'
                     </div>
                   </div>
                 </div>
-
                 <button *ngIf="message.payload.doc.data()?.eventLocation"
                   class="buttonWhite"
                   style="width:90px; margin:0;"
@@ -180,11 +179,12 @@ import { ChangeDetectorRef } from '@angular/core'
               </div>
 
               <button class="buttonBlack"
-                *ngIf="i===0 && events.length>1"
+                *ngIf="i===0 && events.length>1 && UI.isCurrentUserMember"
                 style="margin:8px 0 0 auto; width:170px; display:block;"
                 (click)="$event.stopPropagation(); showAllEvents=!showAllEvents">
                 {{showAllEvents ? 'Hide Other Events' : 'Show Other Events'}}
               </button>
+              <span *ngIf="!UI.isCurrentUserMember" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
             </div>
           </li>
         </ul>
@@ -192,11 +192,11 @@ import { ChangeDetectorRef } from '@angular/core'
 
         <div class="island splitIsland">
       <ul class="listLight">
-        <li *ngFor="let message of currentFunds|async;let first=first;let last=last"
-          (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
+        <li class="guardedChatItem" *ngFor="let message of currentFunds|async;let first=first;let last=last"
+          (click)="openListedChat(message.payload.doc.data()?.chain)">
           <div *ngIf="scope=='all'||mode=='inbox'">
             <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0">
-            <div style="padding:10px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.12); background: rgba(16, 185, 129, 0.03);">
+            <div class="guardedChatItem" style="padding:10px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.12); background: rgba(16, 185, 129, 0.03);">
               <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
                 <span class="material-symbols-outlined" style="font-size:24px; color:#10b981;">crowdsource</span>
                 <span style="color:#f1f5f9; font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{message.payload.doc.data()?.chatSubject}}</span>
@@ -223,6 +223,7 @@ import { ChangeDetectorRef } from '@angular/core'
                 target: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /
                 raised: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}
               </div>
+              <span *ngIf="!UI.isCurrentUserMember" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
             </div>
             </div>
           </div>
@@ -230,21 +231,30 @@ import { ChangeDetectorRef } from '@angular/core'
       </ul>
         </div>
       </div>
+      <div class="island nonMemberIsland" *ngIf="!UI.isCurrentUserMember">
+        <div class="nonMemberIslandIconWrap">
+          <span class="material-icons-outlined nonMemberIslandIcon">lock_open</span>
+        </div>
+        <div class="nonMemberIslandTitle">Unlock Full Access to Team Communications, Media and Features.</div>
+        <button class="buttonWhite nonMemberIslandButton" (click)="router.navigate(['buyPRN'])">Buy PRN Tokens</button>
+        <div class="nonMemberIslandFooter">Join the team today.</div>
+      </div>
       <ul *ngIf="mode=='inbox' || scope=='all'" class="listLight imageCarousel" id="scroll-images">
-        <li *ngFor="let message of latestImages|async;let first=first;let last=last" class="carouselItem">
-          <div *ngIf="scope=='all'||mode=='inbox'" class="carouselImageWrap" (click)="UI.showFullScreenImage(message.payload.doc.data()?.chatImageUrlOriginal)">
+        <li *ngFor="let message of latestImages|async;let first=first;let last=last" class="carouselItem guardedChatItem">
+          <div *ngIf="scope=='all'||mode=='inbox'" class="carouselImageWrap" (click)="openCarouselImage(message.payload.doc.data()?.chatImageUrlOriginal)">
             <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload.doc.data())" class="carouselImage">
           </div>
-          <button class="carouselMeta" (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
+          <button class="carouselMeta" (click)="openListedChat(message.payload.doc.data()?.chain)">
             <span class="material-icons-outlined" style="font-size:14px;">schedule</span>
             {{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}
           </button>
+          <span *ngIf="!UI.isCurrentUserMember" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
         </li>
       </ul>
       <div *ngIf="scope!='all'&& mode=='history'" style="height:400px;margin:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
       <ul *ngIf="mode!='forecast' || scope=='all'" class="listLight">
-        <li *ngFor="let message of messages|async;let first=first;let last=last"
-          (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
+        <li *ngFor="let message of messages|async;let first=first;let last=last" class="guardedChatItem"
+          (click)="openListedChat(message.payload.doc.data()?.chain)">
           <div *ngIf="scope=='all'||mode=='inbox'">
             <div style="float:left;min-width:84px;min-height:40px">
               <img [src]="message.payload.doc.data()?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload.doc.data())" style="float:left;margin:12px 2px 12px 4px;object-fit:cover;height:40px;width:40px">
@@ -300,6 +310,7 @@ import { ChangeDetectorRef } from '@angular/core'
               </tr>
               {{storeMessageValues(message.payload.doc.data())}}
             </table>
+            <span *ngIf="!UI.isCurrentUserMember" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
         </li>
       </ul>
       <div *ngIf="scope!='all'&& mode=='forecast'">
@@ -325,7 +336,7 @@ import { ChangeDetectorRef } from '@angular/core'
         <div class="bounce2"></div>
         <div class="bounce3"></div>
       </div>
-      <div class="island">
+      <div class="island" *ngIf="UI.isCurrentUserMember">
         <button class="buttonWhite" *ngIf="(!UI.loading && !['forecast', 'history'].includes(mode)) || scope=='all'" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</button>
       </div>
       <div *ngIf="hostingBuildHash" style="text-align:center; margin: 2px 0 8px 0; color:#64748b; font-size:11px; letter-spacing:0.2px;">
@@ -613,6 +624,16 @@ export class ProfileComponent {
       }
     })
     this.router.navigate(['chat',this.focusUserLastMessageObj.user])
+  }
+
+  openListedChat(chain: string) {
+    if (!this.UI.isCurrentUserMember || !chain) return
+    this.router.navigate(['chat', chain])
+  }
+
+  openCarouselImage(imageUrl: string) {
+    if (!this.UI.isCurrentUserMember || !imageUrl) return
+    this.UI.showFullScreenImage(imageUrl)
   }
 
   loadMore() {
