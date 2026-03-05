@@ -1,208 +1,193 @@
 import {
-  AfterViewInit,
   ChangeDetectorRef,
-  ElementRef,
-  Inject,
+  Component,
+  NgZone,
   OnDestroy,
-  ViewChild,
+  OnInit,
 } from "@angular/core";
-import { Component, NgZone } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Observable } from "rxjs";
-import { map } from "rxjs/operators";
-import { Router, ActivatedRoute } from '@angular/router'
+import { Observable, Subject } from "rxjs";
+import { map, takeUntil } from "rxjs/operators";
+import { Router, ActivatedRoute } from "@angular/router";
 import { UserInterfaceService } from "./userInterface.service";
-import {
-  AngularFirestore,
-  AngularFirestoreCollection,
-} from "@angular/fire/compat/firestore";
+import { AngularFirestore } from "@angular/fire/compat/firestore";
 import { AngularFireAuth } from "@angular/fire/compat/auth";
-import firebase from "firebase/compat/app";
-import { environment } from '../environments/environment';
-import { AgChartOptions } from 'ag-charts-community';
-import RevolutCheckout from '@revolut/checkout';
-
-import { firstValueFrom } from 'rxjs';
+import { environment } from "../environments/environment";
+import { AgChartOptions } from "ag-charts-community";
+import { firstValueFrom } from "rxjs";
 
 interface RevolutOrderResponse {
-  id: string;
-  token: string;      // ✅ add this
-  mode: 'prod' | 'sandbox'; // ✅ add if missing
-  // ... other fields you use
+  checkout_url?: string;
+  id?: string;
 }
 
 
 @Component({
   selector: "buyPRN",
   template: `
-  <div style="max-width:500px;margin:0 auto">
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #e0e0e0; background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%); min-height: 100vh; padding: 20px;">
-    <div *ngIf="transactionPendingMessageObj" class="island">
+  <div class="buyWrap">
+    <div class="buyPage">
+    <div *ngIf="transactionPendingMessageObj" class="island" style="background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.1); margin-bottom: 20px;">
       <div *ngIf="!transactionPendingMessageObj?.transactionPending?.activated">
-        <div class="title">
-          There is a pending transaction ready for you.
+        <div style="font-size: 16px; font-weight: 600; color: #f1f5f9; margin-bottom: 16px;">
+          Pending Transaction
         </div>
-        <div style="padding:10px;text-align:center">
-          <span>{{transactionPendingMessageObj.name}} is sending you {{UI.convertAndFormatPRNToPRNCurrency(currencySelected,transactionPendingMessageObj.transactionPending.amount||0)}} (Reference: {{transactionPendingMessageObj.transactionPending.reference}}).</span>
-          <button *ngIf="!UI.currentUser" class="buttonWhite" style="margin:10px auto;width:150px;font-size:11px" (click)="router.navigate(['login'])" [disabled]='this.router.url.startsWith("/login")'>Login</button>
-          <button *ngIf="UI.currentUser&&!UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonWhite" style="margin:10px auto;width:200px;font-size:11px" (click)="router.navigate(['settings'])">Update you profile picture</button>
-          <button *ngIf="UI.currentUser&&UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonWhite" style="margin:10px auto;width:150px;font-size:11px" (click)="activateTransactionPending(transactionPendingMessage)">Activate transaction</button>
+        <div style="padding:12px;text-align:center">
+          <span style="color: #cbd5e1; font-size: 14px; line-height: 1.6;">{{transactionPendingMessageObj.name}} is sending you {{UI.convertAndFormatPRNToPRNCurrency(currencySelected,transactionPendingMessageObj.transactionPending.amount||0)}} (Reference: {{transactionPendingMessageObj.transactionPending.reference}}).</span>
+          <button *ngIf="!UI.currentUser" class="buttonPrimary" style="margin:12px auto;width:150px;font-size:12px;padding:10px;" (click)="router.navigate(['login'])" [disabled]='this.router.url.startsWith("/login")'>Login</button>
+          <button *ngIf="UI.currentUser&&!UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonPrimary" style="margin:12px auto;width:200px;font-size:12px;padding:10px;" (click)="router.navigate(['settings'])">Update Profile Picture</button>
+          <button *ngIf="UI.currentUser&&UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonPrimary" style="margin:12px auto;width:150px;font-size:12px;padding:10px;" (click)="activateTransactionPending(transactionPendingMessage)">Activate</button>
         </div>
       </div>
       <div *ngIf="transactionPendingMessageObj?.transactionPending?.activated">
-        <div class="title">
-          This transaction has already been activated.
+        <div style="font-size: 14px; color: #10b981; font-weight: 600;">
+          ✓ Transaction Already Activated
         </div>
       </div>
     </div>
     <br/>
-    <div *ngIf="!UI.isCurrentUserMember" class="island" style="background-color: #38761D; padding: 20px; border-radius: 8px;">
-      <div class="title" style="color: #ffffff; font-size: 20px; font-weight: bold;">
+    <div *ngIf="!UI.isCurrentUserMember" class="island" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 24px; border-radius: 12px; box-shadow: 0 10px 30px rgba(5, 150, 105, 0.2);">
+      <div style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 16px;">
         🔑 Unlock Your Membership
       </div>
-      <div style="padding:15px;text-align:center">
-        <div style="font-size: 24px; font-weight: bold; color: #ffffff; margin-bottom: 10px;">
+      <div style="padding:0;text-align:center">
+        <div style="font-size: 24px; font-weight: 700; color: #ffffff; margin-bottom: 14px; word-break: break-word; overflow-wrap: break-word;">
           {{UI.convertAndRoundUpAndFormatPRNToCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.membership?.amountRequired)}}
         </div>
-        <span style="font-size: 14px; line-height: 1.8; color: #f0f0f0;">
-          <strong>One-time investment.</strong> No subscriptions. No recurring charges. Own your place in PERRINN forever.
+        <span style="font-size: 13px; line-height: 1.7; color: rgba(255, 255, 255, 0.95); display: block;">
+          <strong>One-time investment.</strong> No subscriptions. No recurring charges.
         </span>
-        <br /><br />
-        <div style="background-color: rgba(255, 255, 255, 0.15); padding: 12px; border-radius: 8px; margin: 10px 0;">
-          <span style="font-size: 13px; line-height: 1.6; color: #ffffff;">
-            ✓ <strong>Lifetime membership</strong> — once in, always in<br/>
-            ✓ <strong>Ownership stake</strong> in the PERRINN team<br/>
-            ✓ <strong>Growing value</strong> — increases {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} yearly<br/>
-            ✓ <strong>Early advantage</strong> — entry costs rise as the network grows
+        <br />
+        <div style="background-color: rgba(255, 255, 255, 0.12); padding: 12px; border-radius: 10px; margin: 12px 0;">
+          <span style="font-size: 12px; line-height: 1.7; color: #ffffff; display: block; text-align: left;">
+            ✓ Lifetime membership<br/>
+            ✓ Ownership stake in PERRINN<br/>
+            ✓ {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} annual growth<br/>
+            ✓ Early member advantage
           </span>
         </div>
-        <br />
-        <span style="font-size: 12px; color: #e0e0e0; font-style: italic;">
-          Early members shape the future. Your commitment lasts — and so does your influence.
-        </span>
       </div>
     </div>
-    <div *ngIf="UI.isCurrentUserMember" class="island" style="background-color: #38761D; padding: 20px; border-radius: 8px;">
-      <div class="title" style="color: #ffffff; font-size: 20px; font-weight: bold;">
-        ✅ Your Membership is Live
+    <div *ngIf="UI.isCurrentUserMember" class="island" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 24px; border-radius: 12px; box-shadow: 0 10px 30px rgba(5, 150, 105, 0.2);">
+      <div style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 16px;">
+        ✅ Membership Active
       </div>
-      <div style="padding:15px;text-align:center">
-        <div style="font-size: 24px; font-weight: bold; color: #ffffff; margin-bottom: 15px;">
+      <div style="padding:0;text-align:center">
+        <div style="font-size: 24px; font-weight: 700; color: #ffffff; margin-bottom: 14px; word-break: break-word; overflow-wrap: break-word;">
           {{UI.convertAndFormatPRNToPRNCurrency(currencySelected, UI.currentUserLastMessageObj?.wallet?.balance || 0)}}
         </div>
-        <div style="background-color: rgba(255, 255, 255, 0.15); padding: 12px; border-radius: 8px; margin: 10px 0;">
-          <span style="font-size: 13px; line-height: 1.8; color: #ffffff;">
-            ✓ <strong>Lifetime membership active</strong> — you're in forever<br/>
-            ✓ <strong>You own {{UI.convertAndFormatPRNToPRNCurrency(currencySelected, UI.currentUserLastMessageObj?.wallet?.balance || 0)}}</strong> of PERRINN<br/>
-            ✓ <strong>Growing value</strong> — your holdings increase {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} yearly<br/>
-            ✓ <strong>Full member status</strong> — shape the future with voting rights<br/>
-            ✓ <strong>Access to exclusive opportunities</strong> within the PERRINN network
+        <div style="background-color: rgba(255, 255, 255, 0.12); padding: 12px; border-radius: 10px; margin: 12px 0;">
+          <span style="font-size: 12px; line-height: 1.7; color: #ffffff; display: block; text-align: left;">
+            ✓ Lifetime membership<br/>
+            ✓ {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} annual growth<br/>
+            ✓ Voting rights & governance<br/>
+            ✓ Exclusive network access
           </span>
         </div>
-        <br />
-        <span style="font-size: 12px; color: #e0e0e0; font-style: italic;">
-          Your investment is secure. Your influence is permanent.
+      </div>
+    </div>
+    <br/>
+    <div class="island" style="background: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.1);">
+      <div style="text-align:center; margin-bottom: 20px;">
+        <img src="./../assets/App icons/PRN token.png" style="width:120px; opacity: 0.95;">
+      </div>
+      <div style="padding:0;text-align:center; margin-bottom: 20px;">
+        <span style="color: #cbd5e1; font-size: 14px;">PRN tokens represent ownership of PERRINN</span>
+        <div style="padding:16px;text-align:left;">
+          <div style="font-size: 11px; color: #94a3b8; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+            Overview
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div style="background-color: rgba(16, 185, 129, 0.08); padding: 14px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.2);">
+              <div style="font-size: 11px; color: #94a3b8; margin-bottom: 6px; font-weight: 500;">MEMBERS</div>
+              <div style="font-size: 18px; font-weight: 700; color: #10b981;">{{UI.PERRINNAdminLastMessageObj?.statistics?.membersCount}}</div>
+            </div>
+            <div style="background-color: rgba(16, 185, 129, 0.08); padding: 14px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.2);">
+              <div style="font-size: 11px; color: #94a3b8; margin-bottom: 6px; font-weight: 500;">TOTAL SUPPLY</div>
+              <div style="font-size: 18px; font-weight: 700; color: #10b981;">{{UI.convertAndFormatPRNToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}</div>
+            </div>
+          </div>
+        </div>
+        <button class="buttonSecondary" style="margin:16px auto;padding:10px 20px;font-size:12px;font-weight:600;" (click)="router.navigate(['directory'])">PRN Directory</button>
+      </div>
+      <div style="background-color: rgba(16, 185, 129, 0.05);padding:16px;text-align:center; border-radius: 10px; margin-top: 16px;">
+        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px; font-weight: 500;">Growth Rate</div>
+        <span style="color: #f1f5f9; font-weight: 600;">{{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} Annual</span>
+        <div style="height:200px;margin-top:12px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
+      </div>
+      <div style="padding:16px;text-align:center; margin-top: 16px; border-top: 1px solid rgba(16, 185, 129, 0.1);">
+        <span class="material-symbols-outlined" style="font-size:24px; color: #10b981; margin-bottom: 8px; display: block;">lock</span>
+        <span style="font-size: 13px; color: #94a3b8; line-height: 1.6; display: block;">
+          Tokens stored securely in your PERRINN wallet
         </span>
       </div>
     </div>
     <br/>
-    <div class="island" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 24px; border-radius: 12px; border: 1px solid rgba(76, 175, 80, 0.2); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);">
-      <div style="text-align:center">
-        <img src="./../assets/App icons/PRN token.png" style=";width:150px">
+    <div class="island" style="background: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.1);">
+      <div style="font-size: 16px; font-weight: 700; color: #f1f5f9; margin-bottom: 16px;">
+        Funding Projects
       </div>
-      <div style="padding:10px;text-align:center">
-        <span>PRN tokens represent ownership of the PERRINN team.</span>
-        <br />
-        <div style="padding:16px;text-align:left; margin-bottom: 12px;">
-          <div style="font-size: 13px; color: #b0b0b0; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-            Token Overview
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div style="background-color: rgba(76, 175, 80, 0.1); padding: 12px; border-radius: 8px; border-left: 3px solid #4CAF50;">
-              <div style="font-size: 11px; color: #a0a0a0; margin-bottom: 4px;">Total Members</div>
-              <div style="font-size: 16px; font-weight: bold; color: #4CAF50;">{{UI.PERRINNAdminLastMessageObj?.statistics?.membersCount}}</div>
-            </div>
-            <div style="background-color: rgba(76, 175, 80, 0.1); padding: 12px; border-radius: 8px; border-left: 3px solid #4CAF50;">
-              <div style="font-size: 11px; color: #a0a0a0; margin-bottom: 4px;">Total Supply</div>
-              <div style="font-size: 16px; font-weight: bold; color: #4CAF50;">{{UI.convertAndFormatPRNToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}</div>
-            </div>
-          </div>
-        </div>
-        <button class="buttonWhite" style="margin:10px auto;width:150px;font-size:11px" (click)="router.navigate(['directory'])">PRN holders directory</button>
-      </div>
-      <div style="background-color:black;padding:10px;text-align:center">
-        <span>Your PRN amount grows at a rate of {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} a year</span>
-        <div style="height:200px;margin-top:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
-      </div>
-      <div style="padding:10px;text-align:center">
-        <span class="material-symbols-outlined" style="font-size:30px">encrypted</span>
-        <br />
-        <span>Your tokens are stored in your wallet on PERRINN.com</span>
-        <br />
-        <span>Soon you will be able to sell or exchange your tokens with other members here.</span>
-      </div>
-    </div>
-    <br/>
-    <div class="island" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 24px; border-radius: 12px; border: 1px solid rgba(76, 175, 80, 0.2); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);">
-      <div class="title">
-        Your Tokens Fund Real Projects
-      </div>
-      <div style="padding:16px;text-align:left;">
-        <span style="font-size: 13px; color: #a0a0a0; line-height: 1.6; display: block; margin-bottom: 16px;">
-          All capital raised through PRN token sales is transparently allocated to active PERRINN initiatives. See the Allocation and Progress Below
+      <div style="padding:0px;text-align:left; margin-bottom: 16px;">
+        <span style="font-size: 13px; color: #94a3b8; line-height: 1.6; display: block;">
+          All capital is transparently allocated to active PERRINN initiatives
         </span>
       </div>
       <ul class="listLight">
         <li *ngFor="let message of currentFunds|async" style="padding:0px">
-          <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0&&(message.payload.doc.data()?.fund?.active||showPastFunds)" style="cursor:default;padding:10px">
-            <span style="font-size:14px">{{message.payload.doc.data()?.chatSubject}}</span>
-            <div style="clear:both">
-              <div style="float:left;background-color:black;height:20px;width:65px;text-align:center;padding:0 5px 0 5px"></div>
-              <div style="float:left;height:20px;background-color:#38761D;margin-left:-65px"
-                [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*65+'px'"></div>
-              <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;padding:0 5px 0 5px">
-                {{message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget|percent:"1.0-0"}}
+          <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0&&(message.payload.doc.data()?.fund?.active||showPastFunds)" style="cursor:default;padding:12px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.1); margin-bottom: 10px; background: rgba(16, 185, 129, 0.03);">
+            <span style="font-size:13px; font-weight: 600; color: #f1f5f9;">{{message.payload.doc.data()?.chatSubject}}</span>
+            <div style="margin-top: 10px;">
+              <div style="background-color:#334155;height:24px;width:100%;border-radius:6px;overflow:hidden;position:relative;">
+                <div style="height:100%;background: linear-gradient(90deg, #059669 0%, #047857 100%);display:flex;align-items:center;justify-content:center;transition:width 0.3s ease;"
+                  [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100+'%'">
+                  <span style="font-size: 11px; color: #ffffff; font-weight: 600; white-space: nowrap;" *ngIf="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100 > 30">
+                    {{message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget|percent:"1.0-0"}}
+                  </span>
+                </div>
               </div>
-              <div *ngIf="message.payload.doc.data()?.fund?.active" style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.daysLeft|number:"1.0-0"}} days left</div>
-              <div *ngIf="!message.payload.doc.data()?.fund?.active" style="float:left;margin:0 5px 0 5px">{{-message.payload.doc.data()?.fund?.daysLeft|number:"1.0-0"}} days ago</div>
-              <div style="float:left;margin:0 5px 0 5px">{{ message.payload.doc.data()?.fund?.description }},</div>
-              <div style="float:left;margin:0 5px 0 5px">target: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /</div>
-              <div style="float:left">raised: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}</div>
+              <div style="margin-top: 8px; font-size: 12px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center;">
+                <span>
+                  <span *ngIf="message.payload.doc.data()?.fund?.active" style="color: #10b981; font-weight: 500;">{{message.payload.doc.data()?.fund?.daysLeft|number:"1.0-0"}} days left</span>
+                  <span *ngIf="!message.payload.doc.data()?.fund?.active" style="color: #94a3b8;">{{-message.payload.doc.data()?.fund?.daysLeft|number:"1.0-0"}} days ago</span>
+                </span>
+              </div>
             </div>
           </div>
         </li>
       </ul>
-      <button class="buttonWhite" *ngIf="!showPastFunds" style="margin:10px auto;width:150px" (click)="showPastFunds=!showPastFunds">Show past funds</button>
+      <button class="buttonSecondary" style="margin:16px auto;padding:10px 20px;font-size:12px;font-weight:600;width:auto;" (click)="showPastFunds=!showPastFunds">
+        {{showPastFunds ? 'Hide Past Funds' : 'Show Past Funds'}}
+      </button>
     </div>
     <br/>
-    <div *ngIf="UI.currentUser" class="island" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 24px; border-radius: 12px; border: 1px solid rgba(76, 175, 80, 0.2); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);">
+    <div *ngIf="UI.currentUser" class="island" style="background: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.1);">
       <div style="display: flex; align-items: center; margin-bottom: 20px;">
-        <span class="material-symbols-outlined" style="font-size: 28px; color: #4CAF50; margin-right: 10px;">payment</span>
-        <div class="title" style="margin: 0; color: #ffffff; font-size: 18px; font-weight: 600;">
+        <span class="material-symbols-outlined" style="font-size: 24px; color: #10b981; margin-right: 12px;">payment</span>
+        <div style="font-size: 16px; font-weight: 700; color: #f1f5f9;">
           Secure Payment
         </div>
       </div>
       
-      <div style="padding: 12px 14px; background-color: rgba(76, 175, 80, 0.06); border-radius: 8px; border-left: 3px solid #4CAF50; margin-bottom: 20px;">
-        <span style="font-size: 12px; color: #b0b0b0; display: flex; align-items: center;">
-          <span class="material-symbols-outlined" style="font-size: 16px; margin-right: 8px; color: #4CAF50;">shield_lock</span>
+      <div style="padding: 12px 14px; background-color: rgba(16, 185, 129, 0.08); border-radius: 10px; border-left: 3px solid #10b981; margin-bottom: 24px;">
+        <span style="font-size: 12px; color: #94a3b8; display: flex; align-items: center; font-weight: 500;">
+          <span class="material-symbols-outlined" style="font-size: 16px; margin-right: 8px; color: #10b981;">shield_lock</span>
           Powered by Revolut
         </span>
       </div>
 
-      <div style="padding: 0; margin-bottom: 20px;">
-        <div style="font-size: 13px; color: #b0b0b0; margin-bottom: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-          Select Currency
+      <div style="padding: 0; margin-bottom: 24px;">
+        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+          Currency
         </div>
-        <ul class="listLight">
-          <li>
-            <button class="buttonBlack"
+        <ul class="listLight" style="display: flex; flex-wrap: wrap; gap: 10px;">
+          <li style="flex: 1; min-width: 120px;">
+            <button class="buttonToggle"
               *ngFor="let currency of objectToArray(UI.appSettingsPayment.currencyList)"
               (click)="currencySelected = currency[0]; refreshCreditList(); refreshAmountCharge()"
-              style="float:left;width:125px;margin:5px; padding: 10px; border-radius: 8px; border: 2px solid; transition: all 0.3s ease; font-weight: 500;"
-              [style.background-color]="currencySelected == currency[0] ? '#4CAF50' : '#2a2a3e'"
-              [style.border-color]="currencySelected == currency[0] ? '#4CAF50' : 'rgba(76, 175, 80, 0.15)'"
-              [style.color]="currencySelected == currency[0] ? '#ffffff' : '#b0b0b0'"
+              style="width:100%;padding: 10px; border-radius: 8px; border: 2px solid; transition: all 0.3s ease; font-weight: 600; font-size: 13px;"
+              [style.background-color]="currencySelected == currency[0] ? '#10b981' : 'transparent'"
+              [style.border-color]="currencySelected == currency[0] ? '#10b981' : 'rgba(16, 185, 129, 0.2)'"
+              [style.color]="currencySelected == currency[0] ? '#ffffff' : '#cbd5e1'"
             >
               {{ currency[1].designation }}
             </button>
@@ -211,63 +196,61 @@ interface RevolutOrderResponse {
       </div>
 
       <div style="padding: 0;">
-        <div style="font-size: 13px; color: #b0b0b0; margin-bottom: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-          Select Amount
+        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+          Amount
         </div>
-        <ul class="listLight">
-          <li>
-            <button class="buttonBlack"
-              *ngFor="let credit of creditList; let index = index"
+        <ul class="listLight" style="display: flex; flex-wrap: wrap; gap: 10px;">
+          <li style="flex: 0 1 auto;" *ngFor="let credit of creditList; let index = index">
+            <button class="buttonToggle"
               (click)="creditSelected = index; refreshAmountCharge()"
-              style="float:left;width:75px;margin:5px; padding: 10px; border-radius: 8px; border: 2px solid; transition: all 0.3s ease; font-weight: 500;"
-              [style.background-color]="creditSelected == index ? '#4CAF50' : '#2a2a3e'"
-              [style.border-color]="creditSelected == index ? '#4CAF50' : 'rgba(76, 175, 80, 0.15)'"
-              [style.color]="creditSelected == index ? '#ffffff' : '#b0b0b0'"
+              style="padding: 10px 16px; border-radius: 8px; border: 2px solid; transition: all 0.3s ease; font-weight: 600; font-size: 12px; white-space: nowrap;"
+              [style.background-color]="creditSelected == index ? '#10b981' : 'transparent'"
+              [style.border-color]="creditSelected == index ? '#10b981' : 'rgba(16, 185, 129, 0.2)'"
+              [style.color]="creditSelected == index ? '#ffffff' : '#cbd5e1'"
             >
             {{UI.formatCurrency(currencySelected,credit)}}
             </button>
           </li>
         </ul>
         <br />
-        <div *ngIf="creditSelected!=undefined&&currencySelected!=undefined" style="text-align:center; padding: 14px; background-color: rgba(76, 175, 80, 0.08); border-radius: 8px; margin-top: 12px; border-left: 3px solid #4CAF50;">
-          <span style="color: #e0e0e0; font-size: 13px;">
-            You will pay <strong style="color: #4CAF50; font-size: 15px;">{{UI.formatCurrency(currencySelected,creditList[creditSelected])}}</strong>
+        <div *ngIf="creditSelected!=undefined&&currencySelected!=undefined" style="text-align:center; padding: 16px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%); border-radius: 10px; margin-top: 16px; border: 1px solid rgba(16, 185, 129, 0.2);">
+          <span style="color: #cbd5e1; font-size: 13px; display: block; margin-bottom: 8px;">
+            You will pay
           </span>
-          <br/>
-          <span style="color: #a0a0a0; font-size: 12px; margin-top: 6px; display: block;">
-            and recieve <strong style="color: #4CAF50;">{{UI.formatPRNCurrency(currencySelected,creditList[creditSelected])}}</strong>
+          <span style="color: #10b981; font-size: 18px; font-weight: 700; display: block; margin-bottom: 12px;">{{UI.formatCurrency(currencySelected,creditList[creditSelected])}}</span>
+          <div style="height: 1px; background: rgba(16, 185, 129, 0.1); margin: 12px 0;"></div>
+          <span style="color: #94a3b8; font-size: 12px; display: block; margin-bottom: 4px; margin-top: 12px;">
+            you will receive
           </span>
+          <span style="color: #10b981; font-size: 16px; font-weight: 700;">{{UI.formatPRNCurrency(currencySelected,creditList[creditSelected])}}</span>
         </div>
       </div>
 
-      <button class="buttonWhite" *ngIf="UI.currentUser && !processing && creditSelected!=undefined && currencySelected!=undefined"
+      <button class="buttonPrimary" *ngIf="UI.currentUser && !processing && creditSelected!=undefined && currencySelected!=undefined"
               (click)="payWithRevolutLink()"
-              style="width:100%; margin:20px 0 0 0; font-size:14px; line-height: 20px; padding: 14px 16px; background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);">
-        <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle; margin-right: 6px;">payment</span>
-        Go to Secure Checkout
+              style="width:100%; margin:24px 0 0 0; font-size:14px; line-height: 1.6; padding: 14px 16px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);">
+        <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">arrow_forward</span>
+        Proceed to Checkout
       </button>
     </div>
   </div>
-`,
+`
 })
-export class buyPRNComponent {
-  cardNumber:string
-  expiryMonth:string
-  expiryYear:string
-  cvc:string
-  transactionPendingMessage:string
-  transactionPendingMessageObj:any
-  amountSharesPurchased:number
-  amountCharge:number
-  currencySelected:string
-  creditListPRN:any
-  creditList:any
-  creditSelected:number
-  math:any
-  processing:boolean
-  currentFunds:Observable<any[]>
-  chartOptions:AgChartOptions
-  showPastFunds:boolean
+export class buyPRNComponent implements OnInit, OnDestroy {
+  transactionPendingMessage: string;
+  transactionPendingMessageObj: any;
+  amountSharesPurchased: number;
+  amountCharge: number;
+  currencySelected: string;
+  creditListPRN: number[];
+  creditList: number[];
+  creditSelected: number;
+  processing = false;
+  showPastFunds = false;
+  currentFunds: Observable<any[]>;
+  chartOptions: AgChartOptions;
+  
+  private destroy$ = new Subject<void>();
   
   constructor(
     public afAuth: AngularFireAuth,
@@ -276,36 +259,44 @@ export class buyPRNComponent {
     private _zone: NgZone,
     public UI: UserInterfaceService,
     private cd: ChangeDetectorRef,
-    private route:ActivatedRoute,
-    private http: HttpClient,
+    private route: ActivatedRoute,
+    private http: HttpClient
   ) {
-    if (UI.currentUserLastMessageObj != undefined)
-      this.currencySelected =
-        UI.currentUserLastMessageObj.userCurrency || "usd";
-    else this.currencySelected = "usd";
-    this.route.params.subscribe(params=>{
-      this.transactionPendingMessage=params.id
+    this.currencySelected =
+      UI.currentUserLastMessageObj?.userCurrency || "usd";
+  }
+
+  ngOnInit(): void {
+    this.setupTransactionListener();
+    this.setupCurrentFunds();
+    this.chartOptions = this.buildChartOptions();
+    this.creditListPRN = this.buildCreditList();
+    this.refreshCreditList();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private setupTransactionListener(): void {
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+      this.transactionPendingMessage = params.id;
       this.afs
-      .doc<any>(`PERRINNMessages/${params.id}`)
-      .valueChanges()
-      .subscribe(
-        (document) => {
-          if (document) {
-            console.log('Document retrieved:', document);
-            this.transactionPendingMessageObj = document;
-          } else {
-            console.log('No document found with the given ID.');
-            this.transactionPendingMessageObj = null;
-          }
-        },
-        (error) => {
-          console.error('Error retrieving document:', error);
-        }
-      );
-    })
-    this.processing=false
-    this.showPastFunds=false
-    this.math = Math;
+        .doc<any>(`PERRINNMessages/${params.id}`)
+        .valueChanges()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(
+          (document) => {
+            this.transactionPendingMessageObj = document || null;
+            if (!document) console.log("No document found with the given ID.");
+          },
+          (error) => console.error("Error retrieving document:", error)
+        );
+    });
+  }
+
+  private setupCurrentFunds(): void {
     this.currentFunds = this.afs
       .collection<any>("PERRINNMessages", (ref) =>
         ref
@@ -315,105 +306,113 @@ export class buyPRNComponent {
       )
       .snapshotChanges()
       .pipe(
-        map((changes) => {
-          return changes.map((c) => ({ payload: c.payload }));
-        })
+        map((changes) => changes.map((c) => ({ payload: c.payload }))),
+        takeUntil(this.destroy$)
       );
-      this.chartOptions = {
-            title: { text: 'PRN growth' },
-            data: [
-              { year: 1296578670000, price: 1 },
-              { year: this.UI.nowSeconds*1000-6*365*24*3600000, price: Math.exp((this.UI.nowSeconds*1000-6*365*24*3600000-1296578670000)/1000/3600/24/365*0.1) },
-              { year: this.UI.nowSeconds*1000, price: Math.exp((this.UI.nowSeconds*1000-1296578670000)/1000/3600/24/365*0.1) },
-              { year: this.UI.nowSeconds*1000+6*365*24*3600000, price: Math.exp((this.UI.nowSeconds*1000+6*365*24*3600000-1296578670000)/1000/3600/24/365*0.1) },
-            ],
-            series: [{ type: 'line', xKey: 'year', yKey: 'price' }],
-            theme: 'ag-default-dark',
-            axes: [{ type: 'time', position: 'bottom' },{type: 'number',position: 'left',keys: ['price']}],
-      }
   }
 
-  ngOnInit() {
-    this.creditListPRN = this.UI.isDev
-      ? [1, this.UI.PERRINNAdminLastMessageObj.membership.amountRequired,
-        this.UI.PERRINNAdminLastMessageObj.membership.amountRequired*2,
-        this.UI.PERRINNAdminLastMessageObj.membership.amountRequired*4,
-        this.UI.PERRINNAdminLastMessageObj.membership.amountRequired*10,
-        this.UI.PERRINNAdminLastMessageObj.membership.amountRequired*20,
-      ]
-      : [this.UI.PERRINNAdminLastMessageObj.membership.amountRequired,
-        this.UI.PERRINNAdminLastMessageObj.membership.amountRequired*2,
-        this.UI.PERRINNAdminLastMessageObj.membership.amountRequired*4,
-        this.UI.PERRINNAdminLastMessageObj.membership.amountRequired*10,
-        this.UI.PERRINNAdminLastMessageObj.membership.amountRequired*20,
-      ]
-    this.refreshCreditList();
+  private buildChartOptions(): AgChartOptions {
+    const now = this.UI.nowSeconds * 1000;
+    const start = 1296578670000;
+    const yearMs = 365 * 24 * 3600000;
+    const scale = 0.1 / (365 * 24 * 3600);
+
+    const calcPrice = (time: number) =>
+      Math.exp(((time - start) / 1000) * scale);
+
+    return {
+      title: { text: "PRN growth" },
+      data: [
+        { year: start, price: 1 },
+        { year: now - 6 * yearMs, price: calcPrice(now - 6 * yearMs) },
+        { year: now, price: calcPrice(now) },
+        { year: now + 6 * yearMs, price: calcPrice(now + 6 * yearMs) },
+      ],
+      series: [{ type: "line", xKey: "year", yKey: "price" }],
+      theme: "ag-default-dark",
+      axes: [
+        { type: "time", position: "bottom" },
+        { type: "number", position: "left", keys: ["price"] },
+      ],
+    };
   }
 
-  refreshCreditList() {
-    this.creditList = this.creditListPRN.map((creditPRN) => {
-      return this.UI.roundUpByMagnitude(this.UI.convertPRNToCurrency(this.currencySelected, creditPRN));
-    });
+  private buildCreditList(): number[] {
+    const base = this.UI.PERRINNAdminLastMessageObj.membership.amountRequired;
+    const amounts = [base, base * 2, base * 4, base * 10, base * 20];
+    return this.UI.isDev ? [1, ...amounts] : amounts;
   }
 
-  refreshAmountCharge() {
-    if (this.creditSelected != undefined && this.currencySelected != undefined) {
-      this.amountCharge = Number(((this.creditList[this.creditSelected] || 0) * 100).toFixed(0));
-      this.amountSharesPurchased = Number(
-        (this.amountCharge / 100) * this.UI.appSettingsPayment.currencyList[this.currencySelected].toCOIN
-      );
-    }
-  }
-  
-  objectToArray(obj) {
-    if (obj == null) {
-      return [];
-    }
-    return Object.keys(obj).map(function (key) {
-      return [key, obj[key]];
-    });
+  refreshCreditList(): void {
+    this.creditList = this.creditListPRN.map((creditPRN) =>
+      this.UI.roundUpByMagnitude(
+        this.UI.convertPRNToCurrency(this.currencySelected, creditPRN)
+      )
+    );
   }
 
-  activateTransactionPending(transactionPendingMessage) {
+  refreshAmountCharge(): void {
+    if (this.creditSelected == null || this.currencySelected == null) return;
+    
+    this.amountCharge = Number(
+      ((this.creditList[this.creditSelected] || 0) * 100).toFixed(0)
+    );
+    this.amountSharesPurchased = Number(
+      (this.amountCharge / 100) *
+        this.UI.appSettingsPayment.currencyList[this.currencySelected].toCOIN
+    );
+  }
+
+  objectToArray(obj: any): [string, any][] {
+    return obj ? Object.entries(obj) : [];
+  }
+
+  activateTransactionPending(transactionPendingMessage: string): void {
     if (!transactionPendingMessage) {
       console.error("No transaction message provided");
       return;
     }
     this.UI.createMessage({
       chain: this.UI.currentUser,
-      text: "Activating transaction " + transactionPendingMessage,
+      text: `Activating transaction ${transactionPendingMessage}`,
       transactionPending: {
-        activateTransactionPending: transactionPendingMessage
+        activateTransactionPending: transactionPendingMessage,
       },
     });
-    this.router.navigate(['chat', this.UI.currentUser]);
+    this.router.navigate(["chat", this.UI.currentUser]);
   }
 
-  async payWithRevolutLink() {
-    const newWindow = window.open('', '_blank');
-  
+  async payWithRevolutLink(): Promise<void> {
+    const newWindow = window.open("", "_blank");
+
     try {
-      const mode = this.UI.revolutMode === 'prod' ? 'prod' : 'sandbox';
       const body = {
         amount: this.amountCharge,
-        currency: (this.currencySelected || 'usd').toUpperCase(),
+        currency: (this.currencySelected || "usd").toUpperCase(),
         email: this.UI.currentUserEmail,
         reference: `PRN-${Date.now()}`,
-        description: `Credit ${this.UI.formatPRNCurrency(this.currencySelected,this.creditList[this.creditSelected])} to ${this.UI.currentUserEmail}`,
-        mode
+        description: `Credit ${this.UI.formatPRNCurrency(
+          this.currencySelected,
+          this.creditList[this.creditSelected]
+        )} to ${this.UI.currentUserEmail}`,
+        mode: this.UI.revolutMode === "prod" ? "prod" : "sandbox",
       };
-  
-      const fnUrl = 'https://us-central1-perrinn-d5fc1.cloudfunctions.net/createRevolutOrder';
-      const order: any = await firstValueFrom(this.http.post(fnUrl, body));
-  
-      if (order.checkout_url) {
+
+      const order = await firstValueFrom(
+        this.http.post<RevolutOrderResponse>(
+          "https://us-central1-perrinn-d5fc1.cloudfunctions.net/createRevolutOrder",
+          body
+        )
+      );
+
+      if (order?.checkout_url) {
         newWindow.location.href = order.checkout_url;
       } else {
-        newWindow.close();
+        newWindow?.close();
       }
     } catch (err) {
       console.error(err);
-      if (newWindow) newWindow.close();
+      newWindow?.close();
     }
   }
 }

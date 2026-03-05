@@ -13,6 +13,9 @@ import { ChangeDetectorRef } from '@angular/core'
   selector:'profile',
   template:`
 
+  <div class="profileModern">
+  <div class="profileContainer">
+
   <div class="island" *ngIf="UI.currentUserLastMessageObj&&!UI.currentUserLastMessageObj?.isImageUserUpdated"
         style="background-color:rgb(255, 251, 221); color: #333; cursor:pointer"
         (click)="router.navigate(['settings'])">
@@ -28,135 +31,214 @@ import { ChangeDetectorRef } from '@angular/core'
     <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="width:100%">
   </div>
 
-  <div class="island" *ngIf="scope!='all'">
-    <img *ngIf="focusUserLastMessageObj" [src]="focusUserLastMessageObj?.imageUrlMedium" (error)="UI.handleUserImageError($event, focusUserLastMessageObj)" style="margin:7px;object-fit:cover;width:125px;height:125px;cursor:pointer" (click)="UI.showFullScreenImage(focusUserLastMessageObj?.imageUrlOriginal)">
-    <div style="padding:10px">
-      <div style="clear:both">
-        <div>
-          <span style="color:white;font-size:18px;line-height:30px">{{focusUserLastMessageObj?.name}} </span>
-          <span style="color:white;font-size:18px;line-height:30px">{{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance||0)}}</span>
-          <span *ngIf="focusUserLastMessageObj?.publicLink" class="material-icons-outlined" style="font-size:18px;line-height:10px;margin-left:10px;cursor:pointer" (click)="UI.openWindow(focusUserLastMessageObj?.publicLink)">link</span>
-          <br>
-          <span *ngIf="focusUserLastMessageObj?.locking?.amountCummulate>1">PRN has been locked for {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} days</span>
-          <span *ngIf="focusUserLastMessageObj?.locking?.amountCummulate<=1">PRN has been locked for {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} day</span>
-          <br>
-          <span>Earning {{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance*(math.exp(UI.appSettingsCosts?.interestRateYear/365)-1))}} per day from interest</span>
-          <br>
-          <span>{{focusUserLastMessageObj?.userPresentation}}</span>
-          <br>
-          <span *ngIf="focusUserLastMessageObj?.contract?.signed"> Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
-          <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed" style="margin:15px">Waiting for contract signature (Level {{focusUserLastMessageObj?.contract?.level|number:'1.1-1'}})</span>
-          <button class="buttonWhite" *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin:15px" (click)=signContract()>Sign contract</button>
-          <br>
+  <div class="island" *ngIf="scope!='all'" style="padding:14px;">
+    <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start;">
+      <img *ngIf="focusUserLastMessageObj"
+        [src]="focusUserLastMessageObj?.imageUrlMedium"
+        (error)="UI.handleUserImageError($event, focusUserLastMessageObj)"
+        style="object-fit:cover;width:132px;height:132px;border-radius:12px;border:1px solid rgba(16,185,129,0.18);cursor:pointer;flex-shrink:0;"
+        (click)="UI.showFullScreenImage(focusUserLastMessageObj?.imageUrlOriginal)">
+
+      <div style="flex:1; min-width:240px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+          <div style="display:flex; align-items:center; gap:8px; min-width:0;">
+            <span style="color:#f1f5f9;font-size:20px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px;">{{focusUserLastMessageObj?.name}}</span>
+            <span *ngIf="focusUserLastMessageObj?.publicLink" class="material-icons-outlined" style="font-size:18px;color:#10b981;cursor:pointer" (click)="UI.openWindow(focusUserLastMessageObj?.publicLink)">link</span>
+          </div>
+          <span style="color:#10b981;font-size:18px;font-weight:700;">{{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance||0)}}</span>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:8px; margin-bottom:8px;">
+          <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.15); border-radius:8px; padding:8px; font-size:12px; color:#cbd5e1; line-height:1.4;">
+            <span *ngIf="focusUserLastMessageObj?.locking?.amountCummulate>1">PRN tokens locked for {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} days</span>
+            <span *ngIf="focusUserLastMessageObj?.locking?.amountCummulate<=1">PRN tokens locked for {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} day</span>
+          </div>
+          <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.15); border-radius:8px; padding:8px; font-size:12px; color:#cbd5e1; line-height:1.4;">
+            Earning {{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance*(math.exp(UI.appSettingsCosts?.interestRateYear/365)-1))}} per day
+          </div>
+        </div>
+
+        <div style="font-size:13px; color:#94a3b8; line-height:1.5; margin-bottom:8px;">
+          {{focusUserLastMessageObj?.userPresentation}}
+        </div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:10px; font-size:12px; color:#cbd5e1; margin-bottom:8px;">
           <span>Created in {{focusUserLastMessageObj?.createdTimestamp|date:'MMMM yyyy'}}</span>
-          <br>
           <span *ngIf="focusUserLastMessageObj?.userChain?.index>1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)>1">{{focusUserLastMessageObj?.userChain?.index}} messages, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</span>
           <span *ngIf="focusUserLastMessageObj?.userChain?.index>1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)<=1">{{focusUserLastMessageObj?.userChain?.index}} messages, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} day ago</span>
           <span *ngIf="focusUserLastMessageObj?.userChain?.index<=1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)>1">{{focusUserLastMessageObj?.userChain?.index}} message, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</span>
           <span *ngIf="focusUserLastMessageObj?.userChain?.index<=1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)<=1">{{focusUserLastMessageObj?.userChain?.index}} message, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} day ago</span>
         </div>
+
+        <div style="font-size:12px; color:#cbd5e1; margin-bottom:8px;">
+          <span *ngIf="focusUserLastMessageObj?.contract?.signed" style="color:#10b981; font-weight:600;">Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
+          <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed">Waiting for contract signature (Level {{focusUserLastMessageObj?.contract?.level|number:'1.1-1'}})</span>
+          <button class="buttonWhite" *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin-left:10px" (click)=signContract()>Sign contract</button>
+        </div>
       </div>
     </div>
-    <button class="buttonBlack" style="float:center;width:70px;margin:4px" [style.background-color]="mode=='inbox'?'darkGreen':'black'" (click)="mode='inbox';refreshMessages()">inbox</button>
-    <button class="buttonBlack" style="float:center;width:70px;margin:4px" [style.background-color]="mode=='history'?'darkGreen':'black'" (click)="mode='history';refreshMessages();refreshChart()">history</button>
-    <button class="buttonBlack" style="float:center;width:70px;margin:4px" [style.background-color]="mode=='chain'?'darkGreen':'black'" (click)="mode='chain';refreshMessages()">chain</button>
-    <button class="buttonBlack" style="float:center;width:70px;margin:4px" [style.background-color]="mode=='forecast'?'darkGreen':'black'" (click)="mode='forecast';refreshMessages()">forecast</button>
-    <button class="buttonBlack" *ngIf="UI.currentUser&&UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="clear:both;width:250px;margin:5px">New message to {{focusUserLastMessageObj?.name}}</button>
-    <button class="buttonBlack" *ngIf="focusUserLastMessageObj?.user==UI.currentUser" class="material-icons" style="float:right;margin-top:5px" (click)="router.navigate(['settings'])">settings</button>
+
+    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; align-items:center;">
+      <div style="display:inline-flex; padding:4px; background:rgba(15,23,42,0.75); border:1px solid rgba(16,185,129,0.2); border-radius:999px; gap:4px; flex-wrap:wrap;">
+        <button class="buttonBlack" style="width:82px; border-radius:999px; border:none;" [style.background-color]="mode=='inbox'?'#10b981':'transparent'" [style.color]="mode=='inbox'?'#ffffff':'#cbd5e1'" (click)="mode='inbox';refreshMessages()">Inbox</button>
+        <button class="buttonBlack" style="width:82px; border-radius:999px; border:none;" [style.background-color]="mode=='history'?'#10b981':'transparent'" [style.color]="mode=='history'?'#ffffff':'#cbd5e1'" (click)="mode='history';refreshMessages();refreshChart()">History</button>
+        <button class="buttonBlack" style="width:82px; border-radius:999px; border:none;" [style.background-color]="mode=='chain'?'#10b981':'transparent'" [style.color]="mode=='chain'?'#ffffff':'#cbd5e1'" (click)="mode='chain';refreshMessages()">Chain</button>
+        <button class="buttonBlack" style="width:82px; border-radius:999px; border:none;" [style.background-color]="mode=='forecast'?'#10b981':'transparent'" [style.color]="mode=='forecast'?'#ffffff':'#cbd5e1'" (click)="mode='forecast';refreshMessages()">Forecast</button>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:8px;">
+      <button class="buttonBlack" *ngIf="UI.currentUser&&UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="width:250px;max-width:100%;">New message to {{focusUserLastMessageObj?.name}}</button>
+      <button class="buttonBlack" *ngIf="focusUserLastMessageObj?.user==UI.currentUser" style="margin-left:auto; display:inline-flex; align-items:center; gap:6px;" (click)="router.navigate(['settings'])">
+        <span class="material-icons" style="font-size:16px;">settings</span>
+        Settings
+      </button>
+    </div>
   </div>
 
 
   <div class="island" *ngIf="scope=='all'">
-    <button class="buttonBlack" style="float:right;height:25px;width:45px;margin-right:10px"
+      <button class="buttonBlack" style="float:right;height:34px;width:56px;margin-right:10px;display:flex;align-items:center;justify-content:center;padding:0"
             (click)="UI.openWindow(UI.PERRINNProfileLastMessageObj?.publicLink)">
-            <span style="line-height:13px" class="material-icons">link</span>
+        <span style="font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center" class="material-icons">link</span>
     </button>
-    <button class="buttonBlack" style="float:right;height:25px;width:45px;margin-right:10px">
-            <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank">
+      <button class="buttonBlack" style="float:right;height:34px;width:56px;margin-right:10px;display:flex;align-items:center;justify-content:center;padding:0">
+        <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%">
             <img src="./../assets/App icons/Digital_Glyph_White.png"
-            style="width:100%;height:100%;object-fit:contain;display:block"> 
+        style="width:22px;height:22px;object-fit:contain;display:block"> 
             </a>
     </button>
-    <button class="buttonBlack" style="float:right;height:25px;width:45px;margin-right:10px">
-            <a href="https://www.youtube.com/@PERRINN424WeAreATeam" target="_blank">
+      <button class="buttonBlack" style="float:right;height:34px;width:56px;margin-right:10px;display:flex;align-items:center;justify-content:center;padding:0">
+        <a href="https://www.youtube.com/@PERRINN424WeAreATeam" target="_blank" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%">
             <img src="./../assets/App icons/yt_logo_mono_white.png"
-            style="width:100%;height:100%;object-fit:contain;display:block"> 
+        style="width:22px;height:22px;object-fit:contain;display:block"> 
             </a>
     </button>
-    <button class="buttonBlack" style="float:right;height:25px;width:45px;margin-right:10px">
-            <a href="https://www.linkedin.com/company/perrinn" target="_blank">
+      <button class="buttonBlack" style="float:right;height:34px;width:56px;margin-right:10px;display:flex;align-items:center;justify-content:center;padding:0">
+        <a href="https://www.linkedin.com/company/perrinn" target="_blank" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%">
             <img src="./../assets/App icons/InBug-White.png"
-            style="width:100%;height:100%;object-fit:contain;display:block"> 
+        style="width:22px;height:22px;object-fit:contain;display:block"> 
             </a>
     </button>
-    <button class="buttonBlack" style="float:right;height:25px;width:45px;margin-right:10px">
-            <a href="https://github.com/PERRINN" target="_blank">
+      <button class="buttonBlack" style="float:right;height:34px;width:56px;margin-right:10px;display:flex;align-items:center;justify-content:center;padding:0">
+        <a href="https://github.com/PERRINN" target="_blank" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%">
             <img src="./../assets/App icons/github-mark-white.png"
-            style="width:100%;height:100%;object-fit:contain;display:block"> 
+        style="width:22px;height:22px;object-fit:contain;display:block"> 
             </a>
     </button>
   </div>
 
     <div>
-      <ul *ngIf="mode=='inbox' || scope=='all'" class="listLight">
-        <li *ngFor="let message of comingEvents|async;let first=first;let last=last"
-          (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
-          <div *ngIf="scope=='all'||mode=='inbox'">
-            <div *ngIf="message.payload.doc.data()?.eventDateEnd/60000>UI.nowSeconds/60">
-            <button *ngIf="message.payload.doc.data()?.eventLocation" class="buttonWhite" style="float:right;margin:10px;width:75px" [disabled]="!UI.isCurrentUserMember" (click)="UI.openWindow(message.payload.doc.data()?.eventLocation)">
-              <span>Join</span>
-              <span style="margin-left:5px;font-size:18px;line-height:16px" class="material-icons-outlined" *ngIf="!UI.isCurrentUserMember">lock</span>
-            </button>
-            <div style="float:left;min-width:90px;min-height:40px">
-              <span class="material-icons-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer">event</span>
-            </div>
-            <div>
-              <div style="float:left;margin-top:10px;width:60%;white-space:nowrap;text-overflow:ellipsis">
-                <span style="color:white;font-size:15px">{{message.payload.doc.data()?.chatSubject}}</span>
+      <div *ngIf="mode=='inbox' || scope=='all'" class="splitContainer">
+        <div class="island splitIsland">
+        <ul class="listLight" *ngIf="comingEvents|async as events">
+          <li *ngIf="events.length===0" style="padding:14px; border: 1px solid rgba(16, 185, 129, 0.1); background: rgba(16, 185, 129, 0.03); color:#94a3b8; font-size:13px;">
+            No upcoming events.
+          </li>
+
+          <li *ngFor="let message of events; let i = index"
+            [style.display]="showAllEvents || i===0 ? 'block' : 'none'"
+            (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
+            <div *ngIf="scope=='all'||mode=='inbox'" style="padding:10px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.12); background: rgba(16, 185, 129, 0.03);">
+              <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:6px;">
+                <div style="display:flex; gap:10px; min-width:0;">
+                  <span class="material-icons-outlined" style="font-size:22px; color:#10b981; margin-top:1px;">event</span>
+                  <div style="min-width:0;">
+                    <div style="font-size:11px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:2px;">
+                      {{i===0 ? 'Next Event' : 'Other Event'}}
+                    </div>
+                    <div style="font-size:14px; color:#f1f5f9; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                      {{message.payload.doc.data()?.chatSubject}}
+                    </div>
+                  </div>
+                </div>
+
+                <button *ngIf="message.payload.doc.data()?.eventLocation"
+                  class="buttonWhite"
+                  style="width:90px; margin:0;"
+                  [disabled]="!UI.isCurrentUserMember"
+                  (click)="$event.stopPropagation(); UI.openWindow(message.payload.doc.data()?.eventLocation)">
+                  <span>Join</span>
+                  <span style="margin-left:5px;font-size:16px;line-height:14px" class="material-icons-outlined" *ngIf="!UI.isCurrentUserMember">lock</span>
+                </button>
               </div>
-              <div style="width:80%">
-                <div *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)>0" [style.background-color]="(math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)>60*8)?'black':'#38761D'" style="float:left;color:whitesmoke;padding:0 5px 0 5px">in {{UI.formatSecondsToDhm2(message.payload.doc.data()?.eventDateStart/1000-UI.nowSeconds)}}</div>
-                <div *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)<=0&&message.payload.doc.data()?.eventDateEnd/60000>UI.nowSeconds/60" style="float:left;background-color:#7BC463;color:whitesmoke;padding:0 5px 0 5px">Now</div>
-                <span style="margin:0 5px 0 5px">{{message.payload.doc.data()?.eventDescription}}</span>
-                <span style="margin:0 5px 0 0">{{message.payload.doc.data()?.eventDateStart|date:'EEEE d MMM h:mm a'}} ({{message.payload.doc.data()?.eventDuration}}h)</span>
+
+              <div style="display:flex; align-items:center; gap:7px; margin-bottom:6px; flex-wrap:wrap;">
+                <span *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)>0" style="background: rgba(16, 185, 129, 0.16); color:#10b981; font-size:11px; font-weight:600; padding:3px 8px; border-radius:999px;">
+                  In {{UI.formatSecondsToDhm2(message.payload.doc.data()?.eventDateStart/1000-UI.nowSeconds)}}
+                </span>
+                <span *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)<=0&&message.payload.doc.data()?.eventDateEnd/60000>UI.nowSeconds/60" style="background: rgba(16, 185, 129, 0.2); color:#10b981; font-size:11px; font-weight:700; padding:3px 8px; border-radius:999px;">
+                  Now
+                </span>
+                <span style="font-size:12px; color:#cbd5e1;">
+                  {{message.payload.doc.data()?.eventDateStart|date:'EEEE d MMM h:mm a'}} ({{message.payload.doc.data()?.eventDuration}}h)
+                </span>
               </div>
+
+              <div style="font-size:12px; color:#94a3b8; line-height:1.4;">
+                {{message.payload.doc.data()?.eventDescription}}
+              </div>
+
+              <button class="buttonBlack"
+                *ngIf="i===0 && events.length>1"
+                style="margin:8px 0 0 auto; width:170px; display:block;"
+                (click)="$event.stopPropagation(); showAllEvents=!showAllEvents">
+                {{showAllEvents ? 'Hide Other Events' : 'Show Other Events'}}
+              </button>
             </div>
-          </div>
-          </div>
-        </li>
-      </ul>
-      <ul *ngIf="mode=='inbox' || scope=='all'" class="listLight">
+          </li>
+        </ul>
+        </div>
+
+        <div class="island splitIsland">
+      <ul class="listLight">
         <li *ngFor="let message of currentFunds|async;let first=first;let last=last"
           (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
           <div *ngIf="scope=='all'||mode=='inbox'">
             <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0">
-            <div style="float:left;min-width:90px;min-height:40px">
-              <span class="material-symbols-outlined" style="float:left;margin:7px 4px 7px 4px;font-size:40px;cursor:pointer">crowdsource</span>
-            </div>
-            <div>
-              <div style="float:left;margin-top:10px;width:60%;white-space:nowrap;text-overflow:ellipsis">
-                <span style="color:white;font-size:15px">{{message.payload.doc.data()?.chatSubject}}</span>
+            <div style="padding:10px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.12); background: rgba(16, 185, 129, 0.03);">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <span class="material-symbols-outlined" style="font-size:24px; color:#10b981;">crowdsource</span>
+                <span style="color:#f1f5f9; font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{message.payload.doc.data()?.chatSubject}}</span>
               </div>
-              <div style="clear:both">
-                <div style="float:left;background-color:black;height:20px;width:65px;text-align:center;color:whitesmoke;padding:0 5px 0 5px"></div>
-                <div style="float:left;height:20px;background-color:#38761D;margin-left:-65px" [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*65+'px'"></div>
-                <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;color:whitesmoke;padding:0 5px 0 5px">{{(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)|percent:'1.0-0'}}</div>
-                <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.daysLeft|number:'1.0-0'}} days left</div>
-                <div style="float:left;margin:0 5px 0 5px">{{message.payload.doc.data()?.fund?.description}},</div>
-                <div style="float:left;margin:0 5px 0 5px">target: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /</div>
-                <div style="float:left">raised: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}</div>
+
+              <div style="background-color:#334155;height:22px;width:100%;border-radius:6px;overflow:hidden;position:relative;">
+                <div style="height:100%;background: linear-gradient(90deg, #059669 0%, #047857 100%);display:flex;align-items:center;justify-content:center;transition:width 0.3s ease;"
+                  [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100+'%'">
+                  <span style="font-size: 11px; color: #ffffff; font-weight: 600; white-space: nowrap;" *ngIf="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100 > 30">
+                    {{message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget|percent:'1.0-0'}}
+                  </span>
+                </div>
+              </div>
+
+              <div style="margin-top: 6px; font-size: 12px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #10b981; font-weight: 500; margin-left: auto;">{{message.payload.doc.data()?.fund?.daysLeft|number:'1.0-0'}} days left</span>
+              </div>
+
+              <div style="margin-top: 4px; font-size: 12px; color: #94a3b8; line-height: 1.4;">
+                <span>{{message.payload.doc.data()?.fund?.description}}</span>
+              </div>
+
+              <div style="margin-top: 4px; font-size: 12px; color: #cbd5e1; line-height: 1.4;">
+                target: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /
+                raised: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}
               </div>
             </div>
             </div>
           </div>
         </li>
       </ul>
-      <ul *ngIf="mode=='inbox' || scope=='all'" style="overflow-x: auto; flex-wrap: nowrap; display: flex" class="listLight" id="scroll-images">
-        <li *ngFor="let message of latestImages|async;let first=first;let last=last" style="cursor:default;flex: 0 0 auto; width: 20%">
-          <div *ngIf="scope=='all'||mode=='inbox'" (click)="UI.showFullScreenImage(message.payload.doc.data()?.chatImageUrlOriginal)">
-            <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload.doc.data())" style="cursor:pointer;float:left;object-fit:contain;width:100%;height:90px">
+        </div>
+      </div>
+      <ul *ngIf="mode=='inbox' || scope=='all'" class="listLight imageCarousel" id="scroll-images">
+        <li *ngFor="let message of latestImages|async;let first=first;let last=last" class="carouselItem">
+          <div *ngIf="scope=='all'||mode=='inbox'" class="carouselImageWrap" (click)="UI.showFullScreenImage(message.payload.doc.data()?.chatImageUrlOriginal)">
+            <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload.doc.data())" class="carouselImage">
           </div>
-          <div style="cursor:pointer;float:right;padding:10px;color:#999;margin-right:10px;width:35px;font-size:11px" (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</div>
+          <button class="carouselMeta" (click)="router.navigate(['chat',message.payload.doc.data()?.chain])">
+            <span class="material-icons-outlined" style="font-size:14px;">schedule</span>
+            {{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}
+          </button>
         </li>
       </ul>
       <div *ngIf="scope!='all'&& mode=='history'" style="height:400px;margin:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
@@ -246,10 +328,16 @@ import { ChangeDetectorRef } from '@angular/core'
       <div class="island">
         <button class="buttonWhite" *ngIf="(!UI.loading && !['forecast', 'history'].includes(mode)) || scope=='all'" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</button>
       </div>
+      <div *ngIf="hostingBuildHash" style="text-align:center; margin: 2px 0 8px 0; color:#64748b; font-size:11px; letter-spacing:0.2px;">
+        build {{hostingBuildHash}}
+      </div>
     </div>
-  `,
+  </div>
+  </div>
+  `
 })
 export class ProfileComponent {
+  hostingBuildHash:string = ''
   messages:Observable<any[]>
   comingEvents:Observable<any[]>
   currentFunds:Observable<any[]>
@@ -267,6 +355,7 @@ export class ProfileComponent {
   previousAmountTransactionCummulate:number
   math:any
   messageNumberDisplay:number
+  showAllEvents:boolean
   chartOptions:AgChartOptions
 
   constructor(
@@ -279,6 +368,7 @@ export class ProfileComponent {
   ) {
     this.math=Math
     this.messageNumberDisplay=30
+    this.showAllEvents=false
     this.scope=''
     this.mode='inbox'
     this.scrollTeam=''
@@ -310,6 +400,7 @@ export class ProfileComponent {
           ],
       }
     this.route.params.subscribe(params => {
+      this.forceScrollTop();
       this.scope=params.id
       afs.collection<any>('PERRINNMessages',ref=>ref
         .where('user','==',this.scope)
@@ -323,9 +414,49 @@ export class ProfileComponent {
   }
 
   ngOnInit() {
+    this.forceScrollTop();
+    this.resolveHostingBuildHash();
     setTimeout(() => {
+      this.forceScrollTop();
       this.cd.detectChanges()
     }, 10)
+  }
+
+  private resolveHostingBuildHash() {
+    fetch('/index.html', { method: 'HEAD', cache: 'no-store' })
+      .then(response => {
+        const etagHeader = response.headers.get('etag') || response.headers.get('ETag') || '';
+        const etag = etagHeader.replace(/W\//g, '').replace(/"/g, '').trim();
+        if (etag) {
+          this.hostingBuildHash = this.formatBuildId(etag);
+          return;
+        }
+        return fetch('/ngsw.json', { cache: 'no-store' })
+          .then(r => r.ok ? r.json() : null)
+          .then(ngsw => {
+            const hash = ngsw?.hashTable?.['/index.html'] || '';
+            this.hostingBuildHash = hash ? this.formatBuildId(String(hash)) : '';
+          });
+      })
+      .catch(() => {
+        this.hostingBuildHash = '';
+      });
+  }
+
+  private formatBuildId(value: string): string {
+    const alphanumeric = (value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    return alphanumeric.slice(0, 4) || '';
+  }
+
+  private forceScrollTop() {
+    const mainContainer = document.getElementById('main_container');
+    if (mainContainer) {
+      mainContainer.scrollTop = 0;
+      mainContainer.scrollTo({ top: 0, behavior: 'auto' });
+    }
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    window.scrollTo({ top: 0, behavior: 'auto' });
   }
 
   refreshMessages(){

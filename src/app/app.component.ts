@@ -2,46 +2,89 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserInterfaceService } from './userInterface.service';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
+import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
+import { filter, interval } from 'rxjs';
 
 @Component({
   selector: 'app-root',
   template: `
+    <div class="appShell">
     <img class="fullScreenImage" id="fullScreenImage" (click)="hideFullScreenImage()">
-    <progress value='0' max='100' id='uploader'>0%</progress>
-    <div style="width:360px;margin: 0 auto">
-      <img src="./../assets/App icons/Perrinn_02.png" style="cursor:pointer;float:left;width:30px;margin:10px 45px 0px 45px" (click)="router.navigate(['profile','all'])">
-      <span class="material-icons" style="float:left;margin:10px 45px 0px 45px;font-size:30px;cursor:pointer" (click)="router.navigate(['directory'])">list</span>
-      <span class="material-icons-outlined" style="float:left;margin:10px 45px 0px 45px;font-size:30px;height:30px;cursor:pointer" onclick="window.open('https://discover.perrinn.com','_blank')">info</span>
-    </div>
-    <div style="padding:10px">
-      <div class="island">
-        <button *ngIf="!UI.currentUser" class="buttonWhite" style="float:left;margin:3.5px 0px;width:75px" (click)="router.navigate(['login'])" [disabled]='this.router.url.startsWith("/login")'>Login</button>
-        <div *ngIf="UI.currentUser" style="float:left;cursor:pointer;height:35px; justify-content:center" (click)="router.navigate(['profile',UI.currentUser])">
-          <img *ngIf="UI.currentUserLastMessageObj" [src]="UI.currentUserLastMessageObj?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, UI.currentUserLastMessageObj)" style="display:inline;float:left;object-fit:cover;width:35px;height:35px">
-          <span style="margin-left:11px;font-size:14px;line-height:35px">{{UI.convertAndFormatPRNToPRNCurrency(null,UI.currentUserLastMessageObj?.wallet?.balance||0)}}</span>
-          <span *ngIf="UI.isCurrentUserMember" class="material-icons" style="margin-left:4px;font-size:16px;line-height:14px;color:#1DA1F2">check_circle</span>
+    <progress value='0' max='100' id='uploader' class="uploadProgress">0%</progress>
+
+    <div class="topNav">
+      <div class="navLeft">
+        <button class="iconBtn" (click)="router.navigate(['profile','all'])" aria-label="Go to profile">
+          <img src="./../assets/App icons/Perrinn_02.png" class="brandIcon">
+        </button>
+        <button class="iconBtn" (click)="router.navigate(['directory'])" aria-label="Open directory">
+          <span class="material-icons">list</span>
+        </button>
+        <button class="iconBtn" (click)="openDiscover()" aria-label="Open discover">
+          <span class="material-icons-outlined">info</span>
+        </button>
+      </div>
+
+      <div class="navRight">
+        <button *ngIf="!UI.currentUser" class="buttonSecondary" (click)="router.navigate(['login'])" [disabled]='this.router.url.startsWith("/login")'>
+          Login
+        </button>
+
+        <div *ngIf="UI.currentUser" class="userPill" (click)="router.navigate(['profile',UI.currentUser])">
+          <img *ngIf="UI.currentUserLastMessageObj" [src]="UI.currentUserLastMessageObj?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, UI.currentUserLastMessageObj)" class="avatar">
+          <span class="balance">{{UI.convertAndFormatPRNToPRNCurrency(null,UI.currentUserLastMessageObj?.wallet?.balance||0)}}</span>
+          <span *ngIf="UI.isCurrentUserMember" class="material-icons verified">check_circle</span>
         </div>
-        <span *ngIf="UI.isDev||UI.profileSimulatorNonMember" style="margin-left:11px;float:left;cursor:pointer;font-size:11px;line-height:35px;color:#ff6666" (click)="UI.toggleprofileSimulatorNonMember()">Non Member {{UI.profileSimulatorNonMember ? '(ON)' : '(OFF)'}}</span>
-        <span *ngIf="UI.isDev" style="float:left;margin-left:11px;font-size:11px;line-height:35px;color:#ff6666">DEV</span>
-        <span *ngIf="UI.revolutMode=='sandbox'" style="float:left;margin-left:5px;font-size:11px;line-height:35px;color:#ff6666">sandbox</span>
-        <button class="buttonWhite" [style.background-color]="!UI.isCurrentUserMember ? '#309930' : ''" [style.color]="!UI.isCurrentUserMember ? '#FFFFFF' : ''" style="float:right;width:100px; margin:3.5px 0px" (click)="router.navigate(['buyPRN',''])" [disabled]='this.router.url.startsWith("/buyPRN")'>Buy PRN</button>
+
+        <span *ngIf="UI.isDev||UI.profileSimulatorNonMember" class="devFlag" (click)="UI.toggleprofileSimulatorNonMember()">
+          Non Member {{UI.profileSimulatorNonMember ? '(ON)' : '(OFF)'}}
+        </span>
+        <span *ngIf="UI.isDev" class="devFlag">DEV</span>
+        <span *ngIf="UI.revolutMode=='sandbox'" class="devFlag">sandbox</span>
+
+        <button class="buttonPrimary buyBtn" [class.highlightMember]="!UI.isCurrentUserMember" (click)="router.navigate(['buyPRN',''])" [disabled]='this.router.url.startsWith("/buyPRN")'>
+          Buy PRN
+        </button>
       </div>
     </div>
+
     <div id='main_container'>
-      <div id='secondary_container' style="max-width:800px;margin:0 auto;padding:10px">
-        <router-outlet></router-outlet>
+      <div id='secondary_container' class="contentWrap">
+        <div class="contentCard">
+          <router-outlet></router-outlet>
+        </div>
       </div>
     </div>
-  `,
+    </div>
+  `
 })
 export class AppComponent {
 
   constructor(
     public router:Router,
     public afs:AngularFirestore,
-    public UI:UserInterfaceService
+    public UI:UserInterfaceService,
+    private updates: SwUpdate
   ) {
     localStorage.clear()
+
+    if (this.updates.isEnabled) {
+      this.updates.versionUpdates
+        .pipe(filter((event): event is VersionReadyEvent => event.type === 'VERSION_READY'))
+        .subscribe(() => {
+          this.updates.activateUpdate().then(() => document.location.reload());
+        });
+
+      interval(30000).subscribe(() => {
+        this.updates.checkForUpdate();
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+          this.updates.checkForUpdate();
+        }
+      });
+    }
   }
 
   ngOnInit() {
@@ -53,6 +96,10 @@ export class AppComponent {
     const fullScreenImage = document.getElementById('fullScreenImage') as HTMLImageElement;
     fullScreenImage.style.visibility = 'hidden';
     fullScreenImage.src = '';
+  }
+
+  openDiscover() {
+    window.open('https://discover.perrinn.com', '_blank');
   }
 
 }

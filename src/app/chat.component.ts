@@ -1,4 +1,4 @@
-import { Component, NgZone, ViewChild, ElementRef } from '@angular/core';
+import { Component, NgZone, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
 import { Router, ActivatedRoute } from '@angular/router'
@@ -11,9 +11,9 @@ import { map, tap, take } from 'rxjs/operators';
   selector: 'chat',
   template: `
 
-  <div [ngStyle]="{'padding-top' : showChatDetails ? '0px' : showImageGallery ? '40px' : '20px' , 'padding-bottom' : !UI.currentUser||showChatDetails||showImageGallery ? '0px' : '90px'}">
+  <div class="chatPage" [ngStyle]="{'padding-top' : showChatDetails ? '0px' : showImageGallery ? '40px' : '20px' , 'padding-bottom' : !UI.currentUser||showChatDetails||showImageGallery ? '0px' : '90px'}">
   <div
-    style="position:fixed; z-index:999; background:black; padding-bottom:10px; cursor:pointer"
+    class="chatTopBar"
     [style.top.px]="containerTop"
     [style.left.px]="containerLeft"
     [style.width.px]="containerWidth"
@@ -21,9 +21,9 @@ import { map, tap, take } from 'rxjs/operators';
     <div *ngIf="!showChatDetails">
       <div style="float:left;width:75%;margin:0 5px 0 10px;min-height:40px">
         <div>
-          <div style="float:left;color:white">{{chatLastMessageObj?.chatSubject}}</div>
+          <div style="float:left;color:#f1f5f9;font-size:15px;font-weight:700;letter-spacing:0.2px;line-height:1.35">{{chatLastMessageObj?.chatSubject}}</div>
         </div>
-        <div style="width:100%;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical">
+        <div style="width:100%;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;color:#94a3b8;font-size:12px;font-weight:500;line-height:1.4;margin-top:2px">
           <span *ngFor="let recipient of chatLastMessageObj?.recipientList;let last=last">{{recipient==UI.currentUser?'You':chatLastMessageObj?.recipients[recipient]?.name}}{{last?"":", "}}</span>
         </div>
         <div *ngIf="eventDateEnd/60000>UI.nowSeconds/60" style="clear:both">
@@ -33,18 +33,24 @@ import { map, tap, take } from 'rxjs/operators';
           <span style="margin:0 5px 0 5px">{{eventDescription}}</span>
           <span style="margin:0 5px 0 0">{{eventDateStart|date:'EEEE d MMM h:mm a'}} ({{eventDuration}}h)</span>
         </div>
-        <div *ngIf="fund?.active" style="clear:both">
-          <span class="material-symbols-outlined" style="float:left;font-size:20px;margin-right:5px">crowdsource</span>
-          <div style="float:left;background-color:black;height:20px;width:65px;text-align:center;color:whitesmoke;padding:0 5px 0 5px"></div>
-          <div style="float:left;height:20px;background-color:#38761D;margin-left:-65px" [style.width]="(fund?.amountGBPRaised/fund?.amountGBPTarget)*65+'px'"></div>
-          <div style="float:left;background-color:none;width:65px;margin-left:-65px;text-align:center;color:whitesmoke;padding:0 5px 0 5px">{{(fund?.amountGBPRaised/fund?.amountGBPTarget)|percent:'1.0-0'}}</div>
-          <div style="float:left;margin:0 5px 0 5px">{{fund.daysLeft|number:'1.0-0'}} days left</div>
-          <div style="float:left;margin:0 5px 0 0">{{fund.description}},</div>
-          <div style="float:left;margin:0 5px 0 0">target: {{UI.convertAndFormatPRNToCurrency(null,fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /</div>
-          <div style="float:left">raised: {{UI.convertAndFormatPRNToCurrency(null,fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}</div>
+        <div *ngIf="fund?.active" style="clear:both;padding-top:4px">
+          <span class="material-symbols-outlined" style="float:left;font-size:20px;margin-right:5px;color:#10b981">crowdsource</span>
+          <div style="overflow:hidden;padding-top:2px">
+            <div style="background-color:#334155;height:20px;width:100%;border-radius:6px;overflow:hidden;position:relative;max-width:320px">
+              <div style="height:100%;background: linear-gradient(90deg, #059669 0%, #047857 100%);display:flex;align-items:center;justify-content:center;transition:width 0.3s ease;"
+                [style.width]="(fund?.amountGBPRaised/fund?.amountGBPTarget)*100+'%'">
+                <span style="font-size: 10px; color: #ffffff; font-weight: 600; white-space: nowrap;" *ngIf="(fund?.amountGBPRaised/fund?.amountGBPTarget)*100 > 35">
+                  {{(fund?.amountGBPRaised/fund?.amountGBPTarget)|percent:'1.0-0'}}
+                </span>
+              </div>
+            </div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:4px">{{fund.daysLeft|number:'1.0-0'}} days left • {{fund.description}}</div>
+          </div>
         </div>
       </div>
-      <span class="material-icons-outlined" style="float:right;padding:7px" (click)="showImageGalleryClick()">{{showImageGallery?'question_answer':'collections'}}</span>
+      <button class="topToggleBtn" (click)="$event.stopPropagation(); showImageGalleryClick()" aria-label="Toggle chat or gallery view">
+        <span class="material-icons-outlined" style="font-size:20px;line-height:1">{{showImageGallery?'question_answer':'collections'}}</span>
+      </button>
       <div *ngIf="eventDateEnd/60000>UI.nowSeconds/60" style="clear:right">
         <button *ngIf="eventLocation" class="buttonWhite" style="float:right;margin:10px;width:75px" [disabled]="!UI.isCurrentUserMember" (click)="UI.openWindow(eventLocation)">
           <span>Join</span>
@@ -57,7 +63,7 @@ import { map, tap, take } from 'rxjs/operators';
     </div>
   </div>
 
-  <div *ngIf="showChatDetails" style="padding-top: 50px">
+  <div *ngIf="showChatDetails" class="chatDetailsPanel">
     <div class="island">
       <input [(ngModel)]="chatSubject" style="width:60%" placeholder="What is the subject of this chat?">
       <br/>
@@ -145,11 +151,11 @@ import { map, tap, take } from 'rxjs/operators';
               <div style="margin:0 auto;text-align:center">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'fullDate'}}</div>
           </div>
           <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" style="clear:both;width:100%;height:5px"></div>
-          <div *ngIf="message.payload?.imageUrlThumbUser&&(isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first)" style="float:left;width:60px;min-height:10px">
-            <img [src]="message.payload?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload)" style="cursor:pointer;display:inline;float:left;margin:0 10px 10px 10px; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
+          <div *ngIf="message.payload?.imageUrlThumbUser&&(isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first)" style="float:left;width:54px;min-height:10px">
+            <img [src]="message.payload?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload)" style="cursor:pointer;display:inline;float:left;margin:0 4px 10px 10px; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
           </div>
-          <div [style.background-color]="(message.payload?.user==UI.currentUser)?'#2D3A42':'#1C1C1C'"
-                style="cursor:text;margin:0 10px 5px 60px;user-select:text;border-color:#5BBF2F"
+              <div [style.background-color]="(message.payload?.user==UI.currentUser)?'rgba(16, 185, 129, 0.14)':'rgba(15, 23, 42, 0.72)'"
+                style="cursor:text;margin:0 16px 10px 56px;user-select:text;border-color:rgba(16, 185, 129, 0.45);border-radius:10px;padding:2px 2px 4px 2px"
                 [style.border-style]="(message.payload?.text.includes(UI.currentUserLastMessageObj?.name))?'solid':'none'">
             <div>
               <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
@@ -161,7 +167,7 @@ import { map, tap, take } from 'rxjs/operators';
                 <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" (error)="UI.handleChatImageError($event, message.payload)" style="max-width:70%;max-height:320px;width: auto; height: auto; margin:5px 10px 5px 5px; box-shadow: 0 0 2px whitesmoke" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
               </div>
               <div style="margin:5px 5px 0 5px;float:left">{{message.payload?.automaticMessage?"(Automatic)":""}}</div>
-              <div style="margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
+              <div class="messageBodyText" style="margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
               <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{message.payload?.statistics?.userCount}} users,</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{message.payload?.statistics?.membersCount}} members.</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.statistics?.wallet?.balance)}} invested.</div>
@@ -180,7 +186,7 @@ import { map, tap, take } from 'rxjs/operators';
               </div>
             </div>
             <div style="cursor:pointer;clear:both;height:15px" (click)="messageShowActions.includes(message.key)?messageShowActions.splice(messageShowActions.indexOf(message.key),1):messageShowActions.push(message.key)">
-              <span *ngIf="message.payload?.verified" class="material-icons" style="float:right;font-size:15px;margin:0 2px 2px 0">done</span>
+              <span *ngIf="message.payload?.verified" class="material-icons" style="float:right;font-size:16px;margin:0 2px 2px 0;color:#3b82f6">check_circle</span>
               <span *ngIf="message.payload?.imageResized" class="material-icons-outlined" style="float:right;font-size:15px;margin:0 2px 2px 0">aspect_ratio</span>
               <span *ngIf="message.payload?.contract?.hoursValidated>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.contract?.amount)}} earned ({{UI.formatSecondsToDhm1(message.payload?.contract?.hoursValidated*3600)}}declared in {{UI.formatSecondsToDhm1(message.payload?.contract?.hoursAvailable*3600)}} window)</span>
               <span *ngIf="message.payload?.purchaseCOIN?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.purchaseCOIN?.amount)}} purchased</span>
@@ -205,10 +211,19 @@ import { map, tap, take } from 'rxjs/operators';
       <div class="bounce2"></div>
       <div class="bounce3"></div>
     </div>
-    <div>
-      <ul style="list-style:none">
-        <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index" style="float:left;margin:5px">
-          <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" style="width:375px;height:200px;object-fit:contain" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
+    <div class="galleryWrap">
+      <ul class="galleryGrid">
+        <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index" class="galleryCard" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
+          <div class="galleryImageWrap">
+            <img class="imageWithZoom galleryImage" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium||message.payload?.chatImageUrlThumb||message.payload?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload)">
+          </div>
+          <div class="galleryMeta">
+            <div class="galleryTopRow">
+              <span class="galleryAuthor">{{message.payload?.name || 'Member'}}</span>
+              <span class="galleryTime">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</span>
+            </div>
+            <div class="galleryCaption">{{message.payload?.automaticMessage?"(Automatic) ":""}}{{message.payload?.text}}</div>
+          </div>
         </li>
       </ul>
     </div>
@@ -218,15 +233,15 @@ import { map, tap, take } from 'rxjs/operators';
   </div>
 
   <div *ngIf="UI.currentUser&&!showImageGallery&&!showChatDetails"
-    style="position:fixed; bottom:0; z-index:999; background:black; padding-bottom:20px"
+    class="chatComposer"
     [style.left.px]="containerLeft"
     [style.width.px]="containerWidth">
     <span *ngIf="chatLastMessageObj?.chatSubject==null" style="margin:5px;font-size:10px">This message will be the subject of this chat</span>
-    <div style="clear:both;float:left;width:90%">
+    <div style="clear:both;float:left;width:90%;display:flex;align-items:center;min-height:64px">
       <textarea #msgBox
         autocapitalize="none"
         rows="1"
-        style="float:left;padding:10px;resize:none;overflow-y:hidden;white-space:pre-wrap;word-break:break-word"
+        style="float:left;padding:10px;resize:none;overflow-y:hidden;white-space:pre-wrap;word-break:break-word;background:rgba(15,23,42,0.65);border:1px solid rgba(148,163,184,0.3);border-radius:8px;color:#f1f5f9"
         [style.width]="imageDownloadUrl?'80%':'95%'"
         maxlength="500"
         (input)="autoResize(msgBox)"
@@ -237,13 +252,15 @@ import { map, tap, take } from 'rxjs/operators';
         <img [src]="imageDownloadUrl" style="object-fit:cover;height:53px;margin:0 auto">
       </div>
     </div>
-    <div *ngIf="draftMessage||imageDownloadUrl" style="float:right;width:10%;cursor:pointer">
-      <span class="material-icons-outlined" style="color:white;margin:15px 5px 5px 5px;font-size:30px" (click)="addMessage()">send</span>
+    <div *ngIf="draftMessage||imageDownloadUrl" class="composerActionWrap">
+      <button class="composerActionBtn sendBtn" (click)="addMessage()" aria-label="Send message">
+        <span class="material-icons-outlined" style="font-size:22px">send</span>
+      </button>
     </div>
-    <div *ngIf="!draftMessage&&!imageDownloadUrl" style="float:right;width:10%;cursor:pointer">
+    <div *ngIf="!draftMessage&&!imageDownloadUrl" class="composerActionWrap">
       <input type="file" name="chatImage" id="chatImage" class="inputfile" (change)="onImageChange($event)" accept="image/*">
-      <label class="buttonUploadImage" for="chatImage" id="buttonFile">
-        <span class="material-icons-outlined" style="margin:15px 5px 5px 5px;font-size:30px;color:#B0BAC0">photo_camera</span>
+      <label class="buttonUploadImage composerActionBtn cameraBtn" for="chatImage" id="buttonFile" aria-label="Upload image">
+        <span class="material-icons-outlined" style="font-size:22px;color:#cbd5e1">photo_camera</span>
       </label>
     </div>
   </div>
@@ -252,7 +269,7 @@ import { map, tap, take } from 'rxjs/operators';
 `
 })
 
-export class ChatComponent {
+export class ChatComponent implements OnDestroy {
   @ViewChild('msgBox') msgBox!: ElementRef<HTMLTextAreaElement>;
   draftMessage:string
   imageTimestamp:string
@@ -354,12 +371,28 @@ constructor(
   ngAfterViewInit() {
     this.updateFixedOffsets();
     window.addEventListener('resize', this.updateFixedOffsets);
+    window.addEventListener('orientationchange', this.updateFixedOffsets);
+    window.visualViewport?.addEventListener('resize', this.updateFixedOffsets);
+    window.visualViewport?.addEventListener('scroll', this.updateFixedOffsets);
+  }
+
+  ngOnDestroy() {
+    window.removeEventListener('resize', this.updateFixedOffsets);
+    window.removeEventListener('orientationchange', this.updateFixedOffsets);
+    window.visualViewport?.removeEventListener('resize', this.updateFixedOffsets);
+    window.visualViewport?.removeEventListener('scroll', this.updateFixedOffsets);
   }
 
   updateFixedOffsets = () => {
-    const r = document.getElementById('secondary_container').getBoundingClientRect();
-    this.containerTop = r.top;
-    this.containerBottom = window.innerHeight - r.bottom;
+    const secondary = document.getElementById('secondary_container');
+    if (!secondary) return;
+
+    const r = secondary.getBoundingClientRect();
+    const main = document.getElementById('main_container')?.getBoundingClientRect();
+    const viewportOffsetTop = window.visualViewport?.offsetTop || 0;
+
+    this.containerTop = Math.max(0, (main?.top ?? r.top) + viewportOffsetTop);
+    this.containerBottom = Math.max(0, window.innerHeight - r.bottom);
     this.containerLeft = r.left;
     this.containerWidth = r.width;
   };
@@ -702,6 +735,12 @@ constructor(
     this.zone.onStable.pipe(take(1)).subscribe(() => {
       const el = this.msgBox?.nativeElement;
       if (el) this.autoResize(el);
+      this.updateFixedOffsets();
+      this.scrollMainToBottom();
+      setTimeout(() => {
+        this.updateFixedOffsets();
+        this.scrollMainToBottom();
+      }, 180);
     });
   }
   
