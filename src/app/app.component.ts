@@ -23,6 +23,9 @@ import { filter, interval } from 'rxjs';
         <button class="iconBtn" (click)="openDiscover()" aria-label="Open discover">
           <span class="material-icons-outlined">info</span>
         </button>
+        <button class="iconBtn" (click)="toggleSocialLinksPopup()" aria-label="Open apps">
+          <span class="material-icons-outlined">apps</span>
+        </button>
       </div>
 
       <div class="navRight">
@@ -55,10 +58,41 @@ import { filter, interval } from 'rxjs';
         </div>
       </div>
     </div>
+
+    <div class="socialPopupBackdrop" *ngIf="showSocialLinksPopup" (click)="closeSocialLinksPopup()">
+      <div class="socialPopupCard" (click)="$event.stopPropagation()">
+        <div class="socialPopupHeader">
+          <span class="socialPopupTitle">Apps</span>
+        </div>
+        <div class="socialPopupGrid">
+          <button *ngIf="UI.PERRINNProfileLastMessageObj?.publicLink" class="buttonSecondary socialPopupBtn" (click)="openSocialLink(UI.PERRINNProfileLastMessageObj?.publicLink)">
+            <span class="material-icons-outlined">cloud</span>
+            Google Drive
+          </button>
+          <button class="buttonSecondary socialPopupBtn" (click)="openSocialLink('https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx')">
+            <span class="material-icons-outlined">chat</span>
+            WhatsApp
+          </button>
+          <button class="buttonSecondary socialPopupBtn" (click)="openSocialLink('https://www.youtube.com/@PERRINN424WeAreATeam')">
+            <span class="material-icons-outlined">smart_display</span>
+            YouTube
+          </button>
+          <button class="buttonSecondary socialPopupBtn" (click)="openSocialLink('https://www.linkedin.com/company/perrinn')">
+            <span class="material-icons-outlined">business</span>
+            LinkedIn
+          </button>
+          <button class="buttonSecondary socialPopupBtn" (click)="openSocialLink('https://github.com/PERRINN')">
+            <span class="material-icons-outlined">code</span>
+            GitHub
+          </button>
+        </div>
+      </div>
+    </div>
     </div>
   `
 })
 export class AppComponent {
+  showSocialLinksPopup = false;
 
   constructor(
     public router:Router,
@@ -100,6 +134,20 @@ export class AppComponent {
 
   openDiscover() {
     window.open('https://discover.perrinn.com', '_blank');
+  }
+
+  toggleSocialLinksPopup() {
+    this.showSocialLinksPopup = !this.showSocialLinksPopup;
+  }
+
+  closeSocialLinksPopup() {
+    this.showSocialLinksPopup = false;
+  }
+
+  openSocialLink(url: string) {
+    if (!url) return;
+    window.open(url, '_blank');
+    this.closeSocialLinksPopup();
   }
 
 }

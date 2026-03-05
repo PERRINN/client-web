@@ -95,39 +95,6 @@ import { ChangeDetectorRef } from '@angular/core'
       </button>
     </div>
   </div>
-
-
-  <div class="island" *ngIf="scope=='all'">
-      <button class="buttonBlack" style="float:right;height:34px;width:56px;margin-right:10px;display:flex;align-items:center;justify-content:center;padding:0"
-            (click)="UI.openWindow(UI.PERRINNProfileLastMessageObj?.publicLink)">
-        <span style="font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center" class="material-icons">link</span>
-    </button>
-      <button class="buttonBlack" style="float:right;height:34px;width:56px;margin-right:10px;display:flex;align-items:center;justify-content:center;padding:0">
-        <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%">
-            <img src="./../assets/App icons/Digital_Glyph_White.png"
-        style="width:22px;height:22px;object-fit:contain;display:block"> 
-            </a>
-    </button>
-      <button class="buttonBlack" style="float:right;height:34px;width:56px;margin-right:10px;display:flex;align-items:center;justify-content:center;padding:0">
-        <a href="https://www.youtube.com/@PERRINN424WeAreATeam" target="_blank" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%">
-            <img src="./../assets/App icons/yt_logo_mono_white.png"
-        style="width:22px;height:22px;object-fit:contain;display:block"> 
-            </a>
-    </button>
-      <button class="buttonBlack" style="float:right;height:34px;width:56px;margin-right:10px;display:flex;align-items:center;justify-content:center;padding:0">
-        <a href="https://www.linkedin.com/company/perrinn" target="_blank" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%">
-            <img src="./../assets/App icons/InBug-White.png"
-        style="width:22px;height:22px;object-fit:contain;display:block"> 
-            </a>
-    </button>
-      <button class="buttonBlack" style="float:right;height:34px;width:56px;margin-right:10px;display:flex;align-items:center;justify-content:center;padding:0">
-        <a href="https://github.com/PERRINN" target="_blank" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%">
-            <img src="./../assets/App icons/github-mark-white.png"
-        style="width:22px;height:22px;object-fit:contain;display:block"> 
-            </a>
-    </button>
-  </div>
-
     <div>
       <div *ngIf="mode=='inbox' || scope=='all'" class="splitContainer">
         <div class="island splitIsland">

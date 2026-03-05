@@ -11,7 +11,7 @@ import { map, tap, take } from 'rxjs/operators';
   selector: 'chat',
   template: `
 
-  <div class="chatPage" [ngStyle]="{'padding-top' : showChatDetails ? '0px' : showImageGallery ? '40px' : '20px' , 'padding-bottom' : !UI.currentUser||showChatDetails||showImageGallery ? '0px' : '90px'}">
+  <div class="chatPage" [ngStyle]="{'padding-top' : showChatDetails ? '0px' : showImageGallery ? '40px' : '20px' , 'padding-bottom' : chatPagePaddingBottom}">
   <div
     class="chatTopBar"
     [style.top.px]="containerTop"
@@ -233,7 +233,9 @@ import { map, tap, take } from 'rxjs/operators';
   </div>
 
   <div *ngIf="UI.currentUser&&!showImageGallery&&!showChatDetails"
+    #chatComposer
     class="chatComposer"
+    [style.bottom.px]="containerBottom"
     [style.left.px]="containerLeft"
     [style.width.px]="containerWidth">
     <span *ngIf="chatLastMessageObj?.chatSubject==null" style="margin:5px;font-size:10px">This message will be the subject of this chat</span>
@@ -271,6 +273,7 @@ import { map, tap, take } from 'rxjs/operators';
 
 export class ChatComponent implements OnDestroy {
   @ViewChild('msgBox') msgBox!: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('chatComposer') chatComposer?: ElementRef<HTMLDivElement>;
   draftMessage:string
   imageTimestamp:string
   imageDownloadUrl:string
@@ -317,7 +320,15 @@ export class ChatComponent implements OnDestroy {
   containerBottom = 0;
   containerLeft = 0;
   containerWidth = 0;
+  composerHeight = 90;
   isLoadMoreDisabled = false;
+  private offsetsRefreshTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  private scheduleOffsetsRefresh = () => {
+    this.updateFixedOffsets();
+    if (this.offsetsRefreshTimeout) clearTimeout(this.offsetsRefreshTimeout);
+    this.offsetsRefreshTimeout = setTimeout(() => this.updateFixedOffsets(), 180);
+  }
 
 constructor(
     public afs:AngularFirestore,
@@ -369,18 +380,23 @@ constructor(
   }
 
   ngAfterViewInit() {
-    this.updateFixedOffsets();
-    window.addEventListener('resize', this.updateFixedOffsets);
-    window.addEventListener('orientationchange', this.updateFixedOffsets);
-    window.visualViewport?.addEventListener('resize', this.updateFixedOffsets);
-    window.visualViewport?.addEventListener('scroll', this.updateFixedOffsets);
+    this.scheduleOffsetsRefresh();
+    window.addEventListener('resize', this.scheduleOffsetsRefresh);
+    window.addEventListener('orientationchange', this.scheduleOffsetsRefresh);
+    window.visualViewport?.addEventListener('resize', this.scheduleOffsetsRefresh);
+    window.visualViewport?.addEventListener('scroll', this.scheduleOffsetsRefresh);
+    document.addEventListener('focusout', this.scheduleOffsetsRefresh, true);
+    document.addEventListener('focusin', this.scheduleOffsetsRefresh, true);
   }
 
   ngOnDestroy() {
-    window.removeEventListener('resize', this.updateFixedOffsets);
-    window.removeEventListener('orientationchange', this.updateFixedOffsets);
-    window.visualViewport?.removeEventListener('resize', this.updateFixedOffsets);
-    window.visualViewport?.removeEventListener('scroll', this.updateFixedOffsets);
+    window.removeEventListener('resize', this.scheduleOffsetsRefresh);
+    window.removeEventListener('orientationchange', this.scheduleOffsetsRefresh);
+    window.visualViewport?.removeEventListener('resize', this.scheduleOffsetsRefresh);
+    window.visualViewport?.removeEventListener('scroll', this.scheduleOffsetsRefresh);
+    document.removeEventListener('focusout', this.scheduleOffsetsRefresh, true);
+    document.removeEventListener('focusin', this.scheduleOffsetsRefresh, true);
+    if (this.offsetsRefreshTimeout) clearTimeout(this.offsetsRefreshTimeout);
   }
 
   updateFixedOffsets = () => {
@@ -390,12 +406,21 @@ constructor(
     const r = secondary.getBoundingClientRect();
     const main = document.getElementById('main_container')?.getBoundingClientRect();
     const viewportOffsetTop = window.visualViewport?.offsetTop || 0;
+    const visualViewportHeight = window.visualViewport?.height || window.innerHeight;
 
-    this.containerTop = Math.max(0, (main?.top ?? r.top) + viewportOffsetTop);
-    this.containerBottom = Math.max(0, window.innerHeight - r.bottom);
+    this.containerTop = Math.max(0, (main?.top ?? r.top));
+    this.containerBottom = Math.max(0, window.innerHeight - (visualViewportHeight + viewportOffsetTop));
     this.containerLeft = r.left;
     this.containerWidth = r.width;
+
+    const composerEl = this.chatComposer?.nativeElement;
+    this.composerHeight = composerEl ? composerEl.offsetHeight : 90;
   };
+
+  get chatPagePaddingBottom(): string {
+    if (!this.UI.currentUser || this.showChatDetails || this.showImageGallery) return '0px';
+    return `${this.composerHeight + this.containerBottom + 8}px`;
+  }
 
   showImageGalleryClick() {
     event.stopPropagation()
@@ -748,6 +773,7 @@ constructor(
   autoResize(el: HTMLTextAreaElement) {
     el.style.height = 'auto';
     el.style.height = el.scrollHeight + 'px';
+    this.scheduleOffsetsRefresh();
   }
 
 }
