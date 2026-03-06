@@ -1274,15 +1274,18 @@ app-root profile .carouselMeta {
   border: none;
   border-top: 1px solid rgba(16, 185, 129, 0.12);
   background: rgba(15, 23, 42, 0.75);
-  color: #94a3b8;
-  font-size: 11px;
-  font-weight: 600;
   padding: 8px 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   cursor: pointer;
+}
+
+app-root profile .messageTiming {
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 @media (max-width: 900px) {

@@ -212,8 +212,7 @@ import { ChangeDetectorRef } from '@angular/core'
             <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload.doc.data())" class="carouselImage">
           </div>
           <button class="carouselMeta" (click)="openListedChat(message.payload.doc.data()?.chain)">
-            <span class="material-icons-outlined" style="font-size:14px;">schedule</span>
-            {{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}
+            <span class="messageTiming">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</span>
           </button>
           <span *ngIf="!UI.isCurrentUserMember" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
         </li>
@@ -242,7 +241,7 @@ import { ChangeDetectorRef } from '@angular/core'
                 [style.color]="'#B0BAC0'">
                 {{message.payload.doc.data()?.recipients[UI.currentUser]?.unreadMessages}}
               </div>
-              <div style="float:right;margin-top:10px;color:#999;margin-right:10px;width:40px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</div>
+              <div class="messageTiming" style="float:right;margin-top:10px;margin-right:10px;width:40px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</div>
               <div style="clear:both;float:left;margin-bottom:10px;width:90%;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">
                 <span>{{message.payload.doc.data()?.name}}:&nbsp;</span>
                 <span *ngIf="message.payload.doc.data()?.imageResized" class="material-icons-outlined" style="font-size:15px;line-height:12px;margin-right:2px">aspect_ratio</span>
