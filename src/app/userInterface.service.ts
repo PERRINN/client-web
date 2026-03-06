@@ -144,7 +144,7 @@ export class UserInterfaceService {
   }
 
   createMessage(messageObj) {
-    if (!messageObj.text && !messageObj.chatImageTimestamp) return null;
+    if (!messageObj.text && !messageObj.chatImageTimestamp && !messageObj.chatProfileImageTimestamp) return null;
     messageObj.serverTimestamp =
       firebase.firestore.FieldValue.serverTimestamp();
     messageObj.user = this.currentUser;

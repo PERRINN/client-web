@@ -12,39 +12,45 @@ import firebase from 'firebase/compat/app';
   selector:'settings',
   template:`
   <div class="settingsPage">
-  <div class="island profileSummary">
-  <img class="imageWithZoom" [src]="UI.currentUserLastMessageObj?.imageUrlMedium||UI.currentUserLastMessageObj?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, UI.currentUserLastMessageObj)" style="object-fit:cover;margin:10px;height:200px;width:200px" (click)="UI.showFullScreenImage(UI.currentUserLastMessageObj?.imageUrlOriginal)"
-  onerror="this.onerror=null;this.src='https://storage.googleapis.com/perrinn-d5fc1.appspot.com/images%2F1585144867972Screen%20Shot%202018-03-16%20at%2015.05.10_180x180.png?GoogleAccessId=firebase-adminsdk-rh8x2%40perrinn-d5fc1.iam.gserviceaccount.com&Expires=16756761600&Signature=I3Kem9n6zYjSNijnKOx%2FAOUAg65GN3xf8OD1qD4uo%2BayOFblFIgfn81uPWRTzhGg14lJdyhz3Yx%2BiCXuYCIdYnduqMZcIjtHE6WR%2BPo74ckemuxIKx3N24tlBJ6DgkfgqwmIkw%2F%2FKotm8Cz%2Fq%2FbIZm%2FvAOi2dpBHqrHiIFXYb8AVYnhP1osUhVvyzapgYJEBZJcHur7v6uqrSKwQ4DfeHHinbJpvkX3wjM6Nxabi3kVABdGcGqMoAPGCTZJMzNj8xddAXuECbptQprd9LlnQOuL4tuDfLMAOUXTHmJVhJEBrquxQi8iPRjnLOvnqF8s2We0SOxprqEuwbZyxSgH05Q%3D%3D'">
-  <br/>
-  <div>
-    <!-- Hidden file input -->
-    <input
-      type="file"
-      id="chatImage"
-      (change)="onImageChange($event)"
-      accept="image/*"
-      style="display: none;"
-    />
+  <div class="island profileSummary settingsProfileCard">
+    <div class="settingsProfileHead">
+      <img class="imageWithZoom settingsProfileImage" [src]="UI.currentUserLastMessageObj?.imageUrlMedium||UI.currentUserLastMessageObj?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, UI.currentUserLastMessageObj)" (click)="UI.showFullScreenImage(UI.currentUserLastMessageObj?.imageUrlOriginal)"
+      onerror="this.onerror=null;this.src='https://storage.googleapis.com/perrinn-d5fc1.appspot.com/images%2F1585144867972Screen%20Shot%202018-03-16%20at%2015.05.10_180x180.png?GoogleAccessId=firebase-adminsdk-rh8x2%40perrinn-d5fc1.iam.gserviceaccount.com&Expires=16756761600&Signature=I3Kem9n6zYjSNijnKOx%2FAOUAg65GN3xf8OD1qD4uo%2BayOFblFIgfn81uPWRTzhGg14lJdyhz3Yx%2BiCXuYCIdYnduqMZcIjtHE6WR%2BPo74ckemuxIKx3N24tlBJ6DgkfgqwmIkw%2F%2FKotm8Cz%2Fq%2FbIZm%2FvAOi2dpBHqrHiIFXYb8AVYnhP1osUhVvyzapgYJEBZJcHur7v6uqrSKwQ4DfeHHinbJpvkX3wjM6Nxabi3kVABdGcGqMoAPGCTZJMzNj8xddAXuECbptQprd9LlnQOuL4tuDfLMAOUXTHmJVhJEBrquxQi8iPRjnLOvnqF8s2We0SOxprqEuwbZyxSgH05Q%3D%3D'">
 
-    <!-- Label acts as the clickable button -->
-    <label
-      for="chatImage"
-      id="buttonFile"
-      class="buttonWhite"
-      style="font-size:12px;text-align:center;width:250px;padding:2px;margin:10px;cursor:pointer;display:inline-block;"
-    >
-      Upload a new profile picture
-    </label>
-  </div>
-  <div style="margin:15px">
-    <span style="font-size:18px">{{UI.currentUserLastMessageObj?.name}} </span>
-    <span style="font-size:18px">{{UI.convertAndFormatPRNToPRNCurrency(null,UI.currentUserLastMessageObj?.wallet?.balance)}} </span>
-  </div>
-  <span style="margin-left:15px">{{UI.currentUserLastMessageObj?.userPresentation}} Level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
-<br>
-  <span *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="margin:15px">Waiting for contract signature (Level {{UI.currentUserLastMessageObj?.contract?.level}})</span>
-  <span style="margin:15px">{{UI.hasTouch?"On mobile (touch screen)":"On desktop / laptop"}}</span>
-  <span style="margin:15px">{{UI.isStandalone?"On home screen":"In the browser"}}</span>
+      <div class="settingsProfileMain">
+        <div class="settingsProfileTopRow">
+          <div class="settingsProfileNameWrap">
+            <span class="settingsProfileName">{{UI.currentUserLastMessageObj?.name}}</span>
+          </div>
+          <span class="settingsProfileBalance">{{UI.convertAndFormatPRNToPRNCurrency(null,UI.currentUserLastMessageObj?.wallet?.balance)}}</span>
+        </div>
+
+        <div class="settingsProfilePresentation">{{UI.currentUserLastMessageObj?.userPresentation}} Level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</div>
+
+        <div class="settingsProfileMeta">
+          <span *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed">Waiting for contract signature (Level {{UI.currentUserLastMessageObj?.contract?.level}})</span>
+          <span>{{UI.hasTouch?"On mobile (touch screen)":"On desktop / laptop"}}</span>
+          <span>{{UI.isStandalone?"On home screen":"In the browser"}}</span>
+        </div>
+
+        <div class="settingsUploadRow">
+          <input
+            type="file"
+            id="chatImage"
+            (change)="onImageChange($event)"
+            accept="image/*"
+            style="display: none;"
+          />
+          <label
+            for="chatImage"
+            id="buttonFile"
+            class="buttonWhite settingsUploadBtn"
+          >
+            Upload a new profile picture
+          </label>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="island settingsSection">
     <div class="title">Your name (preferably your first name)</div>
@@ -93,7 +99,7 @@ import firebase from 'firebase/compat/app';
     <div class="title">PERRINN contract</div>
     <div style="margin:20px">Your PERRINN contract defines how you collaborate with the team. Any change you submit here is first reviewed, then approved before it becomes active. Either you or PERRINN can end the contract at any time.</div>
     <div style="margin:15px 20px 0 20px">Contract level is a scale from <b>1 to 10</b> based on your ability to work independently: <b>1</b> = beginner, <b>10</b> = expert (10+ years of experience). After signature, your effective level increases automatically over time by about <b>+1 per year</b>.</div>
-    <input [(ngModel)]="contract.level" placeholder="Contract level">
+    <input [(ngModel)]="contract.level" (input)="onContractLevelInput($event)" maxlength="2" inputmode="numeric" pattern="[0-9]*" placeholder="Contract level">
     <button class="buttonWhite" (click)="updateContract()" style="clear:both;font-size:12px;width:200px;padding:2px;margin:10px auto;display:block" [disabled]="contract.level==UI.currentUserLastMessageObj?.contract?.level">Update my contract</button>
     <div *ngIf="!UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:10px 10px 5px 15px">No contract registered.</div>
     <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:10px 10px 5px 15px">Contract number {{UI.currentUserLastMessageObj?.contract?.createdTimestamp}}</div>
@@ -126,14 +132,34 @@ export class SettingsComponent {
     public UI:UserInterfaceService
   ) {
     this.contract={}
-    this.name=this.UI.currentUserLastMessageObj.name||null
-    this.userPresentation=this.UI.currentUserLastMessageObj.userPresentation||null
-    this.publicLink=this.UI.currentUserLastMessageObj.publicLink||null
-    this.emailsAuth=this.UI.currentUserLastMessageObj.emails.auth||null
-    this.contract.level=(this.UI.currentUserLastMessageObj.contract||{}).level||null
+    this.name=(this.UI.currentUserLastMessageObj||{}).name||null
+    this.userPresentation=(this.UI.currentUserLastMessageObj||{}).userPresentation||null
+    this.publicLink=(this.UI.currentUserLastMessageObj||{}).publicLink||null
+    this.emailsAuth=((this.UI.currentUserLastMessageObj||{}).emails||{}).auth||null
+    this.contract.level=((this.UI.currentUserLastMessageObj||{}).contract||{}).level||null
   }
 
   ngOnInit() {
+    this.afAuth.user.subscribe((auth) => {
+      if (!auth) return;
+      this.afs
+        .collection<any>('PERRINNMessages', (ref) =>
+          ref
+            .where('user', '==', auth.uid)
+            .where('verified', '==', true)
+            .orderBy('serverTimestamp', 'desc')
+            .limit(1)
+        )
+        .valueChanges()
+        .subscribe((snapshot) => {
+          const profile = (snapshot && snapshot[0]) || {};
+          this.name = profile.name || null;
+          this.userPresentation = profile.userPresentation || null;
+          this.publicLink = profile.publicLink || null;
+          this.emailsAuth = (profile.emails || {}).auth || null;
+          this.contract.level = (profile.contract || {}).level || null;
+        });
+    });
   }
 
   updateName(){
@@ -192,15 +218,31 @@ export class SettingsComponent {
   }
 
   updateContract(){
-    if(!this.contract.level)return
+    const contractLevel = this.getNormalizedContractLevel()
+    if(!contractLevel)return
     this.UI.createMessage({
       chain:this.UI.currentUser,
-      text:'Updating my contract details to level '+this.contract.level,
+      text:'Updating my contract details to level '+contractLevel,
       contract:{
-        level:this.contract.level
+        level:contractLevel
       }
     })
     this.router.navigate(['chat',this.UI.currentUser])
+  }
+
+  onContractLevelInput(event: Event) {
+    const inputElement = event.target as HTMLInputElement;
+    const digitsOnlyValue = (inputElement.value || '').replace(/\D/g, '').slice(0, 2);
+    inputElement.value = digitsOnlyValue;
+    this.contract.level = digitsOnlyValue;
+  }
+
+  private getNormalizedContractLevel(): number | null {
+    const digitsOnlyValue = String(this.contract.level ?? '').replace(/\D/g, '').slice(0, 2);
+    if (!digitsOnlyValue) return null;
+    const contractLevel = Number(digitsOnlyValue);
+    if (!Number.isFinite(contractLevel) || contractLevel <= 0) return null;
+    return contractLevel;
   }
 
   addChild(team){

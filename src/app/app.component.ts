@@ -39,11 +39,13 @@ import { filter, interval } from 'rxjs';
           <span *ngIf="UI.isCurrentUserMember" class="material-icons verified">check_circle</span>
         </div>
 
-        <span *ngIf="UI.isDev||UI.profileSimulatorNonMember" class="devFlag" (click)="UI.toggleprofileSimulatorNonMember()">
-          Non Member {{UI.profileSimulatorNonMember ? '(ON)' : '(OFF)'}}
-        </span>
-        <span *ngIf="UI.isDev" class="devFlag">DEV</span>
-        <span *ngIf="UI.revolutMode=='sandbox'" class="devFlag">sandbox</span>
+        <div class="devPillArea" *ngIf="UI.isDev || UI.profileSimulatorNonMember || UI.revolutMode=='sandbox'">
+          <button *ngIf="UI.isDev||UI.profileSimulatorNonMember" class="devPill devPillToggle" (click)="UI.toggleprofileSimulatorNonMember()" aria-label="Toggle non member simulator">
+            Non-member {{UI.profileSimulatorNonMember ? 'ON' : 'OFF'}}
+          </button>
+          <span *ngIf="UI.isDev" class="devPill">DEV</span>
+          <span *ngIf="UI.revolutMode=='sandbox'" class="devPill">sandbox</span>
+        </div>
 
         <button class="buttonPrimary buyBtn" (click)="router.navigate(['buyPRN',''])" [disabled]='this.router.url.startsWith("/buyPRN")'>
           Buy PRN

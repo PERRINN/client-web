@@ -78,12 +78,12 @@ import { ChangeDetectorRef } from '@angular/core'
       </div>
     </div>
 
-    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; align-items:center;">
-      <div style="display:inline-flex; padding:4px; background:rgba(15,23,42,0.75); border:1px solid rgba(16,185,129,0.2); border-radius:999px; gap:4px; flex-wrap:wrap;">
-        <button class="buttonBlack" style="width:82px; border-radius:999px; border:none;" [style.background-color]="mode=='inbox'?'#10b981':'transparent'" [style.color]="mode=='inbox'?'#ffffff':'#cbd5e1'" (click)="mode='inbox';refreshMessages()">Inbox</button>
-        <button class="buttonBlack" style="width:82px; border-radius:999px; border:none;" [style.background-color]="mode=='history'?'#10b981':'transparent'" [style.color]="mode=='history'?'#ffffff':'#cbd5e1'" (click)="mode='history';refreshMessages();refreshChart()">History</button>
-        <button class="buttonBlack" style="width:82px; border-radius:999px; border:none;" [style.background-color]="mode=='chain'?'#10b981':'transparent'" [style.color]="mode=='chain'?'#ffffff':'#cbd5e1'" (click)="mode='chain';refreshMessages()">Chain</button>
-        <button class="buttonBlack" style="width:82px; border-radius:999px; border:none;" [style.background-color]="mode=='forecast'?'#10b981':'transparent'" [style.color]="mode=='forecast'?'#ffffff':'#cbd5e1'" (click)="mode='forecast';refreshMessages()">Forecast</button>
+    <div class="modeSwitchWrap" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; align-items:center;">
+      <div class="modeSwitchTrack" style="display:inline-flex; padding:4px; background:rgba(15,23,42,0.75); border:1px solid rgba(16,185,129,0.2); gap:4px; flex-wrap:wrap;">
+        <button class="buttonBlack modeSwitchBtn" style="border:none;" [style.background-color]="mode=='inbox'?'#10b981':'transparent'" [style.color]="mode=='inbox'?'#ffffff':'#cbd5e1'" (click)="mode='inbox';refreshMessages()">Inbox</button>
+        <button class="buttonBlack modeSwitchBtn" style="border:none;" [style.background-color]="mode=='history'?'#10b981':'transparent'" [style.color]="mode=='history'?'#ffffff':'#cbd5e1'" (click)="mode='history';refreshMessages();refreshChart()">History</button>
+        <button class="buttonBlack modeSwitchBtn" style="border:none;" [style.background-color]="mode=='chain'?'#10b981':'transparent'" [style.color]="mode=='chain'?'#ffffff':'#cbd5e1'" (click)="mode='chain';refreshMessages()">Chain</button>
+        <button class="buttonBlack modeSwitchBtn" style="border:none;" [style.background-color]="mode=='forecast'?'#10b981':'transparent'" [style.color]="mode=='forecast'?'#ffffff':'#cbd5e1'" (click)="mode='forecast';refreshMessages()">Forecast</button>
       </div>
     </div>
 
@@ -98,7 +98,8 @@ import { ChangeDetectorRef } from '@angular/core'
     <div>
       <div *ngIf="mode=='inbox' || scope=='all'" class="splitContainer">
         <div class="island splitIsland">
-        <ul class="listLight" *ngIf="comingEvents|async as events">
+        <ng-container *ngIf="comingEvents|async as events">
+        <ul class="listLight">
           <li *ngIf="events.length===0" style="padding:14px; border: 1px solid rgba(16, 185, 129, 0.1); background: rgba(16, 185, 129, 0.03); color:#94a3b8; font-size:13px;">
             No upcoming events.
           </li>
@@ -106,22 +107,29 @@ import { ChangeDetectorRef } from '@angular/core'
           <li class="guardedChatItem" *ngFor="let message of events; let i = index"
             [style.display]="showAllEvents || i===0 ? 'block' : 'none'"
             (click)="openListedChat(message.payload.doc.data()?.chain)">
-            <div *ngIf="scope=='all'||mode=='inbox'" class="guardedChatItem" style="padding:10px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.12); background: rgba(16, 185, 129, 0.03);">
-              <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:6px;">
-                <div style="display:flex; gap:10px; min-width:0;">
-                  <span class="material-icons-outlined" style="font-size:22px; color:#10b981; margin-top:1px;">event</span>
-                  <div style="min-width:0;">
-                    <div style="font-size:11px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:2px;">
+            <div *ngIf="scope=='all'||mode=='inbox'" class="guardedChatItem eventCardBody">
+              <div class="eventCardHeader">
+                <div class="eventCardMedia">
+                  <ng-container *ngIf="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb; else eventIconFallback">
+                    <img
+                      [src]="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb"
+                      class="eventCardChatImage"
+                      (error)="UI.handleChatImageError($event, message.payload.doc.data())">
+                  </ng-container>
+                  <ng-template #eventIconFallback>
+                    <span class="material-icons-outlined eventCardIconBadge">event</span>
+                  </ng-template>
+                  <div class="eventCardTitleBlock">
+                    <div class="eventCardLabel">
                       {{i===0 ? 'Next Event' : 'Other Event'}}
                     </div>
-                    <div style="font-size:14px; color:#f1f5f9; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    <div class="chatSubject chatSubjectTruncate">
                       {{message.payload.doc.data()?.chatSubject}}
                     </div>
                   </div>
                 </div>
                 <button *ngIf="message.payload.doc.data()?.eventLocation"
-                  class="buttonWhite"
-                  style="width:90px; margin:0;"
+                  class="buttonWhite eventCardJoinBtn"
                   [disabled]="!UI.isCurrentUserMember"
                   (click)="$event.stopPropagation(); UI.openWindow(message.payload.doc.data()?.eventLocation)">
                   <span>Join</span>
@@ -129,32 +137,31 @@ import { ChangeDetectorRef } from '@angular/core'
                 </button>
               </div>
 
-              <div style="display:flex; align-items:center; gap:7px; margin-bottom:6px; flex-wrap:wrap;">
-                <span *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)>0" style="background: rgba(16, 185, 129, 0.16); color:#10b981; font-size:11px; font-weight:600; padding:3px 8px; border-radius:999px;">
+              <div class="eventCardMeta">
+                <span *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)>0" class="eventCardStatusChip">
                   In {{UI.formatSecondsToDhm2(message.payload.doc.data()?.eventDateStart/1000-UI.nowSeconds)}}
                 </span>
-                <span *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)<=0&&message.payload.doc.data()?.eventDateEnd/60000>UI.nowSeconds/60" style="background: rgba(16, 185, 129, 0.2); color:#10b981; font-size:11px; font-weight:700; padding:3px 8px; border-radius:999px;">
+                <span *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)<=0&&message.payload.doc.data()?.eventDateEnd/60000>UI.nowSeconds/60" class="eventCardStatusChip eventCardStatusNow">
                   Now
                 </span>
-                <span style="font-size:12px; color:#cbd5e1;">
+                <span class="eventCardDateText">
                   {{message.payload.doc.data()?.eventDateStart|date:'EEEE d MMM h:mm a'}} ({{message.payload.doc.data()?.eventDuration}}h)
                 </span>
               </div>
 
-              <div style="font-size:12px; color:#94a3b8; line-height:1.4;">
+              <div class="eventCardDescription">
                 {{message.payload.doc.data()?.eventDescription}}
               </div>
-
-              <button class="buttonBlack"
-                *ngIf="i===0 && events.length>1 && UI.isCurrentUserMember"
-                style="margin:8px 0 0 auto; width:170px; display:block;"
-                (click)="$event.stopPropagation(); showAllEvents=!showAllEvents">
-                {{showAllEvents ? 'Hide Other Events' : 'Show Other Events'}}
-              </button>
               <span *ngIf="!UI.isCurrentUserMember" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
             </div>
           </li>
         </ul>
+        <button class="buttonBlack eventCardToggleBtn"
+          *ngIf="events.length>1 && UI.isCurrentUserMember"
+          (click)="showAllEvents=!showAllEvents">
+          {{showAllEvents ? 'Hide Other Events' : 'Show Other Events'}}
+        </button>
+        </ng-container>
         </div>
 
         <div class="island splitIsland">
@@ -163,30 +170,38 @@ import { ChangeDetectorRef } from '@angular/core'
           (click)="openListedChat(message.payload.doc.data()?.chain)">
           <div *ngIf="scope=='all'||mode=='inbox'">
             <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0">
-            <div class="guardedChatItem" style="padding:10px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.12); background: rgba(16, 185, 129, 0.03);">
-              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                <span class="material-symbols-outlined" style="font-size:24px; color:#10b981;">crowdsource</span>
-                <span style="color:#f1f5f9; font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{message.payload.doc.data()?.chatSubject}}</span>
+            <div class="guardedChatItem" style="padding:8px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.12); background: rgba(16, 185, 129, 0.03);">
+              <div style="display:flex; align-items:center; gap:6px; margin-bottom:5px;">
+                <ng-container *ngIf="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb; else fundIconFallback">
+                  <img
+                    [src]="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb"
+                    class="eventCardChatImage"
+                    (error)="UI.handleChatImageError($event, message.payload.doc.data())">
+                </ng-container>
+                <ng-template #fundIconFallback>
+                  <span class="material-symbols-outlined eventCardIconBadge">crowdsource</span>
+                </ng-template>
+                <span class="chatSubject chatSubjectTruncate">{{message.payload.doc.data()?.chatSubject}}</span>
               </div>
 
-              <div style="background-color:#334155;height:22px;width:100%;border-radius:6px;overflow:hidden;position:relative;">
+              <div style="background-color:#334155;height:18px;width:100%;border-radius:6px;overflow:hidden;position:relative;">
                 <div style="height:100%;background: linear-gradient(90deg, #059669 0%, #047857 100%);display:flex;align-items:center;justify-content:center;transition:width 0.3s ease;"
                   [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100+'%'">
-                  <span style="font-size: 11px; color: #ffffff; font-weight: 600; white-space: nowrap;" *ngIf="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100 > 30">
+                  <span style="font-size: 10px; color: #ffffff; font-weight: 600; white-space: nowrap;" *ngIf="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100 > 30">
                     {{message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget|percent:'1.0-0'}}
                   </span>
                 </div>
               </div>
 
-              <div style="margin-top: 6px; font-size: 12px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center;">
+              <div style="margin-top: 5px; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center;">
                 <span style="color: #10b981; font-weight: 500; margin-left: auto;">{{message.payload.doc.data()?.fund?.daysLeft|number:'1.0-0'}} days left</span>
               </div>
 
-              <div style="margin-top: 4px; font-size: 12px; color: #94a3b8; line-height: 1.4;">
+              <div style="margin-top: 3px; font-size: 11px; color: #94a3b8; line-height: 1.35;">
                 <span>{{message.payload.doc.data()?.fund?.description}}</span>
               </div>
 
-              <div style="margin-top: 4px; font-size: 12px; color: #cbd5e1; line-height: 1.4;">
+              <div style="margin-top: 3px; font-size: 11px; color: #cbd5e1; line-height: 1.35;">
                 target: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /
                 raised: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}
               </div>
@@ -228,7 +243,7 @@ import { ChangeDetectorRef } from '@angular/core'
             </div>
             <div>
               <div style="float:left;margin-top:10px;width:60%;white-space:nowrap;text-overflow:ellipsis">
-                <span style="color:white;font-size:15px">{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</span>
+                <span class="chatSubject chatSubjectStrong">{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</span>
               </div>
               <div *ngIf="UI.currentUser&&(UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds" style="float:right;margin:5px 0 0 0;width:35px;height:20px;line-height:20px;text-align:center"
                 (click)="readFlagClick(message.payload.doc.id,(message.payload.doc.data()?.reads||{})[UI.currentUser])"
@@ -243,7 +258,7 @@ import { ChangeDetectorRef } from '@angular/core'
               </div>
               <div class="messageTiming" style="float:right;margin-top:10px;margin-right:10px;width:40px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</div>
               <div style="clear:both;float:left;margin-bottom:10px;width:90%;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">
-                <span>{{message.payload.doc.data()?.name}}:&nbsp;</span>
+                <span class="messageAuthor">{{message.payload.doc.data()?.name}}:&nbsp;</span>
                 <span *ngIf="message.payload.doc.data()?.imageResized" class="material-icons-outlined" style="font-size:15px;line-height:12px;margin-right:2px">aspect_ratio</span>
                 <span>{{message.payload.doc.data()?.automaticMessage?"(Automatic) ":""}}{{message.payload.doc.data()?.text}}</span>
               </div>

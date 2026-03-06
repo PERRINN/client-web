@@ -135,7 +135,7 @@ interface RevolutOrderResponse {
       <ul class="listLight">
         <li *ngFor="let message of currentFunds|async" style="padding:0px">
           <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0&&(message.payload.doc.data()?.fund?.active||showPastFunds)" style="cursor:default;padding:12px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.1); margin-bottom: 10px; background: rgba(16, 185, 129, 0.03);">
-            <span style="font-size:13px; font-weight: 600; color: #f1f5f9;">{{message.payload.doc.data()?.chatSubject}}</span>
+            <span class="chatSubject">{{message.payload.doc.data()?.chatSubject}}</span>
             <div style="margin-top: 10px;">
               <div style="background-color:#334155;height:24px;width:100%;border-radius:6px;overflow:hidden;position:relative;">
                 <div style="height:100%;background: linear-gradient(90deg, #059669 0%, #047857 100%);display:flex;align-items:center;justify-content:center;transition:width 0.3s ease;"

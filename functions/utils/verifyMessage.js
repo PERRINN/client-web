@@ -65,6 +65,15 @@ module.exports = {
         }
         else chatImageData={}
       }
+      let chatProfileImageData={}
+      if(messageData.chatProfileImageTimestamp){
+        chatProfileImageData=await admin.firestore().doc('Images/'+messageData.chatProfileImageTimestamp).get()
+        if(chatProfileImageData!=undefined&&chatProfileImageData.data()!=undefined){
+          batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{imageResized:true},{create:true})
+          chatProfileImageData=chatProfileImageData.data()
+        }
+        else chatProfileImageData={}
+      }
 
       //chat image
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{chatImageUrlThumb:chatImageData.imageUrlThumb||messageData.chatImageUrlThumb||null},{create:true})
@@ -123,6 +132,16 @@ module.exports = {
       messageData.chatSubject=messageData.chatSubject||chatPreviousMessageData.chatSubject||messageData.text||""
       messageData.chatSubject=messageData.chatSubject.substring(0,60)
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{chatSubject:messageData.chatSubject},{create:true})
+
+      //chat profile image (propagated through chat chain like chatSubject)
+      messageData.chatProfileImageTimestamp=messageData.chatProfileImageTimestamp||chatPreviousMessageData.chatProfileImageTimestamp||null
+      messageData.chatProfileImageUrlThumb=chatProfileImageData.imageUrlThumb||messageData.chatProfileImageUrlThumb||chatPreviousMessageData.chatProfileImageUrlThumb||null
+      messageData.chatProfileImageUrlMedium=chatProfileImageData.imageUrlMedium||messageData.chatProfileImageUrlMedium||chatPreviousMessageData.chatProfileImageUrlMedium||null
+      messageData.chatProfileImageUrlOriginal=messageData.chatProfileImageUrlOriginal||chatPreviousMessageData.chatProfileImageUrlOriginal||null
+      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{chatProfileImageTimestamp:messageData.chatProfileImageTimestamp},{create:true})
+      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{chatProfileImageUrlThumb:messageData.chatProfileImageUrlThumb},{create:true})
+      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{chatProfileImageUrlMedium:messageData.chatProfileImageUrlMedium},{create:true})
+      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{chatProfileImageUrlOriginal:messageData.chatProfileImageUrlOriginal},{create:true})
 
       //message recipientList (merge with user, transactionOut user, previous chat list and remove duplicates and remove undefined and null and remove from the ToBeRemoved list)
       messageData.recipientList=[user].concat([(messageData.transactionOut||{}).user]||[]).concat(messageData.recipientList||[]).concat(chatPreviousMessageData.recipientList||[])
