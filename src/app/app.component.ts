@@ -39,10 +39,11 @@ import { filter, interval } from 'rxjs';
           <span *ngIf="UI.isCurrentUserMember" class="material-icons verified">check_circle</span>
         </div>
 
-        <div class="devPillArea" *ngIf="UI.isDev || UI.profileSimulatorNonMember || UI.revolutMode=='sandbox'">
-          <button *ngIf="UI.isDev||UI.profileSimulatorNonMember" class="devPill devPillToggle" (click)="UI.toggleprofileSimulatorNonMember()" aria-label="Toggle non member simulator">
-            Non-member {{UI.profileSimulatorNonMember ? 'ON' : 'OFF'}}
-          </button>
+        <div class="devPillArea" *ngIf="UI.profileSimulatorNonMember || UI.profileSimulatorLoggedOut || UI.isDev || UI.revolutMode !== 'prod'">
+          <div class="devPill devPillActive" *ngIf="UI.profileSimulatorLoggedOut" (click)="UI.toggleprofileSimulatorLoggedOut()">Logged-out ON</div>
+          <div class="devPill" *ngIf="!UI.profileSimulatorLoggedOut && UI.isDev" (click)="UI.toggleprofileSimulatorLoggedOut()">Logged-out OFF</div>
+          <div class="devPill devPillActive" *ngIf="UI.profileSimulatorNonMember" (click)="UI.toggleprofileSimulatorNonMember()">Non-member ON</div>
+          <div class="devPill" *ngIf="!UI.profileSimulatorNonMember && UI.isDev" (click)="UI.toggleprofileSimulatorNonMember()">Non-member OFF</div>
           <span *ngIf="UI.isDev" class="devPill">DEV</span>
           <span *ngIf="UI.revolutMode=='sandbox'" class="devPill">sandbox</span>
         </div>

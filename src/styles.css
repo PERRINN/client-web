@@ -563,6 +563,14 @@ app-root .devPill {
   background: rgba(248, 113, 113, 0.06);
 }
 
+app-root .devPillActive {
+  color: #fecaca;
+  border-color: rgba(248, 113, 113, 0.8);
+  background: rgba(248, 113, 113, 0.28);
+  box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.28);
+  font-weight: 700;
+}
+
 app-root .devPillToggle {
   cursor: pointer;
 }
@@ -1225,6 +1233,14 @@ app-root profile .nonMemberIslandFooter {
   color: rgba(255, 255, 255, 0.96);
 }
 
+app-root profile .splitIsland.nonMemberIslandMobileBetween {
+  display: none !important;
+}
+
+app-root profile .nonMemberIslandDesktopPlacement {
+  display: block;
+}
+
 app-root profile .nonMemberChatLock {
   font-size: 16px;
   color: rgba(148, 163, 184, 0.8);
@@ -1554,6 +1570,14 @@ app-root .chatSubjectTruncate {
 @media (max-width: 900px) {
   app-root profile .splitContainer {
     grid-template-columns: 1fr;
+  }
+
+  app-root profile .splitIsland.nonMemberIslandMobileBetween {
+    display: block !important;
+  }
+
+  app-root profile .nonMemberIslandDesktopPlacement {
+    display: none;
   }
 
   app-root profile .modeSwitchTrack {

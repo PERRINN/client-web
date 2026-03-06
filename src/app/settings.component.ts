@@ -109,7 +109,8 @@ import firebase from 'firebase/compat/app';
   <br/>
   <div class="island settingsSection">
     <div class="title">Profile simulator (for UI dev)</div>
-    <button class="buttonWhite" (click)="UI.toggleprofileSimulatorNonMember()" style="clear:both;font-size:12px;width:200px;padding:2px;margin:10px auto;display:block">Non member {{UI.profileSimulatorNonMember ? '(ON)' : '(OFF)'}} </button>
+    <button class="buttonWhite" (click)="UI.toggleprofileSimulatorNonMember()" style="clear:both;font-size:12px;width:200px;padding:2px;margin:10px auto;display:block">Non member {{UI.profileSimulatorNonMember ? 'ON' : 'OFF'}} </button>
+      <button class="buttonWhite" (click)="UI.toggleprofileSimulatorLoggedOut()">Logged-out {{UI.profileSimulatorLoggedOut ? 'ON' : 'OFF'}}</button>
   </div>
   <br/>
   <button class="buttonRed" style="width:100px;margin:25px auto; display: block" (click)="this.UI.logout()">logout</button>

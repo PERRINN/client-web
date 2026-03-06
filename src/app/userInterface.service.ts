@@ -26,9 +26,12 @@ export class UserInterfaceService {
   hasTouch:boolean
   isStandalone:boolean
   profileSimulatorNonMember:boolean
+  profileSimulatorLoggedOut:boolean
   isCurrentUserMember:boolean
   public isDev: boolean;
   public revolutMode: 'sandbox' | 'prod';
+  private authenticatedUser:string
+  private authenticatedUserEmail:string
   
   constructor(
     private afAuth: AngularFireAuth,
@@ -37,6 +40,7 @@ export class UserInterfaceService {
   ) {
 
     this.profileSimulatorNonMember = false;
+  this.profileSimulatorLoggedOut = false;
 
     const host = location.hostname;
     this.isDev =
@@ -74,12 +78,16 @@ export class UserInterfaceService {
     }, 60000);
     this.afAuth.user.subscribe((auth) => {
       if (auth != null) {
-        this.currentUser = auth.uid;
-        this.currentUserEmail = auth.email;
+        this.authenticatedUser = auth.uid;
+        this.authenticatedUserEmail = auth.email;
+        if (!this.profileSimulatorLoggedOut) {
+          this.currentUser = auth.uid;
+          this.currentUserEmail = auth.email;
+        }
         afs
           .collection<any>("PERRINNMessages", (ref) =>
             ref
-              .where("user", "==", this.currentUser)
+              .where("user", "==", auth.uid)
               .where("verified", "==", true)
               .orderBy("serverTimestamp", "desc")
               .limit(1)
@@ -87,11 +95,16 @@ export class UserInterfaceService {
           .valueChanges()
           .subscribe((snapshot) => {
             this.currentUserLastMessageObj = snapshot[0];
-            this.isCurrentUserMember = this.currentUserLastMessageObj?.membership?.isMember || false;
-            this.profileSimulatorNonMember = false;
+            this.isCurrentUserMember = this.profileSimulatorLoggedOut
+              ? false
+              : (this.profileSimulatorNonMember ? false : (this.currentUserLastMessageObj?.membership?.isMember || false));
           });
       } else {
+        this.authenticatedUser = null;
+        this.authenticatedUserEmail = null;
+        this.profileSimulatorLoggedOut = false;
         this.currentUser = null;
+        this.currentUserEmail = null;
       }
     })
     afs
@@ -140,6 +153,19 @@ export class UserInterfaceService {
 
   toggleprofileSimulatorNonMember() {
     this.profileSimulatorNonMember = !this.profileSimulatorNonMember;
+    this.isCurrentUserMember = this.profileSimulatorLoggedOut ? false : (this.profileSimulatorNonMember ? false : (this.currentUserLastMessageObj?.membership?.isMember || false));
+  }
+
+  toggleprofileSimulatorLoggedOut() {
+    this.profileSimulatorLoggedOut = !this.profileSimulatorLoggedOut;
+    if (this.profileSimulatorLoggedOut) {
+      this.currentUser = null;
+      this.currentUserEmail = null;
+      this.isCurrentUserMember = false;
+      return;
+    }
+    this.currentUser = this.authenticatedUser || null;
+    this.currentUserEmail = this.authenticatedUserEmail || null;
     this.isCurrentUserMember = this.profileSimulatorNonMember ? false : (this.currentUserLastMessageObj?.membership?.isMember || false);
   }
 
@@ -159,65 +185,75 @@ export class UserInterfaceService {
   }
 
   convertPRNToCurrency(currency,amount){
+    const currencyList = this.appSettingsPayment?.currencyList;
+    if (!currencyList) return Number(amount) || 0;
     if (currency == null) {
       if (this.currentUserLastMessageObj!=undefined&&this.currentUserLastMessageObj.userCurrency!=undefined)
         currency = this.currentUserLastMessageObj.userCurrency;
       else currency = "usd";
     }
-    return amount/this.appSettingsPayment.currencyList[currency].toCOIN
+    const selectedCurrency = currencyList[currency] ? currency : (currencyList['usd'] ? 'usd' : Object.keys(currencyList)[0]);
+    return (Number(amount) || 0) / (currencyList[selectedCurrency]?.toCOIN || 1)
   }
 
   formatCurrency(currency, amount) {
+    const currencyList = this.appSettingsPayment?.currencyList;
+    if (!currencyList) {
+      const rawAmount = Number(amount) || 0;
+      return formatNumber(rawAmount, "en-US", "1.0-2");
+    }
     if (currency == null) {
       if (this.currentUserLastMessageObj!=undefined&&this.currentUserLastMessageObj.userCurrency!=undefined)
         currency = this.currentUserLastMessageObj.userCurrency;
       else currency = "usd";
     }
+    const selectedCurrency = currencyList[currency] ? currency : (currencyList['usd'] ? 'usd' : Object.keys(currencyList)[0]);
+    const selectedSymbol = currencyList[selectedCurrency]?.symbol || '';
     let amountCurrency = amount;
     if (amountCurrency < 0) amountCurrency = -amountCurrency;
     if (amountCurrency < 100)
       return (
         (amount < 0 ? "-" : "") +
-        this.appSettingsPayment.currencyList[currency].symbol +
+        selectedSymbol +
         formatNumber(amountCurrency, "en-US", "1.2-2")
       );
     if (amountCurrency < 1000)
       return (
         (amount < 0 ? "-" : "") +
-        this.appSettingsPayment.currencyList[currency].symbol +
+        selectedSymbol +
         formatNumber(amountCurrency, "en-US", "1.1-1")
       );
     if (amountCurrency < 10000)
       return (
         (amount < 0 ? "-" : "") +
-        this.appSettingsPayment.currencyList[currency].symbol +
+        selectedSymbol +
         formatNumber(amountCurrency, "en-US", "1.0-0")
       );
     if (amountCurrency < 100000)
       return (
         (amount < 0 ? "-" : "") +
-        this.appSettingsPayment.currencyList[currency].symbol +
+        selectedSymbol +
         formatNumber(amountCurrency / 1000, "en-US", "1.2-2") +
         "K"
       );
     if (amountCurrency < 1000000)
       return (
         (amount < 0 ? "-" : "") +
-        this.appSettingsPayment.currencyList[currency].symbol +
+        selectedSymbol +
         formatNumber(amountCurrency / 1000, "en-US", "1.1-1") +
         "K"
       );
     if (amountCurrency < 10000000)
       return (
         (amount < 0 ? "-" : "") +
-        this.appSettingsPayment.currencyList[currency].symbol +
+        selectedSymbol +
         formatNumber(amountCurrency / 1000000, "en-US", "1.3-3") +
         "M"
       );
     else
       return (
         (amount < 0 ? "-" : "") +
-        this.appSettingsPayment.currencyList[currency].symbol +
+        selectedSymbol +
         formatNumber(amountCurrency / 1000000, "en-US", "1.2-2") +
         "M"
       );

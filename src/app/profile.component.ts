@@ -88,7 +88,6 @@ import { ChangeDetectorRef } from '@angular/core'
     </div>
 
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:8px;">
-      <button class="buttonBlack" *ngIf="UI.currentUser&&UI.currentUser!=focusUserLastMessageObj?.user" (click)="newMessageToUser()" style="width:250px;max-width:100%;">New message to {{focusUserLastMessageObj?.name}}</button>
       <button class="buttonBlack" *ngIf="focusUserLastMessageObj?.user==UI.currentUser" style="margin-left:auto; display:inline-flex; align-items:center; gap:6px;" (click)="router.navigate(['settings'])">
         <span class="material-icons" style="font-size:16px;">settings</span>
         Settings
@@ -164,6 +163,15 @@ import { ChangeDetectorRef } from '@angular/core'
         </ng-container>
         </div>
 
+        <div class="island splitIsland nonMemberIsland nonMemberIslandMobileBetween" *ngIf="!UI.isCurrentUserMember">
+          <div class="nonMemberIslandIconWrap">
+            <span class="material-icons-outlined nonMemberIslandIcon">lock_open</span>
+          </div>
+          <div class="nonMemberIslandTitle">Unlock Full Access to Team Communications, Media and Features.</div>
+          <button class="buttonWhite nonMemberIslandButton" (click)="router.navigate(['buyPRN'])">Buy PRN Tokens</button>
+          <div class="nonMemberIslandFooter">Join the team today.</div>
+        </div>
+
         <div class="island splitIsland">
       <ul class="listLight">
         <li class="guardedChatItem" *ngFor="let message of currentFunds|async;let first=first;let last=last"
@@ -213,7 +221,7 @@ import { ChangeDetectorRef } from '@angular/core'
       </ul>
         </div>
       </div>
-      <div class="island nonMemberIsland" *ngIf="!UI.isCurrentUserMember">
+      <div class="island nonMemberIsland nonMemberIslandDesktopPlacement" *ngIf="!UI.isCurrentUserMember">
         <div class="nonMemberIslandIconWrap">
           <span class="material-icons-outlined nonMemberIslandIcon">lock_open</span>
         </div>
