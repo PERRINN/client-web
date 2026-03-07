@@ -97,13 +97,24 @@ import { filter, interval } from 'rxjs';
 export class AppComponent {
   showSocialLinksPopup = false;
 
+  private cleanupLegacyLocalStorage(): void {
+    const legacyKeys = [
+      'processingPayment',
+      'paymentStatus',
+      'revolutCheckoutUrl',
+      'revolutOrderId',
+      'revolutOrderReference'
+    ];
+    legacyKeys.forEach((key) => localStorage.removeItem(key));
+  }
+
   constructor(
     public router:Router,
     public afs:AngularFirestore,
     public UI:UserInterfaceService,
     private updates: SwUpdate
   ) {
-    localStorage.clear()
+    this.cleanupLegacyLocalStorage();
 
     if (this.updates.isEnabled) {
       this.updates.versionUpdates

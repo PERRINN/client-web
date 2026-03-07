@@ -50,9 +50,7 @@ body {
   padding-top: 0px;
 }
 
-a:link {
-  color:#999;
-}
+a:link,
 a:visited {
   color:#999;
 }
@@ -117,18 +115,7 @@ button, div.buttonBlack {
   outline: none;                 /* No blue outline unless focused */
   border: 1px solid transparent; /* Flat edge */
 }
-input {
-  background-color:#2D3941;
-  color: #B0BAC0;
-  width: 90%;
-  padding: 10px;
-  margin: 5px;
-  -webkit-transition: 0.3s ease;
-  transition: 0.3s ease;
-  box-shadow: none;              /* No shadow */
-  outline: none;                 /* No blue outline unless focused */
-  border: 1px solid transparent; /* Flat edge */
-}
+input,
 textarea {
   background-color:#2D3941;
   color: #B0BAC0;
@@ -735,6 +722,7 @@ app-root chat .chatPage .island {
   border: 1px solid rgba(16, 185, 129, 0.12);
   border-radius: 12px;
   color: #cbd5e1;
+  box-shadow: 0 8px 24px rgba(2, 8, 23, 0.24);
 }
 
 app-root login .buttonPrimary,
@@ -758,12 +746,7 @@ app-root chat .chatPage .buttonRed {
 }
 
 app-root buyprn button.buttonPrimary {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
   font-weight: 600;
-  cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
 }
@@ -784,12 +767,8 @@ app-root buyprn button.buttonPrimary:disabled {
 }
 
 app-root buyprn button.buttonSecondary {
-  background: transparent;
-  color: #10b981;
   border: 2px solid #10b981;
-  border-radius: 8px;
   font-weight: 600;
-  cursor: pointer;
   transition: all 0.3s ease;
 }
 
@@ -931,11 +910,9 @@ app-root login .actionGroup {
 app-root login .buttonPrimary,
 app-root login .buttonSecondary {
   width: 100%;
-  border-radius: 8px;
   font-size: 13px;
   font-weight: 700;
   padding: 11px 14px;
-  cursor: pointer;
 }
 
 app-root login .buttonPrimary:disabled {
@@ -968,7 +945,6 @@ app-root settings .settingsPage {
 }
 
 app-root settings .island {
-  box-shadow: 0 8px 24px rgba(2, 8, 23, 0.24);
   padding: 14px;
   margin-bottom: 12px;
 }
@@ -1087,8 +1063,6 @@ app-root settings input {
   background: rgba(15, 23, 42, 0.55);
   color: #f1f5f9;
   padding: 10px 12px;
-  font-size: 13px;
-  outline: none;
   margin: 6px 0;
 }
 
@@ -1099,7 +1073,6 @@ app-root settings input:focus {
 app-root settings .buttonWhite {
   font-weight: 700;
   padding: 9px 14px !important;
-  cursor: pointer;
 }
 
 app-root settings .buttonWhite:disabled {
@@ -1108,7 +1081,8 @@ app-root settings .buttonWhite:disabled {
   box-shadow: none;
 }
 
-app-root settings .buttonBlack {
+app-root settings .buttonBlack,
+app-root chat .chatPage .buttonBlack {
   border-radius: 8px;
   border: 1px solid rgba(16, 185, 129, 0.25);
   background: rgba(15, 23, 42, 0.7) !important;
@@ -1126,7 +1100,6 @@ app-root settings .buttonBlack.activeCurrency {
 
 app-root settings .buttonRed {
   padding: 10px 14px;
-  cursor: pointer;
 }
 
 app-root settings .listLight {
@@ -1138,9 +1111,7 @@ app-root settings .listLight {
   gap: 8px;
 }
 
-app-root settings .settingsSection div[style*='margin:20px'],
-app-root settings .settingsSection div[style*='margin:15px'],
-app-root settings .settingsSection div[style*='margin:10px'] {
+app-root settings .settingsSection div:is([style*='margin:20px'], [style*='margin:15px'], [style*='margin:10px']) {
   color: #94a3b8 !important;
   line-height: 1.5;
 }
@@ -1310,8 +1281,25 @@ app-root profile .listLight li:hover {
 app-root profile .eventCardBody {
   padding: 10px;
   border-radius: 10px;
-  border: 1px solid rgba(16, 185, 129, 0.12);
-  background: rgba(16, 185, 129, 0.03);
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  background: rgba(15, 23, 42, 0.78);
+  box-shadow: 0 6px 18px rgba(2, 8, 23, 0.2);
+}
+
+app-root profile .eventListItem,
+app-root profile .fundListItem,
+app-root profile .eventListItem:hover,
+app-root profile .fundListItem:hover {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin-bottom: 10px;
+}
+
+app-root profile .fundCardBody {
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  background: rgba(15, 23, 42, 0.78) !important;
+  box-shadow: 0 6px 18px rgba(2, 8, 23, 0.2);
 }
 
 app-root profile .eventCardHeader {
@@ -1359,7 +1347,8 @@ app-root profile .eventCardIconBadge {
 }
 
 app-root profile .eventCardJoinBtn {
-  width: 90px;
+  width: 100%;
+  max-width: 140px;
   margin: 0;
   flex: 0 0 auto;
 }
@@ -1410,7 +1399,6 @@ app-root profile .buttonWhite {
   padding: 8px 12px;
   font-size: 12px;
   font-weight: 600;
-  cursor: pointer;
   transition: all 0.2s ease;
 }
 
@@ -1613,10 +1601,6 @@ app-root profile a {
   color: #10b981;
 }
 
-app-root chat .chatPage .island {
-  box-shadow: 0 8px 24px rgba(2, 8, 23, 0.24);
-}
-
 app-root chat .chatPage input,
 app-root chat .chatPage select,
 app-root chat .chatPage textarea {
@@ -1637,14 +1621,6 @@ app-root chat .chatPage textarea:focus {
 
 app-root chat .chatPage .buttonWhite {
   font-weight: 700;
-}
-
-app-root chat .chatPage .buttonBlack {
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  border-radius: 8px;
-  color: #cbd5e1;
-  font-weight: 600;
 }
 
 app-root chat .chatTopBar {

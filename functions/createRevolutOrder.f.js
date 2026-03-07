@@ -14,7 +14,17 @@ exports.createRevolutOrder = onRequest(
       if (req.method === 'OPTIONS') return res.status(204).send('');
       if (req.method !== 'POST') return res.status(405).send({ error: 'Method not allowed' });
 
-      const { amount, currency, email, reference, description, mode } = req.body || {};
+      const {
+        amount,
+        currency,
+        email,
+        reference,
+        description,
+        mode,
+        user,
+        amountCharge,
+        amountSharesPurchased,
+      } = req.body || {};
 
       // Basic validation
       if (!Number.isInteger(amount) || amount <= 0) return res.status(400).send({ error: 'Invalid amount (minor units)' });
@@ -32,7 +42,16 @@ exports.createRevolutOrder = onRequest(
       console.log('Base URL:', base);
       console.log('API Key present:', !!key, key ? `...${key.slice(-6)}` : '(none)');
       console.log('API Version:', apiVersion);
-      console.log('Request payload:', { amount, currency, email, reference, description });
+      console.log('Request payload:', {
+        amount,
+        currency,
+        email,
+        reference,
+        description,
+        user,
+        amountCharge,
+        amountSharesPurchased,
+      });
 
       if (!base || !key) {
         console.error('❌ Missing base URL or API key.');
@@ -46,6 +65,13 @@ exports.createRevolutOrder = onRequest(
         reference,
         description,
         email,
+        metadata: {
+          user: user || null,
+          amountCharge: String(Number.isFinite(Number(amountCharge)) ? Number(amountCharge) : amount),
+          amountSharesPurchased: String(Number.isFinite(Number(amountSharesPurchased)) ? Number(amountSharesPurchased) : 0),
+          currency: String((currency || '').toLowerCase()),
+          mode: useProd ? 'prod' : 'sandbox',
+        },
       };
 
       console.log('Full Revolut request URL:', url);

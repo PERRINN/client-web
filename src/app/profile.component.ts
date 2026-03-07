@@ -103,7 +103,7 @@ import { ChangeDetectorRef } from '@angular/core'
             No upcoming events.
           </li>
 
-          <li class="guardedChatItem" *ngFor="let message of events; let i = index"
+          <li class="guardedChatItem eventListItem" *ngFor="let message of events; let i = index"
             [style.display]="showAllEvents || i===0 ? 'block' : 'none'"
             (click)="openListedChat(message.payload.doc.data()?.chain)">
             <div *ngIf="scope=='all'||mode=='inbox'" class="guardedChatItem eventCardBody">
@@ -175,11 +175,11 @@ import { ChangeDetectorRef } from '@angular/core'
 
         <div class="island splitIsland">
       <ul class="listLight">
-        <li class="guardedChatItem" *ngFor="let message of currentFunds|async;let first=first;let last=last"
+        <li class="guardedChatItem fundListItem" *ngFor="let message of currentFunds|async;let first=first;let last=last"
           (click)="openListedChat(message.payload.doc.data()?.chain)">
           <div *ngIf="scope=='all'||mode=='inbox'">
             <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0">
-            <div class="guardedChatItem" style="padding:8px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.12); background: rgba(16, 185, 129, 0.03);">
+            <div class="guardedChatItem fundCardBody" style="padding:8px; border-radius: 10px; background: rgba(16, 185, 129, 0.05);">
               <div style="display:flex; align-items:center; gap:6px; margin-bottom:5px;">
                 <ng-container *ngIf="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb; else fundIconFallback">
                   <img
@@ -190,10 +190,13 @@ import { ChangeDetectorRef } from '@angular/core'
                 <ng-template #fundIconFallback>
                   <span class="material-symbols-outlined eventCardIconBadge">crowdsource</span>
                 </ng-template>
-                <span class="chatSubject chatSubjectTruncate">{{message.payload.doc.data()?.chatSubject}}</span>
+                <div class="eventCardTitleBlock">
+                  <div class="eventCardLabel">{{first ? 'Current Fund' : 'Other Fund'}}</div>
+                  <span class="chatSubject chatSubjectTruncate">{{message.payload.doc.data()?.chatSubject}}</span>
+                </div>
               </div>
 
-              <div style="background-color:#334155;height:18px;width:100%;border-radius:6px;overflow:hidden;position:relative;">
+              <div style="background-color:#334155;height:22px;width:92%;margin:0 auto;border-radius:7px;overflow:hidden;position:relative;">
                 <div style="height:100%;background: linear-gradient(90deg, #059669 0%, #047857 100%);display:flex;align-items:center;justify-content:center;transition:width 0.3s ease;"
                   [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100+'%'">
                   <span style="font-size: 10px; color: #ffffff; font-weight: 600; white-space: nowrap;" *ngIf="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100 > 30">

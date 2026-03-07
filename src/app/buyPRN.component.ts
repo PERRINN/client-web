@@ -6,7 +6,7 @@ import {
   OnInit,
 } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Observable, Subject } from "rxjs";
+import { Observable, Subject, interval } from "rxjs";
 import { map, takeUntil } from "rxjs/operators";
 import { Router, ActivatedRoute } from "@angular/router";
 import { UserInterfaceService } from "./userInterface.service";
@@ -21,12 +21,25 @@ interface RevolutOrderResponse {
   id?: string;
 }
 
+type PaymentState =
+  | "idle"
+  | "creating-order"
+  | "checkout-opened"
+  | "awaiting-payment"
+  | "payment-received"
+  | "crediting"
+  | "completed"
+  | "failed";
+
 
 @Component({
   selector: "buyPRN",
   template: `
   <div class="buyWrap">
     <div class="buyPage">
+    <div style="display:flex; width:100%; margin-bottom:10px;">
+      <button class="buttonSecondary" style="margin-left:auto;padding:6px 10px;font-size:11px;font-weight:600;opacity:0.78;background:rgba(15,23,42,0.45);border-color:rgba(148,163,184,0.28);color:#94a3b8;" (click)="openPrnInfoPopup()">What is PRN</button>
+    </div>
     <div *ngIf="transactionPendingMessageObj" class="island" style="background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.1); margin-bottom: 20px;">
       <div *ngIf="!transactionPendingMessageObj?.transactionPending?.activated">
         <div style="font-size: 16px; font-weight: 600; color: #f1f5f9; margin-bottom: 16px;">
@@ -90,42 +103,7 @@ interface RevolutOrderResponse {
       </div>
     </div>
     <br/>
-    <div class="island" style="background: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.1);">
-      <div style="text-align:center; margin-bottom: 20px;">
-        <img src="./../assets/App icons/PRN token.png" style="width:120px; opacity: 0.95;">
-      </div>
-      <div style="padding:0;text-align:center; margin-bottom: 20px;">
-        <span style="color: #cbd5e1; font-size: 14px;">PRN tokens represent ownership of PERRINN</span>
-        <div style="padding:16px;text-align:left;">
-          <div style="font-size: 11px; color: #94a3b8; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-            Overview
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div style="background-color: rgba(16, 185, 129, 0.08); padding: 14px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.2);">
-              <div style="font-size: 11px; color: #94a3b8; margin-bottom: 6px; font-weight: 500;">MEMBERS</div>
-              <div style="font-size: 18px; font-weight: 700; color: #10b981;">{{UI.PERRINNAdminLastMessageObj?.statistics?.membersCount}}</div>
-            </div>
-            <div style="background-color: rgba(16, 185, 129, 0.08); padding: 14px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.2);">
-              <div style="font-size: 11px; color: #94a3b8; margin-bottom: 6px; font-weight: 500;">TOTAL SUPPLY</div>
-              <div style="font-size: 18px; font-weight: 700; color: #10b981;">{{UI.convertAndFormatPRNToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}</div>
-            </div>
-          </div>
-        </div>
-        <button class="buttonSecondary" style="margin:16px auto;padding:10px 20px;font-size:12px;font-weight:600;" (click)="router.navigate(['directory'])">PRN Directory</button>
-      </div>
-      <div style="background-color: rgba(16, 185, 129, 0.05);padding:16px;text-align:center; border-radius: 10px; margin-top: 16px;">
-        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px; font-weight: 500;">Growth Rate</div>
-        <span style="color: #f1f5f9; font-weight: 600;">{{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} Annual</span>
-        <div style="height:200px;margin-top:12px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
-      </div>
-      <div style="padding:16px;text-align:center; margin-top: 16px; border-top: 1px solid rgba(16, 185, 129, 0.1);">
-        <span class="material-symbols-outlined" style="font-size:24px; color: #10b981; margin-bottom: 8px; display: block;">lock</span>
-        <span style="font-size: 13px; color: #94a3b8; line-height: 1.6; display: block;">
-          Tokens stored securely in your PERRINN wallet
-        </span>
-      </div>
-    </div>
-    <br/>
+
     <div class="island" style="background: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.1);">
       <div style="font-size: 16px; font-weight: 700; color: #f1f5f9; margin-bottom: 16px;">
         Funding Projects
@@ -185,8 +163,8 @@ interface RevolutOrderResponse {
         <ul class="listLight" style="display: flex; flex-wrap: wrap; gap: 10px;">
           <li style="flex: 1; min-width: 120px;">
             <button class="buttonToggle"
-              *ngFor="let currency of objectToArray(UI.appSettingsPayment.currencyList)"
-              (click)="currencySelected = currency[0]; refreshCreditList(); refreshAmountCharge()"
+              *ngFor="let currency of objectToArray(UI.appSettingsPayment?.currencyList)"
+              (click)="onCurrencySelected(currency[0])"
               style="width:100%;padding: 10px; border-radius: 8px; border: 2px solid; transition: all 0.3s ease; font-weight: 600; font-size: 13px;"
               [style.background-color]="currencySelected == currency[0] ? '#10b981' : 'transparent'"
               [style.border-color]="currencySelected == currency[0] ? '#10b981' : 'rgba(16, 185, 129, 0.2)'"
@@ -229,13 +207,97 @@ interface RevolutOrderResponse {
         </div>
       </div>
 
-      <button class="buttonPrimary" *ngIf="UI.currentUser && !processing && creditSelected!=undefined && currencySelected!=undefined"
+            <button class="buttonPrimary" *ngIf="UI.currentUser && !processing && creditSelected!=undefined && currencySelected!=undefined"
               (click)="payWithRevolutLink()"
+              [disabled]="isPaymentFlowLocked"
               style="width:100%; margin:24px 0 0 0; font-size:14px; line-height: 1.6; padding: 14px 16px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);">
         <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">arrow_forward</span>
         Proceed to Checkout
       </button>
+
+            <div *ngIf="paymentState !== 'idle'" style="background: #1e293b; padding: 18px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.22); margin-top: 16px; text-align: left;">
+              <div style="font-size: 15px; font-weight: 700; color: #f1f5f9; margin-bottom: 8px;">Payment status</div>
+              <div style="font-size: 13px; color: #cbd5e1; margin-bottom: 10px; line-height: 1.45;">{{paymentStatusText}}</div>
+
+              <div style="display:grid; gap:6px;">
+                <div style="font-size:12px; color:#94a3b8;">
+                  <span [style.color]="paymentStepOrderCreated ? '#10b981' : '#64748b'">{{paymentStepOrderCreated ? '✓' : '•'}}</span>
+                  Order created
+                </div>
+                <div style="font-size:12px; color:#94a3b8;">
+                  <span [style.color]="paymentStepCheckoutOpened ? '#10b981' : '#64748b'">{{paymentStepCheckoutOpened ? '✓' : '•'}}</span>
+                  Checkout opened
+                </div>
+                <div style="font-size:12px; color:#94a3b8;">
+                  <span [style.color]="paymentStepPaymentReceived ? '#10b981' : '#64748b'">{{paymentStepPaymentReceived ? '✓' : '•'}}</span>
+                  Payment received by Revolut
+                </div>
+                <div style="font-size:12px; color:#94a3b8;">
+                  <span [style.color]="paymentStepMessageGenerated ? '#10b981' : '#64748b'">{{paymentStepMessageGenerated ? '✓' : '•'}}</span>
+                  PERRINN message generated
+                </div>
+                <div style="font-size:12px; color:#94a3b8;">
+                  <span [style.color]="paymentStepCredited ? '#10b981' : '#64748b'">{{paymentStepCredited ? '✓' : '•'}}</span>
+                  PRN credited to wallet
+                </div>
+              </div>
+
+              <div style="margin-top:10px;font-size:11px;color:#94a3b8;line-height:1.4;">
+                Revolut sends the payment receipt email directly after successful capture.
+              </div>
+              <button
+                class="buttonSecondary"
+                *ngIf="paymentState !== 'creating-order'"
+                (click)="resetPaymentFlow()"
+                style="margin-top:10px;padding:7px 12px;font-size:11px;">
+                Reset payment status
+              </button>
+            </div>
     </div>
+
+          <div *ngIf="showPrnInfoPopup" style="position:fixed;inset:0;background:rgba(2,8,23,0.72);z-index:1200;display:flex;align-items:center;justify-content:center;padding:16px;" (click)="closePrnInfoPopup()">
+            <div class="island" style="background: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.16); width:min(560px, 92vw); max-height:88vh; overflow:auto;" (click)="$event.stopPropagation()">
+              <div style="display:flex;justify-content:flex-start;align-items:center;margin-bottom:12px;">
+                <div style="font-size:16px;font-weight:700;color:#f1f5f9;">What is PRN</div>
+              </div>
+              <div style="text-align:center; margin-bottom: 20px;">
+                <img src="./../assets/App icons/PRN token.png" style="width:120px; opacity: 0.95;">
+              </div>
+              <div style="padding:0;text-align:center; margin-bottom: 20px;">
+                <span style="color: #cbd5e1; font-size: 14px;">PRN tokens represent ownership of PERRINN</span>
+                <div style="padding:16px;text-align:left;">
+                  <div style="font-size: 11px; color: #94a3b8; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+                    Overview
+                  </div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div style="background-color: rgba(16, 185, 129, 0.08); padding: 14px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                      <div style="font-size: 11px; color: #94a3b8; margin-bottom: 6px; font-weight: 500;">MEMBERS</div>
+                      <div style="font-size: 18px; font-weight: 700; color: #10b981;">{{UI.PERRINNAdminLastMessageObj?.statistics?.membersCount}}</div>
+                    </div>
+                    <div style="background-color: rgba(16, 185, 129, 0.08); padding: 14px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                      <div style="font-size: 11px; color: #94a3b8; margin-bottom: 6px; font-weight: 500;">TOTAL SUPPLY</div>
+                      <div style="font-size: 18px; font-weight: 700; color: #10b981;">{{UI.convertAndFormatPRNToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}</div>
+                    </div>
+                  </div>
+                </div>
+                <button class="buttonSecondary" style="margin:16px auto;padding:10px 20px;font-size:12px;font-weight:600;" (click)="router.navigate(['directory']); closePrnInfoPopup()">PRN Directory</button>
+              </div>
+              <div style="background-color: rgba(16, 185, 129, 0.05);padding:16px;text-align:center; border-radius: 10px; margin-top: 16px;">
+                <div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px; font-weight: 500;">Growth Rate</div>
+                <span style="color: #f1f5f9; font-weight: 600;">{{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} Annual</span>
+                <div style="height:200px;margin-top:12px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
+              </div>
+              <div style="padding:16px;text-align:center; margin-top: 16px; border-top: 1px solid rgba(16, 185, 129, 0.1);">
+                <span class="material-symbols-outlined" style="font-size:24px; color: #10b981; margin-bottom: 8px; display: block;">lock</span>
+                <span style="font-size: 13px; color: #94a3b8; line-height: 1.6; display: block;">
+                  Tokens stored securely in your PERRINN wallet
+                </span>
+              </div>
+              <div style="display:flex;justify-content:center;margin-top:14px;">
+                <button class="buttonSecondary" style="padding:7px 14px;font-size:11px;" (click)="closePrnInfoPopup()">Close</button>
+              </div>
+            </div>
+          </div>
   </div>
 `
 })
@@ -252,6 +314,21 @@ export class buyPRNComponent implements OnInit, OnDestroy {
   showPastFunds = false;
   currentFunds: Observable<any[]>;
   chartOptions: AgChartOptions;
+  paymentState: PaymentState = "idle";
+  paymentStatusText = "";
+  paymentOrderId: string = null;
+  paymentReference: string = null;
+  paymentStepOrderCreated = false;
+  paymentStepCheckoutOpened = false;
+  paymentStepPaymentReceived = false;
+  paymentStepMessageGenerated = false;
+  paymentStepCredited = false;
+  showPrnInfoPopup = false;
+  private paymentTrackingVersion = 0;
+  private paymentSyncInFlight = false;
+  private hasUserManuallySelectedCurrency = false;
+  private lastCreditsBase = 0;
+  private lastSyncedCurrency = "";
   
   private destroy$ = new Subject<void>();
   
@@ -273,13 +350,182 @@ export class buyPRNComponent implements OnInit, OnDestroy {
     this.setupTransactionListener();
     this.setupCurrentFunds();
     this.chartOptions = this.buildChartOptions();
-    this.creditListPRN = this.buildCreditList();
-    this.refreshCreditList();
+    this.syncCurrencyAndCredits();
+    interval(600)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.syncCurrencyAndCredits());
+    this.restorePendingPaymentFromLocalCache();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  openPrnInfoPopup(): void {
+    this.showPrnInfoPopup = true;
+  }
+
+  closePrnInfoPopup(): void {
+    this.showPrnInfoPopup = false;
+  }
+
+  get isPaymentFlowLocked(): boolean {
+    return (
+      this.paymentState === "creating-order" ||
+      this.paymentState === "checkout-opened" ||
+      this.paymentState === "awaiting-payment" ||
+      this.paymentState === "payment-received" ||
+      this.paymentState === "crediting"
+    );
+  }
+
+  private setPaymentState(state: PaymentState, text: string): void {
+    this.paymentState = state;
+    this.paymentStatusText = text;
+  }
+
+  private storePendingPaymentLocalCache(): void {
+    if (!this.paymentOrderId || !this.paymentReference) return;
+    localStorage.setItem(
+      "buyPRN_pendingPayment",
+      JSON.stringify({
+        orderId: this.paymentOrderId,
+        reference: this.paymentReference,
+        timestamp: Date.now(),
+      })
+    );
+  }
+
+  private restorePendingPaymentFromLocalCache(): void {
+    const raw = localStorage.getItem("buyPRN_pendingPayment");
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw);
+      if (!parsed?.orderId || !parsed?.reference) return;
+      this.paymentOrderId = parsed.orderId;
+      this.paymentReference = parsed.reference;
+      this.paymentStepOrderCreated = true;
+      this.paymentStepCheckoutOpened = true;
+      this.setPaymentState("awaiting-payment", "Waiting for Revolut payment confirmation...");
+      this.startPaymentTracking();
+    } catch (e) {
+      localStorage.removeItem("buyPRN_pendingPayment");
+    }
+  }
+
+  private clearPendingPaymentLocalCache(): void {
+    localStorage.removeItem("buyPRN_pendingPayment");
+  }
+
+  private isPaymentSuccessStatus(status: any): boolean {
+    const value = String(status || "").toLowerCase();
+    return ["succeeded", "completed", "paid", "captured", "authorised", "authorized"].includes(value);
+  }
+
+  private isPaymentFailureStatus(status: any): boolean {
+    const value = String(status || "").toLowerCase();
+    return ["failed", "cancelled", "canceled", "declined"].includes(value);
+  }
+
+  private async syncPaymentStatusFromRevolut(): Promise<void> {
+    if (this.paymentSyncInFlight) return;
+    if (!this.UI.currentUser || !this.paymentOrderId) return;
+    if (!(this.paymentState === "awaiting-payment" || this.paymentState === "payment-received" || this.paymentState === "crediting")) return;
+
+    this.paymentSyncInFlight = true;
+    try {
+      await firstValueFrom(
+        this.http.post<any>(
+          "https://us-central1-perrinn-d5fc1.cloudfunctions.net/syncRevolutOrderStatus",
+          {
+            orderId: this.paymentOrderId,
+            mode: this.UI.revolutMode === "prod" ? "prod" : "sandbox",
+            user: this.UI.currentUser,
+            reference: this.paymentReference,
+          }
+        )
+      );
+    } catch (err) {
+      console.warn("syncPaymentStatusFromRevolut failed", err);
+    } finally {
+      this.paymentSyncInFlight = false;
+    }
+  }
+
+  resetPaymentFlow(): void {
+    this.paymentTrackingVersion++;
+    this.processing = false;
+    this.paymentOrderId = null;
+    this.paymentReference = null;
+    this.paymentStepOrderCreated = false;
+    this.paymentStepCheckoutOpened = false;
+    this.paymentStepPaymentReceived = false;
+    this.paymentStepMessageGenerated = false;
+    this.paymentStepCredited = false;
+    this.setPaymentState("idle", "");
+    this.clearPendingPaymentLocalCache();
+  }
+
+  private startPaymentTracking(): void {
+    if (!this.UI.currentUser || !this.paymentOrderId) return;
+    const version = ++this.paymentTrackingVersion;
+
+    this.afs
+      .doc<any>(`PERRINNTeams/${this.UI.currentUser}/payments/${this.paymentOrderId}`)
+      .valueChanges()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((paymentDoc) => {
+        if (version !== this.paymentTrackingVersion || !paymentDoc) return;
+        const status = (paymentDoc.source || paymentDoc).status || paymentDoc.status;
+
+        if (this.isPaymentSuccessStatus(status)) {
+          this.paymentStepPaymentReceived = true;
+          this.setPaymentState("payment-received", "Payment received by Revolut. Finalizing credit...");
+        }
+
+        if (this.isPaymentFailureStatus(status)) {
+          this.setPaymentState("failed", "Payment failed or was cancelled. You can try again.");
+          this.clearPendingPaymentLocalCache();
+          this.paymentTrackingVersion++;
+        }
+      });
+
+    interval(7000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (version !== this.paymentTrackingVersion) return;
+        this.syncPaymentStatusFromRevolut();
+      });
+
+    this.afs
+      .collection<any>("PERRINNMessages", (ref) =>
+        ref
+          .where("user", "==", this.UI.currentUser)
+          .where("verified", "==", true)
+          .orderBy("serverTimestamp", "desc")
+          .limit(40)
+      )
+      .valueChanges()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((messages) => {
+        if (version !== this.paymentTrackingVersion || !Array.isArray(messages)) return;
+        const matchingCredit = messages.find(
+          (message) => ((message.purchaseCOIN || {}).chargeID || null) === this.paymentOrderId
+        );
+        if (!matchingCredit) return;
+
+        this.paymentStepMessageGenerated = true;
+        this.setPaymentState("crediting", "PERRINN message generated. Crediting PRN wallet...");
+
+        setTimeout(() => {
+          if (version !== this.paymentTrackingVersion) return;
+          this.paymentStepCredited = true;
+          this.setPaymentState("completed", "Payment successful. PRN tokens are now credited.");
+          this.clearPendingPaymentLocalCache();
+          this.paymentTrackingVersion++;
+        }, 300);
+      });
   }
 
   private setupTransactionListener(): void {
@@ -340,13 +586,69 @@ export class buyPRNComponent implements OnInit, OnDestroy {
     };
   }
 
-  private buildCreditList(): number[] {
-    const base = this.UI.PERRINNAdminLastMessageObj.membership.amountRequired;
-    const amounts = [base, base * 2, base * 4, base * 10, base * 20];
+  private buildCreditList(base?: number): number[] {
+    const amountRequired = Number((base ?? this.UI.PERRINNAdminLastMessageObj?.membership?.amountRequired) || 0);
+    if (!amountRequired || amountRequired <= 0) return [];
+    const amounts = [amountRequired, amountRequired * 2, amountRequired * 4, amountRequired * 10, amountRequired * 20];
     return this.UI.isDev ? [1, ...amounts] : amounts;
   }
 
+  private syncCurrencyAndCredits(): void {
+    const currencyList = this.UI.appSettingsPayment?.currencyList || {};
+    const preferredCurrency = this.UI.currentUserLastMessageObj?.userCurrency;
+
+    if (
+      !this.hasUserManuallySelectedCurrency &&
+      preferredCurrency &&
+      currencyList[preferredCurrency] &&
+      this.currencySelected !== preferredCurrency
+    ) {
+      this.currencySelected = preferredCurrency;
+    }
+
+    if (!this.currencySelected || !currencyList[this.currencySelected]) {
+      const fallbackCurrency = preferredCurrency && currencyList[preferredCurrency]
+        ? preferredCurrency
+        : (currencyList["usd"] ? "usd" : Object.keys(currencyList)[0]);
+      if (fallbackCurrency) this.currencySelected = fallbackCurrency;
+    }
+
+    const creditsBase = Number(this.UI.PERRINNAdminLastMessageObj?.membership?.amountRequired || 0);
+    if (!creditsBase || creditsBase <= 0) return;
+
+    if (this.lastCreditsBase !== creditsBase || !this.creditListPRN?.length) {
+      this.lastCreditsBase = creditsBase;
+      this.creditListPRN = this.buildCreditList(creditsBase);
+    }
+
+    if (!this.creditListPRN?.length || !this.currencySelected) return;
+
+    if (this.lastSyncedCurrency !== this.currencySelected || !this.creditList?.length) {
+      this.refreshCreditList();
+      this.lastSyncedCurrency = this.currencySelected;
+    }
+
+    if (this.creditSelected == null || this.creditSelected >= this.creditList.length) {
+      this.creditSelected = 0;
+    }
+
+    this.refreshAmountCharge();
+  }
+
+  onCurrencySelected(currency: string): void {
+    if (!currency) return;
+    this.hasUserManuallySelectedCurrency = true;
+    this.currencySelected = currency;
+    this.refreshCreditList();
+    if (this.creditSelected == null) this.creditSelected = 0;
+    this.refreshAmountCharge();
+  }
+
   refreshCreditList(): void {
+    if (!this.creditListPRN?.length || !this.currencySelected) {
+      this.creditList = [];
+      return;
+    }
     this.creditList = this.creditListPRN.map((creditPRN) =>
       this.UI.roundUpByMagnitude(
         this.UI.convertPRNToCurrency(this.currencySelected, creditPRN)
@@ -356,13 +658,15 @@ export class buyPRNComponent implements OnInit, OnDestroy {
 
   refreshAmountCharge(): void {
     if (this.creditSelected == null || this.currencySelected == null) return;
+    const selectedCurrency = this.UI.appSettingsPayment?.currencyList?.[this.currencySelected];
+    if (!selectedCurrency || !this.creditList?.length) return;
     
     this.amountCharge = Number(
       ((this.creditList[this.creditSelected] || 0) * 100).toFixed(0)
     );
     this.amountSharesPurchased = Number(
       (this.amountCharge / 100) *
-        this.UI.appSettingsPayment.currencyList[this.currencySelected].toCOIN
+        selectedCurrency.toCOIN
     );
   }
 
@@ -386,19 +690,34 @@ export class buyPRNComponent implements OnInit, OnDestroy {
   }
 
   async payWithRevolutLink(): Promise<void> {
+    if (this.isPaymentFlowLocked) return;
+
     const newWindow = window.open("", "_blank");
+    this.processing = true;
+    this.paymentTrackingVersion++;
+    this.paymentOrderId = null;
+    this.paymentReference = `PRN-${this.UI.currentUser || "anon"}-${Date.now()}`;
+    this.paymentStepOrderCreated = false;
+    this.paymentStepCheckoutOpened = false;
+    this.paymentStepPaymentReceived = false;
+    this.paymentStepMessageGenerated = false;
+    this.paymentStepCredited = false;
+    this.setPaymentState("creating-order", "Creating Revolut order...");
 
     try {
       const body = {
         amount: this.amountCharge,
         currency: (this.currencySelected || "usd").toUpperCase(),
         email: this.UI.currentUserEmail,
-        reference: `PRN-${Date.now()}`,
+        reference: this.paymentReference,
         description: `Credit ${this.UI.formatPRNCurrency(
           this.currencySelected,
           this.creditList[this.creditSelected]
         )} to ${this.UI.currentUserEmail}`,
         mode: this.UI.revolutMode === "prod" ? "prod" : "sandbox",
+        user: this.UI.currentUser,
+        amountCharge: this.amountCharge,
+        amountSharesPurchased: this.amountSharesPurchased,
       };
 
       const order = await firstValueFrom(
@@ -409,13 +728,28 @@ export class buyPRNComponent implements OnInit, OnDestroy {
       );
 
       if (order?.checkout_url) {
+        this.paymentOrderId = order.id || null;
+        this.paymentStepOrderCreated = true;
+        this.setPaymentState("checkout-opened", "Opening Revolut checkout...");
+
+        if (this.paymentOrderId) {
+          this.storePendingPaymentLocalCache();
+          this.startPaymentTracking();
+        }
+
         newWindow.location.href = order.checkout_url;
+        this.paymentStepCheckoutOpened = true;
+        this.setPaymentState("awaiting-payment", "Checkout opened. Complete payment in Revolut, then return here.");
       } else {
         newWindow?.close();
+        this.setPaymentState("failed", "Could not open Revolut checkout. Please try again.");
       }
     } catch (err) {
       console.error(err);
       newWindow?.close();
+      this.setPaymentState("failed", "Payment request failed. Please try again.");
+    } finally {
+      this.processing = false;
     }
   }
 }
