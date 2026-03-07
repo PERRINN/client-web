@@ -112,7 +112,7 @@ import { map, tap, take } from 'rxjs/operators';
 
       <div class="chatTransferBody">
         <div class="chatTransferFieldGrid">
-          <input class="chatTransferInput" maxlength="500" [(ngModel)]="transactionAmount" placeholder="Amount">
+          <input class="chatTransferInput" type="number" min="0" step="any" inputmode="decimal" maxlength="500" [(ngModel)]="transactionAmount" placeholder="Amount">
           <input class="chatTransferInput" maxlength="500" [(ngModel)]="transactionCode" placeholder="Code (optional)">
         </div>
 
@@ -185,7 +185,7 @@ import { map, tap, take } from 'rxjs/operators';
           </div>
           <div class="chatEventEditorField">
             <div class="chatEventEditorFieldLabel">Duration (hours)</div>
-            <input class="chatEventEditorDuration" maxlength="20" [(ngModel)]="eventDurationChoice" placeholder="e.g. 1.5">
+            <input class="chatEventEditorDuration" type="number" min="0" step="0.5" inputmode="decimal" maxlength="20" [(ngModel)]="eventDurationChoice" placeholder="e.g. 1.5">
           </div>
         </div>
 
@@ -200,15 +200,50 @@ import { map, tap, take } from 'rxjs/operators';
     <br/>
     
     <div class="island">
-      <span style="margin:10px">Fund description</span>
-      <input style="width:60%;margin:10px" maxlength="200" [(ngModel)]="fund.description">
-      <br/>
-      <span style="margin:10px">Amount target</span>
-      <input style="width:30%;margin:10px" maxlength="10" [(ngModel)]="fund.amountGBPTarget">
-      <br/>
-      <span style="margin:10px">Days left</span>
-      <input style="width:30%;margin:10px" maxlength="10" [(ngModel)]="fund.daysLeft">
-      <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px;display:block" (click)="saveFund()" [disabled]="!(fund.description!=chatLastMessageObj?.fund?.description||fund.amountGBPTarget!=chatLastMessageObj?.fund?.amountGBPTarget||fund.daysLeft!=chatLastMessageObj?.fund?.daysLeft)">Save fund</button>
+      <div class="chatFundEditor">
+        <div class="chatFundEditorHeader">
+          <span class="material-icons-outlined chatEventIcon">crowdsource</span>
+          <span class="chatEventLabel">Fund</span>
+          <span class="chatFundEditorTitle">Edit Fund</span>
+        </div>
+
+        <div *ngIf="(fund?.amountGBPTarget||0) > 0" class="chatFundEditorPreview">
+          <div class="chatFundEditorProgressTrack">
+            <div class="chatFundEditorProgressFill"
+              [style.width]="(((fund?.amountGBPRaised||0)/(fund?.amountGBPTarget||1))*100)+'%'">
+              <span class="chatFundEditorProgressPct" *ngIf="((fund?.amountGBPRaised||0)/(fund?.amountGBPTarget||1))*100 > 30">
+                {{((fund?.amountGBPRaised||0)/(fund?.amountGBPTarget||1))|percent:'1.0-0'}}
+              </span>
+            </div>
+          </div>
+          <div class="chatFundEditorMeta">
+            <span class="chatFundEditorDays">{{fund?.daysLeft|number:'1.0-0'}} days left</span>
+          </div>
+          <div class="chatFundEditorDescription">{{fund?.description}}</div>
+          <div class="chatFundEditorAmounts">
+            target: {{UI.convertAndFormatPRNToCurrency(null,(fund?.amountGBPTarget||0)*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /
+            raised: {{UI.convertAndFormatPRNToCurrency(null,(fund?.amountGBPRaised||0)*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}
+          </div>
+        </div>
+
+        <div class="chatFundEditorField">
+          <div class="chatEventEditorFieldLabel">Fund description</div>
+          <input class="chatFundEditorInput" maxlength="200" [(ngModel)]="fund.description" placeholder="Fund description">
+        </div>
+
+        <div class="chatFundEditorRow">
+          <div class="chatFundEditorField">
+            <div class="chatEventEditorFieldLabel">Amount target (GBP)</div>
+            <input class="chatFundEditorInput" type="number" min="0" step="any" inputmode="decimal" maxlength="10" [(ngModel)]="fund.amountGBPTarget" placeholder="Amount target">
+          </div>
+          <div class="chatFundEditorField">
+            <div class="chatEventEditorFieldLabel">Days left</div>
+            <input class="chatFundEditorInput" type="number" min="0" step="1" inputmode="numeric" maxlength="10" [(ngModel)]="fund.daysLeft" placeholder="Days left">
+          </div>
+        </div>
+
+        <button class="buttonWhite chatFundEditorBtn" (click)="saveFund()" [disabled]="!(fund.description!=chatLastMessageObj?.fund?.description||fund.amountGBPTarget!=chatLastMessageObj?.fund?.amountGBPTarget||fund.daysLeft!=chatLastMessageObj?.fund?.daysLeft)">Save fund</button>
+      </div>
     </div>
   </div>
 

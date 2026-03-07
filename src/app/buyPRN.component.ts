@@ -255,16 +255,33 @@ type PaymentState =
             </div>
     </div>
 
-          <div *ngIf="showPrnInfoPopup" style="position:fixed;inset:0;background:rgba(2,8,23,0.72);z-index:1200;display:flex;align-items:center;justify-content:center;padding:16px;" (click)="closePrnInfoPopup()">
-            <div class="island" style="background: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.16); width:min(560px, 92vw); max-height:88vh; overflow:auto;" (click)="$event.stopPropagation()">
+          <div *ngIf="showPrnInfoPopup" style="position:fixed;inset:0;background:rgba(2,8,23,0.72);z-index:1200;display:flex;align-items:flex-start;justify-content:center;padding:12px;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch;" (click)="closePrnInfoPopup()">
+            <div class="island" style="background: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.16); width:min(560px, 88vw); max-height:calc(100vh - 24px); overflow:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch;" (click)="$event.stopPropagation()">
               <div style="display:flex;justify-content:flex-start;align-items:center;margin-bottom:12px;">
                 <div style="font-size:16px;font-weight:700;color:#f1f5f9;">What is PRN</div>
               </div>
               <div style="text-align:center; margin-bottom: 20px;">
                 <img src="./../assets/App icons/PRN token.png" style="width:120px; opacity: 0.95;">
               </div>
+              <div style="padding:0 4px 6px 4px; text-align:left;">
+                <div style="font-size:12px; color:#94a3b8; margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:1px;">Why PRN exists</div>
+                <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 10px; padding: 12px; margin-bottom: 8px; color:#cbd5e1; line-height:1.5; font-size:13px;">
+                  PRN is not a traditional crypto token that fluctuates in open public markets. It is not a speculative asset.
+                </div>
+                <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.16); border-radius: 10px; padding: 12px; margin-bottom: 8px; color:#cbd5e1; line-height:1.5; font-size:13px;">
+                  PRN is a digital asset secured directly by the PERRINN network and designed for team collaboration.
+                </div>
+                <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.16); border-radius: 10px; padding: 12px; margin-bottom: 8px; color:#cbd5e1; line-height:1.5; font-size:13px;">
+                  PRN tokens can only be transferred member-to-member inside the PERRINN team and ecosystem.
+                </div>
+                <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 10px; padding: 12px; color:#e2e8f0; line-height:1.5; font-size:13px; font-weight:600;">
+                  PRN is a true membership token. Its utility is to build trust among members and provide a shared unit of exchange in the team.
+                </div>
+                <div style="margin-top:10px; padding:12px; border-radius:10px; border:1px solid rgba(16,185,129,0.24); background: linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(16,185,129,0.08) 100%); color:#ecfeff; font-size:13px; line-height:1.5; font-weight:700; text-align:center;">
+                  PRN represents ownership of PERRINN.
+                </div>
+              </div>
               <div style="padding:0;text-align:center; margin-bottom: 20px;">
-                <span style="color: #cbd5e1; font-size: 14px;">PRN tokens represent ownership of PERRINN</span>
                 <div style="padding:16px;text-align:left;">
                   <div style="font-size: 11px; color: #94a3b8; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
                     Overview
@@ -329,6 +346,8 @@ export class buyPRNComponent implements OnInit, OnDestroy {
   private hasUserManuallySelectedCurrency = false;
   private lastCreditsBase = 0;
   private lastSyncedCurrency = "";
+  private previousMainContainerOverflow = "";
+  private previousBodyOverflow = "";
   
   private destroy$ = new Subject<void>();
   
@@ -358,16 +377,37 @@ export class buyPRNComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.unlockBackgroundScroll();
     this.destroy$.next();
     this.destroy$.complete();
   }
 
+  private lockBackgroundScroll(): void {
+    const mainContainer = document.getElementById("main_container");
+    if (mainContainer) {
+      this.previousMainContainerOverflow = mainContainer.style.overflowY || "";
+      mainContainer.style.overflowY = "hidden";
+    }
+    this.previousBodyOverflow = document.body.style.overflow || "";
+    document.body.style.overflow = "hidden";
+  }
+
+  private unlockBackgroundScroll(): void {
+    const mainContainer = document.getElementById("main_container");
+    if (mainContainer) {
+      mainContainer.style.overflowY = this.previousMainContainerOverflow || "";
+    }
+    document.body.style.overflow = this.previousBodyOverflow || "";
+  }
+
   openPrnInfoPopup(): void {
     this.showPrnInfoPopup = true;
+    this.lockBackgroundScroll();
   }
 
   closePrnInfoPopup(): void {
     this.showPrnInfoPopup = false;
+    this.unlockBackgroundScroll();
   }
 
   get isPaymentFlowLocked(): boolean {

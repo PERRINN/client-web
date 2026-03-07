@@ -1606,6 +1606,8 @@ app-root chat .chatPage select,
 app-root chat .chatPage textarea {
   background: rgba(15, 23, 42, 0.55);
   color: #f1f5f9;
+  width: 100%;
+  min-width: 0;
   border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: 8px;
   padding: 9px 10px;
@@ -1797,6 +1799,108 @@ app-root chat .chatEventEditorActions {
 app-root chat .chatEventEditorBtn {
   width: 120px;
   min-height: 34px;
+}
+
+app-root chat .chatFundEditor {
+  border: 1px solid rgba(16, 185, 129, 0.12);
+  background: rgba(16, 185, 129, 0.03);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+app-root chat .chatFundEditorHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+app-root chat .chatFundEditorTitle {
+  color: #f1f5f9;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+app-root chat .chatFundEditorPreview {
+  margin-bottom: 10px;
+  padding: 8px;
+  border-radius: 10px;
+  background: rgba(16, 185, 129, 0.05);
+}
+
+app-root chat .chatFundEditorProgressTrack {
+  background-color: #334155;
+  height: 22px;
+  width: 100%;
+  border-radius: 7px;
+  overflow: hidden;
+  position: relative;
+}
+
+app-root chat .chatFundEditorProgressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #059669 0%, #047857 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: width 0.3s ease;
+}
+
+app-root chat .chatFundEditorProgressPct {
+  font-size: 10px;
+  color: #ffffff;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+app-root chat .chatFundEditorMeta {
+  margin-top: 5px;
+  font-size: 11px;
+  color: #94a3b8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+app-root chat .chatFundEditorDays {
+  color: #10b981;
+  font-weight: 500;
+  margin-left: auto;
+}
+
+app-root chat .chatFundEditorDescription {
+  margin-top: 3px;
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.35;
+}
+
+app-root chat .chatFundEditorAmounts {
+  margin-top: 3px;
+  font-size: 11px;
+  color: #cbd5e1;
+  line-height: 1.35;
+}
+
+app-root chat .chatFundEditorField {
+  min-width: 0;
+}
+
+app-root chat .chatFundEditorInput {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+app-root chat .chatFundEditorRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+app-root chat .chatFundEditorBtn {
+  width: 100%;
+  min-height: 34px;
+  margin-top: 2px;
 }
 
 app-root chat .chatTransferSection {
@@ -2013,6 +2117,10 @@ app-root chat .chatProfileImageActions .buttonWhite {
     grid-template-columns: 1fr;
   }
 
+  app-root chat .chatFundEditorRow {
+    grid-template-columns: 1fr;
+  }
+
   app-root chat .chatEventEditorActions {
     flex-direction: column;
     align-items: stretch;
@@ -2026,6 +2134,12 @@ app-root chat .chatProfileImageActions .buttonWhite {
   app-root chat .chatProfileImageActions {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  app-root chat .chatProfileSubjectInput {
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 40px;
   }
 
   app-root chat .chatProfileBtn {
