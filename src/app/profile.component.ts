@@ -170,6 +170,7 @@ import { ChangeDetectorRef } from '@angular/core'
           <div class="nonMemberIslandTitle">Unlock Full Access to Team Communications, Media and Features.</div>
           <button class="buttonWhite nonMemberIslandButton" (click)="router.navigate(['buyPRN'])">Buy PRN Tokens</button>
           <div class="nonMemberIslandFooter">Join the team today.</div>
+          <div class="nonMemberIslandHelper">Interested to join but have some questions first? <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" rel="noopener noreferrer">Join our WhatsApp community</a> and speak directly to Nico there.</div>
         </div>
 
         <div class="island splitIsland">
@@ -228,6 +229,7 @@ import { ChangeDetectorRef } from '@angular/core'
         <div class="nonMemberIslandTitle">Unlock Full Access to Team Communications, Media and Features.</div>
         <button class="buttonWhite nonMemberIslandButton" (click)="router.navigate(['buyPRN'])">Buy PRN Tokens</button>
         <div class="nonMemberIslandFooter">Join the team today.</div>
+        <div class="nonMemberIslandHelper">Interested to join but have some questions first? <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" rel="noopener noreferrer">Join our WhatsApp community</a> and speak directly to Nico there.</div>
       </div>
       <ul *ngIf="mode=='inbox' || scope=='all'" class="listLight imageCarousel" id="scroll-images">
         <li *ngFor="let message of latestImages|async;let first=first;let last=last" class="carouselItem guardedChatItem">

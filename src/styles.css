@@ -1233,6 +1233,20 @@ app-root profile .nonMemberIslandFooter {
   color: rgba(255, 255, 255, 0.96);
 }
 
+app-root profile .nonMemberIslandHelper {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  font-weight: 500;
+  color: rgba(226, 232, 240, 0.92);
+}
+
+app-root profile .nonMemberIslandHelper a {
+  color: inherit;
+  text-decoration: underline;
+  font-weight: 700;
+}
+
 app-root profile .splitIsland.nonMemberIslandMobileBetween {
   display: none !important;
 }

@@ -40,10 +40,10 @@ import { filter, interval } from 'rxjs';
         </div>
 
         <div class="devPillArea" *ngIf="UI.profileSimulatorNonMember || UI.profileSimulatorLoggedOut || UI.isDev || UI.revolutMode !== 'prod'">
-          <div class="devPill devPillActive" *ngIf="UI.profileSimulatorLoggedOut" (click)="UI.toggleprofileSimulatorLoggedOut()">Logged-out ON</div>
-          <div class="devPill" *ngIf="!UI.profileSimulatorLoggedOut && UI.isDev" (click)="UI.toggleprofileSimulatorLoggedOut()">Logged-out OFF</div>
-          <div class="devPill devPillActive" *ngIf="UI.profileSimulatorNonMember" (click)="UI.toggleprofileSimulatorNonMember()">Non-member ON</div>
-          <div class="devPill" *ngIf="!UI.profileSimulatorNonMember && UI.isDev" (click)="UI.toggleprofileSimulatorNonMember()">Non-member OFF</div>
+          <div class="devPill devPillActive devPillToggle" *ngIf="UI.profileSimulatorLoggedOut" (click)="UI.toggleprofileSimulatorLoggedOut()">Logged-out ON</div>
+          <div class="devPill devPillToggle" *ngIf="!UI.profileSimulatorLoggedOut && UI.isDev" (click)="UI.toggleprofileSimulatorLoggedOut()">Logged-out OFF</div>
+          <div class="devPill devPillActive devPillToggle" *ngIf="UI.profileSimulatorNonMember" (click)="UI.toggleprofileSimulatorNonMember()">Non-member ON</div>
+          <div class="devPill devPillToggle" *ngIf="!UI.profileSimulatorNonMember && UI.isDev" (click)="UI.toggleprofileSimulatorNonMember()">Non-member OFF</div>
           <span *ngIf="UI.isDev" class="devPill">DEV</span>
           <span *ngIf="UI.revolutMode=='sandbox'" class="devPill">sandbox</span>
         </div>

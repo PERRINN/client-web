@@ -66,6 +66,9 @@ interface RevolutOrderResponse {
             ✓ Early member advantage
           </span>
         </div>
+        <div style="font-size: 12px; line-height: 1.45; color: rgba(255, 255, 255, 0.92); margin-top: 10px; text-align: left;">
+          Interested to join but have some questions first? <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; font-weight: 700;">Join our WhatsApp community</a> and speak directly to Nico there.
+        </div>
       </div>
     </div>
     <div *ngIf="UI.isCurrentUserMember" class="island" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 24px; border-radius: 12px; box-shadow: 0 10px 30px rgba(5, 150, 105, 0.2);">
