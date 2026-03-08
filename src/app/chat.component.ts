@@ -13,6 +13,7 @@ import { map, tap, take } from 'rxjs/operators';
 
   <div class="chatPage" [ngStyle]="{'padding-top' : showChatDetails ? '0px' : showImageGallery ? '40px' : '20px' , 'padding-bottom' : chatPagePaddingBottom}">
   <div
+    #chatTopBar
     class="chatTopBar"
     [style.top.px]="containerTop"
     [style.left.px]="containerLeft"
@@ -221,7 +222,7 @@ import { map, tap, take } from 'rxjs/operators';
     <div>
       <ul>
         <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index">
-          <button class="buttonPrimary" *ngIf="first" [disabled]="isLoadMoreDisabled" style="width:200px;margin:75px auto 10px auto;display:flex;justify-content: center" (click)="loadMore()">Load more</button>
+          <button class="buttonPrimary" *ngIf="first" [disabled]="isLoadMoreDisabled" [style.margin-top.px]="loadMoreButtonMarginTop" style="width:200px;margin-right:auto;margin-left:auto;margin-bottom:10px;display:flex;justify-content: center" (click)="loadMore()">Load more</button>
           <div class="island" id="date" style="margin-top:25px;margin-bottom:25px;max-width:240px" *ngIf="isMessageNewTimeGroup(message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
               <div style="margin:0 auto;text-align:center">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'fullDate'}}</div>
           </div>
@@ -348,6 +349,7 @@ import { map, tap, take } from 'rxjs/operators';
 
 export class ChatComponent implements OnDestroy {
   @ViewChild('msgBox') msgBox!: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('chatTopBar') chatTopBar!: ElementRef;
   @ViewChild('chatComposer') chatComposer?: ElementRef<HTMLDivElement>;
   draftMessage:string
   imageTimestamp:string
@@ -404,6 +406,7 @@ export class ChatComponent implements OnDestroy {
   containerWidth = 0;
   composerHeight = 90;
   isLoadMoreDisabled = false;
+  loadMoreButtonMarginTop = 75;
   private offsetsRefreshTimeout: ReturnType<typeof setTimeout> | null = null;
 
   private scheduleOffsetsRefresh = () => {
@@ -412,7 +415,7 @@ export class ChatComponent implements OnDestroy {
     this.offsetsRefreshTimeout = setTimeout(() => this.updateFixedOffsets(), 180);
   }
 
-constructor(
+  constructor(
     public afs:AngularFirestore,
     public router:Router,
     public UI:UserInterfaceService,
@@ -420,37 +423,37 @@ constructor(
     private storage:AngularFireStorage,
     private zone: NgZone,
   ) {
-    this.math = Math
-    this.UI.loading = true
-    this.reads = []
-    this.route.params.subscribe(params => {
-      this.lastRead = null
-      this.chatChain = params.id
-      this.messageShowActions = []
-      this.messageShowDetails = []
-      this.chatLastMessageObj = {}
-      this.previousMessageServerTimestamp = { seconds: this.UI.nowSeconds * 1000 }
-      this.previousMessageUser = ''
-      this.messageNumberDisplay = 15
-      this.chatSubject = ''
-      this.eventDescription = '';
-      this.eventDuration = 1;
-      this.eventLocation = this.googleMeet;
-      this.transactionAmount = null;
-      this.transactionCode = null;
-      this.transactionReference = null;
-      this.transactionUser = null;
-      this.transactionUserName = null;
-      this.fund = {
-        description: 'add a description',
-        amountGBPTarget: 0,
-        daysLeft: 30
-      }
-      this.refreshMessages(params.id)
-      this.refresheventDateList()
-      this.resetChat()
-    })
-  }
+      this.math = Math
+      this.UI.loading = true
+      this.reads = []
+      this.route.params.subscribe(params => {
+        this.lastRead = null
+        this.chatChain = params.id
+        this.messageShowActions = []
+        this.messageShowDetails = []
+        this.chatLastMessageObj = {}
+        this.previousMessageServerTimestamp = { seconds: this.UI.nowSeconds * 1000 }
+        this.previousMessageUser = ''
+        this.messageNumberDisplay = 15
+        this.chatSubject = ''
+        this.eventDescription = '';
+        this.eventDuration = 1;
+        this.eventLocation = this.googleMeet;
+        this.transactionAmount = null;
+        this.transactionCode = null;
+        this.transactionReference = null;
+        this.transactionUser = null;
+        this.transactionUserName = null;
+        this.fund = {
+          description: 'add a description',
+          amountGBPTarget: 0,
+          daysLeft: 30
+        }
+        this.refreshMessages(params.id)
+        this.refresheventDateList()
+        this.resetChat()
+      })
+    }
 
   onDateChange(event: any) {
     this.eventTimeListInit();
@@ -517,6 +520,12 @@ constructor(
   get chatPagePaddingBottom(): string {
     if (!this.UI.currentUser || this.showChatDetails || this.showImageGallery) return '0px';
     return `${this.composerHeight + this.containerBottom + 8}px`;
+  }
+
+  updateLoadMoreMargin() {
+    if (this.chatTopBar?.nativeElement) {
+      this.loadMoreButtonMarginTop = this.chatTopBar.nativeElement.offsetHeight + 15;
+    }
   }
 
   showImageGalleryClick() {
@@ -633,7 +642,10 @@ constructor(
         }))
       }),
       tap(() => {
-        this.zone.onStable.pipe(take(1)).subscribe(() => this.scrollMainToBottom());
+        this.zone.onStable.pipe(take(1)).subscribe(() => {
+          this.updateLoadMoreMargin();
+          this.scrollMainToBottom();
+        });
       })
     )
     else this.messages = this.afs.collection('PERRINNMessages', ref => ref
