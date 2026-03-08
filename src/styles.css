@@ -1255,12 +1255,15 @@ app-root profile .nonMemberIslandHelper a {
   font-weight: 700;
 }
 
-app-root profile .splitIsland.nonMemberIslandMobileBetween {
-  display: none !important;
+app-root profile .profile-events-item {
+  order: 1;
 }
-
-app-root profile .nonMemberIslandDesktopPlacement {
-  display: block;
+app-root profile .profile-funds-item {
+  order: 2;
+}
+app-root profile .profile-banner-item {
+  order: 3;
+  grid-column: 1 / -1;
 }
 
 app-root profile .nonMemberChatLock {
@@ -1594,12 +1597,12 @@ app-root .chatSubjectTruncate {
     grid-template-columns: 1fr;
   }
 
-  app-root profile .splitIsland.nonMemberIslandMobileBetween {
-    display: block !important;
+  app-root profile .profile-funds-item {
+    order: 3;
   }
-
-  app-root profile .nonMemberIslandDesktopPlacement {
-    display: none;
+  app-root profile .profile-banner-item {
+    order: 2;
+    grid-column: auto;
   }
 
   app-root profile .modeSwitchTrack {
