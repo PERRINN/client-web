@@ -824,6 +824,12 @@ app-root directory .island {
   box-shadow: 0 8px 24px rgba(2, 8, 23, 0.24);
 }
 
+app-root profile .profile-banner-item,
+app-root directory .directory-banner-item {
+  padding: 0;
+  overflow: hidden;
+}
+
 app-root directory .viewToggleBtn {
   display: inline-flex;
   align-items: center;

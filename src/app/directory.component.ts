@@ -11,7 +11,7 @@ import { AngularFireAuth } from '@angular/fire/compat/auth'
   template:`
   <div class="directoryPage">
     <div class="directoryContainer">
-      <div class="island" style="margin-bottom: 20px; line-height: 0;">
+      <div class="island directory-banner-item" style="margin-bottom: 20px; line-height: 0;">
         <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="width:100%;display:block">
       </div>
       
