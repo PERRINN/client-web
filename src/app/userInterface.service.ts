@@ -313,9 +313,10 @@ export class UserInterfaceService {
   }
 
   logout(){
-    this.afAuth.signOut()
-    this.currentUser=null
-    this.router.navigate(['login'])
+    this.afAuth.signOut().then(() => {
+      // Recharge la page pour vider la mémoire et garantir l'état "non connecté"
+      window.location.href = '/';
+    });
   }
 
   openWindow(url){

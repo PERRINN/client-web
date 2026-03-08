@@ -113,7 +113,7 @@ import firebase from 'firebase/compat/app';
       <button class="buttonWhite" (click)="UI.toggleprofileSimulatorLoggedOut()">Logged-out {{UI.profileSimulatorLoggedOut ? 'ON' : 'OFF'}}</button>
   </div>
   <br/>
-  <button class="buttonRed" style="width:100px;margin:25px auto; display: block" (click)="this.UI.logout()">logout</button>
+  <button class="buttonRed" style="width:100px;margin:25px auto; display: block" (click)="this.UI.logout()">Logout</button>
   </div>
   `
 })
