@@ -182,10 +182,9 @@ interface RevolutOrderResponse {
         <div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
           Currency
         </div>
-        <ul class="listLight" style="display: flex; flex-wrap: wrap; gap: 10px;">
-          <li style="flex: 1; min-width: 120px;">
+        <ul class="listLight currency-selector-list">
+          <li style="flex: 1; min-width: 120px;" *ngFor="let currency of objectToArray(UI.appSettingsPayment.currencyList)">
             <button class="buttonToggle"
-              *ngFor="let currency of objectToArray(UI.appSettingsPayment.currencyList)"
               (click)="currencySelected = currency[0]; refreshCreditList(); refreshAmountCharge()"
               style="width:100%;padding: 10px; border-radius: 8px; border: 2px solid; transition: all 0.3s ease; font-weight: 600; font-size: 13px;"
               [style.background-color]="currencySelected == currency[0] ? '#10b981' : 'transparent'"

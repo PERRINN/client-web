@@ -70,6 +70,11 @@ a:visited {
 .listLight .selected {
   background-color: #222C32;
 }
+.currency-selector-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0px 10px;
+}
 .buttonBlack {
   background-color: black;
   color: whitesmoke;
@@ -398,6 +403,9 @@ th {
 {
   .th-days {
     display: none;
+  }
+  .currency-selector-list {
+    flex-direction: column;
   }
 }
 
