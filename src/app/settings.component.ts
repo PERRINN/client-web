@@ -44,7 +44,7 @@ import firebase from 'firebase/compat/app';
           <label
             for="chatImage"
             id="buttonFile"
-            class="buttonWhite settingsUploadBtn"
+            class="buttonPrimary settingsUploadBtn"
           >
             Upload a new profile picture
           </label>
@@ -55,7 +55,7 @@ import firebase from 'firebase/compat/app';
   <div class="island settingsSection">
     <div class="title">Your name (preferably your first name)</div>
     <input [(ngModel)]="name" placeholder="First name">
-    <button class="buttonWhite" (click)="updateName()" style="font-size:12px;width:200px;padding:2px;margin:10px" [disabled]="name==UI.currentUserLastMessageObj?.name">Update my name</button>
+    <button class="buttonPrimary" (click)="updateName()" style="font-size:12px;width:200px;padding:2px;margin:10px" [disabled]="name==UI.currentUserLastMessageObj?.name">Update my name</button>
   </div>
   <br/>
   <div class="island settingsSection">
@@ -78,21 +78,21 @@ import firebase from 'firebase/compat/app';
     <div style="margin:20px">Your short presentation helps other members get to know you.</div>
     <div style="margin:10px 20px 0 20px">I am someone who is:</div>
     <input [(ngModel)]="userPresentation" placeholder="Your short presentation" maxlength="150">
-    <button class="buttonWhite" (click)="updateUserPresentation()" style="font-size:12px;width:200px;padding:2px;margin:10px" [disabled]="userPresentation==UI.currentUserLastMessageObj?.userPresentation">Update my presentation</button>
+    <button class="buttonPrimary" (click)="updateUserPresentation()" style="font-size:12px;width:200px;padding:2px;margin:10px" [disabled]="userPresentation==UI.currentUserLastMessageObj?.userPresentation">Update my presentation</button>
   </div>
   <br/>
   <div class="island settingsSection">
     <div class="title">Public link</div>
     <div style="margin:20px 20px 0 20px">Add view only public link so other members can view your documents, website, code and more.</div>
     <input [(ngModel)]="publicLink" placeholder="Add a link">
-    <button class="buttonWhite" (click)="updatePublicLink()" style="font-size:12px;width:200px;padding:2px;margin:10px" [disabled]="publicLink==UI.currentUserLastMessageObj?.publicLink">Update my link</button>
+    <button class="buttonPrimary" (click)="updatePublicLink()" style="font-size:12px;width:200px;padding:2px;margin:10px" [disabled]="publicLink==UI.currentUserLastMessageObj?.publicLink">Update my link</button>
   </div>
   <br/>
   <div class="island settingsSection">
     <div class="title">Email address</div>
     <div style="margin:10px 20px 0 20px">Authentication address.</div>
     <input [(ngModel)]="emailsAuth" placeholder="Enter your authentication email">
-    <button class="buttonWhite" (click)="updateEmails()" style="font-size:12px;width:250px;padding:2px;margin:10px" [disabled]="emailsAuth==UI.currentUserLastMessageObj?.emails.auth">Update my email address</button>
+    <button class="buttonPrimary" (click)="updateEmails()" style="font-size:12px;width:250px;padding:2px;margin:10px" [disabled]="emailsAuth==UI.currentUserLastMessageObj?.emails.auth">Update my email address</button>
   </div>
   <br/>
   <div class="island settingsSection">
@@ -100,7 +100,7 @@ import firebase from 'firebase/compat/app';
     <div style="margin:20px">Your PERRINN contract defines how you collaborate with the team. Any change you submit here is first reviewed, then approved before it becomes active. Either you or PERRINN can end the contract at any time.</div>
     <div style="margin:15px 20px 0 20px">Contract level is a scale from <b>1 to 10</b> based on your ability to work independently: <b>1</b> = beginner, <b>10</b> = expert (10+ years of experience). After signature, your effective level increases automatically over time by about <b>+1 per year</b>.</div>
     <input [(ngModel)]="contract.level" (input)="onContractLevelInput($event)" maxlength="2" inputmode="numeric" pattern="[0-9]*" placeholder="Contract level">
-    <button class="buttonWhite" (click)="updateContract()" style="clear:both;font-size:12px;width:200px;padding:2px;margin:10px auto;display:block" [disabled]="contract.level==UI.currentUserLastMessageObj?.contract?.level">Update my contract</button>
+    <button class="buttonPrimary" (click)="updateContract()" style="clear:both;font-size:12px;width:200px;padding:2px;margin:10px auto;display:block" [disabled]="contract.level==UI.currentUserLastMessageObj?.contract?.level">Update my contract</button>
     <div *ngIf="!UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:10px 10px 5px 15px">No contract registered.</div>
     <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:10px 10px 5px 15px">Contract number {{UI.currentUserLastMessageObj?.contract?.createdTimestamp}}</div>
     <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:5px 10px 10px 15px">Signature valid for level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}, you will receive {{UI.convertAndFormatPRNToPRNCurrency(null,UI.appSettingsContract.hourlyRateLevel1*UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted)}} per hour when you declare working hours.</div>
@@ -109,8 +109,8 @@ import firebase from 'firebase/compat/app';
   <br/>
   <div class="island settingsSection">
     <div class="title">Profile simulator (for UI dev)</div>
-    <button class="buttonWhite" (click)="UI.toggleprofileSimulatorNonMember()" style="clear:both;font-size:12px;width:200px;padding:2px;margin:10px auto;display:block">Non member {{UI.profileSimulatorNonMember ? 'ON' : 'OFF'}} </button>
-      <button class="buttonWhite" (click)="UI.toggleprofileSimulatorLoggedOut()">Logged-out {{UI.profileSimulatorLoggedOut ? 'ON' : 'OFF'}}</button>
+    <button class="buttonPrimary" (click)="UI.toggleprofileSimulatorNonMember()" style="clear:both;font-size:12px;width:200px;padding:2px;margin:10px auto;display:block">Non member {{UI.profileSimulatorNonMember ? 'ON' : 'OFF'}} </button>
+      <button class="buttonPrimary" (click)="UI.toggleprofileSimulatorLoggedOut()">Logged-out {{UI.profileSimulatorLoggedOut ? 'ON' : 'OFF'}}</button>
   </div>
   <br/>
   <button class="buttonRed" style="width:100px;margin:25px auto; display: block" (click)="this.UI.logout()">Logout</button>

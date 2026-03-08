@@ -86,18 +86,6 @@ a:visited {
   opacity:0.5;
   pointer-events:none;
 }
-.buttonWhite {
-  background-color:whitesmoke;
-  color: black;
-}
-.buttonWhite:hover{
-  background-color:darkGreen;
-  color: whitesmoke;
-}
-.buttonWhite:disabled{
-  opacity:0.5;
-  pointer-events:none;
-}
 .buttonRed {
   background-color:#A73E30;
   color: whitesmoke;
@@ -746,16 +734,6 @@ app-root chat .chatPage .island {
 }
 
 app-root login .buttonPrimary,
-app-root settings .buttonWhite,
-app-root profile .buttonWhite,
-app-root chat .chatPage .buttonWhite {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.28);
-}
-
 app-root settings .buttonRed,
 app-root chat .chatPage .buttonRed {
   border: none;
@@ -1104,13 +1082,13 @@ app-root settings input:focus {
   border-color: rgba(16, 185, 129, 0.55);
 }
 
-app-root settings .buttonWhite {
+app-root settings .buttonPrimary {
   font-weight: 700;
   padding: 9px 14px !important;
   cursor: pointer;
 }
 
-app-root settings .buttonWhite:disabled {
+app-root settings .buttonPrimary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   box-shadow: none;
@@ -1415,9 +1393,8 @@ app-root profile .eventCardToggleBtn {
 }
 
 app-root profile .buttonBlack,
-app-root profile .buttonWhite {
+app-root profile .buttonPrimary {
   border-radius: 8px;
-  border: 1px solid rgba(16, 185, 129, 0.25);
   padding: 8px 12px;
   font-size: 12px;
   font-weight: 600;
@@ -1426,6 +1403,7 @@ app-root profile .buttonWhite {
 }
 
 app-root profile .buttonBlack {
+  border: 1px solid rgba(16, 185, 129, 0.25);
   background: #0f172a;
   color: #cbd5e1;
 }
@@ -1464,7 +1442,7 @@ app-root profile .modeSwitchBtn {
   border-radius: 9px;
 }
 
-app-root profile .buttonWhite:hover {
+app-root profile .buttonPrimary:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 22px rgba(16, 185, 129, 0.34);
 }
@@ -1646,16 +1624,8 @@ app-root chat .chatPage textarea:focus {
   border-color: rgba(16, 185, 129, 0.55);
 }
 
-app-root chat .chatPage .buttonWhite {
+app-root chat .chatPage .buttonPrimary {
   font-weight: 700;
-}
-
-app-root chat .chatPage .buttonBlack {
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  border-radius: 8px;
-  color: #cbd5e1;
-  font-weight: 600;
 }
 
 app-root chat .chatTopBar {
@@ -2035,7 +2005,7 @@ app-root chat .chatProfileImageActions {
   align-items: center;
 }
 
-app-root chat .chatProfileImageActions .buttonWhite {
+app-root chat .chatProfileImageActions .buttonPrimary {
   text-align: center;
 }
 

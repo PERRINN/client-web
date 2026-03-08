@@ -73,7 +73,7 @@ import { ChangeDetectorRef } from '@angular/core'
         <div style="font-size:12px; color:#cbd5e1; margin-bottom:8px;">
           <span *ngIf="focusUserLastMessageObj?.contract?.signed" style="color:#10b981; font-weight:600;">Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
           <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed">Waiting for contract signature (Level {{focusUserLastMessageObj?.contract?.level|number:'1.1-1'}})</span>
-          <button class="buttonWhite" *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin-left:10px" (click)=signContract()>Sign contract</button>
+          <button class="buttonPrimary" *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin-left:10px" (click)=signContract()>Sign contract</button>
         </div>
       </div>
     </div>
@@ -128,7 +128,7 @@ import { ChangeDetectorRef } from '@angular/core'
                   </div>
                 </div>
                 <button *ngIf="message.payload.doc.data()?.eventLocation"
-                  class="buttonWhite eventCardJoinBtn"
+                  class="buttonPrimary eventCardJoinBtn"
                   [disabled]="!UI.isCurrentUserMember"
                   (click)="$event.stopPropagation(); UI.openWindow(message.payload.doc.data()?.eventLocation)">
                   <span>Join</span>
@@ -217,7 +217,7 @@ import { ChangeDetectorRef } from '@angular/core'
             <span class="material-icons-outlined nonMemberIslandIcon">lock_open</span>
           </div>
           <div class="nonMemberIslandTitle">Unlock Full Access to Team Communications, Media and Features.</div>
-          <button class="buttonWhite nonMemberIslandButton" (click)="router.navigate(['buyPRN'])">Buy PRN Tokens</button>
+          <button class="buttonPrimary nonMemberIslandButton" (click)="router.navigate(['buyPRN'])">Buy PRN Tokens</button>
           <div class="nonMemberIslandFooter">Join the team today.</div>
           <div class="nonMemberIslandHelper">Interested to join but have some questions first? <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" rel="noopener noreferrer">Join our WhatsApp community</a> and speak directly to Nico there.</div>
         </div>
@@ -320,7 +320,7 @@ import { ChangeDetectorRef } from '@angular/core'
         <div class="bounce3"></div>
       </div>
       <div class="island" *ngIf="UI.isCurrentUserMember">
-        <button class="buttonWhite" *ngIf="(!UI.loading && !['forecast', 'history'].includes(mode)) || scope=='all'" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</button>
+        <button class="buttonPrimary" *ngIf="(!UI.loading && !['forecast', 'history'].includes(mode)) || scope=='all'" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</button>
       </div>
       <div *ngIf="hostingBuildHash" style="text-align:center; margin: 2px 0 8px 0; color:#64748b; font-size:11px; letter-spacing:0.2px;">
         build {{hostingBuildHash}}

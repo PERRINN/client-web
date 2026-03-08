@@ -62,7 +62,7 @@ import { map, tap, take } from 'rxjs/operators';
           <span class="chatEventDateText">{{eventDateStart|date:'EEEE d MMM h:mm a'}} ({{eventDuration}}h)</span>
         </div>
         <button *ngIf="eventLocation"
-          class="buttonWhite chatEventJoinBtn"
+          class="buttonPrimary chatEventJoinBtn"
           [disabled]="!UI.isCurrentUserMember"
           (click)="$event.stopPropagation(); UI.openWindow(eventLocation)">
           <span>Join</span>
@@ -81,7 +81,7 @@ import { map, tap, take } from 'rxjs/operators';
         <div class="chatProfileSectionTitle">Chat Profile</div>
         <div class="chatProfileSubjectRow">
           <input [(ngModel)]="chatSubject" class="chatProfileSubjectInput" placeholder="What is the subject of this chat?">
-          <button class="buttonWhite chatProfileBtn" (click)="saveNewSubject()" [disabled]="chatLastMessageObj?.chatSubject==chatSubject&&chatSubject">Save subject</button>
+          <button class="buttonPrimary chatProfileBtn" (click)="saveNewSubject()" [disabled]="chatLastMessageObj?.chatSubject==chatSubject&&chatSubject">Save subject</button>
         </div>
         <div class="chatProfileImageEditor">
           <div class="chatProfileImagePreviewWrap">
@@ -96,8 +96,8 @@ import { map, tap, take } from 'rxjs/operators';
           </div>
           <div class="chatProfileImageActions">
             <input type="file" name="chatProfileImage" id="chatProfileImage" class="inputfile" (change)="onChatProfileImageChange($event)" accept="image/*">
-            <label class="buttonWhite chatProfileBtn" for="chatProfileImage">Upload chat image</label>
-            <button class="buttonWhite chatProfileBtn" (click)="saveChatProfileImage()" [disabled]="!chatProfileImageTimestamp">Save chat image</button>
+            <label class="buttonPrimary chatProfileBtn" for="chatProfileImage">Upload chat image</label>
+            <button class="buttonPrimary chatProfileBtn" (click)="saveChatProfileImage()" [disabled]="!chatProfileImageTimestamp">Save chat image</button>
           </div>
         </div>
       </div>
@@ -131,10 +131,10 @@ import { map, tap, take } from 'rxjs/operators';
         </div>
 
         <div class="chatTransferActions">
-          <button class="buttonWhite chatTransferBtn" (click)="createTransactionOut(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference)" [disabled]="!canSendTransactionOut()">
+          <button class="buttonPrimary chatTransferBtn" (click)="createTransactionOut(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference)" [disabled]="!canSendTransactionOut()">
             Send {{UI.convertAndFormatPRNToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}} to {{transactionUserName}}
           </button>
-          <button class="buttonWhite chatTransferBtn" (click)="createTransactionPending(transactionAmount,transactionCode,null,null,transactionReference)" [disabled]="!canCreatePendingTransaction()">
+          <button class="buttonPrimary chatTransferBtn" (click)="createTransactionPending(transactionAmount,transactionCode,null,null,transactionReference)" [disabled]="!canCreatePendingTransaction()">
             Create pending transaction of {{UI.convertAndFormatPRNToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}}
           </button>
         </div>
@@ -192,7 +192,7 @@ import { map, tap, take } from 'rxjs/operators';
         <input class="chatEventEditorInput" maxlength="200" [(ngModel)]="eventLocationChoice" placeholder="Event location">
 
         <div class="chatEventEditorActions">
-          <button class="buttonWhite chatEventEditorBtn" (click)="saveEvent()" [disabled]="!((eventDescriptionChoice!=chatLastMessageObj?.eventDescription||eventDurationChoice!=chatLastMessageObj?.eventDuration||eventLocationChoice!=chatLastMessageObj?.eventLocation||selectedTime!=chatLastMessageObj?.eventDateStart) && (selectedTime % 1800000) == 0 && (selectedTime != null))">Save event</button>
+          <button class="buttonPrimary chatEventEditorBtn" (click)="saveEvent()" [disabled]="!((eventDescriptionChoice!=chatLastMessageObj?.eventDescription||eventDurationChoice!=chatLastMessageObj?.eventDuration||eventLocationChoice!=chatLastMessageObj?.eventLocation||selectedTime!=chatLastMessageObj?.eventDateStart) && (selectedTime % 1800000) == 0 && (selectedTime != null))">Save event</button>
           <button class="buttonRed chatEventEditorBtn" (click)="cancelEvent()" [disabled]="!(eventDateEnd/60000>UI.nowSeconds/60)">Cancel event</button>
         </div>
       </div>
@@ -208,7 +208,7 @@ import { map, tap, take } from 'rxjs/operators';
       <br/>
       <span style="margin:10px">Days left</span>
       <input style="width:30%;margin:10px" maxlength="10" [(ngModel)]="fund.daysLeft">
-      <button class="buttonWhite" style="clear:both;width:100px;font-size:10px;margin:10px;display:block" (click)="saveFund()" [disabled]="!(fund.description!=chatLastMessageObj?.fund?.description||fund.amountGBPTarget!=chatLastMessageObj?.fund?.amountGBPTarget||fund.daysLeft!=chatLastMessageObj?.fund?.daysLeft)">Save fund</button>
+      <button class="buttonPrimary" style="clear:both;width:100px;font-size:10px;margin:10px;display:block" (click)="saveFund()" [disabled]="!(fund.description!=chatLastMessageObj?.fund?.description||fund.amountGBPTarget!=chatLastMessageObj?.fund?.amountGBPTarget||fund.daysLeft!=chatLastMessageObj?.fund?.daysLeft)">Save fund</button>
     </div>
   </div>
 
@@ -221,7 +221,7 @@ import { map, tap, take } from 'rxjs/operators';
     <div>
       <ul>
         <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index">
-          <button class="buttonWhite" *ngIf="first" [disabled]="isLoadMoreDisabled" style="width:200px;margin:75px auto 10px auto;display:flex;justify-content: center" (click)="loadMore()">Load more</button>
+          <button class="buttonPrimary" *ngIf="first" [disabled]="isLoadMoreDisabled" style="width:200px;margin:75px auto 10px auto;display:flex;justify-content: center" (click)="loadMore()">Load more</button>
           <div class="island" id="date" style="margin-top:25px;margin-bottom:25px;max-width:240px" *ngIf="isMessageNewTimeGroup(message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
               <div style="margin:0 auto;text-align:center">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'fullDate'}}</div>
           </div>
@@ -303,7 +303,7 @@ import { map, tap, take } from 'rxjs/operators';
       </ul>
     </div>
     <div class="island" style="margin-top:25px;margin-bottom:25px;max-width:250px">
-      <button class="buttonWhite" style="width:200px;margin:10px auto" [disabled]="isLoadMoreDisabled" (click)="loadMore()">Load more</button>
+      <button class="buttonPrimary" style="width:200px;margin:10px auto" [disabled]="isLoadMoreDisabled" (click)="loadMore()">Load more</button>
     </div>
   </div>
 
