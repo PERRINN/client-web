@@ -443,6 +443,9 @@ export class ChatComponent implements OnDestroy {
   isLoadMoreDisabled = false;
   loadMoreButtonMarginTop = 75;
   private offsetsRefreshTimeout: ReturnType<typeof setTimeout> | null = null;
+  private pendingLoadMoreAnchorRestore = false;
+  private loadMoreAnchorTop = 0;
+  private loadMoreAnchorHeight = 0;
 
   private scheduleOffsetsRefresh = () => {
     this.updateFixedOffsets();
@@ -570,6 +573,7 @@ export class ChatComponent implements OnDestroy {
   }
 
   loadMore() {
+    this.captureLoadMoreAnchor();
     this.UI.loading = true
     this.messageNumberDisplay += 15
     this.refreshMessages(this.chatLastMessageObj.chain || this.chatChain)
@@ -677,9 +681,11 @@ export class ChatComponent implements OnDestroy {
         }))
       }),
       tap(() => {
+        const shouldStickToBottom = this.shouldStickToBottomOnUpdate();
         this.zone.onStable.pipe(take(1)).subscribe(() => {
           this.updateLoadMoreMargin();
-          this.scrollMainToBottom();
+          const restoredAnchor = this.restoreLoadMoreAnchorIfNeeded();
+          if (!restoredAnchor && shouldStickToBottom) this.scrollMainToBottom();
         });
       })
     )
@@ -742,6 +748,33 @@ export class ChatComponent implements OnDestroy {
   scrollMainToTop() {
     const mc = document.getElementById('main_container');
     if (mc) mc.scrollTop = 0;
+  }
+
+  private shouldStickToBottomOnUpdate(): boolean {
+    const mc = document.getElementById('main_container');
+    if (!mc) return true;
+    const distanceFromBottom = mc.scrollHeight - (mc.scrollTop + mc.clientHeight);
+    const isMobileViewport = window.matchMedia('(max-width: 900px)').matches;
+    const threshold = isMobileViewport ? 180 : 90;
+    return distanceFromBottom <= threshold;
+  }
+
+  private captureLoadMoreAnchor(): void {
+    const mc = document.getElementById('main_container');
+    if (!mc) return;
+    this.pendingLoadMoreAnchorRestore = true;
+    this.loadMoreAnchorTop = mc.scrollTop;
+    this.loadMoreAnchorHeight = mc.scrollHeight;
+  }
+
+  private restoreLoadMoreAnchorIfNeeded(): boolean {
+    if (!this.pendingLoadMoreAnchorRestore) return false;
+    this.pendingLoadMoreAnchorRestore = false;
+    const mc = document.getElementById('main_container');
+    if (!mc) return false;
+    const heightDelta = mc.scrollHeight - this.loadMoreAnchorHeight;
+    mc.scrollTop = this.loadMoreAnchorTop + Math.max(0, heightDelta);
+    return true;
   }
 
   saveNewSubject() {

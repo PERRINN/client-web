@@ -12,6 +12,7 @@ import firebase from 'firebase/compat/app';
   selector:'settings',
   template:`
   <div class="settingsPage">
+  <div class="settingsPageTitle">Settings</div>
   <div class="island profileSummary settingsProfileCard">
     <div class="settingsProfileHead">
       <img class="imageWithZoom settingsProfileImage" [src]="UI.currentUserLastMessageObj?.imageUrlMedium||UI.currentUserLastMessageObj?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, UI.currentUserLastMessageObj)" (click)="UI.showFullScreenImage(UI.currentUserLastMessageObj?.imageUrlOriginal)"
@@ -113,7 +114,10 @@ import firebase from 'firebase/compat/app';
       <button class="buttonPrimary" (click)="UI.toggleprofileSimulatorLoggedOut()">Logged-out {{UI.profileSimulatorLoggedOut ? 'ON' : 'OFF'}}</button>
   </div>
   <br/>
-  <button class="buttonRed" style="width:100px;margin:25px auto; display: block" (click)="this.UI.logout()">Logout</button>
+  <div class="island settingsSection">
+    <div class="title">Account</div>
+    <button class="buttonRed" style="width:120px;margin:10px auto; display: block" (click)="this.UI.logout()">Logout</button>
+  </div>
   </div>
   `
 })
