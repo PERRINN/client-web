@@ -141,7 +141,7 @@ type PaymentState =
       </button>
     </div>
     <br/>
-    <div *ngIf="UI.currentUser" class="island" style="background: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.1);">
+    <div class="island" style="background: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.1);">
       <div style="display: flex; align-items: center; margin-bottom: 20px;">
         <span class="material-symbols-outlined" style="font-size: 24px; color: #10b981; margin-right: 12px;">payment</span>
         <div style="font-size: 16px; font-weight: 700; color: #f1f5f9;">
@@ -156,14 +156,13 @@ type PaymentState =
         </span>
       </div>
 
-      <div style="padding: 0; margin-bottom: 24px;">
+      <div *ngIf="UI.currentUser" style="padding: 0; margin-bottom: 24px;">
         <div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
           Currency
         </div>
-        <ul class="listLight" style="display: flex; flex-wrap: wrap; gap: 10px;">
-          <li style="flex: 1; min-width: 120px;">
+        <ul class="listLight currency-selector-list">
+          <li style="flex: 1; min-width: 120px;" *ngFor="let currency of objectToArray(UI.appSettingsPayment.currencyList)">
             <button class="buttonToggle"
-              *ngFor="let currency of objectToArray(UI.appSettingsPayment?.currencyList)"
               (click)="onCurrencySelected(currency[0])"
               style="width:100%;padding: 10px; border-radius: 8px; border: 2px solid; transition: all 0.3s ease; font-weight: 600; font-size: 13px;"
               [style.background-color]="currencySelected == currency[0] ? '#10b981' : 'transparent'"
@@ -176,7 +175,7 @@ type PaymentState =
         </ul>
       </div>
 
-      <div style="padding: 0;">
+      <div *ngIf="UI.currentUser" style="padding: 0;">
         <div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
           Amount
         </div>
@@ -214,6 +213,13 @@ type PaymentState =
         <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">arrow_forward</span>
         Proceed to Checkout
       </button>
+
+          <button class="buttonPrimary" *ngIf="!UI.currentUser"
+              (click)="router.navigate(['login'], {queryParams: {returnUrl: '/buyPRN'}})"
+              style="width:100%; margin:24px 0 0 0; font-size:14px; line-height: 1.6; padding: 14px 16px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);">
+            <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">login</span>
+            Log in to Buy PRN Tokens
+          </button>
 
             <div *ngIf="paymentState !== 'idle'" style="background: #1e293b; padding: 18px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.22); margin-top: 16px; text-align: left;">
               <div style="font-size: 15px; font-weight: 700; color: #f1f5f9; margin-bottom: 8px;">Payment status</div>

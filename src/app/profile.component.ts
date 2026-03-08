@@ -73,7 +73,7 @@ import { ChangeDetectorRef } from '@angular/core'
         <div style="font-size:12px; color:#cbd5e1; margin-bottom:8px;">
           <span *ngIf="focusUserLastMessageObj?.contract?.signed" style="color:#10b981; font-weight:600;">Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
           <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed">Waiting for contract signature (Level {{focusUserLastMessageObj?.contract?.level|number:'1.1-1'}})</span>
-          <button class="buttonWhite" *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin-left:10px" (click)=signContract()>Sign contract</button>
+          <button class="buttonPrimary" *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin-left:10px" (click)=signContract()>Sign contract</button>
         </div>
       </div>
     </div>
@@ -96,7 +96,7 @@ import { ChangeDetectorRef } from '@angular/core'
   </div>
     <div>
       <div *ngIf="mode=='inbox' || scope=='all'" class="splitContainer">
-        <div class="island splitIsland">
+        <div class="island splitIsland profile-events-item">
         <ng-container *ngIf="comingEvents|async as events">
         <ul class="listLight">
           <li *ngIf="events.length===0" style="padding:14px; border: 1px solid rgba(16, 185, 129, 0.1); background: rgba(16, 185, 129, 0.03); color:#94a3b8; font-size:13px;">
@@ -128,7 +128,7 @@ import { ChangeDetectorRef } from '@angular/core'
                   </div>
                 </div>
                 <button *ngIf="message.payload.doc.data()?.eventLocation"
-                  class="buttonWhite eventCardJoinBtn"
+                  class="buttonPrimary eventCardJoinBtn"
                   [disabled]="!UI.isCurrentUserMember"
                   (click)="$event.stopPropagation(); UI.openWindow(message.payload.doc.data()?.eventLocation)">
                   <span>Join</span>
@@ -163,17 +163,7 @@ import { ChangeDetectorRef } from '@angular/core'
         </ng-container>
         </div>
 
-        <div class="island splitIsland nonMemberIsland nonMemberIslandMobileBetween" *ngIf="!UI.isCurrentUserMember">
-          <div class="nonMemberIslandIconWrap">
-            <span class="material-icons-outlined nonMemberIslandIcon">lock_open</span>
-          </div>
-          <div class="nonMemberIslandTitle">Unlock Full Access to Team Communications, Media and Features.</div>
-          <button class="buttonWhite nonMemberIslandButton" (click)="router.navigate(['buyPRN'])">Buy PRN Tokens</button>
-          <div class="nonMemberIslandFooter">Join the team today.</div>
-          <div class="nonMemberIslandHelper">Interested to join but have some questions first? <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" rel="noopener noreferrer">Join our WhatsApp community</a> and speak directly to Nico there.</div>
-        </div>
-
-        <div class="island splitIsland">
+        <div class="island splitIsland profile-funds-item">
       <ul class="listLight">
         <li class="guardedChatItem fundListItem" *ngFor="let message of currentFunds|async;let first=first;let last=last"
           (click)="openListedChat(message.payload.doc.data()?.chain)">
@@ -224,16 +214,18 @@ import { ChangeDetectorRef } from '@angular/core'
         </li>
       </ul>
         </div>
-      </div>
-      <div class="island nonMemberIsland nonMemberIslandDesktopPlacement" *ngIf="!UI.isCurrentUserMember">
-        <div class="nonMemberIslandIconWrap">
-          <span class="material-icons-outlined nonMemberIslandIcon">lock_open</span>
+
+        <div class="island nonMemberIsland profile-banner-item" *ngIf="!UI.isCurrentUserMember">
+          <div class="nonMemberIslandIconWrap">
+            <span class="material-icons-outlined nonMemberIslandIcon">lock_open</span>
+          </div>
+          <div class="nonMemberIslandTitle">Unlock Full Access to Team Communications, Media and Features.</div>
+          <button class="buttonPrimary nonMemberIslandButton" (click)="router.navigate(['buyPRN'])">Buy PRN Tokens</button>
+          <div class="nonMemberIslandFooter">Join the team today.</div>
+          <div class="nonMemberIslandHelper">Interested to join but have some questions first? <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" rel="noopener noreferrer">Join our WhatsApp community</a> and speak directly to Nico there.</div>
         </div>
-        <div class="nonMemberIslandTitle">Unlock Full Access to Team Communications, Media and Features.</div>
-        <button class="buttonWhite nonMemberIslandButton" (click)="router.navigate(['buyPRN'])">Buy PRN Tokens</button>
-        <div class="nonMemberIslandFooter">Join the team today.</div>
-        <div class="nonMemberIslandHelper">Interested to join but have some questions first? <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" rel="noopener noreferrer">Join our WhatsApp community</a> and speak directly to Nico there.</div>
       </div>
+
       <ul *ngIf="mode=='inbox' || scope=='all'" class="listLight imageCarousel" id="scroll-images">
         <li *ngFor="let message of latestImages|async;let first=first;let last=last" class="carouselItem guardedChatItem">
           <div *ngIf="scope=='all'||mode=='inbox'" class="carouselImageWrap" (click)="openCarouselImage(message.payload.doc.data()?.chatImageUrlOriginal)">
@@ -331,7 +323,7 @@ import { ChangeDetectorRef } from '@angular/core'
         <div class="bounce3"></div>
       </div>
       <div class="island" *ngIf="UI.isCurrentUserMember">
-        <button class="buttonWhite" *ngIf="(!UI.loading && !['forecast', 'history'].includes(mode)) || scope=='all'" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</button>
+        <button class="buttonPrimary" *ngIf="(!UI.loading && !['forecast', 'history'].includes(mode)) || scope=='all'" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</button>
       </div>
       <div *ngIf="hostingBuildHash" style="text-align:center; margin: 2px 0 8px 0; color:#64748b; font-size:11px; letter-spacing:0.2px;">
         build {{hostingBuildHash}}

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import firebase from 'firebase/compat/app';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { UserInterfaceService } from './userInterface.service';
@@ -82,12 +82,14 @@ export class LoginComponent  {
     public afAuth:AngularFireAuth,
     public afs:AngularFirestore,
     public router:Router,
+    private route:ActivatedRoute,
     public UI:UserInterfaceService
   ) {
     this.action='login'
     this.afAuth.user.subscribe((auth) => {
       if (auth != null) {
-        this.router.navigate(['profile','all'])
+        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/profile/all';
+        this.router.navigateByUrl(returnUrl);
       }
     })
   }
