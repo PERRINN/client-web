@@ -132,6 +132,10 @@ type PaymentState =
                   <span *ngIf="!message.payload.doc.data()?.fund?.active" style="color: #94a3b8;">{{-message.payload.doc.data()?.fund?.daysLeft|number:"1.0-0"}} days ago</span>
                 </span>
               </div>
+              <div style="margin-top: 4px; font-size: 11px; color: #cbd5e1; line-height: 1.35;">
+                target: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]?.toCOIN||0))}} /
+                raised: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]?.toCOIN||0))}}
+              </div>
             </div>
           </div>
         </li>
