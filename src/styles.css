@@ -1561,6 +1561,12 @@ app-root profile .splitIsland {
   box-sizing: border-box;
 }
 
+app-root profile .profile-events-item,
+app-root profile .profile-funds-item {
+  width: 100%;
+  min-width: 0;
+}
+
 app-root profile .imageCarousel {
   display: flex;
   flex-wrap: nowrap;
@@ -1575,19 +1581,20 @@ app-root profile .imageCarousel {
 app-root profile .imageCarousel .carouselItem {
   flex: 0 0 25%;
   min-width: 200px;
-  background: rgba(15, 23, 42, 0.55);
-  border: 1px solid rgba(16, 185, 129, 0.14);
+  background: #0b1220;
+  border: 1px solid rgba(16, 185, 129, 0.28);
   border-radius: 10px;
   overflow: hidden;
   margin-bottom: 0;
   scroll-snap-align: start;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 10px 26px rgba(2, 8, 23, 0.5);
 }
 
 app-root profile .carouselImageWrap {
   cursor: pointer;
-  background: rgba(16, 185, 129, 0.03);
+  background: rgba(2, 8, 23, 0.72);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1603,8 +1610,8 @@ app-root profile .carouselImage {
 
 app-root profile .carouselMeta {
   border: none;
-  border-top: 1px solid rgba(16, 185, 129, 0.12);
-  background: rgba(15, 23, 42, 0.75);
+  border-top: 1px solid rgba(16, 185, 129, 0.22);
+  background: rgba(2, 8, 23, 0.9);
   padding: 8px 10px;
   display: flex;
   align-items: center;

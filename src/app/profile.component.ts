@@ -96,7 +96,7 @@ import { ChangeDetectorRef } from '@angular/core'
   </div>
     <div>
       <div *ngIf="mode=='inbox' || scope=='all'" class="splitContainer">
-        <div class="island splitIsland profile-events-item">
+        <div class="profile-events-item">
         <ng-container *ngIf="comingEvents|async as events">
         <ul class="listLight">
           <li *ngIf="events.length===0" style="padding:14px; border: 1px solid rgba(16, 185, 129, 0.1); background: rgba(16, 185, 129, 0.03); color:#94a3b8; font-size:13px;">
@@ -158,12 +158,12 @@ import { ChangeDetectorRef } from '@angular/core'
         <button class="buttonBlack eventCardToggleBtn"
           *ngIf="events.length>1 && UI.isCurrentUserMember"
           (click)="showAllEvents=!showAllEvents">
-          {{showAllEvents ? 'Hide Other Events' : 'Show Other Events'}}
+          {{showAllEvents ? 'Hide Other Events' : 'Show More Events'}}
         </button>
         </ng-container>
         </div>
 
-        <div class="island splitIsland profile-funds-item">
+        <div class="profile-funds-item">
       <ul class="listLight">
         <li class="guardedChatItem fundListItem" *ngFor="let message of currentFunds|async;let first=first;let last=last"
           (click)="openListedChat(message.payload.doc.data()?.chain)">
@@ -325,16 +325,12 @@ import { ChangeDetectorRef } from '@angular/core'
       <div class="island" *ngIf="UI.isCurrentUserMember">
         <button class="buttonPrimary" *ngIf="(!UI.loading && !['forecast', 'history'].includes(mode)) || scope=='all'" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</button>
       </div>
-      <div *ngIf="hostingBuildHash" style="text-align:center; margin: 2px 0 8px 0; color:#64748b; font-size:11px; letter-spacing:0.2px;">
-        build {{hostingBuildHash}}
-      </div>
     </div>
   </div>
   </div>
   `
 })
 export class ProfileComponent {
-  hostingBuildHash:string = ''
   messages:Observable<any[]>
   comingEvents:Observable<any[]>
   currentFunds:Observable<any[]>
@@ -412,37 +408,10 @@ export class ProfileComponent {
 
   ngOnInit() {
     this.forceScrollTop();
-    this.resolveHostingBuildHash();
     setTimeout(() => {
       this.forceScrollTop();
       this.cd.detectChanges()
     }, 10)
-  }
-
-  private resolveHostingBuildHash() {
-    fetch('/index.html', { method: 'HEAD', cache: 'no-store' })
-      .then(response => {
-        const etagHeader = response.headers.get('etag') || response.headers.get('ETag') || '';
-        const etag = etagHeader.replace(/W\//g, '').replace(/"/g, '').trim();
-        if (etag) {
-          this.hostingBuildHash = this.formatBuildId(etag);
-          return;
-        }
-        return fetch('/ngsw.json', { cache: 'no-store' })
-          .then(r => r.ok ? r.json() : null)
-          .then(ngsw => {
-            const hash = ngsw?.hashTable?.['/index.html'] || '';
-            this.hostingBuildHash = hash ? this.formatBuildId(String(hash)) : '';
-          });
-      })
-      .catch(() => {
-        this.hostingBuildHash = '';
-      });
-  }
-
-  private formatBuildId(value: string): string {
-    const alphanumeric = (value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-    return alphanumeric.slice(0, 4) || '';
   }
 
   private forceScrollTop() {
