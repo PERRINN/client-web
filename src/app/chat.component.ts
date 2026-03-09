@@ -243,7 +243,7 @@ import { map, tap, take } from 'rxjs/operators';
           </div>
         </div>
 
-        <button class="buttonWhite chatFundEditorBtn" (click)="saveFund()" [disabled]="!(fund.description!=chatLastMessageObj?.fund?.description||fund.amountGBPTarget!=chatLastMessageObj?.fund?.amountGBPTarget||fund.daysLeft!=chatLastMessageObj?.fund?.daysLeft)">Save fund</button>
+        <button class="buttonPrimary chatFundEditorBtn" (click)="saveFund()" [disabled]="!(fund.description!=chatLastMessageObj?.fund?.description||fund.amountGBPTarget!=chatLastMessageObj?.fund?.amountGBPTarget||fund.daysLeft!=chatLastMessageObj?.fund?.daysLeft)">Save fund</button>
       </div>
     </div>
   </div>
@@ -860,46 +860,58 @@ export class ChatComponent implements OnDestroy {
     return !!(this.transactionReference && String(this.transactionReference).trim().length > 0);
   }
 
+  private hasSelectedTransferRecipient(): boolean {
+    return !!this.transactionUser
+      && this.transactionUser !== this.UI.currentUser
+      && !!this.transactionUserName;
+  }
+
   canSendTransactionOut(): boolean {
     const amount = this.getTransferAmountValue();
     const balance = this.getTransferBalanceValue();
-    return amount > 0
+    return !!this.UI.isCurrentUserMember
+      && amount > 0
       && amount <= balance
-      && this.transactionUser != undefined
+      && this.hasSelectedTransferRecipient()
       && this.hasTransactionReference();
   }
 
   canCreatePendingTransaction(): boolean {
     const amount = this.getTransferAmountValue();
     const balance = this.getTransferBalanceValue();
-    return amount > 0
+    return !!this.UI.isCurrentUserMember
+      && amount > 0
       && amount <= balance
-      && this.transactionUser == undefined
+      && !this.hasSelectedTransferRecipient()
       && this.hasTransactionReference();
   }
 
   createTransactionOut(transactionAmount, transactionCode, transactionUser, transactionUserName, transactionReference) {
+    if (!this.canSendTransactionOut()) return;
+    const cleanReference = String(transactionReference || '').trim();
     this.UI.createMessage({
-      text: 'sending ' + ((((this.UI.PERRINNAdminLastMessageObj||{}).currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).symbol||'') + transactionAmount + ' to ' + transactionUserName + ((transactionCode || null) ? ' using code ' : '') + ((transactionCode || null) ? transactionCode : '') + ' (Reference: ' + transactionReference + ')',
+      text: 'sending ' + ((((this.UI.PERRINNAdminLastMessageObj||{}).currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).symbol||'') + transactionAmount + ' to ' + transactionUserName + ((transactionCode || null) ? ' using code ' : '') + ((transactionCode || null) ? transactionCode : '') + ' (Reference: ' + cleanReference + ')',
       chain: this.chatLastMessageObj.chain || this.chatChain,
       transactionOut: {
         user: transactionUser,
         amount: transactionAmount * ((((this.UI.PERRINNAdminLastMessageObj||{}).currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).toCOIN||0),
         code: transactionCode || null,
-        reference: transactionReference || null
+        reference: cleanReference || null
       }
     })
     this.resetChat()
   }
 
   createTransactionPending(transactionAmount, transactionCode, transactionUser, transactionUserName, transactionReference) {
+    if (!this.canCreatePendingTransaction()) return;
+    const cleanReference = String(transactionReference || '').trim();
     this.UI.createMessage({
-      text: 'creating a pending transaction of ' + ((((this.UI.PERRINNAdminLastMessageObj||{}).currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).symbol||'') + transactionAmount + ((transactionCode || null) ? ' using code ' : '') + ((transactionCode || null) ? transactionCode : '') + ' (Reference: ' + transactionReference + ')',
+      text: 'creating a pending transaction of ' + ((((this.UI.PERRINNAdminLastMessageObj||{}).currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).symbol||'') + transactionAmount + ((transactionCode || null) ? ' using code ' : '') + ((transactionCode || null) ? transactionCode : '') + ' (Reference: ' + cleanReference + ')',
       chain: this.chatLastMessageObj.chain || this.chatChain,
       transactionPending: {
         amount: transactionAmount * ((((this.UI.PERRINNAdminLastMessageObj||{}).currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).toCOIN||0),
         code: transactionCode || null,
-        reference: transactionReference || null
+        reference: cleanReference || null
       }
     })
     this.resetChat()
