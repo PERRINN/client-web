@@ -58,13 +58,13 @@ import { map, tap, take } from 'rxjs/operators';
             In {{UI.formatSecondsToDhm2(eventDateStart/1000-UI.nowSeconds)}}
           </span>
           <span *ngIf="math.floor(eventDateStart/60000-UI.nowSeconds/60)<=0&&eventDateEnd/60000>UI.nowSeconds/60" class="chatEventStatusChip chatEventStatusNow">
-            Now
+            Live
           </span>
           <span class="chatEventDateText">{{eventDateStart|date:'EEEE d MMM h:mm a'}} ({{eventDuration}}h)</span>
         </div>
         <button *ngIf="eventLocation"
           class="buttonPrimary chatEventJoinBtn"
-          [disabled]="!UI.isCurrentUserMember"
+            [disabled]="!UI.isCurrentUserMember || !(eventDateStart/60000<=UI.nowSeconds/60&&eventDateEnd/60000>UI.nowSeconds/60)"
           (click)="$event.stopPropagation(); UI.openWindow(eventLocation)">
           <span>Join</span>
           <span style="margin-left:5px;font-size:16px;line-height:14px" class="material-icons-outlined" *ngIf="!UI.isCurrentUserMember">lock</span>
@@ -158,7 +158,7 @@ import { map, tap, take } from 'rxjs/operators';
               In {{UI.formatSecondsToDhm2(eventDateStart/1000-UI.nowSeconds)}}
             </span>
             <span *ngIf="math.floor(eventDateStart/60000-UI.nowSeconds/60)<=0&&eventDateEnd/60000>UI.nowSeconds/60" class="chatEventStatusChip chatEventStatusNow">
-              Now
+                Live
             </span>
             <span class="chatEventDateText">{{eventDateStart==0?'':eventDateStart|date:'EEEE d MMM h:mm a'}} ({{eventDuration}}h)</span>
           </div>
@@ -194,7 +194,7 @@ import { map, tap, take } from 'rxjs/operators';
 
         <div class="chatEventEditorActions">
           <button class="buttonPrimary chatEventEditorBtn" (click)="saveEvent()" [disabled]="!((eventDescriptionChoice!=chatLastMessageObj?.eventDescription||eventDurationChoice!=chatLastMessageObj?.eventDuration||eventLocationChoice!=chatLastMessageObj?.eventLocation||selectedTime!=chatLastMessageObj?.eventDateStart) && (selectedTime % 1800000) == 0 && (selectedTime != null))">Save event</button>
-          <button class="buttonRed chatEventEditorBtn" (click)="cancelEvent()" [disabled]="!(eventDateEnd/60000>UI.nowSeconds/60)">Cancel event</button>
+          <button class="buttonRed chatEventEditorBtn" (click)="openCancelEventModal()" [disabled]="!(eventDateEnd/60000>UI.nowSeconds/60)">Cancel event</button>
         </div>
       </div>
     </div>
@@ -388,6 +388,17 @@ import { map, tap, take } from 'rxjs/operators';
       <pre class="messageJsonModalBody">{{selectedMessageJsonFormatted}}</pre>
     </div>
   </div>
+
+  <div *ngIf="showCancelEventModal" class="cancelEventModalBackdrop" (click)="closeCancelEventModal()">
+    <div class="cancelEventModal" (click)="$event.stopPropagation()">
+      <div class="cancelEventModalTitle">Cancel event?</div>
+      <div class="cancelEventModalText">This will immediately end the current event for all chat members.</div>
+      <div class="cancelEventModalActions">
+        <button class="buttonBlack cancelEventModalBtn" (click)="closeCancelEventModal()">Keep event</button>
+        <button class="buttonRed cancelEventModalBtn" (click)="confirmCancelEvent()">Cancel event</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 `
@@ -431,6 +442,7 @@ export class ChatComponent implements OnDestroy {
   messageActionTargetFor:string
   showMessageJsonModal:boolean
   selectedMessageJsonFormatted:string
+  showCancelEventModal:boolean
   lastRead:string
   showImageGallery:boolean
   selectedDate: number;
@@ -484,6 +496,7 @@ export class ChatComponent implements OnDestroy {
         this.messageActionTargetFor = null
         this.showMessageJsonModal = false
         this.selectedMessageJsonFormatted = ''
+        this.showCancelEventModal = false
         this.chatLastMessageObj = {}
         this.previousMessageServerTimestamp = { seconds: this.UI.nowSeconds * 1000 }
         this.previousMessageUser = ''
@@ -801,6 +814,19 @@ export class ChatComponent implements OnDestroy {
     this.showMessageJsonModal = false;
   }
 
+  openCancelEventModal() {
+    this.showCancelEventModal = true;
+  }
+
+  closeCancelEventModal() {
+    this.showCancelEventModal = false;
+  }
+
+  confirmCancelEvent() {
+    this.showCancelEventModal = false;
+    this.cancelEvent();
+  }
+
   scrollMainToBottom() {
     const mc = document.getElementById('main_container');
     if (mc) mc.scrollTop = mc.scrollHeight;
@@ -935,8 +961,6 @@ export class ChatComponent implements OnDestroy {
   }
 
   cancelEvent() {
-    const shouldCancel = window.confirm('Cancel this event? This action will update the chat event immediately.');
-    if (!shouldCancel) return;
     this.UI.createMessage({
       text: 'cancelling event',
       chain: this.chatLastMessageObj.chain || this.chatChain,
@@ -1085,6 +1109,7 @@ export class ChatComponent implements OnDestroy {
     this.messageActionTargetFor = null
     this.showMessageJsonModal = false
     this.selectedMessageJsonFormatted = ''
+    this.showCancelEventModal = false
   
     // wait for view to settle, then resize if textarea exists
     this.zone.onStable.pipe(take(1)).subscribe(() => {

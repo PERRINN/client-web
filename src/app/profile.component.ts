@@ -129,7 +129,7 @@ import { ChangeDetectorRef } from '@angular/core'
                 </div>
                 <button *ngIf="message.payload.doc.data()?.eventLocation"
                   class="buttonPrimary eventCardJoinBtn"
-                  [disabled]="!UI.isCurrentUserMember"
+                  [disabled]="!UI.isCurrentUserMember || !isEventLive(message.payload.doc.data()?.eventDateStart, message.payload.doc.data()?.eventDateEnd)"
                   (click)="$event.stopPropagation(); UI.openWindow(message.payload.doc.data()?.eventLocation)">
                   <span>Join</span>
                   <span style="margin-left:5px;font-size:16px;line-height:14px" class="material-icons-outlined" *ngIf="!UI.isCurrentUserMember">lock</span>
@@ -141,7 +141,7 @@ import { ChangeDetectorRef } from '@angular/core'
                   In {{UI.formatSecondsToDhm2(message.payload.doc.data()?.eventDateStart/1000-UI.nowSeconds)}}
                 </span>
                 <span *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)<=0&&message.payload.doc.data()?.eventDateEnd/60000>UI.nowSeconds/60" class="eventCardStatusChip eventCardStatusNow">
-                  Now
+                  Live
                 </span>
                 <span class="eventCardDateText">
                   {{message.payload.doc.data()?.eventDateStart|date:'EEEE d MMM h:mm a'}} ({{message.payload.doc.data()?.eventDuration}}h)
@@ -584,6 +584,13 @@ export class ProfileComponent {
   openListedChat(chain: string) {
     if (!this.UI.isCurrentUserMember || !chain) return
     this.router.navigate(['chat', chain])
+  }
+
+  isEventLive(eventDateStart: any, eventDateEnd: any): boolean {
+    const start = Number(eventDateStart || 0)
+    const end = Number(eventDateEnd || 0)
+    const now = this.UI.nowSeconds * 1000
+    return start <= now && end > now
   }
 
   openCarouselImage(imageUrl: string) {
