@@ -935,6 +935,8 @@ export class ChatComponent implements OnDestroy {
   }
 
   cancelEvent() {
+    const shouldCancel = window.confirm('Cancel this event? This action will update the chat event immediately.');
+    if (!shouldCancel) return;
     this.UI.createMessage({
       text: 'cancelling event',
       chain: this.chatLastMessageObj.chain || this.chatChain,
