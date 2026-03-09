@@ -108,7 +108,7 @@ import { map, tap, take } from 'rxjs/operators';
     <div class="island chatTransferSection">
       <div class="chatTransferHero">
         <div class="chatTransferTitle">Send PRN</div>
-        <div class="chatTransferSubtitle">{{UI.appSettingsPayment.currencyList[UI.currentUserLastMessageObj.userCurrency].designation}} transfer to a chat member</div>
+        <div class="chatTransferSubtitle">{{((UI.PERRINNAdminLastMessageObj?.currencyList||{})[UI.currentUserLastMessageObj.userCurrency]||{}).designation}} transfer to a chat member</div>
       </div>
 
       <div class="chatTransferBody">
@@ -133,10 +133,10 @@ import { map, tap, take } from 'rxjs/operators';
 
         <div class="chatTransferActions">
           <button class="buttonPrimary chatTransferBtn" (click)="createTransactionOut(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference)" [disabled]="!canSendTransactionOut()">
-            Send {{UI.convertAndFormatPRNToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}} to {{transactionUserName}}
+            Send {{UI.convertAndFormatPRNToPRNCurrency(null,transactionAmount*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).toCOIN||0))}} to {{transactionUserName}}
           </button>
           <button class="buttonPrimary chatTransferBtn" (click)="createTransactionPending(transactionAmount,transactionCode,null,null,transactionReference)" [disabled]="!canCreatePendingTransaction()">
-            Create pending transaction of {{UI.convertAndFormatPRNToPRNCurrency(null,transactionAmount*UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN)}}
+            Create pending transaction of {{UI.convertAndFormatPRNToPRNCurrency(null,transactionAmount*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).toCOIN||0))}}
           </button>
         </div>
       </div>
@@ -222,8 +222,8 @@ import { map, tap, take } from 'rxjs/operators';
           </div>
           <div class="chatFundEditorDescription">{{fund?.description}}</div>
           <div class="chatFundEditorAmounts">
-            target: {{UI.convertAndFormatPRNToCurrency(null,(fund?.amountGBPTarget||0)*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /
-            raised: {{UI.convertAndFormatPRNToCurrency(null,(fund?.amountGBPRaised||0)*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}
+            target: {{UI.convertAndFormatPRNToCurrency(null,(fund?.amountGBPTarget||0)*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]||{}).toCOIN||0))}} /
+            raised: {{UI.convertAndFormatPRNToCurrency(null,(fund?.amountGBPRaised||0)*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]||{}).toCOIN||0))}}
           </div>
         </div>
 
@@ -819,11 +819,11 @@ export class ChatComponent implements OnDestroy {
 
   createTransactionOut(transactionAmount, transactionCode, transactionUser, transactionUserName, transactionReference) {
     this.UI.createMessage({
-      text: 'sending ' + this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].symbol + transactionAmount + ' to ' + transactionUserName + ((transactionCode || null) ? ' using code ' : '') + ((transactionCode || null) ? transactionCode : '') + ' (Reference: ' + transactionReference + ')',
+      text: 'sending ' + ((((this.UI.PERRINNAdminLastMessageObj||{}).currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).symbol||'') + transactionAmount + ' to ' + transactionUserName + ((transactionCode || null) ? ' using code ' : '') + ((transactionCode || null) ? transactionCode : '') + ' (Reference: ' + transactionReference + ')',
       chain: this.chatLastMessageObj.chain || this.chatChain,
       transactionOut: {
         user: transactionUser,
-        amount: transactionAmount * this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN,
+        amount: transactionAmount * ((((this.UI.PERRINNAdminLastMessageObj||{}).currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).toCOIN||0),
         code: transactionCode || null,
         reference: transactionReference || null
       }
@@ -833,10 +833,10 @@ export class ChatComponent implements OnDestroy {
 
   createTransactionPending(transactionAmount, transactionCode, transactionUser, transactionUserName, transactionReference) {
     this.UI.createMessage({
-      text: 'creating a pending transaction of ' + this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].symbol + transactionAmount + ((transactionCode || null) ? ' using code ' : '') + ((transactionCode || null) ? transactionCode : '') + ' (Reference: ' + transactionReference + ')',
+      text: 'creating a pending transaction of ' + ((((this.UI.PERRINNAdminLastMessageObj||{}).currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).symbol||'') + transactionAmount + ((transactionCode || null) ? ' using code ' : '') + ((transactionCode || null) ? transactionCode : '') + ' (Reference: ' + transactionReference + ')',
       chain: this.chatLastMessageObj.chain || this.chatChain,
       transactionPending: {
-        amount: transactionAmount * this.UI.appSettingsPayment.currencyList[this.UI.currentUserLastMessageObj.userCurrency].toCOIN,
+        amount: transactionAmount * ((((this.UI.PERRINNAdminLastMessageObj||{}).currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).toCOIN||0),
         code: transactionCode || null,
         reference: transactionReference || null
       }

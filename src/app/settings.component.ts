@@ -63,7 +63,7 @@ import firebase from 'firebase/compat/app';
     <div class="title">Preferred currency</div>
     <div style="padding:10px">
       <ul class="listLight">
-        <li class="buttonBlack" *ngFor="let currency of objectToArray(UI.appSettingsPayment.currencyList)"
+        <li class="buttonBlack" *ngFor="let currency of objectToArray(UI.PERRINNAdminLastMessageObj?.currencyList)"
           (click)="UI.currentUserLastMessageObj?.userCurrency==currency[0]?'':updateUserCurrency(currency[0])"
           [class.activeCurrency]="UI.currentUserLastMessageObj?.userCurrency==currency[0]"
           style="float:left;width:125px;padding:5px;margin:5px"
@@ -104,7 +104,7 @@ import firebase from 'firebase/compat/app';
     <button class="buttonPrimary" (click)="updateContract()" style="clear:both;font-size:12px;width:200px;padding:2px;margin:10px auto;display:block" [disabled]="contract.level==UI.currentUserLastMessageObj?.contract?.level">Update my contract</button>
     <div *ngIf="!UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:10px 10px 5px 15px">No contract registered.</div>
     <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp" style="float:left;margin:10px 10px 5px 15px">Contract number {{UI.currentUserLastMessageObj?.contract?.createdTimestamp}}</div>
-    <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:5px 10px 10px 15px">Signature valid for level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}, you will receive {{UI.convertAndFormatPRNToPRNCurrency(null,UI.appSettingsContract.hourlyRateLevel1*UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted)}} per hour when you declare working hours.</div>
+    <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:5px 10px 10px 15px">Signature valid for level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}, you will receive {{UI.convertAndFormatPRNToPRNCurrency(null,(UI.PERRINNAdminLastMessageObj?.contract?.hourlyRateLevel1||0)*UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted)}} per hour when you declare working hours.</div>
     <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" style="float:left;margin:5px 10px 10px 15px">Waiting for contract signature</div>
   </div>
   <br/>
@@ -181,7 +181,7 @@ export class SettingsComponent {
     if(!currency)return
     this.UI.createMessage({
       chain:this.UI.currentUser,
-      text:'Updating my preferred currency to '+this.UI.appSettingsPayment.currencyList[currency].designation,
+      text:'Updating my preferred currency to '+((this.UI.PERRINNAdminLastMessageObj?.currencyList||{})[currency]||{}).designation,
       userCurrency:currency
     })
     this.router.navigate(['chat',this.UI.currentUser])

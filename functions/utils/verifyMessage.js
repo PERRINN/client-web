@@ -9,14 +9,13 @@ module.exports = {
     const firestore = getFirestore();
     const user = messageData.user;
     const now = Date.now();
+    const adminUserId = 'FHk0zgOQUja7rsB9jxDISXzHaro2'
     var batch = firestore.batch();
 
     try{
 
-      const appSettingsCosts=await admin.firestore().doc('appSettings/costs').get()
-      const appSettingsContract=await admin.firestore().doc('appSettings/contract').get()
-      const appSettingsPayment=await admin.firestore().doc('appSettings/payment').get()
-      const PERRINNAdminLastMessages=await admin.firestore().collection('PERRINNMessages').where('user','==','FHk0zgOQUja7rsB9jxDISXzHaro2').where('verified','==',true).orderBy('serverTimestamp','desc').limit(1).get()
+      const PERRINNAdminLastMessages=await admin.firestore().collection('PERRINNMessages').where('user','==',adminUserId).where('verified','==',true).orderBy('serverTimestamp','desc').limit(1).get()
+      const PERRINNAdminLastMessageData=PERRINNAdminLastMessages.docs[0]!=undefined?(PERRINNAdminLastMessages.docs[0].data()||{}):{}
 
       //user chain
       let userChain={}
@@ -218,6 +217,8 @@ module.exports = {
         purchaseCOIN.amountCummulate=(((userPreviousMessageData.purchaseCOIN||{}).amountCummulate)||0)+purchaseCOIN.amount
         //contract
         let contract={}
+        contract.hourlyRateLevel1=Number(((PERRINNAdminLastMessageData.contract||{}).hourlyRateLevel1)||0)
+        contract.hoursAvailable24HoursWindow=Number(((PERRINNAdminLastMessageData.contract||{}).hoursAvailable24HoursWindow)||0)
         contract.level=((messageData.contract||{}).level)||((userPreviousMessageData.contract||{}).level)||0
         contract.message=(messageData.contract||{}).message||(userPreviousMessageData.contract||{}).message||null
         if(contract.level!=(((userPreviousMessageData.contract||{}).level)||0))contract.createdTimestamp=now
@@ -240,12 +241,12 @@ module.exports = {
             contract.signed=true
             contract.signedLevel=((contractSignatureMessageData.contractSignature||{}).contract||{}).level||null
             contract.levelTimeAdjusted=Math.min(10,Number(contract.level)+(now-contract.createdTimestamp)/3600000/24/365)
-            contract.hourlyRate=appSettingsContract.data().hourlyRateLevel1*contract.levelTimeAdjusted
+            contract.hourlyRate=contract.hourlyRateLevel1*contract.levelTimeAdjusted
             contract.previousContractMessageHoursAvailable=((userPreviousMessageData.contract||{}).previousContractMessageHoursAvailable)||0
             contract.previousContractMessageServerTimestamp=((userPreviousMessageData.contract||{}).previousContractMessageServerTimestamp)||messageData.serverTimestamp
             contract.hoursSincePreviousContractMessage=(messageData.serverTimestamp.seconds-contract.previousContractMessageServerTimestamp.seconds)/3600
             contract.hoursDeclared=((messageData.text||"").match(/^[>]*/)||[""])[0].length
-            contract.hoursAvailable=Math.min(appSettingsContract.data().hoursAvailable24HoursWindow,contract.previousContractMessageHoursAvailable+contract.hoursSincePreviousContractMessage*appSettingsContract.data().hoursAvailable24HoursWindow/24)
+            contract.hoursAvailable=Math.min(contract.hoursAvailable24HoursWindow,contract.previousContractMessageHoursAvailable+contract.hoursSincePreviousContractMessage*contract.hoursAvailable24HoursWindow/24)
             contract.hoursValidated=Math.min(contract.hoursDeclared,contract.hoursAvailable)
             contract.amount=contract.hoursValidated*contract.hourlyRate
             contract.previousContractMessageHoursAvailable=contract.hoursAvailable-contract.hoursValidated
@@ -265,7 +266,7 @@ module.exports = {
 
       //*******TIME BASED INTEREST*************************
         let interest={}
-        interest.rateYear=((messageData.interest||{}).rateYear)||appSettingsCosts.data().interestRateYear
+        interest.rateYear=Number(((PERRINNAdminLastMessageData.interest||{}).rateYear)||0)
         interest.days=(now/1000/3600/24-(userPreviousMessageData.verifiedTimestamp||{}).seconds/3600/24)||0
         interest.amountBase=wallet.balance
         interest.amount=Math.max(0,interest.amountBase*(Math.exp(interest.rateYear/365*interest.days)-1))
@@ -279,7 +280,7 @@ module.exports = {
 
       //*******MEMBERSHIP**********************
         let membership={}
-        if(user=='FHk0zgOQUja7rsB9jxDISXzHaro2'){
+        if(user==adminUserId){
           membership.amountRequiredBase=(((messageData.membership||{}).amountRequired)||((chatPreviousMessageData.membership||{}).amountRequired)||0)
           membership.amountRequiredOffset=Math.max(0,membership.amountRequiredBase*(Math.exp(interest.rateYear/365*interest.days)-1))
           membership.amountRequired=membership.amountRequiredBase+membership.amountRequiredOffset
@@ -311,6 +312,7 @@ module.exports = {
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{emails:emails},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{fund:fund},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{membership:membership},{create:true})
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{currencyList:(messageData.currencyList||userPreviousMessageData.currencyList||PERRINNAdminLastMessageData.currencyList||{})},{create:true})
         //message verified
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{verified:true},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{verifiedTimestamp:admin.firestore.FieldValue.serverTimestamp()},{create:true})
@@ -364,15 +366,6 @@ module.exports = {
             contract:{
               message:messageId
             }
-          })
-        }
-
-        //user state snapshot
-        if(interest.rateYear!=appSettingsCosts.data().interestRateYear){
-          createMessageUtils.createMessageAFS({
-            user:user,
-            text:'Taking a snapshot of user state',
-            chain:'PERRINNUsersStateSnapshot',
           })
         }
 

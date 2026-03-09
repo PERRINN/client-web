@@ -20,9 +20,6 @@ export class UserInterfaceService {
   PERRINNProfileLastMessageObj:any
   PERRINNAdminLastMessageObj:any
   nowSeconds:number
-  appSettingsPayment:any
-  appSettingsCosts:any
-  appSettingsContract:any
   hasTouch:boolean
   isStandalone:boolean
   profileSimulatorNonMember:boolean
@@ -32,12 +29,17 @@ export class UserInterfaceService {
   public revolutMode: 'sandbox' | 'prod';
   private authenticatedUser:string
   private authenticatedUserEmail:string
+  private profileUserId:string
+  private adminUserId:string
   
   constructor(
     private afAuth: AngularFireAuth,
     public router:Router,
     public afs: AngularFirestore
   ) {
+
+    this.profileUserId='ubiLUzQOd0ZIAEDYsOltrUMUdim2'
+    this.adminUserId='FHk0zgOQUja7rsB9jxDISXzHaro2'
 
     this.profileSimulatorNonMember = false;
   this.profileSimulatorLoggedOut = false;
@@ -110,7 +112,7 @@ export class UserInterfaceService {
     afs
       .collection<any>("PERRINNMessages", (ref) =>
         ref
-          .where("user", "==", "ubiLUzQOd0ZIAEDYsOltrUMUdim2")
+          .where("user", "==", this.profileUserId)
           .where("verified", "==", true)
           .orderBy("serverTimestamp", "desc")
           .limit(1)
@@ -122,7 +124,7 @@ export class UserInterfaceService {
     afs
       .collection<any>("PERRINNMessages", (ref) =>
         ref
-          .where("user", "==", "FHk0zgOQUja7rsB9jxDISXzHaro2")
+          .where("user", "==", this.adminUserId)
           .where("verified", "==", true)
           .orderBy("serverTimestamp", "desc")
           .limit(1)
@@ -130,24 +132,6 @@ export class UserInterfaceService {
       .valueChanges()
       .subscribe((snapshot) => {
         this.PERRINNAdminLastMessageObj=snapshot[0]
-    })
-    afs
-      .doc<any>("appSettings/payment")
-      .valueChanges()
-      .subscribe((snapshot) => {
-        this.appSettingsPayment=snapshot
-    })
-    afs
-      .doc<any>("appSettings/costs")
-      .valueChanges()
-      .subscribe((snapshot) => {
-        this.appSettingsCosts=snapshot
-    })
-    afs
-      .doc<any>("appSettings/contract")
-      .valueChanges()
-      .subscribe((snapshot) => {
-        this.appSettingsContract=snapshot
     })
   }
 
@@ -185,7 +169,7 @@ export class UserInterfaceService {
   }
 
   convertPRNToCurrency(currency,amount){
-    const currencyList = this.appSettingsPayment?.currencyList;
+    const currencyList = (this.PERRINNAdminLastMessageObj||{}).currencyList||{};
     if (!currencyList) return Number(amount) || 0;
     if (currency == null) {
       if (this.currentUserLastMessageObj!=undefined&&this.currentUserLastMessageObj.userCurrency!=undefined)
@@ -197,7 +181,7 @@ export class UserInterfaceService {
   }
 
   formatCurrency(currency, amount) {
-    const currencyList = this.appSettingsPayment?.currencyList;
+    const currencyList = (this.PERRINNAdminLastMessageObj||{}).currencyList||{};
     if (!currencyList) {
       const rawAmount = Number(amount) || 0;
       return formatNumber(rawAmount, "en-US", "1.0-2");

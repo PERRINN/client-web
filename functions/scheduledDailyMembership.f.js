@@ -14,9 +14,7 @@ exports.scheduledDailyMembership = onSchedule(
   },
   async (context) => {
     try {
-      const appSettingsCosts=await admin.firestore().doc('appSettings/costs').get()
-      const appSettingsContract=await admin.firestore().doc('appSettings/contract').get()
-      const appSettingsPayment=await admin.firestore().doc('appSettings/payment').get()
+      const adminUserId='FHk0zgOQUja7rsB9jxDISXzHaro2'
       const now=Date.now()
       let statistics={}
       statistics.wallet={}
@@ -61,10 +59,10 @@ exports.scheduledDailyMembership = onSchedule(
       statistics.serverTimestamp=admin.firestore.FieldValue.serverTimestamp()
   
       createMessageUtils.createMessageAFS({
-        user:'FHk0zgOQUja7rsB9jxDISXzHaro2',
+        user:adminUserId,
         text:"Daily updates.",
         statistics:statistics,
-        chain:'FHk0zgOQUja7rsB9jxDISXzHaro2'
+        chain:adminUserId
       })
   
       console.log(statistics.userCount+' users processed.')

@@ -54,7 +54,7 @@ import { ChangeDetectorRef } from '@angular/core'
             <span *ngIf="focusUserLastMessageObj?.locking?.amountCummulate<=1">PRN tokens locked for {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} day</span>
           </div>
           <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.15); border-radius:8px; padding:8px; font-size:12px; color:#cbd5e1; line-height:1.4;">
-            Earning {{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance*(math.exp(UI.appSettingsCosts?.interestRateYear/365)-1))}} per day
+            Earning {{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance*(math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)/365)-1))}} per day
           </div>
         </div>
 
@@ -204,8 +204,8 @@ import { ChangeDetectorRef } from '@angular/core'
               </div>
 
               <div style="margin-top: 3px; font-size: 11px; color: #cbd5e1; line-height: 1.35;">
-                target: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}} /
-                raised: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*UI.appSettingsPayment.currencyList["gbp"].toCOIN)}}
+                target: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]?.toCOIN||0))}} /
+                raised: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]?.toCOIN||0))}}
               </div>
               <span *ngIf="!UI.isCurrentUserMember" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
             </div>
@@ -308,11 +308,11 @@ import { ChangeDetectorRef } from '@angular/core'
           <ul>
             <li *ngFor="let number of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]" style="clear:both">
               <div style="float:left;text-align:center;width:75px;height:20px;font-size:10px">{{number}}</div>
-              <div style="float:left;text-align:center;width:75px;height:20px;font-size:10px">{{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}}</div>
+              <div style="float:left;text-align:center;width:75px;height:20px;font-size:10px">{{(UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0) | percent : "0.0"}}</div>
               <div style="float:left;text-align:center;width:75px;height:20px;font-size:10px">
-                {{UI.convertAndFormatPRNToCurrency(null,focusUserLastMessageObj?.wallet?.balance*math.exp(UI.appSettingsCosts?.interestRateYear*number))}}
+                {{UI.convertAndFormatPRNToCurrency(null,focusUserLastMessageObj?.wallet?.balance*math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)*number))}}
               </div>
-              <div style="float:left;text-align:center;width:65px;height:20px;font-size:10px">{{math.exp(UI.appSettingsCosts?.interestRateYear*number)|number:'1.1-1'}}x</div>
+              <div style="float:left;text-align:center;width:65px;height:20px;font-size:10px">{{math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)*number)|number:'1.1-1'}}x</div>
             </li>
           </ul>
         </div>

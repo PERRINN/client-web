@@ -75,7 +75,7 @@ type PaymentState =
           <span style="font-size: 12px; line-height: 1.7; color: #ffffff; display: block; text-align: left;">
             ✓ Lifetime membership<br/>
             ✓ Ownership stake in PERRINN<br/>
-            ✓ {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} annual growth<br/>
+            ✓ {{(UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0) | percent : "0.0"}} annual growth<br/>
             ✓ Early member advantage
           </span>
         </div>
@@ -95,7 +95,7 @@ type PaymentState =
         <div style="background-color: rgba(255, 255, 255, 0.12); padding: 12px; border-radius: 10px; margin: 12px 0;">
           <span style="font-size: 12px; line-height: 1.7; color: #ffffff; display: block; text-align: left;">
             ✓ Lifetime membership<br/>
-            ✓ {{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} annual growth<br/>
+            ✓ {{(UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0) | percent : "0.0"}} annual growth<br/>
             ✓ Voting rights & governance<br/>
             ✓ Exclusive network access
           </span>
@@ -161,7 +161,7 @@ type PaymentState =
           Currency
         </div>
         <ul class="listLight currency-selector-list">
-          <li style="flex: 1; min-width: 120px;" *ngFor="let currency of objectToArray(UI.appSettingsPayment.currencyList)">
+          <li style="flex: 1; min-width: 120px;" *ngFor="let currency of objectToArray(UI.PERRINNAdminLastMessageObj?.currencyList)">
             <button class="buttonToggle"
               (click)="onCurrencySelected(currency[0])"
               style="width:100%;padding: 10px; border-radius: 8px; border: 2px solid; transition: all 0.3s ease; font-weight: 600; font-size: 13px;"
@@ -307,7 +307,7 @@ type PaymentState =
               </div>
               <div style="background-color: rgba(16, 185, 129, 0.05);padding:16px;text-align:center; border-radius: 10px; margin-top: 16px;">
                 <div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px; font-weight: 500;">Growth Rate</div>
-                <span style="color: #f1f5f9; font-weight: 600;">{{UI.appSettingsCosts?.interestRateYear | percent : "0.0"}} Annual</span>
+                <span style="color: #f1f5f9; font-weight: 600;">{{(UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0) | percent : "0.0"}} Annual</span>
                 <div style="height:200px;margin-top:12px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
               </div>
               <div style="padding:16px;text-align:center; margin-top: 16px; border-top: 1px solid rgba(16, 185, 129, 0.1);">
@@ -640,7 +640,7 @@ export class buyPRNComponent implements OnInit, OnDestroy {
   }
 
   private syncCurrencyAndCredits(): void {
-    const currencyList = this.UI.appSettingsPayment?.currencyList || {};
+    const currencyList = this.UI.PERRINNAdminLastMessageObj?.currencyList || {};
     const preferredCurrency = this.UI.currentUserLastMessageObj?.userCurrency;
 
     if (
@@ -704,7 +704,7 @@ export class buyPRNComponent implements OnInit, OnDestroy {
 
   refreshAmountCharge(): void {
     if (this.creditSelected == null || this.currencySelected == null) return;
-    const selectedCurrency = this.UI.appSettingsPayment?.currencyList?.[this.currencySelected];
+    const selectedCurrency = this.UI.PERRINNAdminLastMessageObj?.currencyList?.[this.currencySelected];
     if (!selectedCurrency || !this.creditList?.length) return;
     
     this.amountCharge = Number(
