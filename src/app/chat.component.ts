@@ -1,4 +1,4 @@
-import { Component, NgZone, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+import { Component, NgZone, ViewChild, ElementRef, OnDestroy, HostListener } from '@angular/core';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
 import { Router, ActivatedRoute } from '@angular/router'
@@ -11,7 +11,7 @@ import { map, tap, take } from 'rxjs/operators';
   selector: 'chat',
   template: `
 
-  <div class="chatPage" [ngStyle]="{'padding-top' : showChatDetails ? '0px' : showImageGallery ? '40px' : '20px' , 'padding-bottom' : chatPagePaddingBottom}">
+  <div class="chatPage" [ngStyle]="{'padding-top' : showChatDetails ? '0px' : showImageGallery ? '40px' : '20px' , 'padding-bottom' : chatPagePaddingBottom}" (click)="closeMessageActions()">
   <div
     #chatTopBar
     class="chatTopBar"
@@ -266,8 +266,22 @@ import { map, tap, take } from 'rxjs/operators';
             <img [src]="message.payload?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload)" style="cursor:pointer;display:inline;float:left;margin:0 4px 10px 10px; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
           </div>
               <div [style.background-color]="(message.payload?.user==UI.currentUser)?'rgba(16, 185, 129, 0.14)':'rgba(15, 23, 42, 0.72)'"
-                style="cursor:text;margin:0 16px 10px 56px;user-select:text;border-color:rgba(16, 185, 129, 0.45);border-radius:10px;padding:2px 2px 4px 2px"
+                class="messageBubble"
+                [class.messageActionTarget]="messageActionTargetFor === message.key"
+                style="cursor:text;margin:0 16px 10px 56px;user-select:text;border-color:rgba(16, 185, 129, 0.45);border-radius:10px;padding:2px 2px 4px 2px;position:relative"
+                (click)="$event.stopPropagation(); setMessageActionTarget(message.key)"
                 [style.border-style]="(message.payload?.text.includes(UI.currentUserLastMessageObj?.name))?'solid':'none'">
+            <button *ngIf="UI.currentUser"
+              class="messageOptionsBtn"
+              aria-label="Message options"
+              (click)="$event.stopPropagation(); toggleMessageOptions(message.key)">
+              <span class="material-icons-outlined" style="font-size:14px;line-height:1">keyboard_arrow_down</span>
+            </button>
+            <div *ngIf="messageOptionsOpenFor === message.key"
+              class="messageOptionsMenu"
+              (click)="$event.stopPropagation()">
+              <button class="messageOptionsItem" (click)="openMessageJson(message)">Message json</button>
+            </div>
             <div>
               <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
                 <div class="messageAuthor" style="display:inline;float:left;margin:0px 10px 0px 5px">{{message.payload?.name}}</div>
@@ -283,20 +297,8 @@ import { map, tap, take } from 'rxjs/operators';
               <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{message.payload?.statistics?.membersCount}} members.</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.statistics?.wallet?.balance)}} invested.</div>
               <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.membership?.amountRequired)}} membership threashold.</div>
-              <div *ngIf="messageShowDetails.includes(message.key)" style="margin:5px">
-                <div style="font-size:10px">userChain {{message.payload?.userChain|json}}</div>
-                <div style="font-size:10px">transactionPending {{message.payload?.transactionPending|json}}</div>
-                <div style="font-size:10px">transactionOut {{message.payload?.transactionOut|json}}</div>
-                <div style="font-size:10px">transactionIn {{message.payload?.transactionIn|json}}</div>
-                <div style="font-size:10px">Share purchase {{message.payload?.purchaseCOIN|json}}</div>
-                <div style="font-size:10px">interest {{message.payload?.interest|json}}</div>
-                <div style="font-size:10px">contract {{message.payload?.contract|json}}</div>
-                <div style="font-size:10px">wallet {{message.payload?.wallet|json}}</div>
-                <div style="font-size:10px">fund {{message.payload?.fund|json}}</div>
-                <div style="font-size:10px">{{message.payload|json}}</div>
-              </div>
             </div>
-            <div style="cursor:pointer;clear:both;height:15px" (click)="messageShowActions.includes(message.key)?messageShowActions.splice(messageShowActions.indexOf(message.key),1):messageShowActions.push(message.key)">
+            <div style="clear:both;height:15px">
               <span *ngIf="message.payload?.verified" class="material-icons" style="float:right;font-size:16px;margin:0 2px 2px 0;color:#3b82f6">check_circle</span>
               <span *ngIf="message.payload?.imageResized" class="material-icons-outlined" style="float:right;font-size:15px;margin:0 2px 2px 0">aspect_ratio</span>
               <span *ngIf="message.payload?.contract?.hoursValidated>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.contract?.amount)}} earned ({{UI.formatSecondsToDhm1(message.payload?.contract?.hoursValidated*3600)}}declared in {{UI.formatSecondsToDhm1(message.payload?.contract?.hoursAvailable*3600)}} window)</span>
@@ -304,9 +306,6 @@ import { map, tap, take } from 'rxjs/operators';
               <span *ngIf="message.payload?.transactionIn?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.transactionIn?.amount)}} received</span>
               <span *ngIf="message.payload?.transactionOut?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.convertAndFormatPRNToPRNCurrency(null,-message.payload?.transactionOut?.amount)}} sent</span>
               <span *ngIf="message.payload?.userChain?.nextMessage=='none'&&message.payload?.wallet?.balance!=undefined" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.wallet?.balance)}}</span>
-            </div>
-            <div *ngIf="UI.currentUser&&messageShowActions.includes(message.key)">
-              <div style="float:left;padding:5px;cursor:pointer" (click)="messageShowDetails.includes(message.key)?messageShowDetails.splice(messageShowDetails.indexOf(message.key),1):messageShowDetails.push(message.key)">Details</div>
             </div>
           </div>
           <div *ngIf="lastRead==message.key" style="margin:0 auto;text-align:center;font-size:12px;margin:35px 0 35px 0;border-style:solid;border-width:0 0 1px 0">Last read</div>
@@ -377,6 +376,18 @@ import { map, tap, take } from 'rxjs/operators';
       </label>
     </div>
   </div>
+
+  <div *ngIf="showMessageJsonModal" class="messageJsonModalBackdrop" (click)="closeMessageJsonModal()">
+    <div class="messageJsonModal" (click)="$event.stopPropagation()">
+      <div class="messageJsonModalHeader">
+        <div class="messageJsonModalTitle">Message json</div>
+        <button class="messageJsonModalClose" (click)="closeMessageJsonModal()" aria-label="Close message json">
+          <span class="material-icons-outlined" style="font-size:18px;line-height:1">close</span>
+        </button>
+      </div>
+      <pre class="messageJsonModalBody">{{selectedMessageJsonFormatted}}</pre>
+    </div>
+  </div>
 </div>
 
 `
@@ -400,7 +411,6 @@ export class ChatComponent implements OnDestroy {
   lastChatVisitTimestamp:number
   previousMessageServerTimestamp:any
   previousMessageUser:string
-  messageShowDetails:[]
   messages:Observable<any[]>
   teams:Observable<any[]>
   searchFilter:string
@@ -417,7 +427,10 @@ export class ChatComponent implements OnDestroy {
   eventDuration:number
   eventLocation:string
   fund:any
-  messageShowActions:[]
+  messageOptionsOpenFor:string
+  messageActionTargetFor:string
+  showMessageJsonModal:boolean
+  selectedMessageJsonFormatted:string
   lastRead:string
   showImageGallery:boolean
   selectedDate: number;
@@ -467,8 +480,10 @@ export class ChatComponent implements OnDestroy {
       this.route.params.subscribe(params => {
         this.lastRead = null
         this.chatChain = params.id
-        this.messageShowActions = []
-        this.messageShowDetails = []
+        this.messageOptionsOpenFor = null
+        this.messageActionTargetFor = null
+        this.showMessageJsonModal = false
+        this.selectedMessageJsonFormatted = ''
         this.chatLastMessageObj = {}
         this.previousMessageServerTimestamp = { seconds: this.UI.nowSeconds * 1000 }
         this.previousMessageUser = ''
@@ -740,6 +755,52 @@ export class ChatComponent implements OnDestroy {
     this.previousMessageServerTimestamp = message.serverTimestamp || { seconds: this.UI.nowSeconds * 1000 }
   }
 
+  toggleMessageOptions(messageKey: string) {
+    this.messageActionTargetFor = messageKey;
+    this.messageOptionsOpenFor = this.messageOptionsOpenFor === messageKey ? null : messageKey;
+  }
+
+  closeMessageOptions() {
+    this.messageOptionsOpenFor = null;
+  }
+
+  setMessageActionTarget(messageKey: string) {
+    if (this.messageOptionsOpenFor) {
+      this.messageOptionsOpenFor = null;
+      this.messageActionTargetFor = messageKey;
+      return;
+    }
+    this.messageActionTargetFor = this.messageActionTargetFor === messageKey ? null : messageKey;
+  }
+
+  closeMessageActions() {
+    this.messageOptionsOpenFor = null;
+    this.messageActionTargetFor = null;
+  }
+
+  @HostListener('document:click')
+  onDocumentClick() {
+    this.closeMessageActions();
+  }
+
+  openMessageJson(message: any) {
+    const payload = {
+      key: message?.key,
+      payload: message?.payload || {}
+    };
+    try {
+      this.selectedMessageJsonFormatted = JSON.stringify(payload, null, 2);
+    } catch {
+      this.selectedMessageJsonFormatted = '{\n  "error": "Unable to format message JSON"\n}';
+    }
+    this.showMessageJsonModal = true;
+    this.messageOptionsOpenFor = null;
+  }
+
+  closeMessageJsonModal() {
+    this.showMessageJsonModal = false;
+  }
+
   scrollMainToBottom() {
     const mc = document.getElementById('main_container');
     if (mc) mc.scrollTop = mc.scrollHeight;
@@ -1006,8 +1067,10 @@ export class ChatComponent implements OnDestroy {
     this.transactionUser = null
     this.transactionUserName = null
     this.showChatDetails = false
-    this.messageShowDetails = []
-    this.messageShowActions = []
+    this.messageOptionsOpenFor = null
+    this.messageActionTargetFor = null
+    this.showMessageJsonModal = false
+    this.selectedMessageJsonFormatted = ''
   
     // wait for view to settle, then resize if textarea exists
     this.zone.onStable.pipe(take(1)).subscribe(() => {
