@@ -1586,7 +1586,7 @@ app-root profile .imageCarousel {
   padding: 4px 2px 8px 2px;
   margin-top: 10px;
   margin-bottom: 14px;
-  scroll-snap-type: x mandatory;
+  scroll-snap-type: none;
 }
 
 app-root profile .imageCarousel .carouselItem {
@@ -1597,7 +1597,7 @@ app-root profile .imageCarousel .carouselItem {
   border-radius: 10px;
   overflow: hidden;
   margin-bottom: 0;
-  scroll-snap-align: start;
+  scroll-snap-align: none;
   display: flex;
   flex-direction: column;
   box-shadow: 0 10px 26px rgba(2, 8, 23, 0.5);

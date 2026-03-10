@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Router, ActivatedRoute } from '@angular/router';
 import { UserInterfaceService } from './userInterface.service';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
@@ -132,7 +131,6 @@ export class SettingsComponent {
   constructor(
     public afAuth:AngularFireAuth,
     public afs:AngularFirestore,
-    public router:Router,
     private storage:AngularFireStorage,
     public UI:UserInterfaceService
   ) {
@@ -174,7 +172,10 @@ export class SettingsComponent {
       text:'Updating my name to '+this.name,
       name:this.name
     })
-    this.router.navigate(['chat',this.UI.currentUser])
+    this.UI.currentUserLastMessageObj = {
+      ...(this.UI.currentUserLastMessageObj || {}),
+      name: this.name
+    }
   }
 
   updateUserCurrency(currency){
@@ -184,7 +185,10 @@ export class SettingsComponent {
       text:'Updating my preferred currency to '+((this.UI.PERRINNAdminLastMessageObj?.currencyList||{})[currency]||{}).designation,
       userCurrency:currency
     })
-    this.router.navigate(['chat',this.UI.currentUser])
+    this.UI.currentUserLastMessageObj = {
+      ...(this.UI.currentUserLastMessageObj || {}),
+      userCurrency: currency
+    }
   }
 
   updateUserPresentation(){
@@ -194,7 +198,10 @@ export class SettingsComponent {
       text:'Updating my presentation to '+this.userPresentation,
       userPresentation:this.userPresentation
     })
-    this.router.navigate(['chat',this.UI.currentUser])
+    this.UI.currentUserLastMessageObj = {
+      ...(this.UI.currentUserLastMessageObj || {}),
+      userPresentation: this.userPresentation
+    }
   }
 
   updatePublicLink(){
@@ -204,7 +211,10 @@ export class SettingsComponent {
       text:'Updating my public link.',
       publicLink:this.publicLink
     })
-    this.router.navigate(['chat',this.UI.currentUser])
+    this.UI.currentUserLastMessageObj = {
+      ...(this.UI.currentUserLastMessageObj || {}),
+      publicLink: this.publicLink
+    }
   }
 
   updateEmails(){
@@ -216,7 +226,13 @@ export class SettingsComponent {
           auth:this.emailsAuth
         }
       })
-      this.router.navigate(['chat',this.UI.currentUser])
+      this.UI.currentUserLastMessageObj = {
+        ...(this.UI.currentUserLastMessageObj || {}),
+        emails: {
+          ...((this.UI.currentUserLastMessageObj || {}).emails || {}),
+          auth: this.emailsAuth
+        }
+      }
       return
     }
     else return
@@ -232,7 +248,13 @@ export class SettingsComponent {
         level:contractLevel
       }
     })
-    this.router.navigate(['chat',this.UI.currentUser])
+    this.UI.currentUserLastMessageObj = {
+      ...(this.UI.currentUserLastMessageObj || {}),
+      contract: {
+        ...((this.UI.currentUserLastMessageObj || {}).contract || {}),
+        level: contractLevel
+      }
+    }
   }
 
   onContractLevelInput(event: Event) {
@@ -289,7 +311,13 @@ export class SettingsComponent {
           imageUrlMedium:url,
           imageUrlOriginal:url
         })
-        this.router.navigate(['chat',this.UI.currentUser])
+        this.UI.currentUserLastMessageObj = {
+          ...(this.UI.currentUserLastMessageObj || {}),
+          userImageTimestamp:imageTimestamp,
+          imageUrlThumbUser:url,
+          imageUrlMedium:url,
+          imageUrlOriginal:url
+        }
       });
     });
   }
