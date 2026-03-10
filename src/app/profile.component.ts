@@ -1,4 +1,5 @@
 import { Component } from '@angular/core'
+import { Subscription } from 'rxjs'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
@@ -64,10 +65,11 @@ import { ChangeDetectorRef } from '@angular/core'
 
         <div style="display:flex; flex-wrap:wrap; gap:10px; font-size:12px; color:#cbd5e1; margin-bottom:8px;">
           <span>Created in {{focusUserLastMessageObj?.createdTimestamp|date:'MMMM yyyy'}}</span>
-          <span *ngIf="focusUserLastMessageObj?.userChain?.index>1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)>1">{{focusUserLastMessageObj?.userChain?.index}} messages, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</span>
-          <span *ngIf="focusUserLastMessageObj?.userChain?.index>1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)<=1">{{focusUserLastMessageObj?.userChain?.index}} messages, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} day ago</span>
-          <span *ngIf="focusUserLastMessageObj?.userChain?.index<=1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)>1">{{focusUserLastMessageObj?.userChain?.index}} message, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</span>
-          <span *ngIf="focusUserLastMessageObj?.userChain?.index<=1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)<=1">{{focusUserLastMessageObj?.userChain?.index}} message, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} day ago</span>
+          <span *ngIf="scope!='all'">Last seen {{formatFocusUserLastSeen()}}</span>
+          <span *ngIf="focusUserLastMessageObj?.userChain?.index>1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)>1">{{focusUserLastMessageObj?.userChain?.index}} created messages, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</span>
+          <span *ngIf="focusUserLastMessageObj?.userChain?.index>1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)<=1">{{focusUserLastMessageObj?.userChain?.index}} created messages, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} day ago</span>
+          <span *ngIf="focusUserLastMessageObj?.userChain?.index<=1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)>1">{{focusUserLastMessageObj?.userChain?.index}} created message, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</span>
+          <span *ngIf="focusUserLastMessageObj?.userChain?.index<=1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)<=1">{{focusUserLastMessageObj?.userChain?.index}} created message, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} day ago</span>
         </div>
 
         <div style="font-size:12px; color:#cbd5e1; margin-bottom:8px;">
@@ -105,7 +107,7 @@ import { ChangeDetectorRef } from '@angular/core'
 
           <li class="guardedChatItem eventListItem" *ngFor="let message of events; let i = index"
             [style.display]="showAllEvents || i===0 ? 'block' : 'none'"
-            (click)="openListedChat(message.payload.doc.data()?.chain)">
+            (click)="openListedChat(message.payload.doc.data()?.chain, message.payload.doc.data()?.serverTimestamp)">
             <div *ngIf="scope=='all'||mode=='inbox'" class="guardedChatItem eventCardBody">
               <div class="eventCardHeader">
                 <div class="eventCardMedia">
@@ -166,7 +168,7 @@ import { ChangeDetectorRef } from '@angular/core'
         <div class="profile-funds-item">
       <ul class="listLight">
         <li class="guardedChatItem fundListItem" *ngFor="let message of currentFunds|async;let first=first;let last=last"
-          (click)="openListedChat(message.payload.doc.data()?.chain)">
+          (click)="openListedChat(message.payload.doc.data()?.chain, message.payload.doc.data()?.serverTimestamp)">
           <div *ngIf="scope=='all'||mode=='inbox'">
             <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0">
             <div class="guardedChatItem fundCardBody" style="padding:8px; border-radius: 10px; background: rgba(16, 185, 129, 0.05);">
@@ -231,7 +233,7 @@ import { ChangeDetectorRef } from '@angular/core'
           <div *ngIf="scope=='all'||mode=='inbox'" class="carouselImageWrap" (click)="openCarouselImage(message.payload.doc.data()?.chatImageUrlOriginal)">
             <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload.doc.data())" class="carouselImage">
           </div>
-          <button class="carouselMeta" (click)="openListedChat(message.payload.doc.data()?.chain)">
+          <button class="carouselMeta" (click)="openListedChat(message.payload.doc.data()?.chain, message.payload.doc.data()?.serverTimestamp)">
             <span class="messageTiming">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</span>
           </button>
           <span *ngIf="!UI.isCurrentUserMember" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
@@ -239,9 +241,13 @@ import { ChangeDetectorRef } from '@angular/core'
       </ul>
       <div *ngIf="scope!='all'&& mode=='history'" style="height:400px;margin:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
       <ul *ngIf="mode!='forecast' || scope=='all'" class="listLight">
-        <li *ngFor="let message of messages|async;let first=first;let last=last" class="guardedChatItem"
-          (click)="openListedChat(message.payload.doc.data()?.chain)">
+        <li *ngFor="let message of messages|async;let first=first;let last=last" class="guardedChatItem" style="position:relative;"
+          (click)="openListedChat(message.payload.doc.data()?.chain, message.payload.doc.data()?.serverTimestamp)">
           <div *ngIf="scope=='all'||mode=='inbox'">
+            <div *ngIf="UI.currentUser && (UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds && !isMessageSeen(message.payload.doc.data()?.chain,message.payload.doc.data()?.serverTimestamp)"
+              style="position:absolute;top:8px;right:8px;width:22px;height:14px;line-height:14px;text-align:center;border-radius:4px;"
+              [style.background-color]="(message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name)) ? '#ef4444' : (message.payload.doc.data()?.recipients[UI.currentUser] ? '#38761D' : '#B0BAC0')">
+            </div>
             <div style="float:left;min-width:84px;min-height:40px">
               <img [src]="message.payload.doc.data()?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload.doc.data())" style="float:left;margin:12px 2px 12px 4px;object-fit:cover;height:40px;width:40px">
               <img *ngIf="message.payload.doc.data()?.recipientList[1]" [src]="message.payload.doc.data()?.recipients[message.payload.doc.data()?.recipientList[1]]?.imageUrlThumb" style="float:left;margin:12px 4px 12px 2px;object-fit:cover;height:25px;width:25px">
@@ -250,18 +256,7 @@ import { ChangeDetectorRef } from '@angular/core'
               <div style="float:left;margin-top:10px;width:60%;white-space:nowrap;text-overflow:ellipsis">
                 <span class="chatSubject chatSubjectStrong">{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</span>
               </div>
-              <div *ngIf="UI.currentUser&&(UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds" style="float:right;margin:5px 0 0 0;width:35px;height:20px;line-height:20px;text-align:center"
-                (click)="readFlagClick(message.payload.doc.id,(message.payload.doc.data()?.reads||{})[UI.currentUser])"
-                [style.background-color]="(message.payload.doc.data()?.reads||{})[UI.currentUser]?'#131B20':(message.payload.doc.data()?.recipients[UI.currentUser]?.mentionMessages||message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name))?'#5BBF2F':message.payload.doc.data()?.recipients[UI.currentUser]?'#38761D':'#B0BAC0'"
-                [style.color]="(message.payload.doc.data()?.reads||{})[UI.currentUser]?'#131B20':whitesmoke">
-                {{message.payload.doc.data()?.recipients[UI.currentUser]?.unreadMessages}}
-              </div>
-              <div *ngIf="UI.currentUser&&(UI.currentUserLastMessageObj?.createdTimestamp/1000)>message.payload.doc.data()?.serverTimestamp?.seconds" style="float:right;margin:5px 0 0 0;width:35px;height:20px;line-height:20px;text-align:center 0 0 3px"
-                [style.background-color]="'#B0BAC0'"
-                [style.color]="'#B0BAC0'">
-                {{message.payload.doc.data()?.recipients[UI.currentUser]?.unreadMessages}}
-              </div>
-              <div class="messageTiming" style="float:right;margin-top:10px;margin-right:10px;width:40px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</div>
+              <div class="messageTiming" style="float:right;margin-top:10px;margin-right:36px;width:40px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</div>
               <div style="clear:both;float:left;margin-bottom:10px;width:90%;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">
                 <span class="messageAuthor">{{message.payload.doc.data()?.name}}:&nbsp;</span>
                 <span *ngIf="message.payload.doc.data()?.imageResized" class="messageImageBadge">
@@ -339,6 +334,12 @@ export class ProfileComponent {
   latestImages:Observable<any[]>
   scrollTeam:string
   focusUserLastMessageObj:any
+  lastSeenByChain:any
+  lastSeenSubscription: Subscription | null = null;
+  focusUserLastSeenSubscription: Subscription | null = null;
+  authSubscription: Subscription | null = null;
+  currentUserId: string | null = null;
+  focusUserLastSeenTimestampMessage:number
   scope:string
   mode:string
   previousBalance:string
@@ -362,6 +363,16 @@ export class ProfileComponent {
     private cd: ChangeDetectorRef
   ) {
     this.math=Math
+    this.lastSeenByChain={}
+    this.lastSeenSubscription = null;
+    this.focusUserLastSeenSubscription = null;
+    this.authSubscription = null;
+    this.currentUserId = null;
+    this.focusUserLastSeenTimestampMessage=0
+    this.authSubscription = this.afAuth.authState.subscribe(user => {
+      this.currentUserId = user?.uid || this.UI.currentUser || null;
+      this.subscribeToLastSeen();
+    });
     this.messageNumberDisplay=30
     this.showAllEvents=false
     this.scope=''
@@ -404,7 +415,9 @@ export class ProfileComponent {
       ).valueChanges().subscribe(snapshot=>{
         this.focusUserLastMessageObj=snapshot[0]
       })
+      this.subscribeToFocusUserLastSeen();
       this.refreshMessages()
+      this.subscribeToLastSeen();
     })
   }
 
@@ -427,7 +440,8 @@ export class ProfileComponent {
     window.scrollTo({ top: 0, behavior: 'auto' });
   }
 
-  refreshMessages(){
+  async refreshMessages(){
+    // lastSeenByChain is now updated in real-time
     this.UI.loading=true
     if(this.scope=='all'){
       this.comingEvents=this.afs.collection<any>('PERRINNMessages',ref=>ref
@@ -528,6 +542,82 @@ export class ProfileComponent {
     }
   }
 
+  private lastSeenUnsubscribe() {
+    if (this.lastSeenSubscription) {
+      this.lastSeenSubscription.unsubscribe();
+      this.lastSeenSubscription = null;
+    }
+  }
+
+  private subscribeToLastSeen() {
+    this.lastSeenUnsubscribe();
+    const userId = this.UI.currentUser || this.currentUserId;
+    if (!userId) {
+      this.lastSeenByChain = {};
+      return;
+    }
+    this.lastSeenSubscription = this.afs.collection<any>(`lastSeen/${userId}/chats`).snapshotChanges().subscribe(snaps => {
+      const mapByChain = {};
+      snaps.forEach(snap => {
+        const data = snap.payload.doc.data() || {};
+        const timestampMessage = this.toMillis(data['serverTimestamp']);
+        if (timestampMessage > 0) mapByChain[snap.payload.doc.id] = timestampMessage;
+      });
+      this.lastSeenByChain = mapByChain;
+      this.cd.detectChanges();
+    });
+  }
+
+  private focusUserLastSeenUnsubscribe() {
+    if (this.focusUserLastSeenSubscription) {
+      this.focusUserLastSeenSubscription.unsubscribe();
+      this.focusUserLastSeenSubscription = null;
+    }
+  }
+
+  private subscribeToFocusUserLastSeen() {
+    this.focusUserLastSeenUnsubscribe();
+    this.focusUserLastSeenTimestampMessage = 0;
+    if (!this.scope || this.scope === 'all') return;
+    this.focusUserLastSeenSubscription = this.afs.collection<any>(`lastSeen/${this.scope}/chats`, ref => ref
+      .orderBy('updatedAt', 'desc')
+      .limit(1)
+    ).snapshotChanges().subscribe(snaps => {
+      const latest = snaps[0]?.payload?.doc?.data() || {};
+      this.focusUserLastSeenTimestampMessage = this.toMillis(latest['updatedAt']) || this.toMillis(latest['serverTimestamp']);
+      this.cd.detectChanges();
+    });
+  }
+
+  ngOnDestroy() {
+    this.lastSeenUnsubscribe();
+    this.focusUserLastSeenUnsubscribe();
+    if (this.authSubscription) {
+      this.authSubscription.unsubscribe();
+      this.authSubscription = null;
+    }
+  }
+
+  private toMillis(value:any):number{
+    if(!value)return 0
+    if(typeof value==='number')return value
+    if(typeof value.seconds==='number')return value.seconds*1000
+    if(typeof value.toMillis==='function')return value.toMillis()
+    if(typeof value.toDate==='function')return value.toDate().getTime()
+    return 0
+  }
+
+  isMessageSeen(chain:string,messageTimestamp:any):boolean{
+    const lastSeenTimestampMessage=this.lastSeenByChain[chain]||0
+    const messageTimestampMessage=this.toMillis(messageTimestamp)
+    return !!lastSeenTimestampMessage&&messageTimestampMessage>0&&messageTimestampMessage<=lastSeenTimestampMessage
+  }
+
+  formatFocusUserLastSeen():string{
+    if(!this.focusUserLastSeenTimestampMessage)return '--'
+    return this.UI.formatSecondsToDhm1(this.math.max(0,this.UI.nowSeconds-this.focusUserLastSeenTimestampMessage/1000))+' ago'
+  }
+
   refreshChart(){
     this.messages.subscribe(messages => {
       let newData = messages.map((message,index)=>(
@@ -543,13 +633,6 @@ export class ProfileComponent {
     });
   }
 
-  readFlagClick(messageId,readFlag){
-    event.stopPropagation()
-    if(readFlag)return this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(messageId).delete()
-    return this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(messageId).set({
-      serverTimestamp:firebase.firestore.FieldValue.serverTimestamp()
-    })
-  }
 
   newMessageToUser() {
     let ID=this.UI.newId()
@@ -583,9 +666,10 @@ export class ProfileComponent {
     this.router.navigate(['chat',this.focusUserLastMessageObj.user])
   }
 
-  openListedChat(chain: string) {
-    if (!this.UI.isCurrentUserMember || !chain) return
-    this.router.navigate(['chat', chain])
+  openListedChat(chain: string, messageTimestamp?: any) {
+    if (!this.UI.isCurrentUserMember || !chain) return;
+    // readFlagClick removed: lastSeen is now updated only on reload/refresh
+    this.router.navigate(['chat', chain]);
   }
 
   isEventLive(eventDateStart: any, eventDateEnd: any): boolean {

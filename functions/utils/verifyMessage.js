@@ -147,10 +147,6 @@ module.exports = {
       messageData.recipientList=messageData.recipientList.filter((item,pos)=>messageData.recipientList.indexOf(item)===pos)
       messageData.recipientList.indexOf('undefined')!=-1&&messageData.recipientList.splice(messageData.recipientList.indexOf('undefined'),1)
       messageData.recipientList.indexOf(null)!=-1&&messageData.recipientList.splice(messageData.recipientList.indexOf(null),1)
-      if(messageData.recipientListToBeRemoved)messageData.recipientListToBeRemoved.forEach(recipientToBeRemoved=>{
-        const index=messageData.recipientList.indexOf(recipientToBeRemoved)
-        if(index>-1)messageData.recipientList.splice(index,1)
-      })
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{recipientList:messageData.recipientList||[]},{create:true})
 
       //message recipients data
@@ -159,12 +155,14 @@ module.exports = {
         if(recipient!=user)reads.push(admin.firestore().collection('PERRINNMessages').where('user','==',recipient||null).where('verified','==',true).orderBy('serverTimestamp','desc').limit(1).get())
       })
       const recipientsObj=await Promise.all(reads)
-      recipientsObj.forEach((recipient)=>{
-        if(recipient.docs[0]!=undefined)batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${recipient.docs[0].data().user}.name`]:(recipient.docs[0].data()||{}).name||null},{create:true})
-        if(recipient.docs[0]!=undefined)batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${recipient.docs[0].data().user}.imageUrlThumb`]:(recipient.docs[0].data()||{}).imageUrlThumbUser||null},{create:true})
-        if(recipient.docs[0]!=undefined)batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${recipient.docs[0].data().user}.unreadMessages`]:((chatPreviousMessageData.reads||{})[recipient.docs[0].data().user]||null)?1:(((((chatPreviousMessageData.recipients||{})[recipient.docs[0].data().user]||{}).unreadMessages||1)+1)||null)},{create:true})
-        if(recipient.docs[0]!=undefined)batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${recipient.docs[0].data().user}.mentionMessages`]:((messageData.text||"").includes((recipient.docs[0].data()||{}).name||null))?true:((chatPreviousMessageData.reads||{})[recipient.docs[0].data().user]||null)?false:(((chatPreviousMessageData.recipients||{})[recipient.docs[0].data().user]||{}).mentionMessages||false)},{create:true})
-      })
+      for (const recipient of recipientsObj) {
+        if(recipient.docs[0]!=undefined){
+          const recipientUser=(recipient.docs[0].data()||{}).user
+          const recipientName=(recipient.docs[0].data()||{}).name||null
+          batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${recipientUser}.name`]:recipientName},{create:true})
+          batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{[`recipients.${recipientUser}.imageUrlThumb`]:(recipient.docs[0].data()||{}).imageUrlThumbUser||null},{create:true})
+        }
+      }
 
       //*******FUND**********
       let fund={}

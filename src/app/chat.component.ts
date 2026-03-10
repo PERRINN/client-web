@@ -261,6 +261,7 @@ import { map, tap, take } from 'rxjs/operators';
           <div class="island" id="date" style="margin-top:25px;margin-bottom:25px;max-width:240px" *ngIf="isMessageNewTimeGroup(message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
               <div style="margin:0 auto;text-align:center">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'fullDate'}}</div>
           </div>
+          <div *ngIf="lastRead==message.key" style="clear:both;margin:0 auto;text-align:center;font-size:12px;margin:35px 0 35px 0;border-style:solid;border-width:0 0 1px 0">Last read</div>
           <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" style="clear:both;width:100%;height:5px"></div>
           <div *ngIf="message.payload?.imageUrlThumbUser&&(isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first)" style="float:left;width:54px;min-height:10px">
             <img [src]="message.payload?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload)" style="cursor:pointer;display:inline;float:left;margin:0 4px 10px 10px; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
@@ -280,6 +281,7 @@ import { map, tap, take } from 'rxjs/operators';
             <div *ngIf="messageOptionsOpenFor === message.key"
               class="messageOptionsMenu"
               (click)="$event.stopPropagation()">
+              <button class="messageOptionsItem" (click)="setAsUnreadFromMessage(message)">Set as unread</button>
               <button class="messageOptionsItem" (click)="openMessageJson(message)">Message json</button>
             </div>
             <div>
@@ -307,7 +309,6 @@ import { map, tap, take } from 'rxjs/operators';
               <span *ngIf="message.payload?.userChain?.nextMessage=='none'&&message.payload?.wallet?.balance!=undefined" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.wallet?.balance)}}</span>
             </div>
           </div>
-          <div *ngIf="lastRead==message.key" style="margin:0 auto;text-align:center;font-size:12px;margin:35px 0 35px 0;border-style:solid;border-width:0 0 1px 0">Last read</div>
           {{storeMessageValues(message.payload)}}
         </li>
       </ul>
@@ -424,7 +425,8 @@ export class ChatComponent implements OnDestroy {
   messages:Observable<any[]>
   teams:Observable<any[]>
   searchFilter:string
-  reads:any[]
+  lastSeenServerTimestampMessage:number
+  lastSeenMessageId:string
   chatSubject:string
   chatLastMessageObj:any
   chatChain:string
@@ -487,7 +489,8 @@ export class ChatComponent implements OnDestroy {
   ) {
       this.math = Math
       this.UI.loading = true
-      this.reads = []
+      this.lastSeenServerTimestampMessage = 0
+      this.lastSeenMessageId = null
       this.route.params.subscribe(params => {
         this.lastRead = null
         this.chatChain = params.id
@@ -514,11 +517,80 @@ export class ChatComponent implements OnDestroy {
           amountGBPTarget: 0,
           daysLeft: 30
         }
-        this.refreshMessages(params.id)
+        this.loadLastSeen(params.id).then(() => this.refreshMessages(params.id))
         this.refresheventDateList()
         this.resetChat()
       })
     }
+
+  private async loadLastSeen(chain: string): Promise<void> {
+    if (!this.UI.currentUser || !chain) {
+      this.lastSeenServerTimestampMessage = 0;
+      this.lastSeenMessageId = null;
+      return;
+    }
+    try {
+      const doc = await this.afs.firestore
+        .collection('lastSeen')
+        .doc(this.UI.currentUser)
+        .collection('chats')
+        .doc(chain)
+        .get();
+      const data = (doc.data() || {}) as any;
+      this.lastSeenMessageId = data.messageId || null;
+      this.lastSeenServerTimestampMessage = this.toMillis(data.serverTimestamp || null);
+    } catch {
+      this.lastSeenServerTimestampMessage = 0;
+      this.lastSeenMessageId = null;
+    }
+  }
+
+  private toMillis(value: any): number {
+    if (!value) return 0;
+    if (typeof value === 'number') return value;
+    if (typeof value?.seconds === 'number') return value.seconds * 1000;
+    if (typeof value?.toMillis === 'function') return value.toMillis();
+    if (typeof value?.toDate === 'function') return value.toDate().getTime();
+    return 0;
+  }
+
+  private isMessageReadByLastSeen(messageData: any): boolean {
+    const messageTimestampMessage = this.toMillis(messageData?.serverTimestamp);
+    return !!this.lastSeenServerTimestampMessage && messageTimestampMessage > 0 && messageTimestampMessage <= this.lastSeenServerTimestampMessage;
+  }
+
+  private updateLastReadDivider(changes: any[]) {
+    this.lastRead = null;
+    let nextMessageRead = true;
+    changes.forEach(c => {
+      const currentMessageRead = this.isMessageReadByLastSeen(c.payload.doc.data());
+      if (this.UI.currentUser && !this.lastRead && !nextMessageRead && currentMessageRead) this.lastRead = c.payload.doc.id;
+      nextMessageRead = currentMessageRead;
+    });
+  }
+
+  private saveLastSeen(chain: string, messageId: string, serverTimestamp: any) {
+    if (!this.UI.currentUser || !chain || !messageId) return;
+    const timestampMessage = this.toMillis(serverTimestamp);
+    if (!timestampMessage) return;
+    const isCursorAdvanced = timestampMessage > this.lastSeenServerTimestampMessage
+      || (timestampMessage === this.lastSeenServerTimestampMessage && messageId !== this.lastSeenMessageId);
+    if (!isCursorAdvanced) return;
+
+    this.lastSeenServerTimestampMessage = timestampMessage;
+    this.lastSeenMessageId = messageId;
+
+    this.afs.firestore
+      .collection('lastSeen')
+      .doc(this.UI.currentUser)
+      .collection('chats')
+      .doc(chain)
+      .set({
+        messageId,
+        serverTimestamp: firebase.firestore.Timestamp.fromMillis(timestampMessage),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+  }
 
   onDateChange(event: any) {
     this.eventTimeListInit();
@@ -681,14 +753,10 @@ export class ChatComponent implements OnDestroy {
     ).snapshotChanges().pipe(map(changes => {
       this.UI.loading = false
       this.isLoadMoreDisabled = changes.length < this.messageNumberDisplay;
-      var batch = this.afs.firestore.batch()
-      var nextMessageRead = true
+      this.updateLastReadDivider(changes)
       changes.forEach(c => {
-        if (this.UI.currentUser && !this.lastRead && !nextMessageRead && (c.payload.doc.data()['reads'] || [])[this.UI.currentUser]) this.lastRead = c.payload.doc.id
-        nextMessageRead = (c.payload.doc.data()['reads'] || [])[this.UI.currentUser]
         if (c.payload.doc.data()['lastMessage']) {
-          if (this.UI.currentUser && !this.reads.includes(c.payload.doc.id)) batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id), { serverTimestamp: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
-          this.reads.push(c.payload.doc.id)
+          this.saveLastSeen(chain, c.payload.doc.id, c.payload.doc.data()['serverTimestamp'])
           this.chatLastMessageObj = c.payload.doc.data()
           this.chatSubject = c.payload.doc.data()['chatSubject']
           this.eventDescription = c.payload.doc.data()['eventDescription']
@@ -701,7 +769,6 @@ export class ChatComponent implements OnDestroy {
           this.eventTimeListInit();
         }
       })
-      batch.commit()
         return changes.reverse().map(c => ({
           key: c.payload.doc.id,
           payload: c.payload.doc.data()
@@ -723,14 +790,9 @@ export class ChatComponent implements OnDestroy {
     ).snapshotChanges().pipe(map(changes => {
       this.UI.loading = false
       this.isLoadMoreDisabled = changes.length < this.messageNumberDisplay;
-      var batch = this.afs.firestore.batch()
-      var nextMessageRead = true
+      this.updateLastReadDivider(changes)
       changes.forEach(c => {
-        if (this.UI.currentUser && !this.lastRead && !nextMessageRead && (c.payload.doc.data()['reads'] || [])[this.UI.currentUser]) this.lastRead = c.payload.doc.id
-        nextMessageRead = (c.payload.doc.data()['reads'] || [])[this.UI.currentUser]
         if (c.payload.doc.data()['lastMessage']) {
-          if (this.UI.currentUser && !this.reads.includes(c.payload.doc.id)) batch.set(this.afs.firestore.collection('PERRINNTeams').doc(this.UI.currentUser).collection('reads').doc(c.payload.doc.id), { serverTimestamp: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
-          this.reads.push(c.payload.doc.id)
           this.chatLastMessageObj = c.payload.doc.data()
           this.chatSubject = c.payload.doc.data()['chatSubject']
           this.eventDescription = c.payload.doc.data()['eventDescription']
@@ -742,7 +804,6 @@ export class ChatComponent implements OnDestroy {
           this.eventTimeListInit();
         }
       })
-      batch.commit()
       return changes.map(c => ({
         key: c.payload.doc.id,
         payload: c.payload.doc.data()
@@ -807,6 +868,37 @@ export class ChatComponent implements OnDestroy {
     }
     this.showMessageJsonModal = true;
     this.messageOptionsOpenFor = null;
+  }
+
+  setAsUnreadFromMessage(message: any) {
+    const messageKey = message?.key;
+    const payload = message?.payload || {};
+    const chain = payload?.chain || this.chatLastMessageObj?.chain || this.chatChain;
+    const selectedTimestampMessage = this.toMillis(payload?.serverTimestamp);
+    if (!this.UI.currentUser || !messageKey || !chain || !selectedTimestampMessage) {
+      this.messageOptionsOpenFor = null;
+      return;
+    }
+
+    const lastSeenTimestampMessage = Math.max(0, selectedTimestampMessage - 1);
+
+    this.lastSeenServerTimestampMessage = lastSeenTimestampMessage;
+    this.lastSeenMessageId = null;
+
+    this.afs.firestore
+      .collection('lastSeen')
+      .doc(this.UI.currentUser)
+      .collection('chats')
+      .doc(chain)
+      .set({
+        messageId: null,
+        serverTimestamp: firebase.firestore.Timestamp.fromMillis(lastSeenTimestampMessage),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+
+    this.lastRead = messageKey;
+    this.messageOptionsOpenFor = null;
+    this.messageActionTargetFor = null;
   }
 
   closeMessageJsonModal() {
@@ -1004,15 +1096,6 @@ export class ChatComponent implements OnDestroy {
       chatProfileImageUrlThumb: this.chatProfileImageDownloadUrl,
       chatProfileImageUrlMedium: this.chatProfileImageDownloadUrl,
       chatProfileImageUrlOriginal: this.chatProfileImageDownloadUrl,
-    })
-    this.resetChat()
-  }
-
-  removeRecipient(user, name) {
-    this.UI.createMessage({
-      text: 'removing ' + name + ' from this chat.',
-      chain: this.chatLastMessageObj.chain || this.chatChain,
-      recipientListToBeRemoved: [user]
     })
     this.resetChat()
   }

@@ -164,7 +164,6 @@ export class UserInterfaceService {
       messageObj.imageUrlThumbUser ||
       this.currentUserLastMessageObj.imageUrlThumbUser ||
       "";
-    messageObj.reads = { [this.currentUser]: true };
     return this.afs.collection("PERRINNMessages").add(messageObj);
   }
 
