@@ -299,8 +299,7 @@ import { map, tap, take } from 'rxjs/operators';
               <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.membership?.amountRequired)}} membership threashold.</div>
             </div>
             <div style="clear:both;height:15px">
-              <span *ngIf="message.payload?.verified" class="material-icons" style="float:right;font-size:16px;margin:0 2px 2px 0;color:#3b82f6">check_circle</span>
-              <span *ngIf="message.payload?.imageResized" class="material-icons-outlined" style="float:right;font-size:15px;margin:0 2px 2px 0">aspect_ratio</span>
+              <span *ngIf="message.payload?.verified && message.payload?.userChain?.nextMessage=='none'" class="material-icons" style="float:right;font-size:16px;margin:0 2px 2px 0;color:#3b82f6">check_circle</span>
               <span *ngIf="message.payload?.contract?.hoursValidated>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.contract?.amount)}} earned ({{UI.formatSecondsToDhm1(message.payload?.contract?.hoursValidated*3600)}}declared in {{UI.formatSecondsToDhm1(message.payload?.contract?.hoursAvailable*3600)}} window)</span>
               <span *ngIf="message.payload?.purchaseCOIN?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.purchaseCOIN?.amount)}} purchased</span>
               <span *ngIf="message.payload?.transactionIn?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.transactionIn?.amount)}} received</span>

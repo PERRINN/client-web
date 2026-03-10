@@ -264,7 +264,9 @@ import { ChangeDetectorRef } from '@angular/core'
               <div class="messageTiming" style="float:right;margin-top:10px;margin-right:10px;width:40px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</div>
               <div style="clear:both;float:left;margin-bottom:10px;width:90%;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">
                 <span class="messageAuthor">{{message.payload.doc.data()?.name}}:&nbsp;</span>
-                <span *ngIf="message.payload.doc.data()?.imageResized" class="material-icons-outlined" style="font-size:15px;line-height:12px;margin-right:2px">aspect_ratio</span>
+                <span *ngIf="message.payload.doc.data()?.imageResized" class="messageImageBadge">
+                  <span class="material-icons-outlined" style="font-size:14px;line-height:1">photo</span>
+                </span>
                 <span>{{message.payload.doc.data()?.automaticMessage?"(Automatic) ":""}}{{message.payload.doc.data()?.text}}</span>
               </div>
             </div>

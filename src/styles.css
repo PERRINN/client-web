@@ -1644,6 +1644,18 @@ app-root .messageAuthor {
   letter-spacing: 0.1px;
 }
 
+app-root profile .messageImageBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-right: 6px;
+  border-radius: 6px;
+  color: #cbd5e1;
+  vertical-align: text-bottom;
+}
+
 app-root .chatSubject {
   color: #f1f5f9;
   font-size: 14px;
