@@ -2447,8 +2447,8 @@ app-root chat .messageOptionsBtn {
   justify-content: center;
   z-index: 2;
   padding: 0;
-  opacity: 0;
-  pointer-events: none;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 app-root chat .messageBubble:hover .messageOptionsBtn,

@@ -282,7 +282,7 @@ import { map, tap, take } from 'rxjs/operators';
               class="messageOptionsMenu"
               (click)="$event.stopPropagation()">
               <button class="messageOptionsItem" (click)="setAsUnreadFromMessage(message)">Set as unread</button>
-              <button class="messageOptionsItem" (click)="openMessageJson(message)">Message json</button>
+              <button class="messageOptionsItem" (click)="openMessageJson(message)">Message JSON</button>
             </div>
             <div>
               <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
