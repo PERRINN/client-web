@@ -104,14 +104,14 @@ import { AngularFireAuth } from '@angular/fire/compat/auth'
         </ul>
         </div>
 
-        <div *ngIf="viewMode === 'table'" style="background: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid rgba(5, 150, 105, 0.1); overflow: visible;">
+        <div *ngIf="viewMode === 'table'" style="background: #1e293b; padding: 0 12px 12px 12px; border-radius: 12px; border: 1px solid rgba(5, 150, 105, 0.1); overflow: visible;">
           <div style="overflow-x: auto; overflow-y: visible;">
             <table style="width: 100%; border-collapse: collapse; table-layout: auto;">
               <thead>
                 <tr style="border-bottom: 2px solid rgba(5, 150, 105, 0.2); min-height: 48px; overflow: visible;">
-                  <th style="text-align: left; padding: 12px 14px; color: #94a3b8; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; line-height: 1.5; vertical-align: middle;">Name</th>
-                  <th style="text-align: right; padding: 12px 14px; color: #94a3b8; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; line-height: 1.5; vertical-align: middle;">Balance</th>
-                  <th style="text-align: right; padding: 12px 14px; color: #94a3b8; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; line-height: 1.5; vertical-align: middle;">Share</th>
+                  <th style="float: none; height: auto; text-align: left; padding: 12px 14px; color: #94a3b8; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; line-height: 1.5; vertical-align: middle;">Name</th>
+                  <th style="float: none; height: auto; text-align: right; padding: 12px 14px; color: #94a3b8; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; line-height: 1.5; vertical-align: middle;">Balance</th>
+                  <th style="float: none; height: auto; text-align: right; padding: 12px 14px; color: #94a3b8; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; line-height: 1.5; vertical-align: middle;">Share</th>
                 </tr>
               </thead>
               <tbody>
