@@ -335,9 +335,6 @@ th {
 
 @media (max-width:370px)
 {
-  .th-date {
-    min-width:65px;
-  }
   .th-balance {
     min-width:55px;
   }
@@ -369,10 +366,19 @@ th {
   }
 }
 
+.dateShort {
+  display: none;
+}
+
 @media (max-width:480px)
 {
   .th-change {
     display: none;
+  }
+  .dateFull { display: none; }
+  .dateShort { display: inline; }
+  .th-date {
+    min-width:65px;
   }
 }
 

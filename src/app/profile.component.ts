@@ -280,7 +280,10 @@ import { ChangeDetectorRef } from '@angular/core'
                 <th class="th-message">Message</th>
               </tr>
               <tr class="tableRow" style="user-select:text; display: flex">
-                <th class="th-date">{{(message.payload.doc.data()?.verifiedTimestamp?.seconds*1000)|date:'d MMM YYY'}}</th>
+                <th class="th-date">
+                  <span class="dateFull">{{(message.payload.doc.data()?.verifiedTimestamp?.seconds*1000)|date:'d MMM yyyy'}}</span>
+                  <span class="dateShort">{{(message.payload.doc.data()?.verifiedTimestamp?.seconds*1000)|date:'d MMM yy'}}</span>
+                </th>
                 <th class="th-days">{{first?'':(message.payload.doc.data()?.verifiedTimestamp?.seconds-previousTimestamp.seconds)/3600/24|number:'1.2-2'}}</th>
                 <th class="th-messages">{{first?'':(message.payload.doc.data()?.userChain?.index-previousIndex)}}</th>
                 <th class="th-balance">{{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.wallet?.balance)}}</th>
