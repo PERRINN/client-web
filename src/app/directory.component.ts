@@ -71,24 +71,32 @@ import { AngularFireAuth } from '@angular/fire/compat/auth'
           <li *ngFor="let message of filteredMessages | async" style="cursor: pointer;" (click)="router.navigate(['profile',message.values.user])">
             <div style="background: #1e293b; border: 1px solid rgba(5, 150, 105, 0.1); border-radius: 12px; overflow: hidden; transition: all 0.3s ease; display: flex; flex-direction: column; height: 280px;">
               <img [src]="message?.values.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message?.values)" style="object-fit: contain; height: 112px; width: 100%; display: block; background: rgba(5, 150, 105, 0.03); flex-shrink: 0;">
-              <div style="padding: 11px; display: flex; flex-direction: column; flex: 1; overflow: hidden;">
-                <div style="font-size: 12px; font-weight: 700; color: #f1f5f9; margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px;">{{message.values?.name}}</div>
-                <div style="font-size: 11px; color: #cbd5e1; line-height: 1.5; margin-bottom: 8px; min-height: 18px; flex-grow: 1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-overflow: ellipsis;">
+              <div style="padding: 8px 11px 11px 11px; display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+                <div style="font-size: 12px; font-weight: 700; color: #f1f5f9; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px;">{{message.values?.name}}</div>
+                <div style="font-size: 11px; color: #cbd5e1; line-height: 1.5; margin-bottom: 4px; min-height: 38px; flex-grow: 1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-overflow: ellipsis;">
                   <span *ngIf="message.values?.userPresentation">{{message.values?.userPresentation}}</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid rgba(5, 150, 105, 0.1); margin-top: auto;">
                   <div style="font-size: 10px; color: #94a3b8;">Balance</div>
                   <div style="font-size: 12px; font-weight: 700; color: #10b981;">{{UI.convertAndFormatPRNToPRNCurrency(null,message.values?.wallet?.balance||0)}}</div>
                 </div>
-                <div *ngIf="((message.values?.wallet?.balance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance))>0.001" style="font-size: 9px; color: #059669; font-weight: 600; margin-top: 6px;">
-                  {{((message.values?.wallet?.balance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance))|percent:'1.1-1'}} of supply
-                </div>
-                <div *ngIf="message.values?.contract?.signed" style="font-size: 9px; color: #94a3b8; margin-top: 6px;">
-                  Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}
-                </div>
-                <div *ngIf="message.values?.publicLink" style="font-size: 9px; color: #10b981; margin-top: 6px; display: flex; align-items: center;">
-                  <span class="material-icons-outlined" style="font-size: 12px; margin-right: 3px;">link</span>
-                  Public Profile
+                <div style="height: 54px; overflow: hidden; flex-shrink: 0;">
+                  <div style="height: 18px; padding-top: 6px;">
+                    <div *ngIf="((message.values?.wallet?.balance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance))>0.001" style="font-size: 9px; color: #059669; font-weight: 600; line-height: 1.2;">
+                      {{((message.values?.wallet?.balance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance))|percent:'1.1-1'}} of supply
+                    </div>
+                  </div>
+                  <div style="height: 18px; padding-top: 6px;">
+                    <div *ngIf="message.values?.contract?.signed" style="font-size: 9px; color: #94a3b8; line-height: 1.2;">
+                      Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}
+                    </div>
+                  </div>
+                  <div style="height: 18px; padding-top: 6px;">
+                    <div *ngIf="message.values?.publicLink" style="font-size: 9px; color: #10b981; display: flex; align-items: center; line-height: 1.2;">
+                      <span class="material-icons-outlined" style="font-size: 12px; margin-right: 3px;">link</span>
+                      Public Profile
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
