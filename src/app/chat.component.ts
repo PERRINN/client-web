@@ -321,7 +321,7 @@ import { map, tap, take } from 'rxjs/operators';
       <div class="bounce2"></div>
       <div class="bounce3"></div>
     </div>
-    <div class="galleryWrap">
+    <div class="galleryWrap" [style.padding-top.px]="loadMoreButtonMarginTop">
       <ul class="galleryGrid">
         <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index" class="galleryCard" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
           <div class="galleryImageWrap">
@@ -337,7 +337,7 @@ import { map, tap, take } from 'rxjs/operators';
         </li>
       </ul>
     </div>
-    <div class="island" style="margin-top:25px;margin-bottom:25px;max-width:250px">
+    <div class="island" style="margin-top:25px;margin-bottom:25px;max-width:250px;">
       <button class="buttonPrimary" style="width:200px;margin:10px auto" [disabled]="isLoadMoreDisabled" (click)="loadMore()">Load more</button>
     </div>
   </div>
