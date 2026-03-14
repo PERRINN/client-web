@@ -34,13 +34,13 @@ import { AngularFireAuth } from '@angular/fire/compat/auth'
       </div>
 
       <div style="margin-bottom: 24px;">
-        <div style="background: #1e293b; padding: 16px; border-radius: 10px; border: 1px solid rgba(5, 150, 105, 0.1);">
+        <div style="background: #1e293b; padding: 10px 16px; border-radius: 10px; border: 1px solid rgba(5, 150, 105, 0.1);">
           <div style="display: flex; align-items: center; gap: 12px;">
             <span class="material-icons-outlined" style="font-size: 20px; color: #94a3b8; flex-shrink: 0;">search</span>
             <input [(ngModel)]="searchQuery" 
               type="text" 
               placeholder="Search members by name..." 
-              style="flex: 1; background: transparent; border: none; color: #f1f5f9; font-size: 14px; outline: none; font-family: inherit;"
+              style="flex: 1; background: transparent; border: none; color: #f1f5f9; font-size: 14px; outline: none; font-family: inherit; padding: 0; margin: 0;"
               (ngModelChange)="onSearchChange()">
             <button *ngIf="searchQuery" (click)="clearSearch()" style="background: transparent; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center;">
               <span class="material-icons-outlined" style="font-size: 18px;">close</span>
