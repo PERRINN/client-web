@@ -17,6 +17,20 @@ function trimSha(sha) {
   return sha.slice(0, 7)
 }
 
+function extractCommitTitles(commits) {
+  if (!Array.isArray(commits) || commits.length === 0) return ''
+  const titles = commits
+    .map(commit => {
+      const message = (commit || {}).message || ''
+      return String(message).split('\n')[0].trim()
+    })
+    .filter(Boolean)
+    .slice(0, 3)
+
+  if (titles.length === 0) return ''
+  return titles.join(' | ')
+}
+
 function eventUrl(event) {
   const repoName = (event.repo || {}).name || ''
   const repoUrl = repoName ? `https://github.com/${repoName}` : 'https://github.com'
@@ -52,7 +66,8 @@ function eventSummary(event) {
       const commitCount = Array.isArray(payload.commits) ? payload.commits.length : 0
       const commitLabel = commitCount === 1 ? 'commit' : 'commits'
       const head = trimSha(payload.head)
-      return `${actor} pushed ${commitCount} ${commitLabel} to ${repoName}${branch ? ` (${branch})` : ''}${head ? ` [${head}]` : ''}`
+      const commitTitles = extractCommitTitles(payload.commits)
+      return `${actor} pushed ${commitCount} ${commitLabel} to ${repoName}${branch ? ` (${branch})` : ''}${head ? ` [${head}]` : ''}${commitTitles ? `: ${commitTitles}` : ''}`
     }
     case 'PullRequestEvent': {
       const action = payload.action || 'updated'
