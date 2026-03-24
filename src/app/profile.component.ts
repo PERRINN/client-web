@@ -248,9 +248,16 @@ import { ChangeDetectorRef } from '@angular/core'
               style="position:absolute;top:8px;right:8px;width:22px;height:14px;line-height:14px;text-align:center;border-radius:4px;"
               [style.background-color]="(message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name)) ? '#ef4444' : (message.payload.doc.data()?.recipients[UI.currentUser] ? '#38761D' : '#B0BAC0')">
             </div>
-            <div style="float:left;min-width:84px;min-height:40px">
-              <img [src]="message.payload.doc.data()?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload.doc.data())" style="float:left;margin:12px 2px 12px 4px;object-fit:cover;height:40px;width:40px">
-              <img *ngIf="message.payload.doc.data()?.recipientList[1]" [src]="message.payload.doc.data()?.recipients[message.payload.doc.data()?.recipientList[1]]?.imageUrlThumb" style="float:left;margin:12px 4px 12px 2px;object-fit:cover;height:25px;width:25px">
+            <div style="float:left;min-width:58px;min-height:40px">
+              <ng-container *ngIf="message.payload.doc.data()?.chatProfileImageUrlThumb || message.payload.doc.data()?.chatProfileImageUrlMedium; else recipientImagesFallback">
+                <img
+                  [src]="message.payload.doc.data()?.chatProfileImageUrlThumb || message.payload.doc.data()?.chatProfileImageUrlMedium"
+                  (error)="UI.handleChatImageError($event, message.payload.doc.data())"
+                  style="float:left;margin:12px 4px 12px 4px;object-fit:cover;height:40px;width:40px">
+              </ng-container>
+              <ng-template #recipientImagesFallback>
+                <img [src]="message.payload.doc.data()?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload.doc.data())" style="float:left;margin:12px 2px 12px 4px;object-fit:cover;height:40px;width:40px">
+              </ng-template>
             </div>
             <div>
               <div style="float:left;margin-top:10px;width:60%;white-space:nowrap;text-overflow:ellipsis">
