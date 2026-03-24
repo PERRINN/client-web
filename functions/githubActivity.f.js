@@ -17,18 +17,96 @@ function trimSha(sha) {
   return sha.slice(0, 7)
 }
 
+function commitTitleFromMessage(message) {
+  return String(message || '').split('\n')[0].trim()
+}
+
 function extractCommitTitles(commits) {
   if (!Array.isArray(commits) || commits.length === 0) return ''
   const titles = commits
     .map(commit => {
       const message = (commit || {}).message || ''
-      return String(message).split('\n')[0].trim()
+      return commitTitleFromMessage(message)
     })
     .filter(Boolean)
     .slice(0, 3)
 
   if (titles.length === 0) return ''
   return titles.join(' | ')
+}
+
+async function githubApiFetchJson(url, token, errorPrefix) {
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    },
+  })
+
+  if (!response.ok) {
+    const bodyText = await response.text()
+    throw new Error(`${errorPrefix} ${response.status}: ${bodyText}`)
+  }
+
+  return response.json()
+}
+
+async function resolvePushCommitDetails(event, token) {
+  const payload = event.payload || {}
+  const repoName = (event.repo || {}).name || ''
+  const before = payload.before || ''
+  const head = payload.head || ''
+
+  let commitCount = Number.isFinite(Number(payload.size)) ? Number(payload.size) : 0
+  if (!commitCount) {
+    commitCount = Number.isFinite(Number(payload.distinct_size)) ? Number(payload.distinct_size) : 0
+  }
+
+  let commitTitles = extractCommitTitles(payload.commits)
+  if (Array.isArray(payload.commits) && payload.commits.length > 0 && commitCount === 0) {
+    commitCount = payload.commits.length
+  }
+
+  if (!repoName) {
+    return { commitCount, commitTitles }
+  }
+
+  if (!commitTitles && before && head && !before.startsWith('0000000')) {
+    try {
+      const compareUrl = `https://api.github.com/repos/${repoName}/compare/${before}...${head}`
+      const compareData = await githubApiFetchJson(compareUrl, token, 'GitHub compare API error')
+      const compareCommits = Array.isArray(compareData.commits) ? compareData.commits : []
+      const titles = compareCommits
+        .map(commit => commitTitleFromMessage(((commit.commit || {}).message || '')))
+        .filter(Boolean)
+        .slice(0, 3)
+      if (titles.length > 0) commitTitles = titles.join(' | ')
+      if (!commitCount) {
+        commitCount = Number.isFinite(Number(compareData.total_commits))
+          ? Number(compareData.total_commits)
+          : compareCommits.length
+      }
+    }
+    catch (error) {
+      console.log('Unable to enrich push event via compare endpoint:', error.message || error)
+    }
+  }
+
+  if (!commitTitles && head) {
+    try {
+      const commitUrl = `https://api.github.com/repos/${repoName}/commits/${head}`
+      const commitData = await githubApiFetchJson(commitUrl, token, 'GitHub commit API error')
+      const singleTitle = commitTitleFromMessage(((commitData.commit || {}).message || ''))
+      if (singleTitle) commitTitles = singleTitle
+      if (!commitCount) commitCount = 1
+    }
+    catch (error) {
+      console.log('Unable to enrich push event via commit endpoint:', error.message || error)
+    }
+  }
+
+  return { commitCount, commitTitles }
 }
 
 function eventUrl(event) {
@@ -55,7 +133,7 @@ function eventUrl(event) {
   return repoUrl
 }
 
-function eventSummary(event) {
+async function eventSummary(event, token) {
   const actor = ((event.actor || {}).login) || 'Someone'
   const repoName = (event.repo || {}).name || 'a repository'
   const payload = event.payload || {}
@@ -63,10 +141,11 @@ function eventSummary(event) {
 
   switch (event.type) {
     case 'PushEvent': {
-      const commitCount = Array.isArray(payload.commits) ? payload.commits.length : 0
+      const pushDetails = await resolvePushCommitDetails(event, token)
+      const commitCount = pushDetails.commitCount
       const commitLabel = commitCount === 1 ? 'commit' : 'commits'
       const head = trimSha(payload.head)
-      const commitTitles = extractCommitTitles(payload.commits)
+      const commitTitles = pushDetails.commitTitles
       return `${actor} pushed ${commitCount} ${commitLabel} to ${repoName}${branch ? ` (${branch})` : ''}${head ? ` [${head}]` : ''}${commitTitles ? `: ${commitTitles}` : ''}`
     }
     case 'PullRequestEvent': {
@@ -118,8 +197,9 @@ function eventSummary(event) {
   }
 }
 
-function createActivityText(event) {
-  return `${eventSummary(event)} (${eventUrl(event)})`
+async function createActivityText(event, token) {
+  const summary = await eventSummary(event, token)
+  return `${summary} (${eventUrl(event)})`
 }
 
 async function fetchOrganizationEvents(org, token, lastEventId) {
@@ -129,20 +209,7 @@ async function fetchOrganizationEvents(org, token, lastEventId) {
 
   for (let page = 1; page <= maxPages; page += 1) {
     const url = `https://api.github.com/orgs/${encodeURIComponent(org)}/events?per_page=100&page=${page}`
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
-    })
-
-    if (!response.ok) {
-      const bodyText = await response.text()
-      throw new Error(`GitHub API error ${response.status}: ${bodyText}`)
-    }
-
-    const events = await response.json()
+    const events = await githubApiFetchJson(url, token, 'GitHub API error')
     if (!Array.isArray(events) || events.length === 0) break
 
     for (const event of events) {
@@ -184,18 +251,11 @@ exports.githubActivity = onSchedule(
       const latestEvents = await fetchOrganizationEvents(org, token, lastEventId)
 
       if (!lastEventId) {
-        const initialResponse = await fetch(`https://api.github.com/orgs/${encodeURIComponent(org)}/events?per_page=1`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: 'application/vnd.github+json',
-            'X-GitHub-Api-Version': '2022-11-28',
-          },
-        })
-        if (!initialResponse.ok) {
-          const bodyText = await initialResponse.text()
-          throw new Error(`GitHub init error ${initialResponse.status}: ${bodyText}`)
-        }
-        const initialEvents = await initialResponse.json()
+        const initialEvents = await githubApiFetchJson(
+          `https://api.github.com/orgs/${encodeURIComponent(org)}/events?per_page=1`,
+          token,
+          'GitHub init error'
+        )
         const initialLastEventId = (Array.isArray(initialEvents) && initialEvents[0] && initialEvents[0].id) || null
 
         await stateRef.set({
@@ -210,7 +270,7 @@ exports.githubActivity = onSchedule(
 
       if (latestEvents.length > 0) {
         const ordered = latestEvents.slice().reverse()
-        const lines = ordered.map(createActivityText)
+        const lines = await Promise.all(ordered.map(event => createActivityText(event, token)))
 
         await createMessageUtils.createMessageAFS({
           user: ADMIN_USER_ID,
