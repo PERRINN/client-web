@@ -14,6 +14,7 @@ const createRevolutOrder = require('./createRevolutOrder.f.js');
 const revolutWebhook = require('./revolutWebhook.f.js');
 const syncRevolutOrderStatus = require('./syncRevolutOrderStatus.f.js');
 const driveFolderActivity = require('./driveFolderActivity.f.js');
+const githubActivity = require('./githubActivity.f.js');
 
 // Export functions
 exports.dbMessagesOnCreate = verifyMessageUtils.dbMessagesOnCreate;
@@ -24,3 +25,4 @@ exports.createRevolutOrder = createRevolutOrder.createRevolutOrder;
 exports.revolutWebhook = revolutWebhook.revolutWebhook;
 exports.syncRevolutOrderStatus = syncRevolutOrderStatus.syncRevolutOrderStatus;
 exports.driveFolderActivity = driveFolderActivity.driveFolderActivity;
+exports.githubActivity = githubActivity.githubActivity;
