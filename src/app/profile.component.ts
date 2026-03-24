@@ -262,7 +262,7 @@ import { ChangeDetectorRef } from '@angular/core'
                 <span *ngIf="message.payload.doc.data()?.imageResized" class="messageImageBadge">
                   <span class="material-icons-outlined" style="font-size:14px;line-height:1">photo</span>
                 </span>
-                <span>{{message.payload.doc.data()?.automaticMessage?"(Automatic) ":""}}{{message.payload.doc.data()?.text}}</span>
+                <span>{{message.payload.doc.data()?.text}}</span>
               </div>
             </div>
           </div>

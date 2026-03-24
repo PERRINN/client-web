@@ -57,12 +57,23 @@ exports.scheduledDailyMembership = onSchedule(
         statistics.userCount=(statistics.userCount||0)+1
       })
       statistics.serverTimestamp=admin.firestore.FieldValue.serverTimestamp()
+
+      const adminLastMessages=await admin.firestore().collection('PERRINNMessages').where('user','==',adminUserId).where('verified','==',true).orderBy('serverTimestamp','desc').limit(1).get()
+      const adminLastMessageData=adminLastMessages.docs[0]!=undefined?(adminLastMessages.docs[0].data()||{}):{}
+      const membershipThreshold=((adminLastMessageData.membership||{}).amountRequired)||0
+
+      const usersCount=statistics.userCount||0
+      const membersCount=statistics.membersCount||0
+      const investedAmount=((statistics.wallet||{}).balance)||0
+      const investedAmountRounded=Math.round(Number(investedAmount||0)*1000)/1000
+      const membershipThresholdRounded=Math.round(Number(membershipThreshold||0)*1000)/1000
+      const statisticsSummaryText=`${usersCount} users, ${membersCount} members. ${investedAmountRounded} invested. ${membershipThresholdRounded} membership threashold.`
   
       createMessageUtils.createMessageAFS({
         user:adminUserId,
-        text:"Daily updates.",
+        text:statisticsSummaryText,
         statistics:statistics,
-        chain:adminUserId
+        chain:"Daily-updates"
       })
   
       console.log(statistics.userCount+' users processed.')

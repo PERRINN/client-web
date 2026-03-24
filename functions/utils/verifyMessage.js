@@ -278,15 +278,10 @@ module.exports = {
 
       //*******MEMBERSHIP**********************
         let membership={}
-        if(user==adminUserId){
-          membership.amountRequiredBase=(((messageData.membership||{}).amountRequired)||((chatPreviousMessageData.membership||{}).amountRequired)||0)
-          membership.amountRequiredOffset=Math.max(0,membership.amountRequiredBase*(Math.exp(interest.rateYear/365*interest.days)-1))
-          membership.amountRequired=membership.amountRequiredBase+membership.amountRequiredOffset
-          membership.amountRequiredWithMargin=membership.amountRequired*0.98
-        } else {
-          membership.amountRequired=PERRINNAdminLastMessages.docs[0]!=undefined?Number((PERRINNAdminLastMessages.docs[0].data()||{}).membership.amountRequired)||0:0
-          membership.amountRequiredWithMargin=PERRINNAdminLastMessages.docs[0]!=undefined?Number((PERRINNAdminLastMessages.docs[0].data()||{}).membership.amountRequiredWithMargin)||0:0
-        }
+        membership.amountRequiredBase=Number(((PERRINNAdminLastMessageData.membership||{}).amountRequired)||0)
+        membership.amountRequiredOffset=Math.max(0,membership.amountRequiredBase*(Math.exp(interest.rateYear/365*interest.days)-1))
+        membership.amountRequired=membership.amountRequiredBase+membership.amountRequiredOffset
+        membership.amountRequiredWithMargin=membership.amountRequired*0.98
         membership.isMember=wallet.balance>=membership.amountRequiredWithMargin
 
       //*******MESSAGE WRITES**********************

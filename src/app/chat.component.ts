@@ -293,12 +293,7 @@ import { map, tap, take } from 'rxjs/operators';
               <div style="clear:both;text-align:center">
                 <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" (error)="UI.handleChatImageError($event, message.payload)" style="max-width:70%;max-height:320px;width: auto; height: auto; margin:5px 10px 5px 5px; box-shadow: 0 0 2px whitesmoke" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
               </div>
-              <div style="margin:5px 5px 0 5px;float:left">{{message.payload?.automaticMessage?"(Automatic)":""}}</div>
               <div class="messageBodyText" style="margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
-              <div *ngIf="message.payload?.statistics?.userCount" style="float:left;margin:5px 5px 0 5px">{{message.payload?.statistics?.userCount}} users,</div>
-              <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{message.payload?.statistics?.membersCount}} members.</div>
-              <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.statistics?.wallet?.balance)}} invested.</div>
-              <div *ngIf="message.payload?.statistics?.userCount" style="margin:5px 5px 0 5px">{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.membership?.amountRequired)}} membership threashold.</div>
             </div>
             <div style="clear:both;height:15px">
               <span *ngIf="message.payload?.verified && message.payload?.userChain?.nextMessage=='none'" class="material-icons" style="float:right;font-size:16px;margin:0 2px 2px 0;color:#3b82f6">check_circle</span>
@@ -332,7 +327,7 @@ import { map, tap, take } from 'rxjs/operators';
               <span class="messageAuthor galleryAuthor">{{message.payload?.name || 'Member'}}</span>
               <span class="galleryTime messageTiming">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</span>
             </div>
-            <div class="galleryCaption">{{message.payload?.automaticMessage?"(Automatic) ":""}}{{message.payload?.text}}</div>
+            <div class="galleryCaption">{{message.payload?.text}}</div>
           </div>
         </li>
       </ul>

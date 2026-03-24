@@ -9,9 +9,12 @@ module.exports = {
       for(let i=0;i<20;i++){
         autoId+=chars.charAt(Math.floor(Math.random()*chars.length))
       }
+
       messageObj.serverTimestamp=FieldValue.serverTimestamp()
       messageObj.chain=messageObj.chain||autoId
-      messageObj.automaticMessage=true
+      if (typeof messageObj.text === 'string' && !messageObj.text.endsWith(' (Backend message)')) {
+        messageObj.text = `${messageObj.text} (Backend message)`
+      }
       return getFirestore().collection('PERRINNMessages').add(messageObj)
     }
     catch(error){
