@@ -240,7 +240,8 @@ import { ChangeDetectorRef } from '@angular/core'
         </li>
       </ul>
       <div *ngIf="scope!='all'&& mode=='history'" style="height:400px;margin:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
-      <ul *ngIf="mode!='forecast' || scope=='all'" class="listLight">
+      <div *ngIf="mode!='forecast' || scope=='all'" [class.table-scroll-wrapper]="mode=='chain'||mode=='history'">
+      <ul class="listLight">
         <li *ngFor="let message of messages|async;let first=first;let last=last" class="guardedChatItem" style="position:relative;"
           (click)="openListedChat(message.payload.doc.data()?.chain, message.payload.doc.data()?.serverTimestamp)">
           <div *ngIf="scope=='all'||mode=='inbox'">
@@ -306,6 +307,7 @@ import { ChangeDetectorRef } from '@angular/core'
             <span *ngIf="!UI.isCurrentUserMember" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
         </li>
       </ul>
+      </div>
       <div *ngIf="scope!='all'&& mode=='forecast'">
         <div style="float:left;text-align:center;width:75px;height:20px;font-size:10px">Year</div>
         <div style="float:left;text-align:center;width:75px;height:20px;font-size:10px">Growth</div>

@@ -1565,6 +1565,24 @@ app-root profile .splitContainer {
   align-items: stretch;
 }
 
+app-root profile .table-scroll-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 10px;
+}
+
+app-root profile .table-scroll-wrapper .listLight {
+  width: max-content;
+  min-width: 100%;
+}
+
+app-root profile .table-scroll-wrapper .listLight li {
+  overflow: visible;
+}
+
+
 app-root profile .splitIsland {
   padding: 10px;
   margin-bottom: 0;
