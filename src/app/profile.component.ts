@@ -262,7 +262,7 @@ import { ChangeDetectorRef } from '@angular/core'
             </div>
             <div>
               <div style="float:left;margin-top:10px;width:60%;white-space:nowrap;text-overflow:ellipsis">
-                <span class="chatSubject chatSubjectStrong">{{message.payload.doc.data()?.chatSubject}}{{message.payload.doc.data()?.recipientList.length>1?' ('+message.payload.doc.data()?.recipientList.length+')':''}}</span>
+                <span class="chatSubject chatSubjectStrong">{{message.payload.doc.data()?.chatSubject}}</span>
               </div>
               <div class="messageTiming" style="float:right;margin-top:10px;margin-right:36px;width:40px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</div>
               <div style="clear:both;float:left;margin-bottom:10px;width:90%;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">
