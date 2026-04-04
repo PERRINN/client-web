@@ -33,7 +33,7 @@ import { first } from 'rxjs/operators';
           </div>
         </label>
 
-        <div *ngIf="action=='register'">
+        <div *ngIf="action=='register'" class="authForm">
           <label class="password fieldLabel">
             <input class="fieldInput" maxlength="500" [(ngModel)]="passwordConfirm" name="passwordConfirm" [type]="passwordConfirmVisibility" [style]="focusPasswordConfirm" placeholder="Confirm password *" (keyup)="messageUser=''" #c="ngModel" required/>
             <div class="password-icon" (mousedown)="toggleField('passwordConfirm','show')" (touchstart)="toggleField('passwordConfirm','show')" (mouseup)="toggleField('passwordConfirm','hide')" (touchend)="toggleField('passwordConfirm','hide')">

@@ -926,6 +926,7 @@ app-root login .fieldInput {
   background: rgba(15, 23, 42, 0.55);
   color: #f1f5f9;
   padding: 11px 40px 11px 12px;
+  margin: 0;
   font-size: 13px;
   outline: none;
 }
