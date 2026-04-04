@@ -37,18 +37,6 @@ body {
   height: calc(100vh - 130px);
   overflow-y: auto;
 }
-#login {
-  width: 10000px;
-  font-family: 'RobotoDraft', 'Roboto', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  display: table-cell;
-  vertical-align: middle;
-}
-
-#login .form {
-  padding-top: 0px;
-}
 
 a:link,
 a:visited {
