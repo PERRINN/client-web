@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserInterfaceService } from './userInterface.service';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
@@ -58,6 +58,7 @@ import { filter, interval } from 'rxjs';
       <div class="sideProfile" *ngIf="router.url.startsWith('/chat/')">
         <profile [sidePanelScope]="'all'"></profile>
       </div>
+      <div class="sideResizer" *ngIf="router.url.startsWith('/chat/')" (mousedown)="startResizing($event)"></div>
       <div id='secondary_container' class="contentWrap" [class.contentWrapFullWidth]="router.url.startsWith('/chat/')">
         <div class="contentCard">
           <router-outlet></router-outlet>
@@ -99,6 +100,7 @@ import { filter, interval } from 'rxjs';
 })
 export class AppComponent {
   showSocialLinksPopup = false;
+  isResizing = false;
 
   private cleanupLegacyLocalStorage(): void {
     const legacyKeys = [
@@ -167,4 +169,23 @@ export class AppComponent {
     this.closeSocialLinksPopup();
   }
 
+  startResizing(event: MouseEvent) {
+    event.preventDefault();
+    this.isResizing = true;
+  }
+
+  @HostListener('window:mousemove', ['$event'])
+  onMouseMove(event: MouseEvent) {
+    if (!this.isResizing) return;
+    let pct = (event.clientX / window.innerWidth) * 100;
+    if (pct < 20) pct = 20; // Limite mini
+    if (pct > 60) pct = 60; // Limite maxi
+    document.documentElement.style.setProperty('--side-width-pct', `${pct}%`);
+    this.UI.sidePanelWidthChanged.next();
+  }
+
+  @HostListener('window:mouseup')
+  onMouseUp() {
+    this.isResizing = false;
+  }
 }

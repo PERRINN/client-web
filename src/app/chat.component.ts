@@ -765,6 +765,9 @@ export class ChatComponent implements OnDestroy {
           this.eventTimeListInit();
         }
       })
+      this.UI.sidePanelWidthChanged.subscribe(() => {
+        this.updateFixedOffsets();
+      });
         return changes.reverse().map(c => ({
           key: c.payload.doc.id,
           payload: c.payload.doc.data()

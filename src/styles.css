@@ -1,3 +1,7 @@
+:root {
+  --side-width-pct: 30%;
+}
+
 *, *:before, *:after {
   box-sizing: border-box;
   font-family: verdana;
@@ -2626,8 +2630,8 @@ app-root chat .cancelEventModalBtn {
 
 @media (min-width: 900px) {
   .contentWrapFullWidth {
-    width: calc(70% - 8px) !important;
-    margin-left: calc(30% - 8px) !important;
+    width: calc(100% - var(--side-width-pct) + 16px) !important;
+    margin-left: calc(var(--side-width-pct) - 16px) !important;
     margin-right: 0 !important;
   }
 
@@ -2636,8 +2640,8 @@ app-root chat .cancelEventModalBtn {
     position: fixed;
     top: 88px;
     left: 16px;
-    width: calc(30% - 16px);
-    height: calc(100vh - 104px);
+    width: calc(var(--side-width-pct) - 16px);
+    height: calc(100vh - 112px);
     overflow-y: auto;
     border: 1px solid rgba(16, 185, 129, 0.12);
     border-right: 3px solid rgba(16, 185, 129, 0.25);
@@ -2645,6 +2649,20 @@ app-root chat .cancelEventModalBtn {
     z-index: 10;
     background-color: #1e293b;
     animation: fadeIn 0.4s ease-in-out;
+  }
+
+  .sideResizer {
+    position: fixed;
+    top: 88px;
+    bottom: 24px;
+    width: 12px;
+    left: calc(var(--side-width-pct) - 6px);
+    cursor: col-resize;
+    z-index: 100;
+    background: transparent;
+  }
+  .sideResizer:hover {
+    background: rgba(16, 185, 129, 0.05);
   }
 
   .contentWrapFullWidth .contentCard {
@@ -2656,6 +2674,8 @@ app-root chat .cancelEventModalBtn {
     border-radius: 0 12px 0 0 !important;
     border-bottom: 1px solid rgba(16, 185, 129, 0.12);
     border-left: 3px solid rgba(16, 185, 129, 0.25) !important;
+    left: var(--side-width-pct) !important;
+    width: calc(100% - var(--side-width-pct) - 16px) !important;
   }
 
   app-root chat .chatComposer {
@@ -2663,6 +2683,8 @@ app-root chat .cancelEventModalBtn {
     border-radius: 0 0 12px 0 !important;
     border-left: 3px solid rgba(16, 185, 129, 0.25) !important;
     padding-bottom: 10px !important;
+    left: var(--side-width-pct) !important;
+    width: calc(100% - var(--side-width-pct) - 16px) !important;
   }
 }
 
