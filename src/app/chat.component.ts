@@ -640,8 +640,9 @@ export class ChatComponent implements OnDestroy {
     );
     const keyboardLikelyOpen = isEditableFocused && (window.innerHeight - visualViewportHeight > 120);
 
+    const isDesktop = window.innerWidth >= 900;
     this.containerTop = Math.max(0, (main?.top ?? r.top));
-    this.containerBottom = keyboardLikelyOpen ? rawBottomOffset : 0;
+    this.containerBottom = isDesktop ? (18 + rawBottomOffset) : (keyboardLikelyOpen ? rawBottomOffset : 0);
     this.containerLeft = r.left;
     this.containerWidth = r.width;
 
@@ -1198,6 +1199,11 @@ export class ChatComponent implements OnDestroy {
         this.updateFixedOffsets();
         this.scrollMainToBottom();
       }, 180);
+      // Recalculate offsets after the CSS transition (approx 400ms) finishes
+      setTimeout(() => {
+        this.updateFixedOffsets();
+        this.scrollMainToBottom();
+      }, 450);
     });
   }
   

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core'
+import { Component, Input } from '@angular/core'
 import { Subscription } from 'rxjs'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
@@ -340,6 +340,7 @@ import { ChangeDetectorRef } from '@angular/core'
   `
 })
 export class ProfileComponent {
+  @Input() sidePanelScope: string;
   messages:Observable<any[]>
   comingEvents:Observable<any[]>
   currentFunds:Observable<any[]>
@@ -350,6 +351,7 @@ export class ProfileComponent {
   lastSeenSubscription: Subscription | null = null;
   focusUserLastSeenSubscription: Subscription | null = null;
   authSubscription: Subscription | null = null;
+  routeSubscription: Subscription | null = null;
   currentUserId: string | null = null;
   focusUserLastSeenTimestampMessage:number
   scope:string
@@ -417,10 +419,15 @@ export class ProfileComponent {
             }
           ],
       }
-    this.route.params.subscribe(params => {
-      this.forceScrollTop();
-      this.scope=params.id
-      afs.collection<any>('PERRINNMessages',ref=>ref
+  }
+
+  ngOnInit() {
+    this.routeSubscription = this.route.params.subscribe(params => {
+      const targetScope = this.sidePanelScope || params.id;
+      if (this.scope === targetScope) return;
+      this.scope = targetScope;
+      if (!this.sidePanelScope) this.forceScrollTop();
+      this.afs.collection<any>('PERRINNMessages',ref=>ref
         .where('user','==',this.scope)
         .where('verified','==',true)
         .orderBy('serverTimestamp','desc').limit(1)
@@ -431,9 +438,6 @@ export class ProfileComponent {
       this.refreshMessages()
       this.subscribeToLastSeen();
     })
-  }
-
-  ngOnInit() {
     this.forceScrollTop();
     setTimeout(() => {
       this.forceScrollTop();
@@ -607,6 +611,10 @@ export class ProfileComponent {
     if (this.authSubscription) {
       this.authSubscription.unsubscribe();
       this.authSubscription = null;
+    }
+    if (this.routeSubscription) {
+      this.routeSubscription.unsubscribe();
+      this.routeSubscription = null;
     }
   }
 

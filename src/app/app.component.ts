@@ -12,7 +12,7 @@ import { filter, interval } from 'rxjs';
     <img class="fullScreenImage" id="fullScreenImage" (click)="hideFullScreenImage()">
     <progress value='0' max='100' id='uploader' class="uploadProgress">0%</progress>
 
-    <div class="topNav">
+    <div class="topNav" [class.topNavFullWidth]="router.url.startsWith('/chat/')">
       <div class="navLeft">
         <button class="iconBtn" (click)="router.navigate(['profile','all'])" aria-label="Go to profile">
           <img src="./../assets/App icons/Perrinn_02.png" class="brandIcon">
@@ -55,7 +55,10 @@ import { filter, interval } from 'rxjs';
     </div>
 
     <div id='main_container'>
-      <div id='secondary_container' class="contentWrap">
+      <div class="sideProfile" *ngIf="router.url.startsWith('/chat/')">
+        <profile [sidePanelScope]="'all'"></profile>
+      </div>
+      <div id='secondary_container' class="contentWrap" [class.contentWrapFullWidth]="router.url.startsWith('/chat/')">
         <div class="contentCard">
           <router-outlet></router-outlet>
         </div>

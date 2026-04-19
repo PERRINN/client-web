@@ -34,7 +34,7 @@ body {
 }
 #main_container {
   margin: 0 auto;
-  height: calc(100vh - 130px);
+  height: calc(100vh - 110px);
   overflow-y: auto;
 }
 
@@ -436,7 +436,8 @@ app-root .uploadProgress {
 
 app-root .topNav {
   max-width: 980px;
-  margin: 0 auto 16px auto;
+  margin: 0 auto 4px auto;
+  margin: 0 auto 10px auto;
   background: #1e293b;
   border: 1px solid rgba(16, 185, 129, 0.12);
   border-radius: 12px;
@@ -446,6 +447,7 @@ app-root .topNav {
   gap: 12px;
   align-items: center;
   box-shadow: 0 8px 24px rgba(2, 8, 23, 0.24);
+  transition: max-width 0.4s ease-in-out, width 0.4s ease-in-out, margin 0.4s ease-in-out, padding 0.4s ease-in-out;
 }
 
 app-root .navLeft,
@@ -656,6 +658,7 @@ app-root .socialPopupBtn .material-icons-outlined {
 app-root .contentWrap {
   max-width: 980px;
   margin: 0 auto;
+  transition: max-width 0.4s ease-in-out, width 0.4s ease-in-out, margin 0.4s ease-in-out, padding 0.4s ease-in-out;
 }
 
 app-root .contentCard {
@@ -2614,4 +2617,56 @@ app-root chat .cancelEventModalActions {
 app-root chat .cancelEventModalBtn {
   min-width: 108px;
   min-height: 34px;
+}
+
+/* Layout transitions for Chat side-panel mode */
+.topNavFullWidth, .contentWrapFullWidth {
+  max-width: none !important;
+}
+
+@media (min-width: 900px) {
+  .contentWrapFullWidth {
+    width: 50% !important;
+    margin-left: 50% !important;
+    margin-right: 0 !important;
+  }
+
+  .sideProfile {
+    display: block;
+    position: fixed;
+    top: 88px;
+    left: 16px;
+    width: calc(50% - 16px);
+    height: calc(100vh - 106px);
+    overflow-y: auto;
+    border: 1px solid rgba(16, 185, 129, 0.1);
+    border-radius: 12px 0 0 12px;
+    z-index: 10;
+    background-color: #1e293b;
+    animation: fadeIn 0.4s ease-in-out;
+  }
+
+  .contentWrapFullWidth .contentCard {
+    border-radius: 0 12px 12px 0 !important;
+  }
+
+  app-root chat .chatTopBar {
+    border-radius: 0 12px 0 0 !important;
+    border-bottom: 1px solid rgba(16, 185, 129, 0.12);
+  }
+
+  app-root chat .chatComposer {
+    border: 1px solid rgba(16, 185, 129, 0.12) !important;
+    border-radius: 0 0 12px 0 !important;
+    padding-bottom: 10px !important;
+  }
+}
+
+@media (max-width: 899px) {
+  .sideProfile { display: none; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
