@@ -28,7 +28,7 @@ import { ChangeDetectorRef } from '@angular/core'
     Add this app to your home screen for a better experience.
   </div>
 
-  <div class="island profile-banner-item" *ngIf="scope=='all'&&UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined" style="line-height:0px;clear:both">
+  <div class="island profile-banner-item" *ngIf="scope=='all'&&UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined && !sidePanelScope" style="line-height:0px;clear:both">
     <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="width:100%;display:block">
   </div>
 
@@ -98,7 +98,7 @@ import { ChangeDetectorRef } from '@angular/core'
   </div>
     <div>
       <div *ngIf="mode=='inbox' || scope=='all'" class="splitContainer">
-        <div class="profile-events-item">
+        <div class="profile-events-item" *ngIf="!sidePanelScope">
         <ng-container *ngIf="comingEvents|async as events">
         <ul class="listLight">
           <li *ngIf="events.length===0" style="padding:14px; border: 1px solid rgba(16, 185, 129, 0.1); background: rgba(16, 185, 129, 0.03); color:#94a3b8; font-size:13px;">
@@ -165,7 +165,7 @@ import { ChangeDetectorRef } from '@angular/core'
         </ng-container>
         </div>
 
-        <div class="profile-funds-item">
+        <div class="profile-funds-item" *ngIf="!sidePanelScope">
       <ul class="listLight">
         <li class="guardedChatItem fundListItem" *ngFor="let message of currentFunds|async;let first=first;let last=last"
           (click)="openListedChat(message.payload.doc.data()?.chain, message.payload.doc.data()?.serverTimestamp)">
@@ -228,7 +228,7 @@ import { ChangeDetectorRef } from '@angular/core'
         </div>
       </div>
 
-      <ul *ngIf="mode=='inbox' || scope=='all'" class="listLight imageCarousel" id="scroll-images">
+      <ul *ngIf="(mode=='inbox' || scope=='all') && !sidePanelScope" class="listLight imageCarousel" id="scroll-images">
         <li *ngFor="let message of latestImages|async;let first=first;let last=last" class="carouselItem guardedChatItem">
           <div *ngIf="scope=='all'||mode=='inbox'" class="carouselImageWrap" (click)="openCarouselImage(message.payload.doc.data()?.chatImageUrlOriginal)">
             <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload.doc.data())" class="carouselImage">
