@@ -38,7 +38,7 @@ body {
 }
 #main_container {
   margin: 0 auto;
-  height: calc(100vh - 106px);
+  height: calc(100vh - 113px);
   overflow-y: auto;
 }
 
@@ -2639,7 +2639,7 @@ app-root chat .cancelEventModalBtn {
     top: 88px;
     left: 16px;
     width: calc(var(--side-width-pct) - 16px);
-    height: calc(100vh - 112px);
+    height: calc(100vh - 111px);
     overflow-y: auto;
     border: 1px solid rgba(16, 185, 129, 0.12);
     border-right: 3px solid rgba(16, 185, 129, 0.25);

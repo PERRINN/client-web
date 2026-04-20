@@ -642,7 +642,7 @@ export class ChatComponent implements OnDestroy {
 
     const isDesktop = window.innerWidth >= 900;
     this.containerTop = Math.max(0, (main?.top ?? r.top));
-    this.containerBottom = isDesktop ? (18 + rawBottomOffset) : (keyboardLikelyOpen ? rawBottomOffset : 0);
+    this.containerBottom = isDesktop ? (23 + rawBottomOffset) : (keyboardLikelyOpen ? rawBottomOffset : 0);
     this.containerLeft = r.left;
     this.containerWidth = r.width;
 
@@ -765,9 +765,6 @@ export class ChatComponent implements OnDestroy {
           this.eventTimeListInit();
         }
       })
-      this.UI.sidePanelWidthChanged.subscribe(() => {
-        this.updateFixedOffsets();
-      });
         return changes.reverse().map(c => ({
           key: c.payload.doc.id,
           payload: c.payload.doc.data()
