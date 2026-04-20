@@ -180,7 +180,7 @@ export class AppComponent {
     let pct = (event.clientX / window.innerWidth) * 100;
     if (pct < 20) pct = 20; // Limite mini
     if (pct > 60) pct = 60; // Limite maxi
-    document.documentElement.style.setProperty('--side-width-pct', `${pct}%`);
+    document.documentElement.style.setProperty('--side-width-pct', `${pct}vw`);
     this.UI.sidePanelWidthChanged.next();
   }
 

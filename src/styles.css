@@ -1,5 +1,5 @@
 :root {
-  --side-width-pct: 30%;
+  --side-width-pct: 30vw;
 }
 
 *, *:before, *:after {
@@ -451,7 +451,6 @@ app-root .topNav {
   gap: 12px;
   align-items: center;
   box-shadow: 0 8px 24px rgba(2, 8, 23, 0.24);
-  transition: max-width 0.4s ease-in-out, width 0.4s ease-in-out, margin 0.4s ease-in-out, padding 0.4s ease-in-out;
 }
 
 app-root .navLeft,
@@ -662,7 +661,6 @@ app-root .socialPopupBtn .material-icons-outlined {
 app-root .contentWrap {
   max-width: 980px;
   margin: 0 auto;
-  transition: max-width 0.4s ease-in-out, width 0.4s ease-in-out, margin 0.4s ease-in-out, padding 0.4s ease-in-out;
 }
 
 app-root .contentCard {
@@ -2630,7 +2628,7 @@ app-root chat .cancelEventModalBtn {
 
 @media (min-width: 900px) {
   .contentWrapFullWidth {
-    width: calc(100% - var(--side-width-pct) + 16px) !important;
+    width: calc(100vw - var(--side-width-pct) - 16px) !important;
     margin-left: calc(var(--side-width-pct) - 16px) !important;
     margin-right: 0 !important;
   }
