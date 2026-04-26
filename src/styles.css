@@ -992,7 +992,7 @@ app-root settings .settingsPage {
   max-width: none;
   width: 100%;
   margin: 0;
-  padding: 0;
+  padding: 0 0 100px 0;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -1212,6 +1212,7 @@ app-root profile .profileContainer {
   max-width: none;
   width: 100%;
   margin: 0;
+  padding-bottom: 100px;
 }
 
 app-root profile .island {
