@@ -2684,6 +2684,12 @@ app-root chat .cancelEventModalBtn {
     left: var(--side-width-pct) !important;
     width: calc(100% - var(--side-width-pct) - 16px) !important;
   }
+
+  app-root profile .activeChatListItem {
+    background: rgba(16, 185, 129, 0.12) !important;
+    border-color: #10b981 !important;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.2) !important;
+  }
 }
 
 @media (max-width: 899px) {

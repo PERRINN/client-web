@@ -2,8 +2,8 @@ import { Component, Input } from '@angular/core'
 import { Subscription } from 'rxjs'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
-import { map } from 'rxjs/operators'
-import { Router, ActivatedRoute } from '@angular/router'
+import { map, filter } from 'rxjs/operators'
+import { Router, ActivatedRoute, NavigationEnd } from '@angular/router'
 import { UserInterfaceService } from './userInterface.service'
 import { AngularFireAuth } from '@angular/fire/compat/auth'
 import firebase from 'firebase/compat/app'
@@ -243,6 +243,7 @@ import { ChangeDetectorRef } from '@angular/core'
       <div *ngIf="mode!='forecast' || scope=='all'" [class.table-scroll-wrapper]="mode=='chain'||mode=='history'">
       <ul class="listLight">
         <li *ngFor="let message of messages|async;let first=first;let last=last" class="guardedChatItem" style="position:relative;"
+          [class.activeChatListItem]="activeChatId === message.payload.doc.data()?.chain"
           (click)="openListedChat(message.payload.doc.data()?.chain, message.payload.doc.data()?.serverTimestamp)">
           <div *ngIf="scope=='all'||mode=='inbox'">
             <div *ngIf="UI.currentUser && (UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds && !isMessageSeen(message.payload.doc.data()?.chain,message.payload.doc.data()?.serverTimestamp)"
@@ -358,6 +359,7 @@ export class ProfileComponent {
   mode:string
   previousBalance:string
   previousTimestamp:string
+  activeChatId: string | null = null;
   previousIndex:string
   previousPurchaseCOINAmountCummulate:number
   previousContractAmountCummulate:number
@@ -422,9 +424,20 @@ export class ProfileComponent {
   }
 
   ngOnInit() {
-    this.routeSubscription = this.route.params.subscribe(params => {
+    this.routeSubscription = this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      this.updateActiveChatState();
+    });
+    this.updateActiveChatState();
+
+    // Maintenance de la logique de rafraîchissement des messages
+    this.route.params.subscribe(params => {
       const targetScope = this.sidePanelScope || params.id;
-      if (this.scope === targetScope) return;
+      if (this.scope === targetScope) {
+        this.cd.detectChanges();
+        return;
+      }
       this.scope = targetScope;
       if (!this.sidePanelScope) this.forceScrollTop();
       this.afs.collection<any>('PERRINNMessages',ref=>ref
@@ -443,6 +456,16 @@ export class ProfileComponent {
       this.forceScrollTop();
       this.cd.detectChanges()
     }, 10)
+  }
+
+  private updateActiveChatState() {
+    const url = this.router.url;
+    if (url.startsWith('/chat/')) {
+      this.activeChatId = url.split('/')[2].split('?')[0];
+    } else {
+      this.activeChatId = null;
+    }
+    this.cd.detectChanges();
   }
 
   private forceScrollTop() {
