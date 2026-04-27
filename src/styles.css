@@ -2171,6 +2171,7 @@ app-root chat .chatHeaderProfileImage {
 
 app-root chat .chatDetailsPanel {
   padding-top: calc(64px + env(safe-area-inset-top));
+  padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
 }
 
 app-root chat .chatProfileImageEditor {
