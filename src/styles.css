@@ -208,6 +208,10 @@ input[type=number]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+input[type=number] {
+  -moz-appearance: textfield; /* For Firefox */
+  appearance: textfield; /* Standard property */
+}
 .inputfile {
 	width: 0.1px;
 	height: 0.1px;
