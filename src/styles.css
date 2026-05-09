@@ -2494,6 +2494,9 @@ app-root chat .messageBodyText {
   color: #e2e8f0;
   font-weight: 400;
   letter-spacing: 0.1px;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 app-root chat .messageOptionsBtn {
