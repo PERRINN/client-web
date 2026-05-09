@@ -312,7 +312,7 @@ import { ChangeDetectorRef } from '@angular/core'
       </div>
       <div *ngIf="scope!='all'&& mode=='forecast'" class="table-scroll-wrapper">
         <ul class="listLight">
-          <li *ngFor="let number of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];let first=first" class="guardedChatItem">
+          <li *ngFor="let number of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];let first=first" class="guardedChatItem no-interaction-row">
             <table>
               <tr *ngIf="first" style="display: flex">
                 <th class="th-forecast-year">Year</th>
@@ -320,7 +320,7 @@ import { ChangeDetectorRef } from '@angular/core'
                 <th class="th-forecast-balance">Balance</th>
                 <th class="th-forecast-multiple">Multiple</th>
               </tr>
-              <tr class="tableRow" style="user-select:text; display: flex">
+              <tr class="tableRow no-interaction-row" style="user-select:text; display: flex">
                 <th class="th-forecast-year">{{number}}</th>
                 <th class="th-forecast-growth">{{(UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0) | percent : "0.0"}}</th>
                 <th class="th-forecast-balance">

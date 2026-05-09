@@ -1384,6 +1384,19 @@ app-root profile .listLight li:hover {
   border-color: rgba(16, 185, 129, 0.34);
 }
 
+app-root profile .listLight li.no-interaction-row {
+  cursor: default !important;
+}
+
+app-root profile .listLight li.no-interaction-row:hover {
+  background: rgba(2, 8, 23, 0.82) !important;
+  border-color: rgba(148, 163, 184, 0.3) !important;
+}
+
+app-root profile .tableRow.no-interaction-row:hover {
+  opacity: 1 !important;
+}
+
 app-root profile .eventCardBody {
   padding: 10px;
   border-radius: 10px;
