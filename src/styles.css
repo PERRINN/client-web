@@ -1397,6 +1397,12 @@ app-root profile .tableRow.no-interaction-row:hover {
   opacity: 1 !important;
 }
 
+@media (pointer: coarse) {
+  app-root profile ag-charts-angular {
+    pointer-events: none !important;
+  }
+}
+
 app-root profile .eventCardBody {
   padding: 10px;
   border-radius: 10px;
