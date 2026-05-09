@@ -268,9 +268,9 @@ import { map, tap, take } from 'rxjs/operators';
           </div>
               <div [style.background-color]="(message.payload?.user==UI.currentUser)?'rgba(16, 185, 129, 0.14)':'rgba(15, 23, 42, 0.72)'"
                 class="messageBubble"
-                [class.messageActionTarget]="messageActionTargetFor === message.key"
+                [id]="message.key"
                 style="cursor:text;margin:0 16px 10px 56px;user-select:text;border-color:rgba(16, 185, 129, 0.45);border-radius:10px;padding:2px 2px 4px 2px;position:relative"
-                (click)="$event.stopPropagation(); setMessageActionTarget(message.key)"
+                (click)="$event.stopPropagation(); closeMessageActions()"
                 [style.border-style]="(message.payload?.text.includes(UI.currentUserLastMessageObj?.name))?'solid':'none'">
             <button *ngIf="UI.currentUser"
               class="messageOptionsBtn"
@@ -318,11 +318,11 @@ import { map, tap, take } from 'rxjs/operators';
     </div>
     <div class="galleryWrap" [style.padding-top.px]="loadMoreButtonMarginTop">
       <ul class="galleryGrid">
-        <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index" class="galleryCard" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
-          <div class="galleryImageWrap">
+        <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index" class="galleryCard">
+          <div class="galleryImageWrap" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
             <img class="imageWithZoom galleryImage" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium||message.payload?.chatImageUrlThumb||message.payload?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload)">
           </div>
-          <div class="galleryMeta">
+          <div class="galleryMeta" (click)="scrollToMessage(message.key)">
             <div class="galleryTopRow">
               <span class="messageAuthor galleryAuthor">{{message.payload?.name || 'Member'}}</span>
               <span class="galleryTime messageTiming">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</span>
@@ -435,7 +435,6 @@ export class ChatComponent implements OnDestroy {
   eventLocation:string
   fund:any
   messageOptionsOpenFor:string
-  messageActionTargetFor:string
   showMessageJsonModal:boolean
   selectedMessageJsonFormatted:string
   showCancelEventModal:boolean
@@ -465,6 +464,7 @@ export class ChatComponent implements OnDestroy {
   loadMoreButtonMarginTop = 75;
   private offsetsRefreshTimeout: ReturnType<typeof setTimeout> | null = null;
   private pendingLoadMoreAnchorRestore = false;
+  private pendingMessageScroll: string | null = null;
   private loadMoreAnchorTop = 0;
   private loadMoreAnchorHeight = 0;
 
@@ -490,7 +490,6 @@ export class ChatComponent implements OnDestroy {
         this.lastRead = null
         this.chatChain = params.id
         this.messageOptionsOpenFor = null
-        this.messageActionTargetFor = null
         this.showMessageJsonModal = false
         this.selectedMessageJsonFormatted = ''
         this.showCancelEventModal = false
@@ -775,6 +774,20 @@ export class ChatComponent implements OnDestroy {
         this.zone.onStable.pipe(take(1)).subscribe(() => {
           this.updateLoadMoreMargin();
           const restoredAnchor = this.restoreLoadMoreAnchorIfNeeded();
+          if (this.pendingMessageScroll) {
+              const targetId = this.pendingMessageScroll;
+              setTimeout(() => {
+                const mc = document.getElementById('main_container');
+                const el = document.getElementById(targetId);
+                if (el && mc) {
+                  const rect = el.getBoundingClientRect();
+                  const mcRect = mc.getBoundingClientRect();
+                  mc.scrollTo({ top: mc.scrollTop + (rect.top - mcRect.top) + (rect.height / 2) - (mc.clientHeight / 2), behavior: 'smooth' });
+                  if (this.pendingMessageScroll === targetId) this.pendingMessageScroll = null;
+                }
+              }, 250);
+            return;
+          }
           if (!restoredAnchor && shouldStickToBottom) this.scrollMainToBottom();
         });
       })
@@ -832,7 +845,6 @@ export class ChatComponent implements OnDestroy {
   }
 
   toggleMessageOptions(messageKey: string) {
-    this.messageActionTargetFor = messageKey;
     this.messageOptionsOpenFor = this.messageOptionsOpenFor === messageKey ? null : messageKey;
   }
 
@@ -840,18 +852,8 @@ export class ChatComponent implements OnDestroy {
     this.messageOptionsOpenFor = null;
   }
 
-  setMessageActionTarget(messageKey: string) {
-    if (this.messageOptionsOpenFor) {
-      this.messageOptionsOpenFor = null;
-      this.messageActionTargetFor = messageKey;
-      return;
-    }
-    this.messageActionTargetFor = this.messageActionTargetFor === messageKey ? null : messageKey;
-  }
-
   closeMessageActions() {
     this.messageOptionsOpenFor = null;
-    this.messageActionTargetFor = null;
   }
 
   @HostListener('document:click')
@@ -901,7 +903,6 @@ export class ChatComponent implements OnDestroy {
 
     this.lastRead = messageKey;
     this.messageOptionsOpenFor = null;
-    this.messageActionTargetFor = null;
   }
 
   closeMessageJsonModal() {
@@ -929,6 +930,13 @@ export class ChatComponent implements OnDestroy {
   scrollMainToTop() {
     const mc = document.getElementById('main_container');
     if (mc) mc.scrollTop = 0;
+  }
+
+  scrollToMessage(messageKey: string) {
+    this.showImageGallery = false;
+    this.pendingMessageScroll = messageKey;
+    this.messageNumberDisplay = Math.max(this.messageNumberDisplay, 100);
+    this.refreshMessages(this.chatLastMessageObj.chain || this.chatChain);
   }
 
   private shouldStickToBottomOnUpdate(): boolean {
@@ -1194,10 +1202,10 @@ export class ChatComponent implements OnDestroy {
     this.transactionUserName = null
     this.showChatDetails = false
     this.messageOptionsOpenFor = null
-    this.messageActionTargetFor = null
     this.showMessageJsonModal = false
     this.selectedMessageJsonFormatted = ''
     this.showCancelEventModal = false
+    this.pendingMessageScroll = null
   
     // wait for view to settle, then resize if textarea exists
     this.zone.onStable.pipe(take(1)).subscribe(() => {
