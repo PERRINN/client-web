@@ -309,23 +309,28 @@ import { ChangeDetectorRef } from '@angular/core'
         </li>
       </ul>
       </div>
-      <div *ngIf="scope!='all'&& mode=='forecast'">
-        <div style="float:left;text-align:center;width:75px;height:20px;font-size:10px">Year</div>
-        <div style="float:left;text-align:center;width:75px;height:20px;font-size:10px">Growth</div>
-        <div style="float:left;text-align:center;width:75px;height:20px;font-size:10px">Balance</div>
-        <div style="float:left;text-align:center;width:65px;height:20px;font-size:10px">Multiple</div>
-        <div class="tableRow" style="clear:both">
-          <ul>
-            <li *ngFor="let number of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]" style="clear:both">
-              <div style="float:left;text-align:center;width:75px;height:20px;font-size:10px">{{number}}</div>
-              <div style="float:left;text-align:center;width:75px;height:20px;font-size:10px">{{(UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0) | percent : "0.0"}}</div>
-              <div style="float:left;text-align:center;width:75px;height:20px;font-size:10px">
-                {{UI.convertAndFormatPRNToCurrency(null,focusUserLastMessageObj?.wallet?.balance*math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)*number))}}
-              </div>
-              <div style="float:left;text-align:center;width:65px;height:20px;font-size:10px">{{math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)*number)|number:'1.1-1'}}x</div>
-            </li>
-          </ul>
-        </div>
+      <div *ngIf="scope!='all'&& mode=='forecast'" class="table-scroll-wrapper">
+        <ul class="listLight">
+          <li *ngFor="let number of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];let first=first" class="guardedChatItem">
+            <table>
+              <tr *ngIf="first" style="display: flex">
+                <th class="th-forecast-year">Year</th>
+                <th class="th-forecast-growth">Growth</th>
+                <th class="th-forecast-balance">Balance</th>
+                <th class="th-forecast-multiple">Multiple</th>
+              </tr>
+              <tr class="tableRow" style="user-select:text; display: flex">
+                <th class="th-forecast-year">{{number}}</th>
+                <th class="th-forecast-growth">{{(UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0) | percent : "0.0"}}</th>
+                <th class="th-forecast-balance">
+                  {{UI.convertAndFormatPRNToCurrency(null,focusUserLastMessageObj?.wallet?.balance*math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)*number))}}
+                </th>
+                <th class="th-forecast-multiple">{{math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)*number)|number:'1.1-1'}}x</th>
+              </tr>
+            </table>
+            <span *ngIf="!UI.isCurrentUserMember" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
+          </li>
+        </ul>
       </div>
       <div class="spinner" *ngIf="UI.loading">
         <div class="bounce1"></div>

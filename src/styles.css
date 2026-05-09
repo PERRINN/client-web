@@ -330,6 +330,22 @@ th {
   min-width: 150px;
 }
 
+.th-forecast-year {
+  min-width: 50px;
+}
+
+.th-forecast-growth {
+  min-width: 70px;
+}
+
+.th-forecast-balance {
+  min-width: 110px;
+}
+
+.th-forecast-multiple {
+  min-width: 70px;
+}
+
 @media (max-width:370px)
 {
   .th-balance {
@@ -1344,7 +1360,8 @@ app-root profile .nonMemberView .imageCarousel .guardedChatItem:hover {
 app-root profile .nonMemberChatLockCorner {
   position: absolute;
   right: 10px;
-  bottom: 8px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 app-root profile .listLight {
