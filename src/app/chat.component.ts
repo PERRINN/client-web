@@ -487,6 +487,7 @@ export class ChatComponent implements OnDestroy {
       this.lastSeenServerTimestampMessage = 0
       this.lastSeenMessageId = null
       this.route.params.subscribe(params => {
+          this.resetChat()
         this.lastRead = null
         this.chatChain = params.id
         this.messageOptionsOpenFor = null
@@ -496,7 +497,13 @@ export class ChatComponent implements OnDestroy {
         this.chatLastMessageObj = {}
         this.previousMessageServerTimestamp = { seconds: this.UI.nowSeconds * 1000 }
         this.previousMessageUser = ''
-        this.messageNumberDisplay = 15
+        const scrollKey = this.route.snapshot.queryParams['scroll'];
+        if (scrollKey) {
+          this.pendingMessageScroll = scrollKey;
+          this.messageNumberDisplay = 100;
+        } else {
+          this.messageNumberDisplay = 15;
+        }
         this.chatSubject = ''
         this.eventDescription = '';
         this.eventDuration = 1;
@@ -513,7 +520,6 @@ export class ChatComponent implements OnDestroy {
         }
         this.loadLastSeen(params.id).then(() => this.refreshMessages(params.id))
         this.refresheventDateList()
-        this.resetChat()
       })
     }
 
@@ -776,16 +782,13 @@ export class ChatComponent implements OnDestroy {
           const restoredAnchor = this.restoreLoadMoreAnchorIfNeeded();
           if (this.pendingMessageScroll) {
               const targetId = this.pendingMessageScroll;
+              this.pendingMessageScroll = null;
               setTimeout(() => {
-                const mc = document.getElementById('main_container');
-                const el = document.getElementById(targetId);
-                if (el && mc) {
-                  const rect = el.getBoundingClientRect();
-                  const mcRect = mc.getBoundingClientRect();
-                  mc.scrollTo({ top: mc.scrollTop + (rect.top - mcRect.top) + (rect.height / 2) - (mc.clientHeight / 2), behavior: 'smooth' });
-                  if (this.pendingMessageScroll === targetId) this.pendingMessageScroll = null;
-                }
-              }, 250);
+                this.performScrollToId(targetId);
+                // Répète le scroll pour compenser le décalage dû au chargement des images
+                setTimeout(() => this.performScrollToId(targetId), 400);
+                setTimeout(() => this.performScrollToId(targetId), 1000);
+              }, 500);
             return;
           }
           if (!restoredAnchor && shouldStickToBottom) this.scrollMainToBottom();
@@ -962,7 +965,11 @@ export class ChatComponent implements OnDestroy {
     const mc = document.getElementById('main_container');
     if (!mc) return false;
     if (this.showImageGallery) {
-      mc.scrollTop = mc.scrollHeight;
+      const scrollToBottom = () => { mc.scrollTop = mc.scrollHeight; };
+      scrollToBottom();
+      // Keeps the position stable while the grid images are loading
+      setTimeout(scrollToBottom, 400);
+      setTimeout(scrollToBottom, 1000);
     } else {
       mc.scrollTop = 0;
     }
@@ -1212,15 +1219,15 @@ export class ChatComponent implements OnDestroy {
       const el = this.msgBox?.nativeElement;
       if (el) this.autoResize(el);
       this.updateFixedOffsets();
-      this.scrollMainToBottom();
+      if (!this.pendingMessageScroll) this.scrollMainToBottom();
       setTimeout(() => {
         this.updateFixedOffsets();
-        this.scrollMainToBottom();
+        if (!this.pendingMessageScroll) this.scrollMainToBottom();
       }, 180);
       // Recalculate offsets after the CSS transition (approx 400ms) finishes
       setTimeout(() => {
         this.updateFixedOffsets();
-        this.scrollMainToBottom();
+        if (!this.pendingMessageScroll) this.scrollMainToBottom();
       }, 450);
     });
   }
@@ -1230,6 +1237,19 @@ export class ChatComponent implements OnDestroy {
     el.style.height = 'auto';
     el.style.height = el.scrollHeight + 'px';
     this.scheduleOffsetsRefresh();
+  }
+
+  private performScrollToId(id: string) {
+    const mc = document.getElementById('main_container');
+    const el = document.getElementById(id);
+    if (el && mc) {
+      const rect = el.getBoundingClientRect();
+      const mcRect = mc.getBoundingClientRect();
+      mc.scrollTo({
+        top: mc.scrollTop + (rect.top - mcRect.top) + (rect.height / 2) - (mc.clientHeight / 2),
+        behavior: 'smooth'
+      });
+    }
   }
 
 }
