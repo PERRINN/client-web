@@ -85,7 +85,7 @@ import { ChangeDetectorRef } from '@angular/core'
         <button class="buttonBlack modeSwitchBtn" style="border:none;" [style.background-color]="mode=='inbox'?'#10b981':'transparent'" [style.color]="mode=='inbox'?'#ffffff':'#cbd5e1'" (click)="mode='inbox';refreshMessages()">Inbox</button>
         <button class="buttonBlack modeSwitchBtn" style="border:none;" [style.background-color]="mode=='history'?'#10b981':'transparent'" [style.color]="mode=='history'?'#ffffff':'#cbd5e1'" (click)="mode='history';refreshMessages();refreshChart()">History</button>
         <button class="buttonBlack modeSwitchBtn" style="border:none;" [style.background-color]="mode=='chain'?'#10b981':'transparent'" [style.color]="mode=='chain'?'#ffffff':'#cbd5e1'" (click)="mode='chain';refreshMessages()">Chain</button>
-        <button class="buttonBlack modeSwitchBtn" style="border:none;" [style.background-color]="mode=='forecast'?'#10b981':'transparent'" [style.color]="mode=='forecast'?'#ffffff':'#cbd5e1'" (click)="mode='forecast';refreshMessages()">Forecast</button>
+        <button class="buttonBlack modeSwitchBtn" style="border:none;" [style.background-color]="mode=='forecast'?'#10b981':'transparent'" [style.color]="mode=='forecast'?'#ffffff':'#cbd5e1'" (click)="mode='forecast';refreshMessages();refreshForecastChart()">Forecast</button>
       </div>
     </div>
 
@@ -240,6 +240,7 @@ import { ChangeDetectorRef } from '@angular/core'
         </li>
       </ul>
       <div *ngIf="scope!='all'&& mode=='history'" style="height:400px;margin:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
+      <div *ngIf="scope!='all'&& mode=='forecast'" style="height:400px;margin:10px"><ag-charts-angular [options]="forecastChartOptions"></ag-charts-angular></div>
       <div *ngIf="mode!='forecast' || scope=='all'" [class.table-scroll-wrapper]="mode=='chain'||mode=='history'">
       <ul class="listLight">
         <li *ngFor="let message of messages|async;let first=first;let last=last" class="guardedChatItem" style="position:relative;"
@@ -375,6 +376,7 @@ export class ProfileComponent {
   messageNumberDisplay:number
   showAllEvents:boolean
   chartOptions:AgChartOptions
+  forecastChartOptions:AgChartOptions
 
   constructor(
     public afAuth:AngularFireAuth,
@@ -427,6 +429,27 @@ export class ProfileComponent {
             }
           ],
       }
+    this.forecastChartOptions = {
+          series: [
+            { type: 'line', xKey: 'year', yKey: 'balance', marker: { size: 0 }, stroke: '#10b981', strokeWidth: 2 }
+          ],
+          theme: 'ag-default-dark',
+          axes: [
+            {type: 'number', position: 'bottom', title: {text: 'Year'} },
+            {
+              type: 'number',
+              position: 'left',
+              label: {
+                formatter: (params) => {
+                  const value = params.value;
+                  if (value >= 1_000_000) return (value / 1_000_000).toFixed(1) + 'M';
+                  if (value >= 1_000) return (value / 1_000).toFixed(1) + 'K';
+                  return value.toString();
+                }
+              }
+            }
+          ],
+      }
   }
 
   ngOnInit() {
@@ -452,6 +475,7 @@ export class ProfileComponent {
         .orderBy('serverTimestamp','desc').limit(1)
       ).valueChanges().subscribe(snapshot=>{
         this.focusUserLastMessageObj=snapshot[0]
+        if(this.mode=='forecast') this.refreshForecastChart()
       })
       this.subscribeToFocusUserLastSeen();
       this.refreshMessages()
@@ -682,6 +706,15 @@ export class ProfileComponent {
     });
   }
 
+  refreshForecastChart(){
+    const rateYear = this.UI.PERRINNAdminLastMessageObj?.interest?.rateYear || 0;
+    const balance = this.focusUserLastMessageObj?.wallet?.balance || 0;
+    const newData = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20].map(number => ({
+      year: number,
+      balance: this.UI.convertPRNToCurrency(null, balance * this.math.exp(rateYear * number))
+    }));
+    this.forecastChartOptions = { ...this.forecastChartOptions, data: newData };
+  }
 
   newMessageToUser() {
     let ID=this.UI.newId()
