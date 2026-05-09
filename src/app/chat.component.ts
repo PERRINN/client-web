@@ -804,7 +804,14 @@ export class ChatComponent implements OnDestroy {
         key: c.payload.doc.id,
         payload: c.payload.doc.data()
       }))
-    }))        
+    }),
+    tap(() => {
+      this.zone.onStable.pipe(take(1)).subscribe(() => {
+        this.updateLoadMoreMargin();
+        this.restoreLoadMoreAnchorIfNeeded();
+      });
+    })
+    )        
   }
 
   isMessageNewTimeGroup(messageServerTimestamp: any) {
@@ -946,8 +953,11 @@ export class ChatComponent implements OnDestroy {
     this.pendingLoadMoreAnchorRestore = false;
     const mc = document.getElementById('main_container');
     if (!mc) return false;
-    const heightDelta = mc.scrollHeight - this.loadMoreAnchorHeight;
-    mc.scrollTop = this.loadMoreAnchorTop + Math.max(0, heightDelta);
+    if (this.showImageGallery) {
+      mc.scrollTop = mc.scrollHeight;
+    } else {
+      mc.scrollTop = 0;
+    }
     return true;
   }
 
