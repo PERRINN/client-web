@@ -302,10 +302,11 @@ import { ChangeDetectorRef } from '@angular/core'
                 <th class="th-interest">{{first?'':UI.convertAndFormatPRNToCurrency(null,(message.payload.doc.data()?.interest?.amountCummulate||0)-previousAmountInterestCummulate)|blankIfZero}}</th>
                 <th class="th-contract">{{first?'':UI.convertAndFormatPRNToCurrency(null,(message.payload.doc.data()?.contract?.amountCummulate||0)-previousContractAmountCummulate)|blankIfZero}}</th>
                 <th class="th-message">{{message.payload.doc.data()?.userChain?.currentMessage}}</th>
+                <span *ngIf="!UI.isCurrentUserMember" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
               </tr>
               {{storeMessageValues(message.payload.doc.data())}}
             </table>
-            <span *ngIf="!UI.isCurrentUserMember" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
+            <span *ngIf="!UI.isCurrentUserMember && (scope=='all'||mode=='inbox')" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
         </li>
       </ul>
       </div>
@@ -326,9 +327,9 @@ import { ChangeDetectorRef } from '@angular/core'
                   {{UI.convertAndFormatPRNToCurrency(null,focusUserLastMessageObj?.wallet?.balance*math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)*number))}}
                 </th>
                 <th class="th-forecast-multiple">{{math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)*number)|number:'1.1-1'}}x</th>
+                <span *ngIf="!UI.isCurrentUserMember" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
               </tr>
             </table>
-            <span *ngIf="!UI.isCurrentUserMember" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
           </li>
         </ul>
       </div>
