@@ -355,8 +355,11 @@ import { map, tap, take } from 'rxjs/operators';
         (keyup.enter)="addMessage()"
         [(ngModel)]="draftMessage"
         placeholder="Reply all"></textarea>
-      <div *ngIf="imageDownloadUrl" style="float:left;width:15%">
-        <img [src]="imageDownloadUrl" style="object-fit:cover;height:53px;margin:0 auto">
+      <div *ngIf="imageDownloadUrl" style="float:left;width:15%;position:relative;overflow:visible;display:flex;align-items:center">
+        <img [src]="imageDownloadUrl" style="object-fit:cover;height:53px;margin:0 auto;display:block">
+        <button (click)="clearSelectedImage()" style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:#ef4444;color:white;display:flex;align-items:center;justify-content:center;padding:0;border:none;cursor:pointer;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,0.5)">
+          <span class="material-icons-outlined" style="font-size:14px;line-height:1">close</span>
+        </button>
       </div>
     </div>
     <div *ngIf="draftMessage||imageDownloadUrl" class="composerActionWrap">
@@ -1124,6 +1127,11 @@ export class ChatComponent implements OnDestroy {
       chatProfileImageUrlOriginal: this.chatProfileImageDownloadUrl,
     })
     this.resetChat()
+  }
+
+  clearSelectedImage() {
+    this.imageTimestamp = null
+    this.imageDownloadUrl = null
   }
 
   onImageChange(event: any) {
