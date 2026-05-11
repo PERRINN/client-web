@@ -782,12 +782,15 @@ export class ChatComponent implements OnDestroy {
           const restoredAnchor = this.restoreLoadMoreAnchorIfNeeded();
           if (this.pendingMessageScroll) {
               const targetId = this.pendingMessageScroll;
-              this.pendingMessageScroll = null;
               setTimeout(() => {
                 this.performScrollToId(targetId);
                 // Répète le scroll pour compenser le décalage dû au chargement des images
                 setTimeout(() => this.performScrollToId(targetId), 400);
                 setTimeout(() => this.performScrollToId(targetId), 1000);
+                setTimeout(() => {
+                  this.performScrollToId(targetId);
+                  this.pendingMessageScroll = null;
+                }, 2500);
               }, 500);
             return;
           }
@@ -967,9 +970,11 @@ export class ChatComponent implements OnDestroy {
     if (this.showImageGallery) {
       const scrollToBottom = () => { mc.scrollTop = mc.scrollHeight; };
       scrollToBottom();
-      // Keeps the position stable while the grid images are loading
+      // Stabilizes the position while the grid images are loading,
+      // with a final adjustment for the slowest-loading images.
       setTimeout(scrollToBottom, 400);
       setTimeout(scrollToBottom, 1000);
+      setTimeout(scrollToBottom, 2500); // Added for increased stability
     } else {
       mc.scrollTop = 0;
     }
