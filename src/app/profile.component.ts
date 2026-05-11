@@ -1,8 +1,8 @@
-import { Component, Input } from '@angular/core'
+import { Component, Input, NgZone } from '@angular/core'
 import { Subscription } from 'rxjs'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
-import { map, filter } from 'rxjs/operators'
+import { map, filter, tap, take } from 'rxjs/operators'
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router'
 import { UserInterfaceService } from './userInterface.service'
 import { AngularFireAuth } from '@angular/fire/compat/auth'
@@ -377,6 +377,7 @@ export class ProfileComponent {
   showAllEvents:boolean
   chartOptions:AgChartOptions
   forecastChartOptions:AgChartOptions
+  private pendingLoadMoreScroll = false;
 
   constructor(
     public afAuth:AngularFireAuth,
@@ -384,7 +385,8 @@ export class ProfileComponent {
     public router:Router,
     public UI:UserInterfaceService,
     private route:ActivatedRoute,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private zone: NgZone
   ) {
     this.math=Math
     this.lastSeenByChain={}
@@ -544,7 +546,9 @@ export class ProfileComponent {
       ).snapshotChanges().pipe(map(changes=>{
         this.UI.loading=false
         return changes.map(c=>({payload:c.payload}))
-      }))
+      }),
+      tap(() => this.scrollToBottomOnLoadMore())
+      )
     }
     else if(this.mode=='forecast'){
       this.UI.loading=false
@@ -569,7 +573,9 @@ export class ProfileComponent {
       ).snapshotChanges().pipe(map(changes=>{
         this.UI.loading=false
         return changes.reverse().map(c=>({payload:c.payload}))
-      }))
+      }),
+      tap(() => this.scrollToBottomOnLoadMore())
+      )
     }
     else{
       this.comingEvents=this.afs.collection<any>('PERRINNMessages',ref=>ref
@@ -607,7 +613,9 @@ export class ProfileComponent {
       ).snapshotChanges().pipe(map(changes=>{
         this.UI.loading=false
         return changes.map(c=>({payload:c.payload}))
-      }))
+      }),
+      tap(() => this.scrollToBottomOnLoadMore())
+      )
     }
   }
 
@@ -691,6 +699,26 @@ export class ProfileComponent {
     return this.UI.formatSecondsToDhm1(this.math.max(0,this.UI.nowSeconds-this.focusUserLastSeenTimestampMessage/1000))+' ago'
   }
 
+  scrollMainToBottom() {
+    const mc = document.getElementById('main_container');
+    if (mc) mc.scrollTop = mc.scrollHeight;
+    const sp = document.querySelector('.sideProfile');
+    if (sp) sp.scrollTop = sp.scrollHeight;
+  }
+
+  private scrollToBottomOnLoadMore() {
+    if (this.pendingLoadMoreScroll) {
+      this.zone.onStable.pipe(take(1)).subscribe(() => {
+        const scrollToBottom = () => this.scrollMainToBottom();
+        scrollToBottom();
+        setTimeout(scrollToBottom, 400);
+        setTimeout(scrollToBottom, 1000);
+        setTimeout(scrollToBottom, 2500);
+        this.pendingLoadMoreScroll = false;
+      });
+    }
+  }
+
   refreshChart(){
     this.messages.subscribe(messages => {
       let newData = messages.map((message,index)=>(
@@ -771,6 +799,7 @@ export class ProfileComponent {
   }
 
   loadMore() {
+    this.pendingLoadMoreScroll = true;
     this.messageNumberDisplay+=15
     this.refreshMessages()
   }
