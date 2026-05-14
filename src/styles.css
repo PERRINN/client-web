@@ -1892,6 +1892,10 @@ app-root chat .chatEventDateText {
   flex: 0 1 170px;
 }
 
+app-root chat .chatEventDateText .dateFull,
+app-root chat .chatEventDateText .dateShort {
+  font-size: 10px;
+}
 app-root chat .chatEventEditor {
   border: 1px solid rgba(16, 185, 129, 0.12);
   background: rgba(16, 185, 129, 0.03);
@@ -2334,6 +2338,22 @@ app-root chat .chatProfileImageActions .buttonPrimary {
   app-root chat .chatProfileBtn {
     width: 100%;
   }
+
+  app-root chat .chatEventIcon {
+    padding: 2px;
+    overflow: visible;
+  }
+
+  app-root chat .chatEventLabel {
+    display: none;
+  }
+
+  app-root chat .chatEventTitleText {
+    display: none;
+  }
+
+  app-root chat .dateFull { display: none; }
+  app-root chat .dateShort { display: inline; }
 }
 
 app-root chat .chatComposer {

@@ -58,7 +58,10 @@ import { map, tap, take } from 'rxjs/operators';
           <span *ngIf="math.floor(eventDateStart/60000-UI.nowSeconds/60)<=0&&eventDateEnd/60000>UI.nowSeconds/60" class="chatEventStatusChip chatEventStatusNow">
             Live
           </span>
-          <span class="chatEventDateText">{{eventDateStart|date:'EEEE d MMM h:mm a'}} ({{eventDuration}}h)</span>
+          <span class="chatEventDateText">
+            <span class="dateFull">{{eventDateStart|date:'EEEE d MMM h:mm a'}} ({{eventDuration}}h)</span>
+            <span class="dateShort">{{eventDateStart|date:'d MMM h:mm a'}} ({{eventDuration}}h)</span>
+          </span>
         </div>
         <button *ngIf="eventLocation"
           class="buttonPrimary chatEventJoinBtn"
