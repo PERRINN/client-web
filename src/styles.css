@@ -43,6 +43,10 @@ body {
   overflow-y: auto;
 }
 
+#main_container:has(chat) {
+  overflow-y: hidden !important;
+}
+
 a:link,
 a:visited {
   color:#999;
