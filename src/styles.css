@@ -1798,11 +1798,10 @@ app-root chat .chatPage .buttonPrimary {
 }
 
 app-root chat .chatTopBar {
-  position: fixed;
-  z-index: 999;
+  position: relative;
   background: #1e293b;
   border: 1px solid rgba(16, 185, 129, 0.12);
-  border-radius: 0 0 12px 12px;
+  border-radius: 0;
   padding-bottom: 10px;
   cursor: pointer;
   box-shadow: 0 8px 24px rgba(2, 8, 23, 0.25);
@@ -2338,9 +2337,9 @@ app-root chat .chatProfileImageActions .buttonPrimary {
 }
 
 app-root chat .chatComposer {
-  position: fixed;
-  bottom: 0;
-  z-index: 999;
+  position: relative;
+  flex: 0 0 auto;
+  width: 100%;
   background: #1e293b;
   border-top: 1px solid rgba(16, 185, 129, 0.12);
   padding-bottom: 20px;
@@ -2729,20 +2728,15 @@ app-root chat .cancelEventModalBtn {
   }
 
   app-root chat .chatTopBar {
-    border-radius: 0 12px 0 0 !important;
+    border-radius: 0 !important;
     border-bottom: 1px solid rgba(16, 185, 129, 0.12);
     border-left: 3px solid rgba(16, 185, 129, 0.25) !important;
-    left: var(--side-width-pct) !important;
-    width: calc(100% - var(--side-width-pct) - 16px) !important;
   }
 
   app-root chat .chatComposer {
-    border: 1px solid rgba(16, 185, 129, 0.12) !important;
-    border-radius: 0 0 12px 0 !important;
+    border: 1px solid rgba(16, 185, 129, 0.12);
     border-left: 3px solid rgba(16, 185, 129, 0.25) !important;
     padding-bottom: 10px !important;
-    left: var(--side-width-pct) !important;
-    width: calc(100% - var(--side-width-pct) - 16px) !important;
   }
 
   app-root profile .activeChatListItem {

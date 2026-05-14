@@ -462,7 +462,6 @@ export class ChatComponent implements OnDestroy {
   containerBottom = 0;
   containerLeft = 0;
   containerWidth = 0;
-  composerHeight = 90;
   isLoadMoreDisabled = false;
   private offsetsRefreshTimeout: ReturnType<typeof setTimeout> | null = null;
   private pendingLoadMoreAnchorRestore = false;
@@ -652,15 +651,7 @@ export class ChatComponent implements OnDestroy {
     this.containerBottom = isDesktop ? (23 + rawBottomOffset) : (keyboardLikelyOpen ? rawBottomOffset : 0);
     this.containerLeft = r.left;
     this.containerWidth = r.width;
-
-    const composerEl = this.chatComposer?.nativeElement;
-    this.composerHeight = composerEl ? composerEl.offsetHeight : 90;
   };
-
-  get chatPagePaddingBottom(): string {
-    if (!this.UI.currentUser || this.showChatDetails || this.showImageGallery) return '0px';
-    return `${this.composerHeight + this.containerBottom + 8}px`;
-  }
 
   showImageGalleryClick() {
     event.stopPropagation()
@@ -1236,9 +1227,19 @@ export class ChatComponent implements OnDestroy {
   
 
   autoResize(el: HTMLTextAreaElement) {
+    const mc = this.scrollContainer?.nativeElement;
+    const wasAtBottom = mc ? (mc.scrollHeight - mc.scrollTop - mc.clientHeight < 20) : false;
+
     el.style.height = 'auto';
     el.style.height = el.scrollHeight + 'px';
-    this.scheduleOffsetsRefresh();
+
+    if (wasAtBottom && mc) {
+      mc.scrollTop = mc.scrollHeight;
+      requestAnimationFrame(() => {
+        mc.scrollTop = mc.scrollHeight;
+      });
+    }
+    if (window.innerWidth < 900) this.scheduleOffsetsRefresh();
   }
 
   private performScrollToId(id: string) {
