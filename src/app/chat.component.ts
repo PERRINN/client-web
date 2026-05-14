@@ -189,7 +189,7 @@ import { map, tap, take } from 'rxjs/operators';
             </div>
             <div class="chatEventEditorField">
               <div class="chatEventEditorFieldLabel">Duration (hours)</div>
-              <input class="chatEventEditorDuration" type="number" min="0" step="0.5" inputmode="decimal" maxlength="20" [(ngModel)]="eventDurationChoice" placeholder="e.g. 1.5">
+              <input class="chatEventEditorDuration" type="number" min="0" step="0.5" inputmode="decimal" maxlength="20" [(ngModel)]="eventDurationChoice" placeholder="e.g. 1.5" (keydown)="validateDurationInput($event)">
             </div>
           </div>
 
@@ -1258,4 +1258,29 @@ export class ChatComponent implements OnDestroy {
     }
   }
 
+  validateDurationInput(event: KeyboardEvent) {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+    const key = event.key;
+
+    if (/\d/.test(key)) {
+      return;
+    }
+
+    
+    if (key === '.') {
+      if (value.includes('.')) {
+        event.preventDefault();
+      }
+      return;
+    }
+
+    if (['Backspace', 'Delete', 'Tab', 'Enter', 'Escape', 'Home', 'End'].includes(key) ||
+        key.startsWith('Arrow') ||
+        (event.ctrlKey || event.metaKey) && ['a', 'c', 'v', 'x'].includes(key)) {
+      return;
+    }
+
+    event.preventDefault();
+  }
 }
