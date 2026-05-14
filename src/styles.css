@@ -2213,8 +2213,8 @@ app-root chat .chatHeaderProfileImage {
 }
 
 app-root chat .chatDetailsPanel {
-  padding-top: calc(64px + env(safe-area-inset-top));
-  padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  padding-top: 10px;
+  padding-bottom: 20px;
 }
 
 app-root chat .chatProfileImageEditor {
@@ -2407,7 +2407,14 @@ app-root chat .sendBtn {
 }
 
 app-root chat .galleryWrap {
-  padding: 6px 2px;
+  padding: 15px 2px 6px 2px;
+}
+
+app-root chat .chatLoadMoreBtn {
+  width: 200px;
+  margin: 15px auto 10px auto;
+  display: flex;
+  justify-content: center;
 }
 
 app-root chat .galleryGrid {

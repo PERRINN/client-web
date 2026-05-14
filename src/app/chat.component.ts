@@ -11,13 +11,11 @@ import { map, tap, take } from 'rxjs/operators';
   selector: 'chat',
   template: `
 
-  <div class="chatPage" [ngStyle]="{'padding-top' : showChatDetails ? '0px' : showImageGallery ? '40px' : '20px' , 'padding-bottom' : chatPagePaddingBottom}" (click)="closeMessageActions()">
+  <div class="chatPage" [style.top.px]="containerTop" [style.bottom.px]="containerBottom" [style.left.px]="containerLeft" [style.width.px]="containerWidth" style="position: fixed; display: flex; flex-direction: column; overflow: hidden;" (click)="closeMessageActions()">
   <div
     #chatTopBar
     class="chatTopBar"
-    [style.top.px]="containerTop"
-    [style.left.px]="containerLeft"
-    [style.width.px]="containerWidth"
+    style="position: relative !important; width: 100% !important; top: 0 !important; left: 0 !important; flex: 0 0 auto;"
     (click)="UI.currentUser ? (showChatDetails = !showChatDetails) : '';showChatDetails?scrollMainToTop():scrollMainToBottom()">
     <div *ngIf="!showChatDetails">
       <div style="float:left;width:75%;margin:0 5px 0 10px;min-height:40px">
@@ -76,273 +74,274 @@ import { map, tap, take } from 'rxjs/operators';
     </div>
   </div>
 
-  <div *ngIf="showChatDetails" class="chatDetailsPanel">
-    <div class="island">
-      <div class="chatProfileSection">
-        <div class="chatProfileSectionTitle">Chat Profile</div>
-        <div class="chatProfileSubjectRow">
-          <input [(ngModel)]="chatSubject" class="chatProfileSubjectInput" placeholder="What is the subject of this chat?">
-          <button class="buttonPrimary chatProfileBtn" (click)="saveNewSubject()" [disabled]="chatLastMessageObj?.chatSubject==chatSubject&&chatSubject">Save subject</button>
-        </div>
-        <div class="chatProfileImageEditor">
-          <div class="chatProfileImagePreviewWrap">
-            <img *ngIf="chatProfileImageDownloadUrl || chatLastMessageObj?.chatProfileImageUrlThumb || chatLastMessageObj?.chatProfileImageUrlMedium"
-              [src]="chatProfileImageDownloadUrl || chatLastMessageObj?.chatProfileImageUrlThumb || chatLastMessageObj?.chatProfileImageUrlMedium"
-              class="chatProfileImagePreview"
-              (error)="UI.handleChatImageError($event, chatLastMessageObj)">
-            <div *ngIf="!(chatProfileImageDownloadUrl || chatLastMessageObj?.chatProfileImageUrlThumb || chatLastMessageObj?.chatProfileImageUrlMedium)" class="chatProfileImagePlaceholder">
-              <span class="material-icons-outlined" style="font-size:18px;line-height:1">image</span>
-              <span>No chat image</span>
-            </div>
+  <div #scrollContainer style="flex: 1; overflow-y: auto; overflow-x: hidden;">
+
+    <div *ngIf="showChatDetails" class="chatDetailsPanel">
+      <div class="island">
+        <div class="chatProfileSection">
+          <div class="chatProfileSectionTitle">Chat Profile</div>
+          <div class="chatProfileSubjectRow">
+            <input [(ngModel)]="chatSubject" class="chatProfileSubjectInput" placeholder="What is the subject of this chat?">
+            <button class="buttonPrimary chatProfileBtn" (click)="saveNewSubject()" [disabled]="chatLastMessageObj?.chatSubject==chatSubject&&chatSubject">Save subject</button>
           </div>
-          <div class="chatProfileImageActions">
-            <input type="file" name="chatProfileImage" id="chatProfileImage" class="inputfile" (change)="onChatProfileImageChange($event)" accept="image/*">
-            <label class="buttonPrimary chatProfileBtn" for="chatProfileImage">Upload chat image</label>
-            <button class="buttonPrimary chatProfileBtn" (click)="saveChatProfileImage()" [disabled]="!chatProfileImageTimestamp">Save chat image</button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <br/>
-
-    <div class="island chatTransferSection">
-      <div class="chatTransferHero">
-        <div class="chatTransferTitle">Send PRN</div>
-        <div class="chatTransferSubtitle">{{((UI.PERRINNAdminLastMessageObj?.currencyList||{})[UI.currentUserLastMessageObj.userCurrency]||{}).designation}} transfer to a chat member</div>
-      </div>
-
-      <div class="chatTransferBody">
-        <div class="chatTransferFieldGrid">
-          <input class="chatTransferInput" type="number" min="0" step="any" inputmode="decimal" maxlength="500" [(ngModel)]="transactionAmount" placeholder="Amount">
-          <input class="chatTransferInput" maxlength="500" [(ngModel)]="transactionCode" placeholder="Code (optional)">
-        </div>
-
-        <input class="chatTransferInput chatTransferReference" maxlength="500" [(ngModel)]="transactionReference" placeholder="Reference">
-
-        <div *ngIf="chatLastMessageObj?.recipientList?.length" class="chatTransferRecipients">
-          <div class="chatTransferRecipientsLabel">Recipient</div>
-          <ul class="listLight chatTransferRecipientsList">
-            <li *ngFor="let recipient of chatLastMessageObj?.recipientList">
-              <div class="chatTransferRecipientCard" (click)="transactionUser=recipient;transactionUserName=chatLastMessageObj?.recipients[recipient].name">
-                <img [src]="chatLastMessageObj?.recipients[recipient]?.imageUrlThumb" class="chatTransferRecipientAvatar">
-                <div class="chatTransferRecipientName">{{chatLastMessageObj?.recipients[recipient]?.name}}</div>
+          <div class="chatProfileImageEditor">
+            <div class="chatProfileImagePreviewWrap">
+              <img *ngIf="chatProfileImageDownloadUrl || chatLastMessageObj?.chatProfileImageUrlThumb || chatLastMessageObj?.chatProfileImageUrlMedium"
+                [src]="chatProfileImageDownloadUrl || chatLastMessageObj?.chatProfileImageUrlThumb || chatLastMessageObj?.chatProfileImageUrlMedium"
+                class="chatProfileImagePreview"
+                (error)="UI.handleChatImageError($event, chatLastMessageObj)">
+              <div *ngIf="!(chatProfileImageDownloadUrl || chatLastMessageObj?.chatProfileImageUrlThumb || chatLastMessageObj?.chatProfileImageUrlMedium)" class="chatProfileImagePlaceholder">
+                <span class="material-icons-outlined" style="font-size:18px;line-height:1">image</span>
+                <span>No chat image</span>
               </div>
-            </li>
-          </ul>
-        </div>
-
-        <div class="chatTransferActions">
-          <button class="buttonPrimary chatTransferBtn" (click)="createTransactionOut(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference)" [disabled]="!canSendTransactionOut()">
-            Send {{UI.convertAndFormatPRNToPRNCurrency(null,transactionAmount*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).toCOIN||0))}} to {{transactionUserName}}
-          </button>
-          <button class="buttonPrimary chatTransferBtn" (click)="createTransactionPending(transactionAmount,transactionCode,null,null,transactionReference)" [disabled]="!canCreatePendingTransaction()">
-            Create pending transaction of {{UI.convertAndFormatPRNToPRNCurrency(null,transactionAmount*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).toCOIN||0))}}
-          </button>
-        </div>
-      </div>
-    </div>
-    <br/>
-
-    <div class="island">
-      <div class="chatEventEditor">
-        <div class="chatEventEditorHeader">
-          <span class="material-icons-outlined chatEventIcon">event</span>
-          <span class="chatEventLabel">Event</span>
-          <span class="chatEventEditorTitle">Edit Event</span>
-        </div>
-
-        <div *ngIf="eventDateEnd/60000>UI.nowSeconds/60" class="chatEventEditorPreview">
-          <div class="chatEventMain">
-            <span class="chatEventTitleText">{{eventDescription}}</span>
-            <span *ngIf="math.floor(eventDateStart/60000-UI.nowSeconds/60)>0" class="chatEventStatusChip">
-              In {{UI.formatSecondsToDhm2(eventDateStart/1000-UI.nowSeconds)}}
-            </span>
-            <span *ngIf="math.floor(eventDateStart/60000-UI.nowSeconds/60)<=0&&eventDateEnd/60000>UI.nowSeconds/60" class="chatEventStatusChip chatEventStatusNow">
-                Live
-            </span>
-            <span class="chatEventDateText">{{eventDateStart==0?'':eventDateStart|date:'EEEE d MMM h:mm a'}} ({{eventDuration}}h)</span>
-          </div>
-        </div>
-
-        <input class="chatEventEditorInput" maxlength="200" [(ngModel)]="eventDescriptionChoice" placeholder="Event description">
-
-        <div class="chatEventEditorRow">
-          <div class="chatEventEditorField">
-            <div class="chatEventEditorFieldLabel">Date</div>
-            <select [(ngModel)]="selectedDate" (change)="onDateChange($event)" class="chatEventEditorSelectDate">
-              <option *ngFor="let date of eventDateListShort; let first=first" [value]="date">
-                {{date | date:'EEEE'}}
-                {{date | date:'d MMM'}}
-              </option>
-            </select>
-          </div>
-          <div class="chatEventEditorField">
-            <div class="chatEventEditorFieldLabel">Time</div>
-            <select [(ngModel)]="selectedTime" class="chatEventEditorSelectTime">
-              <option *ngFor="let date of eventTimeList; let first=first" [value]="date">
-                {{date | date:'h:mm a'}}
-              </option>
-            </select>
-          </div>
-          <div class="chatEventEditorField">
-            <div class="chatEventEditorFieldLabel">Duration (hours)</div>
-            <input class="chatEventEditorDuration" type="number" min="0" step="0.5" inputmode="decimal" maxlength="20" [(ngModel)]="eventDurationChoice" placeholder="e.g. 1.5">
-          </div>
-        </div>
-
-        <input class="chatEventEditorInput" maxlength="200" [(ngModel)]="eventLocationChoice" placeholder="Event location">
-
-        <div class="chatEventEditorActions">
-          <button class="buttonPrimary chatEventEditorBtn" (click)="saveEvent()" [disabled]="!((eventDescriptionChoice!=chatLastMessageObj?.eventDescription||eventDurationChoice!=chatLastMessageObj?.eventDuration||eventLocationChoice!=chatLastMessageObj?.eventLocation||selectedTime!=chatLastMessageObj?.eventDateStart) && (selectedTime % 1800000) == 0 && (selectedTime != null))">Save event</button>
-          <button class="buttonRed chatEventEditorBtn" (click)="openCancelEventModal()" [disabled]="!(eventDateEnd/60000>UI.nowSeconds/60)">Cancel event</button>
-        </div>
-      </div>
-    </div>
-    <br/>
-    
-    <div class="island">
-      <div class="chatFundEditor">
-        <div class="chatFundEditorHeader">
-          <span class="material-icons-outlined chatEventIcon">crowdsource</span>
-          <span class="chatEventLabel">Fund</span>
-          <span class="chatFundEditorTitle">Edit Fund</span>
-        </div>
-
-        <div *ngIf="(fund?.amountGBPTarget||0) > 0" class="chatFundEditorPreview">
-          <div class="chatFundEditorProgressTrack">
-            <div class="chatFundEditorProgressFill"
-              [style.width]="(((fund?.amountGBPRaised||0)/(fund?.amountGBPTarget||1))*100)+'%'">
-              <span class="chatFundEditorProgressPct" *ngIf="((fund?.amountGBPRaised||0)/(fund?.amountGBPTarget||1))*100 > 30">
-                {{((fund?.amountGBPRaised||0)/(fund?.amountGBPTarget||1))|percent:'1.0-0'}}
-              </span>
+            </div>
+            <div class="chatProfileImageActions">
+              <input type="file" name="chatProfileImage" id="chatProfileImage" class="inputfile" (change)="onChatProfileImageChange($event)" accept="image/*">
+              <label class="buttonPrimary chatProfileBtn" for="chatProfileImage">Upload chat image</label>
+              <button class="buttonPrimary chatProfileBtn" (click)="saveChatProfileImage()" [disabled]="!chatProfileImageTimestamp">Save chat image</button>
             </div>
           </div>
-          <div class="chatFundEditorMeta">
-            <span class="chatFundEditorDays">{{fund?.daysLeft|number:'1.0-0'}} days left</span>
-          </div>
-          <div class="chatFundEditorDescription">{{fund?.description}}</div>
-          <div class="chatFundEditorAmounts">
-            target: {{UI.convertAndFormatPRNToCurrency(null,(fund?.amountGBPTarget||0)*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]||{}).toCOIN||0))}} /
-            raised: {{UI.convertAndFormatPRNToCurrency(null,(fund?.amountGBPRaised||0)*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]||{}).toCOIN||0))}}
-          </div>
         </div>
-
-        <div class="chatFundEditorField">
-          <div class="chatEventEditorFieldLabel">Fund description</div>
-          <input class="chatFundEditorInput" maxlength="200" [(ngModel)]="fund.description" placeholder="Fund description">
-        </div>
-
-        <div class="chatFundEditorRow">
-          <div class="chatFundEditorField">
-            <div class="chatEventEditorFieldLabel">Amount target (GBP)</div>
-            <input class="chatFundEditorInput" type="number" min="0" step="any" inputmode="decimal" maxlength="10" [(ngModel)]="fund.amountGBPTarget" placeholder="Amount target">
-          </div>
-          <div class="chatFundEditorField">
-            <div class="chatEventEditorFieldLabel">Days left</div>
-            <input class="chatFundEditorInput" type="number" min="0" step="1" inputmode="numeric" maxlength="10" [(ngModel)]="fund.daysLeft" placeholder="Days left">
-          </div>
-        </div>
-
-        <button class="buttonPrimary chatFundEditorBtn" (click)="saveFund()" [disabled]="!(fund.description!=chatLastMessageObj?.fund?.description||fund.amountGBPTarget!=chatLastMessageObj?.fund?.amountGBPTarget||fund.daysLeft!=chatLastMessageObj?.fund?.daysLeft)">Save fund</button>
       </div>
-    </div>
-  </div>
+      <br/>
 
-  <div *ngIf="!showChatDetails&&!showImageGallery">
-    <div class="spinner" *ngIf="UI.loading">
-      <div class="bounce1"></div>
-      <div class="bounce2"></div>
-      <div class="bounce3"></div>
-    </div>
-    <div>
-      <ul>
-        <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index">
-          <button class="buttonPrimary" *ngIf="first" [disabled]="isLoadMoreDisabled" [style.margin-top.px]="loadMoreButtonMarginTop" style="width:200px;margin-right:auto;margin-left:auto;margin-bottom:10px;display:flex;justify-content: center" (click)="loadMore()">Load more</button>
-          <div class="island" id="date" style="margin-top:25px;margin-bottom:25px;max-width:240px" *ngIf="isMessageNewTimeGroup(message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
-              <div style="margin:0 auto;text-align:center">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'fullDate'}}</div>
+      <div class="island chatTransferSection">
+        <div class="chatTransferHero">
+          <div class="chatTransferTitle">Send PRN</div>
+          <div class="chatTransferSubtitle">{{((UI.PERRINNAdminLastMessageObj?.currencyList||{})[UI.currentUserLastMessageObj.userCurrency]||{}).designation}} transfer to a chat member</div>
+        </div>
+
+        <div class="chatTransferBody">
+          <div class="chatTransferFieldGrid">
+            <input class="chatTransferInput" type="number" min="0" step="any" inputmode="decimal" maxlength="500" [(ngModel)]="transactionAmount" placeholder="Amount">
+            <input class="chatTransferInput" maxlength="500" [(ngModel)]="transactionCode" placeholder="Code (optional)">
           </div>
-          <div *ngIf="lastRead==message.key" style="clear:both;margin:0 auto;text-align:center;font-size:12px;margin:35px 0 35px 0;border-style:solid;border-width:0 0 1px 0">Last read</div>
-          <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" style="clear:both;width:100%;height:5px"></div>
-          <div *ngIf="message.payload?.imageUrlThumbUser&&(isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first)" style="float:left;width:54px;min-height:10px">
-            <img [src]="message.payload?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload)" style="cursor:pointer;display:inline;float:left;margin:0 4px 10px 10px; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
+
+          <input class="chatTransferInput chatTransferReference" maxlength="500" [(ngModel)]="transactionReference" placeholder="Reference">
+
+          <div *ngIf="chatLastMessageObj?.recipientList?.length" class="chatTransferRecipients">
+            <div class="chatTransferRecipientsLabel">Recipient</div>
+            <ul class="listLight chatTransferRecipientsList">
+              <li *ngFor="let recipient of chatLastMessageObj?.recipientList">
+                <div class="chatTransferRecipientCard" (click)="transactionUser=recipient;transactionUserName=chatLastMessageObj?.recipients[recipient].name">
+                  <img [src]="chatLastMessageObj?.recipients[recipient]?.imageUrlThumb" class="chatTransferRecipientAvatar">
+                  <div class="chatTransferRecipientName">{{chatLastMessageObj?.recipients[recipient]?.name}}</div>
+                </div>
+              </li>
+            </ul>
           </div>
-              <div [style.background-color]="(message.payload?.user==UI.currentUser)?'rgba(16, 185, 129, 0.14)':'rgba(15, 23, 42, 0.72)'"
-                class="messageBubble"
-                [id]="message.key"
-                style="cursor:text;margin:0 16px 10px 56px;user-select:text;border-color:rgba(16, 185, 129, 0.45);border-radius:10px;padding:2px 2px 4px 2px;position:relative"
-                (click)="$event.stopPropagation(); closeMessageActions()"
-                [style.border-style]="(message.payload?.text.includes(UI.currentUserLastMessageObj?.name))?'solid':'none'">
-            <button *ngIf="UI.currentUser"
-              class="messageOptionsBtn"
-              aria-label="Message options"
-              (click)="$event.stopPropagation(); toggleMessageOptions(message.key)">
-              <span class="material-icons-outlined" style="font-size:14px;line-height:1">keyboard_arrow_down</span>
+
+          <div class="chatTransferActions">
+            <button class="buttonPrimary chatTransferBtn" (click)="createTransactionOut(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference)" [disabled]="!canSendTransactionOut()">
+              Send {{UI.convertAndFormatPRNToPRNCurrency(null,transactionAmount*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).toCOIN||0))}} to {{transactionUserName}}
             </button>
-            <div *ngIf="messageOptionsOpenFor === message.key"
-              class="messageOptionsMenu"
-              (click)="$event.stopPropagation()">
-              <button class="messageOptionsItem" (click)="setAsUnreadFromMessage(message)">Set as unread</button>
-              <button class="messageOptionsItem" (click)="openMessageJson(message)">Message JSON</button>
-            </div>
-            <div>
-              <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
-                <div class="messageAuthor" style="display:inline;float:left;margin:0px 10px 0px 5px">{{message.payload?.name}}</div>
-                <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)>43200" class="messageTiming" style="margin:0px 10px 0px 10px">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'h:mm a'}}</div>
-                <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)<=43200" class="messageTiming" style="margin:0px 10px 0px 10px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</div>
-              </div>
-              <div style="clear:both;text-align:center">
-                <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" (error)="UI.handleChatImageError($event, message.payload)" style="max-width:70%;max-height:320px;width: auto; height: auto; margin:5px 10px 5px 5px; box-shadow: 0 0 2px whitesmoke" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
-              </div>
-              <div class="messageBodyText" style="margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
-            </div>
-            <div style="clear:both;height:15px">
-              <span *ngIf="message.payload?.verified && message.payload?.userChain?.nextMessage=='none'" class="material-icons" style="float:right;font-size:16px;margin:0 2px 2px 0;color:#3b82f6">check_circle</span>
-              <span *ngIf="message.payload?.contract?.hoursValidated>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.contract?.amount)}} earned ({{UI.formatSecondsToDhm1(message.payload?.contract?.hoursValidated*3600)}}declared in {{UI.formatSecondsToDhm1(message.payload?.contract?.hoursAvailable*3600)}} window)</span>
-              <span *ngIf="message.payload?.purchaseCOIN?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.purchaseCOIN?.amount)}} purchased</span>
-              <span *ngIf="message.payload?.transactionIn?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.transactionIn?.amount)}} received</span>
-              <span *ngIf="message.payload?.transactionOut?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.convertAndFormatPRNToPRNCurrency(null,-message.payload?.transactionOut?.amount)}} sent</span>
-              <span *ngIf="message.payload?.userChain?.nextMessage=='none'&&message.payload?.wallet?.balance!=undefined" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.wallet?.balance)}}</span>
-            </div>
+            <button class="buttonPrimary chatTransferBtn" (click)="createTransactionPending(transactionAmount,transactionCode,null,null,transactionReference)" [disabled]="!canCreatePendingTransaction()">
+              Create pending transaction of {{UI.convertAndFormatPRNToPRNCurrency(null,transactionAmount*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).toCOIN||0))}}
+            </button>
           </div>
-          {{storeMessageValues(message.payload)}}
-        </li>
-      </ul>
-    </div>
-  </div>
+        </div>
+      </div>
+      <br/>
 
-  <div *ngIf="!showChatDetails&&showImageGallery">
-    <div class="spinner" *ngIf="UI.loading">
-      <div class="bounce1"></div>
-      <div class="bounce2"></div>
-      <div class="bounce3"></div>
-    </div>
-    <div class="galleryWrap" [style.padding-top.px]="loadMoreButtonMarginTop">
-      <ul class="galleryGrid">
-        <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index" class="galleryCard">
-          <div class="galleryImageWrap" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
-            <img class="imageWithZoom galleryImage" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium||message.payload?.chatImageUrlThumb||message.payload?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload)">
+      <div class="island">
+        <div class="chatEventEditor">
+          <div class="chatEventEditorHeader">
+            <span class="material-icons-outlined chatEventIcon">event</span>
+            <span class="chatEventLabel">Event</span>
+            <span class="chatEventEditorTitle">Edit Event</span>
           </div>
-          <div class="galleryMeta" (click)="scrollToMessage(message.key)">
-            <div class="galleryTopRow">
-              <span class="messageAuthor galleryAuthor">{{message.payload?.name || 'Member'}}</span>
-              <span class="galleryTime messageTiming">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</span>
+
+          <div *ngIf="eventDateEnd/60000>UI.nowSeconds/60" class="chatEventEditorPreview">
+            <div class="chatEventMain">
+              <span class="chatEventTitleText">{{eventDescription}}</span>
+              <span *ngIf="math.floor(eventDateStart/60000-UI.nowSeconds/60)>0" class="chatEventStatusChip">
+                In {{UI.formatSecondsToDhm2(eventDateStart/1000-UI.nowSeconds)}}
+              </span>
+              <span *ngIf="math.floor(eventDateStart/60000-UI.nowSeconds/60)<=0&&eventDateEnd/60000>UI.nowSeconds/60" class="chatEventStatusChip chatEventStatusNow">
+                  Live
+              </span>
+              <span class="chatEventDateText">{{eventDateStart==0?'':eventDateStart|date:'EEEE d MMM h:mm a'}} ({{eventDuration}}h)</span>
             </div>
-            <div class="galleryCaption">{{message.payload?.text}}</div>
           </div>
-        </li>
-      </ul>
+
+          <input class="chatEventEditorInput" maxlength="200" [(ngModel)]="eventDescriptionChoice" placeholder="Event description">
+
+          <div class="chatEventEditorRow">
+            <div class="chatEventEditorField">
+              <div class="chatEventEditorFieldLabel">Date</div>
+              <select [(ngModel)]="selectedDate" (change)="onDateChange($event)" class="chatEventEditorSelectDate">
+                <option *ngFor="let date of eventDateListShort; let first=first" [value]="date">
+                  {{date | date:'EEEE'}}
+                  {{date | date:'d MMM'}}
+                </option>
+              </select>
+            </div>
+            <div class="chatEventEditorField">
+              <div class="chatEventEditorFieldLabel">Time</div>
+              <select [(ngModel)]="selectedTime" class="chatEventEditorSelectTime">
+                <option *ngFor="let date of eventTimeList; let first=first" [value]="date">
+                  {{date | date:'h:mm a'}}
+                </option>
+              </select>
+            </div>
+            <div class="chatEventEditorField">
+              <div class="chatEventEditorFieldLabel">Duration (hours)</div>
+              <input class="chatEventEditorDuration" type="number" min="0" step="0.5" inputmode="decimal" maxlength="20" [(ngModel)]="eventDurationChoice" placeholder="e.g. 1.5">
+            </div>
+          </div>
+
+          <input class="chatEventEditorInput" maxlength="200" [(ngModel)]="eventLocationChoice" placeholder="Event location">
+
+          <div class="chatEventEditorActions">
+            <button class="buttonPrimary chatEventEditorBtn" (click)="saveEvent()" [disabled]="!((eventDescriptionChoice!=chatLastMessageObj?.eventDescription||eventDurationChoice!=chatLastMessageObj?.eventDuration||eventLocationChoice!=chatLastMessageObj?.eventLocation||selectedTime!=chatLastMessageObj?.eventDateStart) && (selectedTime % 1800000) == 0 && (selectedTime != null))">Save event</button>
+            <button class="buttonRed chatEventEditorBtn" (click)="openCancelEventModal()" [disabled]="!(eventDateEnd/60000>UI.nowSeconds/60)">Cancel event</button>
+          </div>
+        </div>
+      </div>
+      <br/>
+      
+      <div class="island">
+        <div class="chatFundEditor">
+          <div class="chatFundEditorHeader">
+            <span class="material-icons-outlined chatEventIcon">crowdsource</span>
+            <span class="chatEventLabel">Fund</span>
+            <span class="chatFundEditorTitle">Edit Fund</span>
+          </div>
+
+          <div *ngIf="(fund?.amountGBPTarget||0) > 0" class="chatFundEditorPreview">
+            <div class="chatFundEditorProgressTrack">
+              <div class="chatFundEditorProgressFill"
+                [style.width]="(((fund?.amountGBPRaised||0)/(fund?.amountGBPTarget||1))*100)+'%'">
+                <span class="chatFundEditorProgressPct" *ngIf="((fund?.amountGBPRaised||0)/(fund?.amountGBPTarget||1))*100 > 30">
+                  {{((fund?.amountGBPRaised||0)/(fund?.amountGBPTarget||1))|percent:'1.0-0'}}
+                </span>
+              </div>
+            </div>
+            <div class="chatFundEditorMeta">
+              <span class="chatFundEditorDays">{{fund?.daysLeft|number:'1.0-0'}} days left</span>
+            </div>
+            <div class="chatFundEditorDescription">{{fund?.description}}</div>
+            <div class="chatFundEditorAmounts">
+              target: {{UI.convertAndFormatPRNToCurrency(null,(fund?.amountGBPTarget||0)*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]||{}).toCOIN||0))}} /
+              raised: {{UI.convertAndFormatPRNToCurrency(null,(fund?.amountGBPRaised||0)*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]||{}).toCOIN||0))}}
+            </div>
+          </div>
+
+          <div class="chatFundEditorField">
+            <div class="chatEventEditorFieldLabel">Fund description</div>
+            <input class="chatFundEditorInput" maxlength="200" [(ngModel)]="fund.description" placeholder="Fund description">
+          </div>
+
+          <div class="chatFundEditorRow">
+            <div class="chatFundEditorField">
+              <div class="chatEventEditorFieldLabel">Amount target (GBP)</div>
+              <input class="chatFundEditorInput" type="number" min="0" step="any" inputmode="decimal" maxlength="10" [(ngModel)]="fund.amountGBPTarget" placeholder="Amount target">
+            </div>
+            <div class="chatFundEditorField">
+              <div class="chatEventEditorFieldLabel">Days left</div>
+              <input class="chatFundEditorInput" type="number" min="0" step="1" inputmode="numeric" maxlength="10" [(ngModel)]="fund.daysLeft" placeholder="Days left">
+            </div>
+          </div>
+
+          <button class="buttonPrimary chatFundEditorBtn" (click)="saveFund()" [disabled]="!(fund.description!=chatLastMessageObj?.fund?.description||fund.amountGBPTarget!=chatLastMessageObj?.fund?.amountGBPTarget||fund.daysLeft!=chatLastMessageObj?.fund?.daysLeft)">Save fund</button>
+        </div>
+      </div>
     </div>
-    <div class="island" style="margin-top:25px;margin-bottom:25px;max-width:250px;">
-      <button class="buttonPrimary" style="width:200px;margin:10px auto" [disabled]="isLoadMoreDisabled" (click)="loadMore()">Load more</button>
+  
+    <div *ngIf="!showChatDetails&&!showImageGallery">
+      <div class="spinner" *ngIf="UI.loading">
+        <div class="bounce1"></div>
+        <div class="bounce2"></div>
+        <div class="bounce3"></div>
+      </div>
+      <div>
+        <ul>
+          <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index">
+            <button class="buttonPrimary chatLoadMoreBtn" *ngIf="first" [disabled]="isLoadMoreDisabled" (click)="loadMore()">Load more</button>
+            <div class="island" id="date" style="margin-top:25px;margin-bottom:25px;max-width:240px" *ngIf="isMessageNewTimeGroup(message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
+                <div style="margin:0 auto;text-align:center">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'fullDate'}}</div>
+            </div>
+            <div *ngIf="lastRead==message.key" style="clear:both;margin:0 auto;text-align:center;font-size:12px;margin:35px 0 35px 0;border-style:solid;border-width:0 0 1px 0">Last read</div>
+            <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" style="clear:both;width:100%;height:5px"></div>
+            <div *ngIf="message.payload?.imageUrlThumbUser&&(isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first)" style="float:left;width:54px;min-height:10px">
+              <img [src]="message.payload?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload)" style="cursor:pointer;display:inline;float:left;margin:0 4px 10px 10px; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
+            </div>
+                <div [style.background-color]="(message.payload?.user==UI.currentUser)?'rgba(16, 185, 129, 0.14)':'rgba(15, 23, 42, 0.72)'"
+                  class="messageBubble"
+                  [id]="message.key"
+                  style="cursor:text;margin:0 16px 10px 56px;user-select:text;border-color:rgba(16, 185, 129, 0.45);border-radius:10px;padding:2px 2px 4px 2px;position:relative"
+                  (click)="$event.stopPropagation(); closeMessageActions()"
+                  [style.border-style]="(message.payload?.text.includes(UI.currentUserLastMessageObj?.name))?'solid':'none'">
+              <button *ngIf="UI.currentUser"
+                class="messageOptionsBtn"
+                aria-label="Message options"
+                (click)="$event.stopPropagation(); toggleMessageOptions(message.key)">
+                <span class="material-icons-outlined" style="font-size:14px;line-height:1">keyboard_arrow_down</span>
+              </button>
+              <div *ngIf="messageOptionsOpenFor === message.key"
+                class="messageOptionsMenu"
+                (click)="$event.stopPropagation()">
+                <button class="messageOptionsItem" (click)="setAsUnreadFromMessage(message)">Set as unread</button>
+                <button class="messageOptionsItem" (click)="openMessageJson(message)">Message JSON</button>
+              </div>
+              <div>
+                <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
+                  <div class="messageAuthor" style="display:inline;float:left;margin:0px 10px 0px 5px">{{message.payload?.name}}</div>
+                  <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)>43200" class="messageTiming" style="margin:0px 10px 0px 10px">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'h:mm a'}}</div>
+                  <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)<=43200" class="messageTiming" style="margin:0px 10px 0px 10px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</div>
+                </div>
+                <div style="clear:both;text-align:center">
+                  <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" (error)="UI.handleChatImageError($event, message.payload)" style="max-width:70%;max-height:320px;width: auto; height: auto; margin:5px 10px 5px 5px; box-shadow: 0 0 2px whitesmoke" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
+                </div>
+                <div class="messageBodyText" style="margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
+              </div>
+              <div style="clear:both;height:15px">
+                <span *ngIf="message.payload?.verified && message.payload?.userChain?.nextMessage=='none'" class="material-icons" style="float:right;font-size:16px;margin:0 2px 2px 0;color:#3b82f6">check_circle</span>
+                <span *ngIf="message.payload?.contract?.hoursValidated>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.contract?.amount)}} earned ({{UI.formatSecondsToDhm1(message.payload?.contract?.hoursValidated*3600)}}declared in {{UI.formatSecondsToDhm1(message.payload?.contract?.hoursAvailable*3600)}} window)</span>
+                <span *ngIf="message.payload?.purchaseCOIN?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.purchaseCOIN?.amount)}} purchased</span>
+                <span *ngIf="message.payload?.transactionIn?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.transactionIn?.amount)}} received</span>
+                <span *ngIf="message.payload?.transactionOut?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.convertAndFormatPRNToPRNCurrency(null,-message.payload?.transactionOut?.amount)}} sent</span>
+                <span *ngIf="message.payload?.userChain?.nextMessage=='none'&&message.payload?.wallet?.balance!=undefined" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.wallet?.balance)}}</span>
+              </div>
+            </div>
+            {{storeMessageValues(message.payload)}}
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div *ngIf="!showChatDetails&&showImageGallery">
+      <div class="spinner" *ngIf="UI.loading">
+        <div class="bounce1"></div>
+        <div class="bounce2"></div>
+        <div class="bounce3"></div>
+      </div>
+      <div class="galleryWrap">
+        <ul class="galleryGrid">
+          <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index" class="galleryCard">
+            <div class="galleryImageWrap" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
+              <img class="imageWithZoom galleryImage" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium||message.payload?.chatImageUrlThumb||message.payload?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload)">
+            </div>
+            <div class="galleryMeta" (click)="scrollToMessage(message.key)">
+              <div class="galleryTopRow">
+                <span class="messageAuthor galleryAuthor">{{message.payload?.name || 'Member'}}</span>
+                <span class="galleryTime messageTiming">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</span>
+              </div>
+              <div class="galleryCaption">{{message.payload?.text}}</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="island" style="margin-top:25px;margin-bottom:25px;max-width:250px;">
+        <button class="buttonPrimary" style="width:200px;margin:10px auto" [disabled]="isLoadMoreDisabled" (click)="loadMore()">Load more</button>
+      </div>
     </div>
   </div>
 
   <div *ngIf="UI.currentUser&&!showImageGallery&&!showChatDetails"
     #chatComposer
     class="chatComposer"
-    [style.bottom.px]="containerBottom"
-    [style.left.px]="containerLeft"
-    [style.width.px]="containerWidth">
+    style="position: relative !important; width: 100% !important; bottom: 0 !important; left: 0 !important; flex: 0 0 auto; padding-bottom: 20px;">
     <span *ngIf="chatLastMessageObj?.chatSubject==null" style="margin:5px;font-size:10px">This message will be the subject of this chat</span>
     <div style="clear:both;float:left;width:90%;display:flex;align-items:center;min-height:64px">
       <textarea #msgBox
@@ -406,6 +405,7 @@ export class ChatComponent implements OnDestroy {
   @ViewChild('msgBox') msgBox!: ElementRef<HTMLTextAreaElement>;
   @ViewChild('chatTopBar') chatTopBar!: ElementRef;
   @ViewChild('chatComposer') chatComposer?: ElementRef<HTMLDivElement>;
+  @ViewChild('scrollContainer') scrollContainer?: ElementRef<HTMLDivElement>;
   draftMessage:string
   imageTimestamp:string
   imageDownloadUrl:string
@@ -464,7 +464,6 @@ export class ChatComponent implements OnDestroy {
   containerWidth = 0;
   composerHeight = 90;
   isLoadMoreDisabled = false;
-  loadMoreButtonMarginTop = 75;
   private offsetsRefreshTimeout: ReturnType<typeof setTimeout> | null = null;
   private pendingLoadMoreAnchorRestore = false;
   private pendingMessageScroll: string | null = null;
@@ -663,12 +662,6 @@ export class ChatComponent implements OnDestroy {
     return `${this.composerHeight + this.containerBottom + 8}px`;
   }
 
-  updateLoadMoreMargin() {
-    if (this.chatTopBar?.nativeElement) {
-      this.loadMoreButtonMarginTop = this.chatTopBar.nativeElement.offsetHeight + 15;
-    }
-  }
-
   showImageGalleryClick() {
     event.stopPropagation()
     this.showImageGallery = !this.showImageGallery
@@ -781,7 +774,6 @@ export class ChatComponent implements OnDestroy {
       tap(() => {
         const shouldStickToBottom = this.shouldStickToBottomOnUpdate();
         this.zone.onStable.pipe(take(1)).subscribe(() => {
-          this.updateLoadMoreMargin();
           const restoredAnchor = this.restoreLoadMoreAnchorIfNeeded();
           if (this.pendingMessageScroll) {
               const targetId = this.pendingMessageScroll;
@@ -829,7 +821,6 @@ export class ChatComponent implements OnDestroy {
     }),
     tap(() => {
       this.zone.onStable.pipe(take(1)).subscribe(() => {
-        this.updateLoadMoreMargin();
         this.restoreLoadMoreAnchorIfNeeded();
       });
     })
@@ -932,12 +923,12 @@ export class ChatComponent implements OnDestroy {
   }
 
   scrollMainToBottom() {
-    const mc = document.getElementById('main_container');
+    const mc = this.scrollContainer?.nativeElement;
     if (mc) mc.scrollTop = mc.scrollHeight;
   }
   
   scrollMainToTop() {
-    const mc = document.getElementById('main_container');
+    const mc = this.scrollContainer?.nativeElement;
     if (mc) mc.scrollTop = 0;
   }
 
@@ -949,7 +940,7 @@ export class ChatComponent implements OnDestroy {
   }
 
   private shouldStickToBottomOnUpdate(): boolean {
-    const mc = document.getElementById('main_container');
+    const mc = this.scrollContainer?.nativeElement;
     if (!mc) return true;
     const distanceFromBottom = mc.scrollHeight - (mc.scrollTop + mc.clientHeight);
     const isMobileViewport = window.matchMedia('(max-width: 900px)').matches;
@@ -958,7 +949,7 @@ export class ChatComponent implements OnDestroy {
   }
 
   private captureLoadMoreAnchor(): void {
-    const mc = document.getElementById('main_container');
+    const mc = this.scrollContainer?.nativeElement;
     if (!mc) return;
     this.pendingLoadMoreAnchorRestore = true;
     this.loadMoreAnchorTop = mc.scrollTop;
@@ -968,7 +959,7 @@ export class ChatComponent implements OnDestroy {
   private restoreLoadMoreAnchorIfNeeded(): boolean {
     if (!this.pendingLoadMoreAnchorRestore) return false;
     this.pendingLoadMoreAnchorRestore = false;
-    const mc = document.getElementById('main_container');
+    const mc = this.scrollContainer?.nativeElement;
     if (!mc) return false;
     if (this.showImageGallery) {
       const scrollToBottom = () => { mc.scrollTop = mc.scrollHeight; };
@@ -1231,11 +1222,9 @@ export class ChatComponent implements OnDestroy {
     this.zone.onStable.pipe(take(1)).subscribe(() => {
       const el = this.msgBox?.nativeElement;
       if (el) this.autoResize(el);
-      this.updateFixedOffsets();
       if (!this.pendingMessageScroll) this.scrollMainToBottom();
       setTimeout(() => {
         this.updateFixedOffsets();
-        if (!this.pendingMessageScroll) this.scrollMainToBottom();
       }, 180);
       // Recalculate offsets after the CSS transition (approx 400ms) finishes
       setTimeout(() => {
@@ -1253,7 +1242,7 @@ export class ChatComponent implements OnDestroy {
   }
 
   private performScrollToId(id: string) {
-    const mc = document.getElementById('main_container');
+    const mc = this.scrollContainer?.nativeElement;
     const el = document.getElementById(id);
     if (el && mc) {
       const rect = el.getBoundingClientRect();
