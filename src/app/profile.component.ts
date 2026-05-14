@@ -789,7 +789,7 @@ export class ProfileComponent {
     const start = Number(eventDateStart || 0)
     const end = Number(eventDateEnd || 0)
     const now = this.UI.nowSeconds * 1000
-    return start <= now && end > now
+    return (start - 300000) <= now && end > now
   }
 
   openCarouselImage(imageUrl: string) {

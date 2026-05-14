@@ -65,7 +65,7 @@ import { map, tap, take } from 'rxjs/operators';
         </div>
         <button *ngIf="eventLocation"
           class="buttonPrimary chatEventJoinBtn"
-            [disabled]="!UI.isCurrentUserMember || !(eventDateStart/60000<=UI.nowSeconds/60&&eventDateEnd/60000>UI.nowSeconds/60)"
+            [disabled]="!UI.isCurrentUserMember || !(((eventDateStart - 300000)/60000 <= UI.nowSeconds/60)&&(eventDateEnd/60000>UI.nowSeconds/60))"
           (click)="$event.stopPropagation(); UI.openWindow(eventLocation)">
           <span>Join</span>
           <span style="margin-left:5px;font-size:16px;line-height:14px" class="material-icons-outlined" *ngIf="!UI.isCurrentUserMember">lock</span>
