@@ -209,7 +209,7 @@ import { map, tap, take } from 'rxjs/operators';
             <span class="chatFundEditorTitle">Edit Fund</span>
           </div>
 
-          <div *ngIf="(chatLastMessageObj?.fund?.amountGBPTarget||0) > 0" class="chatFundEditorPreview">
+          <div *ngIf="(chatLastMessageObj?.fund?.amountGBPTarget||0) >= 0.01" class="chatFundEditorPreview">
             <div class="chatFundEditorProgressTrack">
               <div class="chatFundEditorProgressFill"
                 [style.width]="(((chatLastMessageObj?.fund?.amountGBPRaised||0)/(chatLastMessageObj?.fund?.amountGBPTarget||1))*100)+'%'">
