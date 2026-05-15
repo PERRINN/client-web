@@ -1911,8 +1911,10 @@ app-root chat .chatEventEditorHeader {
 }
 
 app-root chat .chatEventEditorTitle {
-  color: #f1f5f9;
-  font-size: 12px;
+  color: #94a3b8;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
   font-weight: 600;
 }
 
@@ -1995,8 +1997,10 @@ app-root chat .chatFundEditorHeader {
 }
 
 app-root chat .chatFundEditorTitle {
-  color: #f1f5f9;
-  font-size: 12px;
+  color: #94a3b8;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
   font-weight: 600;
 }
 
@@ -2168,6 +2172,13 @@ app-root chat .chatTransferRecipientCard {
   border: 1px solid rgba(16, 185, 129, 0.2);
   background: rgba(16, 185, 129, 0.08);
   cursor: pointer;
+}
+
+app-root chat .chatTransferRecipientCard.selectedRecipient {
+  background: rgba(16, 185, 129, 0.28);
+  border-color: rgba(16, 185, 129, 0.8);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
+  transform: translateY(-1px);
 }
 
 app-root chat .chatTransferRecipientAvatar {
@@ -2747,15 +2758,19 @@ app-root chat .cancelEventModalBtn {
     border-left: 3px solid rgba(16, 185, 129, 0.25) !important;
   }
 
-  app-root chat .chatTopBar {
-    border-radius: 0 !important;
-    border-bottom: 1px solid rgba(16, 185, 129, 0.12);
+  app-root chat .chatPage {
+    background-color: #1e293b !important;
     border-left: 3px solid rgba(16, 185, 129, 0.25) !important;
   }
 
+  app-root chat .chatTopBar {
+    border-radius: 0 !important;
+    border-bottom: 1px solid rgba(16, 185, 129, 0.12);
+  }
+
   app-root chat .chatComposer {
-    border: 1px solid rgba(16, 185, 129, 0.12);
-    border-left: 3px solid rgba(16, 185, 129, 0.25) !important;
+    border: none !important;
+    border-top: 1px solid rgba(16, 185, 129, 0.12) !important;
     padding-bottom: 10px !important;
   }
 

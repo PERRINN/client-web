@@ -85,7 +85,7 @@ import { map, tap, take } from 'rxjs/operators';
           <div class="chatProfileSectionTitle">Chat Profile</div>
           <div class="chatProfileSubjectRow">
             <input [(ngModel)]="chatSubject" class="chatProfileSubjectInput" placeholder="What is the subject of this chat?">
-            <button class="buttonPrimary chatProfileBtn" (click)="saveNewSubject()" [disabled]="chatLastMessageObj?.chatSubject==chatSubject&&chatSubject">Save subject</button>
+            <button class="buttonPrimary chatProfileBtn" (click)="saveNewSubject()" [disabled]="!chatSubject?.trim() || chatLastMessageObj?.chatSubject === chatSubject">Save subject</button>
           </div>
           <div class="chatProfileImageEditor">
             <div class="chatProfileImagePreviewWrap">
@@ -126,7 +126,7 @@ import { map, tap, take } from 'rxjs/operators';
             <div class="chatTransferRecipientsLabel">Recipient</div>
             <ul class="listLight chatTransferRecipientsList">
               <li *ngFor="let recipient of chatLastMessageObj?.recipientList">
-                <div class="chatTransferRecipientCard" (click)="transactionUser=recipient;transactionUserName=chatLastMessageObj?.recipients[recipient].name">
+                <div class="chatTransferRecipientCard" [class.selectedRecipient]="transactionUser === recipient" (click)="selectRecipient(recipient)">
                   <img [src]="chatLastMessageObj?.recipients[recipient]?.imageUrlThumb" class="chatTransferRecipientAvatar">
                   <div class="chatTransferRecipientName">{{chatLastMessageObj?.recipients[recipient]?.name}}</div>
                 </div>
@@ -136,7 +136,7 @@ import { map, tap, take } from 'rxjs/operators';
 
           <div class="chatTransferActions">
             <button class="buttonPrimary chatTransferBtn" (click)="createTransactionOut(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference)" [disabled]="!canSendTransactionOut()">
-              Send {{UI.convertAndFormatPRNToPRNCurrency(null,transactionAmount*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).toCOIN||0))}} to {{transactionUserName}}
+              Send {{UI.convertAndFormatPRNToPRNCurrency(null,transactionAmount*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).toCOIN||0))}} to {{transactionUserName || '...'}}
             </button>
             <button class="buttonPrimary chatTransferBtn" (click)="createTransactionPending(transactionAmount,transactionCode,null,null,transactionReference)" [disabled]="!canCreatePendingTransaction()">
               Create pending transaction of {{UI.convertAndFormatPRNToPRNCurrency(null,transactionAmount*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).toCOIN||0))}}
@@ -150,7 +150,6 @@ import { map, tap, take } from 'rxjs/operators';
         <div class="chatEventEditor">
           <div class="chatEventEditorHeader">
             <span class="material-icons-outlined chatEventIcon">event</span>
-            <span class="chatEventLabel">Event</span>
             <span class="chatEventEditorTitle">Edit Event</span>
           </div>
 
@@ -206,8 +205,7 @@ import { map, tap, take } from 'rxjs/operators';
       <div class="island">
         <div class="chatFundEditor">
           <div class="chatFundEditorHeader">
-            <span class="material-icons-outlined chatEventIcon">crowdsource</span>
-            <span class="chatEventLabel">Fund</span>
+            <span class="material-symbols-outlined chatEventIcon">crowdsource</span>
             <span class="chatFundEditorTitle">Edit Fund</span>
           </div>
 
@@ -1015,6 +1013,16 @@ export class ChatComponent implements OnDestroy {
       && amount <= balance
       && !this.hasSelectedTransferRecipient()
       && this.hasTransactionReference();
+  }
+
+  selectRecipient(recipient: string) {
+    if (this.transactionUser === recipient || recipient === this.UI.currentUser) {
+      this.transactionUser = null;
+      this.transactionUserName = null;
+    } else {
+      this.transactionUser = recipient;
+      this.transactionUserName = this.chatLastMessageObj?.recipients[recipient]?.name;
+    }
   }
 
   createTransactionOut(transactionAmount, transactionCode, transactionUser, transactionUserName, transactionReference) {
