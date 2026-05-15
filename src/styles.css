@@ -2080,10 +2080,16 @@ app-root chat .chatFundEditorRow {
   gap: 8px;
 }
 
-app-root chat .chatFundEditorBtn {
-  width: 100%;
-  min-height: 34px;
+app-root chat .chatFundEditorActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
   margin-top: 8px;
+}
+
+app-root chat .chatFundEditorBtn {
+  width: 120px;
+  min-height: 34px;
 }
 
 app-root chat .chatFundEditorBtn:disabled {
@@ -2325,12 +2331,14 @@ app-root chat .chatProfileImageActions .buttonPrimary {
     grid-template-columns: 1fr;
   }
 
-  app-root chat .chatEventEditorActions {
+  app-root chat .chatEventEditorActions,
+  app-root chat .chatFundEditorActions {
     flex-direction: column;
     align-items: stretch;
   }
 
-  app-root chat .chatEventEditorBtn {
+  app-root chat .chatEventEditorBtn,
+  app-root chat .chatFundEditorBtn {
     width: 100%;
   }
 

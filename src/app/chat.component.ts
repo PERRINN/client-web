@@ -244,7 +244,10 @@ import { map, tap, take } from 'rxjs/operators';
             </div>
           </div>
 
-          <button class="buttonPrimary chatFundEditorBtn" (click)="saveFund()" [disabled]="!fund.description?.trim() || !fund.amountGBPTarget || !fund.daysLeft || (fund.description == chatLastMessageObj?.fund?.description && fund.amountGBPTarget == chatLastMessageObj?.fund?.amountGBPTarget && fund.daysLeft == chatLastMessageObj?.fund?.daysLeft)">Save fund</button>
+          <div class="chatFundEditorActions">
+            <button class="buttonPrimary chatFundEditorBtn" (click)="saveFund()" [disabled]="!fund.description?.trim() || !fund.amountGBPTarget || !fund.daysLeft || (fund.description == chatLastMessageObj?.fund?.description && fund.amountGBPTarget == chatLastMessageObj?.fund?.amountGBPTarget && fund.daysLeft == chatLastMessageObj?.fund?.daysLeft)">Save fund</button>
+            <button class="buttonRed chatFundEditorBtn" (click)="openCancelFundModal()" [disabled]="!(chatLastMessageObj?.fund?.amountGBPTarget > 0 && chatLastMessageObj?.fund?.daysLeft > 0)">Cancel fund</button>
+          </div>
         </div>
       </div>
     </div>
@@ -397,6 +400,17 @@ import { map, tap, take } from 'rxjs/operators';
       </div>
     </div>
   </div>
+
+  <div *ngIf="showCancelFundModal" class="cancelEventModalBackdrop" (click)="closeCancelFundModal()">
+    <div class="cancelEventModal" (click)="$event.stopPropagation()">
+      <div class="cancelEventModalTitle">Cancel fund?</div>
+      <div class="cancelEventModalText">This will immediately end the current fund for all chat members.</div>
+      <div class="cancelEventModalActions">
+        <button class="buttonBlack cancelEventModalBtn" (click)="closeCancelFundModal()">Keep fund</button>
+        <button class="buttonRed cancelEventModalBtn" (click)="confirmCancelFund()">Cancel fund</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 `
@@ -441,6 +455,7 @@ export class ChatComponent implements OnDestroy {
   messageOptionsOpenFor:string
   showMessageJsonModal:boolean
   selectedMessageJsonFormatted:string
+  showCancelFundModal:boolean
   showCancelEventModal:boolean
   lastRead:string
   showImageGallery:boolean
@@ -495,6 +510,7 @@ export class ChatComponent implements OnDestroy {
         this.messageOptionsOpenFor = null
         this.showMessageJsonModal = false
         this.selectedMessageJsonFormatted = ''
+        this.showCancelFundModal = false
         this.showCancelEventModal = false
         this.chatLastMessageObj = {}
         this.previousMessageServerTimestamp = { seconds: this.UI.nowSeconds * 1000 }
@@ -915,6 +931,20 @@ export class ChatComponent implements OnDestroy {
     this.cancelEvent();
   }
 
+  openCancelFundModal() {
+    this.showCancelFundModal = true;
+  }
+
+  closeCancelFundModal() {
+    this.showCancelFundModal = false;
+  }
+
+  confirmCancelFund() {
+    this.showCancelFundModal = false;
+    this.fund.daysLeft = 0.0001;
+    this.saveFund();
+  }
+
   scrollMainToBottom() {
     const mc = this.scrollContainer?.nativeElement;
     if (mc) mc.scrollTop = mc.scrollHeight;
@@ -1218,6 +1248,7 @@ export class ChatComponent implements OnDestroy {
     this.messageOptionsOpenFor = null
     this.showMessageJsonModal = false
     this.selectedMessageJsonFormatted = ''
+    this.showCancelFundModal = false
     this.showCancelEventModal = false
     this.pendingMessageScroll = null
   
