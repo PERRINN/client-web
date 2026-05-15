@@ -188,7 +188,7 @@ import { map, tap, take } from 'rxjs/operators';
             </div>
             <div class="chatEventEditorField">
               <div class="chatEventEditorFieldLabel">Duration (hours)</div>
-              <input class="chatEventEditorDuration" type="number" min="0" step="0.5" inputmode="decimal" maxlength="20" [(ngModel)]="eventDurationChoice" placeholder="e.g. 1.5" (keydown)="validateDurationInput($event)">
+              <input class="chatEventEditorDuration" type="number" min="0" step="any" inputmode="decimal" maxlength="20" [(ngModel)]="eventDurationChoice" placeholder="e.g. 1.5" (keydown)="validateNumberInput($event)">
             </div>
           </div>
 
@@ -209,22 +209,22 @@ import { map, tap, take } from 'rxjs/operators';
             <span class="chatFundEditorTitle">Edit Fund</span>
           </div>
 
-          <div *ngIf="(fund?.amountGBPTarget||0) > 0" class="chatFundEditorPreview">
+          <div *ngIf="(chatLastMessageObj?.fund?.amountGBPTarget||0) > 0" class="chatFundEditorPreview">
             <div class="chatFundEditorProgressTrack">
               <div class="chatFundEditorProgressFill"
-                [style.width]="(((fund?.amountGBPRaised||0)/(fund?.amountGBPTarget||1))*100)+'%'">
-                <span class="chatFundEditorProgressPct" *ngIf="((fund?.amountGBPRaised||0)/(fund?.amountGBPTarget||1))*100 > 30">
-                  {{((fund?.amountGBPRaised||0)/(fund?.amountGBPTarget||1))|percent:'1.0-0'}}
+                [style.width]="(((chatLastMessageObj?.fund?.amountGBPRaised||0)/(chatLastMessageObj?.fund?.amountGBPTarget||1))*100)+'%'">
+                <span class="chatFundEditorProgressPct" *ngIf="((chatLastMessageObj?.fund?.amountGBPRaised||0)/(chatLastMessageObj?.fund?.amountGBPTarget||1))*100 > 30">
+                  {{((chatLastMessageObj?.fund?.amountGBPRaised||0)/(chatLastMessageObj?.fund?.amountGBPTarget||1))|percent:'1.0-0'}}
                 </span>
               </div>
             </div>
             <div class="chatFundEditorMeta">
-              <span class="chatFundEditorDays">{{fund?.daysLeft|number:'1.0-0'}} days left</span>
+              <span class="chatFundEditorDays">{{chatLastMessageObj?.fund?.daysLeft|number:'1.0-0'}} days left</span>
             </div>
-            <div class="chatFundEditorDescription">{{fund?.description}}</div>
+            <div class="chatFundEditorDescription">{{chatLastMessageObj?.fund?.description}}</div>
             <div class="chatFundEditorAmounts">
-              target: {{UI.convertAndFormatPRNToCurrency(null,(fund?.amountGBPTarget||0)*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]||{}).toCOIN||0))}} /
-              raised: {{UI.convertAndFormatPRNToCurrency(null,(fund?.amountGBPRaised||0)*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]||{}).toCOIN||0))}}
+              target: {{UI.convertAndFormatPRNToCurrency(null,(chatLastMessageObj?.fund?.amountGBPTarget||0)*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]||{}).toCOIN||0))}} /
+              raised: {{UI.convertAndFormatPRNToCurrency(null,(chatLastMessageObj?.fund?.amountGBPRaised||0)*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]||{}).toCOIN||0))}}
             </div>
           </div>
 
@@ -236,15 +236,15 @@ import { map, tap, take } from 'rxjs/operators';
           <div class="chatFundEditorRow">
             <div class="chatFundEditorField">
               <div class="chatEventEditorFieldLabel">Amount target (GBP)</div>
-              <input class="chatFundEditorInput" type="number" min="0" step="any" inputmode="decimal" maxlength="10" [(ngModel)]="fund.amountGBPTarget" placeholder="Amount target">
+              <input class="chatFundEditorInput" type="number" min="0" step="any" inputmode="decimal" maxlength="10" [(ngModel)]="fund.amountGBPTarget" placeholder="Amount target" (keydown)="validateNumberInput($event)">
             </div>
             <div class="chatFundEditorField">
               <div class="chatEventEditorFieldLabel">Days left</div>
-              <input class="chatFundEditorInput" type="number" min="0" step="1" inputmode="numeric" maxlength="10" [(ngModel)]="fund.daysLeft" placeholder="Days left">
+              <input class="chatFundEditorInput" type="number" min="0" inputmode="numeric" maxlength="10" [(ngModel)]="fund.daysLeft" placeholder="Days left" (keydown)="validateNumberInput($event, false)">
             </div>
           </div>
 
-          <button class="buttonPrimary chatFundEditorBtn" (click)="saveFund()" [disabled]="!(fund.description!=chatLastMessageObj?.fund?.description||fund.amountGBPTarget!=chatLastMessageObj?.fund?.amountGBPTarget||fund.daysLeft!=chatLastMessageObj?.fund?.daysLeft)">Save fund</button>
+          <button class="buttonPrimary chatFundEditorBtn" (click)="saveFund()" [disabled]="!fund.description?.trim() || !fund.amountGBPTarget || !fund.daysLeft || (fund.description == chatLastMessageObj?.fund?.description && fund.amountGBPTarget == chatLastMessageObj?.fund?.amountGBPTarget && fund.daysLeft == chatLastMessageObj?.fund?.daysLeft)">Save fund</button>
         </div>
       </div>
     </div>
@@ -754,6 +754,7 @@ export class ChatComponent implements OnDestroy {
           this.eventDuration = c.payload.doc.data()['eventDuration'] || this.eventDuration
           this.eventLocation = c.payload.doc.data()['eventLocation'] || this.eventLocation
           this.fund = c.payload.doc.data()['fund'] || this.fund
+          if (this.fund && this.fund.daysLeft < 0) this.fund.daysLeft = 0; // Ensure daysLeft is not negative
           this.selectedDateInit();
           this.eventTimeListInit();
         }
@@ -1266,7 +1267,7 @@ export class ChatComponent implements OnDestroy {
     }
   }
 
-  validateDurationInput(event: KeyboardEvent) {
+  validateNumberInput(event: KeyboardEvent, allowDecimal: boolean = true) {
     const input = event.target as HTMLInputElement;
     const value = input.value;
     const key = event.key;
@@ -1275,9 +1276,8 @@ export class ChatComponent implements OnDestroy {
       return;
     }
 
-    
     if (key === '.') {
-      if (value.includes('.')) {
+      if (!allowDecimal || value.includes('.')) {
         event.preventDefault();
       }
       return;
