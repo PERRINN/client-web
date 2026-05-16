@@ -534,7 +534,7 @@ export class ChatComponent implements OnDestroy {
         this.fund = {
           description: 'add a description',
           amountGBPTarget: 0,
-          daysLeft: 30
+          daysLeft: 0
         }
         this.loadLastSeen(params.id).then(() => this.refreshMessages(params.id))
         this.refresheventDateList()
@@ -949,7 +949,7 @@ export class ChatComponent implements OnDestroy {
     this.fund.daysLeft = 0.0001;
     this.fund.amountGBPTarget = 0.0001;
     this.fund.description = 'add a description';
-    this.saveFund();
+    this.saveFund('cancelling fund');
   }
 
   scrollMainToBottom() {
@@ -1122,9 +1122,9 @@ export class ChatComponent implements OnDestroy {
     this.resetChat()
   }
 
-  saveFund() {
+  saveFund(text: string = 'edited fund') {
     this.UI.createMessage({
-      text: 'edited fund',
+      text: text,
       chain: this.chatLastMessageObj.chain || this.chatChain,
       fund: this.fund
     })
