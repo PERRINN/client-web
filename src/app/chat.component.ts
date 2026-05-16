@@ -117,7 +117,7 @@ import { map, tap, take } from 'rxjs/operators';
         <div class="chatTransferBody">
           <div class="chatTransferFieldGrid">
             <input class="chatTransferInput" type="text" inputmode="decimal" maxlength="50" [(ngModel)]="transactionAmount" (input)="transactionAmount = sanitizeNumberInput($event)" placeholder="Amount" (keydown)="validateNumberInput($event)">
-            <input class="chatTransferInput" maxlength="500" [(ngModel)]="transactionCode" placeholder="Code (optional)">
+            <input class="chatTransferInput" maxlength="500" [(ngModel)]="transactionCode" (input)="onTransactionCodeInput()" placeholder="Code (optional)">
           </div>
 
           <input class="chatTransferInput chatTransferReference" maxlength="500" [(ngModel)]="transactionReference" placeholder="Reference">
@@ -1030,9 +1030,11 @@ export class ChatComponent implements OnDestroy {
   }
 
   private hasSelectedTransferRecipient(): boolean {
-    return !!this.transactionUser
-      && this.transactionUser !== this.UI.currentUser
-      && !!this.transactionUserName;
+    if (!this.transactionUser || !this.transactionUserName) return false;
+    if (this.transactionUser === this.UI.currentUser) {
+      return !!this.transactionCode;
+    }
+    return true;
   }
 
   canSendTransactionOut(): boolean {
@@ -1056,12 +1058,21 @@ export class ChatComponent implements OnDestroy {
   }
 
   selectRecipient(recipient: string) {
-    if (this.transactionUser === recipient || recipient === this.UI.currentUser) {
+    const isSelf = recipient === this.UI.currentUser;
+    const isAlreadySelected = this.transactionUser === recipient;
+    if (isAlreadySelected || (isSelf && !this.transactionCode)) {
       this.transactionUser = null;
       this.transactionUserName = null;
     } else {
       this.transactionUser = recipient;
       this.transactionUserName = this.chatLastMessageObj?.recipients[recipient]?.name;
+    }
+  }
+
+  onTransactionCodeInput() {
+    if (!this.transactionCode && this.transactionUser === this.UI.currentUser) {
+      this.transactionUser = null;
+      this.transactionUserName = null;
     }
   }
 
