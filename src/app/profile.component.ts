@@ -239,7 +239,7 @@ import { ChangeDetectorRef } from '@angular/core'
       </ul>
       <div *ngIf="scope!='all'&& mode=='history'" style="height:400px;margin:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
       <div *ngIf="scope!='all'&& mode=='forecast'" style="height:400px;margin:10px"><ag-charts-angular [options]="forecastChartOptions"></ag-charts-angular></div>
-      <div *ngIf="mode!='forecast' || scope=='all'" [class.table-scroll-wrapper]="mode=='chain'||mode=='history'">
+      <div *ngIf="mode!='forecast' || scope=='all'" [class.table-scroll-wrapper]="scope != 'all' && (mode=='chain'||mode=='history')">
       <ul class="listLight">
         <li *ngFor="let message of messages|async;let first=first;let last=last" class="guardedChatItem" style="position:relative;"
           [class.activeChatListItem]="activeChatId === message.payload.doc.data()?.chain"
@@ -467,6 +467,7 @@ export class ProfileComponent {
         return;
       }
       this.scope = targetScope;
+      if (this.scope === 'all') this.mode = 'inbox';
       if (!this.sidePanelScope) this.forceScrollTop();
       this.afs.collection<any>('PERRINNMessages',ref=>ref
         .where('user','==',this.scope)
