@@ -2583,6 +2583,11 @@ app-root chat .messageOptionsMenu {
   padding: 4px;
 }
 
+app-root chat .messageOptionsMenu.lastMessageMenu {
+  top: auto;
+  bottom: 28px;
+}
+
 app-root chat .chatPage ul,
 app-root chat .chatPage li,
 app-root chat .messageBubble {
@@ -2609,7 +2614,7 @@ app-root chat .messageJsonModalBackdrop {
   position: fixed;
   inset: 0;
   background: rgba(2, 6, 23, 0.72);
-  z-index: 1200;
+  z-index: 3000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2669,7 +2674,7 @@ app-root chat .cancelEventModalBackdrop {
   position: fixed;
   inset: 0;
   background: rgba(2, 6, 23, 0.72);
-  z-index: 1200;
+  z-index: 3000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2758,6 +2763,7 @@ app-root chat .cancelEventModalBtn {
   }
 
   app-root chat .chatPage {
+    z-index: 20;
     background-color: #1e293b !important;
     border-left: 3px solid rgba(16, 185, 129, 0.25) !important;
   }

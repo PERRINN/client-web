@@ -11,7 +11,7 @@ import { map, tap, take } from 'rxjs/operators';
   selector: 'chat',
   template: `
 
-  <div class="chatPage" [style.top.px]="containerTop" [style.bottom.px]="containerBottom" [style.left.px]="containerLeft" [style.width.px]="containerWidth" style="position: fixed; display: flex; flex-direction: column; overflow: hidden;" (click)="closeMessageActions()">
+  <div class="chatPage" [style.top.px]="containerTop" [style.bottom.px]="containerBottom" [style.left.px]="containerLeft" [style.width.px]="containerWidth" style="position: fixed; display: flex; flex-direction: column; overflow: visible;" (click)="closeMessageActions()">
   <div
     #chatTopBar
     class="chatTopBar"
@@ -284,6 +284,7 @@ import { map, tap, take } from 'rxjs/operators';
               </button>
               <div *ngIf="messageOptionsOpenFor === message.key"
                 class="messageOptionsMenu"
+                [class.lastMessageMenu]="last"
                 (click)="$event.stopPropagation()">
                 <button class="messageOptionsItem" (click)="setAsUnreadFromMessage(message)">Set as unread</button>
                 <button class="messageOptionsItem" (click)="openMessageJson(message)">Message JSON</button>
