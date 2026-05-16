@@ -2092,15 +2092,6 @@ app-root chat .chatFundEditorBtn {
   min-height: 34px;
 }
 
-app-root chat .chatFundEditorBtn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-  box-shadow: none;
-  background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
-  color: #94a3b8;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-}
-
 app-root chat .chatTransferSection {
   overflow: visible;
 }
