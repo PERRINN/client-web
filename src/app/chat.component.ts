@@ -236,7 +236,7 @@ import { map, tap, take } from 'rxjs/operators';
           <div class="chatFundEditorRow">
             <div class="chatFundEditorField">
               <div class="chatEventEditorFieldLabel">Amount target (GBP)</div>
-              <input class="chatFundEditorInput" type="number" min="0" step="any" inputmode="decimal" maxlength="10" [(ngModel)]="fund.amountGBPTarget" placeholder="Amount target" (keydown)="validateNumberInput($event)">
+              <input class="chatFundEditorInput" type="number" min="0" step="0.01" inputmode="decimal" maxlength="10" [(ngModel)]="fund.amountGBPTarget" placeholder="Amount target" (keydown)="validateNumberInput($event, true, 2)">
             </div>
             <div class="chatFundEditorField">
               <div class="chatEventEditorFieldLabel">Days left</div>
@@ -770,7 +770,11 @@ export class ChatComponent implements OnDestroy {
           this.eventDuration = c.payload.doc.data()['eventDuration'] || this.eventDuration
           this.eventLocation = c.payload.doc.data()['eventLocation'] || this.eventLocation
           this.fund = c.payload.doc.data()['fund'] || this.fund
-          if (this.fund && this.fund.daysLeft < 0) this.fund.daysLeft = 0; // Ensure daysLeft is not negative
+          if (this.fund) {
+            if (this.fund.daysLeft < 0) this.fund.daysLeft = 0;
+            if (this.fund.amountGBPTarget != null) this.fund.amountGBPTarget = Math.round(this.fund.amountGBPTarget * 100) / 100;
+            if (this.fund.daysLeft != null) this.fund.daysLeft = Math.round(this.fund.daysLeft);
+          }
           this.selectedDateInit();
           this.eventTimeListInit();
         }
@@ -943,6 +947,7 @@ export class ChatComponent implements OnDestroy {
     this.showCancelFundModal = false;
     this.fund.daysLeft = 0.0001;
     this.fund.amountGBPTarget = 0.0001;
+    this.fund.description = 'add a description';
     this.saveFund();
   }
 
@@ -1299,12 +1304,21 @@ export class ChatComponent implements OnDestroy {
     }
   }
 
-  validateNumberInput(event: KeyboardEvent, allowDecimal: boolean = true) {
+  validateNumberInput(event: KeyboardEvent, allowDecimal: boolean = true, maxDecimals: number = 99) {
     const input = event.target as HTMLInputElement;
-    const value = input.value;
+    const value = input.value || '';
     const key = event.key;
 
     if (/\d/.test(key)) {
+      if (allowDecimal && value.includes('.')) {
+        const dotIndex = value.indexOf('.');
+        if (input.selectionStart > dotIndex && input.selectionStart === input.selectionEnd) {
+          const decimalPart = value.split('.')[1] || '';
+          if (decimalPart.length >= maxDecimals) {
+            event.preventDefault();
+          }
+        }
+      }
       return;
     }
 
