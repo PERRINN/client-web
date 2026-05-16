@@ -116,7 +116,7 @@ import { map, tap, take } from 'rxjs/operators';
 
         <div class="chatTransferBody">
           <div class="chatTransferFieldGrid">
-            <input class="chatTransferInput" type="number" min="0" step="any" inputmode="decimal" maxlength="500" [(ngModel)]="transactionAmount" placeholder="Amount">
+            <input class="chatTransferInput" type="text" inputmode="decimal" maxlength="50" [(ngModel)]="transactionAmount" (input)="transactionAmount = sanitizeNumberInput($event)" placeholder="Amount" (keydown)="validateNumberInput($event)">
             <input class="chatTransferInput" maxlength="500" [(ngModel)]="transactionCode" placeholder="Code (optional)">
           </div>
 
@@ -188,7 +188,7 @@ import { map, tap, take } from 'rxjs/operators';
             </div>
             <div class="chatEventEditorField">
               <div class="chatEventEditorFieldLabel">Duration (hours)</div>
-              <input class="chatEventEditorDuration" type="number" min="0" step="any" inputmode="decimal" maxlength="20" [(ngModel)]="eventDurationChoice" placeholder="e.g. 1.5" (keydown)="validateNumberInput($event)">
+              <input class="chatEventEditorDuration" type="text" inputmode="decimal" maxlength="20" [(ngModel)]="eventDurationChoice" (input)="eventDurationChoice = sanitizeNumberInput($event)" placeholder="e.g. 1.5" (keydown)="validateNumberInput($event)">
             </div>
           </div>
 
@@ -236,11 +236,11 @@ import { map, tap, take } from 'rxjs/operators';
           <div class="chatFundEditorRow">
             <div class="chatFundEditorField">
               <div class="chatEventEditorFieldLabel">Amount target (GBP)</div>
-              <input class="chatFundEditorInput" type="number" min="0" step="0.01" inputmode="decimal" maxlength="10" [(ngModel)]="fund.amountGBPTarget" placeholder="Amount target" (keydown)="validateNumberInput($event, true, 2)">
+              <input class="chatFundEditorInput" type="text" inputmode="decimal" maxlength="10" [(ngModel)]="fund.amountGBPTarget" (input)="fund.amountGBPTarget = sanitizeNumberInput($event)" placeholder="Amount target" (keydown)="validateNumberInput($event)">
             </div>
             <div class="chatFundEditorField">
               <div class="chatEventEditorFieldLabel">Days left</div>
-              <input class="chatFundEditorInput" type="number" min="0" inputmode="numeric" maxlength="10" [(ngModel)]="fund.daysLeft" placeholder="Days left" (keydown)="validateNumberInput($event, false)">
+              <input class="chatFundEditorInput" type="text" inputmode="numeric" maxlength="10" [(ngModel)]="fund.daysLeft" (input)="fund.daysLeft = sanitizeNumberInput($event, false)" placeholder="Days left" (keydown)="validateNumberInput($event, false)">
             </div>
           </div>
 
@@ -768,6 +768,7 @@ export class ChatComponent implements OnDestroy {
           this.eventDateStart = c.payload.doc.data()['eventDateStart']
           this.eventDateEnd = c.payload.doc.data()['eventDateEnd']
           this.eventDuration = c.payload.doc.data()['eventDuration'] || this.eventDuration
+          if (this.eventDuration != null) this.eventDuration = Math.round(this.eventDuration * 100) / 100;
           this.eventLocation = c.payload.doc.data()['eventLocation'] || this.eventLocation
           this.fund = c.payload.doc.data()['fund'] || this.fund
           if (this.fund) {
@@ -1304,17 +1305,17 @@ export class ChatComponent implements OnDestroy {
     }
   }
 
-  validateNumberInput(event: KeyboardEvent, allowDecimal: boolean = true, maxDecimals: number = 99) {
+  validateNumberInput(event: KeyboardEvent, allowDecimal: boolean = true, maxDecimals: number = 2) {
     const input = event.target as HTMLInputElement;
     const value = input.value || '';
     const key = event.key;
 
     if (/\d/.test(key)) {
-      if (allowDecimal && value.includes('.')) {
-        const dotIndex = value.indexOf('.');
-        if (input.selectionStart > dotIndex && input.selectionStart === input.selectionEnd) {
-          const decimalPart = value.split('.')[1] || '';
-          if (decimalPart.length >= maxDecimals) {
+      const dotIndex = value.indexOf('.') !== -1 ? value.indexOf('.') : value.indexOf(',');
+      if (dotIndex !== -1) {
+        if (input.selectionStart !== null && input.selectionStart > dotIndex && input.selectionStart === input.selectionEnd) {
+          const decimalPart = value.split(/[.,]/)[1] || '';
+          if (decimalPart.length >= (allowDecimal ? maxDecimals : 0)) {
             event.preventDefault();
           }
         }
@@ -1322,8 +1323,8 @@ export class ChatComponent implements OnDestroy {
       return;
     }
 
-    if (key === '.') {
-      if (!allowDecimal || value.includes('.')) {
+    if (key === '.' || key === ',') {
+      if (!allowDecimal || value.includes('.') || value.includes(',')) {
         event.preventDefault();
       }
       return;
@@ -1336,5 +1337,29 @@ export class ChatComponent implements OnDestroy {
     }
 
     event.preventDefault();
+  }
+
+  sanitizeNumberInput(event: any, allowDecimal: boolean = true, maxDecimals: number = 2): any {
+    const input = event.target as HTMLInputElement;
+    let str = input.value || '';
+    if (str === '') return null;
+
+    if (!allowDecimal) {
+      // Pour les entiers, on supprime tout ce qui n'est pas un chiffre
+      str = str.replace(/\D/g, '');
+    } else {
+      // Pour les décimaux, on remplace la virgule par un point et on limite les décimales
+      str = str.replace(/,/g, '.');
+      str = str.replace(/[^\d.]/g, '');
+      const parts = str.split('.');
+      if (parts.length > 2) str = parts[0] + '.' + parts.slice(1).join('');
+      if (parts[1] && parts[1].length > maxDecimals) {
+        str = parts[0] + '.' + parts[1].substring(0, maxDecimals);
+      }
+    }
+    if (input.value !== str) {
+      input.value = str;
+    }
+    return str === '' ? null : str;
   }
 }
