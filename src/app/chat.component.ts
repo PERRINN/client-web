@@ -948,7 +948,7 @@ export class ChatComponent implements OnDestroy {
 
   confirmCancelFund() {
     this.showCancelFundModal = false;
-    this.fund.daysLeft = 0.0001;
+    this.fund.daysLeft = 0.1;
     this.fund.amountGBPTarget = 0.0001;
     this.fund.description = 'add a description';
     this.saveFund('cancelling fund');
