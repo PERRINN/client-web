@@ -115,7 +115,7 @@ type PaymentState =
       </div>
       <ul class="listLight">
         <li *ngFor="let message of currentFunds|async" style="padding:0px">
-          <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0&&(message.payload.doc.data()?.fund?.active||showPastFunds)" style="cursor:default;padding:12px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.1); margin-bottom: 10px; background: rgba(16, 185, 129, 0.03);">
+          <div *ngIf="message.payload.doc.data()?.fund?.active || showPastFunds" style="cursor:default;padding:12px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.1); margin-bottom: 10px; background: rgba(16, 185, 129, 0.03);">
             <span class="chatSubject">{{message.payload.doc.data()?.chatSubject}}</span>
             <div style="margin-top: 10px;">
               <div style="background-color:#334155;height:24px;width:100%;border-radius:6px;overflow:hidden;position:relative;">
@@ -605,7 +605,10 @@ export class buyPRNComponent implements OnInit, OnDestroy {
       )
       .snapshotChanges()
       .pipe(
-        map((changes) => changes.map((c) => ({ payload: c.payload }))),
+        map((changes) => changes
+          .map((c) => ({ payload: c.payload }))
+          .filter((m) => (m.payload.doc.data()?.fund?.amountGBPTarget || 0) >= 0.01)
+        ),
         takeUntil(this.destroy$)
       );
   }

@@ -170,7 +170,6 @@ import { ChangeDetectorRef } from '@angular/core'
         <li class="guardedChatItem fundListItem" *ngFor="let message of currentFunds|async;let first=first;let last=last"
           (click)="openListedChat(message.payload.doc.data()?.chain, null)">
           <div *ngIf="scope=='all'||mode=='inbox'">
-            <div *ngIf="message.payload.doc.data()?.fund?.amountGBPTarget>0">
             <div class="guardedChatItem fundCardBody" style="padding:8px; border-radius: 10px; background: rgba(16, 185, 129, 0.05);">
               <div style="display:flex; align-items:center; gap:6px; margin-bottom:5px;">
                 <ng-container *ngIf="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb; else fundIconFallback">
@@ -210,7 +209,6 @@ import { ChangeDetectorRef } from '@angular/core'
                 raised: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]?.toCOIN||0))}}
               </div>
               <span *ngIf="!UI.isCurrentUserMember" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
-            </div>
             </div>
           </div>
         </li>
@@ -528,7 +526,9 @@ export class ProfileComponent {
         .where('fund.active','==',true)
         .orderBy('fund.daysLeft','asc')
       ).snapshotChanges().pipe(map(changes=>{
-        return changes.map(c=>({payload:c.payload}))
+        return changes
+          .map(c=>({payload:c.payload}))
+          .filter(m => (m.payload.doc.data()?.fund?.amountGBPTarget || 0) >= 0.01)
       }))
       this.latestImages=this.afs.collection<any>('PERRINNMessages',ref=>ref
         .where('verified','==',true)
@@ -593,7 +593,9 @@ export class ProfileComponent {
         .where('fund.active','==',true)
         .orderBy('fund.daysLeft','asc')
       ).snapshotChanges().pipe(map(changes=>{
-        return changes.map(c=>({payload:c.payload}))
+        return changes
+          .map(c=>({payload:c.payload}))
+          .filter(m => (m.payload.doc.data()?.fund?.amountGBPTarget || 0) >= 0.01)
       }))
       this.latestImages=this.afs.collection<any>('PERRINNMessages',ref=>ref
         .where('recipientList','array-contains-any',[this.scope])

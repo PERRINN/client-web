@@ -29,7 +29,7 @@ import { map, tap, take } from 'rxjs/operators';
         <div style="width:100%;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;color:#94a3b8;font-size:12px;font-weight:500;line-height:1.4;margin-top:2px">
           <span *ngFor="let recipient of chatLastMessageObj?.recipientList;let last=last">{{recipient==UI.currentUser?'You':chatLastMessageObj?.recipients[recipient]?.name}}{{last?"":", "}}</span>
         </div>
-        <div *ngIf="fund?.active" style="clear:both;padding-top:4px">
+        <div *ngIf="fund?.active && fund?.amountGBPTarget >= 0.01" style="clear:both;padding-top:4px">
           <span class="material-symbols-outlined" style="float:left;font-size:20px;margin-right:5px;color:#10b981">crowdsource</span>
           <div style="overflow:hidden;padding-top:2px">
             <div style="background-color:#334155;height:20px;width:100%;border-radius:6px;overflow:hidden;position:relative;max-width:320px">
@@ -246,7 +246,7 @@ import { map, tap, take } from 'rxjs/operators';
 
           <div class="chatFundEditorActions">
             <button class="buttonPrimary chatFundEditorBtn" (click)="saveFund()" [disabled]="!fund.description?.trim() || !fund.amountGBPTarget || !fund.daysLeft || (fund.description == chatLastMessageObj?.fund?.description && fund.amountGBPTarget == chatLastMessageObj?.fund?.amountGBPTarget && fund.daysLeft == chatLastMessageObj?.fund?.daysLeft)">Save fund</button>
-            <button class="buttonRed chatFundEditorBtn" (click)="openCancelFundModal()" [disabled]="!(chatLastMessageObj?.fund?.amountGBPTarget > 0 && chatLastMessageObj?.fund?.daysLeft > 0)">Cancel fund</button>
+            <button class="buttonRed chatFundEditorBtn" (click)="openCancelFundModal()" [disabled]="!(chatLastMessageObj?.fund?.amountGBPTarget >= 0.01 && chatLastMessageObj?.fund?.daysLeft > 0)">Cancel fund</button>
           </div>
         </div>
       </div>
@@ -772,8 +772,9 @@ export class ChatComponent implements OnDestroy {
           this.eventLocation = c.payload.doc.data()['eventLocation'] || this.eventLocation
           this.fund = c.payload.doc.data()['fund'] || this.fund
           if (this.fund) {
-            if (this.fund.daysLeft < 0) this.fund.daysLeft = 0;
             if (this.fund.amountGBPTarget != null) this.fund.amountGBPTarget = Math.round(this.fund.amountGBPTarget * 100) / 100;
+            if (this.fund.amountGBPTarget < 0.01) this.fund.daysLeft = 0;
+            if (this.fund.daysLeft < 0) this.fund.daysLeft = 0;
             if (this.fund.daysLeft != null) this.fund.daysLeft = Math.round(this.fund.daysLeft);
           }
           this.selectedDateInit();
