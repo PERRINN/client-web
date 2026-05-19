@@ -329,22 +329,22 @@ type PaymentState =
 `
 })
 export class buyPRNComponent implements OnInit, OnDestroy {
-  transactionPendingMessage: string;
-  transactionPendingMessageObj: any;
-  amountSharesPurchased: number;
-  amountCharge: number;
-  currencySelected: string;
-  creditListPRN: number[];
-  creditList: number[];
-  creditSelected: number;
+  transactionPendingMessage: string | null = null;
+  transactionPendingMessageObj: any = null;
+  amountSharesPurchased = 0;
+  amountCharge = 0;
+  currencySelected = 'usd';
+  creditListPRN: number[] = [];
+  creditList: number[] = [];
+  creditSelected = 0;
   processing = false;
   showPastFunds = false;
-  currentFunds: Observable<any[]>;
-  chartOptions: AgChartOptions;
+  currentFunds!: Observable<any[]>;
+  chartOptions!: AgChartOptions;
   paymentState: PaymentState = "idle";
   paymentStatusText = "";
-  paymentOrderId: string = null;
-  paymentReference: string = null;
+  paymentOrderId: string | null = null;
+  paymentReference: string | null = null;
   paymentStepOrderCreated = false;
   paymentStepCheckoutOpened = false;
   paymentStepPaymentReceived = false;
@@ -790,9 +790,13 @@ export class buyPRNComponent implements OnInit, OnDestroy {
           this.startPaymentTracking();
         }
 
-        newWindow.location.href = order.checkout_url;
-        this.paymentStepCheckoutOpened = true;
-        this.setPaymentState("awaiting-payment", "Checkout opened. Complete payment in Revolut, then return here.");
+        if (newWindow) {
+          newWindow.location.href = order.checkout_url;
+          this.paymentStepCheckoutOpened = true;
+          this.setPaymentState("awaiting-payment", "Checkout opened. Complete payment in Revolut, then return here.");
+        } else {
+          this.setPaymentState("failed", "Could not open Revolut checkout. Please allow popups and try again.");
+        }
       } else {
         newWindow?.close();
         this.setPaymentState("failed", "Could not open Revolut checkout. Please try again.");

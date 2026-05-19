@@ -141,12 +141,15 @@ export class AppComponent {
   }
 
   ngOnInit() {
-    document.getElementById('uploader').style.visibility = 'hidden';
-    document.getElementById('fullScreenImage').style.visibility = 'hidden';
+    const uploader = document.getElementById('uploader');
+    if (uploader) uploader.style.visibility = 'hidden';
+    const fullScreenImage = document.getElementById('fullScreenImage');
+    if (fullScreenImage) fullScreenImage.style.visibility = 'hidden';
   }
 
   hideFullScreenImage() {
-    const fullScreenImage = document.getElementById('fullScreenImage') as HTMLImageElement;
+    const fullScreenImage = document.getElementById('fullScreenImage') as HTMLImageElement | null;
+    if (!fullScreenImage) return;
     fullScreenImage.style.visibility = 'hidden';
     fullScreenImage.src = '';
   }
