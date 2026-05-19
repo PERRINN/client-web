@@ -13,25 +13,25 @@ import { profile } from 'console'
 
 @Injectable()
 export class UserInterfaceService {
-  loading:boolean
-  currentUser:string
-  currentUserEmail:string
-  currentUserLastMessageObj:any
-  PERRINNProfileLastMessageObj:any
-  PERRINNAdminLastMessageObj:any
-  nowSeconds:number
-  hasTouch:boolean
-  isStandalone:boolean
-  profileSimulatorNonMember:boolean
-  profileSimulatorLoggedOut:boolean
-  public sidePanelWidthChanged = new Subject<void>();
-  isCurrentUserMember:boolean
-  public isDev: boolean;
-  public revolutMode: 'sandbox' | 'prod';
-  private authenticatedUser:string
-  private authenticatedUserEmail:string
-  private profileUserId:string
-  private adminUserId:string
+  loading = false
+  currentUser: string | null = null
+  currentUserEmail: string | null = null
+  currentUserLastMessageObj: any = null
+  PERRINNProfileLastMessageObj: any = null
+  PERRINNAdminLastMessageObj: any = null
+  nowSeconds = 0
+  hasTouch = false
+  isStandalone = false
+  profileSimulatorNonMember = false
+  profileSimulatorLoggedOut = false
+  isCurrentUserMember = false
+  public isDev = false
+  public revolutMode: 'sandbox' | 'prod' = 'sandbox'
+  public sidePanelWidthChanged: Subject<void> = new Subject<void>()
+  private authenticatedUser: string | null = null
+  private authenticatedUserEmail: string | null = null
+  private profileUserId: string
+  private adminUserId: string
   
   constructor(
     private afAuth: AngularFireAuth,
@@ -154,21 +154,21 @@ export class UserInterfaceService {
     this.isCurrentUserMember = this.profileSimulatorNonMember ? false : (this.currentUserLastMessageObj?.membership?.isMember || false);
   }
 
-  createMessage(messageObj) {
+  createMessage(messageObj: any) {
     if (!messageObj.text && !messageObj.chatImageTimestamp && !messageObj.chatProfileImageTimestamp) return null;
     messageObj.serverTimestamp =
       firebase.firestore.FieldValue.serverTimestamp();
     messageObj.user = this.currentUser;
     messageObj.name =
-      messageObj.name || this.currentUserLastMessageObj.name || "";
+      messageObj.name || this.currentUserLastMessageObj?.name || "";
     messageObj.imageUrlThumbUser =
       messageObj.imageUrlThumbUser ||
-      this.currentUserLastMessageObj.imageUrlThumbUser ||
+      this.currentUserLastMessageObj?.imageUrlThumbUser ||
       "";
     return this.afs.collection("PERRINNMessages").add(messageObj);
   }
 
-  convertPRNToCurrency(currency,amount){
+  convertPRNToCurrency(currency: any, amount: any) {
     const currencyList = (this.PERRINNAdminLastMessageObj||{}).currencyList||{};
     if (!currencyList) return Number(amount) || 0;
     if (currency == null) {
@@ -180,7 +180,7 @@ export class UserInterfaceService {
     return (Number(amount) || 0) / (currencyList[selectedCurrency]?.toCOIN || 1)
   }
 
-  formatCurrency(currency, amount) {
+  formatCurrency(currency: any, amount: any) {
     const currencyList = (this.PERRINNAdminLastMessageObj||{}).currencyList||{};
     if (!currencyList) {
       const rawAmount = Number(amount) || 0;
@@ -243,7 +243,7 @@ export class UserInterfaceService {
       );
   }
 
-  convertAndFormatPRNToCurrency(currency, amount) {
+  convertAndFormatPRNToCurrency(currency: any, amount: any) {
     if (currency == null) {
       if (this.currentUserLastMessageObj!=undefined&&this.currentUserLastMessageObj.userCurrency!=undefined)
         currency = this.currentUserLastMessageObj.userCurrency;
@@ -252,19 +252,19 @@ export class UserInterfaceService {
     return this.formatCurrency(currency, this.convertPRNToCurrency(currency, amount));
   }
 
-  convertAndFormatPRNToPRNCurrency(currency, amount) {
+  convertAndFormatPRNToPRNCurrency(currency: any, amount: any) {
     return 'PRN ' + this.convertAndFormatPRNToCurrency(currency, amount)
   }
 
-  formatPRNCurrency(currency, amount) {
+  formatPRNCurrency(currency: any, amount: any) {
     return 'PRN ' + this.formatCurrency(currency, amount)
   }
 
-  convertAndRoundUpAndFormatPRNToCurrency(currency, amount) {
+  convertAndRoundUpAndFormatPRNToCurrency(currency: any, amount: any) {
     return this.formatCurrency(currency, this.roundUpByMagnitude(this.convertPRNToCurrency(currency, amount)));
   }
 
-  formatSecondsToDhm2(seconds) {
+  formatSecondsToDhm2(seconds: any) {
     seconds = Number(seconds);
     var d = Math.floor(seconds / (3600 * 24));
     var h = Math.floor((seconds % (3600 * 24)) / 3600);
@@ -275,7 +275,7 @@ export class UserInterfaceService {
     return dDisplay + hDisplay + mDisplay;
   }
 
-  formatSecondsToDhm1(seconds) {
+  formatSecondsToDhm1(seconds: any) {
     seconds = Number(seconds);
     var d = Math.floor(seconds / (3600 * 24));
     var h = Math.floor((seconds % (3600 * 24)) / 3600);
@@ -303,33 +303,33 @@ export class UserInterfaceService {
     });
   }
 
-  openWindow(url){
-    event.stopPropagation()
-    window.open(url,'_blank')
+  openWindow(url: string, event?: Event) {
+    event?.stopPropagation();
+    window.open(url, '_blank');
   }
 
-  showFullScreenImage(src) {
-    const fullScreenImage=document.getElementById('fullScreenImage') as HTMLImageElement
-    fullScreenImage.src=src
-    fullScreenImage.style.visibility='visible'
+  showFullScreenImage(src: any) {
+    const fullScreenImage = document.getElementById('fullScreenImage') as HTMLImageElement | null;
+    if (!fullScreenImage) return;
+    fullScreenImage.src = src;
+    fullScreenImage.style.visibility = 'visible';
   }
 
-  fieldShowHide(effect:string){
-    let visibility:string;
-    let outlinedEyeStyle:string;
-    let fullEyeStyle:string;
-    let focus:string;
-    if (effect === "show") {
-      visibility = "text";
-      outlinedEyeStyle ="display:none";
-      fullEyeStyle ="display:block";
-      focus = "border-style:solid; border-width: 1px; border-color:#757566;"
-    }
-    else if (effect === "hide") {
-      visibility = "password";
-      outlinedEyeStyle ="display:block";
-      fullEyeStyle ="display:none";
-      focus = ""
+  fieldShowHide(effect: string) {
+    let visibility = 'password';
+    let outlinedEyeStyle = 'display:block';
+    let fullEyeStyle = 'display:none';
+    let focus = '';
+    if (effect === 'show') {
+      visibility = 'text';
+      outlinedEyeStyle = 'display:none';
+      fullEyeStyle = 'display:block';
+      focus = 'border-style:solid; border-width: 1px; border-color:#757566;';
+    } else if (effect === 'hide') {
+      visibility = 'password';
+      outlinedEyeStyle = 'display:block';
+      fullEyeStyle = 'display:none';
+      focus = '';
     }
     return [visibility, outlinedEyeStyle, fullEyeStyle, focus];
   }
