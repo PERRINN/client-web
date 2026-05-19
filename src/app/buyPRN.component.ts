@@ -61,7 +61,7 @@ type PaymentState =
     <br/>
     <div *ngIf="!UI.isCurrentUserMember" class="island" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 24px; border-radius: 12px; box-shadow: 0 10px 30px rgba(5, 150, 105, 0.2);">
       <div style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 16px;">
-        🔑 Unlock Your Membership
+        🤝 Welcome to the Team
       </div>
       <div style="padding:0;text-align:center">
         <div style="font-size: 24px; font-weight: 700; color: #ffffff; margin-bottom: 14px; word-break: break-word; overflow-wrap: break-word;">
