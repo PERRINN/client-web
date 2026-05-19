@@ -91,6 +91,8 @@ import { map, tap, take } from 'rxjs/operators';
               <img *ngIf="chatProfileImageDownloadUrl || chatLastMessageObj?.chatProfileImageUrlThumb || chatLastMessageObj?.chatProfileImageUrlMedium"
                 [src]="chatProfileImageDownloadUrl || chatLastMessageObj?.chatProfileImageUrlThumb || chatLastMessageObj?.chatProfileImageUrlMedium"
                 class="chatProfileImagePreview"
+                style="cursor:pointer"
+                (click)="UI.showFullScreenImage(chatProfileImageDownloadUrl || chatLastMessageObj?.chatProfileImageUrlOriginal || chatLastMessageObj?.chatProfileImageUrlMedium || chatLastMessageObj?.chatProfileImageUrlThumb)"
                 (error)="UI.handleChatImageError($event, chatLastMessageObj)">
               <div *ngIf="!(chatProfileImageDownloadUrl || chatLastMessageObj?.chatProfileImageUrlThumb || chatLastMessageObj?.chatProfileImageUrlMedium)" class="chatProfileImagePlaceholder">
                 <span class="material-icons-outlined" style="font-size:18px;line-height:1">image</span>

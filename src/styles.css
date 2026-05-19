@@ -31,8 +31,8 @@
 }
 body {
   border: 0;
-  background-color:black;
-  color: #B0BAC0;
+  background-color: #01020a;
+  color: #cbd5e1;
   overscroll-behavior-x: none;
   touch-action: pan-y;
 }
@@ -468,7 +468,7 @@ app-root .topNav {
   margin: 0 auto 4px auto;
   margin: 0 auto 10px auto;
   background: #1e293b;
-  border: 1px solid rgba(16, 185, 129, 0.12);
+  border: none;
   border-radius: 12px;
   padding: 10px 12px;
   display: flex;
@@ -522,8 +522,8 @@ app-root .userPill {
   gap: 8px;
   padding: 5px 10px 5px 5px;
   border-radius: 999px;
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  background: rgba(16, 185, 129, 0.08);
+  border: none;
+  background: rgba(16, 185, 129, 0.16);
   cursor: pointer;
 }
 
@@ -772,11 +772,56 @@ app-root chat {
 app-root settings .island,
 app-root profile .island,
 app-root chat .chatPage .island {
-  background: #1e293b;
-  border: 1px solid rgba(16, 185, 129, 0.12);
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: none !important;
   border-radius: 12px;
-  color: #cbd5e1;
+  color: #cbd5e1 !important;
   box-shadow: 0 8px 24px rgba(2, 8, 23, 0.24);
+}
+
+app-root profile .profileModern {
+  background: #02030a !important;
+  padding-bottom: 24px;
+}
+
+app-root profile .profileContainer {
+  padding: 16px;
+}
+
+app-root profile .profileInfoBox {
+  background: rgba(15, 23, 42, 0.88);
+  border: none;
+  border-radius: 8px;
+  padding: 8px;
+  color: #f8fafc;
+}
+
+app-root profile .listLight > li {
+  background: rgba(15, 23, 42, 0.88) !important;
+  border: none !important;
+  color: #e2e8f0 !important;
+}
+
+app-root profile .eventCardBody,
+app-root profile .fundCardBody {
+  background: rgba(15, 23, 42, 0.88) !important;
+  border: none !important;
+  color: #f8fafc !important;
+}
+
+app-root profile .modeSwitchTrack {
+  background: rgba(15, 23, 42, 0.75) !important;
+  border: 1px solid rgba(16, 185, 129, 0.2) !important;
+}
+
+app-root profile .eventCardChatImage {
+  border: none !important;
+}
+
+app-root profile .nonMemberIslandButton {
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%) !important;
+  border: none !important;
+  color: #ffffff !important;
 }
 
 app-root login .buttonPrimary,
@@ -1215,7 +1260,7 @@ app-root settings .settingsSection div:is([style*='margin:20px'], [style*='margi
 }
 
 app-root profile {
-  background-color: #0f172a;
+  background-color: #02030a;
   background-image: none;
   min-height: 100vh;
   min-height: 100dvh;
@@ -1241,17 +1286,17 @@ app-root profile .profileContainer {
 }
 
 app-root profile .island {
-  box-shadow: 0 8px 24px rgba(2, 8, 23, 0.25);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
   margin-bottom: 16px;
+  border: none;
 }
 
 app-root profile .nonMemberIsland {
   margin-top: 12px;
-  background:
-    radial-gradient(circle at 18% 15%, rgba(255, 255, 255, 0.22) 0, rgba(255, 255, 255, 0) 38%),
-    linear-gradient(135deg, #059669 0%, #047857 100%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 14px 34px rgba(5, 150, 105, 0.34);
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
   padding: 24px 22px;
   text-align: center;
   color: #ffffff;
@@ -1375,17 +1420,32 @@ app-root profile .listLight {
 }
 
 app-root profile .listLight li {
-  background: rgba(2, 8, 23, 0.82);
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  box-shadow: 0 6px 18px rgba(2, 8, 23, 0.3);
-  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.88) !important;
+  border: none !important;
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.28) !important;
+  color: #e2e8f0 !important;
+  border-radius: 14px;
   margin-bottom: 10px;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition: background 0.2s ease;
 }
 
-app-root profile .listLight li:hover {
-  background: rgba(15, 23, 42, 0.9);
-  border-color: rgba(16, 185, 129, 0.34);
+app-root profile .eventCardBody,
+app-root profile .fundCardBody,
+app-root profile .imageCarousel .carouselItem,
+app-root profile .carouselMeta,
+app-root profile .tableRow {
+  background: rgba(15, 23, 42, 0.80) !important;
+  border: none !important;
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.28) !important;
+  color: #e2e8f0 !important;
+}
+
+app-root profile .listLight li:hover,
+app-root profile .eventCardBody:hover,
+app-root profile .fundCardBody:hover,
+app-root profile .imageCarousel .carouselItem:hover,
+app-root profile .carouselMeta:hover {
+  background: rgba(15, 23, 42, 0.94) !important;
 }
 
 app-root profile .listLight li.no-interaction-row {
@@ -1407,12 +1467,14 @@ app-root profile .tableRow.no-interaction-row:hover {
   }
 }
 
-app-root profile .eventCardBody {
+app-root profile .eventCardBody,
+app-root profile .fundCardBody {
   padding: 10px;
   border-radius: 10px;
-  border: 1px solid rgba(148, 163, 184, 0.34);
-  background: rgba(2, 8, 23, 0.9);
-  box-shadow: 0 8px 20px rgba(2, 8, 23, 0.34);
+  background: rgba(15, 23, 42, 0.88) !important;
+  border: none !important;
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.28) !important;
+  color: #e2e8f0 !important;
 }
 
 app-root profile .eventListItem,
@@ -1423,12 +1485,6 @@ app-root profile .fundListItem:hover {
   border: none !important;
   padding: 0 !important;
   margin-bottom: 10px;
-}
-
-app-root profile .fundCardBody {
-  border: 1px solid rgba(148, 163, 184, 0.34);
-  background: rgba(2, 8, 23, 0.9) !important;
-  box-shadow: 0 8px 20px rgba(2, 8, 23, 0.34);
 }
 
 app-root profile .eventCardHeader {
@@ -1591,10 +1647,10 @@ app-root profile th {
 }
 
 app-root profile .tableRow {
-  background: rgba(2, 8, 23, 0.82);
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  border-radius: 8px;
-  box-shadow: 0 6px 18px rgba(2, 8, 23, 0.3);
+  background: rgba(255, 255, 255, 0.10);
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22);
   margin-bottom: 6px;
   position: relative;
 }
@@ -1656,15 +1712,15 @@ app-root profile .imageCarousel {
 app-root profile .imageCarousel .carouselItem {
   flex: 0 0 25%;
   min-width: 200px;
-  background: #0b1220;
-  border: 1px solid rgba(16, 185, 129, 0.28);
-  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.96) !important;
+  border: none !important;
+  border-radius: 14px;
   overflow: hidden;
   margin-bottom: 0;
   scroll-snap-align: none;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 26px rgba(2, 8, 23, 0.5);
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.28);
 }
 
 app-root profile .carouselImageWrap {
@@ -1684,9 +1740,8 @@ app-root profile .carouselImage {
 }
 
 app-root profile .carouselMeta {
-  border: none;
-  border-top: 1px solid rgba(16, 185, 129, 0.22);
-  background: rgba(2, 8, 23, 0.9);
+  border: none !important;
+  background: rgba(15, 23, 42, 0.96) !important;
   padding: 8px 10px;
   display: flex;
   align-items: center;
