@@ -15,7 +15,7 @@ import { ChangeDetectorRef } from '@angular/core'
   template:`
 
   <div class="profileModern">
-  <div class="profileContainer" [class.nonMemberView]="!UI.isCurrentUserMember">
+  <div class="profileContainer">
 
   <div class="island" *ngIf="UI.currentUserLastMessageObj&&!UI.currentUserLastMessageObj?.isImageUserUpdated"
         style="background-color:rgb(255, 251, 221); color: #333; cursor:pointer"
@@ -131,10 +131,9 @@ import { ChangeDetectorRef } from '@angular/core'
                 </div>
                 <button *ngIf="message.payload.doc.data()?.eventLocation"
                   class="buttonPrimary eventCardJoinBtn"
-                  [disabled]="!UI.isCurrentUserMember || !isEventLive(message.payload.doc.data()?.eventDateStart, message.payload.doc.data()?.eventDateEnd)"
+                  [disabled]="!isEventLive(message.payload.doc.data()?.eventDateStart, message.payload.doc.data()?.eventDateEnd)"
                   (click)="$event.stopPropagation(); UI.openWindow(message.payload.doc.data()?.eventLocation)">
                   <span>Join</span>
-                  <span style="margin-left:5px;font-size:16px;line-height:14px" class="material-icons-outlined" *ngIf="!UI.isCurrentUserMember">lock</span>
                 </button>
               </div>
 
@@ -153,12 +152,11 @@ import { ChangeDetectorRef } from '@angular/core'
               <div class="eventCardDescription">
                 {{message.payload.doc.data()?.eventDescription}}
               </div>
-              <span *ngIf="!UI.isCurrentUserMember" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
             </div>
           </li>
         </ul>
         <button class="buttonBlack eventCardToggleBtn"
-          *ngIf="events.length>1 && UI.isCurrentUserMember"
+          *ngIf="events.length>1"
           (click)="showAllEvents=!showAllEvents">
           {{showAllEvents ? 'Hide Other Events' : 'Show More Events'}}
         </button>
@@ -208,7 +206,6 @@ import { ChangeDetectorRef } from '@angular/core'
                 target: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]?.toCOIN||0))}} /
                 raised: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]?.toCOIN||0))}}
               </div>
-              <span *ngIf="!UI.isCurrentUserMember" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
             </div>
           </div>
         </li>
@@ -216,10 +213,6 @@ import { ChangeDetectorRef } from '@angular/core'
         </div>
 
         <div class="island nonMemberIsland profile-banner-item" *ngIf="!UI.isCurrentUserMember">
-          <div class="nonMemberIslandIconWrap">
-            <span class="material-icons-outlined nonMemberIslandIcon">lock_open</span>
-          </div>
-          <div class="nonMemberIslandTitle">Unlock Full Access to Team Communications, Media and Features.</div>
           <button class="buttonPrimary nonMemberIslandButton" (click)="router.navigate(['buyPRN'])">Buy PRN Tokens</button>
           <div class="nonMemberIslandFooter">Join the team today.</div>
           <div class="nonMemberIslandHelper">Interested to join but have some questions first? <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" rel="noopener noreferrer">Join our WhatsApp community</a> and speak directly to Nico there.</div>
@@ -234,7 +227,6 @@ import { ChangeDetectorRef } from '@angular/core'
           <button class="carouselMeta" (click)="openListedChat(message.payload.doc.data()?.chain, message.payload.doc.id)">
             <span class="messageTiming">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</span>
           </button>
-          <span *ngIf="!UI.isCurrentUserMember" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
         </li>
       </ul>
       <div *ngIf="scope!='all'&& mode=='history'" style="height:400px;margin:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
@@ -301,11 +293,9 @@ import { ChangeDetectorRef } from '@angular/core'
                 <th class="th-interest">{{first?'':UI.convertAndFormatPRNToCurrency(null,(message.payload.doc.data()?.interest?.amountCummulate||0)-previousAmountInterestCummulate)|blankIfZero}}</th>
                 <th class="th-contract">{{first?'':UI.convertAndFormatPRNToCurrency(null,(message.payload.doc.data()?.contract?.amountCummulate||0)-previousContractAmountCummulate)|blankIfZero}}</th>
                 <th class="th-message">{{message.payload.doc.data()?.userChain?.currentMessage}}</th>
-                <span *ngIf="!UI.isCurrentUserMember" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
               </tr>
               {{storeMessageValues(message.payload.doc.data())}}
             </table>
-            <span *ngIf="!UI.isCurrentUserMember && (scope=='all'||mode=='inbox')" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
         </li>
       </ul>
       </div>
@@ -326,7 +316,6 @@ import { ChangeDetectorRef } from '@angular/core'
                   {{UI.convertAndFormatPRNToCurrency(null,focusUserLastMessageObj?.wallet?.balance*math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)*number))}}
                 </th>
                 <th class="th-forecast-multiple">{{math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)*number)|number:'1.1-1'}}x</th>
-                <span *ngIf="!UI.isCurrentUserMember" class="material-icons-outlined nonMemberChatLock nonMemberChatLockCorner">lock</span>
               </tr>
             </table>
           </li>
@@ -337,7 +326,7 @@ import { ChangeDetectorRef } from '@angular/core'
         <div class="bounce2"></div>
         <div class="bounce3"></div>
       </div>
-      <div class="island" *ngIf="UI.isCurrentUserMember">
+      <div class="island">
         <button class="buttonPrimary" *ngIf="(!UI.loading && !['forecast', 'history'].includes(mode)) || scope=='all'" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</button>
       </div>
     </div>
@@ -346,35 +335,35 @@ import { ChangeDetectorRef } from '@angular/core'
   `
 })
 export class ProfileComponent {
-  @Input() sidePanelScope: string;
-  messages:Observable<any[]>
-  comingEvents:Observable<any[]>
-  currentFunds:Observable<any[]>
-  latestImages:Observable<any[]>
-  scrollTeam:string
-  focusUserLastMessageObj:any
-  lastSeenByChain:any
+  @Input() sidePanelScope?: string;
+  messages!: Observable<any[]>
+  comingEvents!: Observable<any[]>
+  currentFunds!: Observable<any[]>
+  latestImages!: Observable<any[]>
+  scrollTeam!: string
+  focusUserLastMessageObj: any = null
+  lastSeenByChain: Record<string, number> = {}
   lastSeenSubscription: Subscription | null = null;
   focusUserLastSeenSubscription: Subscription | null = null;
   authSubscription: Subscription | null = null;
   routeSubscription: Subscription | null = null;
   currentUserId: string | null = null;
-  focusUserLastSeenTimestampMessage:number
-  scope:string
-  mode:string
-  previousBalance:string
-  previousTimestamp:string
+  focusUserLastSeenTimestampMessage = 0
+  scope!: string
+  mode!: string
+  previousBalance = ''
+  previousTimestamp = ''
   activeChatId: string | null = null;
-  previousIndex:string
-  previousPurchaseCOINAmountCummulate:number
-  previousContractAmountCummulate:number
-  previousAmountInterestCummulate:number
-  previousAmountTransactionCummulate:number
-  math:any
-  messageNumberDisplay:number
-  showAllEvents:boolean
-  chartOptions:AgChartOptions
-  forecastChartOptions:AgChartOptions
+  previousIndex = ''
+  previousPurchaseCOINAmountCummulate = 0
+  previousContractAmountCummulate = 0
+  previousAmountInterestCummulate = 0
+  previousAmountTransactionCummulate = 0
+  math: any = Math
+  messageNumberDisplay = 0
+  showAllEvents = false
+  chartOptions!: AgChartOptions
+  forecastChartOptions!: AgChartOptions
   private pendingLoadMoreScroll = false;
 
   constructor(
@@ -636,7 +625,7 @@ export class ProfileComponent {
       return;
     }
     this.lastSeenSubscription = this.afs.collection<any>(`lastSeen/${userId}/chats`).snapshotChanges().subscribe(snaps => {
-      const mapByChain = {};
+      const mapByChain: Record<string, number> = {};
       snaps.forEach(snap => {
         const data = snap.payload.doc.data() || {};
         const timestampMessage = this.toMillis(data['serverTimestamp']);
@@ -756,7 +745,7 @@ export class ProfileComponent {
     this.router.navigate(['chat',ID])
   }
 
-  storeMessageValues(message) {
+  storeMessageValues(message: any) {
     this.previousBalance=((message.wallet||{}).balance)||0
     this.previousTimestamp=message.verifiedTimestamp
     this.previousIndex=message.userChain.index
@@ -779,7 +768,7 @@ export class ProfileComponent {
   }
 
   openListedChat(chain: string, messageKey?: string) {
-    if (!this.UI.isCurrentUserMember || !chain) return;
+    if (!chain) return;
     // readFlagClick removed: lastSeen is now updated only on reload/refresh
     if (messageKey) {
       this.router.navigate(['chat', chain], { queryParams: { scroll: messageKey } });
@@ -796,7 +785,7 @@ export class ProfileComponent {
   }
 
   openCarouselImage(imageUrl: string) {
-    if (!this.UI.isCurrentUserMember || !imageUrl) return
+    if (!imageUrl) return
     this.UI.showFullScreenImage(imageUrl)
   }
 

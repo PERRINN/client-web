@@ -65,10 +65,9 @@ import { map, tap, take } from 'rxjs/operators';
         </div>
         <button *ngIf="eventLocation"
           class="buttonPrimary chatEventJoinBtn"
-            [disabled]="!UI.isCurrentUserMember || !(((eventDateStart - 300000)/60000 <= UI.nowSeconds/60)&&(eventDateEnd/60000>UI.nowSeconds/60))"
+          [disabled]="!(((eventDateStart - 300000)/60000 <= UI.nowSeconds/60)&&(eventDateEnd/60000>UI.nowSeconds/60))"
           (click)="$event.stopPropagation(); UI.openWindow(eventLocation)">
           <span>Join</span>
-          <span style="margin-left:5px;font-size:16px;line-height:14px" class="material-icons-outlined" *ngIf="!UI.isCurrentUserMember">lock</span>
         </button>
       </div>
     </div>
@@ -422,58 +421,58 @@ export class ChatComponent implements OnDestroy {
   @ViewChild('chatTopBar') chatTopBar!: ElementRef;
   @ViewChild('chatComposer') chatComposer?: ElementRef<HTMLDivElement>;
   @ViewChild('scrollContainer') scrollContainer?: ElementRef<HTMLDivElement>;
-  draftMessage:string
-  imageTimestamp:string
-  imageDownloadUrl:string
-  chatProfileImageTimestamp:string
-  chatProfileImageDownloadUrl:string
-  transactionAmount:number
-  transactionCode:string
-  transactionReference:string
-  transactionUser:string
-  transactionUserName:string
-  messageNumberDisplay:number
-  lastChatVisitTimestamp:number
-  previousMessageServerTimestamp:any
-  previousMessageUser:string
-  messages:Observable<any[]>
-  teams:Observable<any[]>
-  searchFilter:string
-  lastSeenServerTimestampMessage:number
-  lastSeenMessageId:string
-  chatSubject:string
-  chatLastMessageObj:any
-  chatChain:string
-  showChatDetails:boolean
-  math:any
-  eventDateList:any
-  eventDateStart:any
-  eventDateEnd:any
-  eventDescription:string
-  eventDuration:number
-  eventLocation:string
-  fund:any
-  messageOptionsOpenFor:string
-  showMessageJsonModal:boolean
-  selectedMessageJsonFormatted:string
-  showCancelFundModal:boolean
-  showCancelEventModal:boolean
-  lastRead:string
-  showImageGallery:boolean
-  selectedDate: number;
-  selectedTime: number;
-  eventDateListShort: any;
-  eventTimeList: any;
-  testDay: any;
-  dayOfToday: number;
-  dateOfThatDay: Date;
-  dateOfThisDay: Date;
-  midnightOfThatDay: any;
-  midnightOfThisDay: any;
-  theDate: any;
-  eventDescriptionChoice:string;
-  eventDurationChoice:number;
-  eventLocationChoice:string;
+  draftMessage = ''
+  imageTimestamp: string | null = null
+  imageDownloadUrl: string | null = null
+  chatProfileImageTimestamp: string | null = null
+  chatProfileImageDownloadUrl: string | null = null
+  transactionAmount: number | null = null
+  transactionCode: string | null = null
+  transactionReference: string | null = null
+  transactionUser: string | null = null
+  transactionUserName: string | null = null
+  messageNumberDisplay = 0
+  lastChatVisitTimestamp = 0
+  previousMessageServerTimestamp: any = null
+  previousMessageUser = ''
+  messages!: Observable<any[]>
+  teams: Observable<any[]> | null = null
+  searchFilter: string | null = null
+  lastSeenServerTimestampMessage = 0
+  lastSeenMessageId: string | null = null
+  chatSubject = ''
+  chatLastMessageObj: any = null
+  chatChain = ''
+  showChatDetails = false
+  math: any = Math
+  eventDateList: any = null
+  eventDateStart: any = null
+  eventDateEnd: any = null
+  eventDescription = ''
+  eventDuration = 0
+  eventLocation = ''
+  fund: any = null
+  messageOptionsOpenFor: string | null = null
+  showMessageJsonModal = false
+  selectedMessageJsonFormatted = ''
+  showCancelFundModal = false
+  showCancelEventModal = false
+  lastRead: string | null = null
+  showImageGallery = false
+  selectedDate = 0
+  selectedTime = 0
+  eventDateListShort: any = null;
+  eventTimeList: any = null;
+  testDay: any = null;
+  dayOfToday = 0;
+  dateOfThatDay = new Date();
+  dateOfThisDay = new Date();
+  midnightOfThatDay: any = null;
+  midnightOfThisDay: any = null;
+  theDate: any = null;
+  eventDescriptionChoice = '';
+  eventDurationChoice = 0;
+  eventLocationChoice = '';
   googleMeet = "https://meet.google.com/ebp-djfh-aht";
   containerTop = 0;
   containerBottom = 0;
@@ -671,8 +670,8 @@ export class ChatComponent implements OnDestroy {
     this.containerWidth = r.width;
   };
 
-  showImageGalleryClick() {
-    event.stopPropagation()
+  showImageGalleryClick(event?: Event) {
+    event?.stopPropagation()
     this.showImageGallery = !this.showImageGallery
     this.refreshMessages(this.chatLastMessageObj.chain || this.chatChain)
   }
@@ -694,7 +693,7 @@ export class ChatComponent implements OnDestroy {
         this.eventDateListShort[i] = (Math.ceil(this.UI.nowSeconds / 3600) + i / 2) * 3600000;
       }
     }
-    this.eventDateListShort = this.eventDateListShort.filter(item => item !== null && item !== undefined);
+    this.eventDateListShort = this.eventDateListShort.filter((item: any) => item !== null && item !== undefined);
     this.eventDateListShort = [Math.floor(this.UI.nowSeconds / 3600 / 24)*24*3600000, ...this.eventDateListShort];
   }
 
@@ -727,14 +726,14 @@ export class ChatComponent implements OnDestroy {
         this.eventTimeList[j] = (this.eventTimeList[j]).getTime();
       }
     }
-    this.eventTimeList = this.eventTimeList.filter(item => item !== null);
+    this.eventTimeList = this.eventTimeList.filter((item: any) => item !== null);
     //Suppression of every time slot which is too much 'in the past' compared to current time in second dropdown menu
     for (let j=0; j < this.eventTimeList.length; j++) {
       if (this.eventTimeList[j] < this.UI.nowSeconds * 1000 - 5400000) {
         this.eventTimeList[j] = null;
       }
     }
-    this.eventTimeList = this.eventTimeList.filter(item => item !== null);
+    this.eventTimeList = this.eventTimeList.filter((item: any) => item !== null);
   }
 
   selectedDateInit() {
@@ -751,7 +750,7 @@ export class ChatComponent implements OnDestroy {
     }
   }
 
-  refreshMessages(chain) {
+  refreshMessages(chain: string) {
     if (!this.showImageGallery) this.messages = this.afs.collection('PERRINNMessages', ref => ref
       .where('chain', '==', chain)
       .orderBy('serverTimestamp', 'desc')
@@ -761,17 +760,18 @@ export class ChatComponent implements OnDestroy {
       this.isLoadMoreDisabled = changes.length < this.messageNumberDisplay;
       this.updateLastReadDivider(changes)
       changes.forEach(c => {
-        if (c.payload.doc.data()['lastMessage']) {
-          this.saveLastSeen(chain, c.payload.doc.id, c.payload.doc.data()['serverTimestamp'])
-          this.chatLastMessageObj = c.payload.doc.data()
-          this.chatSubject = c.payload.doc.data()['chatSubject']
-          this.eventDescription = c.payload.doc.data()['eventDescription']
-          this.eventDateStart = c.payload.doc.data()['eventDateStart']
-          this.eventDateEnd = c.payload.doc.data()['eventDateEnd']
-          this.eventDuration = c.payload.doc.data()['eventDuration'] || this.eventDuration
+        const row = c.payload.doc.data() as any;
+        if (row['lastMessage']) {
+          this.saveLastSeen(chain, c.payload.doc.id, row['serverTimestamp'])
+          this.chatLastMessageObj = row
+          this.chatSubject = row['chatSubject']
+          this.eventDescription = row['eventDescription']
+          this.eventDateStart = row['eventDateStart']
+          this.eventDateEnd = row['eventDateEnd']
+          this.eventDuration = row['eventDuration'] || this.eventDuration
           if (this.eventDuration != null) this.eventDuration = Math.round(this.eventDuration * 100) / 100;
-          this.eventLocation = c.payload.doc.data()['eventLocation'] || this.eventLocation
-          this.fund = c.payload.doc.data()['fund'] || this.fund
+          this.eventLocation = row['eventLocation'] || this.eventLocation
+          this.fund = row['fund'] || this.fund
           if (this.fund) {
             if (this.fund.amountGBPTarget != null) this.fund.amountGBPTarget = Math.round(this.fund.amountGBPTarget * 100) / 100;
             if (this.fund.amountGBPTarget < 0.01) this.fund.daysLeft = 0;
@@ -818,14 +818,15 @@ export class ChatComponent implements OnDestroy {
       this.isLoadMoreDisabled = changes.length < this.messageNumberDisplay;
       this.updateLastReadDivider(changes)
       changes.forEach(c => {
-        if (c.payload.doc.data()['lastMessage']) {
-          this.chatLastMessageObj = c.payload.doc.data()
-          this.chatSubject = c.payload.doc.data()['chatSubject']
-          this.eventDescription = c.payload.doc.data()['eventDescription']
-          this.eventDateStart = c.payload.doc.data()['eventDateStart']
-          this.eventDuration = c.payload.doc.data()['eventDuration'] || this.eventDuration
-          this.eventLocation = c.payload.doc.data()['eventLocation'] || this.eventLocation
-          this.fund = c.payload.doc.data()['fund'] || this.fund
+        const row = c.payload.doc.data() as any;
+        if (row['lastMessage']) {
+          this.chatLastMessageObj = row
+          this.chatSubject = row['chatSubject']
+          this.eventDescription = row['eventDescription']
+          this.eventDateStart = row['eventDateStart']
+          this.eventDuration = row['eventDuration'] || this.eventDuration
+          this.eventLocation = row['eventLocation'] || this.eventLocation
+          this.fund = row['fund'] || this.fund
           this.selectedDateInit();
           this.eventTimeListInit();
         }
@@ -855,7 +856,7 @@ export class ChatComponent implements OnDestroy {
     return isMessageNewUserGroup
   }
 
-  storeMessageValues(message) {
+  storeMessageValues(message: any) {
     this.previousMessageUser = message.user
     this.previousMessageServerTimestamp = message.serverTimestamp || { seconds: this.UI.nowSeconds * 1000 }
   }
@@ -1040,8 +1041,7 @@ export class ChatComponent implements OnDestroy {
   canSendTransactionOut(): boolean {
     const amount = this.getTransferAmountValue();
     const balance = this.getTransferBalanceValue();
-    return !!this.UI.isCurrentUserMember
-      && amount > 0
+    return amount > 0
       && amount <= balance
       && this.hasSelectedTransferRecipient()
       && this.hasTransactionReference();
@@ -1050,8 +1050,7 @@ export class ChatComponent implements OnDestroy {
   canCreatePendingTransaction(): boolean {
     const amount = this.getTransferAmountValue();
     const balance = this.getTransferBalanceValue();
-    return !!this.UI.isCurrentUserMember
-      && amount > 0
+    return amount > 0
       && amount <= balance
       && !this.hasSelectedTransferRecipient()
       && this.hasTransactionReference();
@@ -1076,15 +1075,16 @@ export class ChatComponent implements OnDestroy {
     }
   }
 
-  createTransactionOut(transactionAmount, transactionCode, transactionUser, transactionUserName, transactionReference) {
+  createTransactionOut(transactionAmount: number | null, transactionCode: string | null, transactionUser: string | null, transactionUserName: string | null, transactionReference: string | null) {
     if (!this.canSendTransactionOut()) return;
+    const amount = Number(transactionAmount || 0);
     const cleanReference = String(transactionReference || '').trim();
     this.UI.createMessage({
-      text: 'sending ' + ((((this.UI.PERRINNAdminLastMessageObj||{}).currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).symbol||'') + transactionAmount + ' to ' + transactionUserName + ((transactionCode || null) ? ' using code ' : '') + ((transactionCode || null) ? transactionCode : '') + ' (Reference: ' + cleanReference + ')',
+      text: 'sending ' + ((((this.UI.PERRINNAdminLastMessageObj||{}).currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).symbol||'') + amount + ' to ' + transactionUserName + ((transactionCode || null) ? ' using code ' : '') + ((transactionCode || null) ? transactionCode : '') + ' (Reference: ' + cleanReference + ')',
       chain: this.chatLastMessageObj.chain || this.chatChain,
       transactionOut: {
         user: transactionUser,
-        amount: transactionAmount * ((((this.UI.PERRINNAdminLastMessageObj||{}).currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).toCOIN||0),
+        amount: amount * ((((this.UI.PERRINNAdminLastMessageObj||{}).currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).toCOIN||0),
         code: transactionCode || null,
         reference: cleanReference || null
       }
@@ -1092,14 +1092,15 @@ export class ChatComponent implements OnDestroy {
     this.resetChat()
   }
 
-  createTransactionPending(transactionAmount, transactionCode, transactionUser, transactionUserName, transactionReference) {
+  createTransactionPending(transactionAmount: number | null, transactionCode: string | null, transactionUser: string | null, transactionUserName: string | null, transactionReference: string | null) {
     if (!this.canCreatePendingTransaction()) return;
+    const amount = Number(transactionAmount || 0);
     const cleanReference = String(transactionReference || '').trim();
     this.UI.createMessage({
-      text: 'creating a pending transaction of ' + ((((this.UI.PERRINNAdminLastMessageObj||{}).currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).symbol||'') + transactionAmount + ((transactionCode || null) ? ' using code ' : '') + ((transactionCode || null) ? transactionCode : '') + ' (Reference: ' + cleanReference + ')',
+      text: 'creating a pending transaction of ' + ((((this.UI.PERRINNAdminLastMessageObj||{}).currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).symbol||'') + amount + ((transactionCode || null) ? ' using code ' : '') + ((transactionCode || null) ? transactionCode : '') + ' (Reference: ' + cleanReference + ')',
       chain: this.chatLastMessageObj.chain || this.chatChain,
       transactionPending: {
-        amount: transactionAmount * ((((this.UI.PERRINNAdminLastMessageObj||{}).currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).toCOIN||0),
+        amount: amount * ((((this.UI.PERRINNAdminLastMessageObj||{}).currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).toCOIN||0),
         code: transactionCode || null,
         reference: cleanReference || null
       }
@@ -1185,21 +1186,29 @@ export class ChatComponent implements OnDestroy {
     const task = storageRef.put(image)
 
     task.snapshotChanges().subscribe((snapshot) => {
-      document.getElementById('buttonFile').style.visibility = 'hidden'
-      document.getElementById('uploader').style.visibility = 'visible'
+      const buttonFile = document.getElementById('buttonFile');
+      const uploaderElement = document.getElementById('uploader');
+      if (buttonFile) buttonFile.style.visibility = 'hidden'
+      if (uploaderElement) uploaderElement.style.visibility = 'visible'
 
-      const percentage = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-      uploader.value = percentage.toString()
+      if (snapshot) {
+        const percentage = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+        uploader.value = percentage.toString()
+      }
     },
       (err: any) => {
-        document.getElementById('buttonFile').style.visibility = 'visible'
-        document.getElementById('uploader').style.visibility = 'hidden'
+        const buttonFile = document.getElementById('buttonFile');
+        const uploaderElement = document.getElementById('uploader');
+        if (buttonFile) buttonFile.style.visibility = 'visible'
+        if (uploaderElement) uploaderElement.style.visibility = 'hidden'
         uploader.value = '0'
       },
       () => {
         uploader.value = '0'
-        document.getElementById('buttonFile').style.visibility = 'visible'
-        document.getElementById('uploader').style.visibility = 'hidden'
+        const buttonFile = document.getElementById('buttonFile');
+        const uploaderElement = document.getElementById('uploader');
+        if (buttonFile) buttonFile.style.visibility = 'visible'
+        if (uploaderElement) uploaderElement.style.visibility = 'hidden'
         this.imageTimestamp = task.task.snapshot.ref.name.substring(0, 13)
         storageRef.getDownloadURL().subscribe(url => {
           this.imageDownloadUrl = url
@@ -1231,12 +1240,13 @@ export class ChatComponent implements OnDestroy {
 
   refreshSearchLists() {
     if (this.searchFilter) {
+      const searchLower = this.searchFilter.toLowerCase();
       if (this.searchFilter.length > 1) {
         this.teams = this.afs.collection('PERRINNMessages', ref => ref
           .where('userChain.nextMessage', '==', 'none')
           .where('verified', '==', true)
-          .where('nameLowerCase', '>=', this.searchFilter.toLowerCase())
-          .where('nameLowerCase', '<=', this.searchFilter.toLowerCase() + '\uf8ff')
+          .where('nameLowerCase', '>=', searchLower)
+          .where('nameLowerCase', '<=', searchLower + '\uf8ff')
           .orderBy('nameLowerCase')
           .limit(20))
           .snapshotChanges().pipe(map(changes => {
