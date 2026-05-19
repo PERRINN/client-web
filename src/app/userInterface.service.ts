@@ -1,7 +1,7 @@
 import { Injectable }    from '@angular/core'
 import { AngularFireAuth } from '@angular/fire/compat/auth'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
-import { Observable, Subject } from 'rxjs'
+import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
 import firebase from 'firebase/compat/app'
 import { formatNumber } from '@angular/common'
@@ -27,7 +27,6 @@ export class UserInterfaceService {
   isCurrentUserMember = false
   public isDev = false
   public revolutMode: 'sandbox' | 'prod' = 'sandbox'
-  public sidePanelWidthChanged: Subject<void> = new Subject<void>()
   private authenticatedUser: string | null = null
   private authenticatedUserEmail: string | null = null
   private profileUserId: string

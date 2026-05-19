@@ -2777,8 +2777,8 @@ app-root chat .cancelEventModalBtn {
 
 @media (min-width: 900px) {
   .contentWrapFullWidth {
-    width: calc(100vw - var(--side-width-pct) - 16px) !important;
-    margin-left: calc(var(--side-width-pct) - 16px) !important;
+    width: calc(70% - 8px) !important;
+    margin-left: calc(30% - 8px) !important;
     margin-right: 0 !important;
   }
 
@@ -2787,8 +2787,8 @@ app-root chat .cancelEventModalBtn {
     position: fixed;
     top: 88px;
     left: 16px;
-    width: calc(var(--side-width-pct) - 16px);
-    height: calc(100vh - 111px);
+    width: calc(30% - 16px);
+    height: calc(100vh - 104px);
     overflow-y: auto;
     border: 1px solid rgba(16, 185, 129, 0.12);
     border-right: 3px solid rgba(16, 185, 129, 0.25);
@@ -2796,20 +2796,6 @@ app-root chat .cancelEventModalBtn {
     z-index: 10;
     background-color: #1e293b;
     animation: fadeIn 0.4s ease-in-out;
-  }
-
-  .sideResizer {
-    position: fixed;
-    top: 88px;
-    bottom: 24px;
-    width: 12px;
-    left: calc(var(--side-width-pct) - 6px);
-    cursor: col-resize;
-    z-index: 100;
-    background: transparent;
-  }
-  .sideResizer:hover {
-    background: rgba(16, 185, 129, 0.05);
   }
 
   .contentWrapFullWidth .contentCard {
