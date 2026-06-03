@@ -17,7 +17,7 @@ import { ChangeDetectorRef } from '@angular/core'
   <div class="profileModern">
   <div class="profileContainer">
 
-  <div class="island" *ngIf="UI.currentUserLastMessageObj&&!UI.currentUserLastMessageObj?.isImageUserUpdated"
+  <div class="island" *ngIf="UI.currentUserLastMessageObj && !UI.currentUserLastMessageObj?.isImageUserUpdated && !sidePanelScope"
         style="background-color:rgb(255, 251, 221); color: #333; cursor:pointer"
         (click)="router.navigate(['settings'])">
       Add a profile picture.
@@ -212,7 +212,7 @@ import { ChangeDetectorRef } from '@angular/core'
       </ul>
         </div>
 
-        <div class="island nonMemberIsland profile-banner-item" *ngIf="!UI.isCurrentUserMember">
+        <div class="island nonMemberIsland profile-banner-item" *ngIf="!UI.isCurrentUserMember && !sidePanelScope">
           <button class="buttonPrimary nonMemberIslandButton" (click)="router.navigate(['buyPRN'])">Buy PRN Tokens</button>
           <div class="nonMemberIslandFooter">Join the team today.</div>
           <div class="nonMemberIslandHelper">Interested to join but have some questions first? <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" rel="noopener noreferrer">Join our WhatsApp community</a> and speak directly to Nico there.</div>
