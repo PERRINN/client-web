@@ -857,7 +857,7 @@ app-root buyprn .listLight li:hover {
 app-root buyprn .fundCard:hover {
   background: rgba(16, 185, 129, 0.08) !important;
   border-color: rgba(16, 185, 129, 0.3) !important;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+  box-shadow: none !important;
 }
 
 app-root buyprn .buyWrap {
