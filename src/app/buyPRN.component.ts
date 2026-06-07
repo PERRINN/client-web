@@ -727,7 +727,7 @@ export class buyPRNComponent implements OnInit, OnDestroy {
     return obj ? Object.entries(obj) : [];
   }
 
-  activateTransactionPending(transactionPendingMessage: string): void {
+  activateTransactionPending(transactionPendingMessage: string | null): void {
     if (!transactionPendingMessage) {
       console.error("No transaction message provided");
       return;
