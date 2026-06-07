@@ -1246,6 +1246,11 @@ app-root settings .listLight {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  justify-content: center;
+}
+
+app-root settings .listLight li {
+  width: 125px;
 }
 
 app-root settings .settingsSection div:is([style*='margin:20px'], [style*='margin:15px'], [style*='margin:10px']) {
@@ -1256,6 +1261,10 @@ app-root settings .settingsSection div:is([style*='margin:20px'], [style*='margi
 @media (max-width: 760px) {
   app-root settings .settingsUploadBtn {
     width: 100%;
+  }
+  app-root settings .listLight {
+    flex-direction: column;
+    align-items: center;
   }
 }
 

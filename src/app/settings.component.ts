@@ -66,7 +66,6 @@ import firebase from 'firebase/compat/app';
           <li class="buttonBlack" *ngFor="let currency of objectToArray(UI.PERRINNAdminLastMessageObj?.currencyList)"
             (click)="UI.currentUserLastMessageObj?.userCurrency==currency[0]?'':updateUserCurrency(currency[0])"
             [class.activeCurrency]="UI.currentUserLastMessageObj?.userCurrency==currency[0]"
-            style="float:left;width:125px;padding:5px;margin:5px"
             [style.pointer-events]="UI.currentUserLastMessageObj?.userCurrency==currency[0]?'none':'auto'">
             {{currency[1].designation}}
           </li>
