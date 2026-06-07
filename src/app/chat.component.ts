@@ -236,8 +236,8 @@ import { map, tap, take } from 'rxjs/operators';
 
           <div class="chatFundEditorRow">
             <div class="chatFundEditorField">
-              <div class="chatEventEditorFieldLabel">Amount target (GBP)</div>
-              <input class="chatFundEditorInput" type="text" inputmode="decimal" maxlength="10" [(ngModel)]="fund.amountGBPTarget" (input)="fund.amountGBPTarget = sanitizeNumberInput($event)" placeholder="Amount target" (keydown)="validateNumberInput($event)">
+              <div class="chatEventEditorFieldLabel">Amount target ({{((UI.PERRINNAdminLastMessageObj?.currencyList||{})[UI.currentUserLastMessageObj.userCurrency]||{}).designation||'GBP'}})</div>
+              <input class="chatFundEditorInput" type="text" inputmode="decimal" maxlength="10" [(ngModel)]="fundAmountUserCurrency" (input)="onFundAmountUserCurrencyInput($event)" placeholder="Amount target" (keydown)="validateNumberInput($event)">
             </div>
             <div class="chatFundEditorField">
               <div class="chatEventEditorFieldLabel">Days left</div>
@@ -454,6 +454,7 @@ export class ChatComponent implements OnDestroy {
   eventDuration = 0
   eventLocation = ''
   fund: any = null
+  fundAmountUserCurrency: any = null;
   messageOptionsOpenFor: string | null = null
   showMessageJsonModal = false
   selectedMessageJsonFormatted = ''
@@ -538,6 +539,7 @@ export class ChatComponent implements OnDestroy {
           amountGBPTarget: 0,
           daysLeft: 0
         }
+        this.fundAmountUserCurrency = 0;
         this.loadLastSeen(params.id).then(() => this.refreshMessages(params.id))
         this.refresheventDateList()
       })
@@ -780,6 +782,7 @@ export class ChatComponent implements OnDestroy {
             if (this.fund.daysLeft < 0) this.fund.daysLeft = 0;
             if (this.fund.daysLeft != null) this.fund.daysLeft = Math.round(this.fund.daysLeft);
           }
+          this.updateFundAmountUserCurrency();
           this.selectedDateInit();
           this.eventTimeListInit();
         }
@@ -829,6 +832,7 @@ export class ChatComponent implements OnDestroy {
           this.eventDuration = row['eventDuration'] || this.eventDuration
           this.eventLocation = row['eventLocation'] || this.eventLocation
           if (row['fund']) this.fund = JSON.parse(JSON.stringify(row['fund']));
+          this.updateFundAmountUserCurrency();
           this.selectedDateInit();
           this.eventTimeListInit();
         }
@@ -1147,6 +1151,24 @@ export class ChatComponent implements OnDestroy {
     this.resetChat()
   }
 
+  onFundAmountUserCurrencyInput(event: any) {
+    this.fundAmountUserCurrency = this.sanitizeNumberInput(event);
+    const currencyList = this.UI.PERRINNAdminLastMessageObj?.currencyList || {};
+    const gbpToCoin = (currencyList['gbp'] || {}).toCOIN || 1;
+    const userCurrency = this.UI.currentUserLastMessageObj?.userCurrency || 'gbp';
+    const userToCoin = (currencyList[userCurrency] || {}).toCOIN || 1;
+    this.fund.amountGBPTarget = Math.round(((Number(this.fundAmountUserCurrency) * userToCoin) / gbpToCoin) * 100) / 100;
+  }
+
+  private updateFundAmountUserCurrency() {
+    if (!this.fund) return;
+    const currencyList = this.UI.PERRINNAdminLastMessageObj?.currencyList || {};
+    const gbpToCoin = (currencyList['gbp'] || {}).toCOIN || 1;
+    const userCurrency = this.UI.currentUserLastMessageObj?.userCurrency || 'gbp';
+    const userToCoin = (currencyList[userCurrency] || {}).toCOIN || 1;
+    this.fundAmountUserCurrency = Math.round((this.fund.amountGBPTarget * gbpToCoin / userToCoin) * 100) / 100;
+  }
+
   addMessage() {
     this.UI.createMessage({
       text: this.draftMessage,
@@ -1276,6 +1298,7 @@ export class ChatComponent implements OnDestroy {
     this.transactionReference = null
     this.transactionUser = null
     this.transactionUserName = null
+    this.fundAmountUserCurrency = null
     this.showChatDetails = false
     this.messageOptionsOpenFor = null
     this.showMessageJsonModal = false
