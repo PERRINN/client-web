@@ -840,6 +840,26 @@ app-root buyprn button.buttonPrimary {
   box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
 }
 
+app-root buyprn .fundCard {
+  cursor: pointer;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(16, 185, 129, 0.1);
+  margin-bottom: 10px;
+  background: rgba(16, 185, 129, 0.03);
+  transition: all 0.2s ease;
+}
+
+app-root buyprn .listLight li:hover {
+  background-color: transparent;
+}
+
+app-root buyprn .fundCard:hover {
+  background: rgba(16, 185, 129, 0.08) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
 app-root buyprn .buyWrap {
   max-width: 500px;
   margin: 0 auto;
