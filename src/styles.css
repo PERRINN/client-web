@@ -2820,10 +2820,11 @@ app-root chat .cancelEventModalBtn {
     padding-bottom: 10px !important;
   }
 
-  app-root profile .activeChatListItem {
-    background: rgba(16, 185, 129, 0.12) !important;
-    border-color: #10b981 !important;
-    box-shadow: 0 0 12px rgba(16, 185, 129, 0.2) !important;
+  app-root profile .listLight li.activeChatListItem {
+    background: rgba(16, 185, 129, 0.22) !important;
+    box-shadow: inset 6px 0 0 0 #10b981, 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+    border: none !important;
+    transition: all 0.2s ease-in-out;
   }
 }
 
