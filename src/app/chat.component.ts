@@ -112,7 +112,7 @@ import { map, tap, take } from 'rxjs/operators';
       <div class="island chatTransferSection">
         <div class="chatTransferHero">
           <div class="chatTransferTitle">Send PRN</div>
-          <div class="chatTransferSubtitle">{{((UI.PERRINNAdminLastMessageObj?.currencyList||{})[UI.currentUserLastMessageObj.userCurrency]||{}).designation}} transfer to a chat member</div>
+          <div class="chatTransferSubtitle">{{((UI.PERRINNAdminLastMessageObj?.currencyList||{})[UI.currentUserLastMessageObj?.userCurrency || 'usd']||{}).designation}} transfer to a chat member</div>
         </div>
 
         <div class="chatTransferBody">
@@ -137,10 +137,10 @@ import { map, tap, take } from 'rxjs/operators';
 
           <div class="chatTransferActions">
             <button class="buttonPrimary chatTransferBtn" (click)="createTransactionOut(transactionAmount,transactionCode,transactionUser,transactionUserName,transactionReference)" [disabled]="!canSendTransactionOut()">
-              Send {{UI.convertAndFormatPRNToPRNCurrency(null,transactionAmount*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).toCOIN||0))}} to {{transactionUserName || '...'}}
+              Send {{UI.convertAndFormatPRNToPRNCurrency(null,(transactionAmount||0)*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})[UI.currentUserLastMessageObj?.userCurrency || 'usd']||{}).toCOIN||0))}} to {{transactionUserName || '...'}}
             </button>
             <button class="buttonPrimary chatTransferBtn" (click)="createTransactionPending(transactionAmount,transactionCode,null,null,transactionReference)" [disabled]="!canCreatePendingTransaction()">
-              Create pending transaction of {{UI.convertAndFormatPRNToPRNCurrency(null,transactionAmount*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})[this.UI.currentUserLastMessageObj.userCurrency]||{}).toCOIN||0))}}
+              Create pending transaction of {{UI.convertAndFormatPRNToPRNCurrency(null,(transactionAmount||0)*(((UI.PERRINNAdminLastMessageObj?.currencyList||{})[UI.currentUserLastMessageObj?.userCurrency || 'usd']||{}).toCOIN||0))}}
             </button>
           </div>
         </div>
@@ -236,7 +236,7 @@ import { map, tap, take } from 'rxjs/operators';
 
           <div class="chatFundEditorRow">
             <div class="chatFundEditorField">
-              <div class="chatEventEditorFieldLabel">Amount target ({{((UI.PERRINNAdminLastMessageObj?.currencyList||{})[UI.currentUserLastMessageObj.userCurrency]||{}).designation||'GBP'}})</div>
+              <div class="chatEventEditorFieldLabel">Amount target ({{((UI.PERRINNAdminLastMessageObj?.currencyList||{})[UI.currentUserLastMessageObj?.userCurrency || 'usd']||{}).designation||'GBP'}})</div>
               <input class="chatFundEditorInput" type="text" inputmode="decimal" maxlength="10" [(ngModel)]="fundAmountUserCurrency" (input)="onFundAmountUserCurrencyInput($event)" placeholder="Amount target" (keydown)="validateNumberInput($event)">
             </div>
             <div class="chatFundEditorField">
