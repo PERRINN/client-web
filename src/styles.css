@@ -1998,7 +1998,7 @@ app-root chat .chatEventEditorFieldLabel {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin: 0 0 4px 2px;
+  margin: 12px 0 2px 2px;
 }
 
 app-root chat .chatEventEditorSelectDate,
