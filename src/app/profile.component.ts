@@ -107,7 +107,7 @@ import { ChangeDetectorRef } from '@angular/core'
 
           <li class="guardedChatItem eventListItem" *ngFor="let message of events; let i = index"
             [style.display]="showAllEvents || i===0 ? 'block' : 'none'"
-            (click)="openListedChat(message.payload.doc.data()?.chain, null)">
+            (click)="openListedChat(message.payload.doc.data()?.chain)">
             <div *ngIf="scope=='all'||mode=='inbox'" class="guardedChatItem eventCardBody">
               <div class="eventCardHeader">
                 <div class="eventCardMedia">
@@ -166,7 +166,7 @@ import { ChangeDetectorRef } from '@angular/core'
         <div class="profile-funds-item" *ngIf="!sidePanelScope">
       <ul class="listLight">
         <li class="guardedChatItem fundListItem" *ngFor="let message of currentFunds|async;let first=first;let last=last"
-          (click)="openListedChat(message.payload.doc.data()?.chain, null)">
+          (click)="openListedChat(message.payload.doc.data()?.chain)">
           <div *ngIf="scope=='all'||mode=='inbox'">
             <div class="guardedChatItem fundCardBody" style="padding:8px; border-radius: 10px; background: rgba(16, 185, 129, 0.05);">
               <div style="display:flex; align-items:center; gap:6px; margin-bottom:5px;">
@@ -235,7 +235,7 @@ import { ChangeDetectorRef } from '@angular/core'
       <ul class="listLight">
         <li *ngFor="let message of messages|async;let first=first;let last=last" class="guardedChatItem" style="position:relative;"
           [class.activeChatListItem]="activeChatId === message.payload.doc.data()?.chain"
-          (click)="openListedChat(message.payload.doc.data()?.chain, null)">
+          (click)="openListedChat(message.payload.doc.data()?.chain)">
           <div *ngIf="scope=='all'||mode=='inbox'">
             <div *ngIf="UI.currentUser && (UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds && !isMessageSeen(message.payload.doc.data()?.chain,message.payload.doc.data()?.serverTimestamp)"
               style="position:absolute;top:8px;right:8px;width:22px;height:14px;line-height:14px;text-align:center;border-radius:4px;"
@@ -351,10 +351,10 @@ export class ProfileComponent {
   focusUserLastSeenTimestampMessage = 0
   scope!: string
   mode!: string
-  previousBalance = ''
-  previousTimestamp = ''
+  previousBalance: any = 0
+  previousTimestamp: any = { seconds: 0 }
   activeChatId: string | null = null;
-  previousIndex = ''
+  previousIndex: any = 0
   previousPurchaseCOINAmountCummulate = 0
   previousContractAmountCummulate = 0
   previousAmountInterestCummulate = 0
