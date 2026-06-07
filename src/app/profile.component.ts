@@ -82,14 +82,18 @@ import { ChangeDetectorRef } from '@angular/core'
 
     <div class="modeSwitchWrap" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; align-items:center;">
       <div class="modeSwitchTrack" style="display:inline-flex; padding:4px; background:rgba(15,23,42,0.75); border:1px solid rgba(16,185,129,0.2); gap:4px; flex-wrap:wrap;">
-        <button class="buttonBlack modeSwitchBtn" style="border:none;" [style.background-color]="mode=='inbox'?'#10b981':'transparent'" [style.color]="mode=='inbox'?'#ffffff':'#cbd5e1'" (click)="mode='inbox';refreshMessages()">Inbox</button>
-        <button class="buttonBlack modeSwitchBtn" style="border:none;" [style.background-color]="mode=='history'?'#10b981':'transparent'" [style.color]="mode=='history'?'#ffffff':'#cbd5e1'" (click)="mode='history';refreshMessages();refreshChart()">History</button>
-        <button class="buttonBlack modeSwitchBtn" style="border:none;" [style.background-color]="mode=='chain'?'#10b981':'transparent'" [style.color]="mode=='chain'?'#ffffff':'#cbd5e1'" (click)="mode='chain';refreshMessages()">Chain</button>
-        <button class="buttonBlack modeSwitchBtn" style="border:none;" [style.background-color]="mode=='forecast'?'#10b981':'transparent'" [style.color]="mode=='forecast'?'#ffffff':'#cbd5e1'" (click)="mode='forecast';refreshMessages();refreshForecastChart()">Forecast</button>
+        <button [class.buttonPrimary]="mode=='inbox'" [class.buttonBlack]="mode!='inbox'" class="modeSwitchBtn" style="border:none;" (click)="mode='inbox';refreshMessages()">Inbox</button>
+        <button [class.buttonPrimary]="mode=='history'" [class.buttonBlack]="mode!='history'" class="modeSwitchBtn" style="border:none;" (click)="mode='history';refreshMessages();refreshChart()">History</button>
+        <button [class.buttonPrimary]="mode=='chain'" [class.buttonBlack]="mode!='chain'" class="modeSwitchBtn" style="border:none;" (click)="mode='chain';refreshMessages()">Chain</button>
+        <button [class.buttonPrimary]="mode=='forecast'" [class.buttonBlack]="mode!='forecast'" class="modeSwitchBtn" style="border:none;" (click)="mode='forecast';refreshMessages();refreshForecastChart()">Forecast</button>
       </div>
     </div>
 
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:8px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:16px; margin-bottom:4px;">
+      <button class="buttonSecondary" *ngIf="UI.currentUser && focusUserLastMessageObj?.user && focusUserLastMessageObj?.user != UI.currentUser" style="display:inline-flex; align-items:center; gap:6px;" (click)="newMessageToUser()">
+        <span class="material-icons" style="font-size:16px;">chat</span>
+        New message to {{focusUserLastMessageObj?.name}}
+      </button>
       <button class="buttonBlack" *ngIf="focusUserLastMessageObj?.user==UI.currentUser" style="margin-left:auto; display:inline-flex; align-items:center; gap:6px;" (click)="router.navigate(['settings'])">
         <span class="material-icons" style="font-size:16px;">settings</span>
         Settings

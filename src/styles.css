@@ -597,7 +597,7 @@ app-root .buttonSecondary {
 app-root .buttonPrimary {
   border: none;
   color: #ffffff;
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  background: #10b981;
   box-shadow: 0 6px 18px rgba(16, 185, 129, 0.28);
 }
 
