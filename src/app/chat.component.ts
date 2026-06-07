@@ -246,8 +246,8 @@ import { map, tap, take } from 'rxjs/operators';
           </div>
 
           <div class="chatFundEditorActions">
-            <button class="buttonPrimary chatFundEditorBtn" (click)="saveFund()" [disabled]="!fund.description?.trim() || !fund.amountGBPTarget || !fund.daysLeft || (fund.description == chatLastMessageObj?.fund?.description && fund.amountGBPTarget == chatLastMessageObj?.fund?.amountGBPTarget && fund.daysLeft == chatLastMessageObj?.fund?.daysLeft)">Save fund</button>
-            <button class="buttonRed chatFundEditorBtn" (click)="openCancelFundModal()" [disabled]="!(chatLastMessageObj?.fund?.amountGBPTarget >= 0.01 && chatLastMessageObj?.fund?.daysLeft > 0)">Cancel fund</button>
+            <button class="buttonPrimary chatFundEditorBtn" (click)="saveFund()" [disabled]="!fund.description?.trim() || (fund.amountGBPTarget || 0) < 0.01 || (fund.daysLeft || 0) < 1 || (fund.description == (chatLastMessageObj?.fund?.description || '') && fund.amountGBPTarget == (chatLastMessageObj?.fund?.amountGBPTarget || 0) && fund.daysLeft == (chatLastMessageObj?.fund?.daysLeft || 0))">Save fund</button>
+            <button class="buttonRed chatFundEditorBtn" (click)="openCancelFundModal()" [disabled]="!((chatLastMessageObj?.fund?.amountGBPTarget || 0) >= 0.01)">Cancel fund</button>
           </div>
         </div>
       </div>
@@ -773,7 +773,7 @@ export class ChatComponent implements OnDestroy {
           this.eventDuration = row['eventDuration'] || this.eventDuration
           if (this.eventDuration != null) this.eventDuration = Math.round(this.eventDuration * 100) / 100;
           this.eventLocation = row['eventLocation'] || this.eventLocation
-          this.fund = row['fund'] || this.fund
+          if (row['fund']) this.fund = JSON.parse(JSON.stringify(row['fund']));
           if (this.fund) {
             if (this.fund.amountGBPTarget != null) this.fund.amountGBPTarget = Math.round(this.fund.amountGBPTarget * 100) / 100;
             if (this.fund.amountGBPTarget < 0.01) this.fund.daysLeft = 0;
@@ -828,7 +828,7 @@ export class ChatComponent implements OnDestroy {
           this.eventDateStart = row['eventDateStart']
           this.eventDuration = row['eventDuration'] || this.eventDuration
           this.eventLocation = row['eventLocation'] || this.eventLocation
-          this.fund = row['fund'] || this.fund
+          if (row['fund']) this.fund = JSON.parse(JSON.stringify(row['fund']));
           this.selectedDateInit();
           this.eventTimeListInit();
         }
