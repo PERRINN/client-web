@@ -330,7 +330,7 @@ import { ChangeDetectorRef } from '@angular/core'
         <div class="bounce2"></div>
         <div class="bounce3"></div>
       </div>
-      <div class="island">
+      <div class="island" style="margin-bottom:0">
         <button class="buttonPrimary" *ngIf="(!UI.loading && !['forecast', 'history'].includes(mode)) || scope=='all'" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</button>
       </div>
     </div>

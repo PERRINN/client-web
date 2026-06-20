@@ -781,7 +781,7 @@ app-root chat .chatPage .island {
 
 app-root profile .profileModern {
   background: #02030a !important;
-  padding-bottom: 24px;
+  padding-bottom: 8px;
 }
 
 app-root profile .profileContainer {
@@ -1293,7 +1293,7 @@ app-root profile {
   background-image: none;
   min-height: 100vh;
   min-height: 100dvh;
-  padding: 0 0 calc(60px + env(safe-area-inset-bottom, 0px)) 0;
+  padding: 0 0 calc(20px + env(safe-area-inset-bottom, 0px)) 0;
   box-sizing: border-box;
 }
 
@@ -2806,7 +2806,7 @@ app-root chat .cancelEventModalBtn {
 
 @media (min-width: 900px) {
   :root {
-    --side-panel-width: 30%;
+    --side-panel-width: 30vw;
   }
 
   .contentWrapFullWidth {
