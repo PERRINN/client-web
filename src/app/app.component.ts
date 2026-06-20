@@ -58,6 +58,9 @@ import { filter, interval } from 'rxjs';
       <div class="sideProfile" *ngIf="router.url.startsWith('/chat/')">
         <profile [sidePanelScope]="'all'"></profile>
       </div>
+      <div class="side-divider" [class.dragging]="isDragging" *ngIf="router.url.startsWith('/chat/')" (mousedown)="startDragging($event)">
+        <div class="side-divider-line"></div>
+      </div>
       <div id='secondary_container' class="contentWrap" [class.contentWrapFullWidth]="router.url.startsWith('/chat/')">
         <div class="contentCard">
           <router-outlet></router-outlet>
@@ -99,6 +102,35 @@ import { filter, interval } from 'rxjs';
 })
 export class AppComponent {
   showSocialLinksPopup = false;
+  isDragging = false;
+
+  private onMouseMove = (event: MouseEvent) => {
+    if (!this.isDragging) return;
+    const widthPct = (event.clientX / window.innerWidth) * 100;
+    if (widthPct > 15 && widthPct < 60) {
+      document.documentElement.style.setProperty('--side-panel-width', `${widthPct}%`);
+      localStorage.setItem('sidePanelWidth', `${widthPct}%`);
+      window.dispatchEvent(new Event('resize'));
+    }
+  };
+
+  private onMouseUp = () => {
+    if (this.isDragging) {
+      this.isDragging = false;
+      document.body.style.cursor = '';
+      document.removeEventListener('mousemove', this.onMouseMove);
+      document.removeEventListener('mouseup', this.onMouseUp);
+    }
+  };
+
+  startDragging(event: MouseEvent) {
+    if (window.innerWidth < 900) return;
+    this.isDragging = true;
+    document.body.style.cursor = 'col-resize';
+    document.addEventListener('mousemove', this.onMouseMove);
+    document.addEventListener('mouseup', this.onMouseUp);
+    event.preventDefault();
+  }
 
   private cleanupLegacyLocalStorage(): void {
     const legacyKeys = [
@@ -139,6 +171,10 @@ export class AppComponent {
   }
 
   ngOnInit() {
+    const savedWidth = localStorage.getItem('sidePanelWidth');
+    if (savedWidth) {
+      document.documentElement.style.setProperty('--side-panel-width', savedWidth);
+    }
     const uploader = document.getElementById('uploader');
     if (uploader) uploader.style.visibility = 'hidden';
     const fullScreenImage = document.getElementById('fullScreenImage');
