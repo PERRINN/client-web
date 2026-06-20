@@ -108,8 +108,8 @@ export class AppComponent {
     if (!this.isDragging) return;
     const widthPct = (event.clientX / window.innerWidth) * 100;
     if (widthPct > 20 && widthPct < 80) {
-      document.documentElement.style.setProperty('--side-panel-width', `${widthPct}%`);
-      localStorage.setItem('sidePanelWidth', `${widthPct}%`);
+      document.documentElement.style.setProperty('--side-panel-width', `${widthPct}vw`);
+      localStorage.setItem('sidePanelWidth', `${widthPct}vw`);
       window.dispatchEvent(new Event('resize'));
     }
   };

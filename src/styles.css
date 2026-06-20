@@ -2810,8 +2810,8 @@ app-root chat .cancelEventModalBtn {
   }
 
   .contentWrapFullWidth {
-    width: calc(100% - var(--side-panel-width) - 8px) !important;
-    margin-left: calc(var(--side-panel-width) - 8px) !important;
+    width: calc(100vw - var(--side-panel-width) - 16px) !important;
+    margin-left: calc(var(--side-panel-width) - 16px) !important;
     margin-right: 0 !important;
   }
 
@@ -2834,8 +2834,8 @@ app-root chat .cancelEventModalBtn {
     display: block;
     position: fixed;
     top: 88px;
-    left: calc(var(--side-panel-width) - 8px);
-    width: 16px;
+    left: calc(var(--side-panel-width));
+    width: 12px;
     height: calc(100vh - 104px);
     cursor: col-resize;
     z-index: 100;
@@ -2849,7 +2849,7 @@ app-root chat .cancelEventModalBtn {
 
   .side-divider-line {
     position: absolute;
-    left: 8px;
+    left: 0px;
     top: 0;
     width: 2px;
     height: 100%;
