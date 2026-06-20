@@ -107,7 +107,7 @@ export class AppComponent {
   private onMouseMove = (event: MouseEvent) => {
     if (!this.isDragging) return;
     const widthPct = (event.clientX / window.innerWidth) * 100;
-    if (widthPct > 15 && widthPct < 60) {
+    if (widthPct > 20 && widthPct < 80) {
       document.documentElement.style.setProperty('--side-panel-width', `${widthPct}%`);
       localStorage.setItem('sidePanelWidth', `${widthPct}%`);
       window.dispatchEvent(new Event('resize'));
