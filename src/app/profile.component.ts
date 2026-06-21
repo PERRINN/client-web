@@ -237,11 +237,16 @@ import { ChangeDetectorRef } from '@angular/core'
       <div *ngIf="scope!='all'&& mode=='forecast'" style="height:400px;margin:10px"><ag-charts-angular [options]="forecastChartOptions"></ag-charts-angular></div>
       <div *ngIf="mode!='forecast' || scope=='all'" [class.table-scroll-wrapper]="scope != 'all' && (mode=='chain'||mode=='history')">
       <ul class="listLight">
-        <li *ngFor="let message of messages|async;let first=first;let last=last" class="guardedChatItem" style="position:relative;"
+        <li *ngFor="let message of messages|async;let first=first;let last=last" class="guardedChatItem"
+          style="position:relative; -webkit-tap-highlight-color:transparent;"
           [class.activeChatListItem]="activeChatId === message.payload.doc.data()?.chain"
-          (click)="openListedChat(message.payload.doc.data()?.chain)">
+          (touchstart)="onChatTouchStart($event, message.payload.doc.data()?.chain)"
+          (touchend)="onChatTouchEnd($event)"
+          (touchmove)="onChatTouchMove($event)"
+          (contextmenu)="$event.preventDefault()"
+          (click)="onChatClick($event, message.payload.doc.data()?.chain)">
           <div *ngIf="scope=='all'||mode=='inbox'">
-            <div (click)="toggleManualFlag($event, message.payload.doc.data()?.chain)" class="chatFlagContainer">
+            <div (click)="!UI.hasTouch && toggleManualFlag($event, message.payload.doc.data()?.chain)" class="chatFlagContainer">
               <div class="chatFlag"
                 [style.background-color]="(message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name)) ? '#ef4444' : (message.payload.doc.data()?.recipients[UI.currentUser] ? '#38761D' : '#B0BAC0')"
                 [style.visibility]="(UI.currentUser && (UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds && !isMessageSeen(message.payload.doc.data()?.chain,message.payload.doc.data()?.serverTimestamp)) ? 'visible' : 'hidden'">
@@ -375,6 +380,8 @@ export class ProfileComponent {
   chartOptions!: AgChartOptions
   forecastChartOptions!: AgChartOptions
   private pendingLoadMoreScroll = false;
+  private longPressTimeout: any;
+  private isLongPress = false;
 
   constructor(
     public afAuth:AngularFireAuth,
@@ -813,6 +820,38 @@ export class ProfileComponent {
   openCarouselImage(imageUrl: string) {
     if (!imageUrl) return
     this.UI.showFullScreenImage(imageUrl)
+  }
+
+  onChatTouchStart(event: any, chain: string) {
+    this.isLongPress = false;
+    if (!chain) return;
+    this.longPressTimeout = setTimeout(() => {
+      this.isLongPress = true;
+      this.toggleManualFlag(event, chain);
+      if ('vibrate' in navigator) {
+        navigator.vibrate(50);
+      }
+    }, 600);
+  }
+
+  onChatTouchEnd(event: any) {
+    if (this.longPressTimeout) {
+      clearTimeout(this.longPressTimeout);
+    }
+  }
+
+  onChatTouchMove(event: any) {
+    if (this.longPressTimeout) {
+      clearTimeout(this.longPressTimeout);
+    }
+  }
+
+  onChatClick(event: any, chain: string) {
+    if (this.isLongPress) {
+      this.isLongPress = false;
+      return;
+    }
+    this.openListedChat(chain);
   }
 
   loadMore() {
