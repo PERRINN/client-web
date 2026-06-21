@@ -2882,7 +2882,35 @@ app-root chat .cancelEventModalBtn {
     padding-bottom: 10px !important;
   }
 
-  app-root profile .listLight li.activeChatListItem {
+app-root profile .chatFlagContainer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: 8px;
+  gap: 4px;
+  cursor: pointer;
+  z-index: 10;
+}
+
+app-root profile .chatFlag {
+  width: 22px;
+  height: 14px;
+  line-height: 14px;
+  text-align: center;
+  border-radius: 4px;
+}
+
+app-root profile .chatFlagManual {
+  background-color: #3b82f6;
+}
+
+app-root profile .activeChatListItem {
     background: rgba(16, 185, 129, 0.18) !important;
     border: 1px solid rgba(16, 185, 129, 0.5) !important;
     box-shadow: none !important;

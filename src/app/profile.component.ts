@@ -241,9 +241,14 @@ import { ChangeDetectorRef } from '@angular/core'
           [class.activeChatListItem]="activeChatId === message.payload.doc.data()?.chain"
           (click)="openListedChat(message.payload.doc.data()?.chain)">
           <div *ngIf="scope=='all'||mode=='inbox'">
-            <div *ngIf="UI.currentUser && (UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds && !isMessageSeen(message.payload.doc.data()?.chain,message.payload.doc.data()?.serverTimestamp)"
-              style="position:absolute;top:8px;right:8px;width:22px;height:14px;line-height:14px;text-align:center;border-radius:4px;"
-              [style.background-color]="(message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name)) ? '#ef4444' : (message.payload.doc.data()?.recipients[UI.currentUser] ? '#38761D' : '#B0BAC0')">
+            <div (click)="toggleManualFlag($event, message.payload.doc.data()?.chain)" class="chatFlagContainer">
+              <div class="chatFlag"
+                [style.background-color]="(message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name)) ? '#ef4444' : (message.payload.doc.data()?.recipients[UI.currentUser] ? '#38761D' : '#B0BAC0')"
+                [style.visibility]="(UI.currentUser && (UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds && !isMessageSeen(message.payload.doc.data()?.chain,message.payload.doc.data()?.serverTimestamp)) ? 'visible' : 'hidden'">
+              </div>
+              <div class="chatFlag chatFlagManual"
+                [style.visibility]="(UI.currentUser && manualFlagsByChain[message.payload.doc.data()?.chain]) ? 'visible' : 'hidden'">
+              </div>
             </div>
             <div style="float:left;min-width:58px;min-height:40px">
               <ng-container *ngIf="message.payload.doc.data()?.chatProfileImageUrlThumb || message.payload.doc.data()?.chatProfileImageUrlMedium; else recipientImagesFallback">
@@ -347,6 +352,7 @@ export class ProfileComponent {
   scrollTeam!: string
   focusUserLastMessageObj: any = null
   lastSeenByChain: Record<string, number> = {}
+  manualFlagsByChain: Record<string, boolean> = {}
   lastSeenSubscription: Subscription | null = null;
   focusUserLastSeenSubscription: Subscription | null = null;
   authSubscription: Subscription | null = null;
@@ -381,6 +387,7 @@ export class ProfileComponent {
   ) {
     this.math=Math
     this.lastSeenByChain={}
+    this.manualFlagsByChain={}
     this.lastSeenSubscription = null;
     this.focusUserLastSeenSubscription = null;
     this.authSubscription = null;
@@ -626,16 +633,20 @@ export class ProfileComponent {
     const userId = this.UI.currentUser || this.currentUserId;
     if (!userId) {
       this.lastSeenByChain = {};
+      this.manualFlagsByChain = {};
       return;
     }
     this.lastSeenSubscription = this.afs.collection<any>(`lastSeen/${userId}/chats`).snapshotChanges().subscribe(snaps => {
       const mapByChain: Record<string, number> = {};
+      const manualFlags: Record<string, boolean> = {};
       snaps.forEach(snap => {
         const data = snap.payload.doc.data() || {};
         const timestampMessage = this.toMillis(data['serverTimestamp']);
         if (timestampMessage > 0) mapByChain[snap.payload.doc.id] = timestampMessage;
+        manualFlags[snap.payload.doc.id] = !!data['manualFlag'];
       });
       this.lastSeenByChain = mapByChain;
+      this.manualFlagsByChain = manualFlags;
       this.cd.detectChanges();
     });
   }
@@ -779,6 +790,17 @@ export class ProfileComponent {
     } else {
       this.router.navigate(['chat', chain]);
     }
+  }
+
+  toggleManualFlag(event: Event, chain: string) {
+    event.stopPropagation();
+    const userId = this.UI.currentUser || this.currentUserId;
+    if (!userId || !chain) return;
+    const isFlagged = this.manualFlagsByChain[chain] || false;
+    this.afs.doc(`lastSeen/${userId}/chats/${chain}`).set({
+      manualFlag: !isFlagged,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
   }
 
   isEventLive(eventDateStart: any, eventDateEnd: any): boolean {
