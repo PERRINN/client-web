@@ -246,7 +246,7 @@ import { ChangeDetectorRef } from '@angular/core'
           (contextmenu)="$event.preventDefault()"
           (click)="onChatClick($event, message.payload.doc.data()?.chain)">
           <div *ngIf="scope=='all'||mode=='inbox'">
-            <div (click)="!UI.hasTouch && toggleManualFlag($event, message.payload.doc.data()?.chain)" class="chatFlagContainer">
+            <div (click)="UI.currentUser && !UI.hasTouch ? toggleManualFlag($event, message.payload.doc.data()?.chain) : null" class="chatFlagContainer">
               <div class="chatFlag"
                 [style.background-color]="(message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name)) ? '#ef4444' : (message.payload.doc.data()?.recipients[UI.currentUser] ? '#38761D' : '#B0BAC0')"
                 [style.visibility]="(UI.currentUser && (UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds && !isMessageSeen(message.payload.doc.data()?.chain,message.payload.doc.data()?.serverTimestamp)) ? 'visible' : 'hidden'">
@@ -800,9 +800,10 @@ export class ProfileComponent {
   }
 
   toggleManualFlag(event: Event, chain: string) {
-    event.stopPropagation();
     const userId = this.UI.currentUser || this.currentUserId;
-    if (!userId || !chain) return;
+    if (!userId) return;
+    event.stopPropagation();
+    if (!chain) return;
     const isFlagged = this.manualFlagsByChain[chain] || false;
     this.afs.doc(`lastSeen/${userId}/chats/${chain}`).set({
       manualFlag: !isFlagged,
