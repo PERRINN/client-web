@@ -2910,7 +2910,7 @@ app-root profile .chatFlagManual {
   background-color: #3b82f6;
 }
 
-app-root profile .activeChatListItem {
+app-root profile .listLight li.activeChatListItem {
     background: rgba(16, 185, 129, 0.18) !important;
     border: 1px solid rgba(16, 185, 129, 0.5) !important;
     box-shadow: none !important;
