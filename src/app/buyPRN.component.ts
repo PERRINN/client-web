@@ -265,8 +265,8 @@ type PaymentState =
             </div>
     </div>
 
-          <div *ngIf="showPrnInfoPopup" style="position:fixed;inset:0;background:rgba(2,8,23,0.72);z-index:1200;display:flex;align-items:flex-start;justify-content:center;padding:12px;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch;" (click)="closePrnInfoPopup()">
-            <div class="island" style="background: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.16); width:min(560px, 88vw); max-height:calc(100vh - 24px); overflow:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch;" (click)="$event.stopPropagation()">
+          <div *ngIf="showPrnInfoPopup" style="position:fixed;inset:0;background:rgba(2,8,23,0.72);z-index:1200;display:flex;align-items:flex-start;justify-content:center;padding:12px;overflow-y:auto;touch-action:pan-y;" (click)="closePrnInfoPopup()">
+            <div class="island" style="background: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.16); width:min(560px, 88vw); max-height:calc(100vh - 24px); overflow:auto; overscroll-behavior:contain;" (click)="$event.stopPropagation()">
               <div style="display:flex;justify-content:flex-start;align-items:center;margin-bottom:12px;">
                 <div style="font-size:16px;font-weight:700;color:#f1f5f9;">What is PRN</div>
               </div>

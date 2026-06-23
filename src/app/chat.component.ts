@@ -1348,7 +1348,7 @@ export class ChatComponent implements OnDestroy {
       const mcRect = mc.getBoundingClientRect();
       mc.scrollTo({
         top: mc.scrollTop + (rect.top - mcRect.top) + (rect.height / 2) - (mc.clientHeight / 2),
-        behavior: 'smooth'
+        behavior: 'auto'
       });
     }
   }

@@ -12,7 +12,6 @@
   line-height: 20px;
   border-radius: 5px;
   overflow: hidden;
-  -webkit-overflow-scrolling: touch;
 }
 *::-webkit-scrollbar {
     -webkit-appearance: none;
@@ -33,6 +32,7 @@ body {
   border: 0;
   background-color: #01020a;
   color: #cbd5e1;
+  scroll-behavior: auto;
   overscroll-behavior-x: none;
   touch-action: pan-y;
 }
@@ -1695,7 +1695,6 @@ app-root profile .table-scroll-wrapper {
   width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
   margin-bottom: 10px;
 }
 
