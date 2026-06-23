@@ -2855,7 +2855,7 @@ app-root chat .cancelEventModalBtn {
     top: 0;
     width: 2px;
     height: 100%;
-    background: rgba(16, 185, 129, 0.4);
+    background: transparent;
   }
 
   .sideProfile .listLight li {
@@ -2864,13 +2864,13 @@ app-root chat .cancelEventModalBtn {
 
   .contentWrapFullWidth .contentCard {
     border-radius: 0 12px 12px 0 !important;
-    border-left: 3px solid rgba(16, 185, 129, 0.25) !important;
+    border-left: none !important;
   }
 
   app-root chat .chatPage {
     z-index: 20;
     background-color: #1e293b !important;
-    border-left: 3px solid rgba(16, 185, 129, 0.25) !important;
+    border-left: none !important;
   }
 
   app-root chat .chatTopBar {
