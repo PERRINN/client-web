@@ -237,13 +237,23 @@ import { ChangeDetectorRef } from '@angular/core'
       <div *ngIf="scope!='all'&& mode=='forecast'" style="height:400px;margin:10px"><ag-charts-angular [options]="forecastChartOptions"></ag-charts-angular></div>
       <div *ngIf="mode!='forecast' || scope=='all'" [class.table-scroll-wrapper]="scope != 'all' && (mode=='chain'||mode=='history')">
       <ul class="listLight">
-        <li *ngFor="let message of messages|async;let first=first;let last=last" class="guardedChatItem" style="position:relative;"
+        <li *ngFor="let message of messages|async;let first=first;let last=last" class="guardedChatItem"
+          style="position:relative; -webkit-tap-highlight-color:transparent;"
           [class.activeChatListItem]="activeChatId === message.payload.doc.data()?.chain"
-          (click)="openListedChat(message.payload.doc.data()?.chain)">
+          (touchstart)="onChatTouchStart($event, message.payload.doc.data()?.chain)"
+          (touchend)="onChatTouchEnd($event)"
+          (touchmove)="onChatTouchMove($event)"
+          (contextmenu)="$event.preventDefault()"
+          (click)="onChatClick($event, message.payload.doc.data()?.chain)">
           <div *ngIf="scope=='all'||mode=='inbox'">
-            <div *ngIf="UI.currentUser && (UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds && !isMessageSeen(message.payload.doc.data()?.chain,message.payload.doc.data()?.serverTimestamp)"
-              style="position:absolute;top:8px;right:8px;width:22px;height:14px;line-height:14px;text-align:center;border-radius:4px;"
-              [style.background-color]="(message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name)) ? '#ef4444' : (message.payload.doc.data()?.recipients[UI.currentUser] ? '#38761D' : '#B0BAC0')">
+            <div (click)="UI.currentUser && !UI.hasTouch ? toggleManualFlag($event, message.payload.doc.data()?.chain) : null" class="chatFlagContainer">
+              <div class="chatFlag"
+                [style.background-color]="(message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name)) ? '#ef4444' : (message.payload.doc.data()?.recipients[UI.currentUser] ? '#38761D' : '#B0BAC0')"
+                [style.visibility]="(UI.currentUser && (UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds && !isMessageSeen(message.payload.doc.data()?.chain,message.payload.doc.data()?.serverTimestamp)) ? 'visible' : 'hidden'">
+              </div>
+              <div class="chatFlag chatFlagManual"
+                [style.visibility]="(UI.currentUser && manualFlagsByChain[message.payload.doc.data()?.chain]) ? 'visible' : 'hidden'">
+              </div>
             </div>
             <div style="float:left;min-width:58px;min-height:40px">
               <ng-container *ngIf="message.payload.doc.data()?.chatProfileImageUrlThumb || message.payload.doc.data()?.chatProfileImageUrlMedium; else recipientImagesFallback">
@@ -347,6 +357,7 @@ export class ProfileComponent {
   scrollTeam!: string
   focusUserLastMessageObj: any = null
   lastSeenByChain: Record<string, number> = {}
+  manualFlagsByChain: Record<string, boolean> = {}
   lastSeenSubscription: Subscription | null = null;
   focusUserLastSeenSubscription: Subscription | null = null;
   authSubscription: Subscription | null = null;
@@ -369,6 +380,8 @@ export class ProfileComponent {
   chartOptions!: AgChartOptions
   forecastChartOptions!: AgChartOptions
   private pendingLoadMoreScroll = false;
+  private longPressTimeout: any;
+  private isLongPress = false;
 
   constructor(
     public afAuth:AngularFireAuth,
@@ -381,6 +394,7 @@ export class ProfileComponent {
   ) {
     this.math=Math
     this.lastSeenByChain={}
+    this.manualFlagsByChain={}
     this.lastSeenSubscription = null;
     this.focusUserLastSeenSubscription = null;
     this.authSubscription = null;
@@ -626,16 +640,20 @@ export class ProfileComponent {
     const userId = this.UI.currentUser || this.currentUserId;
     if (!userId) {
       this.lastSeenByChain = {};
+      this.manualFlagsByChain = {};
       return;
     }
     this.lastSeenSubscription = this.afs.collection<any>(`lastSeen/${userId}/chats`).snapshotChanges().subscribe(snaps => {
       const mapByChain: Record<string, number> = {};
+      const manualFlags: Record<string, boolean> = {};
       snaps.forEach(snap => {
         const data = snap.payload.doc.data() || {};
         const timestampMessage = this.toMillis(data['serverTimestamp']);
         if (timestampMessage > 0) mapByChain[snap.payload.doc.id] = timestampMessage;
+        manualFlags[snap.payload.doc.id] = !!data['manualFlag'];
       });
       this.lastSeenByChain = mapByChain;
+      this.manualFlagsByChain = manualFlags;
       this.cd.detectChanges();
     });
   }
@@ -781,6 +799,18 @@ export class ProfileComponent {
     }
   }
 
+  toggleManualFlag(event: Event, chain: string) {
+    const userId = this.UI.currentUser || this.currentUserId;
+    if (!userId) return;
+    event.stopPropagation();
+    if (!chain) return;
+    const isFlagged = this.manualFlagsByChain[chain] || false;
+    this.afs.doc(`lastSeen/${userId}/chats/${chain}`).set({
+      manualFlag: !isFlagged,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  }
+
   isEventLive(eventDateStart: any, eventDateEnd: any): boolean {
     const start = Number(eventDateStart || 0)
     const end = Number(eventDateEnd || 0)
@@ -791,6 +821,38 @@ export class ProfileComponent {
   openCarouselImage(imageUrl: string) {
     if (!imageUrl) return
     this.UI.showFullScreenImage(imageUrl)
+  }
+
+  onChatTouchStart(event: any, chain: string) {
+    this.isLongPress = false;
+    if (!chain) return;
+    this.longPressTimeout = setTimeout(() => {
+      this.isLongPress = true;
+      this.toggleManualFlag(event, chain);
+      if ('vibrate' in navigator) {
+        navigator.vibrate(50);
+      }
+    }, 600);
+  }
+
+  onChatTouchEnd(event: any) {
+    if (this.longPressTimeout) {
+      clearTimeout(this.longPressTimeout);
+    }
+  }
+
+  onChatTouchMove(event: any) {
+    if (this.longPressTimeout) {
+      clearTimeout(this.longPressTimeout);
+    }
+  }
+
+  onChatClick(event: any, chain: string) {
+    if (this.isLongPress) {
+      this.isLongPress = false;
+      return;
+    }
+    this.openListedChat(chain);
   }
 
   loadMore() {
