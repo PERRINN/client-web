@@ -241,22 +241,21 @@ import { ChangeDetectorRef } from '@angular/core'
           (click)="openListedChat(message.payload.doc.data()?.chain)">
           <div *ngIf="scope=='all'||mode=='inbox'">
             <div *ngIf="UI.currentUser && (UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds && !isMessageSeen(message.payload.doc.data()?.chain,message.payload.doc.data()?.serverTimestamp)"
-              style="position:absolute;top:8px;right:8px;width:22px;height:14px;line-height:14px;text-align:center;border-radius:4px;"
+              style="position:absolute;top:30px;right:5px;width:22px;height:14px;line-height:14px;text-align:center;border-radius:4px;"
               [style.background-color]="(message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name)) ? '#ef4444' : (message.payload.doc.data()?.recipients[UI.currentUser] ? '#38761D' : '#B0BAC0')">
             </div>
             <div *ngIf="UI.currentUser && blueFlagByChain[message.payload.doc.data()?.chain]"
-              style="position:absolute;top:24px;right:8px;width:22px;height:14px;line-height:14px;text-align:center;border-radius:4px;background-color:#4285f4;z-index:1">
+              style="position:absolute;top:48px;right:5px;width:22px;height:14px;line-height:14px;text-align:center;border-radius:4px;background-color:#4285f4;z-index:1">
             </div>
             <button *ngIf="UI.currentUser && (scope=='all'||mode=='inbox')"
               class="messageOptionsBtn"
-              style="top:40px;right:8px;"
               aria-label="Chat options"
               (click)="$event.stopPropagation(); messageOptionsOpenFor = (messageOptionsOpenFor === message.payload.doc.data()?.chain ? null : message.payload.doc.data()?.chain)">
               <span class="material-icons-outlined" style="font-size:14px;line-height:1">keyboard_arrow_down</span>
             </button>
             <div *ngIf="messageOptionsOpenFor === message.payload.doc.data()?.chain"
               class="messageOptionsMenu"
-              style="top:64px;right:2px;"
+              style="top:28px;right:2px;"
               (click)="$event.stopPropagation()">
               <button class="messageOptionsItem" (click)="toggleBlueFlag(message.payload.doc.data()?.chain)">
                 {{blueFlagByChain[message.payload.doc.data()?.chain] ? 'Remove blue flag' : 'Add blue flag'}}
