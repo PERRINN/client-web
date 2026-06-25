@@ -2666,10 +2666,9 @@ app-root chat .messageBodyText {
   word-break: break-word;
 }
 
-app-root chat .messageOptionsBtn {
+app-root chat .messageOptionsBtn,
+app-root profile .messageOptionsBtn {
   position: absolute;
-  top: 4px;
-  right: 4px;
   width: 24px;
   height: 24px;
   border-radius: 999px;
@@ -2685,22 +2684,28 @@ app-root chat .messageOptionsBtn {
   pointer-events: auto;
 }
 
+app-root chat .messageOptionsBtn {
+  top: 4px;
+  right: 4px;
+}
+
 app-root chat .messageBubble:hover .messageOptionsBtn,
-app-root chat .messageBubble.messageActionTarget .messageOptionsBtn {
+app-root chat .messageBubble.messageActionTarget .messageOptionsBtn,
+app-root profile .guardedChatItem:hover .messageOptionsBtn {
   opacity: 1;
   pointer-events: auto;
 }
 
-app-root chat .messageOptionsBtn:hover {
+app-root chat .messageOptionsBtn:hover,
+app-root profile .messageOptionsBtn:hover {
   border-color: rgba(148, 163, 184, 0.3);
   background: rgba(22, 32, 52, 0.55);
   color: #e2e8f0;
 }
 
-app-root chat .messageOptionsMenu {
+app-root chat .messageOptionsMenu,
+app-root profile .messageOptionsMenu {
   position: absolute;
-  top: 28px;
-  right: 2px;
   min-width: 140px;
   background: #1e293b;
   border: 1px solid rgba(16, 185, 129, 0.18);
@@ -2721,7 +2726,8 @@ app-root chat .messageBubble {
   overflow: visible;
 }
 
-app-root chat .messageOptionsItem {
+app-root chat .messageOptionsItem,
+app-root profile .messageOptionsItem {
   width: 100%;
   text-align: left;
   color: #e2e8f0;
@@ -2732,7 +2738,8 @@ app-root chat .messageOptionsItem {
   font-size: 12px;
 }
 
-app-root chat .messageOptionsItem:hover {
+app-root chat .messageOptionsItem:hover,
+app-root profile .messageOptionsItem:hover {
   background: rgba(16, 185, 129, 0.12);
   border-color: rgba(16, 185, 129, 0.24);
 }

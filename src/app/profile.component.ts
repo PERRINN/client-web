@@ -1,4 +1,4 @@
-import { Component, Input, NgZone } from '@angular/core'
+import { Component, Input, NgZone, HostListener } from '@angular/core'
 import { Subscription } from 'rxjs'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
@@ -14,7 +14,7 @@ import { ChangeDetectorRef } from '@angular/core'
   selector:'profile',
   template:`
 
-  <div class="profileModern">
+  <div class="profileModern" (click)="messageOptionsOpenFor = null">
   <div class="profileContainer">
 
   <div class="island" *ngIf="UI.currentUserLastMessageObj && !UI.currentUserLastMessageObj?.isImageUserUpdated && !sidePanelScope"
@@ -244,6 +244,24 @@ import { ChangeDetectorRef } from '@angular/core'
               style="position:absolute;top:8px;right:8px;width:22px;height:14px;line-height:14px;text-align:center;border-radius:4px;"
               [style.background-color]="(message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name)) ? '#ef4444' : (message.payload.doc.data()?.recipients[UI.currentUser] ? '#38761D' : '#B0BAC0')">
             </div>
+            <div *ngIf="UI.currentUser && blueFlagByChain[message.payload.doc.data()?.chain]"
+              style="position:absolute;top:24px;right:8px;width:22px;height:14px;line-height:14px;text-align:center;border-radius:4px;background-color:#4285f4;z-index:1">
+            </div>
+            <button *ngIf="UI.currentUser && (scope=='all'||mode=='inbox')"
+              class="messageOptionsBtn"
+              style="top:40px;right:8px;"
+              aria-label="Chat options"
+              (click)="$event.stopPropagation(); messageOptionsOpenFor = (messageOptionsOpenFor === message.payload.doc.data()?.chain ? null : message.payload.doc.data()?.chain)">
+              <span class="material-icons-outlined" style="font-size:14px;line-height:1">keyboard_arrow_down</span>
+            </button>
+            <div *ngIf="messageOptionsOpenFor === message.payload.doc.data()?.chain"
+              class="messageOptionsMenu"
+              style="top:64px;right:2px;"
+              (click)="$event.stopPropagation()">
+              <button class="messageOptionsItem" (click)="toggleBlueFlag(message.payload.doc.data()?.chain)">
+                {{blueFlagByChain[message.payload.doc.data()?.chain] ? 'Remove blue flag' : 'Add blue flag'}}
+              </button>
+            </div>
             <div style="float:left;min-width:58px;min-height:40px">
               <ng-container *ngIf="message.payload.doc.data()?.chatProfileImageUrlThumb || message.payload.doc.data()?.chatProfileImageUrlMedium; else recipientImagesFallback">
                 <img
@@ -357,6 +375,8 @@ export class ProfileComponent {
   previousBalance: any = 0
   previousTimestamp: any = { seconds: 0 }
   activeChatId: string | null = null;
+  blueFlagByChain: Record<string, boolean> = {}
+  messageOptionsOpenFor: string | null = null
   previousIndex: any = 0
   previousPurchaseCOINAmountCummulate = 0
   previousContractAmountCummulate = 0
@@ -629,12 +649,15 @@ export class ProfileComponent {
     }
     this.lastSeenSubscription = this.afs.collection<any>(`lastSeen/${userId}/chats`).snapshotChanges().subscribe(snaps => {
       const mapByChain: Record<string, number> = {};
+      const blueFlagMap: Record<string, boolean> = {};
       snaps.forEach(snap => {
         const data = snap.payload.doc.data() || {};
         const timestampMessage = this.toMillis(data['serverTimestamp']);
         if (timestampMessage > 0) mapByChain[snap.payload.doc.id] = timestampMessage;
+        blueFlagMap[snap.payload.doc.id] = !!data['blueFlag'];
       });
       this.lastSeenByChain = mapByChain;
+      this.blueFlagByChain = blueFlagMap;
       this.cd.detectChanges();
     });
   }
@@ -796,6 +819,22 @@ export class ProfileComponent {
     this.pendingLoadMoreScroll = true;
     this.messageNumberDisplay+=15
     this.refreshMessages()
+  }
+
+  toggleBlueFlag(chain: string) {
+    const userId = this.UI.currentUser || this.currentUserId;
+    if (!userId || !chain) return;
+    const currentStatus = !!this.blueFlagByChain[chain];
+    this.afs.collection(`lastSeen/${userId}/chats`).doc(chain).set({
+      blueFlag: !currentStatus,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    this.messageOptionsOpenFor = null;
+  }
+
+  @HostListener('document:click')
+  onDocumentClick() {
+    this.messageOptionsOpenFor = null;
   }
 
 }
