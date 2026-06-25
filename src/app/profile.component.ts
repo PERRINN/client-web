@@ -256,7 +256,7 @@ import { ChangeDetectorRef } from '@angular/core'
             <div *ngIf="messageOptionsOpenFor === message.payload.doc.data()?.chain"
               class="messageOptionsMenu"
               (click)="$event.stopPropagation()">
-              <button class="messageOptionsItem" (click)="toggleBlueFlag(message.payload.doc.data()?.chain)">
+              <button class="messageOptionsItem" (click)="$event.stopPropagation(); toggleBlueFlag(message.payload.doc.data()?.chain)">
                 {{blueFlagByChain[message.payload.doc.data()?.chain] ? 'Remove blue flag' : 'Add blue flag'}}
               </button>
             </div>
