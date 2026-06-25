@@ -1463,6 +1463,7 @@ app-root profile .listLight li {
   border-radius: 14px;
   margin-bottom: 10px;
   transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
 app-root profile .eventCardBody,
