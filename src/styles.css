@@ -2716,7 +2716,8 @@ app-root profile .messageOptionsMenu {
   padding: 4px;
 }
 
-app-root chat .messageOptionsMenu {
+app-root chat .messageOptionsMenu,
+app-root profile .messageOptionsMenu {
   top: 28px;
   right: 2px;
 }
@@ -2724,6 +2725,30 @@ app-root chat .messageOptionsMenu {
 app-root chat .messageOptionsMenu.lastMessageMenu {
   top: auto;
   bottom: 28px;
+}
+
+app-root profile .chatListUnreadFlag {
+  position: absolute;
+  top: 30px;
+  right: 5px;
+  width: 22px;
+  height: 14px;
+  line-height: 14px;
+  text-align: center;
+  border-radius: 4px;
+}
+
+app-root profile .chatListBlueFlag {
+  position: absolute;
+  top: 48px;
+  right: 5px;
+  width: 22px;
+  height: 14px;
+  line-height: 14px;
+  text-align: center;
+  border-radius: 4px;
+  background-color: #4285f4;
+  z-index: 1;
 }
 
 app-root chat .chatPage ul,
