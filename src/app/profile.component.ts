@@ -128,33 +128,32 @@ import { ChangeDetectorRef } from '@angular/core'
                     <div class="eventCardLabel">
                       {{i===0 ? 'Next Event' : 'Other Event'}}
                     </div>
-                    <div class="chatSubject chatSubjectTruncate">
-                      {{message.payload.doc.data()?.chatSubject}}
+                    <div class="eventCardSubjectRow">
+                      <div class="chatSubject chatSubjectTruncate">
+                        {{message.payload.doc.data()?.chatSubject}}
+                      </div>
+                      <div class="eventCardDescriptionInline chatSubjectTruncate">
+                        {{message.payload.doc.data()?.eventDescription}}
+                      </div>
+                    </div>
+                    <div class="eventCardMeta compact">
+                      <span *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)>0" class="eventCardStatusChip">
+                        In {{UI.formatSecondsToDhm2(message.payload.doc.data()?.eventDateStart/1000-UI.nowSeconds)}}
+                      </span>
+                      <span *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)<=0&&message.payload.doc.data()?.eventDateEnd/60000>UI.nowSeconds/60" class="eventCardStatusChip eventCardStatusNow">
+                        Live
+                      </span>
+                      <span class="eventCardDateText">
+                        {{message.payload.doc.data()?.eventDateStart|date:'EEEE d MMM h:mm a'}} ({{message.payload.doc.data()?.eventDuration}}h)
+                      </span>
                     </div>
                   </div>
                 </div>
-                <button *ngIf="message.payload.doc.data()?.eventLocation"
+                <button *ngIf="message.payload.doc.data()?.eventLocation && isEventLive(message.payload.doc.data()?.eventDateStart, message.payload.doc.data()?.eventDateEnd)"
                   class="buttonPrimary eventCardJoinBtn"
-                  [disabled]="!isEventLive(message.payload.doc.data()?.eventDateStart, message.payload.doc.data()?.eventDateEnd)"
                   (click)="$event.stopPropagation(); UI.openWindow(message.payload.doc.data()?.eventLocation)">
                   <span>Join</span>
                 </button>
-              </div>
-
-              <div class="eventCardMeta">
-                <span *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)>0" class="eventCardStatusChip">
-                  In {{UI.formatSecondsToDhm2(message.payload.doc.data()?.eventDateStart/1000-UI.nowSeconds)}}
-                </span>
-                <span *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)<=0&&message.payload.doc.data()?.eventDateEnd/60000>UI.nowSeconds/60" class="eventCardStatusChip eventCardStatusNow">
-                  Live
-                </span>
-                <span class="eventCardDateText">
-                  {{message.payload.doc.data()?.eventDateStart|date:'EEEE d MMM h:mm a'}} ({{message.payload.doc.data()?.eventDuration}}h)
-                </span>
-              </div>
-
-              <div class="eventCardDescription">
-                {{message.payload.doc.data()?.eventDescription}}
               </div>
             </div>
           </li>

@@ -827,6 +827,10 @@ app-root profile .nonMemberIslandButton {
   color: #ffffff !important;
 }
 
+app-root chat .chatPage {
+  background: #000 !important;
+}
+
 app-root login .buttonPrimary,
 app-root settings .buttonRed,
 app-root chat .chatPage .buttonRed {
@@ -1578,6 +1582,35 @@ app-root profile .eventCardMeta {
   flex-wrap: wrap;
 }
 
+app-root profile .eventCardMeta.compact {
+  margin-top: 4px;
+  gap: 6px;
+  font-size: 11px;
+}
+
+app-root profile .eventCardSubjectRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  margin-bottom: 4px;
+}
+
+app-root profile .eventCardSubjectRow .chatSubject {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+app-root profile .eventCardDescriptionInline {
+  flex: 0 1 auto;
+  color: #94a3b8;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 45%;
+}
+
 app-root profile .eventCardStatusChip {
   background: rgba(16, 185, 129, 0.16);
   color: #10b981;
@@ -1604,6 +1637,14 @@ app-root profile .eventCardDescription {
   font-size: 12px;
   color: #94a3b8;
   line-height: 1.4;
+}
+
+app-root profile .eventCardDescription.compact {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.4;
+  max-width: calc(100% - 0px);
 }
 
 app-root profile .eventCardToggleBtn {
@@ -2869,7 +2910,7 @@ app-root chat .cancelEventModalBtn {
 
   app-root chat .chatPage {
     z-index: 20;
-    background-color: #1e293b !important;
+    background-color: #000 !important;
     border-left: none !important;
   }
 
@@ -2885,8 +2926,8 @@ app-root chat .cancelEventModalBtn {
   }
 
   app-root profile .listLight li.activeChatListItem {
-    background: rgba(16, 185, 129, 0.18) !important;
-    border: 1px solid rgba(16, 185, 129, 0.5) !important;
+    background: rgba(16, 185, 129, 0.28) !important;
+    border: none !important;
     box-shadow: none !important;
     transition: all 0.2s ease-in-out;
   }
