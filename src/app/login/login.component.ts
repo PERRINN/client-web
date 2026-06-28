@@ -2,62 +2,14 @@ import { Component } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import firebase from 'firebase/compat/app';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { UserInterfaceService } from './userInterface.service';
+import { UserInterfaceService } from '../userInterface.service';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
 import { first } from 'rxjs/operators';
 
 
 @Component({
-  selector:'login',
-  template:`
-  <div class="authPage">
-    <div class="authCard">
-      <div class="authHeader">
-        <div class="authTitle">{{action === 'login' ? 'Welcome back' : 'Create your account'}}</div>
-        <div class="authSubtitle">{{action === 'login' ? 'Login to continue to PERRINN' : 'Join PERRINN as a new member'}}</div>
-      </div>
-
-      <div class="switchPill">
-        <button class="switchBtn" [class.active]="action==='login'" (click)="action='login';messageUser=''">Existing member</button>
-        <button class="switchBtn" [class.active]="action==='register'" (click)="action='register';messageUser=''">New member</button>
-      </div>
-
-      <form #f="ngForm" class="authForm">
-        <input class="fieldInput" maxlength="500" [(ngModel)]="email" name="email" type="text" placeholder="Email *" (keyup)="messageUser=''" autofocus required #e="ngModel"/>
-
-        <label class="password fieldLabel">
-          <input class="fieldInput" maxlength="500" [(ngModel)]="password" name="password" [type]="passwordVisibility" [style]="focusPassword" placeholder="Password *" (keyup)="messageUser=''" required #p="ngModel"/>
-          <div class="password-icon" (mousedown)="toggleField('password','show')" (touchstart)="toggleField('password','show')" (mouseup)="toggleField('password','hide')" (touchend)="toggleField('password','hide')">
-            <span class="material-icons-outlined" id="visibility-outlined" [style]="iconOutlined">visibility</span>
-            <span class="material-icons" id="visibility" [style]="icon">visibility</span>
-          </div>
-        </label>
-
-        <div *ngIf="action=='register'" class="authForm">
-          <label class="password fieldLabel">
-            <input class="fieldInput" maxlength="500" [(ngModel)]="passwordConfirm" name="passwordConfirm" [type]="passwordConfirmVisibility" [style]="focusPasswordConfirm" placeholder="Confirm password *" (keyup)="messageUser=''" #c="ngModel" required/>
-            <div class="password-icon" (mousedown)="toggleField('passwordConfirm','show')" (touchstart)="toggleField('passwordConfirm','show')" (mouseup)="toggleField('passwordConfirm','hide')" (touchend)="toggleField('passwordConfirm','hide')">
-              <span class="material-icons-outlined" id="visibilityConfirm-outlined" [style]="iconOutlinedConfirm">visibility</span>
-              <span class="material-icons" id="visibilityConfirm" [style]="iconConfirm">visibility</span>
-            </div>
-          </label>
-          <input class="fieldInput" maxlength="500" [(ngModel)]="name" name="name" type="text" placeholder="First name (one word) *" (keyup)="messageUser=''" #n="ngModel" pattern="[A-Za-z0-9]{2,}" required/>
-        </div>
-
-        <div *ngIf="action=='login'" class="actionGroup">
-          <button class="buttonPrimary" (click)="login(email,password)" [disabled]="f.invalid">Login</button>
-          <button class="buttonSecondary" (click)="resetPassword(email)">Forgot password?</button>
-        </div>
-
-        <div *ngIf="action=='register'" class="actionGroup">
-          <button class="buttonPrimary" (click)="register(email,password,passwordConfirm,name)" [disabled]="f.invalid">Register</button>
-        </div>
-
-        <div *ngIf="messageUser" class="errorMsg">{{messageUser}}</div>
-      </form>
-    </div>
-  </div>
-  `
+  selector: 'login',
+  templateUrl: 'login.component.html'
 })
 
 export class LoginComponent  {
