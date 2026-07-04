@@ -13,7 +13,7 @@
                (error)="UI.handleChatImageError($event, chatLastMessageObj)">
           <div class="chatSubject chatSubjectStrong chatSubjectTruncate">{{chatLastMessageObj?.chatSubject}}</div>
         </div>
-        <div style="width:100%;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;color:#94a3b8;font-size:12px;font-weight:500;line-height:1.4;margin-top:2px">
+        <div style="width:100%;text-overflow:ellipsis;display:-webkit-box;line-clamp:1;-webkit-line-clamp:1;-webkit-box-orient:vertical;color:#94a3b8;font-size:12px;font-weight:500;line-height:1.4;margin-top:2px">
           <span *ngFor="let recipient of chatLastMessageObj?.recipientList;let last=last">{{recipient==UI.currentUser?'You':chatLastMessageObj?.recipients[recipient]?.name}}{{last?"":", "}}</span>
         </div>
         <div *ngIf="fund?.active && fund?.amountGBPTarget >= 0.01" style="clear:both;padding-top:4px">
