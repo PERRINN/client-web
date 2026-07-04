@@ -69,7 +69,7 @@ export class LoginComponent  {
 
   resetPassword(email:string) {
     this.afAuth.sendPasswordResetEmail(email)
-    .then(_ => this.messageUser = 'An email has been sent to you.')
+    .then(_ => this.messageUser = 'An email has been sent to you, check your spams.')
     .catch((error) => {
       const errorCode = error.code;
       const errorMessage = error.message;
