@@ -82,6 +82,8 @@ export class ChatComponent implements OnDestroy {
   private loadMoreAnchorTop = 0;
   private loadMoreAnchorHeight = 0;
 
+  private eventDateListCache: { nowSeconds: number; list: any[]; shortList: any[] } | null = null;
+
   private scheduleOffsetsRefresh = () => {
     this.updateFixedOffsets();
     if (this.offsetsRefreshTimeout) clearTimeout(this.offsetsRefreshTimeout);
@@ -282,6 +284,13 @@ export class ChatComponent implements OnDestroy {
   }
 
   refresheventDateList() {
+    // Use cached version if within same hour to avoid regenerating 2200 items
+    const cacheKey = Math.floor(this.UI.nowSeconds / 3600);
+    if (this.eventDateListCache && this.eventDateListCache.nowSeconds === cacheKey) {
+      this.eventDateList = this.eventDateListCache.list;
+      this.eventDateListShort = this.eventDateListCache.shortList;
+      return;
+    }
     var i
     this.eventDateList = [];
     this.eventDateListShort = [];
@@ -293,6 +302,7 @@ export class ChatComponent implements OnDestroy {
     }
     this.eventDateListShort = this.eventDateListShort.filter((item: any) => item !== null && item !== undefined);
     this.eventDateListShort = [Math.floor(this.UI.nowSeconds / 3600 / 24)*24*3600000, ...this.eventDateListShort];
+    this.eventDateListCache = { nowSeconds: cacheKey, list: this.eventDateList, shortList: this.eventDateListShort };
   }
 
   eventTimeListInit() {
@@ -467,6 +477,10 @@ export class ChatComponent implements OnDestroy {
 
   closeMessageOptions() {
     this.messageOptionsOpenFor = null;
+  }
+
+  trackByMessageKey(index: number, message: any): string {
+    return message?.key || index;
   }
 
   closeMessageActions() {

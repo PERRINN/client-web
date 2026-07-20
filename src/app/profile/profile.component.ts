@@ -1,18 +1,17 @@
-import { Component, Input, NgZone, HostListener } from '@angular/core'
-import { Subscription } from 'rxjs'
+import { Component, Input, NgZone, HostListener, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core'
+import { Subscription, Subject, Observable } from 'rxjs'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
-import { Observable } from 'rxjs'
-import { map, filter, tap, take } from 'rxjs/operators'
+import { map, filter, tap, take, debounceTime } from 'rxjs/operators'
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router'
 import { UserInterfaceService } from '../userInterface.service'
 import { AngularFireAuth } from '@angular/fire/compat/auth'
 import firebase from 'firebase/compat/app'
 import { AgChartOptions } from 'ag-charts-community'
-import { ChangeDetectorRef } from '@angular/core'
 
 @Component({
   selector: 'profile',
-  templateUrl: 'profile.component.html'
+  templateUrl: 'profile.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProfileComponent {
   @Input() sidePanelScope?: string;
@@ -47,6 +46,8 @@ export class ProfileComponent {
   chartOptions!: AgChartOptions
   forecastChartOptions!: AgChartOptions
   private pendingLoadMoreScroll = false;
+  private lastSeenUpdateSubject = new Subject<void>();
+  private lastSeenUpdateSubscription: Subscription | null = null;
 
   constructor(
     public afAuth:AngularFireAuth,
@@ -73,6 +74,12 @@ export class ProfileComponent {
     this.scope=''
     this.mode='inbox'
     this.scrollTeam=''
+    // Debounced change detection for lastSeen updates
+    this.lastSeenUpdateSubscription = this.lastSeenUpdateSubject.pipe(
+      debounceTime(300)
+    ).subscribe(() => {
+      this.cd.detectChanges();
+    });
     this.chartOptions = {
           series: [
             { type: 'line', xKey: 'timestamp', yKey: 'balance', marker: { size: 0 }},
@@ -317,7 +324,7 @@ export class ProfileComponent {
       });
       this.lastSeenByChain = mapByChain;
       this.blueFlagByChain = blueFlagMap;
-      this.cd.detectChanges();
+      this.lastSeenUpdateSubject.next(); // Trigger debounced change detection
     });
   }
 
@@ -345,6 +352,10 @@ export class ProfileComponent {
   ngOnDestroy() {
     this.lastSeenUnsubscribe();
     this.focusUserLastSeenUnsubscribe();
+    if (this.lastSeenUpdateSubscription) {
+      this.lastSeenUpdateSubscription.unsubscribe();
+      this.lastSeenUpdateSubscription = null;
+    }
     if (this.authSubscription) {
       this.authSubscription.unsubscribe();
       this.authSubscription = null;
@@ -363,6 +374,9 @@ export class ProfileComponent {
     if(typeof value.toDate==='function')return value.toDate().getTime()
     return 0
   }
+
+  // Pre-computed seen status per chain for template optimization
+  seenByChain: Record<string, boolean> = {};
 
   isMessageSeen(chain:string,messageTimestamp:any):boolean{
     const lastSeenTimestampMessage=this.lastSeenByChain[chain]||0
@@ -489,6 +503,23 @@ export class ProfileComponent {
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
     this.messageOptionsOpenFor = null;
+  }
+
+  // TrackBy functions for *ngFor performance
+  trackByChain(index: number, item: any): string {
+    return item?.payload?.doc?.id || item?.payload?.doc?.data()?.chain || index;
+  }
+
+  trackByEventKey(index: number, item: any): string {
+    return item?.payload?.doc?.id || index;
+  }
+
+  trackByImageKey(index: number, item: any): string {
+    return item?.payload?.doc?.id || index;
+  }
+
+  trackByFundKey(index: number, item: any): string {
+    return item?.payload?.doc?.id || index;
   }
 
   @HostListener('document:click')

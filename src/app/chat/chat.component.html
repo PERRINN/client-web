@@ -247,7 +247,7 @@
       </div>
       <div>
         <ul>
-          <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index">
+          <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index; trackBy: trackByMessageKey">
             <button class="buttonPrimary chatLoadMoreBtn" *ngIf="first" [disabled]="isLoadMoreDisabled" (click)="loadMore()">Load more</button>
             <div class="island" id="date" style="margin-top:25px;margin-bottom:25px;max-width:240px" *ngIf="isMessageNewTimeGroup(message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
               <div style="margin:0 auto;text-align:center">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'fullDate'}}</div>
@@ -310,7 +310,7 @@
       </div>
       <div class="galleryWrap">
         <ul class="galleryGrid">
-          <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index" class="galleryCard">
+          <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index; trackBy: trackByMessageKey" class="galleryCard">
             <div class="galleryImageWrap" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
               <img class="imageWithZoom galleryImage" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium||message.payload?.chatImageUrlThumb||message.payload?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload)">
             </div>
