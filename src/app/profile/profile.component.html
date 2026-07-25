@@ -13,12 +13,12 @@
     </div>
 
     <div class="island profile-banner-item" *ngIf="scope=='all'&&UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined && !sidePanelScope" style="line-height:0px;clear:both">
-      <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="width:100%;display:block">
+      <img loading="lazy" [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" style="width:100%;display:block">
     </div>
 
     <div class="island" *ngIf="scope!='all'" style="padding:14px;">
       <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start;">
-        <img *ngIf="focusUserLastMessageObj"
+        <img *ngIf="focusUserLastMessageObj" loading="lazy"
              [src]="focusUserLastMessageObj?.imageUrlMedium"
              (error)="UI.handleUserImageError($event, focusUserLastMessageObj)"
              style="object-fit:cover;width:132px;height:132px;border-radius:12px;border:1px solid rgba(16,185,129,0.18);cursor:pointer;flex-shrink:0;"
@@ -100,7 +100,7 @@
                   <div class="eventCardHeader">
                     <div class="eventCardMedia">
                       <ng-container *ngIf="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb; else eventIconFallback">
-                        <img
+                        <img loading="lazy"
                           [src]="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb"
                           class="eventCardChatImage"
                           (error)="UI.handleChatImageError($event, message.payload.doc.data())">
@@ -158,7 +158,7 @@
                 <div class="guardedChatItem fundCardBody" style="padding:8px; border-radius: 10px; background: rgba(16, 185, 129, 0.05);">
                   <div style="display:flex; align-items:center; gap:6px; margin-bottom:5px;">
                     <ng-container *ngIf="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb; else fundIconFallback">
-                      <img
+                      <img loading="lazy"
                         [src]="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb"
                         class="eventCardChatImage"
                         (error)="UI.handleChatImageError($event, message.payload.doc.data())">
@@ -209,7 +209,7 @@
       <ul *ngIf="(mode=='inbox' || scope=='all') && !sidePanelScope" class="listLight imageCarousel" id="scroll-images">
         <li *ngFor="let message of latestImages|async;let first=first;let last=last; trackBy: trackByImageKey" class="carouselItem guardedChatItem">
           <div *ngIf="scope=='all'||mode=='inbox'" class="carouselImageWrap" (click)="openCarouselImage(message.payload.doc.data()?.chatImageUrlOriginal)">
-            <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload.doc.data())" class="carouselImage">
+            <img loading="lazy" [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload.doc.data())" class="carouselImage">
           </div>
           <button class="carouselMeta" (click)="openListedChat(message.payload.doc.data()?.chain, message.payload.doc.id)">
             <span class="messageTiming">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</span>
@@ -246,13 +246,13 @@
               </div>
               <div style="float:left;min-width:58px;min-height:40px">
                 <ng-container *ngIf="message.payload.doc.data()?.chatProfileImageUrlThumb || message.payload.doc.data()?.chatProfileImageUrlMedium; else recipientImagesFallback">
-                  <img
+                  <img loading="lazy"
                     [src]="message.payload.doc.data()?.chatProfileImageUrlThumb || message.payload.doc.data()?.chatProfileImageUrlMedium"
                     (error)="UI.handleChatImageError($event, message.payload.doc.data())"
                     style="float:left;margin:12px 4px 12px 4px;object-fit:cover;height:40px;width:40px">
                 </ng-container>
                 <ng-template #recipientImagesFallback>
-                  <img [src]="message.payload.doc.data()?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload.doc.data())" style="float:left;margin:12px 2px 12px 4px;object-fit:cover;height:40px;width:40px">
+                  <img loading="lazy" [src]="message.payload.doc.data()?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload.doc.data())" style="float:left;margin:12px 2px 12px 4px;object-fit:cover;height:40px;width:40px">
                 </ng-template>
               </div>
               <div>

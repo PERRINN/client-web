@@ -7,7 +7,7 @@
     <div *ngIf="!showChatDetails">
       <div style="float:left;width:75%;margin:0 5px 0 10px;min-height:40px">
         <div class="chatHeaderSubjectRow">
-          <img *ngIf="chatLastMessageObj?.chatProfileImageUrlThumb || chatLastMessageObj?.chatProfileImageUrlMedium"
+          <img *ngIf="chatLastMessageObj?.chatProfileImageUrlThumb || chatLastMessageObj?.chatProfileImageUrlMedium" loading="lazy"
                [src]="chatLastMessageObj?.chatProfileImageUrlThumb || chatLastMessageObj?.chatProfileImageUrlMedium"
                class="chatHeaderProfileImage"
                (error)="UI.handleChatImageError($event, chatLastMessageObj)">
@@ -74,7 +74,7 @@
           </div>
           <div class="chatProfileImageEditor">
             <div class="chatProfileImagePreviewWrap">
-              <img *ngIf="chatProfileImageDownloadUrl || chatLastMessageObj?.chatProfileImageUrlThumb || chatLastMessageObj?.chatProfileImageUrlMedium"
+              <img loading="lazy" *ngIf="chatProfileImageDownloadUrl || chatLastMessageObj?.chatProfileImageUrlThumb || chatLastMessageObj?.chatProfileImageUrlMedium"
                    [src]="chatProfileImageDownloadUrl || chatLastMessageObj?.chatProfileImageUrlThumb || chatLastMessageObj?.chatProfileImageUrlMedium"
                    class="chatProfileImagePreview"
                    style="cursor:pointer"
@@ -255,7 +255,7 @@
             <div *ngIf="lastRead==message.key" style="clear:both;margin:0 auto;text-align:center;font-size:12px;margin:35px 0 35px 0;border-style:solid;border-width:0 0 1px 0">Last read</div>
             <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" style="clear:both;width:100%;height:5px"></div>
             <div *ngIf="message.payload?.imageUrlThumbUser&&(isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first)" style="float:left;width:54px;min-height:10px">
-              <img [src]="message.payload?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload)" style="cursor:pointer;display:inline;float:left;margin:0 4px 10px 10px; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
+              <img loading="lazy" [src]="message.payload?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload)" style="cursor:pointer;display:inline;float:left;margin:0 4px 10px 10px; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
             </div>
             <div [style.background-color]="(message.payload?.user==UI.currentUser)?'rgba(16, 185, 129, 0.28)':'rgba(22, 32, 52, 0.72)'"
                  class="messageBubble"
@@ -283,7 +283,7 @@
                   <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)<=43200" class="messageTiming" style="margin:0px 10px 0px 10px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</div>
                 </div>
                 <div style="clear:both;text-align:center">
-                  <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" (error)="UI.handleChatImageError($event, message.payload)" style="max-width:70%;max-height:320px;width: auto; height: auto; margin:5px 10px 5px 5px; box-shadow: 0 0 2px whitesmoke" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
+              <img loading="lazy" class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" (error)="UI.handleChatImageError($event, message.payload)" style="max-width:70%;max-height:320px;width: auto; height: auto; margin:5px 10px 5px 5px; box-shadow: 0 0 2px whitesmoke" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
                 </div>
                 <div class="messageBodyText" style="margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
               </div>

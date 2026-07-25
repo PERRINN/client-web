@@ -306,8 +306,11 @@ export class ProfileComponent {
     }
   }
 
-  private subscribeToLastSeen() {
+  private lastSeenLoadedOnce = false;
+
+  private async subscribeToLastSeen() {
     this.lastSeenUnsubscribe();
+    this.lastSeenLoadedOnce = false;
     const userId = this.UI.currentUser || this.currentUserId;
     if (!userId) {
       this.lastSeenByChain = {};
@@ -315,17 +318,54 @@ export class ProfileComponent {
       this.lastSeenUpdateSubject.next();
       return;
     }
-    // stateChanges() emits ONLY modified documents (added/modified/removed),
-    // unlike snapshotChanges() which returns the ENTIRE collection on every change.
-    // Updates the map incrementally: O(1) per change instead of O(n).
+
+    // Phase 1: One-time load of ALL lastSeen data using a direct get().
+    // This is faster than waiting for the subscription's initial snapshot
+    // because it avoids processing all documents through the observable pipeline.
+    try {
+      const snapshot = await this.afs.firestore
+        .collection('lastSeen')
+        .doc(userId)
+        .collection('chats')
+        .get();
+
+      const mapByChain: Record<string, number> = {};
+      const blueFlagMap: Record<string, boolean> = {};
+      snapshot.forEach(doc => {
+        const data = doc.data() || {};
+        const timestampMessage = this.toMillis(data['serverTimestamp']);
+        if (timestampMessage > 0) mapByChain[doc.id] = timestampMessage;
+        blueFlagMap[doc.id] = !!data['blueFlag'];
+      });
+      this.lastSeenByChain = mapByChain;
+      this.blueFlagByChain = blueFlagMap;
+      this.lastSeenLoadedOnce = true;
+      this.lastSeenUpdateSubject.next();
+    } catch (e) {
+      this.lastSeenByChain = {};
+      this.blueFlagByChain = {};
+      this.lastSeenLoadedOnce = true;
+      this.lastSeenUpdateSubject.next();
+    }
+
+    // Phase 2: Subscribe to stateChanges() for incremental updates only.
+    // stateChanges() emits ONLY modified documents (added/modified/removed).
+    // We skip 'added' events from the initial sync since we already loaded
+    // all data in Phase 1. This reduces the subscription processing overhead.
     this.lastSeenSubscription = this.afs.collection<any>(`lastSeen/${userId}/chats`).stateChanges().subscribe(changes => {
       let hasChanges = false;
       changes.forEach(change => {
         const id = change.payload.doc.id;
+        // Skip 'added' events from the initial subscription sync
+        // since we already loaded all data via get() above
+        if (change.type === 'added' && this.lastSeenLoadedOnce) return;
+
         if (change.type === 'removed') {
-          delete this.lastSeenByChain[id];
-          delete this.blueFlagByChain[id];
-          hasChanges = true;
+          if (this.lastSeenByChain[id] !== undefined || this.blueFlagByChain[id] !== undefined) {
+            delete this.lastSeenByChain[id];
+            delete this.blueFlagByChain[id];
+            hasChanges = true;
+          }
         } else {
           const data = change.payload.doc.data() || {};
           const timestampMessage = this.toMillis(data['serverTimestamp']);

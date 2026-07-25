@@ -1,14 +1,13 @@
 import { Injectable }    from '@angular/core'
 import { AngularFireAuth } from '@angular/fire/compat/auth'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
-import { Observable } from 'rxjs'
-import { map } from 'rxjs/operators'
+import { Observable, firstValueFrom } from 'rxjs'
+import { map, take } from 'rxjs/operators'
 import firebase from 'firebase/compat/app'
 import { formatNumber } from '@angular/common'
 import { Router, ActivatedRoute } from '@angular/router';
 import { isDevMode } from '@angular/core';
 import { environment } from '../environments/environment';
-import { profile } from 'console'
 
 
 @Injectable()
@@ -31,6 +30,8 @@ export class UserInterfaceService {
   private authenticatedUserEmail: string | null = null
   private profileUserId: string
   private adminUserId: string
+  public lastConnectionTimestamp: number = 0
+  
   
   constructor(
     private afAuth: AngularFireAuth,
@@ -78,7 +79,7 @@ export class UserInterfaceService {
     setInterval(() => {
       this.nowSeconds = Math.floor(Date.now() / 1000);
     }, 60000);
-    this.afAuth.user.subscribe((auth) => {
+    this.afAuth.user.subscribe(async (auth) => {
       if (auth != null) {
         this.authenticatedUser = auth.uid;
         this.authenticatedUserEmail = auth.email;
@@ -86,6 +87,10 @@ export class UserInterfaceService {
           this.currentUser = auth.uid;
           this.currentUserEmail = auth.email;
         }
+        // Load lastConnectionTimestamp BEFORE updating it
+        // so the previous session's timestamp is available for chat filtering
+        await this.loadLastConnectionTimestamp();
+        this.updateLastConnectionTimestamp();
         afs
           .collection<any>("PERRINNMessages", (ref) =>
             ref
@@ -107,6 +112,7 @@ export class UserInterfaceService {
         this.profileSimulatorLoggedOut = false;
         this.currentUser = null;
         this.currentUserEmail = null;
+        this.lastConnectionTimestamp = 0;
       }
     })
     afs
@@ -367,6 +373,59 @@ export class UserInterfaceService {
     img.classList.add('image-fallback');
     // Fallback to Original URL
     if (message?.imageUrlOriginal) img.src = message.imageUrlOriginal
+  }
+
+  /**
+   * Loads the lastConnectionTimestamp from Firestore for the current user.
+   * This is called BEFORE updating it, so the profile component can
+   * use it to filter only active chats (those with messages after this timestamp).
+   */
+  async loadLastConnectionTimestamp(): Promise<void> {
+    const userId = this.currentUser;
+    if (!userId) {
+      this.lastConnectionTimestamp = 0;
+      return;
+    }
+    try {
+      const doc = await this.afs.firestore
+        .collection('lastSeen')
+        .doc(userId)
+        .collection('metadata')
+        .doc('connection')
+        .get();
+      const data = doc.data() || {};
+      this.lastConnectionTimestamp = this.toMillis(data['lastConnection']) || 0;
+    } catch {
+      this.lastConnectionTimestamp = 0;
+    }
+  }
+
+  /**
+   * Updates the lastConnectionTimestamp in Firestore to the current server time.
+   * Also updates the local property to the current time.
+   */
+  updateLastConnectionTimestamp(): void {
+    const userId = this.currentUser;
+    if (!userId) return;
+    this.lastConnectionTimestamp = Date.now();
+    this.afs.firestore
+      .collection('lastSeen')
+      .doc(userId)
+      .collection('metadata')
+      .doc('connection')
+      .set({
+        lastConnection: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+  }
+
+  private toMillis(value: any): number {
+    if (!value) return 0;
+    if (typeof value === 'number') return value;
+    if (typeof value?.seconds === 'number') return value.seconds * 1000;
+    if (typeof value?.toMillis === 'function') return value.toMillis();
+    if (typeof value?.toDate === 'function') return value.toDate().getTime();
+    return 0;
   }
 
 }
