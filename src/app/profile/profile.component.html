@@ -297,7 +297,6 @@
                 <th class="th-contract">{{first?'':UI.convertAndFormatPRNToCurrency(null,(message.payload.doc.data()?.contract?.amountCummulate||0)-previousContractAmountCummulate)|blankIfZero}}</th>
                 <th class="th-message">{{message.payload.doc.data()?.userChain?.currentMessage}}</th>
               </tr>
-              {{storeMessageValues(message.payload.doc.data())}}
             </table>
           </li>
         </ul>

@@ -239,7 +239,9 @@ export class ProfileComponent {
         .orderBy('serverTimestamp','desc')
       ).snapshotChanges().pipe(map(changes=>{
         this.UI.loading=false
-        return changes.reverse().map(c=>({payload:c.payload}))
+        // storeMessageValues moved from template to pipe to avoid running on every change detection cycle
+        changes.forEach(c2 => this.storeMessageValues(c2.payload.doc.data()));
+        return changes.reverse().map(c2=>({payload:c2.payload}))
       }))
     }
     else if(this.mode=='chain'){
@@ -250,7 +252,9 @@ export class ProfileComponent {
         .limit(this.messageNumberDisplay)
       ).snapshotChanges().pipe(map(changes=>{
         this.UI.loading=false
-        return changes.reverse().map(c=>({payload:c.payload}))
+        // storeMessageValues moved from template to pipe to avoid running on every change detection cycle
+        changes.forEach(c2 => this.storeMessageValues(c2.payload.doc.data()));
+        return changes.reverse().map(c2=>({payload:c2.payload}))
       }),
       tap(() => this.scrollToBottomOnLoadMore())
       )
