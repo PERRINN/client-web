@@ -311,20 +311,44 @@ export class ProfileComponent {
     const userId = this.UI.currentUser || this.currentUserId;
     if (!userId) {
       this.lastSeenByChain = {};
+      this.blueFlagByChain = {};
+      this.lastSeenUpdateSubject.next();
       return;
     }
-    this.lastSeenSubscription = this.afs.collection<any>(`lastSeen/${userId}/chats`).snapshotChanges().subscribe(snaps => {
-      const mapByChain: Record<string, number> = {};
-      const blueFlagMap: Record<string, boolean> = {};
-      snaps.forEach(snap => {
-        const data = snap.payload.doc.data() || {};
-        const timestampMessage = this.toMillis(data['serverTimestamp']);
-        if (timestampMessage > 0) mapByChain[snap.payload.doc.id] = timestampMessage;
-        blueFlagMap[snap.payload.doc.id] = !!data['blueFlag'];
+    // stateChanges() emits ONLY modified documents (added/modified/removed),
+    // unlike snapshotChanges() which returns the ENTIRE collection on every change.
+    // Updates the map incrementally: O(1) per change instead of O(n).
+    this.lastSeenSubscription = this.afs.collection<any>(`lastSeen/${userId}/chats`).stateChanges().subscribe(changes => {
+      let hasChanges = false;
+      changes.forEach(change => {
+        const id = change.payload.doc.id;
+        if (change.type === 'removed') {
+          delete this.lastSeenByChain[id];
+          delete this.blueFlagByChain[id];
+          hasChanges = true;
+        } else {
+          const data = change.payload.doc.data() || {};
+          const timestampMessage = this.toMillis(data['serverTimestamp']);
+          const newBlueFlag = !!data['blueFlag'];
+          const currentBlueFlag = !!this.blueFlagByChain[id];
+          const currentTimestamp = this.lastSeenByChain[id] || 0;
+          // Only apply the modification if the value actually changed
+          if (timestampMessage > 0 && timestampMessage !== currentTimestamp) {
+            this.lastSeenByChain[id] = timestampMessage;
+            hasChanges = true;
+          } else if (timestampMessage === 0 && currentTimestamp !== 0) {
+            delete this.lastSeenByChain[id];
+            hasChanges = true;
+          }
+          if (newBlueFlag !== currentBlueFlag) {
+            this.blueFlagByChain[id] = newBlueFlag;
+            hasChanges = true;
+          }
+        }
       });
-      this.lastSeenByChain = mapByChain;
-      this.blueFlagByChain = blueFlagMap;
-      this.lastSeenUpdateSubject.next(); // Trigger debounced change detection
+      if (hasChanges) {
+        this.lastSeenUpdateSubject.next(); // Trigger debounced change detection
+      }
     });
   }
 
