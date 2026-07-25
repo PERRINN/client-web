@@ -212,7 +212,7 @@ export class ProfileComponent {
       this.latestImages=this.afs.collection<any>('PERRINNMessages',ref=>ref
         .where('verified','==',true)
         .orderBy('chatImageTimestamp','desc')
-        .limit(50)
+        .limit(20)
       ).snapshotChanges().pipe(map(changes=>{
         return changes.map(c=>({payload:c.payload}))
       }))
@@ -280,7 +280,7 @@ export class ProfileComponent {
         .where('recipientList','array-contains-any',[this.scope])
         .where('verified','==',true)
         .orderBy('chatImageTimestamp','desc')
-        .limit(50)
+        .limit(20)
       ).snapshotChanges().pipe(map(changes=>{
         return changes.map(c=>({payload:c.payload}))
       }))
