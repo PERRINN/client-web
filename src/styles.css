@@ -917,10 +917,6 @@ app-root buyprn .summary-box {
   border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
-app-root directory table tr:hover {
-  background: rgba(5, 150, 105, 0.08) !important;
-}
-
 app-root directory .directoryPage {
   padding: 0;
 }
@@ -939,20 +935,112 @@ app-root directory .island {
   box-shadow: 0 8px 24px rgba(2, 8, 23, 0.24);
 }
 
-app-root profile .profile-banner-item,
 app-root directory .directory-banner-item {
   padding: 0;
   overflow: hidden;
+  margin-bottom: 20px;
+  line-height: 0;
+}
+
+app-root directory .directory-banner-img {
+  width: 100%;
+  display: block;
+}
+
+app-root directory .directory-overview-island {
+  background: #1e293b;
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid rgba(5, 150, 105, 0.1);
+  margin-bottom: 32px;
+}
+
+app-root directory .directory-stat-card {
+  background: linear-gradient(135deg, rgba(5, 150, 105, 0.1) 0%, rgba(4, 120, 87, 0.05) 100%);
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(5, 150, 105, 0.2);
+}
+
+app-root directory .directory-search-container {
+  background: #1e293b;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(5, 150, 105, 0.1);
+  margin-bottom: 24px;
+}
+
+app-root directory .directory-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #f1f5f9;
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+  padding: 0;
+  margin: 0;
 }
 
 app-root directory .viewToggleBtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(5, 150, 105, 0.2);
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-app-root directory .viewToggleBtn:hover {
-  border-color: rgba(16, 185, 129, 0.4) !important;
+app-root directory .directory-card-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+app-root directory .directory-card {
+  background: #1e293b;
+  border: 1px solid rgba(5, 150, 105, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 280px;
+  cursor: pointer;
+}
+
+app-root directory .directory-card-img {
+  object-fit: contain;
+  height: 112px;
+  width: 100%;
+  display: block;
+  background: rgba(5, 150, 105, 0.03);
+  flex-shrink: 0;
+}
+
+app-root directory .directory-table-container {
+  background: #1e293b;
+  padding: 0 12px 12px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(5, 150, 105, 0.1);
+  overflow: visible;
+}
+
+app-root directory .directory-table-row {
+  border-bottom: 1px solid rgba(5, 150, 105, 0.05);
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+app-root directory table tr:hover {
+  background: rgba(5, 150, 105, 0.08) !important;
 }
 
 app-root login .authPage {
