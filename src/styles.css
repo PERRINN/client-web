@@ -1,7 +1,3 @@
-:root {
-  --side-width-pct: 30vw;
-}
-
 *, *:before, *:after {
   box-sizing: border-box;
   font-family: verdana;
@@ -64,9 +60,6 @@ a:visited {
 .listLight li {
   cursor: pointer;
   padding: 5px;
-}
-.listLight .selected {
-  background-color: #222C32;
 }
 .currency-selector-list {
   display: flex;
@@ -139,30 +132,6 @@ option:checked {
   background-color: #2D3941;
 }
 
-/* Form Module */
-.form-module {
-  margin: 0 auto;
-}
-.form-module .form {
-  padding: 20px;
-  text-align: center;
-}
-.form-module .top {
-  width: 100%;
-  padding: 7px;
-  box-sizing: border-box;
-  text-align: center;
-}
-.form-module .cta {
-  width: 100%;
-  padding: 7px;
-  box-sizing: border-box;
-  text-align: center;
-}
-.form-module .cta a {
-  font-size: 10px;
-  text-decoration: none;
-}
 .password {
   position:relative
 }
@@ -181,11 +150,6 @@ option:checked {
   cursor: pointer;
   color: rgba(245, 245, 245, 0.60);
 }
-hr {
-    display: block;
-    margin: 10px 10px 10px 10px;
-    border-style: ridge;
-}
 .island {
   text-align: center;
   margin: 5px auto;
@@ -194,10 +158,6 @@ hr {
   background-color: #262927;
   user-select:none;
   border-radius: 10px;
-}
-.island .fixed {
-  position: fixed;
-  z-index: 999;
 }
 #date {
   padding: 2.5px;
@@ -260,15 +220,6 @@ progress::-webkit-progress-value {
 .imageWithZoom {
   cursor: pointer;
 }
-.inputTitle {
-  width: 100%;
-  padding: 5px;
-  margin: 0px;
-  font-size: 16px;
-  line-height: 16px;
-  font-weight: bold;
-  font-family: sans-serif;
-}
 .tableRow:hover {
   opacity: 0.95;
 }
@@ -278,23 +229,6 @@ img {
 .image-fallback {
   filter: grayscale(100%);
 }
-.chatButton{
-  cursor:pointer;
-  font-size:14px;
-  text-align:center;
-  width:70px;
-  margin:2px;
-}
-.note {
-  white-space: pre-wrap;
-  overflow-y: scroll;
-  width: 100%;
-  padding: 5px;
-  margin: 0px;
-  font-size: 12px;
-  line-height: 12px;
-}
-
 .spinner {
   margin: 50px auto 0;
   width: 70px;
@@ -468,7 +402,6 @@ app-root .uploadProgress {
 
 app-root .topNav {
   max-width: 980px;
-  margin: 0 auto 4px auto;
   margin: 0 auto 10px auto;
   background: #1e293b;
   border: none;
@@ -1415,39 +1348,6 @@ app-root profile .profile-banner-item {
   grid-column: 1 / -1;
 }
 
-app-root profile .nonMemberChatLock {
-  font-size: 16px;
-  color: rgba(148, 163, 184, 0.8);
-  opacity: 0.75;
-  line-height: 1;
-  pointer-events: none;
-}
-
-app-root profile .guardedChatItem {
-  position: relative;
-}
-
-app-root profile .nonMemberView .guardedChatItem,
-app-root profile .nonMemberView .guardedChatItem * {
-  cursor: default !important;
-}
-
-app-root profile .nonMemberView .listLight li.guardedChatItem:hover {
-  background: rgba(22, 32, 52, 0.35);
-  border-color: rgba(16, 185, 129, 0.08);
-}
-
-app-root profile .nonMemberView .imageCarousel .guardedChatItem:hover {
-  background: rgba(22, 32, 52, 0.55);
-  border-color: rgba(16, 185, 129, 0.14);
-}
-
-app-root profile .nonMemberChatLockCorner {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-}
 
 app-root profile .listLight {
   list-style: none;
@@ -1634,19 +1534,6 @@ app-root profile .eventCardDateText {
   color: #cbd5e1;
 }
 
-app-root profile .eventCardDescription {
-  font-size: 12px;
-  color: #94a3b8;
-  line-height: 1.4;
-}
-
-app-root profile .eventCardDescription.compact {
-  margin-top: 4px;
-  font-size: 12px;
-  color: #94a3b8;
-  line-height: 1.4;
-  max-width: calc(100% - 0px);
-}
 
 app-root profile .eventCardToggleBtn {
   margin: 8px 0 0 auto;
@@ -1763,17 +1650,6 @@ app-root profile .table-scroll-wrapper .listLight li {
 }
 
 
-app-root profile .splitIsland {
-  padding: 10px;
-  margin-bottom: 0;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-}
 
 app-root profile .profile-events-item,
 app-root profile .profile-funds-item {
@@ -2711,7 +2587,6 @@ app-root profile .messageOptionsBtn {
 }
 
 app-root chat .messageBubble:hover .messageOptionsBtn,
-app-root chat .messageBubble.messageActionTarget .messageOptionsBtn,
 app-root profile .guardedChatItem:hover .messageOptionsBtn {
   opacity: 1;
   pointer-events: auto;
@@ -2772,9 +2647,14 @@ app-root profile .chatListBlueFlag {
 }
 
 app-root chat .chatPage ul,
-app-root chat .chatPage li,
-app-root chat .messageBubble {
+app-root chat .chatPage li {
   overflow: visible;
+}
+
+app-root chat .messageBubble,
+app-root profile .guardedChatItem {
+  overflow: visible;
+  position: relative;
 }
 
 app-root chat .messageOptionsItem,
