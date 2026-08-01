@@ -1725,35 +1725,51 @@ app-root profile .buttonBlack:hover {
   border-color: rgba(16, 185, 129, 0.4);
 }
 
-app-root profile .modeSwitchWrap {
-  width: 100%;
+app-root profile .warning-island {
+  background-color: rgb(255, 251, 221) !important;
+  color: #333 !important;
+  cursor: pointer;
 }
 
-@media (max-width: 760px) {
-  app-root profile .eventCardHeader {
-    flex-direction: column;
-  }
+app-root profile .profile-header-img {
+  object-fit: cover;
+  width: 132px;
+  height: 132px;
+  border-radius: 12px;
+  border: 1px solid rgba(16, 185, 129, 0.18);
+  cursor: pointer;
+  flex-shrink: 0;
+}
 
-  app-root profile .eventCardJoinBtn {
-    width: 100%;
-  }
+app-root profile .profile-stat-box {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 12px;
+  color: #cbd5e1;
+  line-height: 1.4;
+}
 
-  app-root profile .eventCardSubjectRow {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0;
-  }
-
-  app-root profile .eventCardDescriptionInline {
-    max-width: 100%;
-  }
+app-root profile .modeSwitchWrap {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  align-items: center;
 }
 
 app-root profile .modeSwitchTrack {
   max-width: 100%;
   box-sizing: border-box;
   border-radius: 14px;
-  padding: 5px;
+  padding: 4px;
+  display: inline-flex;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  gap: 4px;
+  flex-wrap: wrap;
 }
 
 app-root profile .modeSwitchBtn {
@@ -1762,6 +1778,44 @@ app-root profile .modeSwitchBtn {
   text-align: center;
   line-height: 1.1;
   border-radius: 9px;
+  border: none;
+}
+
+app-root profile .profile-list-avatar {
+  float: left;
+  margin: 12px 4px 12px 4px;
+  object-fit: cover;
+  height: 40px;
+  width: 40px;
+}
+
+app-root profile .profile-chat-subject-wrap {
+  float: left;
+  margin-top: 10px;
+  width: 60%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+app-root profile .profile-chat-timing {
+  float: right;
+  margin-top: 10px;
+  margin-right: 36px;
+  width: 40px;
+}
+
+app-root profile .profile-chat-preview {
+  clear: both;
+  float: left;
+  margin-bottom: 10px;
+  width: 90%;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  overflow: hidden;
 }
 
 app-root profile .buttonPrimary:hover {
@@ -1788,6 +1842,8 @@ app-root profile .tableRow {
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22);
   margin-bottom: 6px;
   position: relative;
+  display: flex;
+  user-select: text;
 }
 
 app-root profile .splitContainer {
