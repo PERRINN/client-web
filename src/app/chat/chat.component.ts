@@ -936,10 +936,12 @@ export class ChatComponent implements OnDestroy {
     this.showCancelEventModal = false
     this.pendingMessageScroll = null
 
-    // wait for view to settle, then resize if textarea exists
     this.zone.onStable.pipe(take(1)).subscribe(() => {
       const el = this.msgBox?.nativeElement;
-      if (el) this.autoResize(el);
+      if (el) {
+        el.style.height = 'auto';
+        this.autoResize(el);
+      }
       if (!this.pendingMessageScroll) this.scrollMainToBottom();
       setTimeout(() => {
         this.updateFixedOffsets();
@@ -957,8 +959,12 @@ export class ChatComponent implements OnDestroy {
     const mc = this.scrollContainer?.nativeElement;
     const wasAtBottom = mc ? (mc.scrollHeight - mc.scrollTop - mc.clientHeight < 20) : false;
 
-    el.style.height = 'auto';
-    el.style.height = el.scrollHeight + 'px';
+    if (!el.value) {
+      el.style.height = 'auto';
+    } else {
+      el.style.height = '0px';
+      el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+    }
 
     if (wasAtBottom && mc) {
       mc.scrollTop = mc.scrollHeight;

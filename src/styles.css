@@ -120,8 +120,17 @@ button, div.buttonBlack {
   animation: rotation 2s infinite linear;
 }
 
-input,
 textarea {
+  background-color:#2D3941;
+  color: #B0BAC0;
+  width: 90%;
+  padding: 10px;
+  margin: 5px;
+  box-shadow: none;              /* No shadow */
+  outline: none;                 /* No blue outline unless focused */
+  border: 1px solid transparent; /* Flat edge */
+}
+input {
   background-color:#2D3941;
   color: #B0BAC0;
   width: 90%;
