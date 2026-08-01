@@ -1357,10 +1357,35 @@ app-root settings .buttonBlack.activeCurrency {
   color: #ffffff;
   box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2), 0 8px 20px rgba(16, 185, 129, 0.28);
   font-weight: 700;
+  pointer-events: none;
 }
 
 app-root settings .buttonRed {
   padding: 10px 14px;
+}
+
+app-root settings .logout-btn {
+  width: 120px;
+  margin: 10px auto;
+  display: block;
+}
+
+app-root settings .settings-action-btn {
+  font-size: 12px;
+  width: 200px;
+  padding: 2px;
+  margin: 10px;
+}
+
+app-root settings .settings-help-text {
+  color: #94a3b8 !important;
+  line-height: 1.5;
+  margin: 20px;
+}
+
+app-root settings .settings-info-text {
+  float: left;
+  margin: 10px 10px 5px 15px;
 }
 
 app-root settings .listLight {
@@ -1375,11 +1400,6 @@ app-root settings .listLight {
 
 app-root settings .listLight li {
   width: 125px;
-}
-
-app-root settings .settingsSection div:is([style*='margin:20px'], [style*='margin:15px'], [style*='margin:10px']) {
-  color: #94a3b8 !important;
-  line-height: 1.5;
 }
 
 @media (max-width: 760px) {
