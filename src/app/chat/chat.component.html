@@ -1,8 +1,7 @@
-<div class="chatPage" [style.top.px]="containerTop" [style.bottom.px]="containerBottom" [style.left.px]="containerLeft" [style.width.px]="containerWidth" style="position: fixed; display: flex; flex-direction: column; overflow: visible;" (click)="closeMessageActions()">
+<div class="chatPage" [style.top.px]="containerTop" [style.bottom.px]="containerBottom" [style.left.px]="containerLeft" [style.width.px]="containerWidth" (click)="closeMessageActions()">
   <div
     #chatTopBar
     class="chatTopBar"
-    style="position: relative !important; width: 100% !important; top: 0 !important; left: 0 !important; flex: 0 0 auto;"
     (click)="UI.currentUser ? (showChatDetails = !showChatDetails) : '';showChatDetails?scrollMainToTop():scrollMainToBottom()">
     <div *ngIf="!showChatDetails">
       <div style="float:left;width:75%;margin:0 5px 0 10px;min-height:40px">
@@ -13,16 +12,16 @@
                (error)="UI.handleChatImageError($event, chatLastMessageObj)">
           <div class="chatSubject chatSubjectStrong chatSubjectTruncate">{{chatLastMessageObj?.chatSubject}}</div>
         </div>
-        <div style="width:100%;text-overflow:ellipsis;display:-webkit-box;line-clamp:1;-webkit-line-clamp:1;-webkit-box-orient:vertical;color:#94a3b8;font-size:12px;font-weight:500;line-height:1.4;margin-top:2px">
+        <div class="chatHeaderRecipientList">
           <span *ngFor="let recipient of chatLastMessageObj?.recipientList;let last=last">{{recipient==UI.currentUser?'You':chatLastMessageObj?.recipients[recipient]?.name}}{{last?"":", "}}</span>
         </div>
-        <div *ngIf="fund?.active && fund?.amountGBPTarget >= 0.01" style="clear:both;padding-top:4px">
-          <span class="material-symbols-outlined" style="float:left;font-size:20px;margin-right:5px;color:#10b981">crowdsource</span>
+        <div *ngIf="fund?.active && fund?.amountGBPTarget >= 0.01" class="chatHeaderFund">
+          <span class="material-symbols-outlined chatHeaderFundIcon">crowdsource</span>
           <div style="overflow:hidden;padding-top:2px">
-            <div style="background-color:#334155;height:20px;width:100%;border-radius:6px;overflow:hidden;position:relative;max-width:320px">
-              <div style="height:100%;background: linear-gradient(90deg, #059669 0%, #047857 100%);display:flex;align-items:center;justify-content:center;transition:width 0.3s ease;"
+            <div class="chatFundEditorProgressTrack" style="max-width:320px">
+              <div class="chatFundEditorProgressFill"
                    [style.width]="(fund?.amountGBPRaised/fund?.amountGBPTarget)*100+'%'">
-                <span style="font-size: 10px; color: #ffffff; font-weight: 600; white-space: nowrap;" *ngIf="(fund?.amountGBPRaised/fund?.amountGBPTarget)*100 > 35">
+                <span class="chatFundEditorProgressPct" *ngIf="(fund?.amountGBPRaised/fund?.amountGBPTarget)*100 > 35">
                   {{(fund?.amountGBPRaised/fund?.amountGBPTarget)|percent:'1.0-0'}}
                 </span>
               </div>
@@ -62,7 +61,7 @@
     </div>
   </div>
 
-  <div #scrollContainer style="flex: 1; overflow-y: auto; overflow-x: hidden;">
+  <div #scrollContainer class="chatScrollContainer">
 
     <div *ngIf="showChatDetails" class="chatDetailsPanel">
       <div class="island">
@@ -249,18 +248,17 @@
         <ul>
           <li *ngFor="let message of messages|async;let first=first;let last=last;let i=index">
             <button class="buttonPrimary chatLoadMoreBtn" *ngIf="first" [disabled]="isLoadMoreDisabled" (click)="loadMore()">Load more</button>
-            <div class="island" id="date" style="margin-top:25px;margin-bottom:25px;max-width:240px" *ngIf="isMessageNewTimeGroup(message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
-              <div style="margin:0 auto;text-align:center">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'fullDate'}}</div>
+            <div class="island chatDateIsland" id="date" *ngIf="isMessageNewTimeGroup(message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
+              <div class="chatDateText">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'fullDate'}}</div>
             </div>
-            <div *ngIf="lastRead==message.key" style="clear:both;margin:0 auto;text-align:center;font-size:12px;margin:35px 0 35px 0;border-style:solid;border-width:0 0 1px 0">Last read</div>
+            <div *ngIf="lastRead==message.key" class="lastReadMarker">Last read</div>
             <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" style="clear:both;width:100%;height:5px"></div>
             <div *ngIf="message.payload?.imageUrlThumbUser&&(isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first)" style="float:left;width:54px;min-height:10px">
-              <img [src]="message.payload?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload)" style="cursor:pointer;display:inline;float:left;margin:0 4px 10px 10px; object-fit:cover; height:35px; width:35px" (click)="router.navigate(['profile',message.payload?.user])">
+              <img [src]="message.payload?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload)" class="messageUserAvatar" (click)="router.navigate(['profile',message.payload?.user])">
             </div>
             <div [style.background-color]="(message.payload?.user==UI.currentUser)?'rgba(16, 185, 129, 0.28)':'rgba(22, 32, 52, 0.72)'"
                  class="messageBubble"
                  [id]="message.key"
-                 style="cursor:text;margin:0 16px 10px 56px;user-select:text;border-color:rgba(16, 185, 129, 0.45);border-radius:10px;padding:2px 2px 4px 2px;position:relative"
                  (click)="$event.stopPropagation(); closeMessageActions()"
                  [style.border-style]="(message.payload?.text.includes(UI.currentUserLastMessageObj?.name))?'solid':'none'">
               <button *ngIf="UI.currentUser"
@@ -278,12 +276,12 @@
               </div>
               <div>
                 <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first">
-                  <div class="messageAuthor" style="display:inline;float:left;margin:0px 10px 0px 5px">{{message.payload?.name}}</div>
-                  <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)>43200" class="messageTiming" style="margin:0px 10px 0px 10px">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'h:mm a'}}</div>
-                  <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)<=43200" class="messageTiming" style="margin:0px 10px 0px 10px">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</div>
+                  <div class="messageAuthor">{{message.payload?.name}}</div>
+                  <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)>43200" class="messageTiming">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'h:mm a'}}</div>
+                  <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)<=43200" class="messageTiming">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</div>
                 </div>
                 <div style="clear:both;text-align:center">
-                  <img class="imageWithZoom" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" (error)="UI.handleChatImageError($event, message.payload)" style="max-width:70%;max-height:320px;width: auto; height: auto; margin:5px 10px 5px 5px; box-shadow: 0 0 2px whitesmoke" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
+                  <img class="imageWithZoom messageImage" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" (error)="UI.handleChatImageError($event, message.payload)" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
                 </div>
                 <div class="messageBodyText" style="margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
               </div>
@@ -324,7 +322,7 @@
           </li>
         </ul>
       </div>
-      <div class="island" style="margin-top:25px;margin-bottom:25px;max-width:250px;">
+      <div class="island chatLoadMoreIsland">
         <button class="buttonPrimary" style="width:200px;margin:10px auto" [disabled]="isLoadMoreDisabled" (click)="loadMore()">Load more</button>
       </div>
     </div>
@@ -332,23 +330,21 @@
 
   <div *ngIf="UI.currentUser&&!showImageGallery&&!showChatDetails"
        #chatComposer
-       class="chatComposer"
-       style="position: relative !important; width: 100% !important; bottom: 0 !important; left: 0 !important; flex: 0 0 auto; padding-bottom: 20px;">
+       class="chatComposer">
     <span *ngIf="chatLastMessageObj?.chatSubject==null" style="margin:5px;font-size:10px">This message will be the subject of this chat</span>
     <div style="clear:both;float:left;width:90%;display:flex;align-items:center;min-height:64px">
       <textarea #msgBox
                 autocapitalize="none"
                 rows="1"
-                style="float:left;padding:10px;resize:none;overflow-y:hidden;white-space:pre-wrap;word-break:break-word;background:rgba(15,23,42,0.65);border:1px solid rgba(148,163,184,0.3);border-radius:8px;color:#f1f5f9"
                 [style.width]="imageDownloadUrl?'80%':'95%'"
                 maxlength="500"
                 (input)="autoResize(msgBox)"
                 (keyup.enter)="addMessage()"
                 [(ngModel)]="draftMessage"
                 placeholder="Reply all"></textarea>
-      <div *ngIf="imageDownloadUrl" style="float:left;width:15%;position:relative;overflow:visible;display:flex;align-items:center">
-        <img [src]="imageDownloadUrl" style="object-fit:cover;height:53px;margin:0 auto;display:block">
-        <button (click)="clearSelectedImage()" style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:#ef4444;color:white;display:flex;align-items:center;justify-content:center;padding:0;border:none;cursor:pointer;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,0.5)">
+      <div *ngIf="imageDownloadUrl" class="composerImagePreview">
+        <img [src]="imageDownloadUrl">
+        <button (click)="clearSelectedImage()" class="composerImageClearBtn">
           <span class="material-icons-outlined" style="font-size:14px;line-height:1">close</span>
         </button>
       </div>
