@@ -1,7 +1,7 @@
 import { Injectable }    from '@angular/core'
 import { AngularFireAuth } from '@angular/fire/compat/auth'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
-import { Observable } from 'rxjs'
+import { Observable, BehaviorSubject } from 'rxjs'
 import { map } from 'rxjs/operators'
 import firebase from 'firebase/compat/app'
 import { formatNumber } from '@angular/common'
@@ -27,7 +27,9 @@ export class UserInterfaceService {
   isCurrentUserMember = false
   public isDev = false
   public revolutMode: 'sandbox' | 'prod' = 'sandbox'
+  public pendingMessages$ = new BehaviorSubject<any[]>([]);
   private authenticatedUser: string | null = null
+  private conversionCache = new Map<string, number>();
   private authenticatedUserEmail: string | null = null
   private profileUserId: string
   private adminUserId: string
@@ -40,6 +42,12 @@ export class UserInterfaceService {
 
     this.profileUserId='ubiLUzQOd0ZIAEDYsOltrUMUdim2'
     this.adminUserId='FHk0zgOQUja7rsB9jxDISXzHaro2'
+
+    // Try to load admin obj from cache
+    try {
+      const cachedAdmin = sessionStorage.getItem('PERRINNAdminLastMessageObj');
+      if (cachedAdmin) this.PERRINNAdminLastMessageObj = JSON.parse(cachedAdmin);
+    } catch (e) {}
 
     this.profileSimulatorNonMember = false;
   this.profileSimulatorLoggedOut = false;
@@ -132,6 +140,10 @@ export class UserInterfaceService {
       .valueChanges()
       .subscribe((snapshot) => {
         this.PERRINNAdminLastMessageObj=snapshot[0]
+        this.conversionCache.clear();
+        try {
+          sessionStorage.setItem('PERRINNAdminLastMessageObj', JSON.stringify(snapshot[0]));
+        } catch (e) {}
     })
   }
 
@@ -155,28 +167,65 @@ export class UserInterfaceService {
 
   createMessage(messageObj: any) {
     if (!messageObj.text && !messageObj.chatImageTimestamp && !messageObj.chatProfileImageTimestamp) return null;
-    messageObj.serverTimestamp =
-      firebase.firestore.FieldValue.serverTimestamp();
-    messageObj.user = this.currentUser;
-    messageObj.name =
-      messageObj.name || this.currentUserLastMessageObj?.name || "";
-    messageObj.imageUrlThumbUser =
-      messageObj.imageUrlThumbUser ||
-      this.currentUserLastMessageObj?.imageUrlThumbUser ||
-      "";
-    return this.afs.collection("PERRINNMessages").add(messageObj);
+
+    const tempId = this.newId();
+    const pendingMsg = {
+      ...messageObj,
+      key: tempId,
+      temp: true,
+      serverTimestamp: { seconds: Math.floor(Date.now() / 1000) },
+      user: this.currentUser,
+      name: messageObj.name || this.currentUserLastMessageObj?.name || "",
+      imageUrlThumbUser: messageObj.imageUrlThumbUser || this.currentUserLastMessageObj?.imageUrlThumbUser || ""
+    };
+
+    // Add to pending
+    const currentPending = this.pendingMessages$.value;
+    this.pendingMessages$.next([...currentPending, pendingMsg]);
+
+    // Prepare real message for Firestore
+    const firestoreMsg = { ...messageObj };
+    firestoreMsg.serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+    firestoreMsg.user = this.currentUser;
+    firestoreMsg.name = firestoreMsg.name || this.currentUserLastMessageObj?.name || "";
+    firestoreMsg.imageUrlThumbUser = firestoreMsg.imageUrlThumbUser || this.currentUserLastMessageObj?.imageUrlThumbUser || "";
+
+    const promise = this.afs.collection("PERRINNMessages").add(firestoreMsg);
+
+    promise.then(() => {
+      // Remove from pending after a small delay to let Firestore subscription catch up
+      setTimeout(() => {
+        this.pendingMessages$.next(this.pendingMessages$.value.filter(m => m.key !== tempId));
+      }, 2000);
+    }).catch(() => {
+      // Also remove on error
+      this.pendingMessages$.next(this.pendingMessages$.value.filter(m => m.key !== tempId));
+    });
+
+    return promise;
   }
 
   convertPRNToCurrency(currency: any, amount: any) {
     const currencyList = (this.PERRINNAdminLastMessageObj||{}).currencyList||{};
     if (!currencyList) return Number(amount) || 0;
+
     if (currency == null) {
       if (this.currentUserLastMessageObj!=undefined&&this.currentUserLastMessageObj.userCurrency!=undefined)
         currency = this.currentUserLastMessageObj.userCurrency;
       else currency = "usd";
     }
+
+    const cacheKey = `${currency}|${amount}`;
+    if (this.conversionCache.has(cacheKey)) return this.conversionCache.get(cacheKey);
+
     const selectedCurrency = currencyList[currency] ? currency : (currencyList['usd'] ? 'usd' : Object.keys(currencyList)[0]);
-    return (Number(amount) || 0) / (currencyList[selectedCurrency]?.toCOIN || 1)
+    const result = (Number(amount) || 0) / (currencyList[selectedCurrency]?.toCOIN || 1);
+
+    // Simple cache management
+    if (this.conversionCache.size > 1000) this.conversionCache.clear();
+    this.conversionCache.set(cacheKey, result);
+
+    return result;
   }
 
   formatCurrency(currency: any, amount: any) {

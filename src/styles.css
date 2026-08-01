@@ -99,15 +99,27 @@ a:visited {
 button, div.buttonBlack {
   cursor: pointer;
   -webkit-transition: 0.3s ease;
-  transition: 0.1s ease;
-  user-select: none;
-  margin: 0 auto;
-  text-align:center;
-  padding:3px;
-  box-shadow: none;              /* No shadow */
-  outline: none;                 /* No blue outline unless focused */
-  border: 1px solid transparent; /* Flat edge */
+    transition: 0.1s ease;
+    user-select: none;
+    margin: 0 auto;
+    text-align:center;
+    padding:3px;
+    box-shadow: none;              /* No shadow */
+    outline: none;                 /* No blue outline unless focused */
+    border: 1px solid transparent; /* Flat edge */
 }
+
+@keyframes rotation {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(359deg); }
+}
+.pending-msg {
+  opacity: 0.6;
+}
+.rotating {
+  animation: rotation 2s infinite linear;
+}
+
 input,
 textarea {
   background-color:#2D3941;

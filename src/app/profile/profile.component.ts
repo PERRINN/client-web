@@ -22,7 +22,7 @@ export class ProfileComponent {
   latestImages!: Observable<any[]>
   scrollTeam!: string
   focusUserLastMessageObj: any = null
-  lastSeenByChain: Record<string, number> = {}
+  lastSeenByChain: Record<string, {timestamp: number, messageId: string}> = {}
   lastSeenSubscription: Subscription | null = null;
   focusUserLastSeenSubscription: Subscription | null = null;
   authSubscription: Subscription | null = null;
@@ -47,6 +47,8 @@ export class ProfileComponent {
   chartOptions!: AgChartOptions
   forecastChartOptions!: AgChartOptions
   private pendingLoadMoreScroll = false;
+  private lastSubscribedUserId: string | null = null;
+  private focusUserLastSubscribedScope: string | null = null;
 
   constructor(
     public afAuth:AngularFireAuth,
@@ -183,32 +185,35 @@ export class ProfileComponent {
   async refreshMessages(){
     // lastSeenByChain is now updated in real-time
     this.UI.loading=true
+    const isInboxMode = this.scope === 'all' || this.mode === 'inbox';
     if(this.scope=='all'){
-      this.comingEvents=this.afs.collection<any>('PERRINNMessages',ref=>ref
-        .where('lastMessage','==',true)
-        .where('verified','==',true)
-        .orderBy('eventDateEnd')
-        .where('eventDateEnd','>',this.UI.nowSeconds*1000)
-      ).snapshotChanges().pipe(map(changes=>{
-        return changes.map(c=>({payload:c.payload}))
-      }))
-      this.currentFunds=this.afs.collection<any>('PERRINNMessages',ref=>ref
-        .where('lastMessage','==',true)
-        .where('verified','==',true)
-        .where('fund.active','==',true)
-        .orderBy('fund.daysLeft','asc')
-      ).snapshotChanges().pipe(map(changes=>{
-        return changes
-          .map(c=>({payload:c.payload}))
-          .filter(m => (m.payload.doc.data()?.fund?.amountGBPTarget || 0) >= 0.01)
-      }))
-      this.latestImages=this.afs.collection<any>('PERRINNMessages',ref=>ref
-        .where('verified','==',true)
-        .orderBy('chatImageTimestamp','desc')
-        .limit(50)
-      ).snapshotChanges().pipe(map(changes=>{
-        return changes.map(c=>({payload:c.payload}))
-      }))
+      if (isInboxMode) {
+        this.comingEvents=this.afs.collection<any>('PERRINNMessages',ref=>ref
+          .where('lastMessage','==',true)
+          .where('verified','==',true)
+          .orderBy('eventDateEnd')
+          .where('eventDateEnd','>',this.UI.nowSeconds*1000)
+        ).snapshotChanges().pipe(map(changes=>{
+          return changes.map(c=>({payload:c.payload}))
+        }))
+        this.currentFunds=this.afs.collection<any>('PERRINNMessages',ref=>ref
+          .where('lastMessage','==',true)
+          .where('verified','==',true)
+          .where('fund.active','==',true)
+          .orderBy('fund.daysLeft','asc')
+        ).snapshotChanges().pipe(map(changes=>{
+          return changes
+            .map(c=>({payload:c.payload}))
+            .filter(m => (m.payload.doc.data()?.fund?.amountGBPTarget || 0) >= 0.01)
+        }))
+        this.latestImages=this.afs.collection<any>('PERRINNMessages',ref=>ref
+          .where('verified','==',true)
+          .orderBy('chatImageTimestamp','desc')
+          .limit(50)
+        ).snapshotChanges().pipe(map(changes=>{
+          return changes.map(c=>({payload:c.payload}))
+        }))
+      }
       this.messages=this.afs.collection<any>('PERRINNMessages',ref=>ref
         .where('lastMessage','==',true)
         .where('verified','==',true)
@@ -249,34 +254,36 @@ export class ProfileComponent {
       )
     }
     else{
-      this.comingEvents=this.afs.collection<any>('PERRINNMessages',ref=>ref
-        .where('recipientList','array-contains-any',[this.scope])
-        .where('lastMessage','==',true)
-        .where('verified','==',true)
-        .orderBy('eventDateEnd')
-        .where('eventDateEnd','>',this.UI.nowSeconds*1000)
-      ).snapshotChanges().pipe(map(changes=>{
-        return changes.map(c=>({payload:c.payload}))
-      }))
-      this.currentFunds=this.afs.collection<any>('PERRINNMessages',ref=>ref
-        .where('recipientList','array-contains-any',[this.scope])
-        .where('lastMessage','==',true)
-        .where('verified','==',true)
-        .where('fund.active','==',true)
-        .orderBy('fund.daysLeft','asc')
-      ).snapshotChanges().pipe(map(changes=>{
-        return changes
-          .map(c=>({payload:c.payload}))
-          .filter(m => (m.payload.doc.data()?.fund?.amountGBPTarget || 0) >= 0.01)
-      }))
-      this.latestImages=this.afs.collection<any>('PERRINNMessages',ref=>ref
-        .where('recipientList','array-contains-any',[this.scope])
-        .where('verified','==',true)
-        .orderBy('chatImageTimestamp','desc')
-        .limit(50)
-      ).snapshotChanges().pipe(map(changes=>{
-        return changes.map(c=>({payload:c.payload}))
-      }))
+      if (isInboxMode) {
+        this.comingEvents=this.afs.collection<any>('PERRINNMessages',ref=>ref
+          .where('recipientList','array-contains-any',[this.scope])
+          .where('lastMessage','==',true)
+          .where('verified','==',true)
+          .orderBy('eventDateEnd')
+          .where('eventDateEnd','>',this.UI.nowSeconds*1000)
+        ).snapshotChanges().pipe(map(changes=>{
+          return changes.map(c=>({payload:c.payload}))
+        }))
+        this.currentFunds=this.afs.collection<any>('PERRINNMessages',ref=>ref
+          .where('recipientList','array-contains-any',[this.scope])
+          .where('lastMessage','==',true)
+          .where('verified','==',true)
+          .where('fund.active','==',true)
+          .orderBy('fund.daysLeft','asc')
+        ).snapshotChanges().pipe(map(changes=>{
+          return changes
+            .map(c=>({payload:c.payload}))
+            .filter(m => (m.payload.doc.data()?.fund?.amountGBPTarget || 0) >= 0.01)
+        }))
+        this.latestImages=this.afs.collection<any>('PERRINNMessages',ref=>ref
+          .where('recipientList','array-contains-any',[this.scope])
+          .where('verified','==',true)
+          .orderBy('chatImageTimestamp','desc')
+          .limit(50)
+        ).snapshotChanges().pipe(map(changes=>{
+          return changes.map(c=>({payload:c.payload}))
+        }))
+      }
       this.messages=this.afs.collection<any>('PERRINNMessages',ref=>ref
         .where('recipientList','array-contains-any',[this.scope])
         .where('verified','==',true)
@@ -300,19 +307,27 @@ export class ProfileComponent {
   }
 
   private subscribeToLastSeen() {
-    this.lastSeenUnsubscribe();
     const userId = this.UI.currentUser || this.currentUserId;
+    if (this.lastSubscribedUserId === userId && this.lastSeenSubscription) return;
+    this.lastSubscribedUserId = userId;
+
+    this.lastSeenUnsubscribe();
     if (!userId) {
       this.lastSeenByChain = {};
       return;
     }
-    this.lastSeenSubscription = this.afs.collection<any>(`lastSeen/${userId}/chats`).snapshotChanges().subscribe(snaps => {
-      const mapByChain: Record<string, number> = {};
+    this.lastSeenSubscription = this.afs.collection<any>(`lastSeen/${userId}/chats`, ref => ref.orderBy('updatedAt', 'desc').limit(500)).snapshotChanges().subscribe(snaps => {
+      const mapByChain: Record<string, {timestamp: number, messageId: string}> = {};
       const blueFlagMap: Record<string, boolean> = {};
       snaps.forEach(snap => {
         const data = snap.payload.doc.data() || {};
         const timestampMessage = this.toMillis(data['serverTimestamp']);
-        if (timestampMessage > 0) mapByChain[snap.payload.doc.id] = timestampMessage;
+        if (timestampMessage > 0) {
+          mapByChain[snap.payload.doc.id] = {
+            timestamp: timestampMessage,
+            messageId: data['messageId'] || ''
+          };
+        }
         blueFlagMap[snap.payload.doc.id] = !!data['blueFlag'];
       });
       this.lastSeenByChain = mapByChain;
@@ -329,6 +344,9 @@ export class ProfileComponent {
   }
 
   private subscribeToFocusUserLastSeen() {
+    if (this.focusUserLastSubscribedScope === this.scope && this.focusUserLastSeenSubscription) return;
+    this.focusUserLastSubscribedScope = this.scope;
+
     this.focusUserLastSeenUnsubscribe();
     this.focusUserLastSeenTimestampMessage = 0;
     if (!this.scope || this.scope === 'all') return;
@@ -364,10 +382,22 @@ export class ProfileComponent {
     return 0
   }
 
-  isMessageSeen(chain:string,messageTimestamp:any):boolean{
-    const lastSeenTimestampMessage=this.lastSeenByChain[chain]||0
-    const messageTimestampMessage=this.toMillis(messageTimestamp)
-    return !!lastSeenTimestampMessage&&messageTimestampMessage>0&&messageTimestampMessage<=lastSeenTimestampMessage
+  isMessageSeen(chain:string, messageTimestamp:any, author?: string, messageId?: string):boolean{
+    if (author === this.UI.currentUser) return true;
+    const lastSeen = this.lastSeenByChain[chain];
+    const messageTimestampMessage = this.toMillis(messageTimestamp);
+
+    // 1. Check by ID (the most reliable)
+    if (lastSeen?.messageId && messageId === lastSeen.messageId) return true;
+
+    // 2. Check by Timestamp
+    const lastSeenTimestampMessage = lastSeen?.timestamp || 0;
+    if (!lastSeenTimestampMessage) {
+      const userCreated = this.toMillis(this.UI.currentUserLastMessageObj?.createdTimestamp);
+      if (userCreated && messageTimestampMessage <= userCreated) return true;
+      return false;
+    }
+    return messageTimestampMessage > 0 && messageTimestampMessage <= lastSeenTimestampMessage
   }
 
   formatFocusUserLastSeen():string{
