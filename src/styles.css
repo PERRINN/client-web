@@ -686,6 +686,11 @@ app-root .contentCard:has(> directory) {
   }
 }
 
+app-root .banner-img {
+  width: 100%;
+  display: block;
+}
+
 /* Centralized component styles */
 app-root buyprn .buyPage,
 app-root directory .directoryPage {
@@ -940,11 +945,6 @@ app-root directory .directory-banner-item {
   overflow: hidden;
   margin-bottom: 20px;
   line-height: 0;
-}
-
-app-root directory .directory-banner-img {
-  width: 100%;
-  display: block;
 }
 
 app-root directory .directory-overview-island {
