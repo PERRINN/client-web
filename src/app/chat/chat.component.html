@@ -334,37 +334,37 @@
 
   <div *ngIf="UI.currentUser&&!showImageGallery&&!showChatDetails"
        #chatComposer
-       class="chatComposer"
-       style="position: relative !important; width: 100% !important; bottom: 0 !important; left: 0 !important; flex: 0 0 auto; padding-bottom: 20px;">
+       class="chatComposer">
     <span *ngIf="chatLastMessageObj?.chatSubject==null" style="margin:5px;font-size:10px">This message will be the subject of this chat</span>
-    <div style="width:90%;display:flex;align-items:center;min-height:64px">
-      <textarea #msgBox
-                autocapitalize="none"
-                rows="1"
-                style="padding:10px;resize:none;overflow-y:auto;max-height:200px;white-space:pre-wrap;word-break:break-word;background:rgba(15,23,42,0.65);border:1px solid rgba(148,163,184,0.3);border-radius:8px;color:#f1f5f9"
-                [style.width]="imageDownloadUrl?'80%':'95%'"
-                maxlength="500"
-                (input)="autoResize(msgBox)"
-                (keyup.enter)="addMessage()"
-                [(ngModel)]="draftMessage"
-                placeholder="Reply all"></textarea>
-      <div *ngIf="imageDownloadUrl" style="float:left;width:15%;position:relative;overflow:visible;display:flex;align-items:center">
-        <img [src]="imageDownloadUrl" style="object-fit:cover;height:53px;margin:0 auto;display:block">
-        <button (click)="clearSelectedImage()" style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:#ef4444;color:white;display:flex;align-items:center;justify-content:center;padding:0;border:none;cursor:pointer;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,0.5)">
-          <span class="material-icons-outlined" style="font-size:14px;line-height:1">close</span>
+    <div style="width:100%; display:flex; align-items:flex-end; padding: 0 10px;">
+      <div style="flex:1; display:flex; align-items:center;">
+        <textarea #msgBox
+                  autocapitalize="none"
+                  rows="1"
+                  style="padding:10px;resize:none;overflow-y:auto;max-height:200px;white-space:pre-wrap;word-break:break-word;background:rgba(15,23,42,0.65);border:1px solid rgba(148,163,184,0.3);border-radius:8px;color:#f1f5f9;width:100%"
+                  maxlength="500"
+                  (input)="autoResize(msgBox)"
+                  (keyup.enter)="addMessage()"
+                  [(ngModel)]="draftMessage"
+                  placeholder="Reply all"></textarea>
+        <div *ngIf="imageDownloadUrl" style="width:53px;position:relative;margin-left:10px;display:flex;align-items:center">
+          <img [src]="imageDownloadUrl" style="object-fit:cover;height:53px;width:53px;margin:0 auto;display:block">
+          <button (click)="clearSelectedImage()" style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:#ef4444;color:white;display:flex;align-items:center;justify-content:center;padding:0;border:none;cursor:pointer;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,0.5)">
+            <span class="material-icons-outlined" style="font-size:14px;line-height:1">close</span>
+          </button>
+        </div>
+      </div>
+      <div *ngIf="draftMessage||imageDownloadUrl" class="composerActionWrap" style="margin-left:10px; margin-bottom:4px">
+        <button class="composerActionBtn sendBtn" (click)="addMessage()" aria-label="Send message">
+          <span class="material-icons-outlined" style="font-size:22px">send</span>
         </button>
       </div>
-    </div>
-    <div *ngIf="draftMessage||imageDownloadUrl" class="composerActionWrap">
-      <button class="composerActionBtn sendBtn" (click)="addMessage()" aria-label="Send message">
-        <span class="material-icons-outlined" style="font-size:22px">send</span>
-      </button>
-    </div>
-    <div *ngIf="!draftMessage&&!imageDownloadUrl" class="composerActionWrap">
-      <input type="file" name="chatImage" id="chatImage" class="inputfile" (change)="onImageChange($event)" accept="image/*">
-      <label class="buttonUploadImage composerActionBtn cameraBtn" for="chatImage" id="buttonFile" aria-label="Upload image">
-        <span class="material-icons-outlined" style="font-size:22px;color:#cbd5e1">photo_camera</span>
-      </label>
+      <div *ngIf="!draftMessage&&!imageDownloadUrl" class="composerActionWrap" style="margin-left:10px; margin-bottom:4px">
+        <input type="file" name="chatImage" id="chatImage" class="inputfile" (change)="onImageChange($event)" accept="image/*">
+        <label class="buttonUploadImage composerActionBtn cameraBtn" for="chatImage" id="buttonFile" aria-label="Upload image">
+          <span class="material-icons-outlined" style="font-size:22px;color:#cbd5e1">photo_camera</span>
+        </label>
+      </div>
     </div>
   </div>
 

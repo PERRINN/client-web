@@ -2540,7 +2540,7 @@ app-root chat .chatComposer {
   width: 100%;
   background: #1e293b;
   border-top: 1px solid rgba(16, 185, 129, 0.12);
-  padding-bottom: 20px;
+  padding: 8px 0;
   box-shadow: 0 -8px 24px rgba(2, 8, 23, 0.25);
 }
 
@@ -2567,13 +2567,10 @@ app-root chat .topToggleBtn:hover {
 }
 
 app-root chat .composerActionWrap {
-  float: right;
-  width: 10%;
   cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 64px;
 }
 
 app-root chat .composerActionBtn {
