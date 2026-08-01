@@ -383,7 +383,6 @@ export class ProfileComponent {
   }
 
   isMessageSeen(chain:string, messageTimestamp:any, author?: string, messageId?: string):boolean{
-    if (author === this.UI.currentUser) return true;
     const lastSeen = this.lastSeenByChain[chain];
     const messageTimestampMessage = this.toMillis(messageTimestamp);
 
@@ -393,6 +392,7 @@ export class ProfileComponent {
     // 2. Check by Timestamp
     const lastSeenTimestampMessage = lastSeen?.timestamp || 0;
     if (!lastSeenTimestampMessage) {
+      if (author === this.UI.currentUser) return true;
       const userCreated = this.toMillis(this.UI.currentUserLastMessageObj?.createdTimestamp);
       if (userCreated && messageTimestampMessage <= userCreated) return true;
       return false;
