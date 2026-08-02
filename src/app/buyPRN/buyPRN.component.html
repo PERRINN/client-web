@@ -1,62 +1,62 @@
 <div class="buyWrap">
   <div class="buyPage">
-    <div style="display:flex; width:100%; margin-bottom:10px;">
+    <div class="buy-header-actions">
       <button class="buttonSecondary info-popup-btn" (click)="openPrnInfoPopup()">What is PRN</button>
     </div>
-    <div *ngIf="transactionPendingMessageObj" class="island buy-island" style="margin-bottom: 20px;">
+    <div *ngIf="transactionPendingMessageObj" class="island buy-island buy-mb-20">
       <div *ngIf="!transactionPendingMessageObj?.transactionPending?.activated">
-        <div style="font-size: 16px; font-weight: 600; color: #f1f5f9; margin-bottom: 16px;">
+        <div class="buy-section-title">
           Pending Transaction
         </div>
-        <div style="padding:12px;text-align:center">
-          <span style="color: #cbd5e1; font-size: 14px; line-height: 1.6;">{{transactionPendingMessageObj.name}} is sending you {{UI.convertAndFormatPRNToPRNCurrency(currencySelected,transactionPendingMessageObj.transactionPending.amount||0)}} (Reference: {{transactionPendingMessageObj.transactionPending.reference}}).</span>
-          <button *ngIf="!UI.currentUser" class="buttonPrimary" style="margin:12px auto;width:150px;" (click)="router.navigate(['login'])" [disabled]='this.router.url.startsWith("/login")'>Login</button>
-          <button *ngIf="UI.currentUser&&!UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonPrimary" style="margin:12px auto;width:200px;" (click)="router.navigate(['settings'])">Update Profile Picture</button>
-          <button *ngIf="UI.currentUser&&UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonPrimary" style="margin:12px auto;width:150px;" (click)="activateTransactionPending(transactionPendingMessage)">Activate</button>
+        <div class="buy-center-content">
+          <span class="buy-text-normal">{{transactionPendingMessageObj.name}} is sending you {{UI.convertAndFormatPRNToPRNCurrency(currencySelected,transactionPendingMessageObj.transactionPending.amount||0)}} (Reference: {{transactionPendingMessageObj.transactionPending.reference}}).</span>
+          <button *ngIf="!UI.currentUser" class="buttonPrimary buy-btn-fixed-150" (click)="router.navigate(['login'])" [disabled]='this.router.url.startsWith("/login")'>Login</button>
+          <button *ngIf="UI.currentUser&&!UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonPrimary buy-btn-fixed-200" (click)="router.navigate(['settings'])">Update Profile Picture</button>
+          <button *ngIf="UI.currentUser&&UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonPrimary buy-btn-fixed-150" (click)="activateTransactionPending(transactionPendingMessage)">Activate</button>
         </div>
       </div>
       <div *ngIf="transactionPendingMessageObj?.transactionPending?.activated">
-        <div style="font-size: 14px; color: #10b981; font-weight: 600;">
+        <div class="buy-status-success">
           ✓ Transaction Already Activated
         </div>
       </div>
     </div>
     <br/>
     <div *ngIf="!UI.isCurrentUserMember" class="island membership-card">
-      <div style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 16px;">
+      <div class="membership-title">
         🤝 Welcome to the Team
       </div>
-      <div style="padding:0;text-align:center">
-        <div style="font-size: 24px; font-weight: 700; color: #ffffff; margin-bottom: 14px; word-break: break-word; overflow-wrap: break-word;">
+      <div class="buy-p-0 buy-text-center">
+        <div class="membership-amount">
           {{UI.convertAndRoundUpAndFormatPRNToCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.membership?.amountRequired)}}
         </div>
-        <span style="font-size: 13px; line-height: 1.7; color: rgba(255, 255, 255, 0.95); display: block;">
+        <span class="membership-subtitle">
           <strong>One-time investment.</strong> No subscriptions. No recurring charges.
         </span>
         <br />
-        <div style="background-color: rgba(255, 255, 255, 0.12); padding: 12px; border-radius: 10px; margin: 12px 0;">
-          <span style="font-size: 12px; line-height: 1.7; color: #ffffff; display: block; text-align: left;">
+        <div class="membership-details-box">
+          <span class="membership-details-list">
             ✓ Lifetime membership<br/>
             ✓ Ownership stake in PERRINN<br/>
             ✓ {{(UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0) | percent : "0.0"}} annual growth<br/>
             ✓ Early member advantage
           </span>
         </div>
-        <div style="font-size: 12px; line-height: 1.45; color: rgba(255, 255, 255, 0.92); margin-top: 10px; text-align: left;">
-          Interested to join but have some questions first? <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; font-weight: 700;">Join our WhatsApp community</a> and speak directly to Nico there.
+        <div class="membership-footer-text">
+          Interested to join but have some questions first? <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" rel="noopener noreferrer" class="buy-link-whatsapp">Join our WhatsApp community</a> and speak directly to Nico there.
         </div>
       </div>
     </div>
     <div *ngIf="UI.isCurrentUserMember" class="island membership-card">
-      <div style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 16px;">
+      <div class="membership-title">
         ✅ Membership Active
       </div>
-      <div style="padding:0;text-align:center">
-        <div style="font-size: 24px; font-weight: 700; color: #ffffff; margin-bottom: 14px; word-break: break-word; overflow-wrap: break-word;">
+      <div class="buy-p-0 buy-text-center">
+        <div class="membership-amount">
           {{UI.convertAndFormatPRNToPRNCurrency(currencySelected, UI.currentUserLastMessageObj?.wallet?.balance || 0)}}
         </div>
-        <div style="background-color: rgba(255, 255, 255, 0.12); padding: 12px; border-radius: 10px; margin: 12px 0;">
-          <span style="font-size: 12px; line-height: 1.7; color: #ffffff; display: block; text-align: left;">
+        <div class="membership-details-box">
+          <span class="membership-details-list">
             ✓ Lifetime membership<br/>
             ✓ {{(UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0) | percent : "0.0"}} annual growth<br/>
             ✓ Voting rights & governance<br/>
@@ -68,34 +68,34 @@
     <br/>
 
     <div class="island buy-island">
-      <div style="font-size: 16px; font-weight: 700; color: #f1f5f9; margin-bottom: 16px;">
+      <div class="buy-section-title">
         Funding Projects
       </div>
-      <div style="padding:0px;text-align:left; margin-bottom: 16px;">
-        <span style="font-size: 13px; color: #94a3b8; line-height: 1.6; display: block;">
+      <div class="buy-section-intro">
+        <span class="buy-text-muted">
           All capital is transparently allocated to active PERRINN initiatives
         </span>
       </div>
       <ul class="listLight">
-        <li *ngFor="let message of currentFunds|async" style="padding:0px">
+        <li *ngFor="let message of currentFunds|async" class="buy-p-0">
           <div *ngIf="message.payload.doc.data()?.fund?.active || showPastFunds" (click)="router.navigate(['chat', message.payload.doc.data()?.chain])" class="fundCard">
             <span class="chatSubject">{{message.payload.doc.data()?.chatSubject}}</span>
-            <div style="margin-top: 10px;">
-              <div style="background-color:#334155;height:24px;width:100%;border-radius:6px;overflow:hidden;position:relative;">
-                <div style="height:100%;background: linear-gradient(90deg, #059669 0%, #047857 100%);display:flex;align-items:center;justify-content:center;transition:width 0.3s ease;"
+            <div class="buy-mt-10">
+              <div class="fund-progress-track">
+                <div class="fund-progress-fill"
                      [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100+'%'">
-                  <span style="font-size: 11px; color: #ffffff; font-weight: 600; white-space: nowrap;" *ngIf="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100 > 30">
+                  <span class="fund-progress-pct" *ngIf="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100 > 30">
                     {{message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget|percent:"1.0-0"}}
                   </span>
                 </div>
               </div>
-              <div style="margin-top: 8px; font-size: 12px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center;">
+              <div class="fund-meta-row">
                 <span>
-                  <span *ngIf="message.payload.doc.data()?.fund?.active" style="color: #10b981; font-weight: 500;">{{message.payload.doc.data()?.fund?.daysLeft|number:"1.0-0"}} days left</span>
-                  <span *ngIf="!message.payload.doc.data()?.fund?.active" style="color: #94a3b8;">{{-message.payload.doc.data()?.fund?.daysLeft|number:"1.0-0"}} days ago</span>
+                  <span *ngIf="message.payload.doc.data()?.fund?.active" class="fund-days-left">{{message.payload.doc.data()?.fund?.daysLeft|number:"1.0-0"}} days left</span>
+                  <span *ngIf="!message.payload.doc.data()?.fund?.active" class="fund-days-ago">{{-message.payload.doc.data()?.fund?.daysLeft|number:"1.0-0"}} days ago</span>
                 </span>
               </div>
-              <div style="margin-top: 4px; font-size: 11px; color: #cbd5e1; line-height: 1.35;">
+              <div class="fund-target-text">
                 target: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]?.toCOIN||0))}} /
                 raised: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]?.toCOIN||0))}}
               </div>
@@ -103,32 +103,32 @@
           </div>
         </li>
       </ul>
-      <button class="buttonSecondary" style="margin:16px auto;width:auto;" (click)="showPastFunds=!showPastFunds">
+      <button class="buttonSecondary buy-btn-auto" (click)="showPastFunds=!showPastFunds">
         {{showPastFunds ? 'Hide Past Funds' : 'Show Past Funds'}}
       </button>
     </div>
     <br/>
     <div class="island buy-island">
-      <div style="display: flex; align-items: center; margin-bottom: 20px;">
-        <span class="material-symbols-outlined" style="font-size: 24px; color: #10b981; margin-right: 12px;">payment</span>
-        <div style="font-size: 16px; font-weight: 700; color: #f1f5f9;">
+      <div class="payment-header">
+        <span class="material-symbols-outlined payment-icon">payment</span>
+        <div class="buy-section-title buy-mb-0">
           Secure Payment
         </div>
       </div>
 
-      <div style="padding: 12px 14px; background-color: rgba(16, 185, 129, 0.08); border-radius: 10px; border-left: 3px solid #10b981; margin-bottom: 24px;">
-        <span style="font-size: 12px; color: #94a3b8; display: flex; align-items: center; font-weight: 500;">
-          <span class="material-symbols-outlined" style="font-size: 16px; margin-right: 8px; color: #10b981;">shield_lock</span>
+      <div class="payment-provider-badge">
+        <span class="payment-provider-container">
+          <span class="material-symbols-outlined payment-lock-icon">shield_lock</span>
           Powered by Revolut
         </span>
       </div>
 
-      <div *ngIf="UI.currentUser" style="padding: 0; margin-bottom: 24px;">
-        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+      <div *ngIf="UI.currentUser" class="buy-p-0 buy-mb-24">
+        <div class="payment-label">
           Currency
         </div>
         <ul class="listLight currency-selector-list">
-          <li style="flex: 1; min-width: 120px;" *ngFor="let currency of objectToArray(UI.PERRINNAdminLastMessageObj?.currencyList)">
+          <li class="currency-item" *ngFor="let currency of objectToArray(UI.PERRINNAdminLastMessageObj?.currencyList)">
             <button class="buttonToggle currency-btn"
                     (click)="onCurrencySelected(currency[0])"
                     [style.background-color]="currencySelected == currency[0] ? '#10b981' : 'transparent'"
@@ -141,12 +141,12 @@
         </ul>
       </div>
 
-      <div *ngIf="UI.currentUser" style="padding: 0;">
-        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+      <div *ngIf="UI.currentUser" class="buy-p-0">
+        <div class="payment-label">
           Amount
         </div>
-        <ul class="listLight" style="display: flex; flex-wrap: wrap; gap: 10px;">
-          <li style="flex: 0 1 auto;" *ngFor="let credit of creditList; let index = index">
+        <ul class="listLight currency-selector-list">
+          <li class="amount-item" *ngFor="let credit of creditList; let index = index">
             <button class="buttonToggle amount-btn"
                     (click)="creditSelected = index; refreshAmountCharge()"
                     [style.background-color]="creditSelected == index ? '#10b981' : 'transparent'"
@@ -159,129 +159,129 @@
         </ul>
         <br />
         <div *ngIf="creditSelected!=undefined&&currencySelected!=undefined" class="summary-box">
-          <span style="color: #cbd5e1; font-size: 13px; display: block; margin-bottom: 8px;">
+          <span class="buy-summary-label">
             You will pay
           </span>
-          <span style="color: #10b981; font-size: 18px; font-weight: 700; display: block; margin-bottom: 12px;">{{UI.formatCurrency(currencySelected,creditList[creditSelected])}}</span>
-          <div style="height: 1px; background: rgba(16, 185, 129, 0.1); margin: 12px 0;"></div>
-          <span style="color: #94a3b8; font-size: 12px; display: block; margin-bottom: 4px; margin-top: 12px;">
+          <span class="buy-summary-value-lg">{{UI.formatCurrency(currencySelected,creditList[creditSelected])}}</span>
+          <div class="summary-divider"></div>
+          <span class="buy-summary-sublabel">
             you will receive
           </span>
-          <span style="color: #10b981; font-size: 16px; font-weight: 700;">{{UI.formatPRNCurrency(currencySelected,creditList[creditSelected])}}</span>
+          <span class="buy-summary-value-md">{{UI.formatPRNCurrency(currencySelected,creditList[creditSelected])}}</span>
         </div>
       </div>
 
       <button class="buttonPrimary checkout-btn" *ngIf="UI.currentUser && !processing && creditSelected!=undefined && currencySelected!=undefined"
               (click)="payWithRevolutLink()"
               [disabled]="isPaymentFlowLocked">
-        <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">arrow_forward</span>
+        <span class="material-symbols-outlined buy-btn-icon">arrow_forward</span>
         Proceed to Checkout
       </button>
 
       <button class="buttonPrimary checkout-btn" *ngIf="!UI.currentUser"
               (click)="router.navigate(['login'], {queryParams: {returnUrl: '/buyPRN'}})">
-        <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">login</span>
+        <span class="material-symbols-outlined buy-btn-icon">login</span>
         Log in to Buy PRN Tokens
       </button>
 
       <div *ngIf="paymentState !== 'idle'" class="payment-status-block">
-        <div style="font-size: 15px; font-weight: 700; color: #f1f5f9; margin-bottom: 8px;">Payment status</div>
-        <div style="font-size: 13px; color: #cbd5e1; margin-bottom: 10px; line-height: 1.45;">{{paymentStatusText}}</div>
+        <div class="buy-section-title buy-mb-8 buy-title-15">Payment status</div>
+        <div class="buy-status-text">{{paymentStatusText}}</div>
 
-        <div style="display:grid; gap:6px;">
-          <div style="font-size:12px; color:#94a3b8;">
+        <div class="payment-status-steps">
+          <div class="payment-status-step">
             <span [style.color]="paymentStepOrderCreated ? '#10b981' : '#64748b'">{{paymentStepOrderCreated ? '✓' : '•'}}</span>
             Order created
           </div>
-          <div style="font-size:12px; color:#94a3b8;">
+          <div class="payment-status-step">
             <span [style.color]="paymentStepCheckoutOpened ? '#10b981' : '#64748b'">{{paymentStepCheckoutOpened ? '✓' : '•'}}</span>
             Checkout opened
           </div>
-          <div style="font-size:12px; color:#94a3b8;">
+          <div class="payment-status-step">
             <span [style.color]="paymentStepPaymentReceived ? '#10b981' : '#64748b'">{{paymentStepPaymentReceived ? '✓' : '•'}}</span>
             Payment received by Revolut
           </div>
-          <div style="font-size:12px; color:#94a3b8;">
+          <div class="payment-status-step">
             <span [style.color]="paymentStepMessageGenerated ? '#10b981' : '#64748b'">{{paymentStepMessageGenerated ? '✓' : '•'}}</span>
             PERRINN message generated
           </div>
-          <div style="font-size:12px; color:#94a3b8;">
+          <div class="payment-status-step">
             <span [style.color]="paymentStepCredited ? '#10b981' : '#64748b'">{{paymentStepCredited ? '✓' : '•'}}</span>
             PRN credited to wallet
           </div>
         </div>
 
-        <div style="margin-top:10px;font-size:11px;color:#94a3b8;line-height:1.4;">
+        <div class="payment-receipt-note">
           Revolut sends the payment receipt email directly after successful capture.
         </div>
         <button
-          class="buttonSecondary"
+          class="buttonSecondary buy-btn-small buy-mt-10"
           *ngIf="paymentState !== 'creating-order'"
-          (click)="resetPaymentFlow()"
-          style="margin-top:10px;padding:7px 12px;font-size:11px;">
+          (click)="resetPaymentFlow()">
           Reset payment status
         </button>
       </div>
     </div>
 
-    <div *ngIf="showPrnInfoPopup" style="position:fixed;inset:0;background:rgba(2,8,23,0.72);z-index:1200;display:flex;align-items:flex-start;justify-content:center;padding:12px;overflow-y:auto;touch-action:pan-y;" (click)="closePrnInfoPopup()">
-      <div class="island buy-island" style="width:min(560px, 88vw); max-height:calc(100vh - 24px); overflow:auto; overscroll-behavior:contain;" (click)="$event.stopPropagation()">
-        <div style="display:flex;justify-content:flex-start;align-items:center;margin-bottom:12px;">
-          <div style="font-size:16px;font-weight:700;color:#f1f5f9;">What is PRN</div>
+    <div *ngIf="showPrnInfoPopup" class="info-popup-backdrop" (click)="closePrnInfoPopup()">
+      <div class="island buy-island info-popup-card" (click)="$event.stopPropagation()">
+        <div class="info-header-row">
+          <div class="buy-section-title buy-mb-0">What is PRN</div>
         </div>
-        <div style="text-align:center; margin-bottom: 20px;">
-          <img src="./../assets/App icons/PRN token.png" style="width:120px; opacity: 0.95;">
+        <div class="buy-text-center buy-mb-20">
+          <img src="./../assets/App icons/PRN token.png" class="info-popup-image">
         </div>
-        <div style="padding:0 4px 6px 4px; text-align:left;">
-          <div style="font-size:12px; color:#94a3b8; margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:1px;">Why PRN exists</div>
-          <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 10px; padding: 12px; margin-bottom: 8px; color:#cbd5e1; line-height:1.5; font-size:13px;">
+        <div class="info-intro-padding">
+          <div class="payment-label buy-mb-8">Why PRN exists</div>
+          <div class="info-text-box info-text-box-strong">
             PRN is not a traditional crypto token that fluctuates in open public markets. It is not a speculative asset.
           </div>
-          <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.16); border-radius: 10px; padding: 12px; margin-bottom: 8px; color:#cbd5e1; line-height:1.5; font-size:13px;">
+          <div class="info-text-box">
             PRN is a digital asset secured directly by the PERRINN network and designed for team collaboration.
           </div>
-          <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.16); border-radius: 10px; padding: 12px; margin-bottom: 8px; color:#cbd5e1; line-height:1.5; font-size:13px;">
+          <div class="info-text-box">
             PRN tokens can only be transferred member-to-member inside the PERRINN team and ecosystem.
           </div>
-          <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 10px; padding: 12px; color:#e2e8f0; line-height:1.5; font-size:13px; font-weight:600;">
+          <div class="info-text-box info-text-box-strong">
             PRN is a true membership token. Its utility is to build trust among members and provide a shared unit of exchange in the team.
           </div>
-          <div style="margin-top:10px; padding:12px; border-radius:10px; border:1px solid rgba(16,185,129,0.24); background: linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(16,185,129,0.08) 100%); color:#ecfeff; font-size:13px; line-height:1.5; font-weight:700; text-align:center;">
+          <div class="info-highlight-box">
             PRN represents ownership of PERRINN.
           </div>
         </div>
-        <div style="padding:0;text-align:center; margin-bottom: 20px;">
-          <div style="padding:16px;text-align:left;">
-            <div style="font-size: 11px; color: #94a3b8; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+        <div class="buy-p-0 buy-text-center buy-mb-20">
+          <div class="info-overview-padding">
+            <div class="payment-label buy-mb-12">
               Overview
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-              <div style="background-color: rgba(16, 185, 129, 0.08); padding: 14px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.2);">
-                <div style="font-size: 11px; color: #94a3b8; margin-bottom: 6px; font-weight: 500;">MEMBERS</div>
-                <div style="font-size: 18px; font-weight: 700; color: #10b981;">{{UI.PERRINNAdminLastMessageObj?.statistics?.membersCount}}</div>
+            <div class="info-grid-2cols">
+              <div class="info-stat-card">
+                <div class="info-stat-label">MEMBERS</div>
+                <div class="info-stat-value">{{UI.PERRINNAdminLastMessageObj?.statistics?.membersCount}}</div>
               </div>
-              <div style="background-color: rgba(16, 185, 129, 0.08); padding: 14px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.2);">
-                <div style="font-size: 11px; color: #94a3b8; margin-bottom: 6px; font-weight: 500;">TOTAL SUPPLY</div>
-                <div style="font-size: 18px; font-weight: 700; color: #10b981;">{{UI.convertAndFormatPRNToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}</div>
+              <div class="info-stat-card">
+                <div class="info-stat-label">TOTAL SUPPLY</div>
+                <div class="info-stat-value">{{UI.convertAndFormatPRNToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}</div>
               </div>
             </div>
           </div>
-          <button class="buttonSecondary" style="margin:16px auto;width:auto;" (click)="router.navigate(['directory']); closePrnInfoPopup()">PRN Directory</button>
+          <button class="buttonSecondary buy-btn-auto" (click)="router.navigate(['directory']); closePrnInfoPopup()">PRN Directory</button>
         </div>
-        <div style="background-color: rgba(16, 185, 129, 0.05);padding:16px;text-align:center; border-radius: 10px; margin-top: 16px;">
-          <div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px; font-weight: 500;">Growth Rate</div>
-          <span style="color: #f1f5f9; font-weight: 600;">{{(UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0) | percent : "0.0"}} Annual</span>
-          <div style="height:200px;margin-top:12px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
+        <div class="buy-text-center buy-mt-16 buy-growth-box">
+          <div class="info-growth-label">Growth Rate</div>
+          <span class="info-growth-value">{{(UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0) | percent : "0.0"}} Annual</span>
+          <div class="info-chart-box"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
         </div>
-        <div style="padding:16px;text-align:center; margin-top: 16px; border-top: 1px solid rgba(16, 185, 129, 0.1);">
-          <span class="material-symbols-outlined" style="font-size:24px; color: #10b981; margin-bottom: 8px; display: block;">lock</span>
-          <span style="font-size: 13px; color: #94a3b8; line-height: 1.6; display: block;">
+        <div class="info-footer">
+          <span class="material-symbols-outlined info-footer-icon">lock</span>
+          <span class="buy-text-muted">
                   Tokens stored securely in your PERRINN wallet
                 </span>
         </div>
-        <div style="display:flex;justify-content:center;margin-top:14px;">
-          <button class="buttonSecondary" style="padding:7px 14px;font-size:11px;" (click)="closePrnInfoPopup()">Close</button>
+        <div class="info-close-footer">
+          <button class="buttonSecondary buy-btn-small-wide" (click)="closePrnInfoPopup()">Close</button>
         </div>
       </div>
     </div>
   </div>
+</div>

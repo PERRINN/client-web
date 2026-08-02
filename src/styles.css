@@ -612,6 +612,299 @@ app-root .chatSubjectTwoLines {
 /* 6. Component-Specific Styles */
 
 /* Buyprn */
+app-root buyprn .buy-header-actions {
+  display: flex;
+  width: 100%;
+  margin-bottom: 10px;
+}
+app-root buyprn .buy-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin-bottom: 16px;
+}
+app-root buyprn .buy-section-intro {
+  padding: 0px;
+  text-align: left;
+  margin-bottom: 16px;
+}
+app-root buyprn .buy-center-content {
+  padding: 12px;
+  text-align: center;
+}
+app-root buyprn .buy-text-normal {
+  color: #cbd5e1;
+  font-size: 14px;
+  line-height: 1.6;
+}
+app-root buyprn .buy-text-muted {
+  font-size: 13px;
+  color: #94a3b8;
+  line-height: 1.6;
+}
+app-root buyprn .membership-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 16px;
+}
+app-root buyprn .membership-amount {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 14px;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+app-root buyprn .membership-subtitle {
+  font-size: 13px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.95);
+  display: block;
+}
+app-root buyprn .membership-details-box {
+  background-color: rgba(255, 255, 255, 0.12);
+  padding: 12px;
+  border-radius: 10px;
+  margin: 12px 0;
+}
+app-root buyprn .membership-details-list {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #ffffff;
+  display: block;
+  text-align: left;
+}
+app-root buyprn .membership-footer-text {
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.92);
+  margin-top: 10px;
+  text-align: left;
+}
+app-root buyprn .fund-progress-track {
+  background-color: #334155;
+  height: 24px;
+  width: 100%;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+app-root buyprn .fund-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #059669 0%, #047857 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: width 0.3s ease;
+}
+app-root buyprn .fund-progress-pct {
+  font-size: 11px;
+  color: #ffffff;
+  font-weight: 600;
+  white-space: nowrap;
+}
+app-root buyprn .fund-meta-row {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #94a3b8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+app-root buyprn .fund-target-text {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #cbd5e1;
+  line-height: 1.35;
+}
+app-root buyprn .payment-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+app-root buyprn .payment-provider-badge {
+  padding: 12px 14px;
+  background-color: rgba(16, 185, 129, 0.08);
+  border-radius: 10px;
+  border-left: 3px solid #10b981;
+  margin-bottom: 24px;
+}
+app-root buyprn .payment-label {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+app-root buyprn .summary-divider {
+  height: 1px;
+  background: rgba(16, 185, 129, 0.1);
+  margin: 12px 0;
+}
+app-root buyprn .payment-status-steps {
+  display: grid;
+  gap: 6px;
+}
+app-root buyprn .payment-status-step {
+  font-size: 12px;
+  color: #94a3b8;
+}
+app-root buyprn .info-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 8, 23, 0.72);
+  z-index: 1200;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 12px;
+  overflow-y: auto;
+  touch-action: pan-y;
+}
+app-root buyprn .info-popup-card {
+  width: min(560px, 88vw);
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+app-root buyprn .info-text-box {
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.16);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+  color: #cbd5e1;
+  line-height: 1.5;
+  font-size: 13px;
+}
+app-root buyprn .info-text-box-strong {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: #e2e8f0;
+  font-weight: 600;
+}
+app-root buyprn .info-highlight-box {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(16, 185, 129, 0.24);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0.08) 100%);
+  color: #ecfeff;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 700;
+  text-align: center;
+}
+app-root buyprn .info-stat-card {
+  background-color: rgba(16, 185, 129, 0.08);
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+app-root buyprn .buy-mb-20 { margin-bottom: 20px; }
+app-root buyprn .buy-mb-24 { margin-bottom: 24px; }
+app-root buyprn .buy-mt-10 { margin-top: 10px; }
+app-root buyprn .buy-mt-12 { margin-top: 12px; }
+app-root buyprn .buy-mt-16 { margin-top: 16px; }
+app-root buyprn .buy-p-0 { padding: 0; }
+app-root buyprn .buy-text-center { text-align: center; }
+app-root buyprn .buy-status-success {
+  font-size: 14px;
+  color: #10b981;
+  font-weight: 600;
+}
+app-root buyprn .info-popup-image {
+  width: 120px;
+  opacity: 0.95;
+}
+app-root buyprn .info-grid-2cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+app-root buyprn .info-chart-box {
+  height: 200px;
+  margin-top: 12px;
+}
+app-root buyprn .info-footer {
+  padding: 16px;
+  text-align: center;
+  margin-top: 16px;
+  border-top: 1px solid rgba(16, 185, 129, 0.1);
+}
+app-root buyprn .info-footer-icon {
+  font-size: 24px;
+  color: #10b981;
+  margin-bottom: 8px;
+  display: block;
+}
+app-root buyprn .info-close-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
+app-root buyprn .buy-btn-fixed-150 { margin: 12px auto; width: 150px; }
+app-root buyprn .buy-btn-fixed-200 { margin: 12px auto; width: 200px; }
+app-root buyprn .buy-btn-auto { margin: 16px auto; width: auto; }
+app-root buyprn .buy-growth-box {
+  background-color: rgba(16, 185, 129, 0.05);
+  padding: 16px;
+  border-radius: 10px;
+}
+app-root buyprn .buy-link-whatsapp { color: inherit; text-decoration: underline; font-weight: 700; }
+app-root buyprn .fund-days-left { color: #10b981; font-weight: 500; }
+app-root buyprn .fund-days-ago { color: #94a3b8; }
+app-root buyprn .payment-icon { font-size: 24px; color: #10b981; margin-right: 12px; }
+app-root buyprn .payment-provider-container {
+  font-size: 12px;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+}
+app-root buyprn .payment-lock-icon { font-size: 16px; margin-right: 8px; color: #10b981; }
+app-root buyprn .buy-summary-label { color: #cbd5e1; font-size: 13px; display: block; margin-bottom: 8px; }
+app-root buyprn .buy-summary-value-lg { color: #10b981; font-size: 18px; font-weight: 700; display: block; margin-bottom: 12px; }
+app-root buyprn .buy-summary-sublabel { color: #94a3b8; font-size: 12px; display: block; margin-bottom: 4px; margin-top: 12px; }
+app-root buyprn .buy-summary-value-md { color: #10b981; font-size: 16px; font-weight: 700; }
+app-root buyprn .buy-btn-icon { font-size: 18px; vertical-align: middle; margin-right: 8px; }
+app-root buyprn .info-growth-label { font-size: 12px; color: #94a3b8; margin-bottom: 12px; font-weight: 500; }
+app-root buyprn .info-growth-value { color: #f1f5f9; font-weight: 600; }
+app-root buyprn .info-stat-label { font-size: 11px; color: #94a3b8; margin-bottom: 6px; font-weight: 500; }
+app-root buyprn .info-stat-value { font-size: 18px; font-weight: 700; color: #10b981; }
+app-root buyprn .buy-title-15 { font-size: 15px; }
+app-root buyprn .buy-status-text { font-size: 13px; color: #cbd5e1; margin-bottom: 10px; line-height: 1.45; }
+app-root buyprn .buy-btn-small { padding: 7px 12px; font-size: 11px; }
+app-root buyprn .buy-btn-small-wide { padding: 7px 14px; font-size: 11px; }
+app-root buyprn .buy-mb-8 { margin-bottom: 8px; }
+app-root buyprn .buy-mb-10 { margin-bottom: 10px; }
+app-root buyprn .buy-mb-12 { margin-bottom: 12px; }
+app-root buyprn .buy-p-16 { padding: 16px; }
+app-root buyprn .buy-flex-center { display: flex; align-items: center; }
+app-root buyprn .currency-item { flex: 1; min-width: 120px; }
+app-root buyprn .amount-item { flex: 0 1 auto; }
+app-root buyprn .payment-receipt-note {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+app-root buyprn .info-header-row {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 12px;
+}
+app-root buyprn .info-intro-padding {
+  padding: 0 4px 6px 4px;
+  text-align: left;
+}
+app-root buyprn .info-overview-padding {
+  text-align: left;
+  padding: 16px;
+}
 app-root buyprn .buyPage {
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
   color: #f1f5f9;
