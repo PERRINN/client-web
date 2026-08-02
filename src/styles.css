@@ -1539,6 +1539,14 @@ app-root settings .listLight {
 app-root settings .listLight li {
   width: 125px;
 }
+app-root settings .settings-upload-input { display: none; }
+app-root settings .settings-currency-container { padding: 10px; }
+app-root settings .settings-help-margin-top { margin: 10px 20px 0 20px; }
+app-root settings .settings-help-margin-all { margin: 20px 20px 0 20px; }
+app-root settings .settings-help-margin-contract { margin: 15px 20px 0 20px; }
+app-root settings .settings-btn-email { width: 250px; }
+app-root settings .settings-btn-centered { margin: 10px auto; display: block; }
+app-root settings .settings-info-details { margin: 5px 10px 10px 15px; }
 
 /* Profile */
 app-root profile {

@@ -28,7 +28,7 @@
             id="chatImage"
             (change)="onImageChange($event)"
             accept="image/*"
-            style="display: none;"
+            class="settings-upload-input"
           />
           <label
             for="chatImage"
@@ -49,7 +49,7 @@
 
   <div class="island settingsSection">
     <div class="title">Preferred currency</div>
-    <div style="padding:10px">
+    <div class="settings-currency-container">
       <ul class="listLight">
         <li class="buttonBlack" *ngFor="let currency of objectToArray(UI.PERRINNAdminLastMessageObj?.currencyList)"
             (click)="UI.currentUserLastMessageObj?.userCurrency==currency[0]?'':updateUserCurrency(currency[0])"
@@ -63,41 +63,41 @@
   <div class="island settingsSection">
     <div class="title">Short presentation</div>
     <div class="settings-help-text">Your short presentation helps other members get to know you.</div>
-    <div class="settings-help-text" style="margin:10px 20px 0 20px">I am someone who is:</div>
+    <div class="settings-help-text settings-help-margin-top">I am someone who is:</div>
     <input [(ngModel)]="userPresentation" placeholder="Your short presentation" maxlength="150">
     <button class="buttonPrimary settings-action-btn" (click)="updateUserPresentation()" [disabled]="!userPresentation || userPresentation == UI.currentUserLastMessageObj?.userPresentation">Update my presentation</button>
   </div>
 
   <div class="island settingsSection">
     <div class="title">Public link</div>
-    <div class="settings-help-text" style="margin:20px 20px 0 20px">Add view only public link so other members can view your documents, website, code and more.</div>
+    <div class="settings-help-text settings-help-margin-all">Add view only public link so other members can view your documents, website, code and more.</div>
     <input [(ngModel)]="publicLink" placeholder="Add a link">
     <button class="buttonPrimary settings-action-btn" (click)="updatePublicLink()" [disabled]="!publicLink || publicLink == UI.currentUserLastMessageObj?.publicLink">Update my link</button>
   </div>
 
   <div class="island settingsSection">
     <div class="title">Email address</div>
-    <div class="settings-help-text" style="margin:10px 20px 0 20px">Authentication address.</div>
+    <div class="settings-help-text settings-help-margin-top">Authentication address.</div>
     <input [(ngModel)]="emailsAuth" placeholder="Enter your authentication email">
-    <button class="buttonPrimary settings-action-btn" (click)="updateEmails()" style="width:250px" [disabled]="!isValidEmail(emailsAuth) || emailsAuth == UI.currentUserLastMessageObj?.emails.auth">Update my email address</button>
+    <button class="buttonPrimary settings-action-btn settings-btn-email" (click)="updateEmails()" [disabled]="!isValidEmail(emailsAuth) || emailsAuth == UI.currentUserLastMessageObj?.emails.auth">Update my email address</button>
   </div>
 
   <div class="island settingsSection">
     <div class="title">PERRINN contract</div>
     <div class="settings-help-text">Your PERRINN contract defines how you collaborate with the team. Any change you submit here is first reviewed, then approved before it becomes active. Either you or PERRINN can end the contract at any time.</div>
-    <div class="settings-help-text" style="margin:15px 20px 0 20px">Contract level is a scale from <b>1 to 10</b> based on your ability to work independently: <b>1</b> = beginner, <b>10</b> = expert (10+ years of experience). After signature, your effective level increases automatically over time by about <b>+1 per year</b>.</div>
+    <div class="settings-help-text settings-help-margin-contract">Contract level is a scale from <b>1 to 10</b> based on your ability to work independently: <b>1</b> = beginner, <b>10</b> = expert (10+ years of experience). After signature, your effective level increases automatically over time by about <b>+1 per year</b>.</div>
     <input [(ngModel)]="contract.level" (input)="onContractLevelInput($event)" maxlength="2" inputmode="numeric" pattern="[0-9]*" placeholder="Contract level">
-    <button class="buttonPrimary settings-action-btn" (click)="updateContract()" style="margin:10px auto;display:block" [disabled]="!(contract.level >= 1 && contract.level <= 10) || contract.level == UI.currentUserLastMessageObj?.contract?.level">Update my contract</button>
+    <button class="buttonPrimary settings-action-btn settings-btn-centered" (click)="updateContract()" [disabled]="!(contract.level >= 1 && contract.level <= 10) || contract.level == UI.currentUserLastMessageObj?.contract?.level">Update my contract</button>
     <div *ngIf="!UI.currentUserLastMessageObj?.contract?.createdTimestamp" class="settings-info-text">No contract registered.</div>
     <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp" class="settings-info-text">Contract number {{UI.currentUserLastMessageObj?.contract?.createdTimestamp}}</div>
-    <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&UI.currentUserLastMessageObj?.contract?.signed" class="settings-info-text" style="margin:5px 10px 10px 15px">Signature valid for level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}, you will receive {{UI.convertAndFormatPRNToPRNCurrency(null,(UI.PERRINNAdminLastMessageObj?.contract?.hourlyRateLevel1||0)*UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted)}} per hour when you declare working hours.</div>
-    <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" class="settings-info-text" style="margin:5px 10px 10px 15px">Waiting for contract signature</div>
+    <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&UI.currentUserLastMessageObj?.contract?.signed" class="settings-info-text settings-info-details">Signature valid for level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}, you will receive {{UI.convertAndFormatPRNToPRNCurrency(null,(UI.PERRINNAdminLastMessageObj?.contract?.hourlyRateLevel1||0)*UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted)}} per hour when you declare working hours.</div>
+    <div *ngIf="UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed" class="settings-info-text settings-info-details">Waiting for contract signature</div>
   </div>
 
   <div class="island settingsSection">
     <div class="title">Profile simulator (for UI dev)</div>
-    <button class="buttonPrimary settings-action-btn" (click)="UI.toggleprofileSimulatorNonMember()" style="margin:10px auto;display:block">Non member {{UI.profileSimulatorNonMember ? 'ON' : 'OFF'}} </button>
-    <button class="buttonPrimary settings-action-btn" (click)="UI.toggleprofileSimulatorLoggedOut()" style="margin:10px auto;display:block">Logged-out {{UI.profileSimulatorLoggedOut ? 'ON' : 'OFF'}}</button>
+    <button class="buttonPrimary settings-action-btn settings-btn-centered" (click)="UI.toggleprofileSimulatorNonMember()">Non member {{UI.profileSimulatorNonMember ? 'ON' : 'OFF'}} </button>
+    <button class="buttonPrimary settings-action-btn settings-btn-centered" (click)="UI.toggleprofileSimulatorLoggedOut()">Logged-out {{UI.profileSimulatorLoggedOut ? 'ON' : 'OFF'}}</button>
   </div>
 
   <div class="island settingsSection">
