@@ -81,10 +81,10 @@
           <div *ngIf="message.payload.doc.data()?.fund?.active || showPastFunds" (click)="router.navigate(['chat', message.payload.doc.data()?.chain])" class="fundCard">
             <span class="chatSubject">{{message.payload.doc.data()?.chatSubject}}</span>
             <div class="buy-mt-10">
-              <div class="fund-progress-track">
-                <div class="fund-progress-fill"
+              <div class="progress-track">
+                <div class="progress-fill"
                      [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100+'%'">
-                  <span class="fund-progress-pct" *ngIf="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100 > 30">
+                  <span class="progress-pct" *ngIf="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100 > 30">
                     {{message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget|percent:"1.0-0"}}
                   </span>
                 </div>

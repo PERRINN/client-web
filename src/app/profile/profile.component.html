@@ -170,10 +170,10 @@
                     </div>
                   </div>
 
-                  <div class="prof-fund-progress-track">
-                    <div class="fund-progress-fill"
+                  <div class="progress-track">
+                    <div class="progress-fill"
                          [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100+'%'">
-                  <span class="prof-fund-progress-pct" *ngIf="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100 > 30">
+                  <span class="progress-pct" *ngIf="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100 > 30">
                     {{message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget|percent:'1.0-0'}}
                   </span>
                     </div>

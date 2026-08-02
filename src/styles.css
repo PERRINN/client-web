@@ -166,6 +166,35 @@ th {
   flex-wrap: wrap;
   gap: 0px 10px;
 }
+.progress-track {
+  background-color: #334155;
+  height: 22px;
+  width: 100%;
+  border-radius: 7px;
+  overflow: hidden;
+  position: relative;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #059669 0%, #047857 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: width 0.3s ease;
+}
+.progress-pct {
+  font-size: 10px;
+  color: #ffffff;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.progress-track.progress-compact {
+  height: 20px;
+}
+.progress-track.progress-compact .progress-pct {
+  font-size: 11px;
+  line-height: 20px;
+}
 .buttonBlack {
   background-color: black;
   color: whitesmoke;
@@ -681,28 +710,6 @@ app-root buyprn .membership-footer-text {
   color: rgba(255, 255, 255, 0.92);
   margin-top: 10px;
   text-align: left;
-}
-app-root buyprn .fund-progress-track {
-  background-color: #334155;
-  height: 24px;
-  width: 100%;
-  border-radius: 6px;
-  overflow: hidden;
-  position: relative;
-}
-app-root buyprn .fund-progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #059669 0%, #047857 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: width 0.3s ease;
-}
-app-root buyprn .fund-progress-pct {
-  font-size: 11px;
-  color: #ffffff;
-  font-weight: 600;
-  white-space: nowrap;
 }
 app-root buyprn .fund-meta-row {
   margin-top: 8px;
@@ -1590,8 +1597,6 @@ app-root profile .prof-settings-btn { margin-left: auto; display: inline-flex; a
 app-root profile .prof-no-events { padding: 14px; border: 1px solid rgba(16, 185, 129, 0.1); background: rgba(16, 185, 129, 0.03); color: #94a3b8; font-size: 13px; }
 app-root profile .prof-fund-card-body { padding: 8px; border-radius: 10px; background: rgba(16, 185, 129, 0.05); }
 app-root profile .prof-fund-header { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
-app-root profile .prof-fund-progress-track { background-color: #334155; height: 22px; width: 92%; margin: 0 auto; border-radius: 7px; overflow: hidden; position: relative; }
-app-root profile .prof-fund-progress-pct { font-size: 10px; color: #ffffff; font-weight: 600; white-space: nowrap; }
 app-root profile .prof-fund-meta { margin-top: 5px; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center; }
 app-root profile .prof-fund-days { color: #10b981; font-weight: 500; margin-left: auto; }
 app-root profile .prof-fund-desc { margin-top: 3px; font-size: 11px; color: #94a3b8; line-height: 1.35; }
@@ -2157,7 +2162,6 @@ app-root chat .chatPage .island {
 }
 app-root chat .chat-header-main { float: left; width: 75%; margin: 0 5px 0 10px; min-height: 40px; }
 app-root chat .chat-header-fund-info { overflow: hidden; padding-top: 2px; }
-app-root chat .chat-header-fund-track { max-width: 320px; }
 app-root chat .chat-header-fund-meta { font-size: 11px; color: #94a3b8; margin-top: 4px; }
 app-root chat .chat-back-link { float: left; color: white; margin: 10px; }
 app-root chat .chat-btn-200 { width: 200px; margin: 10px auto; display: flex; justify-content: center; }
@@ -2437,28 +2441,6 @@ app-root chat .chatFundEditorPreview {
   padding: 8px;
   border-radius: 10px;
   background: rgba(16, 185, 129, 0.05);
-}
-app-root chat .chatFundEditorProgressTrack {
-  background-color: #334155;
-  height: 22px;
-  width: 100%;
-  border-radius: 7px;
-  overflow: hidden;
-  position: relative;
-}
-app-root chat .chatFundEditorProgressFill {
-  height: 100%;
-  background: linear-gradient(90deg, #059669 0%, #047857 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: width 0.3s ease;
-}
-app-root chat .chatFundEditorProgressPct {
-  font-size: 10px;
-  color: #ffffff;
-  font-weight: 600;
-  white-space: nowrap;
 }
 app-root chat .chatFundEditorMeta {
   margin-top: 5px;

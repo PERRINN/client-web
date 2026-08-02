@@ -18,10 +18,10 @@
         <div *ngIf="fund?.active && fund?.amountGBPTarget >= 0.01" class="chatHeaderFund">
           <span class="material-symbols-outlined chatHeaderFundIcon">crowdsource</span>
           <div class="chat-header-fund-info">
-            <div class="chatFundEditorProgressTrack chat-header-fund-track">
-              <div class="chatFundEditorProgressFill"
+            <div class="progress-track progress-compact chat-header-fund-track">
+              <div class="progress-fill"
                    [style.width]="(fund?.amountGBPRaised/fund?.amountGBPTarget)*100+'%'">
-                <span class="chatFundEditorProgressPct" *ngIf="(fund?.amountGBPRaised/fund?.amountGBPTarget)*100 > 35">
+                <span class="progress-pct" *ngIf="(fund?.amountGBPRaised/fund?.amountGBPTarget)*100 > 35">
                   {{(fund?.amountGBPRaised/fund?.amountGBPTarget)|percent:'1.0-0'}}
                 </span>
               </div>
@@ -195,10 +195,10 @@
           </div>
 
           <div *ngIf="(chatLastMessageObj?.fund?.amountGBPTarget||0) >= 0.01" class="chatFundEditorPreview">
-            <div class="chatFundEditorProgressTrack">
-              <div class="chatFundEditorProgressFill"
+            <div class="progress-track">
+              <div class="progress-fill"
                    [style.width]="(((chatLastMessageObj?.fund?.amountGBPRaised||0)/(chatLastMessageObj?.fund?.amountGBPTarget||1))*100)+'%'">
-                <span class="chatFundEditorProgressPct" *ngIf="((chatLastMessageObj?.fund?.amountGBPRaised||0)/(chatLastMessageObj?.fund?.amountGBPTarget||1))*100 > 30">
+                <span class="progress-pct" *ngIf="((chatLastMessageObj?.fund?.amountGBPRaised||0)/(chatLastMessageObj?.fund?.amountGBPTarget||1))*100 > 30">
                   {{((chatLastMessageObj?.fund?.amountGBPRaised||0)/(chatLastMessageObj?.fund?.amountGBPTarget||1))|percent:'1.0-0'}}
                 </span>
               </div>
