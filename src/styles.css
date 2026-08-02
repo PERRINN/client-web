@@ -1572,6 +1572,39 @@ app-root profile .profileModern {
   background: #000 !important;
   padding-bottom: 8px;
 }
+app-root profile .prof-p-14 { padding: 14px; }
+app-root profile .prof-header-wrap { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-start; }
+app-root profile .prof-main-area { flex: 1; min-width: 240px; }
+app-root profile .prof-top-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+app-root profile .prof-name-area { display: flex; align-items: center; gap: 8px; min-width: 0; }
+app-root profile .prof-name-text { color: #f1f5f9; font-size: 20px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
+app-root profile .prof-balance-text { color: #10b981; font-size: 18px; font-weight: 700; }
+app-root profile .prof-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; margin-bottom: 8px; }
+app-root profile .prof-pres-text { font-size: 13px; color: #94a3b8; line-height: 1.5; margin-bottom: 8px; }
+app-root profile .prof-meta-wrap { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: #cbd5e1; margin-bottom: 8px; }
+app-root profile .prof-contract-area { font-size: 12px; color: #cbd5e1; margin-bottom: 8px; }
+app-root profile .prof-contract-signed { color: #10b981; font-weight: 600; }
+app-root profile .prof-action-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 16px; margin-bottom: 4px; }
+app-root profile .prof-msg-btn { display: inline-flex; align-items: center; gap: 6px; }
+app-root profile .prof-settings-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; }
+app-root profile .prof-no-events { padding: 14px; border: 1px solid rgba(16, 185, 129, 0.1); background: rgba(16, 185, 129, 0.03); color: #94a3b8; font-size: 13px; }
+app-root profile .prof-fund-card-body { padding: 8px; border-radius: 10px; background: rgba(16, 185, 129, 0.05); }
+app-root profile .prof-fund-header { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+app-root profile .prof-fund-progress-track { background-color: #334155; height: 22px; width: 92%; margin: 0 auto; border-radius: 7px; overflow: hidden; position: relative; }
+app-root profile .prof-fund-progress-pct { font-size: 10px; color: #ffffff; font-weight: 600; white-space: nowrap; }
+app-root profile .prof-fund-meta { margin-top: 5px; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center; }
+app-root profile .prof-fund-days { color: #10b981; font-weight: 500; margin-left: auto; }
+app-root profile .prof-fund-desc { margin-top: 3px; font-size: 11px; color: #94a3b8; line-height: 1.35; }
+app-root profile .prof-fund-amounts { margin-top: 3px; font-size: 11px; color: #cbd5e1; line-height: 1.35; }
+app-root profile .prof-chart-box { height: 400px; margin: 10px; }
+app-root profile .prof-list-item-rel { position: relative; }
+app-root profile .prof-icon-14 { font-size: 14px; line-height: 1; }
+app-root profile .prof-icon-16 { font-size: 16px; }
+app-root profile .prof-icon-18 { font-size: 18px; color: #10b981; cursor: pointer; }
+app-root profile .prof-avatar-wrap { float: left; min-width: 58px; min-height: 40px; }
+app-root profile .prof-load-more-wrap { margin-bottom: 0; }
+app-root profile .prof-btn-200 { width: 200px; margin: 10px auto; }
+app-root profile .prof-margin-left-10 { margin-left: 10px; }
 app-root profile .profileInfoBox {
   background: rgba(22, 32, 52, 0.88);
   border: none;

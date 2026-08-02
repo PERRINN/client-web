@@ -6,33 +6,32 @@
       Add a profile picture.
     </div>
 
-    <div class="island warning-island" *ngIf="UI.hasTouch&&!UI.isStandalone"
-         style="cursor:default">
+    <div class="island warning-island" *ngIf="UI.hasTouch&&!UI.isStandalone">
       Add this app to your home screen for a better experience.
     </div>
 
-    <div class="island profile-banner-item" *ngIf="scope=='all'&&UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined && !sidePanelScope" style="clear:both">
+    <div class="island profile-banner-item" *ngIf="scope=='all'&&UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined && !sidePanelScope">
       <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" class="banner-img">
     </div>
 
-    <div class="island" *ngIf="scope!='all'" style="padding:14px;">
-      <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start;">
+    <div class="island prof-p-14" *ngIf="scope!='all'">
+      <div class="prof-header-wrap">
         <img *ngIf="focusUserLastMessageObj"
              [src]="focusUserLastMessageObj?.imageUrlMedium"
              (error)="UI.handleUserImageError($event, focusUserLastMessageObj)"
-             class="profile-header-img"
+             class="profile-header-img imageWithZoom"
              (click)="UI.showFullScreenImage(focusUserLastMessageObj?.imageUrlOriginal)">
 
-        <div style="flex:1; min-width:240px;">
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
-            <div style="display:flex; align-items:center; gap:8px; min-width:0;">
-              <span style="color:#f1f5f9;font-size:20px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px;">{{focusUserLastMessageObj?.name}}</span>
-              <span *ngIf="focusUserLastMessageObj?.publicLink" class="material-icons-outlined" style="font-size:18px;color:#10b981;cursor:pointer" (click)="UI.openWindow(focusUserLastMessageObj?.publicLink)">link</span>
+        <div class="prof-main-area">
+          <div class="prof-top-row">
+            <div class="prof-name-area">
+              <span class="prof-name-text">{{focusUserLastMessageObj?.name}}</span>
+              <span *ngIf="focusUserLastMessageObj?.publicLink" class="material-icons-outlined prof-icon-18" (click)="UI.openWindow(focusUserLastMessageObj?.publicLink)">link</span>
             </div>
-            <span style="color:#10b981;font-size:18px;font-weight:700;">{{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance||0)}}</span>
+            <span class="prof-balance-text">{{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance||0)}}</span>
           </div>
 
-          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:8px; margin-bottom:8px;">
+          <div class="prof-stats-grid">
             <div class="profile-stat-box">
               <span *ngIf="focusUserLastMessageObj?.locking?.amountCummulate>1">PRN tokens locked for {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} days</span>
               <span *ngIf="focusUserLastMessageObj?.locking?.amountCummulate<=1">PRN tokens locked for {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} day</span>
@@ -42,11 +41,11 @@
             </div>
           </div>
 
-          <div style="font-size:13px; color:#94a3b8; line-height:1.5; margin-bottom:8px;">
+          <div class="prof-pres-text">
             {{focusUserLastMessageObj?.userPresentation}}
           </div>
 
-          <div style="display:flex; flex-wrap:wrap; gap:10px; font-size:12px; color:#cbd5e1; margin-bottom:8px;">
+          <div class="prof-meta-wrap">
             <span>Created in {{focusUserLastMessageObj?.createdTimestamp|date:'MMMM yyyy'}}</span>
             <span *ngIf="scope!='all'">Last seen {{formatFocusUserLastSeen()}}</span>
             <span *ngIf="focusUserLastMessageObj?.userChain?.index>1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)>1">{{focusUserLastMessageObj?.userChain?.index}} created messages, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</span>
@@ -55,10 +54,10 @@
             <span *ngIf="focusUserLastMessageObj?.userChain?.index<=1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)<=1">{{focusUserLastMessageObj?.userChain?.index}} created message, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} day ago</span>
           </div>
 
-          <div style="font-size:12px; color:#cbd5e1; margin-bottom:8px;">
-            <span *ngIf="focusUserLastMessageObj?.contract?.signed" style="color:#10b981; font-weight:600;">Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
+          <div class="prof-contract-area">
+            <span *ngIf="focusUserLastMessageObj?.contract?.signed" class="prof-contract-signed">Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
             <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed">Waiting for contract signature (Level {{focusUserLastMessageObj?.contract?.level|number:'1.1-1'}})</span>
-            <button class="buttonPrimary" *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" style="margin-left:10px" (click)=signContract()>Sign contract</button>
+            <button class="buttonPrimary prof-margin-left-10" *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" (click)=signContract()>Sign contract</button>
           </div>
         </div>
       </div>
@@ -72,13 +71,13 @@
         </div>
       </div>
 
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:16px; margin-bottom:4px;">
-        <button class="buttonSecondary" *ngIf="UI.currentUser && focusUserLastMessageObj?.user && focusUserLastMessageObj?.user != UI.currentUser" style="display:inline-flex; align-items:center; gap:6px;" (click)="newMessageToUser()">
-          <span class="material-icons" style="font-size:16px;">chat</span>
+      <div class="prof-action-bar">
+        <button class="buttonSecondary prof-msg-btn" *ngIf="UI.currentUser && focusUserLastMessageObj?.user && focusUserLastMessageObj?.user != UI.currentUser" (click)="newMessageToUser()">
+          <span class="material-icons prof-icon-16">chat</span>
           New message to {{focusUserLastMessageObj?.name}}
         </button>
-        <button class="buttonBlack" *ngIf="focusUserLastMessageObj?.user==UI.currentUser" style="margin-left:auto; display:inline-flex; align-items:center; gap:6px;" (click)="router.navigate(['settings'])">
-          <span class="material-icons" style="font-size:16px;">settings</span>
+        <button class="buttonBlack prof-settings-btn" *ngIf="focusUserLastMessageObj?.user==UI.currentUser" (click)="router.navigate(['settings'])">
+          <span class="material-icons prof-icon-16">settings</span>
           Settings
         </button>
       </div>
@@ -88,7 +87,7 @@
         <div class="profile-events-item" *ngIf="!sidePanelScope">
           <ng-container *ngIf="comingEvents|async as events">
             <ul class="listLight">
-              <li *ngIf="events.length===0" style="padding:14px; border: 1px solid rgba(16, 185, 129, 0.1); background: rgba(16, 185, 129, 0.03); color:#94a3b8; font-size:13px;">
+              <li *ngIf="events.length===0" class="prof-no-events">
                 No upcoming events.
               </li>
 
@@ -154,8 +153,8 @@
             <li class="guardedChatItem fundListItem" *ngFor="let message of currentFunds|async;let first=first;let last=last"
                 (click)="openListedChat(message.payload.doc.data()?.chain)">
               <div *ngIf="scope=='all'||mode=='inbox'">
-                <div class="guardedChatItem fundCardBody" style="padding:8px; border-radius: 10px; background: rgba(16, 185, 129, 0.05);">
-                  <div style="display:flex; align-items:center; gap:6px; margin-bottom:5px;">
+                <div class="guardedChatItem prof-fund-card-body">
+                  <div class="prof-fund-header">
                     <ng-container *ngIf="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb; else fundIconFallback">
                       <img
                         [src]="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb"
@@ -171,24 +170,24 @@
                     </div>
                   </div>
 
-                  <div style="background-color:#334155;height:22px;width:92%;margin:0 auto;border-radius:7px;overflow:hidden;position:relative;">
-                    <div style="height:100%;background: linear-gradient(90deg, #059669 0%, #047857 100%);display:flex;align-items:center;justify-content:center;transition:width 0.3s ease;"
+                  <div class="prof-fund-progress-track">
+                    <div class="fund-progress-fill"
                          [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100+'%'">
-                  <span style="font-size: 10px; color: #ffffff; font-weight: 600; white-space: nowrap;" *ngIf="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100 > 30">
+                  <span class="prof-fund-progress-pct" *ngIf="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100 > 30">
                     {{message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget|percent:'1.0-0'}}
                   </span>
                     </div>
                   </div>
 
-                  <div style="margin-top: 5px; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center;">
-                    <span style="color: #10b981; font-weight: 500; margin-left: auto;">{{message.payload.doc.data()?.fund?.daysLeft|number:'1.0-0'}} days left</span>
+                  <div class="prof-fund-meta">
+                    <span class="prof-fund-days">{{message.payload.doc.data()?.fund?.daysLeft|number:'1.0-0'}} days left</span>
                   </div>
 
-                  <div style="margin-top: 3px; font-size: 11px; color: #94a3b8; line-height: 1.35;">
+                  <div class="prof-fund-desc">
                     <span>{{message.payload.doc.data()?.fund?.description}}</span>
                   </div>
 
-                  <div style="margin-top: 3px; font-size: 11px; color: #cbd5e1; line-height: 1.35;">
+                  <div class="prof-fund-amounts">
                     target: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]?.toCOIN||0))}} /
                     raised: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]?.toCOIN||0))}}
                   </div>
@@ -201,7 +200,7 @@
         <div class="island nonMemberIsland profile-banner-item" *ngIf="!UI.isCurrentUserMember && !sidePanelScope">
           <button class="buttonPrimary nonMemberIslandButton" (click)="router.navigate(['buyPRN'])">Buy PRN Tokens</button>
           <div class="nonMemberIslandFooter">Join the team today.</div>
-          <div class="nonMemberIslandHelper">Interested to join but have some questions first? <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" rel="noopener noreferrer">Join our WhatsApp community</a> and speak directly to Nico there.</div>
+          <div class="nonMemberIslandHelper">Interested to join but have some questions first? <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" rel="noopener noreferrer" class="buy-link-whatsapp">Join our WhatsApp community</a> and speak directly to Nico there.</div>
         </div>
       </div>
 
@@ -215,11 +214,11 @@
           </button>
         </li>
       </ul>
-      <div *ngIf="scope!='all'&& mode=='history'" style="height:400px;margin:10px"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
-      <div *ngIf="scope!='all'&& mode=='forecast'" style="height:400px;margin:10px"><ag-charts-angular [options]="forecastChartOptions"></ag-charts-angular></div>
+      <div *ngIf="scope!='all'&& mode=='history'" class="prof-chart-box"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
+      <div *ngIf="scope!='all'&& mode=='forecast'" class="prof-chart-box"><ag-charts-angular [options]="forecastChartOptions"></ag-charts-angular></div>
       <div *ngIf="mode!='forecast' || scope=='all'" [class.table-scroll-wrapper]="scope != 'all' && (mode=='chain'||mode=='history')">
         <ul class="listLight">
-          <li *ngFor="let message of messages|async;let first=first;let last=last" class="guardedChatItem" style="position:relative;"
+          <li *ngFor="let message of messages|async;let first=first;let last=last" class="guardedChatItem prof-list-item-rel"
               [class.activeChatListItem]="activeChatId === message.payload.doc.data()?.chain"
               (click)="openListedChat(message.payload.doc.data()?.chain)">
             <div *ngIf="scope=='all'||mode=='inbox'">
@@ -234,7 +233,7 @@
                       class="messageOptionsBtn"
                       aria-label="Chat options"
                       (click)="$event.stopPropagation(); messageOptionsOpenFor = (messageOptionsOpenFor === message.payload.doc.data()?.chain ? null : message.payload.doc.data()?.chain)">
-                <span class="material-icons-outlined" style="font-size:14px;line-height:1">keyboard_arrow_down</span>
+                <span class="material-icons-outlined prof-icon-14">keyboard_arrow_down</span>
               </button>
               <div *ngIf="messageOptionsOpenFor === message.payload.doc.data()?.chain"
                    class="messageOptionsMenu"
@@ -243,7 +242,7 @@
                   {{blueFlagByChain[message.payload.doc.data()?.chain] ? 'Remove blue flag' : 'Add blue flag'}}
                 </button>
               </div>
-              <div style="float:left;min-width:58px;min-height:40px">
+              <div class="prof-avatar-wrap">
                 <ng-container *ngIf="message.payload.doc.data()?.chatProfileImageUrlThumb || message.payload.doc.data()?.chatProfileImageUrlMedium; else recipientImagesFallback">
                   <img
                     [src]="message.payload.doc.data()?.chatProfileImageUrlThumb || message.payload.doc.data()?.chatProfileImageUrlMedium"
@@ -262,7 +261,7 @@
                 <div class="profile-chat-preview">
                   <span class="messageAuthor">{{message.payload.doc.data()?.name}}:&nbsp;</span>
                   <span *ngIf="message.payload.doc.data()?.imageResized" class="messageImageBadge">
-                  <span class="material-icons-outlined" style="font-size:14px;line-height:1">photo</span>
+                  <span class="material-icons-outlined prof-icon-14">photo</span>
                 </span>
                   <span>{{message.payload.doc.data()?.text}}</span>
                 </div>
@@ -328,8 +327,8 @@
         <div class="bounce2"></div>
         <div class="bounce3"></div>
       </div>
-      <div class="island" style="margin-bottom:0">
-        <button class="buttonPrimary" *ngIf="(!UI.loading && !['forecast', 'history'].includes(mode)) || scope=='all'" style="width:200px;margin:10px auto" (click)="loadMore()">Load more</button>
+      <div class="island prof-load-more-wrap">
+        <button class="buttonPrimary prof-btn-200" *ngIf="(!UI.loading && !['forecast', 'history'].includes(mode)) || scope=='all'" (click)="loadMore()">Load more</button>
       </div>
     </div>
   </div>
