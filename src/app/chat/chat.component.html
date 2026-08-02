@@ -4,7 +4,7 @@
     class="chatTopBar"
     (click)="UI.currentUser ? (showChatDetails = !showChatDetails) : '';showChatDetails?scrollMainToTop():scrollMainToBottom()">
     <div *ngIf="!showChatDetails">
-      <div style="float:left;width:75%;margin:0 5px 0 10px;min-height:40px">
+      <div class="chat-header-main">
         <div class="chatHeaderSubjectRow">
           <img *ngIf="chatLastMessageObj?.chatProfileImageUrlThumb || chatLastMessageObj?.chatProfileImageUrlMedium"
                [src]="chatLastMessageObj?.chatProfileImageUrlThumb || chatLastMessageObj?.chatProfileImageUrlMedium"
@@ -17,8 +17,8 @@
         </div>
         <div *ngIf="fund?.active && fund?.amountGBPTarget >= 0.01" class="chatHeaderFund">
           <span class="material-symbols-outlined chatHeaderFundIcon">crowdsource</span>
-          <div style="overflow:hidden;padding-top:2px">
-            <div class="chatFundEditorProgressTrack" style="max-width:320px">
+          <div class="chat-header-fund-info">
+            <div class="chatFundEditorProgressTrack chat-header-fund-track">
               <div class="chatFundEditorProgressFill"
                    [style.width]="(fund?.amountGBPRaised/fund?.amountGBPTarget)*100+'%'">
                 <span class="chatFundEditorProgressPct" *ngIf="(fund?.amountGBPRaised/fund?.amountGBPTarget)*100 > 35">
@@ -26,12 +26,12 @@
                 </span>
               </div>
             </div>
-            <div style="font-size:11px;color:#94a3b8;margin-top:4px">{{fund.daysLeft|number:'1.0-0'}} days left • {{fund.description}}</div>
+            <div class="chat-header-fund-meta">{{fund.daysLeft|number:'1.0-0'}} days left • {{fund.description}}</div>
           </div>
         </div>
       </div>
       <button class="topToggleBtn" (click)="$event.stopPropagation(); showImageGalleryClick()" aria-label="Toggle chat or gallery view">
-        <span class="material-icons-outlined" style="font-size:20px;line-height:1">{{showImageGallery?'question_answer':'collections'}}</span>
+        <span class="material-icons-outlined chat-icon-20">{{showImageGallery?'question_answer':'collections'}}</span>
       </button>
       <div *ngIf="eventDateEnd/60000>UI.nowSeconds/60" class="chatEventCard">
         <div class="chatEventMain">
@@ -57,7 +57,7 @@
       </div>
     </div>
     <div *ngIf="showChatDetails">
-      <div style="float:left;color:white;margin:10px">< messages</div>
+      <div class="chat-back-link">< messages</div>
     </div>
   </div>
 
@@ -75,12 +75,11 @@
             <div class="chatProfileImagePreviewWrap">
               <img *ngIf="chatProfileImageDownloadUrl || chatLastMessageObj?.chatProfileImageUrlThumb || chatLastMessageObj?.chatProfileImageUrlMedium"
                    [src]="chatProfileImageDownloadUrl || chatLastMessageObj?.chatProfileImageUrlThumb || chatLastMessageObj?.chatProfileImageUrlMedium"
-                   class="chatProfileImagePreview"
-                   style="cursor:pointer"
+                   class="chatProfileImagePreview imageWithZoom"
                    (click)="UI.showFullScreenImage(chatProfileImageDownloadUrl || chatLastMessageObj?.chatProfileImageUrlOriginal || chatLastMessageObj?.chatProfileImageUrlMedium || chatLastMessageObj?.chatProfileImageUrlThumb)"
                    (error)="UI.handleChatImageError($event, chatLastMessageObj)">
               <div *ngIf="!(chatProfileImageDownloadUrl || chatLastMessageObj?.chatProfileImageUrlThumb || chatLastMessageObj?.chatProfileImageUrlMedium)" class="chatProfileImagePlaceholder">
-                <span class="material-icons-outlined" style="font-size:18px;line-height:1">image</span>
+                <span class="material-icons-outlined chat-icon-18">image</span>
                 <span>No chat image</span>
               </div>
             </div>
@@ -252,8 +251,8 @@
               <div class="chatDateText">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'fullDate'}}</div>
             </div>
             <div *ngIf="lastRead==message.key" class="lastReadMarker">Last read</div>
-            <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" style="clear:both;width:100%;height:5px"></div>
-            <div *ngIf="message.payload?.imageUrlThumbUser&&(isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first)" style="float:left;width:54px;min-height:10px">
+            <div *ngIf="isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first" class="chat-msg-spacer"></div>
+            <div *ngIf="message.payload?.imageUrlThumbUser&&(isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first)" class="chat-msg-avatar-area">
               <img [src]="message.payload?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload)" class="messageUserAvatar" (click)="router.navigate(['profile',message.payload?.user])">
             </div>
             <div [style.background-color]="(message.payload?.user==UI.currentUser)?'rgba(16, 185, 129, 0.28)':'rgba(22, 32, 52, 0.72)'"
@@ -265,7 +264,7 @@
                       class="messageOptionsBtn"
                       aria-label="Message options"
                       (click)="$event.stopPropagation(); toggleMessageOptions(message.key)">
-                <span class="material-icons-outlined" style="font-size:14px;line-height:1">keyboard_arrow_down</span>
+                <span class="material-icons-outlined chat-icon-14">keyboard_arrow_down</span>
               </button>
               <div *ngIf="messageOptionsOpenFor === message.key"
                    class="messageOptionsMenu"
@@ -280,18 +279,18 @@
                   <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)>43200" class="messageTiming">{{(message.payload?.serverTimestamp?.seconds*1000)|date:'h:mm a'}}</div>
                   <div *ngIf="(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)<=43200" class="messageTiming">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</div>
                 </div>
-                <div style="clear:both;text-align:center">
+                <div class="chat-msg-center">
                   <img class="imageWithZoom messageImage" *ngIf="message.payload?.chatImageTimestamp" [src]="message.payload?.chatImageUrlMedium" (error)="UI.handleChatImageError($event, message.payload)" (click)="UI.showFullScreenImage(message.payload?.chatImageUrlOriginal)">
                 </div>
-                <div class="messageBodyText" style="margin:5px 5px 0 5px" [innerHTML]="message.payload?.text | linky"></div>
+                <div class="messageBodyText chat-msg-body-margin" [innerHTML]="message.payload?.text | linky"></div>
               </div>
-              <div style="clear:both;height:15px">
-                <span *ngIf="message.payload?.verified && message.payload?.userChain?.nextMessage=='none'" class="material-icons" style="float:right;font-size:16px;margin:0 2px 2px 0;color:#3b82f6">check_circle</span>
-                <span *ngIf="message.payload?.contract?.hoursValidated>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.contract?.amount)}} earned ({{UI.formatSecondsToDhm1(message.payload?.contract?.hoursValidated*3600)}}declared in {{UI.formatSecondsToDhm1(message.payload?.contract?.hoursAvailable*3600)}} window)</span>
-                <span *ngIf="message.payload?.purchaseCOIN?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.purchaseCOIN?.amount)}} purchased</span>
-                <span *ngIf="message.payload?.transactionIn?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.transactionIn?.amount)}} received</span>
-                <span *ngIf="message.payload?.transactionOut?.amount>0" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.convertAndFormatPRNToPRNCurrency(null,-message.payload?.transactionOut?.amount)}} sent</span>
-                <span *ngIf="message.payload?.userChain?.nextMessage=='none'&&message.payload?.wallet?.balance!=undefined" style="float:right;font-size:10px;margin:0 5px 2px 0;line-height:15px">{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.wallet?.balance)}}</span>
+              <div class="chat-msg-status-area">
+                <span *ngIf="message.payload?.verified && message.payload?.userChain?.nextMessage=='none'" class="material-icons chat-msg-status-icon">check_circle</span>
+                <span *ngIf="message.payload?.contract?.hoursValidated>0" class="chat-msg-stat-text">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.contract?.amount)}} earned ({{UI.formatSecondsToDhm1(message.payload?.contract?.hoursValidated*3600)}}declared in {{UI.formatSecondsToDhm1(message.payload?.contract?.hoursAvailable*3600)}} window)</span>
+                <span *ngIf="message.payload?.purchaseCOIN?.amount>0" class="chat-msg-stat-text">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.purchaseCOIN?.amount)}} purchased</span>
+                <span *ngIf="message.payload?.transactionIn?.amount>0" class="chat-msg-stat-text">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.transactionIn?.amount)}} received</span>
+                <span *ngIf="message.payload?.transactionOut?.amount>0" class="chat-msg-stat-text">{{UI.convertAndFormatPRNToPRNCurrency(null,-message.payload?.transactionOut?.amount)}} sent</span>
+                <span *ngIf="message.payload?.userChain?.nextMessage=='none'&&message.payload?.wallet?.balance!=undefined" class="chat-msg-stat-text">{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.wallet?.balance)}}</span>
               </div>
             </div>
             {{storeMessageValues(message.payload)}}
@@ -323,7 +322,7 @@
         </ul>
       </div>
       <div class="island chatLoadMoreIsland">
-        <button class="buttonPrimary" style="width:200px;margin:10px auto" [disabled]="isLoadMoreDisabled" (click)="loadMore()">Load more</button>
+        <button class="buttonPrimary chat-btn-200-fixed" [disabled]="isLoadMoreDisabled" (click)="loadMore()">Load more</button>
       </div>
     </div>
   </div>
@@ -331,8 +330,8 @@
   <div *ngIf="UI.currentUser&&!showImageGallery&&!showChatDetails"
        #chatComposer
        class="chatComposer">
-    <span *ngIf="chatLastMessageObj?.chatSubject==null" style="margin:5px;font-size:10px">This message will be the subject of this chat</span>
-    <div style="clear:both;float:left;width:90%;display:flex;align-items:center;min-height:64px">
+    <span *ngIf="chatLastMessageObj?.chatSubject==null" class="chat-composer-hint">This message will be the subject of this chat</span>
+    <div class="chat-composer-input-area">
       <textarea #msgBox
                 autocapitalize="none"
                 rows="1"
@@ -345,19 +344,19 @@
       <div *ngIf="imageDownloadUrl" class="composerImagePreview">
         <img [src]="imageDownloadUrl">
         <button (click)="clearSelectedImage()" class="composerImageClearBtn">
-          <span class="material-icons-outlined" style="font-size:14px;line-height:1">close</span>
+          <span class="material-icons-outlined chat-icon-14">close</span>
         </button>
       </div>
     </div>
     <div *ngIf="draftMessage||imageDownloadUrl" class="composerActionWrap">
       <button class="composerActionBtn sendBtn" (click)="addMessage()" aria-label="Send message">
-        <span class="material-icons-outlined" style="font-size:22px">send</span>
+        <span class="material-icons-outlined chat-icon-22">send</span>
       </button>
     </div>
     <div *ngIf="!draftMessage&&!imageDownloadUrl" class="composerActionWrap">
       <input type="file" name="chatImage" id="chatImage" class="inputfile" (change)="onImageChange($event)" accept="image/*">
       <label class="buttonUploadImage composerActionBtn cameraBtn" for="chatImage" id="buttonFile" aria-label="Upload image">
-        <span class="material-icons-outlined" style="font-size:22px;color:#cbd5e1">photo_camera</span>
+        <span class="material-icons-outlined chat-icon-22-muted">photo_camera</span>
       </label>
     </div>
   </div>
@@ -367,7 +366,7 @@
       <div class="messageJsonModalHeader">
         <div class="messageJsonModalTitle">Message json</div>
         <button class="messageJsonModalClose" (click)="closeMessageJsonModal()" aria-label="Close message json">
-          <span class="material-icons-outlined" style="font-size:18px;line-height:1">close</span>
+          <span class="material-icons-outlined chat-icon-18">close</span>
         </button>
       </div>
       <pre class="messageJsonModalBody">{{selectedMessageJsonFormatted}}</pre>

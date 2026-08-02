@@ -905,6 +905,19 @@ app-root buyprn .info-overview-padding {
   text-align: left;
   padding: 16px;
 }
+app-root buyprn .buy-title-15 { font-size: 15px; }
+app-root buyprn .buy-status-text { font-size: 13px; color: #cbd5e1; margin-bottom: 10px; line-height: 1.45; }
+app-root buyprn .buy-receipt-note { margin-top: 10px; font-size: 11px; color: #94a3b8; line-height: 1.4; }
+app-root buyprn .buy-btn-reset { margin-top: 10px; padding: 7px 12px; font-size: 11px; }
+app-root buyprn .buy-btn-close { padding: 7px 14px; font-size: 11px; }
+app-root buyprn .info-header { display: flex; justify-content: flex-start; align-items: center; margin-bottom: 12px; }
+app-root buyprn .info-intro { padding: 0 4px 6px 4px; text-align: left; }
+app-root buyprn .info-overview { text-align: left; padding: 16px; }
+app-root buyprn .info-stat-box { font-size: 11px; color: #94a3b8; margin-bottom: 6px; font-weight: 500; }
+app-root buyprn .info-stat-value-large { font-size: 18px; font-weight: 700; color: #10b981; }
+app-root buyprn .info-growth-box { background-color: rgba(16, 185, 129, 0.05); padding: 16px; text-align: center; border-radius: 10px; margin-top: 16px; }
+app-root buyprn .info-growth-label { font-size: 12px; color: #94a3b8; margin-bottom: 12px; font-weight: 500; }
+app-root buyprn .info-growth-value { color: #f1f5f9; font-weight: 600; }
 app-root buyprn .buyPage {
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
   color: #f1f5f9;
@@ -2073,6 +2086,28 @@ app-root chat .chatPage .island {
   color: var(--text-gray) !important;
   box-shadow: var(--shadow-standard);
 }
+app-root chat .chat-header-main { float: left; width: 75%; margin: 0 5px 0 10px; min-height: 40px; }
+app-root chat .chat-header-fund-info { overflow: hidden; padding-top: 2px; }
+app-root chat .chat-header-fund-track { max-width: 320px; }
+app-root chat .chat-header-fund-meta { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+app-root chat .chat-back-link { float: left; color: white; margin: 10px; }
+app-root chat .chat-btn-200 { width: 200px; margin: 10px auto; display: flex; justify-content: center; }
+app-root chat .chat-btn-200-fixed { width: 200px; margin: 10px auto; }
+app-root chat .chat-msg-avatar-area { float: left; width: 54px; min-height: 10px; }
+app-root chat .chat-msg-spacer { clear: both; width: 100%; height: 5px; }
+app-root chat .chat-msg-center { clear: both; text-align: center; }
+app-root chat .chat-msg-body-margin { margin: 5px 5px 0 5px; }
+app-root chat .chat-msg-status-area { clear: both; height: 15px; }
+app-root chat .chat-msg-status-icon { float: right; font-size: 16px; margin: 0 2px 2px 0; color: #3b82f6; }
+app-root chat .chat-msg-stat-text { float: right; font-size: 10px; margin: 0 5px 2px 0; line-height: 15px; }
+app-root chat .chat-composer-hint { margin: 5px; font-size: 10px; }
+app-root chat .chat-composer-input-area { clear: both; float: left; width: 90%; display: flex; align-items: center; min-height: 64px; }
+app-root chat .chat-icon-14 { font-size: 14px; line-height: 1; }
+app-root chat .chat-icon-16 { font-size: 16px; }
+app-root chat .chat-icon-18 { font-size: 18px; line-height: 1; }
+app-root chat .chat-icon-20 { font-size: 20px; line-height: 1; }
+app-root chat .chat-icon-22 { font-size: 22px; }
+app-root chat .chat-icon-22-muted { font-size: 22px; color: #cbd5e1; }
 app-root chat .chatPage {
   background: #000 !important;
   position: fixed;
@@ -3213,7 +3248,29 @@ app-root chat .cancelEventModalBtn {
     border-radius: 0 12px 12px 0 !important;
     border-left: none !important;
   }
-  app-root chat .chatPage {
+  app-root chat .chat-header-main { float: left; width: 75%; margin: 0 5px 0 10px; min-height: 40px; }
+app-root chat .chat-header-fund-info { overflow: hidden; padding-top: 2px; }
+app-root chat .chat-header-fund-track { max-width: 320px; }
+app-root chat .chat-header-fund-meta { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+app-root chat .chat-back-link { float: left; color: white; margin: 10px; }
+app-root chat .chat-btn-200 { width: 200px; margin: 10px auto; display: flex; justify-content: center; }
+app-root chat .chat-btn-200-fixed { width: 200px; margin: 10px auto; }
+app-root chat .chat-msg-avatar-area { float: left; width: 54px; min-height: 10px; }
+app-root chat .chat-msg-spacer { clear: both; width: 100%; height: 5px; }
+app-root chat .chat-msg-center { clear: both; text-align: center; }
+app-root chat .chat-msg-body-margin { margin: 5px 5px 0 5px; }
+app-root chat .chat-msg-status-area { clear: both; height: 15px; }
+app-root chat .chat-msg-status-icon { float: right; font-size: 16px; margin: 0 2px 2px 0; color: #3b82f6; }
+app-root chat .chat-msg-stat-text { float: right; font-size: 10px; margin: 0 5px 2px 0; line-height: 15px; }
+app-root chat .chat-composer-hint { margin: 5px; font-size: 10px; }
+app-root chat .chat-composer-input-area { clear: both; float: left; width: 90%; display: flex; align-items: center; min-height: 64px; }
+app-root chat .chat-icon-14 { font-size: 14px; line-height: 1; }
+app-root chat .chat-icon-16 { font-size: 16px; }
+app-root chat .chat-icon-18 { font-size: 18px; line-height: 1; }
+app-root chat .chat-icon-20 { font-size: 20px; line-height: 1; }
+app-root chat .chat-icon-22 { font-size: 22px; }
+app-root chat .chat-icon-22-muted { font-size: 22px; color: #cbd5e1; }
+app-root chat .chatPage {
     z-index: 20;
     background-color: #000 !important;
     border-left: none !important;

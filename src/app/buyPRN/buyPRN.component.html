@@ -211,11 +211,11 @@
           </div>
         </div>
 
-        <div class="payment-receipt-note">
+        <div class="buy-receipt-note">
           Revolut sends the payment receipt email directly after successful capture.
         </div>
         <button
-          class="buttonSecondary buy-btn-small buy-mt-10"
+          class="buttonSecondary buy-btn-reset"
           *ngIf="paymentState !== 'creating-order'"
           (click)="resetPaymentFlow()">
           Reset payment status
@@ -225,13 +225,13 @@
 
     <div *ngIf="showPrnInfoPopup" class="info-popup-backdrop" (click)="closePrnInfoPopup()">
       <div class="island buy-island info-popup-card" (click)="$event.stopPropagation()">
-        <div class="info-header-row">
+        <div class="info-header">
           <div class="buy-section-title buy-mb-0">What is PRN</div>
         </div>
         <div class="buy-text-center buy-mb-20">
           <img src="./../assets/App icons/PRN token.png" class="info-popup-image">
         </div>
-        <div class="info-intro-padding">
+        <div class="info-intro">
           <div class="payment-label buy-mb-8">Why PRN exists</div>
           <div class="info-text-box info-text-box-strong">
             PRN is not a traditional crypto token that fluctuates in open public markets. It is not a speculative asset.
@@ -250,24 +250,24 @@
           </div>
         </div>
         <div class="buy-p-0 buy-text-center buy-mb-20">
-          <div class="info-overview-padding">
+          <div class="info-overview">
             <div class="payment-label buy-mb-12">
               Overview
             </div>
             <div class="info-grid-2cols">
               <div class="info-stat-card">
-                <div class="info-stat-label">MEMBERS</div>
-                <div class="info-stat-value">{{UI.PERRINNAdminLastMessageObj?.statistics?.membersCount}}</div>
+                <div class="info-stat-box">MEMBERS</div>
+                <div class="info-stat-value-large">{{UI.PERRINNAdminLastMessageObj?.statistics?.membersCount}}</div>
               </div>
               <div class="info-stat-card">
-                <div class="info-stat-label">TOTAL SUPPLY</div>
-                <div class="info-stat-value">{{UI.convertAndFormatPRNToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}</div>
+                <div class="info-stat-box">TOTAL SUPPLY</div>
+                <div class="info-stat-value-large">{{UI.convertAndFormatPRNToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}</div>
               </div>
             </div>
           </div>
           <button class="buttonSecondary buy-btn-auto" (click)="router.navigate(['directory']); closePrnInfoPopup()">PRN Directory</button>
         </div>
-        <div class="buy-text-center buy-mt-16 buy-growth-box">
+        <div class="info-growth-box">
           <div class="info-growth-label">Growth Rate</div>
           <span class="info-growth-value">{{(UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0) | percent : "0.0"}} Annual</span>
           <div class="info-chart-box"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
@@ -279,7 +279,7 @@
                 </span>
         </div>
         <div class="info-close-footer">
-          <button class="buttonSecondary buy-btn-small-wide" (click)="closePrnInfoPopup()">Close</button>
+          <button class="buttonSecondary buy-btn-close" (click)="closePrnInfoPopup()">Close</button>
         </div>
       </div>
     </div>
