@@ -1,3 +1,26 @@
+:root {
+  /* Colors */
+  --bg-black: #000;
+  --bg-slate: #1e293b;
+  --bg-card-dark: rgba(22, 32, 52, 0.88);
+  --primary-green: #10b981;
+  --primary-green-dark: #059669;
+  --text-light: #f1f5f9;
+  --text-gray: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-bright: #e2e8f0;
+  --danger-red: #b91c1c;
+  --border-green: rgba(16, 185, 129, 0.12);
+
+  /* Borders & Spacing */
+  --radius-lg: 12px;
+  --radius-md: 10px;
+  --radius-sm: 8px;
+
+  /* Shadows */
+  --shadow-standard: 0 8px 24px rgba(2, 8, 23, 0.24);
+}
+
 *, *:before, *:after {
   box-sizing: border-box;
   font-family: verdana;
@@ -25,12 +48,12 @@
     background-color: #131B20;
 }
 html, body {
-  background-color: #000;
+  background-color: var(--bg-black);
 }
 body {
   border: 0;
-  background-color: #000;
-  color: #cbd5e1;
+  background-color: var(--bg-black);
+  color: var(--text-gray);
   scroll-behavior: auto;
   overscroll-behavior-x: none;
   touch-action: pan-y;
@@ -385,8 +408,8 @@ th {
 app-root {
   display: block;
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-  color: #f1f5f9;
-  background: #000;
+  color: var(--text-main);
+  background: var(--bg-black);
   min-height: 100vh;
 }
 
@@ -403,15 +426,15 @@ app-root .uploadProgress {
 app-root .topNav {
   max-width: 980px;
   margin: 0 auto 10px auto;
-  background: #1e293b;
+  background: var(--bg-slate);
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 10px 12px;
   display: flex;
   justify-content: space-between;
   gap: 12px;
   align-items: center;
-  box-shadow: 0 8px 24px rgba(2, 8, 23, 0.24);
+  box-shadow: var(--shadow-standard);
 }
 
 app-root .navLeft,
@@ -473,7 +496,7 @@ app-root .avatar {
 app-root .balance {
   font-size: 13px;
   font-weight: 600;
-  color: #f1f5f9;
+  color: var(--text-light);
 }
 
 app-root .verified {
@@ -533,7 +556,7 @@ app-root .buttonSecondary {
 app-root .buttonPrimary {
   border: none;
   color: #ffffff;
-  background: #10b981;
+  background: var(--primary-green);
   box-shadow: 0 6px 18px rgba(16, 185, 129, 0.28);
 }
 
@@ -625,9 +648,9 @@ app-root .contentWrap {
 }
 
 app-root .contentCard {
-  background: #1e293b;
+  background: var(--bg-slate);
   border: 1px solid rgba(16, 185, 129, 0.1);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   min-height: calc(100vh - 120px);
   overflow: hidden;
 }
@@ -707,7 +730,7 @@ app-root profile,
 app-root chat {
   display: block;
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-  color: #f1f5f9;
+  color: var(--text-light);
 }
 
 app-root settings .island,
@@ -715,9 +738,9 @@ app-root profile .island,
 app-root chat .chatPage .island {
   background: rgba(255, 255, 255, 0.04) !important;
   border: none !important;
-  border-radius: 12px;
-  color: #cbd5e1 !important;
-  box-shadow: 0 8px 24px rgba(2, 8, 23, 0.24);
+  border-radius: var(--radius-lg);
+  color: var(--text-gray) !important;
+  box-shadow: var(--shadow-standard);
 }
 
 app-root profile .profileModern {
@@ -732,7 +755,7 @@ app-root profile .profileContainer {
 app-root profile .profileInfoBox {
   background: rgba(22, 32, 52, 0.88);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 8px;
   color: #f8fafc;
 }
