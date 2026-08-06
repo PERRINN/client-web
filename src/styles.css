@@ -606,8 +606,6 @@ app-root .messageAuthor {
   font-weight: 700;
   letter-spacing: 0.1px;
   display: inline;
-  float: left;
-  margin: 0px 10px 0px 5px;
 }
 app-root .chatSubject {
   color: #f1f5f9;
@@ -2160,6 +2158,10 @@ app-root chat {
   display: block;
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
   color: var(--text-light);
+}
+app-root chat div.messageAuthor {
+    float:left;
+    margin:0px 10px 0px 5px;
 }
 app-root chat .chatPage .island {
   background: rgba(255, 255, 255, 0.04) !important;
