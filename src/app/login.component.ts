@@ -2,14 +2,14 @@ import { Component } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import firebase from 'firebase/compat/app';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { UserInterfaceService } from '../userInterface.service';
+import { UserInterfaceService } from './userInterface.service';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
 import { first } from 'rxjs/operators';
 
 
 @Component({
   selector: 'login',
-  templateUrl: 'login.component.html'
+  templateUrl: './login.component.html'
 })
 
 export class LoginComponent  {

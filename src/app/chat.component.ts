@@ -2,14 +2,14 @@ import { Component, NgZone, ViewChild, ElementRef, OnDestroy, HostListener } fro
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
 import { Router, ActivatedRoute } from '@angular/router'
-import { UserInterfaceService } from '../userInterface.service'
+import { UserInterfaceService } from './userInterface.service'
 import { AngularFireStorage } from '@angular/fire/compat/storage'
 import firebase from 'firebase/compat/app'
 import { map, tap, take } from 'rxjs/operators';
 
 @Component({
   selector: 'chat',
-  templateUrl: 'chat.component.html'
+  templateUrl: './chat.component.html'
 })
 
 export class ChatComponent implements OnDestroy {

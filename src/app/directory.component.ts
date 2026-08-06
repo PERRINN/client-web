@@ -2,13 +2,13 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Observable, Subject, BehaviorSubject } from 'rxjs';
 import { map, takeUntil, switchMap } from 'rxjs/operators';
 import { Router } from '@angular/router';
-import { UserInterfaceService } from '../userInterface.service';
+import { UserInterfaceService } from './userInterface.service';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth'
 
 @Component({
   selector: 'directory',
-  templateUrl: 'directory.component.html'
+  templateUrl: './directory.component.html'
 })
 
 export class DirectoryComponent implements OnInit, OnDestroy {

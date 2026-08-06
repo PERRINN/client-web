@@ -4,7 +4,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
 import { Observable } from 'rxjs'
 import { map, filter, tap, take } from 'rxjs/operators'
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router'
-import { UserInterfaceService } from '../userInterface.service'
+import { UserInterfaceService } from './userInterface.service'
 import { AngularFireAuth } from '@angular/fire/compat/auth'
 import firebase from 'firebase/compat/app'
 import { AgChartOptions } from 'ag-charts-community'
@@ -12,7 +12,7 @@ import { ChangeDetectorRef } from '@angular/core'
 
 @Component({
   selector: 'profile',
-  templateUrl: 'profile.component.html'
+  templateUrl: './profile.component.html'
 })
 export class ProfileComponent {
   @Input() sidePanelScope?: string;

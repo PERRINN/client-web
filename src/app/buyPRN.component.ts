@@ -9,10 +9,10 @@ import { HttpClient } from "@angular/common/http";
 import { Observable, Subject, interval } from "rxjs";
 import { map, takeUntil } from "rxjs/operators";
 import { Router, ActivatedRoute } from "@angular/router";
-import { UserInterfaceService } from "../userInterface.service";
+import { UserInterfaceService } from "./userInterface.service";
 import { AngularFirestore } from "@angular/fire/compat/firestore";
 import { AngularFireAuth } from "@angular/fire/compat/auth";
-import { environment } from "../../environments/environment";
+import { environment } from "../environments/environment";
 import { AgChartOptions } from "ag-charts-community";
 import { firstValueFrom } from "rxjs";
 
@@ -33,8 +33,8 @@ type PaymentState =
 
 
 @Component({
-  selector: "buyPRN",
-  templateUrl: 'buyPRN.component.html'
+  selector: 'buyPRN',
+  templateUrl: './buyPRN.component.html'
 })
 export class buyPRNComponent implements OnInit, OnDestroy {
   transactionPendingMessage: string | null = null;

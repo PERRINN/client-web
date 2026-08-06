@@ -2,14 +2,14 @@ import { Component } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { UserInterfaceService } from '../userInterface.service';
+import { UserInterfaceService } from './userInterface.service';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
 import firebase from 'firebase/compat/app';
 
 @Component({
   selector: 'settings',
-  templateUrl: 'settings.component.html'
+  templateUrl: './settings.component.html'
 })
 export class SettingsComponent {
   name:string
