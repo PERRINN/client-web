@@ -5,7 +5,7 @@ import { Router, ActivatedRoute } from '@angular/router'
 import { UserInterfaceService } from './userInterface.service'
 import { AngularFireStorage } from '@angular/fire/compat/storage'
 import firebase from 'firebase/compat/app'
-import { map, tap, take } from 'rxjs/operators';
+import { map, tap, take, finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'chat',
@@ -798,41 +798,52 @@ export class ChatComponent implements OnDestroy {
   }
 
   onImageChange(event: any) {
-    const image = event.target.files[0]
-    const uploader = document.getElementById('uploader') as HTMLInputElement
-    const storageRef = this.storage.ref('images/' + Date.now() + image.name)
-    const task = storageRef.put(image)
+    const input = event.target as HTMLInputElement | null;
+    if (!input?.files?.length) return;
 
-    task.snapshotChanges().subscribe((snapshot) => {
-      const buttonFile = document.getElementById('buttonFile');
-      const uploaderElement = document.getElementById('uploader');
-      if (buttonFile) buttonFile.style.visibility = 'hidden'
-      if (uploaderElement) uploaderElement.style.visibility = 'visible'
+    const image = input.files[0];
+    const uploader = document.getElementById('uploader') as HTMLProgressElement | null;
+    const buttonFile = document.getElementById('chatButtonFile') as HTMLElement | null;
+    const storageRef = this.storage.ref('images/' + Date.now() + '-' + image.name.replace(/\s+/g, '_'));
+    const task = storageRef.put(image);
 
-      if (snapshot) {
-        const percentage = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-        uploader.value = percentage.toString()
-      }
-    },
+    if (buttonFile) buttonFile.style.visibility = 'hidden';
+    if (uploader) {
+      uploader.style.visibility = 'visible';
+      uploader.value = 0;
+    }
+
+    task.snapshotChanges().pipe(
+      finalize(() => {
+        if (uploader) {
+          uploader.value = 0;
+          uploader.style.visibility = 'hidden';
+        }
+        if (buttonFile) buttonFile.style.visibility = 'visible';
+      })
+    ).subscribe(
+      (snapshot) => {
+        if (uploader && snapshot?.totalBytes) {
+          const percentage = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          uploader.value = Math.min(Math.max(percentage, 0), 100);
+        }
+      },
       (err: any) => {
-        const buttonFile = document.getElementById('buttonFile');
-        const uploaderElement = document.getElementById('uploader');
-        if (buttonFile) buttonFile.style.visibility = 'visible'
-        if (uploaderElement) uploaderElement.style.visibility = 'hidden'
-        uploader.value = '0'
+        if (input) input.value = '';
       },
       () => {
-        uploader.value = '0'
-        const buttonFile = document.getElementById('buttonFile');
-        const uploaderElement = document.getElementById('uploader');
-        if (buttonFile) buttonFile.style.visibility = 'visible'
-        if (uploaderElement) uploaderElement.style.visibility = 'hidden'
-        this.imageTimestamp = task.task.snapshot.ref.name.substring(0, 13)
-        storageRef.getDownloadURL().subscribe(url => {
-          this.imageDownloadUrl = url
-          event.target.value = ''
-        })
-      })
+        this.imageTimestamp = task.task.snapshot.ref.name.substring(0, 13);
+        storageRef.getDownloadURL().subscribe(
+          url => {
+            this.imageDownloadUrl = url;
+            if (input) input.value = '';
+          },
+          () => {
+            if (input) input.value = '';
+          }
+        );
+      }
+    );
   }
 
   onChatProfileImageChange(event: any) {
