@@ -143,7 +143,6 @@
       }
     }
   },
-  "defaultProject": "perrinn",
   "schematics": {
     "@schematics/angular:component": {
       "prefix": "app",
