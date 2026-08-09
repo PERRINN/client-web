@@ -12,7 +12,6 @@ import { ProfileComponent }  from './profile.component';
 import { SettingsComponent }  from './settings.component';
 import { DirectoryComponent }  from './directory.component';
 import { buyPRNComponent }  from './buyPRN.component';
-import { LinkyModule } from 'angular-linky';
 
 import { PipeModule }    from './pipes.module';
 
@@ -61,7 +60,6 @@ export const firebaseConfig = {
     AngularFireDatabaseModule,
     AngularFireAuthModule,
     AppRoutingModule,
-    LinkyModule,
     Ng2ImgMaxModule,
     PipeModule.forRoot(),
     AgChartsAngular,
