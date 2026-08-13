@@ -365,6 +365,12 @@
     <div class="messageJsonModal" (click)="$event.stopPropagation()">
       <div class="messageJsonModalHeader">
         <div class="messageJsonModalTitle">Message json</div>
+        <button *ngIf="!copiedSelectedMessageJson" class="messageJsonModalCopy" (click)="copySelectedMessageJson()" aria-label="Copy message json">
+          <span class="material-icons-outlined chat-icon-18">content_copy</span>
+        </button>
+        <button *ngIf="copiedSelectedMessageJson" class="messageJsonModalCopied" disabled aria-label="Copied">
+          <span class="material-icons-outlined chat-icon-18">check</span>
+        </button>
         <button class="messageJsonModalClose" (click)="closeMessageJsonModal()" aria-label="Close message json">
           <span class="material-icons-outlined chat-icon-18">close</span>
         </button>

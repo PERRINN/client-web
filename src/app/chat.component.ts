@@ -52,6 +52,7 @@ export class ChatComponent implements OnDestroy {
   messageOptionsOpenFor: string | null = null
   showMessageJsonModal = false
   selectedMessageJsonFormatted = ''
+  copiedSelectedMessageJson = false
   showCancelFundModal = false
   showCancelEventModal = false
   lastRead: string | null = null
@@ -488,6 +489,8 @@ export class ChatComponent implements OnDestroy {
     } catch {
       this.selectedMessageJsonFormatted = '{\n  "error": "Unable to format message JSON"\n}';
     }
+    // Reset copied state when opening the modal so the copy button is shown
+    this.copiedSelectedMessageJson = false;
     this.showMessageJsonModal = true;
     this.messageOptionsOpenFor = null;
   }
@@ -524,6 +527,51 @@ export class ChatComponent implements OnDestroy {
 
   closeMessageJsonModal() {
     this.showMessageJsonModal = false;
+  }
+
+  copySelectedMessageJson() {
+    const text = this.selectedMessageJsonFormatted || '';
+    if (!text) return;
+    const markCopied = () => {
+      this.copiedSelectedMessageJson = true;
+    };
+
+    if (navigator && (navigator as any).clipboard && (navigator as any).clipboard.writeText) {
+      (navigator as any).clipboard.writeText(text).then(() => {
+        markCopied();
+      }).catch(() => {
+        // fallback below
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.left = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          markCopied();
+        } catch (e) {
+          // ignore
+        }
+      });
+      return;
+    }
+
+    // Fallback for older browsers
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      markCopied();
+    } catch (e) {
+      // ignore
+    }
   }
 
   openCancelEventModal() {

@@ -3360,3 +3360,30 @@ app-root chat .chatPage {
     pointer-events: none !important;
   }
 }
+
+/* Copy/tick modal buttons: transparent background with outline and matching icon color */
+app-root chat .messageJsonModalCopy,
+app-root chat .messageJsonModalCopied {
+  background: transparent;
+  border: 1px solid rgba(203,213,225,0.25);
+  padding: 6px;
+  border-radius: 6px;
+  color: #cbd5e1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+app-root chat .messageJsonModalCopy:hover {
+  background: rgba(203,213,225,0.04);
+}
+
+app-root chat .messageJsonModalCopied[disabled] {
+  cursor: default;
+  opacity: 0.95;
+}
+
+app-root chat .messageJsonModalCopy .material-icons-outlined,
+app-root chat .messageJsonModalCopied .material-icons-outlined {
+  color: inherit;
+}
