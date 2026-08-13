@@ -70,21 +70,21 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "perrinn:build"
+            "buildTarget": "perrinn:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "perrinn:build:production"
+              "buildTarget": "perrinn:build:production"
             },
             "dev": {
-              "browserTarget": "perrinn:build:dev"
+              "buildTarget": "perrinn:build:dev"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "perrinn:build"
+            "buildTarget": "perrinn:build"
           }
         },
         "test": {

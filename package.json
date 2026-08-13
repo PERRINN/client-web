@@ -13,16 +13,16 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "16.2.12",
-    "@angular/common": "16.2.12",
-    "@angular/compiler": "16.2.12",
-    "@angular/core": "^16.2.12",
+    "@angular/animations": "17.3.12",
+    "@angular/common": "17.3.12",
+    "@angular/compiler": "17.3.12",
+    "@angular/core": "^17.3.12",
     "@angular/fire": "7.5.0",
-    "@angular/forms": "16.2.12",
-    "@angular/platform-browser": "16.2.12",
-    "@angular/platform-browser-dynamic": "16.2.12",
-    "@angular/platform-server": "16.2.12",
-    "@angular/router": "16.2.12",
+    "@angular/forms": "17.3.12",
+    "@angular/platform-browser": "17.3.12",
+    "@angular/platform-browser-dynamic": "17.3.12",
+    "@angular/platform-server": "17.3.12",
+    "@angular/router": "17.3.12",
     "@revolut/checkout": "^1.1.23",
     "@sendgrid/mail": "^7.2.1",
     "ag-charts-angular": "^9.3.1",
@@ -38,14 +38,14 @@
     "request": "^2.88.2",
     "rxjs": "7.8.0",
     "rxjs-compat": "^6.6.7",
-    "zone.js": "0.13.0"
+    "zone.js": "0.14.10"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "16.2.16",
-    "@angular/cli": "16.2.16",
-    "@angular/compiler-cli": "16.2.12",
-    "@angular/language-service": "16.2.12",
-    "@angular/service-worker": "16.2.12",
+    "@angular-devkit/build-angular": "17.3.17",
+    "@angular/cli": "17.3.17",
+    "@angular/compiler-cli": "17.3.12",
+    "@angular/language-service": "17.3.12",
+    "@angular/service-worker": "17.3.12",
     "@types/jasmine": "4.3.1",
     "@types/node": "18.15.12",
     "codelyzer": "6.0.2",
@@ -60,6 +60,6 @@
     "protractor": "^7.0.0",
     "sw-precache-webpack-plugin": "1.0.0",
     "ts-node": "10.9.1",
-    "typescript": "5.1.6"
+    "typescript": "5.4.5"
   }
 }
