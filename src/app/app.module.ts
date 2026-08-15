@@ -1,7 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { ServiceWorkerModule } from '@angular/service-worker';
 
 import { AppComponent } from './app.component';
@@ -39,38 +39,32 @@ export const firebaseConfig = {
   messagingSenderId: environment.FIREBASE_MESSAGING_SENDER_ID
 };
 
-@NgModule({
-  declarations: [
-    AppComponent,
-    ChatComponent,
-    LoginComponent,
-    ProfileComponent,
-    SettingsComponent,
-    DirectoryComponent,
-    buyPRNComponent,
-    ScrollableDirective,
-  ],
-  imports: [
-    BrowserModule,
-    FormsModule,
-    HttpClientModule,
-    AngularFireModule.initializeApp(firebaseConfig),
-    AngularFirestoreModule.enablePersistence({synchronizeTabs:true}),
-    AngularFireStorageModule,
-    AngularFireDatabaseModule,
-    AngularFireAuthModule,
-    AppRoutingModule,
-    Ng2ImgMaxModule,
-    PipeModule.forRoot(),
-    AgChartsAngular,
-    ServiceWorkerModule.register('ngsw-worker.js', {
-      enabled: environment.production,
-      registrationStrategy: 'registerImmediately'
-    }),
-  ],
-  providers: [
-    UserInterfaceService,
-  ],
-  bootstrap: [AppComponent]
-})
+@NgModule({ declarations: [
+        AppComponent,
+        ChatComponent,
+        LoginComponent,
+        ProfileComponent,
+        SettingsComponent,
+        DirectoryComponent,
+        buyPRNComponent,
+        ScrollableDirective,
+    ],
+    bootstrap: [AppComponent], imports: [BrowserModule,
+        FormsModule,
+        AngularFireModule.initializeApp(firebaseConfig),
+        AngularFirestoreModule.enablePersistence({ synchronizeTabs: true }),
+        AngularFireStorageModule,
+        AngularFireDatabaseModule,
+        AngularFireAuthModule,
+        AppRoutingModule,
+        Ng2ImgMaxModule,
+        PipeModule.forRoot(),
+        AgChartsAngular,
+        ServiceWorkerModule.register('ngsw-worker.js', {
+            enabled: environment.production,
+            registrationStrategy: 'registerImmediately'
+        })], providers: [
+        UserInterfaceService,
+        provideHttpClient(withInterceptorsFromDi()),
+    ] })
 export class AppModule { }
