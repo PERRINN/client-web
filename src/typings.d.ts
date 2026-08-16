@@ -1,6 +1,6 @@
 /* SystemJS module definition */
-declare var module: NodeModule
-declare var elements:any
+declare let module: NodeModule
+declare let elements:any
 interface NodeModule {
   id:string
 }
