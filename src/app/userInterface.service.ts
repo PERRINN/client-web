@@ -264,23 +264,23 @@ export class UserInterfaceService {
 
   formatSecondsToDhm2(seconds: any) {
     seconds = Number(seconds);
-    var d = Math.floor(seconds / (3600 * 24));
-    var h = Math.floor((seconds % (3600 * 24)) / 3600);
-    var m = Math.floor((seconds % 3600) / 60);
-    var dDisplay = d > 0 ? d + "d " : "";
-    var hDisplay = h > 0 ? h + "h " : "";
-    var mDisplay = m >= 0 && d == 0 ? m + "m " : "";
+    const d = Math.floor(seconds / (3600 * 24));
+    const h = Math.floor((seconds % (3600 * 24)) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const dDisplay = d > 0 ? d + "d " : "";
+    const hDisplay = h > 0 ? h + "h " : "";
+    const mDisplay = m >= 0 && d == 0 ? m + "m " : "";
     return dDisplay + hDisplay + mDisplay;
   }
 
   formatSecondsToDhm1(seconds: any) {
     seconds = Number(seconds);
-    var d = Math.floor(seconds / (3600 * 24));
-    var h = Math.floor((seconds % (3600 * 24)) / 3600);
-    var m = Math.floor((seconds % 3600) / 60);
-    var dDisplay = d > 0 ? d + "d " : "";
-    var hDisplay = h > 0 && d == 0 ? h + "h " : "";
-    var mDisplay = m >= 0 && d == 0 && h == 0 ? m + "m " : "";
+    const d = Math.floor(seconds / (3600 * 24));
+    const h = Math.floor((seconds % (3600 * 24)) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const dDisplay = d > 0 ? d + "d " : "";
+    const hDisplay = h > 0 && d == 0 ? h + "h " : "";
+    const mDisplay = m >= 0 && d == 0 && h == 0 ? m + "m " : "";
     return dDisplay + hDisplay + mDisplay;
   }
 

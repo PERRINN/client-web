@@ -1,4 +1,4 @@
-import { Component, NgZone, ViewChild, ElementRef, OnDestroy, HostListener } from '@angular/core';
+import { Component, NgZone, ViewChild, ElementRef, OnDestroy, HostListener, OnInit, AfterViewInit } from '@angular/core';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
 import { Router, ActivatedRoute } from '@angular/router'
@@ -12,7 +12,7 @@ import { map, tap, take, finalize } from 'rxjs/operators';
   templateUrl: './chat.component.html'
 })
 
-export class ChatComponent implements OnDestroy {
+export class ChatComponent implements OnDestroy, OnInit, AfterViewInit {
   @ViewChild('msgBox') msgBox!: ElementRef<HTMLTextAreaElement>;
   @ViewChild('chatTopBar') chatTopBar!: ElementRef;
   @ViewChild('chatComposer') chatComposer?: ElementRef<HTMLDivElement>;
@@ -283,7 +283,7 @@ export class ChatComponent implements OnDestroy {
   }
 
   refresheventDateList() {
-    var i
+    let i
     this.eventDateList = [];
     this.eventDateListShort = [];
     for (i = 0; i < 2200; i++) {

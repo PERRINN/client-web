@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -11,7 +11,7 @@ import firebase from 'firebase/compat/app';
   selector: 'settings',
   templateUrl: './settings.component.html'
 })
-export class SettingsComponent {
+export class SettingsComponent implements OnInit {
   name:string
   userPresentation:string
   emailsAuth:string
@@ -186,7 +186,7 @@ export class SettingsComponent {
       uploader.value = '0';
       document.getElementById('buttonFile').style.visibility = 'visible';
       document.getElementById('uploader').style.visibility = 'hidden';
-      let imageTimestamp = task.task.snapshot.ref.name.substring(0, 13);
+      const imageTimestamp = task.task.snapshot.ref.name.substring(0, 13);
       storageRef.getDownloadURL().subscribe(url => {
         this.UI.createMessage({
           chain:this.UI.currentUser,

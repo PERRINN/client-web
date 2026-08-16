@@ -10,11 +10,11 @@
       Add this app to your home screen for a better experience.
     </div>
 
-    <div class="island profile-banner-item" *ngIf="scope=='all'&&UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined && !sidePanelScope">
+    <div class="island profile-banner-item" *ngIf="scope==='all'&&UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined && !sidePanelScope">
       <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" class="banner-img">
     </div>
 
-    <div class="island prof-p-14" *ngIf="scope!='all'">
+    <div class="island prof-p-14" *ngIf="scope!=='all'">
       <div class="prof-header-wrap">
         <img *ngIf="focusUserLastMessageObj"
              [src]="focusUserLastMessageObj?.imageUrlMedium"
@@ -47,7 +47,7 @@
 
           <div class="prof-meta-wrap">
             <span>Created in {{focusUserLastMessageObj?.createdTimestamp|date:'MMMM yyyy'}}</span>
-            <span *ngIf="scope!='all'">Last seen {{formatFocusUserLastSeen()}}</span>
+            <span *ngIf="scope!=='all'">Last seen {{formatFocusUserLastSeen()}}</span>
             <span *ngIf="focusUserLastMessageObj?.userChain?.index>1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)>1">{{focusUserLastMessageObj?.userChain?.index}} created messages, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</span>
             <span *ngIf="focusUserLastMessageObj?.userChain?.index>1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)<=1">{{focusUserLastMessageObj?.userChain?.index}} created messages, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} day ago</span>
             <span *ngIf="focusUserLastMessageObj?.userChain?.index<=1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)>1">{{focusUserLastMessageObj?.userChain?.index}} created message, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</span>
@@ -57,17 +57,17 @@
           <div class="prof-contract-area">
             <span *ngIf="focusUserLastMessageObj?.contract?.signed" class="prof-contract-signed">Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
             <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed">Waiting for contract signature (Level {{focusUserLastMessageObj?.contract?.level|number:'1.1-1'}})</span>
-            <button class="buttonPrimary prof-margin-left-10" *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser=='QYm5NATKa6MGD87UpNZCTl6IolX2'" (click)=signContract()>Sign contract</button>
+            <button class="buttonPrimary prof-margin-left-10" *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser==='QYm5NATKa6MGD87UpNZCTl6IolX2'" (click)=signContract()>Sign contract</button>
           </div>
         </div>
       </div>
 
       <div class="modeSwitchWrap">
         <div class="modeSwitchTrack">
-          <button [class.buttonPrimary]="mode=='inbox'" [class.buttonBlack]="mode!='inbox'" class="modeSwitchBtn" (click)="mode='inbox';refreshMessages()">Inbox</button>
-          <button [class.buttonPrimary]="mode=='history'" [class.buttonBlack]="mode!='history'" class="modeSwitchBtn" (click)="mode='history';refreshMessages();refreshChart()">History</button>
-          <button [class.buttonPrimary]="mode=='chain'" [class.buttonBlack]="mode!='chain'" class="modeSwitchBtn" (click)="mode='chain';refreshMessages()">Chain</button>
-          <button [class.buttonPrimary]="mode=='forecast'" [class.buttonBlack]="mode!='forecast'" class="modeSwitchBtn" (click)="mode='forecast';refreshMessages();refreshForecastChart()">Forecast</button>
+          <button [class.buttonPrimary]="mode==='inbox'" [class.buttonBlack]="mode!=='inbox'" class="modeSwitchBtn" (click)="mode='inbox';refreshMessages()">Inbox</button>
+          <button [class.buttonPrimary]="mode==='history'" [class.buttonBlack]="mode!=='history'" class="modeSwitchBtn" (click)="mode='history';refreshMessages();refreshChart()">History</button>
+          <button [class.buttonPrimary]="mode==='chain'" [class.buttonBlack]="mode!=='chain'" class="modeSwitchBtn" (click)="mode='chain';refreshMessages()">Chain</button>
+          <button [class.buttonPrimary]="mode==='forecast'" [class.buttonBlack]="mode!=='forecast'" class="modeSwitchBtn" (click)="mode='forecast';refreshMessages();refreshForecastChart()">Forecast</button>
         </div>
       </div>
 
@@ -83,7 +83,7 @@
       </div>
     </div>
     <div>
-      <div *ngIf="mode=='inbox' || scope=='all'" class="splitContainer">
+      <div *ngIf="mode==='inbox' || scope==='all'" class="splitContainer">
         <div class="profile-events-item" *ngIf="!sidePanelScope">
           <ng-container *ngIf="comingEvents|async as events">
             <ul class="listLight">
@@ -94,7 +94,7 @@
               <li class="guardedChatItem eventListItem" *ngFor="let message of events; let i = index"
                   [style.display]="showAllEvents || i===0 ? 'block' : 'none'"
                   (click)="openListedChat(message.payload.doc.data()?.chain)">
-                <div *ngIf="scope=='all'||mode=='inbox'" class="guardedChatItem eventCardBody">
+                <div *ngIf="scope==='all'||mode==='inbox'" class="guardedChatItem eventCardBody">
                   <div class="eventCardHeader">
                     <div class="eventCardMedia">
                       <ng-container *ngIf="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb; else eventIconFallback">
@@ -152,7 +152,7 @@
           <ul class="listLight">
             <li class="guardedChatItem fundListItem" *ngFor="let message of currentFunds|async;let first=first;let last=last"
                 (click)="openListedChat(message.payload.doc.data()?.chain)">
-              <div *ngIf="scope=='all'||mode=='inbox'">
+              <div *ngIf="scope==='all'||mode==='inbox'">
                 <div class="guardedChatItem prof-fund-card-body">
                   <div class="prof-fund-header">
                     <ng-container *ngIf="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb; else fundIconFallback">
@@ -204,9 +204,9 @@
         </div>
       </div>
 
-      <ul *ngIf="(mode=='inbox' || scope=='all') && !sidePanelScope" class="listLight imageCarousel" id="scroll-images">
+      <ul *ngIf="(mode==='inbox' || scope==='all') && !sidePanelScope" class="listLight imageCarousel" id="scroll-images">
         <li *ngFor="let message of latestImages|async;let first=first;let last=last" class="carouselItem guardedChatItem">
-          <div *ngIf="scope=='all'||mode=='inbox'" class="carouselImageWrap" (click)="openCarouselImage(message.payload.doc.data()?.chatImageUrlOriginal)">
+          <div *ngIf="scope==='all'||mode==='inbox'" class="carouselImageWrap" (click)="openCarouselImage(message.payload.doc.data()?.chatImageUrlOriginal)">
             <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload.doc.data())" class="carouselImage">
           </div>
           <button class="carouselMeta" (click)="openListedChat(message.payload.doc.data()?.chain, message.payload.doc.id)">
@@ -214,14 +214,14 @@
           </button>
         </li>
       </ul>
-      <div *ngIf="scope!='all'&& mode=='history'" class="prof-chart-box"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
-      <div *ngIf="scope!='all'&& mode=='forecast'" class="prof-chart-box"><ag-charts-angular [options]="forecastChartOptions"></ag-charts-angular></div>
-      <div *ngIf="mode!='forecast' || scope=='all'" [class.table-scroll-wrapper]="scope != 'all' && (mode=='chain'||mode=='history')">
+      <div *ngIf="scope!=='all'&& mode==='history'" class="prof-chart-box"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
+      <div *ngIf="scope!=='all'&& mode==='forecast'" class="prof-chart-box"><ag-charts-angular [options]="forecastChartOptions"></ag-charts-angular></div>
+      <div *ngIf="mode!=='forecast' || scope==='all'" [class.table-scroll-wrapper]="scope !== 'all' && (mode==='chain'||mode==='history')">
         <ul class="listLight">
           <li *ngFor="let message of messages|async;let first=first;let last=last" class="guardedChatItem prof-list-item-rel"
               [class.activeChatListItem]="activeChatId === message.payload.doc.data()?.chain"
               (click)="openListedChat(message.payload.doc.data()?.chain)">
-            <div *ngIf="scope=='all'||mode=='inbox'">
+            <div *ngIf="scope==='all'||mode==='inbox'">
               <div *ngIf="UI.currentUser && (UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds && !isMessageSeen(message.payload.doc.data()?.chain,message.payload.doc.data()?.serverTimestamp)"
                    class="chatListUnreadFlag"
                    [style.background-color]="(message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name)) ? '#ef4444' : (message.payload.doc.data()?.recipients[UI.currentUser] ? '#38761D' : '#B0BAC0')">
@@ -229,7 +229,7 @@
               <div *ngIf="UI.currentUser && blueFlagByChain[message.payload.doc.data()?.chain]"
                    class="chatListBlueFlag">
               </div>
-              <button *ngIf="UI.currentUser && (scope=='all'||mode=='inbox')"
+              <button *ngIf="UI.currentUser && (scope==='all'||mode==='inbox')"
                       class="messageOptionsBtn"
                       aria-label="Chat options"
                       (click)="$event.stopPropagation(); messageOptionsOpenFor = (messageOptionsOpenFor === message.payload.doc.data()?.chain ? null : message.payload.doc.data()?.chain)">
@@ -267,7 +267,7 @@
                 </div>
               </div>
             </div>
-            <table *ngIf="scope!='all'&&(mode=='chain'||mode=='history')">
+            <table *ngIf="scope!=='all'&&(mode==='chain'||mode==='history')">
               <tr *ngIf="first">
                 <th class="th-date">Date</th>
                 <th class="th-days">Days</th>
@@ -300,7 +300,7 @@
           </li>
         </ul>
       </div>
-      <div *ngIf="scope!='all'&& mode=='forecast'" class="table-scroll-wrapper">
+      <div *ngIf="scope!=='all'&& mode==='forecast'" class="table-scroll-wrapper">
         <ul class="listLight">
           <li *ngFor="let number of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];let first=first" class="guardedChatItem no-interaction-row">
             <table>
@@ -328,7 +328,7 @@
         <div class="bounce3"></div>
       </div>
       <div class="island prof-load-more-wrap">
-        <button class="buttonPrimary prof-btn-200" *ngIf="(!UI.loading && !['forecast', 'history'].includes(mode)) || scope=='all'" (click)="loadMore()">Load more</button>
+        <button class="buttonPrimary prof-btn-200" *ngIf="(!UI.loading && !['forecast', 'history'].includes(mode)) || scope==='all'" (click)="loadMore()">Load more</button>
       </div>
     </div>
   </div>
