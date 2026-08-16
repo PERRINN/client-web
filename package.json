@@ -8,8 +8,7 @@
     "start:prod": "ng serve --configuration production",
     "build": "ng build --configuration production",
     "test": "ng test",
-    "lint": "ng lint",
-    "e2e": "ng e2e"
+    "lint": "ng lint"
   },
   "private": true,
   "dependencies": {
@@ -56,16 +55,13 @@
     "@types/node": "18.15.12",
     "angular-eslint": "^18.4.3",
     "jasmine-core": "4.6.0",
-    "jasmine-spec-reporter": "7.0.0",
     "karma": "^6.4.1",
     "karma-chrome-launcher": "3.1.1",
     "karma-cli": "2.0.0",
     "karma-coverage-istanbul-reporter": "3.0.3",
     "karma-jasmine": "5.1.0",
     "karma-jasmine-html-reporter": "2.0.0",
-    "protractor": "^7.0.0",
     "sw-precache-webpack-plugin": "1.0.0",
-    "ts-node": "10.9.1",
     "typescript": "5.4.5",
     "typescript-eslint": "^8.67.0"
   }
