@@ -32,7 +32,6 @@
     "firebase-functions": "^6.4.0",
     "firebase-tools": "^13.0.0",
     "googleapis": "^118.0.0",
-    "ng2-img-max": "^2.2.8",
     "nodemailer": "^6.4.10",
     "request": "^2.88.2",
     "rxjs": "7.8.0",

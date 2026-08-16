@@ -24,7 +24,6 @@ import { AngularFireDatabaseModule } from '@angular/fire/compat/database';
 import { AngularFireStorageModule } from '@angular/fire/compat/storage';
 import { AngularFireAuthModule } from '@angular/fire/compat/auth';
 
-import { Ng2ImgMaxModule } from 'ng2-img-max';
 import { environment } from '../environments/environment';
 
 import { AgChartsAngular } from 'ag-charts-angular';
@@ -57,7 +56,6 @@ export const firebaseConfig = {
         AngularFireDatabaseModule,
         AngularFireAuthModule,
         AppRoutingModule,
-        Ng2ImgMaxModule,
         PipeModule.forRoot(),
         AgChartsAngular,
         ServiceWorkerModule.register('ngsw-worker.js', {
