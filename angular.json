@@ -26,9 +26,6 @@
             ],
             "scripts": [
               "node_modules/blueimp-canvas-to-blob/js/canvas-to-blob.min.js"
-            ],
-            "allowedCommonJsDependencies": [
-              "angular-linky"
             ]
           },
           "configurations": {
