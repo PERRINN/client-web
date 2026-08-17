@@ -64,3 +64,4 @@ functions/lib
 .angular/
 src/environments/environment.dev.ts
 src/environments/environment.prod.ts
+config.bat
