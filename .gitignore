@@ -53,9 +53,6 @@ Thumbs.db
 #debug
 *.log
 
-#package-lock
-package-lock.json
-
 # Firebase config specific
 .runtimeconfig.json
 .firebaserc
@@ -64,4 +61,3 @@ functions/lib
 .angular/
 src/environments/environment.dev.ts
 src/environments/environment.prod.ts
-config.bat
