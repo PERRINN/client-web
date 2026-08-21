@@ -8,7 +8,6 @@ import { formatNumber } from '@angular/common'
 import { Router, ActivatedRoute } from '@angular/router';
 import { isDevMode } from '@angular/core';
 import { environment } from '../environments/environment';
-import { profile } from 'console'
 
 
 @Injectable()
