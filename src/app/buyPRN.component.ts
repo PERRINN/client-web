@@ -33,8 +33,9 @@ type PaymentState =
 
 
 @Component({
-  selector: 'buyPRN',
-  templateUrl: './buyPRN.component.html'
+    selector: 'buyPRN',
+    templateUrl: './buyPRN.component.html',
+    standalone: false
 })
 export class buyPRNComponent implements OnInit, OnDestroy {
   transactionPendingMessage: string | null = null;

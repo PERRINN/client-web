@@ -8,8 +8,9 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
 import firebase from 'firebase/compat/app';
 
 @Component({
-  selector: 'settings',
-  templateUrl: './settings.component.html'
+    selector: 'settings',
+    templateUrl: './settings.component.html',
+    standalone: false
 })
 export class SettingsComponent implements OnInit {
   name:string

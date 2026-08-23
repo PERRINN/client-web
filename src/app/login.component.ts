@@ -8,8 +8,9 @@ import { first } from 'rxjs/operators';
 
 
 @Component({
-  selector: 'login',
-  templateUrl: './login.component.html'
+    selector: 'login',
+    templateUrl: './login.component.html',
+    standalone: false
 })
 
 export class LoginComponent  {

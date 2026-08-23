@@ -8,8 +8,9 @@ import firebase from 'firebase/compat/app'
 import { map, tap, take, finalize } from 'rxjs/operators';
 
 @Component({
-  selector: 'chat',
-  templateUrl: './chat.component.html'
+    selector: 'chat',
+    templateUrl: './chat.component.html',
+    standalone: false
 })
 
 export class ChatComponent implements OnDestroy, OnInit, AfterViewInit {
