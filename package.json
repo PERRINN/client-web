@@ -2,6 +2,10 @@
   "name": "perrinn",
   "version": "0.0.0",
   "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "functions"
+  ],
   "scripts": {
     "ng": "ng",
     "start": "ng serve --configuration dev",
@@ -9,7 +13,6 @@
     "build": "ng build --configuration production",
     "lint": "ng lint"
   },
-  "private": true,
   "dependencies": {
     "@angular/animations": "18.2.14",
     "@angular/common": "18.2.14",
