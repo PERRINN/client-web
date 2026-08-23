@@ -7,8 +7,9 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth'
 
 @Component({
-  selector: 'directory',
-  templateUrl: './directory.component.html'
+    selector: 'directory',
+    templateUrl: './directory.component.html',
+    standalone: false
 })
 
 export class DirectoryComponent implements OnInit, OnDestroy {
