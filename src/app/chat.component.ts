@@ -1,4 +1,4 @@
-import { Component, NgZone, ViewChild, ElementRef, OnDestroy, HostListener, OnInit, AfterViewInit } from '@angular/core';
+import { Component, NgZone, ViewChild, ElementRef, OnDestroy, HostListener, OnInit, AfterViewInit, EnvironmentInjector, runInInjectionContext } from '@angular/core';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
 import { Router, ActivatedRoute } from '@angular/router'
@@ -97,6 +97,7 @@ export class ChatComponent implements OnDestroy, OnInit, AfterViewInit {
     private route:ActivatedRoute,
     private storage:AngularFireStorage,
     private zone: NgZone,
+    private injector: EnvironmentInjector,
   ) {
       this.math = Math
       this.UI.loading = true
@@ -351,100 +352,103 @@ export class ChatComponent implements OnDestroy, OnInit, AfterViewInit {
   }
 
   refreshMessages(chain: string) {
-    if (!this.showImageGallery) this.messages = this.afs.collection('PERRINNMessages', ref => ref
-      .where('chain', '==', chain)
-      .orderBy('serverTimestamp', 'desc')
-      .limit(this.messageNumberDisplay)
-    ).snapshotChanges().pipe(map(changes => {
-      this.UI.loading = false
-      this.isLoadMoreDisabled = changes.length < this.messageNumberDisplay;
-      this.updateLastReadDivider(changes)
-      changes.forEach(c => {
-        const row = c.payload.doc.data() as any;
-        if (row['lastMessage']) {
-          this.saveLastSeen(chain, c.payload.doc.id, row['serverTimestamp'])
-          this.chatLastMessageObj = row
-          this.chatSubject = row['chatSubject']
-          this.eventDescription = row['eventDescription']
-          this.eventDateStart = row['eventDateStart']
-          this.eventDateEnd = row['eventDateEnd']
-          this.eventDuration = row['eventDuration'] || this.eventDuration
-          if (this.eventDuration != null) this.eventDuration = Math.round(this.eventDuration * 100) / 100;
-          this.eventLocation = row['eventLocation'] || this.eventLocation
-          if (row['fund']) this.fund = JSON.parse(JSON.stringify(row['fund']));
-          if (this.fund) {
-            if (this.fund.amountGBPTarget != null) this.fund.amountGBPTarget = Math.round(this.fund.amountGBPTarget * 100) / 100;
-            if (this.fund.amountGBPTarget < 0.01) this.fund.daysLeft = 0;
-            if (this.fund.daysLeft < 0) this.fund.daysLeft = 0;
-            if (this.fund.daysLeft != null) this.fund.daysLeft = Math.round(this.fund.daysLeft);
+    return runInInjectionContext(this.injector, () => {
+      if (!this.showImageGallery) this.messages = this.afs.collection('PERRINNMessages', ref => ref
+        .where('chain', '==', chain)
+        .orderBy('serverTimestamp', 'desc')
+        .limit(this.messageNumberDisplay)
+      ).snapshotChanges().pipe(map(changes => {
+        this.UI.loading = false
+        this.isLoadMoreDisabled = changes.length < this.messageNumberDisplay;
+        this.updateLastReadDivider(changes)
+        changes.forEach(c => {
+          const row = c.payload.doc.data() as any;
+          if (row['lastMessage']) {
+            this.saveLastSeen(chain, c.payload.doc.id, row['serverTimestamp'])
+            this.chatLastMessageObj = row
+            this.chatSubject = row['chatSubject']
+            this.eventDescription = row['eventDescription']
+            this.eventDateStart = row['eventDateStart']
+            this.eventDateEnd = row['eventDateEnd']
+            this.eventDuration = row['eventDuration'] || this.eventDuration
+            if (this.eventDuration != null) this.eventDuration = Math.round(this.eventDuration * 100) / 100;
+            this.eventLocation = row['eventLocation'] || this.eventLocation
+            if (row['fund']) this.fund = JSON.parse(JSON.stringify(row['fund']));
+            if (this.fund) {
+              if (this.fund.amountGBPTarget != null) this.fund.amountGBPTarget = Math.round(this.fund.amountGBPTarget * 100) / 100;
+              if (this.fund.amountGBPTarget < 0.01) this.fund.daysLeft = 0;
+              if (this.fund.daysLeft < 0) this.fund.daysLeft = 0;
+              if (this.fund.daysLeft != null) this.fund.daysLeft = Math.round(this.fund.daysLeft);
+            }
+            this.updateFundAmountUserCurrency();
+            this.selectedDateInit();
+            this.eventTimeListInit();
           }
-          this.updateFundAmountUserCurrency();
-          this.selectedDateInit();
-          this.eventTimeListInit();
-        }
-      })
-        return changes.reverse().map(c => ({
+        })
+          return changes.reverse().map(c => ({
+            key: c.payload.doc.id,
+            payload: c.payload.doc.data()
+          }))
+        }),
+        tap(() => {
+          const shouldStickToBottom = this.shouldStickToBottomOnUpdate();
+          this.zone.onStable.pipe(take(1)).subscribe(() => {
+            const restoredAnchor = this.restoreLoadMoreAnchorIfNeeded();
+            if (this.pendingMessageScroll) {
+                const targetId = this.pendingMessageScroll;
+                setTimeout(() => {
+                  this.performScrollToId(targetId);
+                  // Répète le scroll pour compenser le décalage dû au chargement des images
+                  setTimeout(() => this.performScrollToId(targetId), 400);
+                  setTimeout(() => this.performScrollToId(targetId), 1000);
+                  setTimeout(() => {
+                    this.performScrollToId(targetId);
+                    this.pendingMessageScroll = null;
+                  }, 2500);
+                }, 500);
+              return;
+            }
+            if (!restoredAnchor && shouldStickToBottom) this.scrollMainToBottom();
+          });
+        })
+      )
+      else this.messages = this.afs.collection('PERRINNMessages', ref => ref
+        .where('chain', '==', chain)
+        .orderBy('chatImageTimestamp', 'desc')
+        .limit(this.messageNumberDisplay)
+      ).snapshotChanges().pipe(map(changes => {
+        this.UI.loading = false
+        this.isLoadMoreDisabled = changes.length < this.messageNumberDisplay;
+        this.updateLastReadDivider(changes)
+        changes.forEach(c => {
+          const row = c.payload.doc.data() as any;
+          if (row['lastMessage']) {
+            this.chatLastMessageObj = row
+            this.chatSubject = row['chatSubject']
+            this.eventDescription = row['eventDescription']
+            this.eventDateStart = row['eventDateStart']
+            this.eventDuration = row['eventDuration'] || this.eventDuration
+            this.eventLocation = row['eventLocation'] || this.eventLocation
+            if (row['fund']) this.fund = JSON.parse(JSON.stringify(row['fund']));
+            this.updateFundAmountUserCurrency();
+            this.selectedDateInit();
+            this.eventTimeListInit();
+          }
+        })
+        return changes.map(c => ({
           key: c.payload.doc.id,
           payload: c.payload.doc.data()
         }))
       }),
       tap(() => {
-        const shouldStickToBottom = this.shouldStickToBottomOnUpdate();
         this.zone.onStable.pipe(take(1)).subscribe(() => {
-          const restoredAnchor = this.restoreLoadMoreAnchorIfNeeded();
-          if (this.pendingMessageScroll) {
-              const targetId = this.pendingMessageScroll;
-              setTimeout(() => {
-                this.performScrollToId(targetId);
-                // Répète le scroll pour compenser le décalage dû au chargement des images
-                setTimeout(() => this.performScrollToId(targetId), 400);
-                setTimeout(() => this.performScrollToId(targetId), 1000);
-                setTimeout(() => {
-                  this.performScrollToId(targetId);
-                  this.pendingMessageScroll = null;
-                }, 2500);
-              }, 500);
-            return;
-          }
-          if (!restoredAnchor && shouldStickToBottom) this.scrollMainToBottom();
+          this.restoreLoadMoreAnchorIfNeeded();
         });
       })
-    )
-    else this.messages = this.afs.collection('PERRINNMessages', ref => ref
-      .where('chain', '==', chain)
-      .orderBy('chatImageTimestamp', 'desc')
-      .limit(this.messageNumberDisplay)
-    ).snapshotChanges().pipe(map(changes => {
-      this.UI.loading = false
-      this.isLoadMoreDisabled = changes.length < this.messageNumberDisplay;
-      this.updateLastReadDivider(changes)
-      changes.forEach(c => {
-        const row = c.payload.doc.data() as any;
-        if (row['lastMessage']) {
-          this.chatLastMessageObj = row
-          this.chatSubject = row['chatSubject']
-          this.eventDescription = row['eventDescription']
-          this.eventDateStart = row['eventDateStart']
-          this.eventDuration = row['eventDuration'] || this.eventDuration
-          this.eventLocation = row['eventLocation'] || this.eventLocation
-          if (row['fund']) this.fund = JSON.parse(JSON.stringify(row['fund']));
-          this.updateFundAmountUserCurrency();
-          this.selectedDateInit();
-          this.eventTimeListInit();
-        }
-      })
-      return changes.map(c => ({
-        key: c.payload.doc.id,
-        payload: c.payload.doc.data()
-      }))
-    }),
-    tap(() => {
-      this.zone.onStable.pipe(take(1)).subscribe(() => {
-        this.restoreLoadMoreAnchorIfNeeded();
-      });
-    })
-    )
+      )
+    });
   }
+
 
   isMessageNewTimeGroup(messageServerTimestamp: any) {
     let isMessageNewTimeGroup: boolean
