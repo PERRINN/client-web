@@ -1,7 +1,8 @@
 import { Directive, HostListener, EventEmitter, Output, ElementRef } from '@angular/core';
 
 @Directive({
-  selector: '[scrollable]'
+    selector: '[scrollable]',
+    standalone: false
 })
 export class ScrollableDirective {
 

@@ -13,7 +13,7 @@ module.exports = tseslint.config(
     ],
     processor: angular.processInlineTemplates,
     rules: {
-      // Sélecteurs Angular : on les conserve, mais sans bloquer le lint
+      // Angular selectors: we keep them, but without blocking lint.
       "@angular-eslint/directive-selector": [
         "warn",
         {
@@ -32,11 +32,13 @@ module.exports = tseslint.config(
         },
       ],
 
-      // Le projet utilise actuellement beaucoup de "any".
-      // On ne veut pas devoir tout typer avant de pouvoir utiliser ESLint.
+      "@angular-eslint/prefer-standalone": "off",
+
+      // The project currently uses a lot of "any".
+      // We don't want to have to type everything before we can use ESLint.
       "@typescript-eslint/no-explicit-any": "off",
 
-      // Nettoyage du code existant : temporairement en warning.
+      // Existing code cleanup: temporarily set to warning.
       "@typescript-eslint/no-unused-vars": "warn",
 
       "no-var": "warn",
@@ -50,11 +52,11 @@ module.exports = tseslint.config(
       ...angular.configs.templateAccessibility,
     ],
     rules: {
-      // Comparaisons historiques du projet avec == / !=
+      // Historical project comparisons using == / !=
       "@angular-eslint/template/eqeqeq": "warn",
 
-      // Accessibilité : on veut conserver ces contrôles,
-      // mais ils ne doivent pas bloquer la migration du projet.
+      // Accessibility: we want to keep these checks,
+      // but they should not block the project migration.
       "@angular-eslint/template/click-events-have-key-events": "warn",
       "@angular-eslint/template/interactive-supports-focus": "warn",
       "@angular-eslint/template/alt-text": "warn",
