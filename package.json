@@ -2,16 +2,17 @@
   "name": "perrinn",
   "version": "0.0.0",
   "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "functions"
+  ],
   "scripts": {
     "ng": "ng",
     "start": "ng serve --configuration dev",
     "start:prod": "ng serve --configuration production",
     "build": "ng build --configuration production",
-    "test": "ng test",
-    "lint": "ng lint",
-    "e2e": "ng e2e"
+    "lint": "ng lint"
   },
-  "private": true,
   "dependencies": {
     "@angular/animations": "18.2.14",
     "@angular/common": "18.2.14",
@@ -24,43 +25,29 @@
     "@angular/platform-server": "18.2.14",
     "@angular/router": "18.2.14",
     "@angular/service-worker": "18.2.14",
-    "@revolut/checkout": "^1.1.23",
     "@sendgrid/mail": "^7.2.1",
     "ag-charts-angular": "^9.3.1",
-    "angular-linky": "^1.2.2",
     "blueimp-canvas-to-blob": "^3.27.0",
     "core-js": "^3.6.5",
     "firebase": "^10.7.0",
-    "firebase-admin": "^13.4.0",
-    "firebase-functions": "^6.4.0",
     "firebase-tools": "^13.0.0",
-    "googleapis": "^118.0.0",
-    "ng2-img-max": "^2.2.8",
     "nodemailer": "^6.4.10",
-    "request": "^2.88.2",
     "rxjs": "7.8.0",
-    "rxjs-compat": "^6.6.7",
     "zone.js": "0.14.10"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "18.2.21",
+    "@angular-eslint/builder": "^18.4.3",
+    "@angular-eslint/eslint-plugin": "^18.4.3",
+    "@angular-eslint/eslint-plugin-template": "^18.4.3",
+    "@angular-eslint/schematics": "^18.4.3",
     "@angular/cli": "18.2.21",
     "@angular/compiler-cli": "18.2.14",
     "@angular/language-service": "18.2.14",
-    "@types/jasmine": "4.3.1",
+    "@eslint/js": "^9.39.5",
     "@types/node": "18.15.12",
-    "codelyzer": "6.0.2",
-    "jasmine-core": "4.6.0",
-    "jasmine-spec-reporter": "7.0.0",
-    "karma": "^6.4.1",
-    "karma-chrome-launcher": "3.1.1",
-    "karma-cli": "2.0.0",
-    "karma-coverage-istanbul-reporter": "3.0.3",
-    "karma-jasmine": "5.1.0",
-    "karma-jasmine-html-reporter": "2.0.0",
-    "protractor": "^7.0.0",
-    "sw-precache-webpack-plugin": "1.0.0",
-    "ts-node": "10.9.1",
-    "typescript": "5.4.5"
+    "angular-eslint": "^18.4.3",
+    "typescript": "5.4.5",
+    "typescript-eslint": "^8.67.0"
   }
 }

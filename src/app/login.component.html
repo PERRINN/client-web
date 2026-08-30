@@ -11,7 +11,7 @@
     </div>
 
     <form #f="ngForm" class="authForm">
-      <input class="fieldInput" maxlength="500" [(ngModel)]="email" name="email" type="text" placeholder="Email *" (keyup)="messageUser=''" autofocus required #e="ngModel"/>
+      <input class="fieldInput" maxlength="500" [(ngModel)]="email" name="email" type="text" placeholder="Email *" (keyup)="messageUser=''" required #e="ngModel"/>
 
       <label class="password fieldLabel">
         <input class="fieldInput" maxlength="500" [(ngModel)]="password" name="password" [type]="passwordVisibility" [style]="focusPassword" placeholder="Password *" (keyup)="messageUser=''" required #p="ngModel"/>
@@ -21,7 +21,7 @@
         </div>
       </label>
 
-      <div *ngIf="action=='register'" class="authForm">
+      <div *ngIf="action==='register'" class="authForm">
         <label class="password fieldLabel">
           <input class="fieldInput" maxlength="500" [(ngModel)]="passwordConfirm" name="passwordConfirm" [type]="passwordConfirmVisibility" [style]="focusPasswordConfirm" placeholder="Confirm password *" (keyup)="messageUser=''" #c="ngModel" required/>
           <div class="password-icon" (mousedown)="toggleField('passwordConfirm','show')" (touchstart)="toggleField('passwordConfirm','show')" (mouseup)="toggleField('passwordConfirm','hide')" (touchend)="toggleField('passwordConfirm','hide')">
@@ -32,12 +32,12 @@
         <input class="fieldInput" maxlength="500" [(ngModel)]="name" name="name" type="text" placeholder="First name (one word) *" (keyup)="messageUser=''" #n="ngModel" pattern="[A-Za-z0-9]{2,}" required/>
       </div>
 
-      <div *ngIf="action=='login'" class="actionGroup">
+      <div *ngIf="action==='login'" class="actionGroup">
         <button class="buttonPrimary" (click)="login(email,password)" [disabled]="f.invalid">Login</button>
         <button class="buttonSecondary" (click)="resetPassword(email)">Forgot password?</button>
       </div>
 
-      <div *ngIf="action=='register'" class="actionGroup">
+      <div *ngIf="action==='register'" class="actionGroup">
         <button class="buttonPrimary" (click)="register(email,password,passwordConfirm,name)" [disabled]="f.invalid">Register</button>
       </div>
 
