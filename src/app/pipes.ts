@@ -1,6 +1,9 @@
 import { Pipe, PipeTransform } from '@angular/core'
 
-@Pipe({name:'blankIfZero'})
+@Pipe({
+    name: 'blankIfZero',
+    standalone: false
+})
 export class BlankIfZeroPipe implements PipeTransform {
   transform(value:any):string{
     const newValue=value==0?'':value.toString()
@@ -9,7 +12,8 @@ export class BlankIfZeroPipe implements PipeTransform {
 }
 
 @Pipe({
-  name: 'linky'
+    name: 'linky',
+    standalone: false
 })
 export class LinkyPipe implements PipeTransform {
 
