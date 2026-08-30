@@ -284,7 +284,8 @@ export class buyPRNComponent implements OnInit, OnDestroy {
 
   private setupTransactionListener(): void {
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
-      this.transactionPendingMessage = params.id;
+      this.transactionPendingMessage = params.id || null;
+      if (!params.id) return;
       this.afs
         .doc<any>(`PERRINNMessages/${params.id}`)
         .valueChanges()
