@@ -1,4 +1,4 @@
-import { Injectable }    from '@angular/core'
+import { Injectable, isDevMode, EnvironmentInjector, runInInjectionContext } from '@angular/core'
 import { AngularFireAuth } from '@angular/fire/compat/auth'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
@@ -6,7 +6,6 @@ import { map } from 'rxjs/operators'
 import firebase from 'firebase/compat/app'
 import { formatNumber } from '@angular/common'
 import { Router, ActivatedRoute } from '@angular/router';
-import { isDevMode } from '@angular/core';
 import { environment } from '../environments/environment';
 
 
@@ -34,7 +33,8 @@ export class UserInterfaceService {
   constructor(
     private afAuth: AngularFireAuth,
     public router:Router,
-    public afs: AngularFirestore
+    public afs: AngularFirestore,
+    private injector: EnvironmentInjector
   ) {
 
     this.profileUserId='ubiLUzQOd0ZIAEDYsOltrUMUdim2'
@@ -78,35 +78,37 @@ export class UserInterfaceService {
       this.nowSeconds = Math.floor(Date.now() / 1000);
     }, 60000);
     this.afAuth.user.subscribe((auth) => {
-      if (auth != null) {
-        this.authenticatedUser = auth.uid;
-        this.authenticatedUserEmail = auth.email;
-        if (!this.profileSimulatorLoggedOut) {
-          this.currentUser = auth.uid;
-          this.currentUserEmail = auth.email;
+      runInInjectionContext(this.injector, () => {
+        if (auth != null) {
+          this.authenticatedUser = auth.uid;
+          this.authenticatedUserEmail = auth.email;
+          if (!this.profileSimulatorLoggedOut) {
+            this.currentUser = auth.uid;
+            this.currentUserEmail = auth.email;
+          }
+          afs
+            .collection<any>("PERRINNMessages", (ref) =>
+              ref
+                .where("user", "==", auth.uid)
+                .where("verified", "==", true)
+                .orderBy("serverTimestamp", "desc")
+                .limit(1)
+            )
+            .valueChanges()
+            .subscribe((snapshot) => {
+              this.currentUserLastMessageObj = snapshot[0];
+              this.isCurrentUserMember = this.profileSimulatorLoggedOut
+                ? false
+                : (this.profileSimulatorNonMember ? false : (this.currentUserLastMessageObj?.membership?.isMember || false));
+            });
+        } else {
+          this.authenticatedUser = null;
+          this.authenticatedUserEmail = null;
+          this.profileSimulatorLoggedOut = false;
+          this.currentUser = null;
+          this.currentUserEmail = null;
         }
-        afs
-          .collection<any>("PERRINNMessages", (ref) =>
-            ref
-              .where("user", "==", auth.uid)
-              .where("verified", "==", true)
-              .orderBy("serverTimestamp", "desc")
-              .limit(1)
-          )
-          .valueChanges()
-          .subscribe((snapshot) => {
-            this.currentUserLastMessageObj = snapshot[0];
-            this.isCurrentUserMember = this.profileSimulatorLoggedOut
-              ? false
-              : (this.profileSimulatorNonMember ? false : (this.currentUserLastMessageObj?.membership?.isMember || false));
-          });
-      } else {
-        this.authenticatedUser = null;
-        this.authenticatedUserEmail = null;
-        this.profileSimulatorLoggedOut = false;
-        this.currentUser = null;
-        this.currentUserEmail = null;
-      }
+      });
     })
     afs
       .collection<any>("PERRINNMessages", (ref) =>
