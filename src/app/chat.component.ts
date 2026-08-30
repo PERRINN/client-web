@@ -4,7 +4,6 @@ import { Observable } from 'rxjs'
 import { Router, ActivatedRoute } from '@angular/router'
 import { UserInterfaceService } from './userInterface.service'
 import { AngularFireStorage } from '@angular/fire/compat/storage'
-import firebase from 'firebase/compat/app'
 import { map, tap, take, finalize } from 'rxjs/operators';
 
 @Component({
@@ -206,8 +205,8 @@ export class ChatComponent implements OnDestroy, OnInit, AfterViewInit {
       .doc(chain)
       .set({
         messageId,
-        serverTimestamp: firebase.firestore.Timestamp.fromMillis(timestampMessage),
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        serverTimestamp: new Date(timestampMessage),
+        updatedAt: new Date()
       }, { merge: true });
   }
 
@@ -522,8 +521,8 @@ export class ChatComponent implements OnDestroy, OnInit, AfterViewInit {
       .doc(chain)
       .set({
         messageId: null,
-        serverTimestamp: firebase.firestore.Timestamp.fromMillis(lastSeenTimestampMessage),
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        serverTimestamp: new Date(lastSeenTimestampMessage),
+        updatedAt: new Date()
       }, { merge: true });
 
     this.lastRead = messageKey;
