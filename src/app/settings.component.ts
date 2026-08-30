@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, EnvironmentInjector, runInInjectionContext } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -8,8 +8,9 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/comp
 import firebase from 'firebase/compat/app';
 
 @Component({
-  selector: 'settings',
-  templateUrl: './settings.component.html'
+    selector: 'settings',
+    templateUrl: './settings.component.html',
+    standalone: false
 })
 export class SettingsComponent implements OnInit {
   name:string
@@ -23,7 +24,8 @@ export class SettingsComponent implements OnInit {
     public afAuth:AngularFireAuth,
     public afs:AngularFirestore,
     private storage:AngularFireStorage,
-    public UI:UserInterfaceService
+    public UI:UserInterfaceService,
+    private injector: EnvironmentInjector
   ) {
     this.contract={}
     this.name=(this.UI.currentUserLastMessageObj||{}).name||null
@@ -36,23 +38,25 @@ export class SettingsComponent implements OnInit {
   ngOnInit() {
     this.afAuth.user.subscribe((auth) => {
       if (!auth) return;
-      this.afs
-        .collection<any>('PERRINNMessages', (ref) =>
-          ref
-            .where('user', '==', auth.uid)
-            .where('verified', '==', true)
-            .orderBy('serverTimestamp', 'desc')
-            .limit(1)
-        )
-        .valueChanges()
-        .subscribe((snapshot) => {
-          const profile = (snapshot && snapshot[0]) || {};
-          this.name = profile.name || null;
-          this.userPresentation = profile.userPresentation || null;
-          this.publicLink = profile.publicLink || null;
-          this.emailsAuth = (profile.emails || {}).auth || null;
-          this.contract.level = (profile.contract || {}).level || null;
-        });
+
+      runInInjectionContext(this.injector, () =>
+        this.afs
+          .collection<any>('PERRINNMessages', (ref) =>
+            ref
+              .where('user', '==', auth.uid)
+              .where('verified', '==', true)
+              .orderBy('serverTimestamp', 'desc')
+              .limit(1)
+          )
+          .valueChanges()
+      ).subscribe((snapshot) => {
+        const profile = (snapshot && snapshot[0]) || {};
+        this.name = profile.name || null;
+        this.userPresentation = profile.userPresentation || null;
+        this.publicLink = profile.publicLink || null;
+        this.emailsAuth = (profile.emails || {}).auth || null;
+        this.contract.level = (profile.contract || {}).level || null;
+      });
     });
   }
 
