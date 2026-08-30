@@ -29,7 +29,7 @@
     "ag-charts-angular": "^9.3.1",
     "blueimp-canvas-to-blob": "^3.27.0",
     "core-js": "^3.6.5",
-    "firebase": "^10.7.0",
+    "firebase": "^11.10.0",
     "firebase-tools": "^13.0.0",
     "nodemailer": "^6.4.10",
     "rxjs": "7.8.0",
