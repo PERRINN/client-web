@@ -1,10 +1,4 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  NgZone,
-  OnDestroy,
-  OnInit,
-} from "@angular/core";
+import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, EnvironmentInjector, runInInjectionContext } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Observable, Subject, interval } from "rxjs";
 import { map, takeUntil } from "rxjs/operators";
@@ -33,8 +27,9 @@ type PaymentState =
 
 
 @Component({
-  selector: 'buyPRN',
-  templateUrl: './buyPRN.component.html'
+    selector: 'buyPRN',
+    templateUrl: './buyPRN.component.html',
+    standalone: false
 })
 export class buyPRNComponent implements OnInit, OnDestroy {
   transactionPendingMessage: string | null = null;
@@ -77,7 +72,8 @@ export class buyPRNComponent implements OnInit, OnDestroy {
     public UI: UserInterfaceService,
     private cd: ChangeDetectorRef,
     private route: ActivatedRoute,
-    private http: HttpClient
+    private http: HttpClient,
+    private injector: EnvironmentInjector
   ) {
     this.currencySelected =
       UI.currentUserLastMessageObj?.userCurrency || "usd";
@@ -288,7 +284,8 @@ export class buyPRNComponent implements OnInit, OnDestroy {
 
   private setupTransactionListener(): void {
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
-      this.transactionPendingMessage = params.id;
+      this.transactionPendingMessage = params.id || null;
+      if (!params.id) return;
       this.afs
         .doc<any>(`PERRINNMessages/${params.id}`)
         .valueChanges()
@@ -304,22 +301,29 @@ export class buyPRNComponent implements OnInit, OnDestroy {
   }
 
   private setupCurrentFunds(): void {
-    this.currentFunds = this.afs
-      .collection<any>("PERRINNMessages", (ref) =>
-        ref
-          .where("lastMessage", "==", true)
-          .where("verified", "==", true)
-          .orderBy("fund.daysLeft", "desc")
-      )
-      .snapshotChanges()
-      .pipe(
-        map((changes) => changes
-          .map((c) => ({ payload: c.payload }))
-          .filter((m) => (m.payload.doc.data()?.fund?.amountGBPTarget || 0) >= 0.01)
-        ),
-        takeUntil(this.destroy$)
-      );
+    this.currentFunds = runInInjectionContext(this.injector, () =>
+      this.afs
+        .collection<any>("PERRINNMessages", (ref) =>
+          ref
+            .where("lastMessage", "==", true)
+            .where("verified", "==", true)
+            .orderBy("fund.daysLeft", "desc")
+        )
+        .snapshotChanges()
+        .pipe(
+          map((changes) =>
+            changes
+              .map((c) => ({ payload: c.payload }))
+              .filter(
+                (m) =>
+                  (m.payload.doc.data()?.fund?.amountGBPTarget || 0) >= 0.01
+              )
+          ),
+          takeUntil(this.destroy$)
+        )
+    );
   }
+
 
   private buildChartOptions(): AgChartOptions {
     const now = this.UI.nowSeconds * 1000;
