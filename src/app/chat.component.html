@@ -285,12 +285,12 @@
                 <div class="messageBodyText chat-msg-body-margin" [innerHTML]="message.payload?.text | linky"></div>
               </div>
               <div class="chat-msg-status-area">
-                <span *ngIf="message.payload?.verified && message.payload?.userChain?.nextMessage=='none'" class="material-icons chat-msg-status-icon">check_circle</span>
+                <span *ngIf="message.payload?.verified && message.payload?.userChain?.nextMessage==='none'" class="material-icons chat-msg-status-icon">check_circle</span>
                 <span *ngIf="message.payload?.contract?.hoursValidated>0" class="chat-msg-stat-text">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.contract?.amount)}} earned ({{UI.formatSecondsToDhm1(message.payload?.contract?.hoursValidated*3600)}}declared in {{UI.formatSecondsToDhm1(message.payload?.contract?.hoursAvailable*3600)}} window)</span>
                 <span *ngIf="message.payload?.purchaseCOIN?.amount>0" class="chat-msg-stat-text">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.purchaseCOIN?.amount)}} purchased</span>
                 <span *ngIf="message.payload?.transactionIn?.amount>0" class="chat-msg-stat-text">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.transactionIn?.amount)}} received</span>
                 <span *ngIf="message.payload?.transactionOut?.amount>0" class="chat-msg-stat-text">{{UI.convertAndFormatPRNToPRNCurrency(null,-message.payload?.transactionOut?.amount)}} sent</span>
-                <span *ngIf="message.payload?.userChain?.nextMessage=='none'&&message.payload?.wallet?.balance!=undefined" class="chat-msg-stat-text">{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.wallet?.balance)}}</span>
+                <span *ngIf="message.payload?.userChain?.nextMessage==='none'&&message.payload?.wallet?.balance!=undefined" class="chat-msg-stat-text">{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.wallet?.balance)}}</span>
               </div>
             </div>
             {{storeMessageValues(message.payload)}}

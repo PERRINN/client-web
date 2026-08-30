@@ -8,13 +8,13 @@ import { UserInterfaceService } from './userInterface.service'
 import { AngularFireAuth } from '@angular/fire/compat/auth'
 import firebase from 'firebase/compat/app'
 import { AgChartOptions } from 'ag-charts-community'
-import { ChangeDetectorRef } from '@angular/core'
+import { ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core'
 
 @Component({
   selector: 'profile',
   templateUrl: './profile.component.html'
 })
-export class ProfileComponent {
+export class ProfileComponent implements OnInit, OnDestroy {
   @Input() sidePanelScope?: string;
   messages!: Observable<any[]>
   comingEvents!: Observable<any[]>
@@ -397,7 +397,7 @@ export class ProfileComponent {
 
   refreshChart(){
     this.messages.subscribe(messages => {
-      let newData = messages.map((message,index)=>(
+      const newData = messages.map((message,index)=>(
         {timestamp:message.payload.doc.data().verifiedTimestamp.seconds*1000,
           balance:this.UI.convertPRNToCurrency(null,(message.payload.doc.data().wallet||{}).balance||0),
           purchase:this.UI.convertPRNToCurrency(null,((message.payload.doc.data().purchaseCOIN||{}).amountCummulate||0)),
@@ -421,7 +421,7 @@ export class ProfileComponent {
   }
 
   newMessageToUser() {
-    let ID=this.UI.newId()
+    const ID=this.UI.newId()
     this.UI.createMessage({
       text:'Starting a new chat.',
       chain:ID,
