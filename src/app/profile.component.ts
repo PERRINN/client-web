@@ -494,14 +494,16 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   toggleBlueFlag(chain: string) {
-    const userId = this.UI.currentUser || this.currentUserId;
+    return runInInjectionContext(this.injector, () => {
+      const userId = this.UI.currentUser || this.currentUserId;
     if (!userId || !chain) return;
     const currentStatus = !!this.blueFlagByChain[chain];
     this.afs.collection(`lastSeen/${userId}/chats`).doc(chain).set({
       blueFlag: !currentStatus,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
-    this.messageOptionsOpenFor = null;
+      this.messageOptionsOpenFor = null;
+    });
   }
 
   @HostListener('document:click')

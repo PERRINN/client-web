@@ -920,7 +920,8 @@ export class ChatComponent implements OnDestroy, OnInit, AfterViewInit {
   }
 
   refreshSearchLists() {
-    if (this.searchFilter) {
+    return runInInjectionContext(this.injector, () => {
+      if (this.searchFilter) {
       const searchLower = this.searchFilter.toLowerCase();
       if (this.searchFilter.length > 1) {
         this.teams = this.afs.collection('PERRINNMessages', ref => ref
@@ -940,6 +941,7 @@ export class ChatComponent implements OnDestroy, OnInit, AfterViewInit {
     } else {
       this.teams = null
     }
+    });
   }
 
   resetChat() {
