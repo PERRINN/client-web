@@ -165,7 +165,9 @@ export class UserInterfaceService {
       messageObj.imageUrlThumbUser ||
       this.currentUserLastMessageObj?.imageUrlThumbUser ||
       "";
-    return this.afs.collection("PERRINNMessages").add(messageObj);
+    return runInInjectionContext(this.injector, () =>
+      this.afs.collection("PERRINNMessages").add(messageObj)
+    );
   }
 
   convertPRNToCurrency(currency: any, amount: any) {
