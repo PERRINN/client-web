@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, EnvironmentInjector, runInInjectionContext } from '@angular/core';
 import { Observable, Subject, BehaviorSubject } from 'rxjs';
 import { map, takeUntil, switchMap } from 'rxjs/operators';
 import { Router } from '@angular/router';
@@ -25,7 +25,8 @@ export class DirectoryComponent implements OnInit, OnDestroy {
     public afAuth: AngularFireAuth,
     public afs: AngularFirestore,
     public router: Router,
-    public UI: UserInterfaceService
+    public UI: UserInterfaceService,
+    private injector: EnvironmentInjector
   ) {}
 
   ngOnInit() {
@@ -63,7 +64,8 @@ export class DirectoryComponent implements OnInit, OnDestroy {
   }
 
   refreshMembersList() {
-    this.messages = this.afs.collection('PERRINNMessages', ref => ref
+    return runInInjectionContext(this.injector, () => {
+      this.messages = this.afs.collection('PERRINNMessages', ref => ref
       .where('userChain.nextMessage', '==', 'none')
       .where('verified', '==', true)
       .where('wallet.balance', '>', 0)
@@ -79,6 +81,7 @@ export class DirectoryComponent implements OnInit, OnDestroy {
         }),
         takeUntil(this.destroy$)
       );
+    });
   }
 
 }
