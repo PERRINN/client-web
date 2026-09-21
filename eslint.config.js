@@ -32,8 +32,6 @@ module.exports = tseslint.config(
         },
       ],
 
-      "@angular-eslint/prefer-standalone": "off",
-
       // The project currently uses a lot of "any".
       // We don't want to have to type everything before we can use ESLint.
       "@typescript-eslint/no-explicit-any": "off",
