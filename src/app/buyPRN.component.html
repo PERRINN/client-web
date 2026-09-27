@@ -3,68 +3,84 @@
     <div class="buy-header-actions">
       <button class="buttonSecondary info-popup-btn" (click)="openPrnInfoPopup()">What is PRN</button>
     </div>
-    <div *ngIf="transactionPendingMessageObj" class="island buy-island buy-mb-20">
-      <div *ngIf="!transactionPendingMessageObj?.transactionPending?.activated">
-        <div class="buy-section-title">
-          Pending Transaction
-        </div>
-        <div class="buy-center-content">
-          <span class="buy-text-normal">{{transactionPendingMessageObj.name}} is sending you {{UI.convertAndFormatPRNToPRNCurrency(currencySelected,transactionPendingMessageObj.transactionPending.amount||0)}} (Reference: {{transactionPendingMessageObj.transactionPending.reference}}).</span>
-          <button *ngIf="!UI.currentUser" class="buttonPrimary buy-btn-fixed-150" (click)="router.navigate(['login'])" [disabled]='this.router.url.startsWith("/login")'>Login</button>
-          <button *ngIf="UI.currentUser&&!UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonPrimary buy-btn-fixed-200" (click)="router.navigate(['settings'])">Update Profile Picture</button>
-          <button *ngIf="UI.currentUser&&UI.currentUserLastMessageObj.isImageUserUpdated" class="buttonPrimary buy-btn-fixed-150" (click)="activateTransactionPending(transactionPendingMessage)">Activate</button>
-        </div>
+    @if (transactionPendingMessageObj) {
+      <div class="island buy-island buy-mb-20">
+        @if (!transactionPendingMessageObj?.transactionPending?.activated) {
+          <div>
+            <div class="buy-section-title">
+              Pending Transaction
+            </div>
+            <div class="buy-center-content">
+              <span class="buy-text-normal">{{transactionPendingMessageObj.name}} is sending you {{UI.convertAndFormatPRNToPRNCurrency(currencySelected,transactionPendingMessageObj.transactionPending.amount||0)}} (Reference: {{transactionPendingMessageObj.transactionPending.reference}}).</span>
+              @if (!UI.currentUser) {
+                <button class="buttonPrimary buy-btn-fixed-150" (click)="router.navigate(['login'])" [disabled]='this.router.url.startsWith("/login")'>Login</button>
+              }
+              @if (UI.currentUser&&!UI.currentUserLastMessageObj.isImageUserUpdated) {
+                <button class="buttonPrimary buy-btn-fixed-200" (click)="router.navigate(['settings'])">Update Profile Picture</button>
+              }
+              @if (UI.currentUser&&UI.currentUserLastMessageObj.isImageUserUpdated) {
+                <button class="buttonPrimary buy-btn-fixed-150" (click)="activateTransactionPending(transactionPendingMessage)">Activate</button>
+              }
+            </div>
+          </div>
+        }
+        @if (transactionPendingMessageObj?.transactionPending?.activated) {
+          <div>
+            <div class="buy-status-success">
+              ✓ Transaction Already Activated
+            </div>
+          </div>
+        }
       </div>
-      <div *ngIf="transactionPendingMessageObj?.transactionPending?.activated">
-        <div class="buy-status-success">
-          ✓ Transaction Already Activated
-        </div>
-      </div>
-    </div>
+    }
     <br/>
-    <div *ngIf="!UI.isCurrentUserMember" class="island membership-card">
-      <div class="membership-title">
-        🤝 Welcome to the Team
-      </div>
-      <div class="buy-p-0 buy-text-center">
-        <div class="membership-amount">
-          {{UI.convertAndRoundUpAndFormatPRNToCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.membership?.amountRequired)}}
+    @if (!UI.isCurrentUserMember) {
+      <div class="island membership-card">
+        <div class="membership-title">
+          🤝 Welcome to the Team
         </div>
-        <span class="membership-subtitle">
-          <strong>One-time investment.</strong> No subscriptions. No recurring charges.
-        </span>
-        <br />
-        <div class="membership-details-box">
-          <span class="membership-details-list">
-            ✓ Lifetime membership<br/>
-            ✓ Ownership stake in PERRINN<br/>
-            ✓ {{(UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0) | percent : "0.0"}} annual growth<br/>
-            ✓ Early member advantage
+        <div class="buy-p-0 buy-text-center">
+          <div class="membership-amount">
+            {{UI.convertAndRoundUpAndFormatPRNToCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.membership?.amountRequired)}}
+          </div>
+          <span class="membership-subtitle">
+            <strong>One-time investment.</strong> No subscriptions. No recurring charges.
           </span>
-        </div>
-        <div class="membership-footer-text">
-          Interested to join but have some questions first? <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" rel="noopener noreferrer" class="buy-link-whatsapp">Join our WhatsApp community</a> and speak directly to Nico there.
-        </div>
-      </div>
-    </div>
-    <div *ngIf="UI.isCurrentUserMember" class="island membership-card">
-      <div class="membership-title">
-        ✅ Membership Active
-      </div>
-      <div class="buy-p-0 buy-text-center">
-        <div class="membership-amount">
-          {{UI.convertAndFormatPRNToPRNCurrency(currencySelected, UI.currentUserLastMessageObj?.wallet?.balance || 0)}}
-        </div>
-        <div class="membership-details-box">
-          <span class="membership-details-list">
-            ✓ Lifetime membership<br/>
-            ✓ {{(UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0) | percent : "0.0"}} annual growth<br/>
-            ✓ Voting rights & governance<br/>
-            ✓ Exclusive network access
-          </span>
+          <br />
+          <div class="membership-details-box">
+            <span class="membership-details-list">
+              ✓ Lifetime membership<br/>
+              ✓ Ownership stake in PERRINN<br/>
+              ✓ {{(UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0) | percent : "0.0"}} annual growth<br/>
+              ✓ Early member advantage
+            </span>
+          </div>
+          <div class="membership-footer-text">
+            Interested to join but have some questions first? <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" rel="noopener noreferrer" class="buy-link-whatsapp">Join our WhatsApp community</a> and speak directly to Nico there.
+          </div>
         </div>
       </div>
-    </div>
+    }
+    @if (UI.isCurrentUserMember) {
+      <div class="island membership-card">
+        <div class="membership-title">
+          ✅ Membership Active
+        </div>
+        <div class="buy-p-0 buy-text-center">
+          <div class="membership-amount">
+            {{UI.convertAndFormatPRNToPRNCurrency(currencySelected, UI.currentUserLastMessageObj?.wallet?.balance || 0)}}
+          </div>
+          <div class="membership-details-box">
+            <span class="membership-details-list">
+              ✓ Lifetime membership<br/>
+              ✓ {{(UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0) | percent : "0.0"}} annual growth<br/>
+              ✓ Voting rights & governance<br/>
+              ✓ Exclusive network access
+            </span>
+          </div>
+        </div>
+      </div>
+    }
     <br/>
 
     <div class="island buy-island">
@@ -77,31 +93,41 @@
         </span>
       </div>
       <ul class="listLight">
-        <li *ngFor="let message of currentFunds|async" class="buy-p-0">
-          <div *ngIf="message.payload.doc.data()?.fund?.active || showPastFunds" (click)="router.navigate(['chat', message.payload.doc.data()?.chain])" class="fundCard">
-            <span class="chatSubject">{{message.payload.doc.data()?.chatSubject}}</span>
-            <div class="buy-mt-10">
-              <div class="progress-track">
-                <div class="progress-fill"
-                     [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100+'%'">
-                  <span class="progress-pct" *ngIf="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100 > 30">
-                    {{message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget|percent:"1.0-0"}}
-                  </span>
+        @for (message of currentFunds|async; track message) {
+          <li class="buy-p-0">
+            @if (message.payload.doc.data()?.fund?.active || showPastFunds) {
+              <div (click)="router.navigate(['chat', message.payload.doc.data()?.chain])" class="fundCard">
+                <span class="chatSubject">{{message.payload.doc.data()?.chatSubject}}</span>
+                <div class="buy-mt-10">
+                  <div class="progress-track">
+                    <div class="progress-fill"
+                      [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100+'%'">
+                      @if ((message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100 > 30) {
+                        <span class="progress-pct">
+                          {{message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget|percent:"1.0-0"}}
+                        </span>
+                      }
+                    </div>
+                  </div>
+                  <div class="fund-meta-row">
+                    <span>
+                      @if (message.payload.doc.data()?.fund?.active) {
+                        <span class="fund-days-left">{{message.payload.doc.data()?.fund?.daysLeft|number:"1.0-0"}} days left</span>
+                      }
+                      @if (!message.payload.doc.data()?.fund?.active) {
+                        <span class="fund-days-ago">{{-message.payload.doc.data()?.fund?.daysLeft|number:"1.0-0"}} days ago</span>
+                      }
+                    </span>
+                  </div>
+                  <div class="fund-target-text">
+                    target: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]?.toCOIN||0))}} /
+                    raised: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]?.toCOIN||0))}}
+                  </div>
                 </div>
               </div>
-              <div class="fund-meta-row">
-                <span>
-                  <span *ngIf="message.payload.doc.data()?.fund?.active" class="fund-days-left">{{message.payload.doc.data()?.fund?.daysLeft|number:"1.0-0"}} days left</span>
-                  <span *ngIf="!message.payload.doc.data()?.fund?.active" class="fund-days-ago">{{-message.payload.doc.data()?.fund?.daysLeft|number:"1.0-0"}} days ago</span>
-                </span>
-              </div>
-              <div class="fund-target-text">
-                target: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]?.toCOIN||0))}} /
-                raised: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]?.toCOIN||0))}}
-              </div>
-            </div>
-          </div>
-        </li>
+            }
+          </li>
+        }
       </ul>
       <button class="buttonSecondary buy-btn-auto" (click)="showPastFunds=!showPastFunds">
         {{showPastFunds ? 'Hide Past Funds' : 'Show Past Funds'}}
@@ -123,165 +149,182 @@
         </span>
       </div>
 
-      <div *ngIf="UI.currentUser" class="buy-p-0 buy-mb-24">
-        <div class="payment-label">
-          Currency
-        </div>
-        <ul class="listLight currency-selector-list">
-          <li class="currency-item" *ngFor="let currency of objectToArray(UI.PERRINNAdminLastMessageObj?.currencyList)">
-            <button class="buttonToggle currency-btn"
-                    (click)="onCurrencySelected(currency[0])"
-                    [style.background-color]="currencySelected == currency[0] ? '#10b981' : 'transparent'"
-                    [style.border-color]="currencySelected == currency[0] ? '#10b981' : 'rgba(16, 185, 129, 0.2)'"
-                    [style.color]="currencySelected == currency[0] ? '#ffffff' : '#cbd5e1'"
-            >
-              {{ currency[1].designation }}
-            </button>
-          </li>
-        </ul>
-      </div>
-
-      <div *ngIf="UI.currentUser" class="buy-p-0">
-        <div class="payment-label">
-          Amount
-        </div>
-        <ul class="listLight currency-selector-list">
-          <li class="amount-item" *ngFor="let credit of creditList; let index = index">
-            <button class="buttonToggle amount-btn"
-                    (click)="creditSelected = index; refreshAmountCharge()"
-                    [style.background-color]="creditSelected == index ? '#10b981' : 'transparent'"
-                    [style.border-color]="creditSelected == index ? '#10b981' : 'rgba(16, 185, 129, 0.2)'"
-                    [style.color]="creditSelected == index ? '#ffffff' : '#cbd5e1'"
-            >
-              {{UI.formatCurrency(currencySelected,credit)}}
-            </button>
-          </li>
-        </ul>
-        <br />
-        <div *ngIf="creditSelected!=undefined&&currencySelected!=undefined" class="summary-box">
-          <span class="buy-summary-label">
-            You will pay
-          </span>
-          <span class="buy-summary-value-lg">{{UI.formatCurrency(currencySelected,creditList[creditSelected])}}</span>
-          <div class="summary-divider"></div>
-          <span class="buy-summary-sublabel">
-            you will receive
-          </span>
-          <span class="buy-summary-value-md">{{UI.formatPRNCurrency(currencySelected,creditList[creditSelected])}}</span>
-        </div>
-      </div>
-
-      <button class="buttonPrimary checkout-btn" *ngIf="UI.currentUser && !processing && creditSelected!=undefined && currencySelected!=undefined"
-              (click)="payWithRevolutLink()"
-              [disabled]="isPaymentFlowLocked">
-        <span class="material-symbols-outlined buy-btn-icon">arrow_forward</span>
-        Proceed to Checkout
-      </button>
-
-      <button class="buttonPrimary checkout-btn" *ngIf="!UI.currentUser"
-              (click)="router.navigate(['login'], {queryParams: {returnUrl: '/buyPRN'}})">
-        <span class="material-symbols-outlined buy-btn-icon">login</span>
-        Log in to Buy PRN Tokens
-      </button>
-
-      <div *ngIf="paymentState !== 'idle'" class="payment-status-block">
-        <div class="buy-section-title buy-mb-8 buy-title-15">Payment status</div>
-        <div class="buy-status-text">{{paymentStatusText}}</div>
-
-        <div class="payment-status-steps">
-          <div class="payment-status-step">
-            <span [style.color]="paymentStepOrderCreated ? '#10b981' : '#64748b'">{{paymentStepOrderCreated ? '✓' : '•'}}</span>
-            Order created
+      @if (UI.currentUser) {
+        <div class="buy-p-0 buy-mb-24">
+          <div class="payment-label">
+            Currency
           </div>
-          <div class="payment-status-step">
-            <span [style.color]="paymentStepCheckoutOpened ? '#10b981' : '#64748b'">{{paymentStepCheckoutOpened ? '✓' : '•'}}</span>
-            Checkout opened
-          </div>
-          <div class="payment-status-step">
-            <span [style.color]="paymentStepPaymentReceived ? '#10b981' : '#64748b'">{{paymentStepPaymentReceived ? '✓' : '•'}}</span>
-            Payment received by Revolut
-          </div>
-          <div class="payment-status-step">
-            <span [style.color]="paymentStepMessageGenerated ? '#10b981' : '#64748b'">{{paymentStepMessageGenerated ? '✓' : '•'}}</span>
-            PERRINN message generated
-          </div>
-          <div class="payment-status-step">
-            <span [style.color]="paymentStepCredited ? '#10b981' : '#64748b'">{{paymentStepCredited ? '✓' : '•'}}</span>
-            PRN credited to wallet
-          </div>
+          <ul class="listLight currency-selector-list">
+            @for (currency of objectToArray(UI.PERRINNAdminLastMessageObj?.currencyList); track currency) {
+              <li class="currency-item">
+                <button class="buttonToggle currency-btn"
+                  (click)="onCurrencySelected(currency[0])"
+                  [style.background-color]="currencySelected == currency[0] ? '#10b981' : 'transparent'"
+                  [style.border-color]="currencySelected == currency[0] ? '#10b981' : 'rgba(16, 185, 129, 0.2)'"
+                  [style.color]="currencySelected == currency[0] ? '#ffffff' : '#cbd5e1'"
+                  >
+                  {{ currency[1].designation }}
+                </button>
+              </li>
+            }
+          </ul>
         </div>
+      }
 
-        <div class="buy-receipt-note">
-          Revolut sends the payment receipt email directly after successful capture.
+      @if (UI.currentUser) {
+        <div class="buy-p-0">
+          <div class="payment-label">
+            Amount
+          </div>
+          <ul class="listLight currency-selector-list">
+            @for (credit of creditList; track credit; let index = $index) {
+              <li class="amount-item">
+                <button class="buttonToggle amount-btn"
+                  (click)="creditSelected = index; refreshAmountCharge()"
+                  [style.background-color]="creditSelected == index ? '#10b981' : 'transparent'"
+                  [style.border-color]="creditSelected == index ? '#10b981' : 'rgba(16, 185, 129, 0.2)'"
+                  [style.color]="creditSelected == index ? '#ffffff' : '#cbd5e1'"
+                  >
+                  {{UI.formatCurrency(currencySelected,credit)}}
+                </button>
+              </li>
+            }
+          </ul>
+          <br />
+          @if (creditSelected!=undefined&&currencySelected!=undefined) {
+            <div class="summary-box">
+              <span class="buy-summary-label">
+                You will pay
+              </span>
+              <span class="buy-summary-value-lg">{{UI.formatCurrency(currencySelected,creditList[creditSelected])}}</span>
+              <div class="summary-divider"></div>
+              <span class="buy-summary-sublabel">
+                you will receive
+              </span>
+              <span class="buy-summary-value-md">{{UI.formatPRNCurrency(currencySelected,creditList[creditSelected])}}</span>
+            </div>
+          }
         </div>
-        <button
-          class="buttonSecondary buy-btn-reset"
-          *ngIf="paymentState !== 'creating-order'"
-          (click)="resetPaymentFlow()">
-          Reset payment status
+      }
+
+      @if (UI.currentUser && !processing && creditSelected!=undefined && currencySelected!=undefined) {
+        <button class="buttonPrimary checkout-btn"
+          (click)="payWithRevolutLink()"
+          [disabled]="isPaymentFlowLocked">
+          <span class="material-symbols-outlined buy-btn-icon">arrow_forward</span>
+          Proceed to Checkout
         </button>
-      </div>
+      }
+
+      @if (!UI.currentUser) {
+        <button class="buttonPrimary checkout-btn"
+          (click)="router.navigate(['login'], {queryParams: {returnUrl: '/buyPRN'}})">
+          <span class="material-symbols-outlined buy-btn-icon">login</span>
+          Log in to Buy PRN Tokens
+        </button>
+      }
+
+      @if (paymentState !== 'idle') {
+        <div class="payment-status-block">
+          <div class="buy-section-title buy-mb-8 buy-title-15">Payment status</div>
+          <div class="buy-status-text">{{paymentStatusText}}</div>
+          <div class="payment-status-steps">
+            <div class="payment-status-step">
+              <span [style.color]="paymentStepOrderCreated ? '#10b981' : '#64748b'">{{paymentStepOrderCreated ? '✓' : '•'}}</span>
+              Order created
+            </div>
+            <div class="payment-status-step">
+              <span [style.color]="paymentStepCheckoutOpened ? '#10b981' : '#64748b'">{{paymentStepCheckoutOpened ? '✓' : '•'}}</span>
+              Checkout opened
+            </div>
+            <div class="payment-status-step">
+              <span [style.color]="paymentStepPaymentReceived ? '#10b981' : '#64748b'">{{paymentStepPaymentReceived ? '✓' : '•'}}</span>
+              Payment received by Revolut
+            </div>
+            <div class="payment-status-step">
+              <span [style.color]="paymentStepMessageGenerated ? '#10b981' : '#64748b'">{{paymentStepMessageGenerated ? '✓' : '•'}}</span>
+              PERRINN message generated
+            </div>
+            <div class="payment-status-step">
+              <span [style.color]="paymentStepCredited ? '#10b981' : '#64748b'">{{paymentStepCredited ? '✓' : '•'}}</span>
+              PRN credited to wallet
+            </div>
+          </div>
+          <div class="buy-receipt-note">
+            Revolut sends the payment receipt email directly after successful capture.
+          </div>
+          @if (paymentState !== 'creating-order') {
+            <button
+              class="buttonSecondary buy-btn-reset"
+              (click)="resetPaymentFlow()">
+              Reset payment status
+            </button>
+          }
+        </div>
+      }
     </div>
 
-    <div *ngIf="showPrnInfoPopup" class="info-popup-backdrop" (click)="closePrnInfoPopup()">
-      <div class="island buy-island info-popup-card" (click)="$event.stopPropagation()">
-        <div class="info-header">
-          <div class="buy-section-title buy-mb-0">What is PRN</div>
-        </div>
-        <div class="buy-text-center buy-mb-20">
-          <img src="./../assets/App icons/PRN token.png" class="info-popup-image">
-        </div>
-        <div class="info-intro">
-          <div class="payment-label buy-mb-8">Why PRN exists</div>
-          <div class="info-text-box info-text-box-strong">
-            PRN is not a traditional crypto token that fluctuates in open public markets. It is not a speculative asset.
+    @if (showPrnInfoPopup) {
+      <div class="info-popup-backdrop" (click)="closePrnInfoPopup()">
+        <div class="island buy-island info-popup-card" (click)="$event.stopPropagation()">
+          <div class="info-header">
+            <div class="buy-section-title buy-mb-0">What is PRN</div>
           </div>
-          <div class="info-text-box">
-            PRN is a digital asset secured directly by the PERRINN network and designed for team collaboration.
+          <div class="buy-text-center buy-mb-20">
+            <img src="./../assets/App icons/PRN token.png" class="info-popup-image">
           </div>
-          <div class="info-text-box">
-            PRN tokens can only be transferred member-to-member inside the PERRINN team and ecosystem.
-          </div>
-          <div class="info-text-box info-text-box-strong">
-            PRN is a true membership token. Its utility is to build trust among members and provide a shared unit of exchange in the team.
-          </div>
-          <div class="info-highlight-box">
-            PRN represents ownership of PERRINN.
-          </div>
-        </div>
-        <div class="buy-p-0 buy-text-center buy-mb-20">
-          <div class="info-overview">
-            <div class="payment-label buy-mb-12">
-              Overview
+          <div class="info-intro">
+            <div class="payment-label buy-mb-8">Why PRN exists</div>
+            <div class="info-text-box info-text-box-strong">
+              PRN is not a traditional crypto token that fluctuates in open public markets. It is not a speculative asset.
             </div>
-            <div class="info-grid-2cols">
-              <div class="info-stat-card">
-                <div class="info-stat-box">MEMBERS</div>
-                <div class="info-stat-value-large">{{UI.PERRINNAdminLastMessageObj?.statistics?.membersCount}}</div>
-              </div>
-              <div class="info-stat-card">
-                <div class="info-stat-box">TOTAL SUPPLY</div>
-                <div class="info-stat-value-large">{{UI.convertAndFormatPRNToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}</div>
-              </div>
+            <div class="info-text-box">
+              PRN is a digital asset secured directly by the PERRINN network and designed for team collaboration.
+            </div>
+            <div class="info-text-box">
+              PRN tokens can only be transferred member-to-member inside the PERRINN team and ecosystem.
+            </div>
+            <div class="info-text-box info-text-box-strong">
+              PRN is a true membership token. Its utility is to build trust among members and provide a shared unit of exchange in the team.
+            </div>
+            <div class="info-highlight-box">
+              PRN represents ownership of PERRINN.
             </div>
           </div>
-          <button class="buttonSecondary buy-btn-auto" (click)="router.navigate(['directory']); closePrnInfoPopup()">PRN Directory</button>
-        </div>
-        <div class="info-growth-box">
-          <div class="info-growth-label">Growth Rate</div>
-          <span class="info-growth-value">{{(UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0) | percent : "0.0"}} Annual</span>
-          <div class="info-chart-box"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
-        </div>
-        <div class="info-footer">
-          <span class="material-symbols-outlined info-footer-icon">lock</span>
-          <span class="buy-text-muted">
-                  Tokens stored securely in your PERRINN wallet
-                </span>
-        </div>
-        <div class="info-close-footer">
-          <button class="buttonSecondary buy-btn-close" (click)="closePrnInfoPopup()">Close</button>
+          <div class="buy-p-0 buy-text-center buy-mb-20">
+            <div class="info-overview">
+              <div class="payment-label buy-mb-12">
+                Overview
+              </div>
+              <div class="info-grid-2cols">
+                <div class="info-stat-card">
+                  <div class="info-stat-box">MEMBERS</div>
+                  <div class="info-stat-value-large">{{UI.PERRINNAdminLastMessageObj?.statistics?.membersCount}}</div>
+                </div>
+                <div class="info-stat-card">
+                  <div class="info-stat-box">TOTAL SUPPLY</div>
+                  <div class="info-stat-value-large">{{UI.convertAndFormatPRNToPRNCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}</div>
+                </div>
+              </div>
+            </div>
+            <button class="buttonSecondary buy-btn-auto" (click)="router.navigate(['directory']); closePrnInfoPopup()">PRN Directory</button>
+          </div>
+          <div class="info-growth-box">
+            <div class="info-growth-label">Growth Rate</div>
+            <span class="info-growth-value">{{(UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0) | percent : "0.0"}} Annual</span>
+            <div class="info-chart-box"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
+          </div>
+          <div class="info-footer">
+            <span class="material-symbols-outlined info-footer-icon">lock</span>
+            <span class="buy-text-muted">
+              Tokens stored securely in your PERRINN wallet
+            </span>
+          </div>
+          <div class="info-close-footer">
+            <button class="buttonSecondary buy-btn-close" (click)="closePrnInfoPopup()">Close</button>
+          </div>
         </div>
       </div>
-    </div>
+    }
   </div>
 </div>

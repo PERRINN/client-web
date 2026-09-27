@@ -27,21 +27,25 @@
         <div class="dir-flex-center-gap12">
           <span class="material-icons-outlined dir-icon-20">search</span>
           <input [(ngModel)]="searchQuery"
-                 type="text"
-                 placeholder="Search members by name..."
-                 class="directory-search-input"
-                 (ngModelChange)="onSearchChange()">
-          <button *ngIf="searchQuery" (click)="clearSearch()" class="dir-btn-clear">
-            <span class="material-icons-outlined dir-icon-18">close</span>
-          </button>
+            type="text"
+            placeholder="Search members by name..."
+            class="directory-search-input"
+            (ngModelChange)="onSearchChange()">
+            @if (searchQuery) {
+              <button (click)="clearSearch()" class="dir-btn-clear">
+                <span class="material-icons-outlined dir-icon-18">close</span>
+              </button>
+            }
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="dir-mb-32">
-      <div class="dir-flex-between-center">
-        <div class="dir-text-muted-14">
-          {{(filteredMessages | async)?.length || 0}} member<span *ngIf="(filteredMessages | async)?.length !== 1">s</span>
+      <div class="dir-mb-32">
+        <div class="dir-flex-between-center">
+          <div class="dir-text-muted-14">
+            {{(filteredMessages | async)?.length || 0}} member@if ((filteredMessages | async)?.length !== 1) {
+            <span>s</span>
+          }
         </div>
         <div class="dir-flex-gap8">
           <button class="viewToggleBtn" (click)="viewMode = 'cards'" [style.background-color]="viewMode === 'cards' ? '#10b981' : '#2a3f47'" [style.color]="viewMode === 'cards' ? '#ffffff' : '#94a3b8'">
@@ -55,64 +59,80 @@
         </div>
       </div>
 
-      <div *ngIf="viewMode === 'cards'">
-        <ul class="directory-card-grid">
-          <li *ngFor="let message of filteredMessages | async" (click)="router.navigate(['profile',message.values.user])">
-            <div class="directory-card">
-              <img [src]="message?.values.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message?.values)" class="directory-card-img">
-              <div class="dir-card-body">
-                <div class="dir-card-name">{{message.values?.name}}</div>
-                <div class="dir-card-pres">
-                  <span *ngIf="message.values?.userPresentation">{{message.values?.userPresentation}}</span>
-                </div>
-                <div class="dir-card-footer">
-                  <div class="dir-text-muted-10">Balance</div>
-                  <div class="dir-balance-value">{{UI.convertAndFormatPRNToPRNCurrency(null,message.values?.wallet?.balance||0)}}</div>
-                </div>
-                <div class="dir-card-extra">
-                  <div class="dir-extra-row">
-                    <div *ngIf="((message.values?.wallet?.balance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance))>0.001" class="dir-supply-share">
-                      {{((message.values?.wallet?.balance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance))|percent:'1.1-1'}} of supply
+      @if (viewMode === 'cards') {
+        <div>
+          <ul class="directory-card-grid">
+            @for (message of filteredMessages | async; track message) {
+              <li (click)="router.navigate(['profile',message.values.user])">
+                <div class="directory-card">
+                  <img [src]="message?.values.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message?.values)" class="directory-card-img">
+                  <div class="dir-card-body">
+                    <div class="dir-card-name">{{message.values?.name}}</div>
+                    <div class="dir-card-pres">
+                      @if (message.values?.userPresentation) {
+                        <span>{{message.values?.userPresentation}}</span>
+                      }
+                    </div>
+                    <div class="dir-card-footer">
+                      <div class="dir-text-muted-10">Balance</div>
+                      <div class="dir-balance-value">{{UI.convertAndFormatPRNToPRNCurrency(null,message.values?.wallet?.balance||0)}}</div>
+                    </div>
+                    <div class="dir-card-extra">
+                      <div class="dir-extra-row">
+                        @if (((message.values?.wallet?.balance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance))>0.001) {
+                          <div class="dir-supply-share">
+                            {{((message.values?.wallet?.balance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance))|percent:'1.1-1'}} of supply
+                          </div>
+                        }
+                      </div>
+                      <div class="dir-extra-row">
+                        @if (message.values?.contract?.signed) {
+                          <div class="dir-level-text">
+                            Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}
+                          </div>
+                        }
+                      </div>
+                      <div class="dir-extra-row">
+                        @if (message.values?.publicLink) {
+                          <div class="dir-link-profile">
+                            <span class="material-icons-outlined dir-icon-12-mr3">link</span>
+                            Public Profile
+                          </div>
+                        }
+                      </div>
                     </div>
                   </div>
-                  <div class="dir-extra-row">
-                    <div *ngIf="message.values?.contract?.signed" class="dir-level-text">
-                      Level {{message.values?.contract?.levelTimeAdjusted|number:'1.1-1'}}
-                    </div>
-                  </div>
-                  <div class="dir-extra-row">
-                    <div *ngIf="message.values?.publicLink" class="dir-link-profile">
-                      <span class="material-icons-outlined dir-icon-12-mr3">link</span>
-                      Public Profile
-                    </div>
-                  </div>
                 </div>
-              </div>
-            </div>
-          </li>
-        </ul>
-      </div>
-
-      <div *ngIf="viewMode === 'table'" class="directory-table-container">
-        <div class="dir-table-scroll">
-          <table class="dir-table">
-            <thead>
-            <tr class="dir-table-thead-tr">
-              <th class="dir-table-th">Name</th>
-              <th class="dir-table-th dir-table-th-right">Balance</th>
-              <th class="dir-table-th dir-table-th-right">Share</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr *ngFor="let message of filteredMessages | async; let i = index" [style.background]="i % 2 === 0 ? 'transparent' : 'rgba(5, 150, 105, 0.03)'" class="directory-table-row" (click)="router.navigate(['profile',message.values.user])">
-              <td class="dir-table-td-name">{{message.values?.name}}</td>
-              <td class="dir-table-td-balance">{{UI.convertAndFormatPRNToPRNCurrency(null,message.values?.wallet?.balance||0)}}</td>
-              <td class="dir-table-td-share">{{((message.values?.wallet?.balance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance))|percent:'1.1-1'}}</td>
-            </tr>
-            </tbody>
-          </table>
+              </li>
+            }
+          </ul>
         </div>
-      </div>
+      }
+
+      @if (viewMode === 'table') {
+        <div class="directory-table-container">
+          <div class="dir-table-scroll">
+            <table class="dir-table">
+              <thead>
+                <tr class="dir-table-thead-tr">
+                  <th class="dir-table-th">Name</th>
+                  <th class="dir-table-th dir-table-th-right">Balance</th>
+                  <th class="dir-table-th dir-table-th-right">Share</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (message of filteredMessages | async; track message; let i = $index) {
+                  <tr [style.background]="i % 2 === 0 ? 'transparent' : 'rgba(5, 150, 105, 0.03)'" class="directory-table-row" (click)="router.navigate(['profile',message.values.user])">
+                    <td class="dir-table-td-name">{{message.values?.name}}</td>
+                    <td class="dir-table-td-balance">{{UI.convertAndFormatPRNToPRNCurrency(null,message.values?.wallet?.balance||0)}}</td>
+                    <td class="dir-table-td-share">{{((message.values?.wallet?.balance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance))|percent:'1.1-1'}}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
     </div>
   </div>
 </div>

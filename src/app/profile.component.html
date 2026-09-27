@@ -1,335 +1,421 @@
 <div class="profileModern" (click)="messageOptionsOpenFor = null">
   <div class="profileContainer">
 
-    <div class="island warning-island" *ngIf="UI.currentUserLastMessageObj && !UI.currentUserLastMessageObj?.isImageUserUpdated && !sidePanelScope"
-         (click)="router.navigate(['settings'])">
-      Add a profile picture.
-    </div>
+    @if (UI.currentUserLastMessageObj && !UI.currentUserLastMessageObj?.isImageUserUpdated && !sidePanelScope) {
+      <div class="island warning-island"
+        (click)="router.navigate(['settings'])">
+        Add a profile picture.
+      </div>
+    }
 
-    <div class="island warning-island" *ngIf="UI.hasTouch&&!UI.isStandalone">
-      Add this app to your home screen for a better experience.
-    </div>
+    @if (UI.hasTouch&&!UI.isStandalone) {
+      <div class="island warning-island">
+        Add this app to your home screen for a better experience.
+      </div>
+    }
 
-    <div class="island profile-banner-item" *ngIf="scope==='all'&&UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined && !sidePanelScope">
-      <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" class="banner-img">
-    </div>
+    @if (scope==='all'&&UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined && !sidePanelScope) {
+      <div class="island profile-banner-item">
+        <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" class="banner-img">
+      </div>
+    }
 
-    <div class="island prof-p-14" *ngIf="scope!=='all'">
-      <div class="prof-header-wrap">
-        <img *ngIf="focusUserLastMessageObj"
-             [src]="focusUserLastMessageObj?.imageUrlMedium"
-             (error)="UI.handleUserImageError($event, focusUserLastMessageObj)"
-             class="profile-header-img imageWithZoom"
-             (click)="UI.showFullScreenImage(focusUserLastMessageObj?.imageUrlOriginal)">
-
-        <div class="prof-main-area">
-          <div class="prof-top-row">
-            <div class="prof-name-area">
-              <span class="prof-name-text">{{focusUserLastMessageObj?.name}}</span>
-              <span *ngIf="focusUserLastMessageObj?.publicLink" class="material-icons-outlined prof-icon-18" (click)="UI.openWindow(focusUserLastMessageObj?.publicLink)">link</span>
+    @if (scope!=='all') {
+      <div class="island prof-p-14">
+        <div class="prof-header-wrap">
+          @if (focusUserLastMessageObj) {
+            <img
+              [src]="focusUserLastMessageObj?.imageUrlMedium"
+              (error)="UI.handleUserImageError($event, focusUserLastMessageObj)"
+              class="profile-header-img imageWithZoom"
+              (click)="UI.showFullScreenImage(focusUserLastMessageObj?.imageUrlOriginal)">
+          }
+          <div class="prof-main-area">
+            <div class="prof-top-row">
+              <div class="prof-name-area">
+                <span class="prof-name-text">{{focusUserLastMessageObj?.name}}</span>
+                @if (focusUserLastMessageObj?.publicLink) {
+                  <span class="material-icons-outlined prof-icon-18" (click)="UI.openWindow(focusUserLastMessageObj?.publicLink)">link</span>
+                }
+              </div>
+              <span class="prof-balance-text">{{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance||0)}}</span>
             </div>
-            <span class="prof-balance-text">{{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance||0)}}</span>
-          </div>
-
-          <div class="prof-stats-grid">
-            <div class="profile-stat-box">
-              <span *ngIf="focusUserLastMessageObj?.locking?.amountCummulate>1">PRN tokens locked for {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} days</span>
-              <span *ngIf="focusUserLastMessageObj?.locking?.amountCummulate<=1">PRN tokens locked for {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} day</span>
+            <div class="prof-stats-grid">
+              <div class="profile-stat-box">
+                @if (focusUserLastMessageObj?.locking?.amountCummulate>1) {
+                  <span>PRN tokens locked for {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} days</span>
+                }
+                @if (focusUserLastMessageObj?.locking?.amountCummulate<=1) {
+                  <span>PRN tokens locked for {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} day</span>
+                }
+              </div>
+              <div class="profile-stat-box">
+                Earning {{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance*(math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)/365)-1))}} per day
+              </div>
             </div>
-            <div class="profile-stat-box">
-              Earning {{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance*(math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)/365)-1))}} per day
+            <div class="prof-pres-text">
+              {{focusUserLastMessageObj?.userPresentation}}
             </div>
-          </div>
-
-          <div class="prof-pres-text">
-            {{focusUserLastMessageObj?.userPresentation}}
-          </div>
-
-          <div class="prof-meta-wrap">
-            <span>Created in {{focusUserLastMessageObj?.createdTimestamp|date:'MMMM yyyy'}}</span>
-            <span *ngIf="scope!=='all'">Last seen {{formatFocusUserLastSeen()}}</span>
-            <span *ngIf="focusUserLastMessageObj?.userChain?.index>1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)>1">{{focusUserLastMessageObj?.userChain?.index}} created messages, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</span>
-            <span *ngIf="focusUserLastMessageObj?.userChain?.index>1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)<=1">{{focusUserLastMessageObj?.userChain?.index}} created messages, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} day ago</span>
-            <span *ngIf="focusUserLastMessageObj?.userChain?.index<=1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)>1">{{focusUserLastMessageObj?.userChain?.index}} created message, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</span>
-            <span *ngIf="focusUserLastMessageObj?.userChain?.index<=1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)<=1">{{focusUserLastMessageObj?.userChain?.index}} created message, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} day ago</span>
-          </div>
-
-          <div class="prof-contract-area">
-            <span *ngIf="focusUserLastMessageObj?.contract?.signed" class="prof-contract-signed">Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
-            <span *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed">Waiting for contract signature (Level {{focusUserLastMessageObj?.contract?.level|number:'1.1-1'}})</span>
-            <button class="buttonPrimary prof-margin-left-10" *ngIf="focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser==='QYm5NATKa6MGD87UpNZCTl6IolX2'" (click)=signContract()>Sign contract</button>
+            <div class="prof-meta-wrap">
+              <span>Created in {{focusUserLastMessageObj?.createdTimestamp|date:'MMMM yyyy'}}</span>
+              @if (scope!=='all') {
+                <span>Last seen {{formatFocusUserLastSeen()}}</span>
+              }
+              @if (focusUserLastMessageObj?.userChain?.index>1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)>1) {
+                <span>{{focusUserLastMessageObj?.userChain?.index}} created messages, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</span>
+              }
+              @if (focusUserLastMessageObj?.userChain?.index>1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)<=1) {
+                <span>{{focusUserLastMessageObj?.userChain?.index}} created messages, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} day ago</span>
+              }
+              @if (focusUserLastMessageObj?.userChain?.index<=1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)>1) {
+                <span>{{focusUserLastMessageObj?.userChain?.index}} created message, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</span>
+              }
+              @if (focusUserLastMessageObj?.userChain?.index<=1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)<=1) {
+                <span>{{focusUserLastMessageObj?.userChain?.index}} created message, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} day ago</span>
+              }
+            </div>
+            <div class="prof-contract-area">
+              @if (focusUserLastMessageObj?.contract?.signed) {
+                <span class="prof-contract-signed">Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
+              }
+              @if (focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed) {
+                <span>Waiting for contract signature (Level {{focusUserLastMessageObj?.contract?.level|number:'1.1-1'}})</span>
+              }
+              @if (focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser==='QYm5NATKa6MGD87UpNZCTl6IolX2') {
+                <button class="buttonPrimary prof-margin-left-10" (click)=signContract()>Sign contract</button>
+              }
+            </div>
           </div>
         </div>
-      </div>
-
-      <div class="modeSwitchWrap">
-        <div class="modeSwitchTrack">
-          <button [class.buttonPrimary]="mode==='inbox'" [class.buttonBlack]="mode!=='inbox'" class="modeSwitchBtn" (click)="mode='inbox';refreshMessages()">Inbox</button>
-          <button [class.buttonPrimary]="mode==='history'" [class.buttonBlack]="mode!=='history'" class="modeSwitchBtn" (click)="mode='history';refreshMessages();refreshChart()">History</button>
-          <button [class.buttonPrimary]="mode==='chain'" [class.buttonBlack]="mode!=='chain'" class="modeSwitchBtn" (click)="mode='chain';refreshMessages()">Chain</button>
-          <button [class.buttonPrimary]="mode==='forecast'" [class.buttonBlack]="mode!=='forecast'" class="modeSwitchBtn" (click)="mode='forecast';refreshMessages();refreshForecastChart()">Forecast</button>
+        <div class="modeSwitchWrap">
+          <div class="modeSwitchTrack">
+            <button [class.buttonPrimary]="mode==='inbox'" [class.buttonBlack]="mode!=='inbox'" class="modeSwitchBtn" (click)="mode='inbox';refreshMessages()">Inbox</button>
+            <button [class.buttonPrimary]="mode==='history'" [class.buttonBlack]="mode!=='history'" class="modeSwitchBtn" (click)="mode='history';refreshMessages();refreshChart()">History</button>
+            <button [class.buttonPrimary]="mode==='chain'" [class.buttonBlack]="mode!=='chain'" class="modeSwitchBtn" (click)="mode='chain';refreshMessages()">Chain</button>
+            <button [class.buttonPrimary]="mode==='forecast'" [class.buttonBlack]="mode!=='forecast'" class="modeSwitchBtn" (click)="mode='forecast';refreshMessages();refreshForecastChart()">Forecast</button>
+          </div>
         </div>
-      </div>
-
-      <div class="prof-action-bar">
-        <button class="buttonSecondary prof-msg-btn" *ngIf="UI.currentUser && focusUserLastMessageObj?.user && focusUserLastMessageObj?.user != UI.currentUser" (click)="newMessageToUser()">
-          <span class="material-icons prof-icon-16">chat</span>
-          New message to {{focusUserLastMessageObj?.name}}
-        </button>
-        <button class="buttonBlack prof-settings-btn" *ngIf="focusUserLastMessageObj?.user==UI.currentUser" (click)="router.navigate(['settings'])">
-          <span class="material-icons prof-icon-16">settings</span>
-          Settings
-        </button>
-      </div>
-    </div>
-    <div>
-      <div *ngIf="mode==='inbox' || scope==='all'" class="splitContainer">
-        <div class="profile-events-item" *ngIf="!sidePanelScope">
-          <ng-container *ngIf="comingEvents|async as events">
-            <ul class="listLight">
-              <li *ngIf="events.length===0" class="prof-no-events">
-                No upcoming events.
-              </li>
-
-              <li class="guardedChatItem eventListItem" *ngFor="let message of events; let i = index"
-                  [style.display]="showAllEvents || i===0 ? 'block' : 'none'"
-                  (click)="openListedChat(message.payload.doc.data()?.chain)">
-                <div *ngIf="scope==='all'||mode==='inbox'" class="guardedChatItem eventCardBody">
-                  <div class="eventCardHeader">
-                    <div class="eventCardMedia">
-                      <ng-container *ngIf="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb; else eventIconFallback">
-                        <img
-                          [src]="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb"
-                          class="eventCardChatImage"
-                          (error)="UI.handleChatImageError($event, message.payload.doc.data())">
-                      </ng-container>
-                      <ng-template #eventIconFallback>
-                        <span class="material-icons-outlined eventCardIconBadge">event</span>
-                      </ng-template>
-                      <div class="eventCardTitleBlock">
-                        <div class="eventCardLabel">
-                          {{i===0 ? 'Next Event' : 'Other Event'}}
-                        </div>
-                        <div class="eventCardSubjectRow">
-                          <div class="chatSubject chatSubjectTruncate">
-                            {{message.payload.doc.data()?.chatSubject}}
-                          </div>
-                          <div class="eventCardDescriptionInline chatSubjectTruncate">
-                            {{message.payload.doc.data()?.eventDescription}}
-                          </div>
-                        </div>
-                        <div class="eventCardMeta compact">
-                      <span *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)>0" class="eventCardStatusChip">
-                        In {{UI.formatSecondsToDhm2(message.payload.doc.data()?.eventDateStart/1000-UI.nowSeconds)}}
-                      </span>
-                          <span *ngIf="math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)<=0&&message.payload.doc.data()?.eventDateEnd/60000>UI.nowSeconds/60" class="eventCardStatusChip eventCardStatusNow">
-                        Live
-                      </span>
-                          <span class="eventCardDateText">
-                        {{message.payload.doc.data()?.eventDateStart|date:'EEEE d MMM h:mm a'}} ({{message.payload.doc.data()?.eventDuration}}h)
-                      </span>
-                        </div>
-                      </div>
-                    </div>
-                    <button *ngIf="message.payload.doc.data()?.eventLocation && isEventLive(message.payload.doc.data()?.eventDateStart, message.payload.doc.data()?.eventDateEnd)"
-                            class="buttonPrimary eventCardJoinBtn"
-                            (click)="$event.stopPropagation(); UI.openWindow(message.payload.doc.data()?.eventLocation)">
-                      <span>Join</span>
-                    </button>
-                  </div>
-                </div>
-              </li>
-            </ul>
-            <button class="buttonBlack eventCardToggleBtn"
-                    *ngIf="events.length>1"
-                    (click)="showAllEvents=!showAllEvents">
-              {{showAllEvents ? 'Hide Other Events' : 'Show More Events'}}
+        <div class="prof-action-bar">
+          @if (UI.currentUser && focusUserLastMessageObj?.user && focusUserLastMessageObj?.user != UI.currentUser) {
+            <button class="buttonSecondary prof-msg-btn" (click)="newMessageToUser()">
+              <span class="material-icons prof-icon-16">chat</span>
+              New message to {{focusUserLastMessageObj?.name}}
             </button>
-          </ng-container>
-        </div>
-
-        <div class="profile-funds-item" *ngIf="!sidePanelScope">
-          <ul class="listLight">
-            <li class="guardedChatItem fundListItem" *ngFor="let message of currentFunds|async;let first=first;let last=last"
-                (click)="openListedChat(message.payload.doc.data()?.chain)">
-              <div *ngIf="scope==='all'||mode==='inbox'">
-                <div class="guardedChatItem prof-fund-card-body">
-                  <div class="prof-fund-header">
-                    <ng-container *ngIf="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb; else fundIconFallback">
-                      <img
-                        [src]="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb"
-                        class="eventCardChatImage"
-                        (error)="UI.handleChatImageError($event, message.payload.doc.data())">
-                    </ng-container>
-                    <ng-template #fundIconFallback>
-                      <span class="material-symbols-outlined eventCardIconBadge">crowdsource</span>
-                    </ng-template>
-                    <div class="eventCardTitleBlock">
-                      <div class="eventCardLabel">{{first ? 'Current Fund' : 'Other Fund'}}</div>
-                      <span class="chatSubject chatSubjectTwoLines">{{message.payload.doc.data()?.chatSubject}}</span>
-                    </div>
-                  </div>
-
-                  <div class="progress-track">
-                    <div class="progress-fill"
-                         [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100+'%'">
-                  <span class="progress-pct" *ngIf="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100 > 30">
-                    {{message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget|percent:'1.0-0'}}
-                  </span>
-                    </div>
-                  </div>
-
-                  <div class="prof-fund-meta">
-                    <span class="prof-fund-days">{{message.payload.doc.data()?.fund?.daysLeft|number:'1.0-0'}} days left</span>
-                  </div>
-
-                  <div class="prof-fund-desc">
-                    <span>{{message.payload.doc.data()?.fund?.description}}</span>
-                  </div>
-
-                  <div class="prof-fund-amounts">
-                    target: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]?.toCOIN||0))}} /
-                    raised: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]?.toCOIN||0))}}
-                  </div>
-                </div>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <div class="island nonMemberIsland profile-banner-item" *ngIf="!UI.isCurrentUserMember && !sidePanelScope">
-          <button class="buttonPrimary nonMemberIslandButton" (click)="router.navigate(['buyPRN'])">Buy PRN Tokens</button>
-          <div class="nonMemberIslandFooter">Join the team today.</div>
-          <div class="nonMemberIslandHelper">Interested to join but have some questions first? <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" rel="noopener noreferrer" class="buy-link-whatsapp">Join our WhatsApp community</a> and speak directly to Nico there.</div>
+          }
+          @if (focusUserLastMessageObj?.user==UI.currentUser) {
+            <button class="buttonBlack prof-settings-btn" (click)="router.navigate(['settings'])">
+              <span class="material-icons prof-icon-16">settings</span>
+              Settings
+            </button>
+          }
         </div>
       </div>
-
-      <ul *ngIf="(mode==='inbox' || scope==='all') && !sidePanelScope" class="listLight imageCarousel" id="scroll-images">
-        <li *ngFor="let message of latestImages|async;let first=first;let last=last" class="carouselItem guardedChatItem">
-          <div *ngIf="scope==='all'||mode==='inbox'" class="carouselImageWrap" (click)="openCarouselImage(message.payload.doc.data()?.chatImageUrlOriginal)">
-            <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload.doc.data())" class="carouselImage">
-          </div>
-          <button class="carouselMeta" (click)="openListedChat(message.payload.doc.data()?.chain, message.payload.doc.id)">
-            <span class="messageTiming">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</span>
-          </button>
-        </li>
-      </ul>
-      <div *ngIf="scope!=='all'&& mode==='history'" class="prof-chart-box"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
-      <div *ngIf="scope!=='all'&& mode==='forecast'" class="prof-chart-box"><ag-charts-angular [options]="forecastChartOptions"></ag-charts-angular></div>
-      <div *ngIf="mode!=='forecast' || scope==='all'" [class.table-scroll-wrapper]="scope !== 'all' && (mode==='chain'||mode==='history')">
-        <ul class="listLight">
-          <li *ngFor="let message of messages|async;let first=first;let last=last" class="guardedChatItem prof-list-item-rel"
-              [class.activeChatListItem]="activeChatId === message.payload.doc.data()?.chain"
-              (click)="openListedChat(message.payload.doc.data()?.chain)">
-            <div *ngIf="scope==='all'||mode==='inbox'">
-              <div *ngIf="UI.currentUser && (UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds && !isMessageSeen(message.payload.doc.data()?.chain,message.payload.doc.data()?.serverTimestamp)"
-                   class="chatListUnreadFlag"
-                   [style.background-color]="(message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name)) ? '#ef4444' : (message.payload.doc.data()?.recipients[UI.currentUser] ? '#38761D' : '#B0BAC0')">
+    }
+    <div>
+      @if (mode==='inbox' || scope==='all') {
+        <div class="splitContainer">
+          @if (!sidePanelScope) {
+            <div class="profile-events-item">
+              @if (comingEvents|async; as events) {
+                <ul class="listLight">
+                  @if (events.length===0) {
+                    <li class="prof-no-events">
+                      No upcoming events.
+                    </li>
+                  }
+                  @for (message of events; track message; let i = $index) {
+                    <li class="guardedChatItem eventListItem"
+                      [style.display]="showAllEvents || i===0 ? 'block' : 'none'"
+                      (click)="openListedChat(message.payload.doc.data()?.chain)">
+                      @if (scope==='all'||mode==='inbox') {
+                        <div class="guardedChatItem eventCardBody">
+                          <div class="eventCardHeader">
+                            <div class="eventCardMedia">
+                              @if (message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb) {
+                                <img
+                                  [src]="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb"
+                                  class="eventCardChatImage"
+                                  (error)="UI.handleChatImageError($event, message.payload.doc.data())">
+                                } @else {
+                                  <span class="material-icons-outlined eventCardIconBadge">event</span>
+                                }
+                                <div class="eventCardTitleBlock">
+                                  <div class="eventCardLabel">
+                                    {{i===0 ? 'Next Event' : 'Other Event'}}
+                                  </div>
+                                  <div class="eventCardSubjectRow">
+                                    <div class="chatSubject chatSubjectTruncate">
+                                      {{message.payload.doc.data()?.chatSubject}}
+                                    </div>
+                                    <div class="eventCardDescriptionInline chatSubjectTruncate">
+                                      {{message.payload.doc.data()?.eventDescription}}
+                                    </div>
+                                  </div>
+                                  <div class="eventCardMeta compact">
+                                    @if (math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)>0) {
+                                      <span class="eventCardStatusChip">
+                                        In {{UI.formatSecondsToDhm2(message.payload.doc.data()?.eventDateStart/1000-UI.nowSeconds)}}
+                                      </span>
+                                    }
+                                    @if (math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)<=0&&message.payload.doc.data()?.eventDateEnd/60000>UI.nowSeconds/60) {
+                                      <span class="eventCardStatusChip eventCardStatusNow">
+                                        Live
+                                      </span>
+                                    }
+                                    <span class="eventCardDateText">
+                                      {{message.payload.doc.data()?.eventDateStart|date:'EEEE d MMM h:mm a'}} ({{message.payload.doc.data()?.eventDuration}}h)
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              @if (message.payload.doc.data()?.eventLocation && isEventLive(message.payload.doc.data()?.eventDateStart, message.payload.doc.data()?.eventDateEnd)) {
+                                <button
+                                  class="buttonPrimary eventCardJoinBtn"
+                                  (click)="$event.stopPropagation(); UI.openWindow(message.payload.doc.data()?.eventLocation)">
+                                  <span>Join</span>
+                                </button>
+                              }
+                            </div>
+                          </div>
+                        }
+                      </li>
+                    }
+                  </ul>
+                  @if (events.length>1) {
+                    <button class="buttonBlack eventCardToggleBtn"
+                      (click)="showAllEvents=!showAllEvents">
+                      {{showAllEvents ? 'Hide Other Events' : 'Show More Events'}}
+                    </button>
+                  }
+                }
               </div>
-              <div *ngIf="UI.currentUser && blueFlagByChain[message.payload.doc.data()?.chain]"
-                   class="chatListBlueFlag">
-              </div>
-              <button *ngIf="UI.currentUser && (scope==='all'||mode==='inbox')"
-                      class="messageOptionsBtn"
-                      aria-label="Chat options"
-                      (click)="$event.stopPropagation(); messageOptionsOpenFor = (messageOptionsOpenFor === message.payload.doc.data()?.chain ? null : message.payload.doc.data()?.chain)">
-                <span class="material-icons-outlined prof-icon-14">keyboard_arrow_down</span>
-              </button>
-              <div *ngIf="messageOptionsOpenFor === message.payload.doc.data()?.chain"
-                   class="messageOptionsMenu"
-                   (click)="$event.stopPropagation()">
-                <button class="messageOptionsItem" (click)="$event.stopPropagation(); toggleBlueFlag(message.payload.doc.data()?.chain)">
-                  {{blueFlagByChain[message.payload.doc.data()?.chain] ? 'Remove blue flag' : 'Add blue flag'}}
-                </button>
-              </div>
-              <div class="prof-avatar-wrap">
-                <ng-container *ngIf="message.payload.doc.data()?.chatProfileImageUrlThumb || message.payload.doc.data()?.chatProfileImageUrlMedium; else recipientImagesFallback">
-                  <img
-                    [src]="message.payload.doc.data()?.chatProfileImageUrlThumb || message.payload.doc.data()?.chatProfileImageUrlMedium"
-                    (error)="UI.handleChatImageError($event, message.payload.doc.data())"
-                    class="profile-list-avatar">
-                </ng-container>
-                <ng-template #recipientImagesFallback>
-                  <img [src]="message.payload.doc.data()?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload.doc.data())" class="profile-list-avatar">
-                </ng-template>
-              </div>
-              <div>
-                <div class="profile-chat-subject-wrap">
-                  <span class="chatSubject chatSubjectStrong">{{message.payload.doc.data()?.chatSubject}}</span>
+            }
+            @if (!sidePanelScope) {
+              <div class="profile-funds-item">
+                <ul class="listLight">
+                  @for (message of currentFunds|async; track message; let first = $first; let last = $last) {
+                    <li class="guardedChatItem fundListItem"
+                      (click)="openListedChat(message.payload.doc.data()?.chain)">
+                      @if (scope==='all'||mode==='inbox') {
+                        <div>
+                          <div class="guardedChatItem prof-fund-card-body">
+                            <div class="prof-fund-header">
+                              @if (message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb) {
+                                <img
+                                  [src]="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb"
+                                  class="eventCardChatImage"
+                                  (error)="UI.handleChatImageError($event, message.payload.doc.data())">
+                                } @else {
+                                  <span class="material-symbols-outlined eventCardIconBadge">crowdsource</span>
+                                }
+                                <div class="eventCardTitleBlock">
+                                  <div class="eventCardLabel">{{first ? 'Current Fund' : 'Other Fund'}}</div>
+                                  <span class="chatSubject chatSubjectTwoLines">{{message.payload.doc.data()?.chatSubject}}</span>
+                                </div>
+                              </div>
+                              <div class="progress-track">
+                                <div class="progress-fill"
+                                  [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100+'%'">
+                                  @if ((message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100 > 30) {
+                                    <span class="progress-pct">
+                                      {{message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget|percent:'1.0-0'}}
+                                    </span>
+                                  }
+                                </div>
+                              </div>
+                              <div class="prof-fund-meta">
+                                <span class="prof-fund-days">{{message.payload.doc.data()?.fund?.daysLeft|number:'1.0-0'}} days left</span>
+                              </div>
+                              <div class="prof-fund-desc">
+                                <span>{{message.payload.doc.data()?.fund?.description}}</span>
+                              </div>
+                              <div class="prof-fund-amounts">
+                                target: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]?.toCOIN||0))}} /
+                                raised: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]?.toCOIN||0))}}
+                              </div>
+                            </div>
+                          </div>
+                        }
+                      </li>
+                    }
+                  </ul>
                 </div>
-                <div class="messageTiming profile-chat-timing">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</div>
-                <div class="profile-chat-preview">
-                  <span class="messageAuthor">{{message.payload.doc.data()?.name}}:&nbsp;</span>
-                  <span *ngIf="message.payload.doc.data()?.imageResized" class="messageImageBadge">
-                  <span class="material-icons-outlined prof-icon-14">photo</span>
-                </span>
-                  <span>{{message.payload.doc.data()?.text}}</span>
+              }
+              @if (!UI.isCurrentUserMember && !sidePanelScope) {
+                <div class="island nonMemberIsland profile-banner-item">
+                  <button class="buttonPrimary nonMemberIslandButton" (click)="router.navigate(['buyPRN'])">Buy PRN Tokens</button>
+                  <div class="nonMemberIslandFooter">Join the team today.</div>
+                  <div class="nonMemberIslandHelper">Interested to join but have some questions first? <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" rel="noopener noreferrer" class="buy-link-whatsapp">Join our WhatsApp community</a> and speak directly to Nico there.</div>
                 </div>
-              </div>
+              }
             </div>
-            <table *ngIf="scope!=='all'&&(mode==='chain'||mode==='history')">
-              <tr *ngIf="first">
-                <th class="th-date">Date</th>
-                <th class="th-days">Days</th>
-                <th class="th-messages">Messages</th>
-                <th class="th-balance">Balance</th>
-                <th class="th-change">Change</th>
-                <th class="th-purchase">Purchase</th>
-                <th class="th-transaction">Transaction</th>
-                <th class="th-interest">Interest</th>
-                <th class="th-contract">Contract</th>
-                <th class="th-message">Message</th>
-              </tr>
-              <tr class="tableRow">
-                <th class="th-date">
-                  <span class="dateFull">{{(message.payload.doc.data()?.verifiedTimestamp?.seconds*1000)|date:'d MMM yyyy'}}</span>
-                  <span class="dateShort">{{(message.payload.doc.data()?.verifiedTimestamp?.seconds*1000)|date:'d MMM yy'}}</span>
-                </th>
-                <th class="th-days">{{first?'':(message.payload.doc.data()?.verifiedTimestamp?.seconds-previousTimestamp.seconds)/3600/24|number:'1.2-2'}}</th>
-                <th class="th-messages">{{first?'':(message.payload.doc.data()?.userChain?.index-previousIndex)}}</th>
-                <th class="th-balance">{{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.wallet?.balance)}}</th>
-                <th class="th-change">{{first?'':UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.wallet?.balance-previousBalance)}}</th>
-                <th class="th-purchase">{{first?'':UI.convertAndFormatPRNToCurrency(null,(message.payload.doc.data()?.purchaseCOIN?.amountCummulate||0)-previousPurchaseCOINAmountCummulate)|blankIfZero}}</th>
-                <th class="th-transaction">{{first?'':UI.convertAndFormatPRNToCurrency(null,(message.payload.doc.data()?.transactionIn?.amountCummulate||0)-(message.payload.doc.data()?.transactionOut?.amountCummulate||0)-previousAmountTransactionCummulate)|blankIfZero}}</th>
-                <th class="th-interest">{{first?'':UI.convertAndFormatPRNToCurrency(null,(message.payload.doc.data()?.interest?.amountCummulate||0)-previousAmountInterestCummulate)|blankIfZero}}</th>
-                <th class="th-contract">{{first?'':UI.convertAndFormatPRNToCurrency(null,(message.payload.doc.data()?.contract?.amountCummulate||0)-previousContractAmountCummulate)|blankIfZero}}</th>
-                <th class="th-message">{{message.payload.doc.data()?.userChain?.currentMessage}}</th>
-              </tr>
-              {{storeMessageValues(message.payload.doc.data())}}
-            </table>
-          </li>
-        </ul>
+          }
+
+          @if ((mode==='inbox' || scope==='all') && !sidePanelScope) {
+            <ul class="listLight imageCarousel" id="scroll-images">
+              @for (message of latestImages|async; track message; let first = $first; let last = $last) {
+                <li class="carouselItem guardedChatItem">
+                  @if (scope==='all'||mode==='inbox') {
+                    <div class="carouselImageWrap" (click)="openCarouselImage(message.payload.doc.data()?.chatImageUrlOriginal)">
+                      <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload.doc.data())" class="carouselImage">
+                    </div>
+                  }
+                  <button class="carouselMeta" (click)="openListedChat(message.payload.doc.data()?.chain, message.payload.doc.id)">
+                    <span class="messageTiming">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+          @if (scope!=='all'&& mode==='history') {
+            <div class="prof-chart-box"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
+          }
+          @if (scope!=='all'&& mode==='forecast') {
+            <div class="prof-chart-box"><ag-charts-angular [options]="forecastChartOptions"></ag-charts-angular></div>
+          }
+          @if (mode!=='forecast' || scope==='all') {
+            <div [class.table-scroll-wrapper]="scope !== 'all' && (mode==='chain'||mode==='history')">
+              <ul class="listLight">
+                @for (message of messages|async; track message; let first = $first; let last = $last) {
+                  <li class="guardedChatItem prof-list-item-rel"
+                    [class.activeChatListItem]="activeChatId === message.payload.doc.data()?.chain"
+                    (click)="openListedChat(message.payload.doc.data()?.chain)">
+                    @if (scope==='all'||mode==='inbox') {
+                      <div>
+                        @if (UI.currentUser && (UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds && !isMessageSeen(message.payload.doc.data()?.chain,message.payload.doc.data()?.serverTimestamp)) {
+                          <div
+                            class="chatListUnreadFlag"
+                            [style.background-color]="(message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name)) ? '#ef4444' : (message.payload.doc.data()?.recipients[UI.currentUser] ? '#38761D' : '#B0BAC0')">
+                          </div>
+                        }
+                        @if (UI.currentUser && blueFlagByChain[message.payload.doc.data()?.chain]) {
+                          <div
+                            class="chatListBlueFlag">
+                          </div>
+                        }
+                        @if (UI.currentUser && (scope==='all'||mode==='inbox')) {
+                          <button
+                            class="messageOptionsBtn"
+                            aria-label="Chat options"
+                            (click)="$event.stopPropagation(); messageOptionsOpenFor = (messageOptionsOpenFor === message.payload.doc.data()?.chain ? null : message.payload.doc.data()?.chain)">
+                            <span class="material-icons-outlined prof-icon-14">keyboard_arrow_down</span>
+                          </button>
+                        }
+                        @if (messageOptionsOpenFor === message.payload.doc.data()?.chain) {
+                          <div
+                            class="messageOptionsMenu"
+                            (click)="$event.stopPropagation()">
+                            <button class="messageOptionsItem" (click)="$event.stopPropagation(); toggleBlueFlag(message.payload.doc.data()?.chain)">
+                              {{blueFlagByChain[message.payload.doc.data()?.chain] ? 'Remove blue flag' : 'Add blue flag'}}
+                            </button>
+                          </div>
+                        }
+                        <div class="prof-avatar-wrap">
+                          @if (message.payload.doc.data()?.chatProfileImageUrlThumb || message.payload.doc.data()?.chatProfileImageUrlMedium) {
+                            <img
+                              [src]="message.payload.doc.data()?.chatProfileImageUrlThumb || message.payload.doc.data()?.chatProfileImageUrlMedium"
+                              (error)="UI.handleChatImageError($event, message.payload.doc.data())"
+                              class="profile-list-avatar">
+                            } @else {
+                              <img [src]="message.payload.doc.data()?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload.doc.data())" class="profile-list-avatar">
+                            }
+                          </div>
+                          <div>
+                            <div class="profile-chat-subject-wrap">
+                              <span class="chatSubject chatSubjectStrong">{{message.payload.doc.data()?.chatSubject}}</span>
+                            </div>
+                            <div class="messageTiming profile-chat-timing">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</div>
+                            <div class="profile-chat-preview">
+                              <span class="messageAuthor">{{message.payload.doc.data()?.name}}:&nbsp;</span>
+                              @if (message.payload.doc.data()?.imageResized) {
+                                <span class="messageImageBadge">
+                                  <span class="material-icons-outlined prof-icon-14">photo</span>
+                                </span>
+                              }
+                              <span>{{message.payload.doc.data()?.text}}</span>
+                            </div>
+                          </div>
+                        </div>
+                      }
+                      @if (scope!=='all'&&(mode==='chain'||mode==='history')) {
+                        <table>
+                          @if (first) {
+                            <tr>
+                              <th class="th-date">Date</th>
+                              <th class="th-days">Days</th>
+                              <th class="th-messages">Messages</th>
+                              <th class="th-balance">Balance</th>
+                              <th class="th-change">Change</th>
+                              <th class="th-purchase">Purchase</th>
+                              <th class="th-transaction">Transaction</th>
+                              <th class="th-interest">Interest</th>
+                              <th class="th-contract">Contract</th>
+                              <th class="th-message">Message</th>
+                            </tr>
+                          }
+                          <tr class="tableRow">
+                            <th class="th-date">
+                              <span class="dateFull">{{(message.payload.doc.data()?.verifiedTimestamp?.seconds*1000)|date:'d MMM yyyy'}}</span>
+                              <span class="dateShort">{{(message.payload.doc.data()?.verifiedTimestamp?.seconds*1000)|date:'d MMM yy'}}</span>
+                            </th>
+                            <th class="th-days">{{first?'':(message.payload.doc.data()?.verifiedTimestamp?.seconds-previousTimestamp.seconds)/3600/24|number:'1.2-2'}}</th>
+                            <th class="th-messages">{{first?'':(message.payload.doc.data()?.userChain?.index-previousIndex)}}</th>
+                            <th class="th-balance">{{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.wallet?.balance)}}</th>
+                            <th class="th-change">{{first?'':UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.wallet?.balance-previousBalance)}}</th>
+                            <th class="th-purchase">{{first?'':UI.convertAndFormatPRNToCurrency(null,(message.payload.doc.data()?.purchaseCOIN?.amountCummulate||0)-previousPurchaseCOINAmountCummulate)|blankIfZero}}</th>
+                            <th class="th-transaction">{{first?'':UI.convertAndFormatPRNToCurrency(null,(message.payload.doc.data()?.transactionIn?.amountCummulate||0)-(message.payload.doc.data()?.transactionOut?.amountCummulate||0)-previousAmountTransactionCummulate)|blankIfZero}}</th>
+                            <th class="th-interest">{{first?'':UI.convertAndFormatPRNToCurrency(null,(message.payload.doc.data()?.interest?.amountCummulate||0)-previousAmountInterestCummulate)|blankIfZero}}</th>
+                            <th class="th-contract">{{first?'':UI.convertAndFormatPRNToCurrency(null,(message.payload.doc.data()?.contract?.amountCummulate||0)-previousContractAmountCummulate)|blankIfZero}}</th>
+                            <th class="th-message">{{message.payload.doc.data()?.userChain?.currentMessage}}</th>
+                          </tr>
+                          {{storeMessageValues(message.payload.doc.data())}}
+                        </table>
+                      }
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+            @if (scope!=='all'&& mode==='forecast') {
+              <div class="table-scroll-wrapper">
+                <ul class="listLight">
+                  @for (number of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]; track number; let first = $first) {
+                    <li class="guardedChatItem no-interaction-row">
+                      <table>
+                        @if (first) {
+                          <tr>
+                            <th class="th-forecast-year">Year</th>
+                            <th class="th-forecast-growth">Growth</th>
+                            <th class="th-forecast-balance">Balance</th>
+                            <th class="th-forecast-multiple">Multiple</th>
+                          </tr>
+                        }
+                        <tr class="tableRow no-interaction-row">
+                          <th class="th-forecast-year">{{number}}</th>
+                          <th class="th-forecast-growth">{{(UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0) | percent : "0.0"}}</th>
+                          <th class="th-forecast-balance">
+                            {{UI.convertAndFormatPRNToCurrency(null,focusUserLastMessageObj?.wallet?.balance*math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)*number))}}
+                          </th>
+                          <th class="th-forecast-multiple">{{math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)*number)|number:'1.1-1'}}x</th>
+                        </tr>
+                      </table>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+            @if (UI.loading) {
+              <div class="spinner">
+                <div class="bounce1"></div>
+                <div class="bounce2"></div>
+                <div class="bounce3"></div>
+              </div>
+            }
+            <div class="island prof-load-more-wrap">
+              @if ((!UI.loading && !['forecast', 'history'].includes(mode)) || scope==='all') {
+                <button class="buttonPrimary prof-btn-200" (click)="loadMore()">Load more</button>
+              }
+            </div>
+          </div>
+        </div>
       </div>
-      <div *ngIf="scope!=='all'&& mode==='forecast'" class="table-scroll-wrapper">
-        <ul class="listLight">
-          <li *ngFor="let number of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];let first=first" class="guardedChatItem no-interaction-row">
-            <table>
-              <tr *ngIf="first">
-                <th class="th-forecast-year">Year</th>
-                <th class="th-forecast-growth">Growth</th>
-                <th class="th-forecast-balance">Balance</th>
-                <th class="th-forecast-multiple">Multiple</th>
-              </tr>
-              <tr class="tableRow no-interaction-row">
-                <th class="th-forecast-year">{{number}}</th>
-                <th class="th-forecast-growth">{{(UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0) | percent : "0.0"}}</th>
-                <th class="th-forecast-balance">
-                  {{UI.convertAndFormatPRNToCurrency(null,focusUserLastMessageObj?.wallet?.balance*math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)*number))}}
-                </th>
-                <th class="th-forecast-multiple">{{math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)*number)|number:'1.1-1'}}x</th>
-              </tr>
-            </table>
-          </li>
-        </ul>
-      </div>
-      <div class="spinner" *ngIf="UI.loading">
-        <div class="bounce1"></div>
-        <div class="bounce2"></div>
-        <div class="bounce3"></div>
-      </div>
-      <div class="island prof-load-more-wrap">
-        <button class="buttonPrimary prof-btn-200" *ngIf="(!UI.loading && !['forecast', 'history'].includes(mode)) || scope==='all'" (click)="loadMore()">Load more</button>
-      </div>
-    </div>
-  </div>
-</div>
