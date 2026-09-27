@@ -3,10 +3,10 @@ import { AngularFireAuth } from '@angular/fire/compat/auth'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
-import firebase from 'firebase/compat/app'
+import { serverTimestamp } from 'firebase/firestore'
 import { formatNumber } from '@angular/common'
-import { Router, ActivatedRoute } from '@angular/router';
-import { environment } from '../environments/environment';
+import { Router, ActivatedRoute } from '@angular/router'
+import { environment } from '../environments/environment'
 
 
 @Injectable()
@@ -29,7 +29,7 @@ export class UserInterfaceService {
   private authenticatedUserEmail: string | null = null
   private profileUserId: string
   private adminUserId: string
-  
+
   constructor(
     private afAuth: AngularFireAuth,
     public router:Router,
@@ -49,9 +49,9 @@ export class UserInterfaceService {
       host === 'localhost' ||
       host === '127.0.0.1' ||
       !environment.production;
-    
+
     this.revolutMode = this.isDev ? 'sandbox' : 'prod';
-    
+
     // Optional: quick visibility
     console.log('Env detect →', {
       isDevMode: isDevMode(),
@@ -156,8 +156,7 @@ export class UserInterfaceService {
 
   createMessage(messageObj: any) {
     if (!messageObj.text && !messageObj.chatImageTimestamp && !messageObj.chatProfileImageTimestamp) return null;
-    messageObj.serverTimestamp =
-      firebase.firestore.FieldValue.serverTimestamp();
+    messageObj.serverTimestamp = serverTimestamp();
     messageObj.user = this.currentUser;
     messageObj.name =
       messageObj.name || this.currentUserLastMessageObj?.name || "";

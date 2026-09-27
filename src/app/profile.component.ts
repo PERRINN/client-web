@@ -6,7 +6,7 @@ import { map, filter, tap, take } from 'rxjs/operators'
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router'
 import { UserInterfaceService } from './userInterface.service'
 import { AngularFireAuth } from '@angular/fire/compat/auth'
-import firebase from 'firebase/compat/app'
+import { serverTimestamp } from 'firebase/firestore'
 import { AgChartOptions } from 'ag-charts-community'
 
 @Component({
@@ -500,7 +500,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     const currentStatus = !!this.blueFlagByChain[chain];
     this.afs.collection(`lastSeen/${userId}/chats`).doc(chain).set({
       blueFlag: !currentStatus,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      updatedAt: serverTimestamp()
     }, { merge: true });
       this.messageOptionsOpenFor = null;
     });
