@@ -225,60 +225,74 @@ export class buyPRNComponent implements OnInit, OnDestroy {
     if (!this.UI.currentUser || !this.paymentOrderId) return;
     const version = ++this.paymentTrackingVersion;
 
-    this.afs
-      .doc<any>(`PERRINNTeams/${this.UI.currentUser}/payments/${this.paymentOrderId}`)
-      .valueChanges()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((paymentDoc) => {
-        if (version !== this.paymentTrackingVersion || !paymentDoc) return;
-        const status = (paymentDoc.source || paymentDoc).status || paymentDoc.status;
+    runInInjectionContext(this.injector, () => {
+      this.afs
+        .doc<any>(`PERRINNTeams/${this.UI.currentUser}/payments/${this.paymentOrderId}`)
+        .valueChanges()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((paymentDoc) => {
+          if (version !== this.paymentTrackingVersion || !paymentDoc) return;
+          const status = (paymentDoc.source || paymentDoc).status || paymentDoc.status;
 
-        if (this.isPaymentSuccessStatus(status)) {
-          this.paymentStepPaymentReceived = true;
-          this.setPaymentState("payment-received", "Payment received by Revolut. Finalizing credit...");
-        }
+          if (this.isPaymentSuccessStatus(status)) {
+            this.paymentStepPaymentReceived = true;
+            this.setPaymentState(
+              "payment-received",
+              "Payment received by Revolut. Finalizing credit..."
+            );
+          }
 
-        if (this.isPaymentFailureStatus(status)) {
-          this.setPaymentState("failed", "Payment failed or was cancelled. You can try again.");
-          this.clearPendingPaymentLocalCache();
-          this.paymentTrackingVersion++;
-        }
-      });
+          if (this.isPaymentFailureStatus(status)) {
+            this.setPaymentState(
+              "failed",
+              "Payment failed or was cancelled. You can try again."
+            );
+            this.clearPendingPaymentLocalCache();
+            this.paymentTrackingVersion++;
+          }
+        });
+
+      this.afs
+        .collection<any>("PERRINNMessages", (ref) =>
+          ref
+            .where("user", "==", this.UI.currentUser)
+            .where("verified", "==", true)
+            .orderBy("serverTimestamp", "desc")
+            .limit(40)
+        )
+        .valueChanges()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((messages) => {
+          if (version !== this.paymentTrackingVersion || !Array.isArray(messages)) return;
+          const matchingCredit = messages.find(
+            (message) => ((message.purchaseCOIN || {}).chargeID || null) === this.paymentOrderId
+          );
+          if (!matchingCredit) return;
+
+          this.paymentStepMessageGenerated = true;
+          this.setPaymentState(
+            "crediting",
+            "PERRINN message generated. Crediting PRN wallet..."
+          );
+
+          setTimeout(() => {
+            if (version !== this.paymentTrackingVersion) return;
+            this.paymentStepCredited = true;
+            this.setPaymentState(
+              "completed",
+              "Payment successful. PRN tokens are now credited."
+            );
+            this.clearPendingPaymentLocalCache();
+            this.paymentTrackingVersion++;
+          }, 300);
+        });
+    });
 
     interval(7000)
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         if (version !== this.paymentTrackingVersion) return;
         this.syncPaymentStatusFromRevolut();
-      });
-
-    this.afs
-      .collection<any>("PERRINNMessages", (ref) =>
-        ref
-          .where("user", "==", this.UI.currentUser)
-          .where("verified", "==", true)
-          .orderBy("serverTimestamp", "desc")
-          .limit(40)
-      )
-      .valueChanges()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((messages) => {
-        if (version !== this.paymentTrackingVersion || !Array.isArray(messages)) return;
-        const matchingCredit = messages.find(
-          (message) => ((message.purchaseCOIN || {}).chargeID || null) === this.paymentOrderId
-        );
-        if (!matchingCredit) return;
-
-        this.paymentStepMessageGenerated = true;
-        this.setPaymentState("crediting", "PERRINN message generated. Crediting PRN wallet...");
-
-        setTimeout(() => {
-          if (version !== this.paymentTrackingVersion) return;
-          this.paymentStepCredited = true;
-          this.setPaymentState("completed", "Payment successful. PRN tokens are now credited.");
-          this.clearPendingPaymentLocalCache();
-          this.paymentTrackingVersion++;
-        }, 300);
       });
   }
 
