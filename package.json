@@ -36,11 +36,11 @@
     "zone.js": "0.15.1"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "21.2.24",
     "@angular-eslint/builder": "^19.8.1",
     "@angular-eslint/eslint-plugin": "^19.8.1",
     "@angular-eslint/eslint-plugin-template": "^19.8.1",
     "@angular-eslint/schematics": "^19.8.1",
+    "@angular/build": "^22.2.0",
     "@angular/cli": "21.2.24",
     "@angular/compiler-cli": "21.2.24",
     "@angular/language-service": "21.2.24",
