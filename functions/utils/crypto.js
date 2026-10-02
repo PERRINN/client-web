@@ -1,6 +1,5 @@
 const admin = require('firebase-admin')
 var crypto = require('crypto');
-const functions = require('firebase-functions')
 
 module.exports = {
 
