@@ -1,9 +1,12 @@
 const { onRequest } = require('firebase-functions/v2/https');
 const admin = require('firebase-admin');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 
 try {
   admin.initializeApp();
 } catch (e) {}
+
+const firestore = getFirestore();
 
 function extractOrder(payload) {
   if (!payload) return {};
@@ -57,7 +60,7 @@ exports.revolutWebhook = onRequest({ cors: true }, async (req, res) => {
     const amountSharesPurchased = Number(metadata.amountSharesPurchased || body.amountSharesPurchased || 0);
     const currency = String((metadata.currency || body.currency || order.currency || '')).toLowerCase();
 
-    const ref = admin.firestore().doc(`PERRINNTeams/${user}/payments/${orderId}`);
+    const ref = firestore.doc(`PERRINNTeams/${user}/payments/${orderId}`);
 
     await ref.set(
       {
@@ -73,9 +76,9 @@ exports.revolutWebhook = onRequest({ cors: true }, async (req, res) => {
           ...(order || {}),
           status: status || null,
           statusRaw: rawStatus || null,
-          receivedAt: admin.firestore.FieldValue.serverTimestamp(),
+          receivedAt: FieldValue.serverTimestamp(),
         },
-        updatedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+        updatedTimestamp: FieldValue.serverTimestamp(),
       },
       { merge: true }
     );

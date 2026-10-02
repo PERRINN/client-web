@@ -1,8 +1,12 @@
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 const admin = require("firebase-admin");
+const { getAuth } = require("firebase-admin/auth");
+const { FieldValue } = require("firebase-admin/firestore");
+
 try {
   admin.initializeApp();
 } catch (e) {}
+
 const createMessageUtils = require("./utils/createMessage");
 
 function isSuccessfulStatus(status) {
@@ -23,8 +27,7 @@ exports.dbTeamPaymentsOnCreate = onDocumentWritten(
     if (isSuccessfulStatus(previousStatus)) return null;
     if (after?.purchaseMessageCreated) return null;
 
-    return admin
-      .auth()
+    return getAuth()
       .getUser(event.params.user)
       .then(async function (userRecord) {
         const email = userRecord.toJSON().email;
@@ -50,7 +53,7 @@ exports.dbTeamPaymentsOnCreate = onDocumentWritten(
         return event.data.after.ref.set(
           {
             purchaseMessageCreated: true,
-            processedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+            processedTimestamp: FieldValue.serverTimestamp(),
             source: {
               ...((after.source || {}) || {}),
               email,

@@ -1,10 +1,13 @@
 const { onSchedule } = require('firebase-functions/v2/scheduler')
 const admin = require('firebase-admin')
+const { getFirestore, FieldValue } = require('firebase-admin/firestore')
 const { defineSecret } = require('firebase-functions/params')
 const { google } = require('googleapis')
 const createMessageUtils = require('./utils/createMessage')
 
 try { admin.initializeApp() } catch (e) {}
+
+const db = getFirestore()
 
 const DRIVE_SERVICE_ACCOUNT_JSON = defineSecret('DRIVE_SERVICE_ACCOUNT_JSON')
 const DRIVE_FOLDER_ID = defineSecret('DRIVE_FOLDER_ID')
@@ -86,7 +89,7 @@ exports.driveFolderActivity = onSchedule(
       )
       const drive = google.drive({ version: 'v3', auth })
 
-      const stateRef = admin.firestore().doc(STATE_DOC_PATH)
+      const stateRef = db.doc(STATE_DOC_PATH)
       const stateSnap = await stateRef.get()
       const state = stateSnap.exists ? (stateSnap.data() || {}) : {}
 
@@ -100,11 +103,13 @@ exports.driveFolderActivity = onSchedule(
           console.log('No startPageToken received from Drive API')
           return
         }
+
         await stateRef.set({
           pageToken,
-          initializedAt: admin.firestore.FieldValue.serverTimestamp(),
-          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          initializedAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
         }, { merge: true })
+
         console.log('Drive activity watcher initialized, no backfill processed')
         return
       }
@@ -151,7 +156,7 @@ exports.driveFolderActivity = onSchedule(
         await stateRef.set({
           pageToken: newStartPageToken,
           lastRunCreatedCount: activityCount,
-          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
         }, { merge: true })
       }
 

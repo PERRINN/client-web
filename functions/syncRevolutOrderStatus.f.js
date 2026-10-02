@@ -1,10 +1,13 @@
 const { onRequest } = require('firebase-functions/v2/https');
 const { defineSecret, defineString } = require('firebase-functions/params');
 const admin = require('firebase-admin');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 
 try {
   admin.initializeApp();
 } catch (e) {}
+
+const firestore = getFirestore();
 
 const REVOLUT_PROD_KEY = defineSecret('REVOLUT_PROD_KEY');
 const REVOLUT_SANDBOX_KEY = defineSecret('REVOLUT_SANDBOX_KEY');
@@ -81,9 +84,9 @@ exports.syncRevolutOrderStatus = onRequest(
               ...(order || {}),
               status: status || null,
               statusRaw: rawStatus || null,
-              syncedAt: admin.firestore.FieldValue.serverTimestamp(),
+              syncedAt: FieldValue.serverTimestamp(),
             },
-            updatedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+            updatedTimestamp: FieldValue.serverTimestamp(),
           },
           { merge: true }
         );

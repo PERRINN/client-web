@@ -1,9 +1,12 @@
 const { onSchedule } = require('firebase-functions/v2/scheduler')
 const admin = require('firebase-admin')
+const { getFirestore, FieldValue } = require('firebase-admin/firestore')
 const { defineSecret } = require('firebase-functions/params')
 const createMessageUtils = require('./utils/createMessage')
 
 try { admin.initializeApp() } catch (e) {}
+
+const firestore = getFirestore()
 
 const GITHUB_TOKEN = defineSecret('GITHUB_TOKEN')
 const GITHUB_ORG = defineSecret('GITHUB_ORG')
@@ -243,7 +246,7 @@ exports.githubActivity = onSchedule(
         return
       }
 
-      const stateRef = admin.firestore().doc(STATE_DOC_PATH)
+      const stateRef = firestore.doc(STATE_DOC_PATH)
       const stateSnap = await stateRef.get()
       const state = stateSnap.exists ? (stateSnap.data() || {}) : {}
       const lastEventId = state.lastEventId || null
@@ -260,8 +263,8 @@ exports.githubActivity = onSchedule(
 
         await stateRef.set({
           lastEventId: initialLastEventId,
-          initializedAt: admin.firestore.FieldValue.serverTimestamp(),
-          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          initializedAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
         }, { merge: true })
 
         console.log('GitHub activity watcher initialized, no backfill processed')
@@ -283,7 +286,7 @@ exports.githubActivity = onSchedule(
       await stateRef.set({
         lastEventId: newestEventId,
         lastRunCreatedCount: latestEvents.length,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
       }, { merge: true })
 
       console.log(`GitHub activity processed, ${latestEvents.length} new event(s), ${latestEvents.length > 0 ? 1 : 0} message created`)

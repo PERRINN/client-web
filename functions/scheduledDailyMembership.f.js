@@ -1,6 +1,9 @@
 const { onSchedule } = require('firebase-functions/v2/scheduler')
 const admin = require('firebase-admin')
+const { getFirestore, FieldValue } = require('firebase-admin/firestore')
 try { admin.initializeApp() } catch (e) {}
+
+const firestore = getFirestore()
 const verifyMessageUtils = require('./utils/verifyMessage')
 const createMessageUtils = require('./utils/createMessage')
 const { defineSecret } = require('firebase-functions/params')
@@ -30,7 +33,7 @@ exports.scheduledDailyMembership = onSchedule(
       let listUsersResult=listUsersResult1.users.concat(listUsersResult2.users)
       var reads=[]
       listUsersResult.forEach(userRecord=>{
-        reads.push(admin.firestore().collection('PERRINNMessages').where('user','==',userRecord.uid).orderBy('serverTimestamp','desc').limit(1).get())
+        reads.push(firestore.collection('PERRINNMessages').where('user','==',userRecord.uid).orderBy('serverTimestamp','desc').limit(1).get())
       })
       const lastUserMessages=await Promise.all(reads)
       var verifyMessageBatch=[]
@@ -56,9 +59,9 @@ exports.scheduledDailyMembership = onSchedule(
         statistics.purchaseCOIN.amountCummulate=((statistics.purchaseCOIN||{}).amountCummulate||0)+((result.purchaseCOIN||{}).amountCummulate||0)
         statistics.userCount=(statistics.userCount||0)+1
       })
-      statistics.serverTimestamp=admin.firestore.FieldValue.serverTimestamp()
+      statistics.serverTimestamp=FieldValue.serverTimestamp()
 
-      const adminLastMessages=await admin.firestore().collection('PERRINNMessages').where('user','==',adminUserId).where('verified','==',true).orderBy('serverTimestamp','desc').limit(1).get()
+      const adminLastMessages=await firestore.collection('PERRINNMessages').where('user','==',adminUserId).where('verified','==',true).orderBy('serverTimestamp','desc').limit(1).get()
       const adminLastMessageData=adminLastMessages.docs[0]!=undefined?(adminLastMessages.docs[0].data()||{}):{}
       const membershipThreshold=((adminLastMessageData.membership||{}).amountRequired)||0
 
