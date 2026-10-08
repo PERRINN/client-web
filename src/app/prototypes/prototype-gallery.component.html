@@ -1,0 +1,83 @@
+<main class="prototype-gallery">
+  <header class="gallery-header">
+    <div>
+      <p class="eyebrow">PERRINN · VISUAL LAB</p>
+      <h1>Prototyping</h1>
+      <p class="intro">Explore small, independent experiments before they become production UI.</p>
+    </div>
+    <span class="count">{{ prototypes.length }} {{ prototypes.length === 1 ? 'prototype' : 'prototypes' }}</span>
+  </header>
+
+  <nav class="category-navigation" aria-label="Prototype categories">
+    @for (category of categories; track category.id) {
+      <a [href]="'#' + category.id">{{ category.title }} <span>{{ category.prototypes.length }}</span></a>
+    }
+  </nav>
+
+  @for (category of categories; track category.id) {
+    <section class="prototype-category" [id]="category.id" [attr.aria-labelledby]="category.id + '-title'">
+      <header class="category-heading">
+        <div><h2 [id]="category.id + '-title'">{{ category.title }}</h2><p>{{ category.description }}</p></div>
+        <span>{{ category.prototypes.length }}</span>
+      </header>
+      <div class="prototype-grid">
+        @for (prototype of category.prototypes; track prototype.name) {
+        <a class="prototype-card" [routerLink]="prototype.route">
+          <div class="preview-stage" aria-hidden="true">
+            @switch (prototype.name) {
+              @case ('MEMBER-TEXT-FIELD') {
+                <div class="input-preview">
+                  <span class="mini-label">Display name</span>
+                  <div class="mini-input">Alex Morgan <span>Clear</span></div>
+                  <div class="mini-caption"><span>How your name appears to members</span><span>11 / 80</span></div>
+                </div>
+              }
+              @case ('CLASSIC-SOCIAL-FEED') {
+                <div class="classic-preview">
+                  <div class="mini-rail"><i></i><i></i><i></i><i></i></div>
+                  <div class="mini-center"><b></b><div class="mini-post"><i></i><i></i><i></i></div><div class="mini-post short"><i></i><i></i></div></div>
+                  <div class="mini-side"><b></b><i></i><i></i><i></i></div>
+                </div>
+              }
+              @case ('COMMUNITY-DASHBOARD') {
+                <div class="dashboard-preview">
+                  <div class="mini-rail"><i></i><i></i><i></i><i></i></div>
+                  <div class="dashboard-mini-main"><b></b><div class="mini-stats"><i></i><i></i><i></i></div><div class="mini-lower"><div class="mini-post"><i></i><i></i><i></i></div><div class="mini-post"><i></i><i></i></div></div></div>
+                </div>
+              }
+              @case ('MOBILE-FIRST-SOCIAL') {
+                <div class="mobile-preview"><div class="phone-frame"><div class="phone-top"></div><div class="story-row"><i></i><i></i><i></i><i></i></div><div class="phone-post"><b></b><i></i><i></i><i></i></div><div class="phone-post"><b></b><i></i><i></i></div><div class="phone-bottom"><i></i><i></i><i></i><i></i></div></div><div class="mobile-notes"><i></i><i></i><i></i></div></div>
+              }
+              @case ('CLEAR-SLATE') {
+                <div class="palette-mini slate"><div class="palette-mini-nav"></div><div class="palette-mini-main"><b></b><div></div><div></div></div><i></i></div>
+              }
+              @case ('WARM-GRAPHITE') {
+                <div class="palette-mini graphite"><div class="palette-mini-nav"></div><div class="palette-mini-main"><b></b><div></div><div></div></div><i></i></div>
+              }
+              @case ('DEEP-TIDE') {
+                <div class="palette-mini tide"><div class="palette-mini-nav"></div><div class="palette-mini-main"><b></b><div></div><div></div></div><i></i></div>
+              }
+              @case ('QUIET-PLUM') {
+                <div class="palette-mini plum"><div class="palette-mini-nav"></div><div class="palette-mini-main"><b></b><div></div><div></div></div><i></i></div>
+              }
+              @case ('CLAY-EMBER') {
+                <div class="palette-mini clay"><div class="palette-mini-nav"></div><div class="palette-mini-main"><b></b><div></div><div></div></div><i></i></div>
+              }
+              @case ('NIGHT-SIGNAL') {
+                <div class="palette-mini night"><div class="palette-mini-nav"></div><div class="palette-mini-main"><b></b><div></div><div></div></div><i></i></div>
+              }
+            }
+          </div>
+          <div class="card-heading">
+            <div>
+              <h3>{{ prototype.name }}</h3>
+              <p class="type">{{ prototype.type }}</p>
+            </div>
+          </div>
+          <p class="description">{{ prototype.description }}</p>
+        </a>
+        }
+      </div>
+    </section>
+  }
+</main>

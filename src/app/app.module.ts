@@ -12,6 +12,18 @@ import { ProfileComponent }  from './profile.component';
 import { SettingsComponent }  from './settings.component';
 import { DirectoryComponent }  from './directory.component';
 import { buyPRNComponent }  from './buyPRN.component';
+import { PrototypeGalleryComponent } from './prototypes/prototype-gallery.component';
+import { MemberTextFieldComponent } from './prototypes/MEMBER-TEXT-FIELD/member-text-field.component';
+import { ClassicSocialFeedComponent } from './prototypes/CLASSIC-SOCIAL-FEED/classic-social-feed.component';
+import { CommunityDashboardComponent } from './prototypes/COMMUNITY-DASHBOARD/community-dashboard.component';
+import { MobileFirstSocialComponent } from './prototypes/MOBILE-FIRST-SOCIAL/mobile-first-social.component';
+import { ColorPalettePreviewComponent } from './prototypes/color-palette-preview.component';
+import { ClearSlateComponent } from './prototypes/CLEAR-SLATE/clear-slate.component';
+import { WarmGraphiteComponent } from './prototypes/WARM-GRAPHITE/warm-graphite.component';
+import { DeepTideComponent } from './prototypes/DEEP-TIDE/deep-tide.component';
+import { QuietPlumComponent } from './prototypes/QUIET-PLUM/quiet-plum.component';
+import { ClayEmberComponent } from './prototypes/CLAY-EMBER/clay-ember.component';
+import { NightSignalComponent } from './prototypes/NIGHT-SIGNAL/night-signal.component';
 
 import { PipeModule }    from './pipes.module';
 
@@ -46,6 +58,18 @@ export const firebaseConfig = {
         SettingsComponent,
         DirectoryComponent,
         buyPRNComponent,
+        PrototypeGalleryComponent,
+        MemberTextFieldComponent,
+        ClassicSocialFeedComponent,
+        CommunityDashboardComponent,
+        MobileFirstSocialComponent,
+        ColorPalettePreviewComponent,
+        ClearSlateComponent,
+        WarmGraphiteComponent,
+        DeepTideComponent,
+        QuietPlumComponent,
+        ClayEmberComponent,
+        NightSignalComponent,
         ScrollableDirective,
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,

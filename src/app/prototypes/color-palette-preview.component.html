@@ -1,0 +1,55 @@
+<main class="palette-page">
+  <a class="back-link" routerLink="/prototypes">← Prototyping</a>
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">{{ palette.id }} <span>·</span> COLOUR STUDY</p>
+      <h1>{{ palette.name }}</h1>
+      <p class="intro">{{ palette.description }}</p>
+    </div>
+    <nav class="palette-switcher" aria-label="Compare palette proposals">
+      <a [routerLink]="['/prototypes', previousPalette.id]" [attr.aria-label]="'Previous: ' + previousPalette.name">←</a>
+      <span>{{ palettes.indexOf(palette) + 1 }} / {{ palettes.length }}</span>
+      <a [routerLink]="['/prototypes', nextPalette.id]" [attr.aria-label]="'Next: ' + nextPalette.name">→</a>
+    </nav>
+  </header>
+
+  <section class="app-preview" [ngStyle]="palette.theme" aria-label="Member home colour preview">
+    <aside class="app-nav">
+      <div class="brand-mark">P</div>
+      <p class="nav-label">WORKSPACE</p>
+      <div class="nav-item active"><span>⌂</span> Home</div>
+      <div class="nav-item"><span>◎</span> Directory</div>
+      <div class="nav-item"><span>▤</span> Conversations <b>3</b></div>
+      <div class="nav-item"><span>◷</span> Events</div>
+      <div class="nav-member"><div class="avatar avatar-you">AM</div><span>Alex Morgan<small>Member</small></span><span class="more">···</span></div>
+    </aside>
+
+    <div class="app-content">
+      <div class="app-topbar"><span>Community / Home</span><span class="top-actions"><span class="status-dot"></span> All systems active <span class="avatar avatar-small">AM</span></span></div>
+      <div class="welcome-row"><div><p class="overline">THURSDAY, 8 OCTOBER</p><h2>Good morning, Alex</h2><p class="welcome-copy">Here’s what’s happening in your community.</p></div><button class="primary-action" type="button">＋ Create a post</button></div>
+
+      <div class="stats-row" aria-label="Community summary">
+        <article class="stat-card"><span>MEMBERS</span><strong>248</strong><small><b>+12</b> this month</small></article>
+        <article class="stat-card"><span>UNREAD MESSAGES</span><strong>3</strong><small>Across 2 conversations</small></article>
+        <article class="stat-card"><span>NEXT EVENT</span><strong class="event-stat">17 Oct</strong><small>Community supper · 6:30 pm</small></article>
+      </div>
+
+      <div class="content-grid">
+        <section class="panel activity-panel"><div class="panel-heading"><div><h3>Community updates</h3><p>Recent conversations and announcements</p></div><button class="quiet-action" type="button">View all →</button></div>
+          <article class="post"><div class="avatar avatar-jules">JL</div><div class="post-body"><div class="post-meta"><strong>Jules Lee</strong><span>· 24 min ago</span></div><p>Looking forward to seeing everyone at the autumn gathering next week.</p><div class="post-footer"><span>♡ 12 likes</span><span>◯ 4 replies</span></div></div></article>
+          <article class="post"><div class="avatar avatar-sam">SK</div><div class="post-body"><div class="post-meta"><strong>Sam Kim</strong><span>· 2 hours ago</span><span class="tag">ANNOUNCEMENT</span></div><p>The new member welcome pack is ready. Find it in Community resources.</p><div class="post-footer"><span>♡ 8 likes</span><span>◯ 2 replies</span></div></div></article>
+        </section>
+        <aside class="panel event-panel"><div class="panel-heading"><div><h3>Coming up</h3><p>Events for members</p></div><button class="quiet-action" type="button">All events</button></div>
+          <div class="event-card"><div class="date-block"><strong>17</strong><span>OCT</span></div><div><strong>Community supper</strong><p>Friday · 6:30 pm</p><small>12 members going</small></div></div>
+          <div class="event-card"><div class="date-block"><strong>22</strong><span>OCT</span></div><div><strong>Open studio</strong><p>Wednesday · 2:00 pm</p><small>6 members going</small></div></div>
+          <button class="secondary-action" type="button">Browse events</button>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="palette-details" aria-label="Palette colours">
+    <div class="palette-description"><p class="eyebrow">PALETTE</p><h2>{{ palette.direction }}</h2><p>Text and controls stay clear across the darker surfaces. The accent marks primary actions and selected navigation.</p></div>
+    <div class="swatches"><div class="swatch" *ngFor="let color of palette.colors"><span class="swatch-color" [style.backgroundColor]="color.value" [attr.aria-label]="color.label + ' colour ' + color.value"></span><span>{{ color.label }}<small>{{ color.value }}</small></span></div></div>
+  </section>
+</main>

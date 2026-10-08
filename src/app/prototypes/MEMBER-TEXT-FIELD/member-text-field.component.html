@@ -1,0 +1,48 @@
+<main class="prototype-page">
+  <a class="back-link" routerLink="/prototypes">← Prototyping</a>
+  <header class="prototype-header">
+    <div>
+      <p class="eyebrow">MEMBER-TEXT-FIELD</p>
+      <h1>Text input with guidance</h1>
+      <p class="intro">Does a persistent label and live guidance make a short profile field easier to complete?</p>
+    </div>
+  </header>
+
+  <section class="demo-panel" aria-labelledby="demo-title">
+    <div class="panel-heading">
+      <div>
+        <h2 id="demo-title">Interactive preview</h2>
+        <p>Type, clear, and review the field states.</p>
+      </div>
+      <span class="field-tag">TEXT FIELD</span>
+    </div>
+
+    <div class="field-wrap">
+      <label for="display-name">Display name</label>
+      <div class="input-row" [class.input-row-filled]="value.length > 0">
+        <input #displayName id="display-name" type="text" [(ngModel)]="value" [attr.maxlength]="maxLength" placeholder="e.g. Alex Morgan" aria-describedby="name-help name-count">
+        @if (value) {
+          <button class="clear-button" type="button" (click)="clear(displayName)" aria-label="Clear display name">Clear</button>
+        }
+      </div>
+      <div class="field-meta">
+        <span id="name-help">This is how your name appears to members.</span>
+        <span id="name-count" aria-live="polite">{{ value.length }} / {{ maxLength }}</span>
+      </div>
+    </div>
+
+    @if (value) {
+      <div class="preview-result" aria-live="polite">
+        <span class="result-label">Preview</span>
+        <strong>{{ value }}</strong>
+      </div>
+    } @else {
+      <p class="empty-hint">Your preview will appear here as you type.</p>
+    }
+  </section>
+
+  <aside class="question-note">
+    <span class="note-label">DESIGN QUESTION</span>
+    <p>Is the helper text useful beside the character count, or does it add too much visual weight?</p>
+  </aside>
+</main>

@@ -1,0 +1,26 @@
+<main class="dashboard-layout">
+  <aside class="dashboard-rail">
+    <a class="wordmark" routerLink="/prototypes">PERRINN<span>community</span></a>
+    <nav aria-label="Main navigation">
+      @for (item of navigation; track item) {
+        <button type="button" [class.selected]="activeNav === item" (click)="activeNav = item"><span>{{ item.slice(0, 1) }}</span>{{ item }}</button>
+      }
+    </nav>
+    <div class="rail-profile"><span class="avatar">AM</span><div><strong>Alex Morgan</strong><small>Member</small></div></div>
+  </aside>
+
+  <section class="dashboard-main">
+    <header class="dashboard-top"><a routerLink="/prototypes" class="mobile-brand">PERRINN</a><label class="search"><span aria-hidden="true">⌕</span><input aria-label="Search community" placeholder="Search community"></label><nav class="layout-switcher" aria-label="Browse layout prototypes"><a [routerLink]="['/prototypes', previousLayout.id]" [attr.aria-label]="'Previous: ' + previousLayout.name">←</a><span>{{ currentLayoutIndex + 1 }} / {{ layouts.length }}</span><a [routerLink]="['/prototypes', nextLayout.id]" [attr.aria-label]="'Next: ' + nextLayout.name">→</a></nav><button class="icon-button" aria-label="Notifications">♧<i></i></button></header>
+    <div class="welcome"><div><p class="eyebrow">MONDAY, 8 JUNE</p><h1>{{ activeNav === 'Overview' ? 'Good morning, Alex' : activeNav }}</h1><p>Here’s what’s happening in your community.</p></div><button class="new-post">＋ New post</button></div>
+    <section class="summary-grid" aria-label="Community summary"><article><span class="summary-icon">P</span><small>Community members</small><strong>1,284</strong><span class="summary-foot">18 joined this week</span></article><article><span class="summary-icon">◷</span><small>Upcoming events</small><strong>6</strong><span class="summary-foot">Next one in 3 days</span></article><article><span class="summary-icon">✉</span><small>Unread messages</small><strong>3</strong><span class="summary-foot">Across 2 conversations</span></article></section>
+
+    <div class="dashboard-content">
+      <section class="updates-panel"><header class="panel-header"><div><h2>Community updates</h2><p>Recent notes from members</p></div><button>See all</button></header>
+        <article class="update-row"><span class="avatar clay">MC</span><div><strong>Maya Chen <small>· 12 min</small></strong><p>Thanks to everyone who joined the riverside walk. Photos are up in the group chat!</p><footer><button>♡ 8</button><button>Reply</button></footer></div></article>
+        <article class="update-row"><span class="avatar moss">TW</span><div><strong>Theo Williams <small>· 1 hr</small></strong><p>Two spare places for Saturday’s community lunch. Join us?</p><footer><button>♡ 14</button><button>Reply</button></footer></div></article>
+      </section>
+      <aside class="dashboard-side"><section class="event-panel"><header class="panel-header"><div><h2>Next event</h2><p>Make time to connect</p></div><span class="event-date">14<br><small>JUN</small></span></header><h3>Community lunch</h3><p class="event-detail">Saturday, 12:30 · Garden Room</p><div class="attendee-line"><span class="avatar tiny">MC</span><span class="avatar tiny">TW</span><span class="avatar tiny">+6</span><span>8 members going</span></div><button class="join-button" [class.joined]="eventJoined" (click)="eventJoined = !eventJoined">{{ eventJoined ? 'You’re going ✓' : 'Join event' }}</button></section>
+      <section class="messages-panel"><header class="panel-header"><div><h2>Conversations</h2><p>Pick up where you left off</p></div><button>Inbox</button></header>@for (chat of conversations; track chat.name) {<button class="conversation"><span class="avatar">{{ chat.initials }}</span><span><strong>{{ chat.name }}</strong><small>{{ chat.preview }}</small></span><time>{{ chat.time }}</time></button>}</section></aside>
+    </div>
+  </section>
+</main>

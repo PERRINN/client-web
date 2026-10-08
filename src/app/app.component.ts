@@ -110,6 +110,11 @@ export class AppComponent implements OnInit {
     this.showSocialLinksPopup = false;
   }
 
+  openPrototyping() {
+    this.closeSocialLinksPopup();
+    this.router.navigate(['/prototypes']);
+  }
+
   openSocialLink(url: string) {
     if (!url) return;
     window.open(url, '_blank');
