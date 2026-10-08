@@ -159,9 +159,7 @@
               <li class="currency-item">
                 <button class="buttonToggle currency-btn"
                   (click)="onCurrencySelected(currency[0])"
-                  [style.background-color]="currencySelected == currency[0] ? '#10b981' : 'transparent'"
-                  [style.border-color]="currencySelected == currency[0] ? '#10b981' : 'rgba(16, 185, 129, 0.2)'"
-                  [style.color]="currencySelected == currency[0] ? '#ffffff' : '#cbd5e1'"
+                  [class.selected]="currencySelected === currency[0]"
                   >
                   {{ currency[1].designation }}
                 </button>
@@ -181,9 +179,7 @@
               <li class="amount-item">
                 <button class="buttonToggle amount-btn"
                   (click)="creditSelected = index; refreshAmountCharge()"
-                  [style.background-color]="creditSelected == index ? '#10b981' : 'transparent'"
-                  [style.border-color]="creditSelected == index ? '#10b981' : 'rgba(16, 185, 129, 0.2)'"
-                  [style.color]="creditSelected == index ? '#ffffff' : '#cbd5e1'"
+                  [class.selected]="creditSelected === index"
                   >
                   {{UI.formatCurrency(currencySelected,credit)}}
                 </button>
@@ -230,23 +226,23 @@
           <div class="buy-status-text">{{paymentStatusText}}</div>
           <div class="payment-status-steps">
             <div class="payment-status-step">
-              <span [style.color]="paymentStepOrderCreated ? '#10b981' : '#64748b'">{{paymentStepOrderCreated ? '✓' : '•'}}</span>
+              <span class="payment-step-indicator" [class.complete]="paymentStepOrderCreated">{{paymentStepOrderCreated ? '✓' : '•'}}</span>
               Order created
             </div>
             <div class="payment-status-step">
-              <span [style.color]="paymentStepCheckoutOpened ? '#10b981' : '#64748b'">{{paymentStepCheckoutOpened ? '✓' : '•'}}</span>
+              <span class="payment-step-indicator" [class.complete]="paymentStepCheckoutOpened">{{paymentStepCheckoutOpened ? '✓' : '•'}}</span>
               Checkout opened
             </div>
             <div class="payment-status-step">
-              <span [style.color]="paymentStepPaymentReceived ? '#10b981' : '#64748b'">{{paymentStepPaymentReceived ? '✓' : '•'}}</span>
+              <span class="payment-step-indicator" [class.complete]="paymentStepPaymentReceived">{{paymentStepPaymentReceived ? '✓' : '•'}}</span>
               Payment received by Revolut
             </div>
             <div class="payment-status-step">
-              <span [style.color]="paymentStepMessageGenerated ? '#10b981' : '#64748b'">{{paymentStepMessageGenerated ? '✓' : '•'}}</span>
+              <span class="payment-step-indicator" [class.complete]="paymentStepMessageGenerated">{{paymentStepMessageGenerated ? '✓' : '•'}}</span>
               PERRINN message generated
             </div>
             <div class="payment-status-step">
-              <span [style.color]="paymentStepCredited ? '#10b981' : '#64748b'">{{paymentStepCredited ? '✓' : '•'}}</span>
+              <span class="payment-step-indicator" [class.complete]="paymentStepCredited">{{paymentStepCredited ? '✓' : '•'}}</span>
               PRN credited to wallet
             </div>
           </div>

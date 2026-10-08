@@ -1,5 +1,22 @@
 :root {
-  /* Colors */
+  /* Night Signal palette */
+  --color-page: #121923;
+  --color-surface: #1D2835;
+  --color-raised: #2A3745;
+  --color-border: #435263;
+  --color-text: #F4F6F8;
+  --color-text-secondary: #CBD4DE;
+  --color-text-muted: #AAB7C5;
+  --color-accent: #E5C477;
+  --color-accent-ink: #2A2417;
+  --color-selected: #34404A;
+
+  /* Semantic status colors */
+  --color-success: #10b981;
+  --color-danger: #b91c1c;
+  --color-danger-text: #fca5a5;
+
+  /* Legacy prototype tokens: retain for palette/layout experiments only */
   --bg-black: #000;
   --bg-slate: #1e293b;
   --bg-card-dark: rgba(22, 32, 52, 0.88);
@@ -16,9 +33,6 @@
   --radius-lg: 12px;
   --radius-md: 10px;
   --radius-sm: 8px;
-
-  /* Shadows */
-  --shadow-standard: 0 8px 24px rgba(2, 8, 23, 0.24);
 }
 
 /* 2. Global/Base Styles */
@@ -43,25 +57,25 @@
     height: 5px;
 }
 *::-webkit-scrollbar-thumb {
-    background-color:#B0BAC0;
+    background-color: var(--color-border);
 }
 *::-webkit-scrollbar-track {
-    background-color: #131B20;
+    background-color: var(--color-page);
 }
 html, body {
-  background-color: var(--bg-black);
+  background-color: var(--color-page);
 }
 body {
   border: 0;
-  background-color: var(--bg-black);
-  color: var(--text-gray);
+  background-color: var(--color-page);
+  color: var(--color-text-secondary);
   scroll-behavior: auto;
   overscroll-behavior-x: none;
   touch-action: pan-y;
 }
 a:link,
 a:visited {
-  color:#999;
+  color: var(--color-text-secondary);
 }
 button, div.buttonBlack {
   cursor: pointer;
@@ -71,39 +85,43 @@ button, div.buttonBlack {
   margin: 0 auto;
   text-align:center;
   padding:3px;
-  box-shadow: none;              /* No shadow */
   outline: none;                 /* No blue outline unless focused */
   border: 1px solid transparent; /* Flat edge */
 }
 input,
 textarea {
-  background-color:#2D3941;
-  color: #B0BAC0;
+  background-color: var(--color-surface);
+  color: var(--color-text);
   width: 90%;
   padding: 10px;
   margin: 5px;
   -webkit-transition: 0.3s ease;
   transition: 0.3s ease;
-  box-shadow: none;              /* No shadow */
   outline: none;                 /* No blue outline unless focused */
-  border: 1px solid transparent; /* Flat edge */
+  border: 1px solid var(--color-border);
+}
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-border);
+  outline-offset: 1px;
 }
 select {
   padding: 5px 10px;
-  background-color: #2D3941;
-  color: #B0BAC0;
+  background-color: var(--color-surface);
+  color: var(--color-text);
   width: 200px;
   height: 30px;
   text-align: center;
   margin: 10px 10px 10px 10px;
 }
 option {
-  color: #757575;
-  background-color: #2D3941;
+  color: var(--color-text-secondary);
+  background-color: var(--color-surface);
 }
 option:checked {
-  color: #B0BAC0;
-  background-color: #2D3941;
+  color: var(--color-text);
+  background-color: var(--color-raised);
 }
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
@@ -122,13 +140,13 @@ progress {
   appearance:none;
   width:100%;
   height:3px;
-  background-color: #131B20;
+  background-color: var(--color-page);
 }
 progress::-webkit-progress-bar {
   background-color: transparent; width: 100%;
 }
 progress::-webkit-progress-value {
-  background-color: #4e86e0 !important;
+  background-color: var(--color-accent) !important;
 }
 img {
   image-orientation:from-image;
@@ -155,7 +173,7 @@ th {
   clear: both;
 }
 .listLight li:hover {
-  background-color:#333;
+  background-color: var(--color-selected);
 }
 .listLight li {
   cursor: pointer;
@@ -167,7 +185,7 @@ th {
   gap: 0px 10px;
 }
 .progress-track {
-  background-color: #334155;
+  background-color: var(--color-raised);
   height: 22px;
   width: 100%;
   border-radius: 7px;
@@ -176,7 +194,7 @@ th {
 }
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #059669 0%, #047857 100%);
+  background: var(--color-success);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -184,7 +202,7 @@ th {
 }
 .progress-pct {
   font-size: 10px;
-  color: #ffffff;
+  color: var(--color-text);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -196,23 +214,23 @@ th {
   line-height: 20px;
 }
 .buttonBlack {
-  background-color: black;
-  color: whitesmoke;
+  background-color: var(--color-raised);
+  color: var(--color-text-secondary);
 }
 .buttonBlack:hover{
-  box-shadow: 0 0 3px whitesmoke;
+  background-color: var(--color-selected);
 }
 .buttonBlack:disabled{
   opacity:0.5;
   pointer-events:none;
 }
 .buttonRed {
-  background-color:#A73E30;
-  color: whitesmoke;
+  background-color:var(--color-danger);
+  color: var(--color-text);
 }
 .buttonRed:hover{
   opacity:0.85;
-  color: whitesmoke;
+  color: var(--color-text);
 }
 .buttonRed:disabled{
   opacity:0.5;
@@ -228,30 +246,30 @@ th {
   top: 50%;
   transform: translateY(-50%);
   width: 25px;
-  color: #757566;
+  color: var(--color-text-muted);
   transition: all 0.2s;
   right: 20px;
 }
 .password .password-icon:hover {
   cursor: pointer;
-  color: rgba(245, 245, 245, 0.60);
+  color: rgba(244, 246, 248, 0.60);
 }
 .island {
   text-align: center;
   margin: 5px auto;
   padding: 10px;
   max-width: 800px;
-  background-color: #262927;
+  background-color: var(--color-surface);
   user-select:none;
   border-radius: 10px;
 }
 #date {
   padding: 2.5px;
-  color: #1F1F1F;
-  background-color: #a7a7a7;
+  color: var(--color-accent-ink);
+  background-color: var(--color-raised);
 }
 .title {
-  color:white;
+  color: var(--color-text);
   padding:10px;
   font-size: 14px;
   clear:both;
@@ -274,7 +292,7 @@ th {
   position: fixed;
   top: 0;
   left: 0;
-  background-color:#0e0e0e;
+  background-color:var(--color-page);
   object-fit:contain;
   cursor: pointer;
 }
@@ -296,7 +314,7 @@ th {
   width: 10px;
   height: 10px;
   margin:5px;
-  background-color:#3e6ab2;
+  background-color:var(--color-accent);
   border-radius:100%;
   display: inline-block;
   -webkit-animation: sk-bouncedelay 1.4s infinite ease-in-out both;
@@ -355,8 +373,8 @@ th {
 app-root {
   display: block;
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-  color: var(--text-main);
-  background: var(--bg-black);
+  color: var(--color-text-secondary);
+  background: var(--color-page);
   min-height: 100vh;
 }
 app-root .appShell {
@@ -370,15 +388,14 @@ app-root .uploadProgress {
 app-root .topNav {
   max-width: 980px;
   margin: 0 auto 10px auto;
-  background: var(--bg-slate);
-  border: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 10px 12px;
   display: flex;
   justify-content: space-between;
   gap: 12px;
   align-items: center;
-  box-shadow: var(--shadow-standard);
 }
 app-root .navLeft,
 app-root .navRight {
@@ -394,9 +411,9 @@ app-root .iconBtn {
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  background: rgba(22, 32, 52, 0.45);
-  color: #cbd5e1;
+  border: 1px solid var(--color-border);
+  background: var(--color-raised);
+  color: var(--color-text-secondary);
   display: inline-flex;
   justify-content: center;
   align-items: center;
@@ -404,8 +421,8 @@ app-root .iconBtn {
   transition: all 0.2s ease;
 }
 app-root .iconBtn:hover {
-  border-color: rgba(16, 185, 129, 0.4);
-  background: rgba(16, 185, 129, 0.08);
+  border-color: var(--color-text-muted);
+  background: var(--color-selected);
 }
 app-root .brandIcon {
   width: 23px;
@@ -420,7 +437,7 @@ app-root .userPill {
   padding: 5px 10px 5px 5px;
   border-radius: 999px;
   border: none;
-  background: rgba(16, 185, 129, 0.16);
+  background: var(--color-selected);
   cursor: pointer;
 }
 app-root .avatar {
@@ -432,15 +449,15 @@ app-root .avatar {
 app-root .balance {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-light);
+  color: var(--color-text);
 }
 app-root .verified {
   font-size: 16px;
-  color: #3b82f6;
+  color: var(--color-success);
 }
 app-root .devFlag {
   font-size: 11px;
-  color: #f87171;
+  color: var(--color-danger-text);
   line-height: 1;
   cursor: pointer;
 }
@@ -451,22 +468,21 @@ app-root .devPillArea {
   padding: 3px 6px;
   border-radius: 999px;
   border: 1px solid rgba(248, 113, 113, 0.22);
-  background: rgba(22, 32, 52, 0.55);
+  background: rgba(42, 55, 69, 0.55);
 }
 app-root .devPill {
   font-size: 10px;
   line-height: 1;
-  color: #fca5a5;
+  color: var(--color-danger-text);
   border: 1px solid rgba(248, 113, 113, 0.22);
   border-radius: 999px;
   padding: 3px 7px;
   background: rgba(248, 113, 113, 0.06);
 }
 app-root .devPillActive {
-  color: #fecaca;
+  color: var(--color-danger-text);
   border-color: rgba(248, 113, 113, 0.8);
   background: rgba(248, 113, 113, 0.28);
-  box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.28);
   font-weight: 700;
 }
 app-root .devPillToggle {
@@ -482,25 +498,27 @@ app-root .buttonSecondary {
   transition: all 0.2s ease;
 }
 app-root .buttonPrimary {
-  border: none;
-  color: #ffffff;
-  background: var(--primary-green);
-  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.28);
+  border: 1px solid transparent;
+  color: var(--color-accent-ink);
+  background: var(--color-accent);
 }
 app-root .buttonPrimary:hover:not(:disabled) {
-  transform: translateY(-1px);
+  border-color: var(--color-border);
 }
 app-root .buttonPrimary:disabled {
   opacity: 0.45;
   cursor: not-allowed;
-  box-shadow: none;
-  background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
-  color: #94a3b8;
+  background: var(--color-raised);
+  color: var(--color-text-muted);
 }
 app-root .buttonSecondary {
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #10b981;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
   background: transparent;
+}
+app-root .buttonSecondary:hover:not(:disabled) {
+  border-color: var(--color-text-muted);
+  background: var(--color-selected);
 }
 app-root .buyBtn {
   margin-left: 8px;
@@ -509,7 +527,7 @@ app-root .socialPopupBackdrop {
   position: fixed;
   inset: 0;
   z-index: 1100;
-  background: rgba(2, 8, 23, 0.58);
+  background: rgba(18, 25, 35, 0.58);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -518,10 +536,9 @@ app-root .socialPopupBackdrop {
 app-root .socialPopupCard {
   width: 100%;
   max-width: 420px;
-  background: #1e293b;
-  border: 1px solid rgba(16, 185, 129, 0.22);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 14px;
-  box-shadow: 0 16px 40px rgba(2, 8, 23, 0.42);
   padding: 14px;
 }
 app-root .socialPopupHeader {
@@ -536,8 +553,7 @@ app-root .socialPopupTitle {
   font-weight: 800;
   letter-spacing: 0.8px;
   text-transform: uppercase;
-  color: #f1f5f9;
-  text-shadow: 0 2px 10px rgba(16, 185, 129, 0.28);
+  color: var(--color-text);
 }
 app-root .socialPopupGrid {
   display: grid;
@@ -563,8 +579,8 @@ app-root .contentWrap {
   margin: 0 auto;
 }
 app-root .contentCard {
-  background: var(--bg-slate);
-  border: 1px solid rgba(16, 185, 129, 0.1);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   min-height: calc(100vh - 120px);
   overflow: hidden;
@@ -595,20 +611,20 @@ app-root .banner-img {
   display: block;
 }
 app-root .messageTiming {
-  color: #94a3b8;
+  color: var(--color-text-muted);
   font-size: 11px;
   font-weight: 600;
   margin: 0px 10px 0px 10px;
 }
 app-root .messageAuthor {
-  color: #e2e8f0;
+  color: var(--color-text-secondary);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.1px;
   display: inline;
 }
 app-root .chatSubject {
-  color: #f1f5f9;
+  color: var(--color-text);
   font-size: 14px;
   font-weight: 600;
   line-height: 1.35;
@@ -647,7 +663,7 @@ app-root buyprn .buy-header-actions {
 app-root buyprn .buy-section-title {
   font-size: 16px;
   font-weight: 700;
-  color: #f1f5f9;
+  color: var(--color-text);
   margin-bottom: 16px;
 }
 app-root buyprn .buy-section-intro {
@@ -660,25 +676,25 @@ app-root buyprn .buy-center-content {
   text-align: center;
 }
 app-root buyprn .buy-text-normal {
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
   font-size: 14px;
   line-height: 1.6;
 }
 app-root buyprn .buy-text-muted {
   font-size: 13px;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   line-height: 1.6;
 }
 app-root buyprn .membership-title {
   font-size: 18px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--color-text);
   margin-bottom: 16px;
 }
 app-root buyprn .membership-amount {
   font-size: 24px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--color-text);
   margin-bottom: 14px;
   word-break: break-word;
   overflow-wrap: break-word;
@@ -686,11 +702,11 @@ app-root buyprn .membership-amount {
 app-root buyprn .membership-subtitle {
   font-size: 13px;
   line-height: 1.7;
-  color: rgba(255, 255, 255, 0.95);
+  color: rgba(244, 246, 248, 0.95);
   display: block;
 }
 app-root buyprn .membership-details-box {
-  background-color: rgba(255, 255, 255, 0.12);
+  background-color: rgba(244, 246, 248, 0.12);
   padding: 12px;
   border-radius: 10px;
   margin: 12px 0;
@@ -698,21 +714,21 @@ app-root buyprn .membership-details-box {
 app-root buyprn .membership-details-list {
   font-size: 12px;
   line-height: 1.7;
-  color: #ffffff;
+  color: var(--color-text);
   display: block;
   text-align: left;
 }
 app-root buyprn .membership-footer-text {
   font-size: 12px;
   line-height: 1.45;
-  color: rgba(255, 255, 255, 0.92);
+  color: rgba(244, 246, 248, 0.92);
   margin-top: 10px;
   text-align: left;
 }
 app-root buyprn .fund-meta-row {
   margin-top: 8px;
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -720,7 +736,7 @@ app-root buyprn .fund-meta-row {
 app-root buyprn .fund-target-text {
   margin-top: 4px;
   font-size: 11px;
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
   line-height: 1.35;
 }
 app-root buyprn .payment-header {
@@ -730,14 +746,14 @@ app-root buyprn .payment-header {
 }
 app-root buyprn .payment-provider-badge {
   padding: 12px 14px;
-  background-color: rgba(16, 185, 129, 0.08);
+  background-color: rgba(52, 64, 74, 0.08);
   border-radius: 10px;
-  border-left: 3px solid #10b981;
+  border-left: 3px solid var(--color-border);
   margin-bottom: 24px;
 }
 app-root buyprn .payment-label {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   margin-bottom: 12px;
   font-weight: 600;
   text-transform: uppercase;
@@ -745,7 +761,7 @@ app-root buyprn .payment-label {
 }
 app-root buyprn .summary-divider {
   height: 1px;
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(52, 64, 74, 0.1);
   margin: 12px 0;
 }
 app-root buyprn .payment-status-steps {
@@ -754,12 +770,19 @@ app-root buyprn .payment-status-steps {
 }
 app-root buyprn .payment-status-step {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-text-muted);
+}
+app-root buyprn .payment-step-indicator {
+  color: var(--color-text-muted);
+  margin-right: 4px;
+}
+app-root buyprn .payment-step-indicator.complete {
+  color: var(--color-success);
 }
 app-root buyprn .info-popup-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(2, 8, 23, 0.72);
+  background: rgba(18, 25, 35, 0.72);
   z-index: 1200;
   display: flex;
   align-items: flex-start;
@@ -775,38 +798,38 @@ app-root buyprn .info-popup-card {
   overscroll-behavior: contain;
 }
 app-root buyprn .info-text-box {
-  background: rgba(16, 185, 129, 0.05);
-  border: 1px solid rgba(16, 185, 129, 0.16);
+  background: rgba(52, 64, 74, 0.05);
+  border: 1px solid rgba(52, 64, 74, 0.16);
   border-radius: 10px;
   padding: 12px;
   margin-bottom: 8px;
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
   line-height: 1.5;
   font-size: 13px;
 }
 app-root buyprn .info-text-box-strong {
-  background: rgba(16, 185, 129, 0.08);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  color: #e2e8f0;
+  background: rgba(52, 64, 74, 0.08);
+  border: 1px solid rgba(52, 64, 74, 0.2);
+  color: var(--color-text-secondary);
   font-weight: 600;
 }
 app-root buyprn .info-highlight-box {
   margin-top: 10px;
   padding: 12px;
   border-radius: 10px;
-  border: 1px solid rgba(16, 185, 129, 0.24);
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0.08) 100%);
-  color: #ecfeff;
+  border: 1px solid rgba(52, 64, 74, 0.24);
+  background: var(--color-raised);
+  color: var(--color-text);
   font-size: 13px;
   line-height: 1.5;
   font-weight: 700;
   text-align: center;
 }
 app-root buyprn .info-stat-card {
-  background-color: rgba(16, 185, 129, 0.08);
+  background-color: rgba(52, 64, 74, 0.08);
   padding: 14px;
   border-radius: 10px;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(52, 64, 74, 0.2);
 }
 app-root buyprn .buy-mb-20 { margin-bottom: 20px; }
 app-root buyprn .buy-mb-24 { margin-bottom: 24px; }
@@ -817,7 +840,7 @@ app-root buyprn .buy-p-0 { padding: 0; }
 app-root buyprn .buy-text-center { text-align: center; }
 app-root buyprn .buy-status-success {
   font-size: 14px;
-  color: #10b981;
+  color: var(--color-success);
   font-weight: 600;
 }
 app-root buyprn .info-popup-image {
@@ -837,11 +860,11 @@ app-root buyprn .info-footer {
   padding: 16px;
   text-align: center;
   margin-top: 16px;
-  border-top: 1px solid rgba(16, 185, 129, 0.1);
+  border-top: 1px solid rgba(52, 64, 74, 0.1);
 }
 app-root buyprn .info-footer-icon {
   font-size: 24px;
-  color: #10b981;
+  color: var(--color-text-secondary);
   margin-bottom: 8px;
   display: block;
 }
@@ -854,33 +877,33 @@ app-root buyprn .buy-btn-fixed-150 { margin: 12px auto; width: 150px; }
 app-root buyprn .buy-btn-fixed-200 { margin: 12px auto; width: 200px; }
 app-root buyprn .buy-btn-auto { margin: 16px auto; width: auto; }
 app-root buyprn .buy-growth-box {
-  background-color: rgba(16, 185, 129, 0.05);
+  background-color: rgba(52, 64, 74, 0.05);
   padding: 16px;
   border-radius: 10px;
 }
 app-root buyprn .buy-link-whatsapp { color: inherit; text-decoration: underline; font-weight: 700; }
-app-root buyprn .fund-days-left { color: #10b981; font-weight: 500; }
-app-root buyprn .fund-days-ago { color: #94a3b8; }
-app-root buyprn .payment-icon { font-size: 24px; color: #10b981; margin-right: 12px; }
+app-root buyprn .fund-days-left { color: var(--color-success); font-weight: 500; }
+app-root buyprn .fund-days-ago { color: var(--color-text-muted); }
+app-root buyprn .payment-icon { font-size: 24px; color: var(--color-success); margin-right: 12px; }
 app-root buyprn .payment-provider-container {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   display: flex;
   align-items: center;
   font-weight: 500;
 }
-app-root buyprn .payment-lock-icon { font-size: 16px; margin-right: 8px; color: #10b981; }
-app-root buyprn .buy-summary-label { color: #cbd5e1; font-size: 13px; display: block; margin-bottom: 8px; }
-app-root buyprn .buy-summary-value-lg { color: #10b981; font-size: 18px; font-weight: 700; display: block; margin-bottom: 12px; }
-app-root buyprn .buy-summary-sublabel { color: #94a3b8; font-size: 12px; display: block; margin-bottom: 4px; margin-top: 12px; }
-app-root buyprn .buy-summary-value-md { color: #10b981; font-size: 16px; font-weight: 700; }
+app-root buyprn .payment-lock-icon { font-size: 16px; margin-right: 8px; color: var(--color-success); }
+app-root buyprn .buy-summary-label { color: var(--color-text-secondary); font-size: 13px; display: block; margin-bottom: 8px; }
+app-root buyprn .buy-summary-value-lg { color: var(--color-text); font-size: 18px; font-weight: 700; display: block; margin-bottom: 12px; }
+app-root buyprn .buy-summary-sublabel { color: var(--color-text-muted); font-size: 12px; display: block; margin-bottom: 4px; margin-top: 12px; }
+app-root buyprn .buy-summary-value-md { color: var(--color-text); font-size: 16px; font-weight: 700; }
 app-root buyprn .buy-btn-icon { font-size: 18px; vertical-align: middle; margin-right: 8px; }
-app-root buyprn .info-growth-label { font-size: 12px; color: #94a3b8; margin-bottom: 12px; font-weight: 500; }
-app-root buyprn .info-growth-value { color: #f1f5f9; font-weight: 600; }
-app-root buyprn .info-stat-label { font-size: 11px; color: #94a3b8; margin-bottom: 6px; font-weight: 500; }
-app-root buyprn .info-stat-value { font-size: 18px; font-weight: 700; color: #10b981; }
+app-root buyprn .info-growth-label { font-size: 12px; color: var(--color-text-muted); margin-bottom: 12px; font-weight: 500; }
+app-root buyprn .info-growth-value { color: var(--color-text); font-weight: 600; }
+app-root buyprn .info-stat-label { font-size: 11px; color: var(--color-text-muted); margin-bottom: 6px; font-weight: 500; }
+app-root buyprn .info-stat-value { font-size: 18px; font-weight: 700; color: var(--color-text); }
 app-root buyprn .buy-title-15 { font-size: 15px; }
-app-root buyprn .buy-status-text { font-size: 13px; color: #cbd5e1; margin-bottom: 10px; line-height: 1.45; }
+app-root buyprn .buy-status-text { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 10px; line-height: 1.45; }
 app-root buyprn .buy-btn-small { padding: 7px 12px; font-size: 11px; }
 app-root buyprn .buy-btn-small-wide { padding: 7px 14px; font-size: 11px; }
 app-root buyprn .buy-mb-8 { margin-bottom: 8px; }
@@ -893,7 +916,7 @@ app-root buyprn .amount-item { flex: 0 1 auto; }
 app-root buyprn .payment-receipt-note {
   margin-top: 10px;
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   line-height: 1.4;
 }
 app-root buyprn .info-header-row {
@@ -911,46 +934,44 @@ app-root buyprn .info-overview-padding {
   padding: 16px;
 }
 app-root buyprn .buy-title-15 { font-size: 15px; }
-app-root buyprn .buy-status-text { font-size: 13px; color: #cbd5e1; margin-bottom: 10px; line-height: 1.45; }
-app-root buyprn .buy-receipt-note { margin-top: 10px; font-size: 11px; color: #94a3b8; line-height: 1.4; }
+app-root buyprn .buy-status-text { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 10px; line-height: 1.45; }
+app-root buyprn .buy-receipt-note { margin-top: 10px; font-size: 11px; color: var(--color-text-muted); line-height: 1.4; }
 app-root buyprn .buy-btn-reset { margin-top: 10px; padding: 7px 12px; font-size: 11px; }
 app-root buyprn .buy-btn-close { padding: 7px 14px; font-size: 11px; }
 app-root buyprn .info-header { display: flex; justify-content: flex-start; align-items: center; margin-bottom: 12px; }
 app-root buyprn .info-intro { padding: 0 4px 6px 4px; text-align: left; }
 app-root buyprn .info-overview { text-align: left; padding: 16px; }
-app-root buyprn .info-stat-box { font-size: 11px; color: #94a3b8; margin-bottom: 6px; font-weight: 500; }
-app-root buyprn .info-stat-value-large { font-size: 18px; font-weight: 700; color: #10b981; }
-app-root buyprn .info-growth-box { background-color: rgba(16, 185, 129, 0.05); padding: 16px; text-align: center; border-radius: 10px; margin-top: 16px; }
-app-root buyprn .info-growth-label { font-size: 12px; color: #94a3b8; margin-bottom: 12px; font-weight: 500; }
-app-root buyprn .info-growth-value { color: #f1f5f9; font-weight: 600; }
+app-root buyprn .info-stat-box { font-size: 11px; color: var(--color-text-muted); margin-bottom: 6px; font-weight: 500; }
+app-root buyprn .info-stat-value-large { font-size: 18px; font-weight: 700; color: var(--color-text); }
+app-root buyprn .info-growth-box { background-color: rgba(52, 64, 74, 0.05); padding: 16px; text-align: center; border-radius: 10px; margin-top: 16px; }
+app-root buyprn .info-growth-label { font-size: 12px; color: var(--color-text-muted); margin-bottom: 12px; font-weight: 500; }
+app-root buyprn .info-growth-value { color: var(--color-text); font-weight: 600; }
 app-root buyprn .buyPage {
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-  color: #f1f5f9;
-  background: #000;
+  color: var(--color-text);
+  background: var(--color-page);
   min-height: 100vh;
   padding: 24px 16px;
 }
 app-root buyprn button.buttonPrimary {
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
 }
 app-root buyprn .fundCard {
   cursor: pointer;
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(52, 64, 74, 0.1);
   margin-bottom: 10px;
-  background: rgba(16, 185, 129, 0.03);
+  background: rgba(52, 64, 74, 0.03);
   transition: all 0.2s ease;
 }
 app-root buyprn .listLight li:hover {
   background-color: transparent;
 }
 app-root buyprn .fundCard:hover {
-  background: rgba(16, 185, 129, 0.08) !important;
-  border-color: rgba(16, 185, 129, 0.3) !important;
-  box-shadow: none !important;
+  background: rgba(52, 64, 74, 0.08) !important;
+  border-color: rgba(52, 64, 74, 0.3) !important;
 }
 app-root buyprn .buyWrap {
   max-width: 500px;
@@ -967,19 +988,18 @@ app-root buyprn img {
 }
 app-root buyprn button.buttonPrimary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
 }
 app-root buyprn button.buttonPrimary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 app-root buyprn button.buttonSecondary {
-  border: 2px solid #10b981;
+  border: 1px solid var(--color-border);
   font-weight: 600;
   transition: all 0.3s ease;
 }
 app-root buyprn button.buttonSecondary:hover {
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(52, 64, 74, 0.1);
   transform: translateY(-2px);
 }
 app-root buyprn button.buttonToggle {
@@ -991,30 +1011,28 @@ app-root buyprn .info-popup-btn {
   font-size: 11px;
   font-weight: 600;
   opacity: 0.78;
-  background: rgba(15, 23, 42, 0.45);
-  border-color: rgba(148, 163, 184, 0.28);
-  color: #94a3b8;
+  background: rgba(29, 40, 53, 0.45);
+  border-color: rgba(67, 82, 99, 0.28);
+  color: var(--color-text-muted);
 }
 app-root buyprn .buy-island {
-  background: #1e293b !important;
+  background: var(--color-surface) !important;
   padding: 24px;
   border-radius: 12px;
-  border: 1px solid rgba(16, 185, 129, 0.1) !important;
-  box-shadow: 0 8px 24px rgba(2, 8, 23, 0.24);
+  border: 1px solid rgba(52, 64, 74, 0.1) !important;
 }
 app-root buyprn .membership-card {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  background: var(--color-surface) !important;
   padding: 24px;
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(5, 150, 105, 0.2);
-  border: none !important;
-  color: #ffffff !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-text) !important;
 }
 app-root buyprn .payment-status-block {
-  background: #1e293b;
+  background: var(--color-surface);
   padding: 18px;
   border-radius: 12px;
-  border: 1px solid rgba(16, 185, 129, 0.22);
+  border: 1px solid rgba(52, 64, 74, 0.22);
   margin-top: 16px;
   text-align: left;
 }
@@ -1035,6 +1053,15 @@ app-root buyprn .amount-btn {
   transition: all 0.3s ease;
   font-weight: 600;
   font-size: 13px;
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
+}
+app-root buyprn .currency-btn.selected,
+app-root buyprn .amount-btn.selected {
+  background: var(--color-selected);
+  border-color: var(--color-accent);
+  color: var(--color-text);
 }
 app-root buyprn .amount-btn {
   padding: 10px 16px;
@@ -1044,17 +1071,17 @@ app-root buyprn .amount-btn {
 app-root buyprn .summary-box {
   text-align: center;
   padding: 16px;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+  background: var(--color-surface);
   border-radius: 10px;
   margin-top: 16px;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(52, 64, 74, 0.2);
 }
 
 /* Directory */
 app-root directory .directoryPage {
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-  color: #f1f5f9;
-  background: #000;
+  color: var(--color-text);
+  background: var(--color-page);
   min-height: 100vh;
   padding: 0;
 }
@@ -1064,11 +1091,10 @@ app-root directory .directoryContainer {
   margin: 0;
 }
 app-root directory .island {
-  background: #1e293b;
-  border: 1px solid rgba(16, 185, 129, 0.12);
+  background: var(--color-surface);
+  border: 1px solid rgba(52, 64, 74, 0.12);
   border-radius: 12px;
-  color: #cbd5e1;
-  box-shadow: 0 8px 24px rgba(2, 8, 23, 0.24);
+  color: var(--color-text-secondary);
 }
 app-root directory .directory-banner-item {
   padding: 0;
@@ -1077,30 +1103,30 @@ app-root directory .directory-banner-item {
   line-height: 0;
 }
 app-root directory .directory-overview-island {
-  background: #1e293b;
+  background: var(--color-surface);
   padding: 24px;
   border-radius: 12px;
-  border: 1px solid rgba(5, 150, 105, 0.1);
+  border: 1px solid rgba(52, 64, 74, 0.1);
   margin-bottom: 32px;
 }
 app-root directory .directory-stat-card {
-  background: linear-gradient(135deg, rgba(5, 150, 105, 0.1) 0%, rgba(4, 120, 87, 0.05) 100%);
+  background: var(--color-raised);
   padding: 16px;
   border-radius: 10px;
-  border: 1px solid rgba(5, 150, 105, 0.2);
+  border: 1px solid rgba(52, 64, 74, 0.2);
 }
 app-root directory .directory-search-container {
-  background: #1e293b;
+  background: var(--color-surface);
   padding: 10px 16px;
   border-radius: 10px;
-  border: 1px solid rgba(5, 150, 105, 0.1);
+  border: 1px solid rgba(52, 64, 74, 0.1);
   margin-bottom: 24px;
 }
 app-root directory .directory-search-input {
   flex: 1;
   background: transparent;
   border: none;
-  color: #f1f5f9;
+  color: var(--color-text);
   font-size: 14px;
   outline: none;
   font-family: inherit;
@@ -1113,11 +1139,18 @@ app-root directory .viewToggleBtn {
   gap: 6px;
   padding: 8px 16px;
   border-radius: 8px;
-  border: 1px solid rgba(5, 150, 105, 0.2);
+  border: 1px solid rgba(52, 64, 74, 0.2);
   font-weight: 600;
   font-size: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+}
+app-root directory .viewToggleBtn.active {
+  background: var(--color-selected);
+  border-color: var(--color-accent);
+  color: var(--color-text);
 }
 app-root directory .directory-card-grid {
   list-style: none;
@@ -1128,8 +1161,8 @@ app-root directory .directory-card-grid {
   gap: 12px;
 }
 app-root directory .directory-card {
-  background: #1e293b;
-  border: 1px solid rgba(5, 150, 105, 0.1);
+  background: var(--color-surface);
+  border: 1px solid rgba(52, 64, 74, 0.1);
   border-radius: 12px;
   overflow: hidden;
   transition: all 0.3s ease;
@@ -1143,66 +1176,69 @@ app-root directory .directory-card-img {
   height: 112px;
   width: 100%;
   display: block;
-  background: rgba(5, 150, 105, 0.03);
+  background: rgba(52, 64, 74, 0.03);
   flex-shrink: 0;
 }
 app-root directory .directory-table-container {
-  background: #1e293b;
+  background: var(--color-surface);
   padding: 0 12px 12px 12px;
   border-radius: 12px;
-  border: 1px solid rgba(5, 150, 105, 0.1);
+  border: 1px solid rgba(52, 64, 74, 0.1);
   overflow: visible;
 }
 app-root directory .dir-text-center { text-align: center; }
-app-root directory .dir-overview-title { font-size: 14px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+app-root directory .dir-overview-title { font-size: 14px; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
 app-root directory .dir-overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-app-root directory .dir-stat-label { font-size: 12px; color: #94a3b8; margin-bottom: 8px; font-weight: 500; }
-app-root directory .dir-stat-value-large { font-size: 24px; font-weight: 700; color: #10b981; }
-app-root directory .dir-stat-value-medium { font-size: 20px; font-weight: 700; color: #10b981; }
+app-root directory .dir-stat-label { font-size: 12px; color: var(--color-text-muted); margin-bottom: 8px; font-weight: 500; }
+app-root directory .dir-stat-value-large { font-size: 24px; font-weight: 700; color: var(--color-text); }
+app-root directory .dir-stat-value-medium { font-size: 20px; font-weight: 700; color: var(--color-text); }
 app-root directory .dir-mb-24 { margin-bottom: 24px; }
 app-root directory .dir-mb-32 { margin-bottom: 32px; }
 app-root directory .dir-flex-center-gap12 { display: flex; align-items: center; gap: 12px; }
-app-root directory .dir-btn-clear { background: transparent; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center; }
+app-root directory .dir-btn-clear { background: transparent; border: none; color: var(--color-text-muted); cursor: pointer; padding: 4px; display: flex; align-items: center; }
 app-root directory .dir-flex-between-center { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-app-root directory .dir-text-muted-14 { font-size: 14px; color: #94a3b8; }
+app-root directory .dir-text-muted-14 { font-size: 14px; color: var(--color-text-muted); }
 app-root directory .dir-flex-gap8 { display: flex; gap: 8px; }
 app-root directory .dir-card-body { padding: 8px 11px 11px 11px; display: flex; flex-direction: column; flex: 1; overflow: hidden; }
-app-root directory .dir-card-name { font-size: 12px; font-weight: 700; color: #f1f5f9; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px; }
-app-root directory .dir-card-pres { font-size: 11px; color: #cbd5e1; line-height: 1.5; margin-bottom: 4px; min-height: 38px; flex-grow: 1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; text-overflow: ellipsis; }
-app-root directory .dir-card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid rgba(5, 150, 105, 0.1); margin-top: auto; }
-app-root directory .dir-text-muted-10 { font-size: 10px; color: #94a3b8; }
-app-root directory .dir-balance-value { font-size: 12px; font-weight: 700; color: #10b981; }
+app-root directory .dir-card-name { font-size: 12px; font-weight: 700; color: var(--color-text); margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px; }
+app-root directory .dir-card-pres { font-size: 11px; color: var(--color-text-secondary); line-height: 1.5; margin-bottom: 4px; min-height: 38px; flex-grow: 1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; text-overflow: ellipsis; }
+app-root directory .dir-card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid rgba(52, 64, 74, 0.1); margin-top: auto; }
+app-root directory .dir-text-muted-10 { font-size: 10px; color: var(--color-text-muted); }
+app-root directory .dir-balance-value { font-size: 12px; font-weight: 700; color: var(--color-text); }
 app-root directory .dir-card-extra { height: 54px; overflow: hidden; flex-shrink: 0; }
 app-root directory .dir-extra-row { height: 18px; padding-top: 6px; }
-app-root directory .dir-supply-share { font-size: 9px; color: #059669; font-weight: 600; line-height: 1.2; }
-app-root directory .dir-level-text { font-size: 9px; color: #94a3b8; line-height: 1.2; }
-app-root directory .dir-link-profile { font-size: 9px; color: #10b981; display: flex; align-items: center; line-height: 1.2; }
+app-root directory .dir-supply-share { font-size: 9px; color: var(--color-text-secondary); font-weight: 600; line-height: 1.2; }
+app-root directory .dir-level-text { font-size: 9px; color: var(--color-text-muted); line-height: 1.2; }
+app-root directory .dir-link-profile { font-size: 9px; color: var(--color-accent); display: flex; align-items: center; line-height: 1.2; }
 app-root directory .dir-table-scroll { overflow-x: auto; overflow-y: visible; }
 app-root directory .dir-table { width: 100%; border-collapse: collapse; table-layout: auto; }
-app-root directory .dir-table-thead-tr { border-bottom: 2px solid rgba(5, 150, 105, 0.2); min-height: 48px; overflow: visible; }
-app-root directory .dir-table-th { float: none; height: auto; text-align: left; padding: 12px 14px; color: #94a3b8; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; line-height: 1.5; vertical-align: middle; }
+app-root directory .dir-table-thead-tr { border-bottom: 2px solid rgba(52, 64, 74, 0.2); min-height: 48px; overflow: visible; }
+app-root directory .dir-table-th { float: none; height: auto; text-align: left; padding: 12px 14px; color: var(--color-text-muted); font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; line-height: 1.5; vertical-align: middle; }
 app-root directory .dir-table-th-right { text-align: right; }
-app-root directory .dir-table-td-name { padding: 12px; color: #f1f5f9; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; }
-app-root directory .dir-table-td-balance { padding: 12px; text-align: right; color: #10b981; font-weight: 700; }
-app-root directory .dir-table-td-share { padding: 12px; text-align: right; color: #059669; font-weight: 600; }
+app-root directory .dir-table-td-name { padding: 12px; color: var(--color-text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; }
+app-root directory .dir-table-td-balance { padding: 12px; text-align: right; color: var(--color-text); font-weight: 700; }
+app-root directory .dir-table-td-share { padding: 12px; text-align: right; color: var(--color-text-secondary); font-weight: 600; }
 app-root directory .dir-icon-12-mr3 { font-size: 12px; margin-right: 3px; }
 app-root directory .dir-icon-16-vmid { font-size: 16px; vertical-align: middle; }
 app-root directory .dir-icon-18 { font-size: 18px; }
-app-root directory .dir-icon-20 { font-size: 20px; color: #94a3b8; flex-shrink: 0; }
+app-root directory .dir-icon-20 { font-size: 20px; color: var(--color-text-muted); flex-shrink: 0; }
 app-root directory .directory-table-row {
-  border-bottom: 1px solid rgba(5, 150, 105, 0.05);
+  border-bottom: 1px solid rgba(52, 64, 74, 0.05);
   transition: background 0.2s;
   cursor: pointer;
 }
+app-root directory .directory-table-row:nth-child(even) {
+  background: rgba(52, 64, 74, 0.05);
+}
 app-root directory table tr:hover {
-  background: rgba(5, 150, 105, 0.08) !important;
+  background: rgba(52, 64, 74, 0.08) !important;
 }
 
 /* Login */
 app-root login {
   display: block;
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-  color: var(--text-light);
+  color: var(--color-text);
 }
 app-root login .authPage {
   min-height: calc(100vh - 140px);
@@ -1215,10 +1251,9 @@ app-root login .authPage {
 app-root login .authCard {
   width: 100%;
   max-width: 460px;
-  background: #1e293b;
-  border: 1px solid rgba(16, 185, 129, 0.12);
+  background: var(--color-surface);
+  border: 1px solid rgba(52, 64, 74, 0.12);
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(2, 8, 23, 0.28);
   padding: 20px;
 }
 app-root login .authHeader {
@@ -1228,18 +1263,18 @@ app-root login .authHeader {
 app-root login .authTitle {
   font-size: 22px;
   font-weight: 700;
-  color: #f1f5f9;
+  color: var(--color-text);
   margin-bottom: 4px;
 }
 app-root login .authSubtitle {
   font-size: 13px;
-  color: #94a3b8;
+  color: var(--color-text-muted);
 }
 app-root login .switchPill {
   display: flex;
   gap: 6px;
-  background: rgba(22, 32, 52, 0.7);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(42, 55, 69, 0.7);
+  border: 1px solid rgba(52, 64, 74, 0.2);
   border-radius: 999px;
   padding: 4px;
   margin-bottom: 14px;
@@ -1253,11 +1288,11 @@ app-root login .switchBtn {
   font-weight: 700;
   cursor: pointer;
   background: transparent;
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
 }
 app-root login .switchBtn.active {
-  background: #10b981;
-  color: #ffffff;
+  background: var(--color-success);
+  color: var(--color-text);
 }
 app-root login .authForm {
   display: flex;
@@ -1272,23 +1307,23 @@ app-root login .fieldInput {
   width: 100%;
   box-sizing: border-box;
   border-radius: 8px;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  background: rgba(22, 32, 52, 0.55);
-  color: #f1f5f9;
+  border: 1px solid rgba(67, 82, 99, 0.3);
+  background: rgba(42, 55, 69, 0.55);
+  color: var(--color-text);
   padding: 11px 40px 11px 12px;
   margin: 0;
   font-size: 13px;
   outline: none;
 }
 app-root login .fieldInput:focus {
-  border-color: rgba(16, 185, 129, 0.55);
+  border-color: rgba(52, 64, 74, 0.55);
 }
 app-root login .password-icon {
   position: absolute;
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
-  color: #94a3b8;
+  color: var(--color-text-muted);
   cursor: pointer;
   line-height: 0;
 }
@@ -1308,24 +1343,23 @@ app-root login .buttonSecondary {
 app-root login .buttonPrimary {
   border: none;
   border-radius: 8px;
-  background: #b91c1c;
-  color: #ffffff;
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
   font-weight: 700;
 }
 app-root login .buttonPrimary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  box-shadow: none;
 }
 app-root login .buttonSecondary {
   background: transparent;
-  color: #10b981;
-  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
 }
 app-root login .errorMsg {
   text-align: center;
   padding: 8px;
-  color: #f87171;
+  color: var(--color-danger-text);
   font-size: 12px;
   background: rgba(248, 113, 113, 0.08);
   border: 1px solid rgba(248, 113, 113, 0.2);
@@ -1337,7 +1371,7 @@ app-root login .errorMsg {
 app-root settings {
   display: block;
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-  color: var(--text-light);
+  color: var(--color-text);
 }
 app-root settings .settingsPage {
   max-width: none;
@@ -1352,17 +1386,16 @@ app-root settings .settingsPage {
 app-root settings .settingsPageTitle {
   font-size: 20px;
   font-weight: 800;
-  color: #f1f5f9;
+  color: var(--color-text);
   letter-spacing: 0.2px;
   line-height: 25px;
   margin: 2px 2px 4px 2px;
 }
 app-root settings .island {
-  background: rgba(255, 255, 255, 0.04) !important;
-  border: none !important;
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
   border-radius: var(--radius-lg);
-  color: var(--text-gray) !important;
-  box-shadow: var(--shadow-standard);
+  color: var(--color-text-secondary) !important;
   width: 100%;
   max-width: none;
   padding: 14px;
@@ -1370,11 +1403,11 @@ app-root settings .island {
   box-sizing: border-box;
 }
 app-root settings .profileSummary {
-  background: linear-gradient(135deg, #1e293b 0%, #1a2637 100%);
+  background: var(--color-surface);
 }
 app-root settings .profileSummary img.imageWithZoom {
   border-radius: 12px;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(52, 64, 74, 0.2);
   margin: 0 0 10px 0 !important;
 }
 app-root settings .settingsProfileCard {
@@ -1413,7 +1446,7 @@ app-root settings .settingsProfileNameWrap {
   min-width: 0;
 }
 app-root settings .settingsProfileName {
-  color: #f1f5f9;
+  color: var(--color-text);
   font-size: 20px;
   font-weight: 700;
   white-space: nowrap;
@@ -1422,13 +1455,13 @@ app-root settings .settingsProfileName {
   max-width: 260px;
 }
 app-root settings .settingsProfileBalance {
-  color: #10b981;
+  color: var(--color-text);
   font-size: 18px;
   font-weight: 700;
 }
 app-root settings .settingsProfilePresentation {
   font-size: 13px;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   line-height: 1.5;
   margin-bottom: 8px;
 }
@@ -1437,7 +1470,7 @@ app-root settings .settingsProfileMeta {
   flex-wrap: wrap;
   gap: 10px;
   font-size: 12px;
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
   margin-bottom: 10px;
 }
 app-root settings .settingsUploadRow {
@@ -1457,21 +1490,21 @@ app-root settings .settingsUploadBtn {
 app-root settings .title {
   font-size: 15px;
   font-weight: 700;
-  color: #f1f5f9;
+  color: var(--color-text);
   margin-bottom: 8px;
 }
 app-root settings input {
   width: 100%;
   box-sizing: border-box;
   border-radius: 8px;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  background: rgba(22, 32, 52, 0.55);
-  color: #f1f5f9;
+  border: 1px solid rgba(67, 82, 99, 0.3);
+  background: rgba(42, 55, 69, 0.55);
+  color: var(--color-text);
   padding: 10px 12px;
   margin: 6px 0;
 }
 app-root settings input:focus {
-  border-color: rgba(16, 185, 129, 0.55);
+  border-color: rgba(52, 64, 74, 0.55);
 }
 app-root settings .buttonPrimary {
   font-weight: 700;
@@ -1480,28 +1513,26 @@ app-root settings .buttonPrimary {
 app-root settings .buttonPrimary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  box-shadow: none;
 }
 app-root settings .buttonBlack {
   border-radius: 8px;
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  background: rgba(22, 32, 52, 0.7) !important;
-  color: #cbd5e1;
+  border: 1px solid rgba(52, 64, 74, 0.25);
+  background: rgba(42, 55, 69, 0.7) !important;
+  color: var(--color-text-secondary);
   font-weight: 600;
 }
 app-root settings .buttonBlack.activeCurrency {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-  border-color: rgba(16, 185, 129, 0.95);
-  color: #ffffff;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2), 0 8px 20px rgba(16, 185, 129, 0.28);
+  background: var(--color-selected) !important;
+  border-color: var(--color-border);
+  color: var(--color-text);
   font-weight: 700;
   pointer-events: none;
 }
 app-root settings .buttonRed {
   border: none;
   border-radius: 8px;
-  background: #b91c1c;
-  color: #ffffff;
+  background: var(--color-danger);
+  color: var(--color-text);
   font-weight: 700;
   padding: 10px 14px;
 }
@@ -1517,7 +1548,7 @@ app-root settings .settings-action-btn {
   margin: 10px;
 }
 app-root settings .settings-help-text {
-  color: #94a3b8 !important;
+  color: var(--color-text-muted) !important;
   line-height: 1.5;
   margin: 20px;
 }
@@ -1550,8 +1581,8 @@ app-root settings .settings-info-details { margin: 5px 10px 10px 15px; }
 app-root profile {
   display: block;
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-  color: var(--text-light);
-  background-color: #000;
+  color: var(--color-text);
+  background-color: var(--color-page);
   background-image: none;
   min-height: 100vh;
   min-height: 100dvh;
@@ -1568,11 +1599,10 @@ app-root profile img {
   -webkit-touch-callout: none;
 }
 app-root profile .island {
-  background: rgba(255, 255, 255, 0.04) !important;
-  border: none !important;
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
   border-radius: var(--radius-lg);
-  color: var(--text-gray) !important;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  color: var(--color-text-secondary) !important;
   margin-bottom: 16px;
 }
 app-root profile .profileContainer {
@@ -1582,7 +1612,7 @@ app-root profile .profileContainer {
   padding: 16px;
 }
 app-root profile .profileModern {
-  background: #000 !important;
+  background: var(--color-page) !important;
   padding-bottom: 8px;
 }
 app-root profile .prof-p-14 { padding: 14px; }
@@ -1590,44 +1620,43 @@ app-root profile .prof-header-wrap { display: flex; gap: 14px; flex-wrap: wrap; 
 app-root profile .prof-main-area { flex: 1; min-width: 240px; }
 app-root profile .prof-top-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
 app-root profile .prof-name-area { display: flex; align-items: center; gap: 8px; min-width: 0; }
-app-root profile .prof-name-text { color: #f1f5f9; font-size: 20px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
-app-root profile .prof-balance-text { color: #10b981; font-size: 18px; font-weight: 700; }
+app-root profile .prof-name-text { color: var(--color-text); font-size: 20px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
+app-root profile .prof-balance-text { color: var(--color-text); font-size: 18px; font-weight: 700; }
 app-root profile .prof-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; margin-bottom: 8px; }
-app-root profile .prof-pres-text { font-size: 13px; color: #94a3b8; line-height: 1.5; margin-bottom: 8px; }
-app-root profile .prof-meta-wrap { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: #cbd5e1; margin-bottom: 8px; }
-app-root profile .prof-contract-area { font-size: 12px; color: #cbd5e1; margin-bottom: 8px; }
-app-root profile .prof-contract-signed { color: #10b981; font-weight: 600; }
+app-root profile .prof-pres-text { font-size: 13px; color: var(--color-text-muted); line-height: 1.5; margin-bottom: 8px; }
+app-root profile .prof-meta-wrap { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 8px; }
+app-root profile .prof-contract-area { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 8px; }
+app-root profile .prof-contract-signed { color: var(--color-success); font-weight: 600; }
 app-root profile .prof-action-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 16px; margin-bottom: 4px; }
 app-root profile .prof-msg-btn { display: inline-flex; align-items: center; gap: 6px; }
 app-root profile .prof-settings-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; }
-app-root profile .prof-no-events { padding: 14px; border: 1px solid rgba(16, 185, 129, 0.1); background: rgba(16, 185, 129, 0.03); color: #94a3b8; font-size: 13px; }
-app-root profile .prof-fund-card-body { padding: 8px; border-radius: 10px; background: rgba(16, 185, 129, 0.05); }
+app-root profile .prof-no-events { padding: 14px; border: 1px solid rgba(52, 64, 74, 0.1); background: rgba(52, 64, 74, 0.03); color: var(--color-text-muted); font-size: 13px; }
+app-root profile .prof-fund-card-body { padding: 8px; border-radius: 10px; background: rgba(52, 64, 74, 0.05); }
 app-root profile .prof-fund-header { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
-app-root profile .prof-fund-meta { margin-top: 5px; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center; }
-app-root profile .prof-fund-days { color: #10b981; font-weight: 500; margin-left: auto; }
-app-root profile .prof-fund-desc { margin-top: 3px; font-size: 11px; color: #94a3b8; line-height: 1.35; }
-app-root profile .prof-fund-amounts { margin-top: 3px; font-size: 11px; color: #cbd5e1; line-height: 1.35; }
+app-root profile .prof-fund-meta { margin-top: 5px; font-size: 11px; color: var(--color-text-muted); display: flex; justify-content: space-between; align-items: center; }
+app-root profile .prof-fund-days { color: var(--color-success); font-weight: 500; margin-left: auto; }
+app-root profile .prof-fund-desc { margin-top: 3px; font-size: 11px; color: var(--color-text-muted); line-height: 1.35; }
+app-root profile .prof-fund-amounts { margin-top: 3px; font-size: 11px; color: var(--color-text-secondary); line-height: 1.35; }
 app-root profile .prof-chart-box { height: 400px; margin: 10px; }
 app-root profile .prof-list-item-rel { position: relative; }
 app-root profile .prof-icon-14 { font-size: 14px; line-height: 1; }
 app-root profile .prof-icon-16 { font-size: 16px; }
-app-root profile .prof-icon-18 { font-size: 18px; color: #10b981; cursor: pointer; }
+app-root profile .prof-icon-18 { font-size: 18px; color: var(--color-accent); cursor: pointer; }
 app-root profile .prof-avatar-wrap { float: left; min-width: 58px; min-height: 40px; }
 app-root profile .prof-load-more-wrap { margin-bottom: 0; }
 app-root profile .prof-btn-200 { width: 200px; margin: 10px auto; }
 app-root profile .prof-margin-left-10 { margin-left: 10px; }
 app-root profile .profileInfoBox {
-  background: rgba(22, 32, 52, 0.88);
+  background: rgba(42, 55, 69, 0.88);
   border: none;
   border-radius: var(--radius-sm);
   padding: 8px;
-  color: #f8fafc;
+  color: var(--color-text);
 }
 app-root profile .listLight > li {
-  background: rgba(22, 32, 52, 0.88) !important;
+  background: rgba(42, 55, 69, 0.88) !important;
   border: none !important;
-  color: #e2e8f0 !important;
-  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.28) !important;
+  color: var(--color-text-secondary) !important;
   border-radius: 14px;
   margin-bottom: 10px;
   transition: all 0.2s ease;
@@ -1635,14 +1664,13 @@ app-root profile .listLight > li {
 }
 app-root profile .eventCardBody,
 app-root profile .fundCardBody {
-  background: rgba(22, 32, 52, 0.88) !important;
+  background: rgba(42, 55, 69, 0.88) !important;
   border: none !important;
-  color: #f8fafc !important;
-  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.28) !important;
+  color: var(--color-text) !important;
 }
 app-root profile .modeSwitchTrack {
-  background: rgba(22, 32, 52, 0.75) !important;
-  border: 1px solid rgba(16, 185, 129, 0.2) !important;
+  background: rgba(42, 55, 69, 0.75) !important;
+  border: 1px solid rgba(52, 64, 74, 0.2) !important;
 }
 app-root profile .eventCardChatImage {
   border: none !important;
@@ -1655,28 +1683,25 @@ app-root profile .eventCardChatImage {
   margin-top: 0;
 }
 app-root profile .nonMemberIslandButton {
-  background: linear-gradient(135deg, #10b981 0%, #047857 100%) !important;
+  background: var(--color-accent) !important;
   border: none !important;
-  color: #ffffff !important;
+  color: var(--color-accent-ink) !important;
   margin: 0 auto;
   min-width: 230px;
   font-size: 14px;
   font-weight: 800;
   padding: 11px 20px;
-  box-shadow: 0 10px 24px rgba(2, 8, 23, 0.22);
 }
 app-root profile .nonMemberIslandButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(2, 8, 23, 0.28);
+  transform: none;
 }
 app-root profile .nonMemberIsland {
   margin-top: 12px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(244, 246, 248, 0.05);
   border: none;
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
   padding: 24px 22px;
   text-align: center;
-  color: #ffffff;
+  color: var(--color-text);
 }
 app-root profile .nonMemberIslandIconWrap {
   width: 54px;
@@ -1686,13 +1711,12 @@ app-root profile .nonMemberIslandIconWrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.12);
+  background: rgba(244, 246, 248, 0.16);
+  border: 1px solid rgba(244, 246, 248, 0.28);
 }
 app-root profile .nonMemberIslandIcon {
   font-size: 28px;
-  color: #ffffff;
+  color: var(--color-text);
   line-height: 1;
 }
 app-root profile .nonMemberIslandTitle {
@@ -1700,21 +1724,20 @@ app-root profile .nonMemberIslandTitle {
   font-weight: 700;
   line-height: 1.4;
   margin-bottom: 18px;
-  text-shadow: 0 2px 8px rgba(4, 120, 87, 0.34);
 }
 app-root profile .nonMemberIslandFooter {
   margin-top: 14px;
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.2px;
-  color: rgba(255, 255, 255, 0.96);
+  color: rgba(244, 246, 248, 0.96);
 }
 app-root profile .nonMemberIslandHelper {
   margin-top: 10px;
   font-size: 12px;
   line-height: 1.45;
   font-weight: 500;
-  color: rgba(226, 232, 240, 0.92);
+  color: rgba(203, 212, 222, 0.92);
 }
 app-root profile .nonMemberIslandHelper a {
   color: inherit;
@@ -1745,14 +1768,14 @@ app-root profile .eventCardBody:hover,
 app-root profile .fundCardBody:hover,
 app-root profile .imageCarousel .carouselItem:hover,
 app-root profile .carouselMeta:hover {
-  background: rgba(22, 32, 52, 0.94) !important;
+  background: rgba(42, 55, 69, 0.94) !important;
 }
 app-root profile .listLight li.no-interaction-row {
   cursor: default !important;
 }
 app-root profile .listLight li.no-interaction-row:hover {
-  background: rgba(2, 8, 23, 0.82) !important;
-  border-color: rgba(148, 163, 184, 0.3) !important;
+  background: rgba(18, 25, 35, 0.82) !important;
+  border-color: rgba(67, 82, 99, 0.3) !important;
 }
 app-root profile .tableRow.no-interaction-row:hover {
   opacity: 1 !important;
@@ -1762,10 +1785,9 @@ app-root profile .fundCardBody,
 app-root profile .imageCarousel .carouselItem,
 app-root profile .carouselMeta,
 app-root profile .tableRow {
-  background: rgba(22, 32, 52, 0.80) !important;
+  background: rgba(42, 55, 69, 0.80) !important;
   border: none !important;
-  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.28) !important;
-  color: #e2e8f0 !important;
+  color: var(--color-text-secondary) !important;
 }
 app-root profile .eventCardBody,
 app-root profile .fundCardBody {
@@ -1799,14 +1821,14 @@ app-root profile .eventCardTitleBlock {
 }
 app-root profile .eventCardLabel {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.8px;
   margin-bottom: 2px;
 }
 app-root profile .eventCardIconBadge {
   font-size: 22px;
-  color: #10b981;
+  color: var(--color-text-secondary);
   margin-top: 1px;
 }
 app-root profile .eventCardJoinBtn {
@@ -1840,7 +1862,7 @@ app-root profile .eventCardSubjectRow .chatSubject {
 }
 app-root profile .eventCardDescriptionInline {
   flex: 0 1 auto;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   font-size: 12px;
   white-space: nowrap;
   overflow: hidden;
@@ -1848,8 +1870,8 @@ app-root profile .eventCardDescriptionInline {
   max-width: 45%;
 }
 app-root profile .eventCardStatusChip {
-  background: rgba(16, 185, 129, 0.16);
-  color: #10b981;
+  background: rgba(52, 64, 74, 0.16);
+  color: var(--color-success);
   font-size: 11px;
   font-weight: 600;
   padding: 3px 8px;
@@ -1857,14 +1879,13 @@ app-root profile .eventCardStatusChip {
 }
 app-root profile .eventCardStatusNow {
   background: rgba(220, 38, 38, 0.92);
-  color: #ffffff;
+  color: var(--color-text);
   border: 1px solid rgba(248, 113, 113, 0.86);
-  box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.34), 0 0 10px rgba(220, 38, 38, 0.3);
   font-weight: 700;
 }
 app-root profile .eventCardDateText {
   font-size: 12px;
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
 }
 app-root profile .eventCardToggleBtn {
   margin: 8px 0 0 auto;
@@ -1880,17 +1901,17 @@ app-root profile .buttonPrimary {
   transition: all 0.2s ease;
 }
 app-root profile .buttonBlack {
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  background: #0f172a;
-  color: #cbd5e1;
+  border: 1px solid rgba(52, 64, 74, 0.25);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
 }
 app-root profile .buttonBlack:hover {
-  background: #0b1220;
-  border-color: rgba(16, 185, 129, 0.4);
+  background: var(--color-page);
+  border-color: rgba(52, 64, 74, 0.4);
 }
 app-root profile .warning-island {
-  background-color: rgb(255, 251, 221) !important;
-  color: #333 !important;
+  background-color: var(--color-raised) !important;
+  color: var(--color-text) !important;
   cursor: pointer;
 }
 app-root profile .profile-header-img {
@@ -1898,17 +1919,17 @@ app-root profile .profile-header-img {
   width: 132px;
   height: 132px;
   border-radius: 12px;
-  border: 1px solid rgba(16, 185, 129, 0.18);
+  border: 1px solid rgba(52, 64, 74, 0.18);
   cursor: pointer;
   flex-shrink: 0;
 }
 app-root profile .profile-stat-box {
-  background: rgba(16, 185, 129, 0.08);
-  border: 1px solid rgba(16, 185, 129, 0.15);
+  background: rgba(52, 64, 74, 0.08);
+  border: 1px solid rgba(52, 64, 74, 0.15);
   border-radius: 8px;
   padding: 8px;
   font-size: 12px;
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
   line-height: 1.4;
 }
 app-root profile .modeSwitchWrap {
@@ -1925,7 +1946,7 @@ app-root profile .modeSwitchTrack {
   border-radius: 14px;
   padding: 4px;
   display: inline-flex;
-  background: rgba(15, 23, 42, 0.75);
+  background: rgba(29, 40, 53, 0.75);
   gap: 4px;
   flex-wrap: wrap;
 }
@@ -1972,23 +1993,21 @@ app-root profile .profile-chat-preview {
 }
 app-root profile .buttonPrimary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 22px rgba(16, 185, 129, 0.34);
 }
 app-root profile table {
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
   border-collapse: collapse;
   width: 100%;
 }
 app-root profile th {
-  color: #94a3b8;
+  color: var(--color-text-muted);
   font-weight: 600;
   font-size: 11px;
 }
 app-root profile .tableRow {
-  background: rgba(255, 255, 255, 0.10);
+  background: rgba(244, 246, 248, 0.10);
   border: none;
   border-radius: 10px;
-  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22);
   margin-bottom: 6px;
   position: relative;
   display: flex;
@@ -2026,7 +2045,7 @@ app-root profile .imageCarousel {
 app-root profile .imageCarousel .carouselItem {
   flex: 0 0 25%;
   min-width: 200px;
-  background: rgba(22, 32, 52, 0.96) !important;
+  background: rgba(42, 55, 69, 0.96) !important;
   border: none !important;
   border-radius: 14px;
   overflow: hidden;
@@ -2034,11 +2053,10 @@ app-root profile .imageCarousel .carouselItem {
   scroll-snap-align: none;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.28);
 }
 app-root profile .carouselImageWrap {
   cursor: pointer;
-  background: rgba(2, 8, 23, 0.72);
+  background: rgba(18, 25, 35, 0.72);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2052,7 +2070,7 @@ app-root profile .carouselImage {
 }
 app-root profile .carouselMeta {
   border: none !important;
-  background: rgba(22, 32, 52, 0.96) !important;
+  background: rgba(42, 55, 69, 0.96) !important;
   padding: 8px 10px;
   display: flex;
   align-items: center;
@@ -2068,7 +2086,7 @@ app-root profile .messageImageBadge {
   height: 22px;
   margin-right: 6px;
   border-radius: 6px;
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
   vertical-align: text-bottom;
 }
 app-root profile .messageOptionsBtn {
@@ -2078,7 +2096,7 @@ app-root profile .messageOptionsBtn {
   border-radius: 999px;
   border: 1px solid transparent;
   background: transparent;
-  color: rgba(203, 213, 225, 0.55);
+  color: rgba(203, 212, 222, 0.55);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2094,17 +2112,16 @@ app-root profile .guardedChatItem:hover .messageOptionsBtn {
   pointer-events: auto;
 }
 app-root profile .messageOptionsBtn:hover {
-  border-color: rgba(148, 163, 184, 0.3);
-  background: rgba(22, 32, 52, 0.55);
-  color: #e2e8f0;
+  border-color: rgba(67, 82, 99, 0.3);
+  background: rgba(42, 55, 69, 0.55);
+  color: var(--color-text-secondary);
 }
 app-root profile .messageOptionsMenu {
   position: absolute;
   min-width: 140px;
-  background: #1e293b;
-  border: 1px solid rgba(16, 185, 129, 0.18);
+  background: var(--color-surface);
+  border: 1px solid rgba(52, 64, 74, 0.18);
   border-radius: 10px;
-  box-shadow: 0 10px 22px rgba(2, 8, 23, 0.35);
   z-index: 30;
   padding: 4px;
   top: 28px;
@@ -2119,6 +2136,13 @@ app-root profile .chatListUnreadFlag {
   line-height: 14px;
   text-align: center;
   border-radius: 4px;
+  background: var(--color-text-muted);
+}
+app-root profile .chatListUnreadFlag.alertFlag {
+  background: var(--color-danger);
+}
+app-root profile .chatListUnreadFlag.recipientFlag {
+  background: var(--color-success);
 }
 app-root profile .chatListBlueFlag {
   position: absolute;
@@ -2129,13 +2153,13 @@ app-root profile .chatListBlueFlag {
   line-height: 14px;
   text-align: center;
   border-radius: 4px;
-  background-color: #4285f4;
+  background-color: var(--color-accent);
   z-index: 1;
 }
 app-root profile .messageOptionsItem {
   width: 100%;
   text-align: left;
-  color: #e2e8f0;
+  color: var(--color-text-secondary);
   background: transparent;
   border: 1px solid transparent;
   padding: 7px 9px;
@@ -2143,11 +2167,11 @@ app-root profile .messageOptionsItem {
   font-size: 12px;
 }
 app-root profile .messageOptionsItem:hover {
-  background: rgba(16, 185, 129, 0.12);
-  border-color: rgba(16, 185, 129, 0.24);
+  background: rgba(52, 64, 74, 0.12);
+  border-color: rgba(52, 64, 74, 0.24);
 }
 app-root profile a {
-  color: #10b981;
+  color: var(--color-accent);
 }
 app-root profile ag-charts-angular {
   pointer-events: none !important;
@@ -2157,23 +2181,22 @@ app-root profile ag-charts-angular {
 app-root chat {
   display: block;
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-  color: var(--text-light);
+  color: var(--color-text);
 }
 app-root chat div.messageAuthor {
     float:left;
     margin:0px 10px 0px 5px;
 }
 app-root chat .chatPage .island {
-  background: rgba(255, 255, 255, 0.04) !important;
-  border: none !important;
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
   border-radius: var(--radius-lg);
-  color: var(--text-gray) !important;
-  box-shadow: var(--shadow-standard);
+  color: var(--color-text-secondary) !important;
 }
 app-root chat .chat-header-main { float: left; width: 75%; margin: 0 5px 0 10px; min-height: 40px; }
 app-root chat .chat-header-fund-info { overflow: hidden; padding-top: 2px; }
-app-root chat .chat-header-fund-meta { font-size: 11px; color: #94a3b8; margin-top: 4px; }
-app-root chat .chat-back-link { float: left; color: white; margin: 10px; }
+app-root chat .chat-header-fund-meta { font-size: 11px; color: var(--color-text-muted); margin-top: 4px; }
+app-root chat .chat-back-link { float: left; color: var(--color-text); margin: 10px; }
 app-root chat .chat-btn-200 { width: 200px; margin: 10px auto; display: flex; justify-content: center; }
 app-root chat .chat-btn-200-fixed { width: 200px; margin: 10px auto; }
 app-root chat .chat-msg-avatar-area { float: left; width: 54px; min-height: 10px; }
@@ -2181,7 +2204,7 @@ app-root chat .chat-msg-spacer { clear: both; width: 100%; height: 5px; }
 app-root chat .chat-msg-center { clear: both; text-align: center; }
 app-root chat .chat-msg-body-margin { margin: 5px 5px 0 5px; }
 app-root chat .chat-msg-status-area { clear: both; height: 15px; }
-app-root chat .chat-msg-status-icon { float: right; font-size: 16px; margin: 0 2px 2px 0; color: #3b82f6; }
+app-root chat .chat-msg-status-icon { float: right; font-size: 16px; margin: 0 2px 2px 0; color: var(--color-success); }
 app-root chat .chat-msg-stat-text { float: right; font-size: 10px; margin: 0 5px 2px 0; line-height: 15px; }
 app-root chat .chat-composer-hint { margin: 5px; font-size: 10px; }
 app-root chat .chat-composer-input-area { clear: both; float: left; width: 90%; display: flex; align-items: center; min-height: 64px; }
@@ -2190,9 +2213,9 @@ app-root chat .chat-icon-16 { font-size: 16px; }
 app-root chat .chat-icon-18 { font-size: 18px; line-height: 1; }
 app-root chat .chat-icon-20 { font-size: 20px; line-height: 1; }
 app-root chat .chat-icon-22 { font-size: 22px; }
-app-root chat .chat-icon-22-muted { font-size: 22px; color: #cbd5e1; }
+app-root chat .chat-icon-22-muted { font-size: 22px; color: var(--color-text-secondary); }
 app-root chat .chatPage {
-  background: #000 !important;
+  background: var(--color-page) !important;
   position: fixed;
   display: flex;
   flex-direction: column;
@@ -2201,25 +2224,25 @@ app-root chat .chatPage {
 app-root chat .chatPage .buttonRed {
   border: none;
   border-radius: 8px;
-  background: #b91c1c;
-  color: #ffffff;
+  background: var(--color-danger);
+  color: var(--color-text);
   font-weight: 700;
 }
 app-root chat .chatPage .buttonBlack {
   border-radius: 8px;
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  background: rgba(22, 32, 52, 0.7) !important;
-  color: #cbd5e1;
+  border: 1px solid rgba(52, 64, 74, 0.25);
+  background: rgba(42, 55, 69, 0.7) !important;
+  color: var(--color-text-secondary);
   font-weight: 600;
 }
 app-root chat .chatPage input,
 app-root chat .chatPage select,
 app-root chat .chatPage textarea {
-  background: rgba(22, 32, 52, 0.55);
-  color: #f1f5f9;
+  background: rgba(42, 55, 69, 0.55);
+  color: var(--color-text);
   width: 100%;
   min-width: 0;
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  border: 1px solid rgba(67, 82, 99, 0.3);
   border-radius: 8px;
   padding: 9px 10px;
   box-sizing: border-box;
@@ -2229,7 +2252,7 @@ app-root chat .chatPage input:focus,
 app-root chat .chatPage select:focus,
 app-root chat .chatPage textarea:focus {
   outline: none;
-  border-color: rgba(16, 185, 129, 0.55);
+  border-color: rgba(52, 64, 74, 0.55);
 }
 app-root chat .chatPage .buttonPrimary {
   font-weight: 700;
@@ -2240,12 +2263,11 @@ app-root chat .chatTopBar {
   top: 0 !important;
   left: 0 !important;
   flex: 0 0 auto;
-  background: #1e293b;
-  border: 1px solid rgba(16, 185, 129, 0.12);
+  background: var(--color-surface);
+  border: 1px solid rgba(52, 64, 74, 0.12);
   border-radius: 0;
   padding-bottom: 10px;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(2, 8, 23, 0.25);
   padding-top: max(6px, env(safe-area-inset-top));
   overflow: visible;
   box-sizing: border-box;
@@ -2257,7 +2279,7 @@ app-root chat .chatHeaderRecipientList {
   line-clamp: 1;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   font-size: 12px;
   font-weight: 500;
   line-height: 1.4;
@@ -2271,7 +2293,7 @@ app-root chat .chatHeaderFundIcon {
   float: left;
   font-size: 20px;
   margin-right: 5px;
-  color: #10b981;
+  color: var(--color-text-secondary);
 }
 app-root chat .chatScrollContainer {
   flex: 1;
@@ -2283,8 +2305,8 @@ app-root chat .chatEventCard {
   margin: 4px 6px 0 6px;
   padding: 3px 6px;
   border-radius: 10px;
-  border: 1px solid rgba(16, 185, 129, 0.12);
-  background: rgba(16, 185, 129, 0.03);
+  border: 1px solid rgba(52, 64, 74, 0.12);
+  background: rgba(52, 64, 74, 0.03);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2300,17 +2322,17 @@ app-root chat .chatEventMain {
 }
 app-root chat .chatEventIcon {
   font-size: 16px;
-  color: #10b981;
+  color: var(--color-text-secondary);
 }
 app-root chat .chatEventLabel {
   font-size: 10px;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.6px;
   flex: 0 0 auto;
 }
 app-root chat .chatEventTitleText {
-  color: #e2e8f0;
+  color: var(--color-text-secondary);
   font-size: 12px;
   line-height: 1.25;
   white-space: nowrap;
@@ -2327,8 +2349,8 @@ app-root chat .chatEventJoinBtn {
   margin: 0;
 }
 app-root chat .chatEventStatusChip {
-  background: rgba(16, 185, 129, 0.16);
-  color: #10b981;
+  background: rgba(52, 64, 74, 0.16);
+  color: var(--color-success);
   font-size: 9px;
   font-weight: 600;
   padding: 1px 6px;
@@ -2337,13 +2359,12 @@ app-root chat .chatEventStatusChip {
 }
 app-root chat .chatEventStatusNow {
   background: rgba(220, 38, 38, 0.92);
-  color: #ffffff;
+  color: var(--color-text);
   border: 1px solid rgba(248, 113, 113, 0.86);
-  box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.34), 0 0 10px rgba(220, 38, 38, 0.3);
   font-weight: 700;
 }
 app-root chat .chatEventDateText {
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
   font-size: 10px;
   line-height: 1.2;
   white-space: nowrap;
@@ -2356,8 +2377,8 @@ app-root chat .chatEventDateText .dateShort {
   font-size: 10px;
 }
 app-root chat .chatEventEditor {
-  border: 1px solid rgba(16, 185, 129, 0.12);
-  background: rgba(16, 185, 129, 0.03);
+  border: 1px solid rgba(52, 64, 74, 0.12);
+  background: rgba(52, 64, 74, 0.03);
   border-radius: 10px;
   padding: 10px;
 }
@@ -2368,7 +2389,7 @@ app-root chat .chatEventEditorHeader {
   margin-bottom: 8px;
 }
 app-root chat .chatEventEditorTitle {
-  color: #94a3b8;
+  color: var(--color-text-muted);
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.6px;
@@ -2391,7 +2412,7 @@ app-root chat .chatEventEditorField {
   min-width: 0;
 }
 app-root chat .chatEventEditorFieldLabel {
-  color: #94a3b8;
+  color: var(--color-text-muted);
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -2428,8 +2449,8 @@ app-root chat .chatEventEditorBtn {
   min-height: 34px;
 }
 app-root chat .chatFundEditor {
-  border: 1px solid rgba(16, 185, 129, 0.12);
-  background: rgba(16, 185, 129, 0.03);
+  border: 1px solid rgba(52, 64, 74, 0.12);
+  background: rgba(52, 64, 74, 0.03);
   border-radius: 10px;
   padding: 10px;
 }
@@ -2440,7 +2461,7 @@ app-root chat .chatFundEditorHeader {
   margin-bottom: 8px;
 }
 app-root chat .chatFundEditorTitle {
-  color: #94a3b8;
+  color: var(--color-text-muted);
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.6px;
@@ -2450,31 +2471,31 @@ app-root chat .chatFundEditorPreview {
   margin-bottom: 10px;
   padding: 8px;
   border-radius: 10px;
-  background: rgba(16, 185, 129, 0.05);
+  background: rgba(52, 64, 74, 0.05);
 }
 app-root chat .chatFundEditorMeta {
   margin-top: 5px;
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 app-root chat .chatFundEditorDays {
-  color: #10b981;
+  color: var(--color-success);
   font-weight: 500;
   margin-left: auto;
 }
 app-root chat .chatFundEditorDescription {
   margin-top: 3px;
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   line-height: 1.35;
 }
 app-root chat .chatFundEditorAmounts {
   margin-top: 3px;
   font-size: 11px;
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
   line-height: 1.35;
 }
 app-root chat .chatFundEditorField {
@@ -2503,20 +2524,20 @@ app-root chat .chatTransferSection {
   overflow: visible;
 }
 app-root chat .chatTransferHero {
-  background: rgba(16, 185, 129, 0.08);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(52, 64, 74, 0.08);
+  border: 1px solid rgba(52, 64, 74, 0.2);
   padding: 10px 12px;
   border-radius: 10px;
   margin-bottom: 10px;
 }
 app-root chat .chatTransferTitle {
-  color: #10b981;
+  color: var(--color-text);
   font-size: 14px;
   font-weight: 700;
   margin-bottom: 1px;
 }
 app-root chat .chatTransferSubtitle {
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
   font-size: 11px;
   line-height: 1.4;
 }
@@ -2540,7 +2561,7 @@ app-root chat .chatTransferRecipients {
   margin-bottom: 8px;
 }
 app-root chat .chatTransferRecipientsLabel {
-  color: #94a3b8;
+  color: var(--color-text-muted);
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.6px;
@@ -2561,14 +2582,13 @@ app-root chat .chatTransferRecipientCard {
   gap: 6px;
   padding: 6px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(52, 64, 74, 0.2);
+  background: rgba(52, 64, 74, 0.08);
   cursor: pointer;
 }
 app-root chat .chatTransferRecipientCard.selectedRecipient {
-  background: rgba(16, 185, 129, 0.28);
-  border-color: rgba(16, 185, 129, 0.8);
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
+  background: rgba(52, 64, 74, 0.28);
+  border-color: rgba(52, 64, 74, 0.8);
   transform: translateY(-1px);
 }
 app-root chat .chatTransferRecipientAvatar {
@@ -2578,7 +2598,7 @@ app-root chat .chatTransferRecipientAvatar {
   object-fit: cover;
 }
 app-root chat .chatTransferRecipientName {
-  color: #e2e8f0;
+  color: var(--color-text-secondary);
   font-size: 12px;
   font-weight: 600;
 }
@@ -2595,7 +2615,7 @@ app-root chat .chatTransferBtn {
   padding: 8px 10px;
 }
 app-root chat .chatTransferBtn:disabled {
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  border: 1px solid rgba(67, 82, 99, 0.2);
 }
 app-root chat .chatHeaderSubjectRow {
   display: flex;
@@ -2620,7 +2640,7 @@ app-root chat .chatDetailsPanel {
 app-root chat .chatProfileImageEditor {
   margin-top: 10px;
   padding-top: 10px;
-  border-top: 1px solid rgba(148, 163, 184, 0.22);
+  border-top: 1px solid rgba(67, 82, 99, 0.22);
 }
 app-root chat .chatProfileSection {
   display: flex;
@@ -2628,7 +2648,7 @@ app-root chat .chatProfileSection {
   gap: 10px;
 }
 app-root chat .chatProfileSectionTitle {
-  color: #f1f5f9;
+  color: var(--color-text);
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.2px;
@@ -2671,7 +2691,7 @@ app-root chat .chatProfileImagePlaceholder {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 app-root chat .chatProfileImageActions {
@@ -2689,10 +2709,9 @@ app-root chat .chatComposer {
   bottom: 0 !important;
   left: 0 !important;
   flex: 0 0 auto;
-  background: #1e293b;
-  border-top: 1px solid rgba(16, 185, 129, 0.12);
+  background: var(--color-surface);
+  border-top: 1px solid rgba(52, 64, 74, 0.12);
   padding-bottom: 20px;
-  box-shadow: 0 -8px 24px rgba(2, 8, 23, 0.25);
 }
 app-root chat .chatComposer textarea {
   float: left;
@@ -2701,10 +2720,10 @@ app-root chat .chatComposer textarea {
   overflow-y: hidden;
   white-space: pre-wrap;
   word-break: break-word;
-  background: rgba(15, 23, 42, 0.65);
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: rgba(29, 40, 53, 0.65);
+  border: 1px solid rgba(67, 82, 99, 0.3);
   border-radius: 8px;
-  color: #f1f5f9;
+  color: var(--color-text);
 }
 app-root chat .composerImagePreview {
   float: left;
@@ -2727,8 +2746,8 @@ app-root chat .composerImageClearBtn {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #ef4444;
-  color: white;
+  background: var(--color-danger);
+  color: var(--color-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2736,7 +2755,6 @@ app-root chat .composerImageClearBtn {
   border: none;
   cursor: pointer;
   z-index: 10;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 app-root chat .chatDateIsland {
   margin-top: 25px;
@@ -2766,9 +2784,9 @@ app-root chat .topToggleBtn {
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  border: 1px solid rgba(16, 185, 129, 0.22);
-  background: rgba(22, 32, 52, 0.62);
-  color: #cbd5e1;
+  border: 1px solid rgba(52, 64, 74, 0.22);
+  background: rgba(42, 55, 69, 0.62);
+  color: var(--color-text-secondary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2776,9 +2794,9 @@ app-root chat .topToggleBtn {
   transition: all 0.2s ease;
 }
 app-root chat .topToggleBtn:hover {
-  border-color: rgba(16, 185, 129, 0.45);
-  background: rgba(16, 185, 129, 0.12);
-  color: #10b981;
+  border-color: rgba(52, 64, 74, 0.45);
+  background: rgba(52, 64, 74, 0.12);
+  color: var(--color-text);
 }
 app-root chat .composerActionWrap {
   float: right;
@@ -2793,28 +2811,26 @@ app-root chat .composerActionBtn {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  background: rgba(22, 32, 52, 0.7);
+  border: 1px solid rgba(67, 82, 99, 0.35);
+  background: rgba(42, 55, 69, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(2, 8, 23, 0.28);
 }
 app-root chat .cameraBtn:hover,
 app-root chat .sendBtn:hover {
   transform: translateY(-1px);
 }
 app-root chat .cameraBtn {
-  border-color: rgba(148, 163, 184, 0.35);
-  background: rgba(22, 32, 52, 0.75);
+  border-color: rgba(67, 82, 99, 0.35);
+  background: rgba(42, 55, 69, 0.75);
 }
 app-root chat .sendBtn {
   border: none;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: #ffffff;
-  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
 }
 app-root chat .galleryWrap {
   padding: 15px 2px 6px 2px;
@@ -2834,20 +2850,19 @@ app-root chat .galleryGrid {
   margin: 0;
 }
 app-root chat .galleryCard {
-  background: #1e293b;
-  border: 1px solid rgba(16, 185, 129, 0.12);
+  background: var(--color-surface);
+  border: 1px solid rgba(52, 64, 74, 0.12);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(2, 8, 23, 0.24);
   cursor: pointer;
   transition: transform 0.2s ease, border-color 0.2s ease;
 }
 app-root chat .galleryCard:hover {
   transform: translateY(-1px);
-  border-color: rgba(16, 185, 129, 0.3);
+  border-color: rgba(52, 64, 74, 0.3);
 }
 app-root chat .galleryImageWrap {
-  background: rgba(22, 32, 52, 0.6);
+  background: rgba(42, 55, 69, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -2865,7 +2880,7 @@ app-root chat .galleryImage {
 }
 app-root chat .galleryMeta {
   padding: 10px;
-  border-top: 1px solid rgba(16, 185, 129, 0.1);
+  border-top: 1px solid rgba(52, 64, 74, 0.1);
 }
 app-root chat .galleryTopRow {
   display: flex;
@@ -2883,7 +2898,7 @@ app-root chat .galleryTime {
   white-space: nowrap;
 }
 app-root chat .galleryCaption {
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
   font-size: 12px;
   line-height: 1.45;
   display: -webkit-box;
@@ -2896,7 +2911,7 @@ app-root chat .messageBodyText {
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
   font-size: 13px;
   line-height: 1.5;
-  color: #e2e8f0;
+  color: var(--color-text-secondary);
   font-weight: 400;
   letter-spacing: 0.1px;
   overflow-wrap: break-word;
@@ -2910,7 +2925,7 @@ app-root chat .messageOptionsBtn {
   border-radius: 999px;
   border: 1px solid transparent;
   background: transparent;
-  color: rgba(203, 213, 225, 0.55);
+  color: rgba(203, 212, 222, 0.55);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2926,17 +2941,16 @@ app-root chat .messageBubble:hover .messageOptionsBtn {
   pointer-events: auto;
 }
 app-root chat .messageOptionsBtn:hover {
-  border-color: rgba(148, 163, 184, 0.3);
-  background: rgba(22, 32, 52, 0.55);
-  color: #e2e8f0;
+  border-color: rgba(67, 82, 99, 0.3);
+  background: rgba(42, 55, 69, 0.55);
+  color: var(--color-text-secondary);
 }
 app-root chat .messageOptionsMenu {
   position: absolute;
   min-width: 140px;
-  background: #1e293b;
-  border: 1px solid rgba(16, 185, 129, 0.18);
+  background: var(--color-surface);
+  border: 1px solid rgba(52, 64, 74, 0.18);
   border-radius: 10px;
-  box-shadow: 0 10px 22px rgba(2, 8, 23, 0.35);
   z-index: 30;
   padding: 4px;
   top: 28px;
@@ -2958,7 +2972,11 @@ app-root chat .messageBubble {
   padding: 2px 2px 4px 2px;
   position: relative;
   overflow: visible;
-  border-color: rgba(16, 185, 129, 0.45);
+  border-color: rgba(52, 64, 74, 0.45);
+  background: var(--color-raised);
+}
+app-root chat .messageBubble.ownMessageBubble {
+  background: var(--color-selected);
 }
 app-root chat .messageUserAvatar {
   cursor: pointer;
@@ -2975,12 +2993,11 @@ app-root chat .messageImage {
   width: auto;
   height: auto;
   margin: 5px 10px 5px 5px;
-  box-shadow: 0 0 2px whitesmoke;
 }
 app-root chat .messageOptionsItem {
   width: 100%;
   text-align: left;
-  color: #e2e8f0;
+  color: var(--color-text-secondary);
   background: transparent;
   border: 1px solid transparent;
   padding: 7px 9px;
@@ -2988,13 +3005,13 @@ app-root chat .messageOptionsItem {
   font-size: 12px;
 }
 app-root chat .messageOptionsItem:hover {
-  background: rgba(16, 185, 129, 0.12);
-  border-color: rgba(16, 185, 129, 0.24);
+  background: rgba(52, 64, 74, 0.12);
+  border-color: rgba(52, 64, 74, 0.24);
 }
 app-root chat .messageJsonModalBackdrop {
   position: fixed;
   inset: 0;
-  background: rgba(2, 6, 23, 0.72);
+  background: rgba(18, 25, 35, 0.72);
   z-index: 3000;
   display: flex;
   align-items: center;
@@ -3004,10 +3021,9 @@ app-root chat .messageJsonModalBackdrop {
 app-root chat .messageJsonModal {
   width: min(900px, 100%);
   max-height: min(80vh, 760px);
-  background: #1e293b;
-  border: 1px solid rgba(16, 185, 129, 0.22);
+  background: var(--color-surface);
+  border: 1px solid rgba(52, 64, 74, 0.22);
   border-radius: 12px;
-  box-shadow: 0 18px 40px rgba(2, 8, 23, 0.45);
   display: flex;
   flex-direction: column;
 }
@@ -3016,10 +3032,10 @@ app-root chat .messageJsonModalHeader {
   align-items: center;
   justify-content: space-between;
   padding: 12px 12px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  border-bottom: 1px solid rgba(67, 82, 99, 0.18);
 }
 app-root chat .messageJsonModalTitle {
-  color: #f1f5f9;
+  color: var(--color-text);
   font-size: 14px;
   font-weight: 700;
 }
@@ -3028,9 +3044,9 @@ app-root chat .messageJsonModalClose {
   height: 28px;
   margin: 4px;
   border-radius: 8px;
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  background: rgba(22, 32, 52, 0.7);
-  color: #cbd5e1;
+  border: 1px solid rgba(67, 82, 99, 0.28);
+  background: rgba(42, 55, 69, 0.7);
+  color: var(--color-text-secondary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3040,7 +3056,7 @@ app-root chat .messageJsonModalBody {
   margin: 0;
   padding: 12px;
   overflow: auto;
-  color: #e2e8f0;
+  color: var(--color-text-secondary);
   font-size: 12px;
   line-height: 1.45;
   white-space: pre;
@@ -3048,7 +3064,7 @@ app-root chat .messageJsonModalBody {
 app-root chat .cancelEventModalBackdrop {
   position: fixed;
   inset: 0;
-  background: rgba(2, 6, 23, 0.72);
+  background: rgba(18, 25, 35, 0.72);
   z-index: 3000;
   display: flex;
   align-items: center;
@@ -3057,20 +3073,19 @@ app-root chat .cancelEventModalBackdrop {
 }
 app-root chat .cancelEventModal {
   width: min(440px, 100%);
-  background: #1e293b;
+  background: var(--color-surface);
   border: 1px solid rgba(248, 113, 113, 0.32);
   border-radius: 12px;
-  box-shadow: 0 18px 40px rgba(2, 8, 23, 0.45);
   padding: 14px;
 }
 app-root chat .cancelEventModalTitle {
-  color: #f1f5f9;
+  color: var(--color-text);
   font-size: 15px;
   font-weight: 700;
   margin-bottom: 6px;
 }
 app-root chat .cancelEventModalText {
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
   font-size: 12px;
   line-height: 1.45;
   margin-bottom: 12px;
@@ -3276,7 +3291,7 @@ app-root chat .cancelEventModalBtn {
     border: none;
     border-radius: 12px 0 0 12px;
     z-index: 10;
-    background-color: #1e293b;
+    background-color: var(--color-surface);
     animation: fadeIn 0.4s ease-in-out;
   }
   .side-divider {
@@ -3292,7 +3307,7 @@ app-root chat .cancelEventModalBtn {
     transition: background 0.2s;
   }
   .side-divider:hover, .side-divider.dragging {
-    background: rgba(16, 185, 129, 0.15);
+    background: rgba(52, 64, 74, 0.15);
   }
   .side-divider-line {
     position: absolute;
@@ -3312,8 +3327,8 @@ app-root chat .cancelEventModalBtn {
   app-root chat .chat-header-main { float: left; width: 75%; margin: 0 5px 0 10px; min-height: 40px; }
 app-root chat .chat-header-fund-info { overflow: hidden; padding-top: 2px; }
 app-root chat .chat-header-fund-track { max-width: 320px; }
-app-root chat .chat-header-fund-meta { font-size: 11px; color: #94a3b8; margin-top: 4px; }
-app-root chat .chat-back-link { float: left; color: white; margin: 10px; }
+app-root chat .chat-header-fund-meta { font-size: 11px; color: var(--color-text-muted); margin-top: 4px; }
+app-root chat .chat-back-link { float: left; color: var(--color-text); margin: 10px; }
 app-root chat .chat-btn-200 { width: 200px; margin: 10px auto; display: flex; justify-content: center; }
 app-root chat .chat-btn-200-fixed { width: 200px; margin: 10px auto; }
 app-root chat .chat-msg-avatar-area { float: left; width: 54px; min-height: 10px; }
@@ -3321,7 +3336,7 @@ app-root chat .chat-msg-spacer { clear: both; width: 100%; height: 5px; }
 app-root chat .chat-msg-center { clear: both; text-align: center; }
 app-root chat .chat-msg-body-margin { margin: 5px 5px 0 5px; }
 app-root chat .chat-msg-status-area { clear: both; height: 15px; }
-app-root chat .chat-msg-status-icon { float: right; font-size: 16px; margin: 0 2px 2px 0; color: #3b82f6; }
+app-root chat .chat-msg-status-icon { float: right; font-size: 16px; margin: 0 2px 2px 0; color: var(--color-success); }
 app-root chat .chat-msg-stat-text { float: right; font-size: 10px; margin: 0 5px 2px 0; line-height: 15px; }
 app-root chat .chat-composer-hint { margin: 5px; font-size: 10px; }
 app-root chat .chat-composer-input-area { clear: both; float: left; width: 90%; display: flex; align-items: center; min-height: 64px; }
@@ -3330,25 +3345,24 @@ app-root chat .chat-icon-16 { font-size: 16px; }
 app-root chat .chat-icon-18 { font-size: 18px; line-height: 1; }
 app-root chat .chat-icon-20 { font-size: 20px; line-height: 1; }
 app-root chat .chat-icon-22 { font-size: 22px; }
-app-root chat .chat-icon-22-muted { font-size: 22px; color: #cbd5e1; }
+app-root chat .chat-icon-22-muted { font-size: 22px; color: var(--color-text-secondary); }
 app-root chat .chatPage {
     z-index: 20;
-    background-color: #000 !important;
+    background-color: var(--color-page) !important;
     border-left: none !important;
   }
   app-root chat .chatTopBar {
     border-radius: 0 !important;
-    border-bottom: 1px solid rgba(16, 185, 129, 0.12);
+    border-bottom: 1px solid rgba(52, 64, 74, 0.12);
   }
   app-root chat .chatComposer {
     border: none !important;
-    border-top: 1px solid rgba(16, 185, 129, 0.12) !important;
+    border-top: 1px solid rgba(52, 64, 74, 0.12) !important;
     padding-bottom: 10px !important;
   }
   app-root profile .listLight li.activeChatListItem {
-    background: rgba(16, 185, 129, 0.28) !important;
+    background: rgba(52, 64, 74, 0.28) !important;
     border: none !important;
-    box-shadow: none !important;
     transition: all 0.2s ease-in-out;
   }
 }
@@ -3365,17 +3379,17 @@ app-root chat .chatPage {
 app-root chat .messageJsonModalCopy,
 app-root chat .messageJsonModalCopied {
   background: transparent;
-  border: 1px solid rgba(203,213,225,0.25);
+  border: 1px solid rgba(203, 212, 222, 0.25);
   padding: 6px;
   border-radius: 6px;
-  color: #cbd5e1;
+  color: var(--color-text-secondary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
 app-root chat .messageJsonModalCopy:hover {
-  background: rgba(203,213,225,0.04);
+  background: rgba(203, 212, 222, 0.04);
 }
 
 app-root chat .messageJsonModalCopied[disabled] {

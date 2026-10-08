@@ -325,7 +325,7 @@ export class UserInterfaceService {
       visibility = 'text';
       outlinedEyeStyle = 'display:none';
       fullEyeStyle = 'display:block';
-      focus = 'border-style:solid; border-width: 1px; border-color:#757566;';
+      focus = 'border-style:solid; border-width: 1px; border-color:var(--color-border);';
     } else if (effect === 'hide') {
       visibility = 'password';
       outlinedEyeStyle = 'display:block';

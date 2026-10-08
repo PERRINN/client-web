@@ -48,11 +48,11 @@
           }
         </div>
         <div class="dir-flex-gap8">
-          <button class="viewToggleBtn" (click)="viewMode = 'cards'" [style.background-color]="viewMode === 'cards' ? '#10b981' : '#2a3f47'" [style.color]="viewMode === 'cards' ? '#ffffff' : '#94a3b8'">
+          <button class="viewToggleBtn" [class.active]="viewMode === 'cards'" (click)="viewMode = 'cards'">
             <span class="material-icons-outlined dir-icon-16-vmid">view_comfy</span>
             Cards
           </button>
-          <button class="viewToggleBtn" (click)="viewMode = 'table'" [style.background-color]="viewMode === 'table' ? '#10b981' : '#2a3f47'" [style.color]="viewMode === 'table' ? '#ffffff' : '#94a3b8'">
+          <button class="viewToggleBtn" [class.active]="viewMode === 'table'" (click)="viewMode = 'table'">
             <span class="material-icons-outlined dir-icon-16-vmid">format_list_bulleted</span>
             List
           </button>
@@ -121,8 +121,8 @@
                 </tr>
               </thead>
               <tbody>
-                @for (message of filteredMessages | async; track message; let i = $index) {
-                  <tr [style.background]="i % 2 === 0 ? 'transparent' : 'rgba(5, 150, 105, 0.03)'" class="directory-table-row" (click)="router.navigate(['profile',message.values.user])">
+                @for (message of filteredMessages | async; track message) {
+                  <tr class="directory-table-row" (click)="router.navigate(['profile',message.values.user])">
                     <td class="dir-table-td-name">{{message.values?.name}}</td>
                     <td class="dir-table-td-balance">{{UI.convertAndFormatPRNToPRNCurrency(null,message.values?.wallet?.balance||0)}}</td>
                     <td class="dir-table-td-share">{{((message.values?.wallet?.balance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance))|percent:'1.1-1'}}</td>

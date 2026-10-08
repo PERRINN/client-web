@@ -297,8 +297,8 @@
                     <img [src]="message.payload?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload)" class="messageUserAvatar" (click)="router.navigate(['profile',message.payload?.user])">
                   </div>
                 }
-                <div [style.background-color]="(message.payload?.user==UI.currentUser)?'rgba(16, 185, 129, 0.28)':'rgba(22, 32, 52, 0.72)'"
-                  class="messageBubble"
+                <div class="messageBubble"
+                  [class.ownMessageBubble]="message.payload?.user === UI.currentUser"
                   [id]="message.key"
                   (click)="$event.stopPropagation(); closeMessageActions()"
                   [style.border-style]="(message.payload?.text.includes(UI.currentUserLastMessageObj?.name))?'solid':'none'">

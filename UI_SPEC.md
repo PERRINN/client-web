@@ -7,7 +7,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 - Treat the existing global stylesheet and existing screens as legacy implementation, not as examples of the intended design. Reuse a rule only after confirming that it agrees with this specification.
 - For new or rebuilt UI, follow this specification even when global CSS or nearby legacy UI conflicts with it. Keep new styling scoped to the relevant component or page where the existing Angular setup allows it.
 - Do not change global CSS or redesign unrelated screens as part of a feature task. If a global rule prevents the specified UI or interaction, describe the affected rule and its visible impact, then propose the smallest focused CSS change for review.
-- Reconciliation of the global stylesheet is separate work. It requires an inventory of conflicting rules and affected screens, followed by an agreed scope and visual review; do not fold that cleanup into unrelated feature work.
+- The approved Night Signal rollout is a global stylesheet reconciliation. Migrate production colors to shared palette and semantic tokens, including color bindings in templates and services. Keep dynamic values dynamic, and retain component or page rules only where they express screen-specific behavior. Avoid unrelated layout or behavior changes during this rollout.
 
 ## Design character
 
@@ -18,11 +18,29 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 
 ## Colour
 
-- Use deep charcoal/slate neutrals for page backgrounds and surfaces. Never use pure black as a new component's background.
-- Use light neutral text with clear primary, secondary and muted levels. Keep borders and dividers low contrast.
-- Keep actions neutral: use a filled neutral primary button and quieter secondary actions. Reserve green for selected and success states; do not use it as the default action color.
+- Use the **Night Signal** palette as the production colour direction. Its core tokens are:
+
+  | Role | Token | Value |
+  | --- | --- | --- |
+  | Page background | `--color-page` | `#121923` |
+  | Surface | `--color-surface` | `#1D2835` |
+  | Raised surface | `--color-raised` | `#2A3745` |
+  | Border | `--color-border` | `#435263` |
+  | Primary text | `--color-text` | `#F4F6F8` |
+  | Secondary text | `--color-text-secondary` | `#CBD4DE` |
+  | Muted text | `--color-text-muted` | `#AAB7C5` |
+  | Primary action accent | `--color-accent` | `#E5C477` |
+  | Accent text | `--color-accent-ink` | `#2A2417` |
+  | Selected surface | `--color-selected` | `#34404A` |
+  | Error text | `--color-danger-text` | `#FCA5A5` |
+
+- Use the page, surface and raised tokens to distinguish the canvas, grouped content, and controls or nested emphasis. Use the border token for subtle separation.
+- Use light neutral primary text, cool secondary text and muted text for clear hierarchy. Keep text readable; do not use muted text for essential content when contrast is insufficient.
+- Use gold for primary actions and restrained emphasis. Keep green for success, use the selected-surface token for selected controls, and use restrained red for errors. Use `--color-danger` for error fills and `--color-danger-text` for readable error text. Do not use gold as the sole indication of status.
+- Never use pure black as a page or component background. Avoid gradients, shadows, and unrelated saturated accents.
 - Use restrained red for errors. Keep destructive actions neutral and make their consequence clear in the label and confirmation.
-- Reuse applicable variables in `src/styles.css` (`--bg-slate`, `--bg-card-dark`, `--text-light`, `--text-gray`, `--text-muted`, and radius variables). Existing `--bg-black` is pure black and conflicts with this specification; do not use it for new page backgrounds. Do not invent hex values when an existing neutral or semantic color fits.
+- Define shared production colour tokens in `src/styles.css` and use them in global rules and components where the style is genuinely shared. Legacy tokens remain for existing prototypes; production rules must use the Night Signal and semantic tokens. Do not add palette hex values to individual component styles when a shared token represents the role.
+- Existing `--bg-black` is pure black and conflicts with this specification; do not use it for new or migrated page backgrounds. Keep component-specific layout and one-off styling scoped to components when it is not a shared design rule.
 - Keep accent color sparse. Avoid gradients and high-contrast decorative color treatments.
 
 ## Typography
@@ -42,11 +60,11 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 
 ## Components
 
-- **Buttons:** use one filled neutral primary style per task area. Secondary actions should have less visual weight. Destructive actions remain neutral; use clear wording and confirmation for consequential operations. Selected controls may use green.
-- **Inputs:** use dark filled fields with a subtle border, clear text and a restrained neutral focus outline. Keep labels and validation associated with their field.
-- **Cards and panels:** use dark neutral surfaces and restrained borders to group related content. Do not use shadows or gradients.
+- **Buttons:** use one filled gold primary style per task area, with accent ink for legible text. Secondary actions should have less visual weight. Destructive actions remain neutral; use clear wording and confirmation for consequential operations. Selected controls use the selected-surface token.
+- **Inputs:** use dark filled fields with the surface or raised token, a subtle border, clear text and a restrained neutral focus outline. Keep labels and validation associated with their field.
+- **Cards and panels:** use the surface or raised token and restrained borders to group related content. Do not use shadows or gradients.
 - **Navigation:** prefer visible labels, adding icons where they improve recognition. Keep hierarchy clear and selected state restrained.
-- **Tabs and selections:** make the selected state clear; green is allowed for selected states. Do not make every tab or option visually prominent.
+- **Tabs and selections:** make the selected state clear using the selected-surface token. Do not make every tab or option visually prominent.
 - **Tables and data:** choose between aligned compact rows and cards based on the content. Align comparable values and use consistent number emphasis; do not add decorative containers around every value.
 - **Dialogs:** prefer inline panels when they can handle the task. Use a modal only when a focused interruption or confirmation is needed; keep it plain, compact and easy to dismiss.
 - **Notifications:** show field errors inline. Use a toast for broader success or error updates. Keep success green and errors restrained red.

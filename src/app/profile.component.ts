@@ -74,6 +74,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.scope=''
     this.mode='inbox'
     this.scrollTeam=''
+    const paletteAccent = getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim();
     this.chartOptions = {
           series: [
             { type: 'line', xKey: 'timestamp', yKey: 'balance', marker: { size: 0 }},
@@ -103,7 +104,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       }
     this.forecastChartOptions = {
           series: [
-            { type: 'line', xKey: 'year', yKey: 'balance', marker: { size: 0 }, stroke: '#10b981', strokeWidth: 2 }
+            { type: 'line', xKey: 'year', yKey: 'balance', marker: { size: 0 }, stroke: paletteAccent, strokeWidth: 2 }
           ],
           theme: 'ag-default-dark',
           axes: [
