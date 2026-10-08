@@ -2,7 +2,13 @@
 
 ## Purpose
 
-PERRINN is a member collaboration application with profiles and a directory, chat, account settings, PRN wallet and membership/payment flows, and community information.
+PERRINN is being built as a home for a large, distributed digital team. Everyone is welcome to participate and contribute to the team's shared missions. The first is 424: designing and building an electric hypercar with the ambition of one day breaking the Nürburgring lap record and racing at the 24 Hours of Le Mans.
+
+PERRINN.com should help the team stay aligned on its mission, share updates, and collaborate. The experience is conversation first, familiar like a messaging or AI chat app, so people can interact and contribute without information feeling trapped in disconnected tools. The product aims to make participation and information flow more fluid and open while keeping team data secure.
+
+AI is intended to help people find information in PERRINN's knowledge base and act as a conversational interface to the application. The longer-term direction is for people to ask for actions in chat instead of navigating forms, with the app's actions and state updated through that interaction. This describes product intent; it does not define AI message access, data handling, or authorization behavior, which must follow the security requirements below and be designed explicitly.
+
+The application currently includes profiles and a directory, chat, account settings, a PRN wallet, and community information. These are existing product areas, not a statement that PERRINN is primarily a membership recruitment or payment product.
 
 ## Current architecture
 
