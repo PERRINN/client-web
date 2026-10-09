@@ -13,7 +13,6 @@ import { SettingsComponent }  from './settings.component';
 import { DirectoryComponent }  from './directory.component';
 import { BuyPrnComponent }  from './buy-prn.component';
 import { PrototypeGalleryComponent } from './prototypes/prototype-gallery.component';
-import { MemberTextFieldComponent } from './prototypes/member-text-field/member-text-field.component';
 import { ClassicSocialFeedComponent } from './prototypes/classic-social-feed/classic-social-feed.component';
 import { CommunityDashboardComponent } from './prototypes/community-dashboard/community-dashboard.component';
 import { MobileFirstSocialComponent } from './prototypes/mobile-first-social/mobile-first-social.component';
@@ -60,7 +59,6 @@ export const firebaseConfig = {
         DirectoryComponent,
         BuyPrnComponent,
         PrototypeGalleryComponent,
-        MemberTextFieldComponent,
         ClassicSocialFeedComponent,
         CommunityDashboardComponent,
         MobileFirstSocialComponent,

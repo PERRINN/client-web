@@ -25,13 +25,6 @@
         <a class="prototype-card" [routerLink]="prototype.route">
           <div class="preview-stage" aria-hidden="true">
             @switch (prototype.name) {
-              @case ('member-text-field') {
-                <div class="input-preview">
-                  <span class="mini-label">Display name</span>
-                  <div class="mini-input">Alex Morgan <span>Clear</span></div>
-                  <div class="mini-caption"><span>How your name appears to members</span><span>11 / 80</span></div>
-                </div>
-              }
               @case ('chat-input-bar') {
                 <div class="chat-input-preview"><div class="preview-bubble"></div><div class="preview-composer"><i>＋</i><span>Type a message</span><b>↑</b></div></div>
               }

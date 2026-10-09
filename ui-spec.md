@@ -5,6 +5,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 ## Legacy CSS boundary
 
 - Treat the existing global stylesheet and existing screens as legacy implementation, not as examples of the intended design. Reuse a rule only after confirming that it agrees with this specification.
+- The legacy universal selector in `src/styles.css` applies `overflow: hidden` and a fixed `line-height: 20px` to all elements. Scoped component styles must reset those inherited global declarations where they clip text; for page headings, use `overflow: visible` and a suitable proportional line height (the existing prototype pattern is `:host h1, :host h2, :host h3 { overflow: visible; line-height: 1.35; }`).
 - For new or rebuilt UI, follow this specification even when global CSS or nearby legacy UI conflicts with it. Keep new styling scoped to the relevant component or page where the existing Angular setup allows it.
 - Do not change global CSS or redesign unrelated screens as part of a feature task. If a global rule prevents the specified UI or interaction, describe the affected rule and its visible impact, then propose the smallest focused CSS change for review.
 - The approved Night Signal rollout is a global stylesheet reconciliation. Migrate production colors to shared palette and semantic tokens, including color bindings in templates and services. Keep dynamic values dynamic, and retain component or page rules only where they express screen-specific behavior. Avoid unrelated layout or behavior changes during this rollout.

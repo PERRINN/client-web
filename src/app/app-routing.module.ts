@@ -7,7 +7,6 @@ import { SettingsComponent } from './settings.component';
 import { DirectoryComponent } from './directory.component';
 import { BuyPrnComponent } from './buy-prn.component';
 import { PrototypeGalleryComponent } from './prototypes/prototype-gallery.component';
-import { MemberTextFieldComponent } from './prototypes/member-text-field/member-text-field.component';
 import { ClassicSocialFeedComponent } from './prototypes/classic-social-feed/classic-social-feed.component';
 import { CommunityDashboardComponent } from './prototypes/community-dashboard/community-dashboard.component';
 import { MobileFirstSocialComponent } from './prototypes/mobile-first-social/mobile-first-social.component';
@@ -21,7 +20,6 @@ import { ChatInputBarComponent } from './prototypes/chat-input-bar/chat-input-ba
 
 const appRoutes: Routes = [
   { path: 'prototypes/chat-input-bar', component: ChatInputBarComponent },
-  { path: 'prototypes/member-text-field', component: MemberTextFieldComponent },
   { path: 'prototypes/classic-social-feed', component: ClassicSocialFeedComponent },
   { path: 'prototypes/community-dashboard', component: CommunityDashboardComponent },
   { path: 'prototypes/mobile-first-social', component: MobileFirstSocialComponent },
@@ -32,7 +30,6 @@ const appRoutes: Routes = [
   { path: 'prototypes/clay-ember', component: ClayEmberComponent, data: { paletteId: 'clay-ember' } },
   { path: 'prototypes/night-signal', component: NightSignalComponent, data: { paletteId: 'night-signal' } },
   { path: 'prototypes/CHAT-INPUT-BAR', redirectTo: 'prototypes/chat-input-bar', pathMatch: 'full' },
-  { path: 'prototypes/MEMBER-TEXT-FIELD', redirectTo: 'prototypes/member-text-field', pathMatch: 'full' },
   { path: 'prototypes/CLASSIC-SOCIAL-FEED', redirectTo: 'prototypes/classic-social-feed', pathMatch: 'full' },
   { path: 'prototypes/COMMUNITY-DASHBOARD', redirectTo: 'prototypes/community-dashboard', pathMatch: 'full' },
   { path: 'prototypes/MOBILE-FIRST-SOCIAL', redirectTo: 'prototypes/mobile-first-social', pathMatch: 'full' },

@@ -16,13 +16,6 @@ export class PrototypeGalleryComponent {
       route: '/prototypes/chat-input-bar'
     },
     {
-      name: 'member-text-field',
-      category: 'inputs',
-      type: 'Text input',
-      description: 'A labeled text field with helper text, a character count, and a clear action.',
-      route: '/prototypes/member-text-field'
-    },
-    {
       name: 'classic-social-feed',
       category: 'layouts',
       type: 'Classic social feed',
