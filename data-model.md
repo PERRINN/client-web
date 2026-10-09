@@ -59,6 +59,6 @@ These are observations of the checked-in rules, not a recommendation to change a
 - Shared message creation and current-user/member snapshots: `src/app/userInterface.service.ts`.
 - Chat messages and read cursors: `src/app/chat.component.ts`; profile unread state: `src/app/profile.component.ts`.
 - Message verification and backend message creation: `functions/dbMessagesOnCreate.f.js`, `functions/utils/verifyMessage.js`, `functions/utils/createMessage.js`.
-- Payment UI and server handlers: `src/app/buyPRN.component.ts`, `functions/createRevolutOrder.f.js`, `functions/revolutWebhook.f.js`, `functions/syncRevolutOrderStatus.f.js`, `functions/dbTeamPaymentsOnCreate.f.js`.
+- Payment UI and server handlers: `src/app/buy-prn.component.ts`, `functions/createRevolutOrder.f.js`, `functions/revolutWebhook.f.js`, `functions/syncRevolutOrderStatus.f.js`, `functions/dbTeamPaymentsOnCreate.f.js`.
 - Image processing: `functions/storageOnFinalise.f.js`; applicable access rules: `firestore.rules`, `storage.rules`, `database.rules.json`.
 - Function exports and scheduled integrations: `functions/main.js`, `functions/scheduledDailyMembership.f.js`, `functions/driveFolderActivity.f.js`, `functions/githubActivity.f.js`.

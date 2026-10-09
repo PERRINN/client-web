@@ -8,9 +8,9 @@ import { Component } from '@angular/core';
 })
 export class CommunityDashboardComponent {
   readonly layouts = [
-    { id: 'CLASSIC-SOCIAL-FEED', name: 'Classic social feed' },
-    { id: 'COMMUNITY-DASHBOARD', name: 'Community dashboard' },
-    { id: 'MOBILE-FIRST-SOCIAL', name: 'Mobile-first social' }
+    { id: 'classic-social-feed', name: 'Classic social feed' },
+    { id: 'community-dashboard', name: 'Community dashboard' },
+    { id: 'mobile-first-social', name: 'Mobile-first social' }
   ];
   activeNav = 'Overview';
   eventJoined = false;
@@ -20,7 +20,7 @@ export class CommunityDashboardComponent {
     { initials: 'TW', name: 'Theo Williams', preview: 'Lunch sounds great', time: 'Yesterday' }
   ];
 
-  get currentLayoutIndex(): number { return this.layouts.findIndex(layout => layout.id === 'COMMUNITY-DASHBOARD'); }
+  get currentLayoutIndex(): number { return this.layouts.findIndex(layout => layout.id === 'community-dashboard'); }
   get previousLayout() { return this.layouts[(this.currentLayoutIndex + this.layouts.length - 1) % this.layouts.length]; }
   get nextLayout() { return this.layouts[(this.currentLayoutIndex + 1) % this.layouts.length]; }
 }

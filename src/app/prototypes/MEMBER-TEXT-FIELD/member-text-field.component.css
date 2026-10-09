@@ -4,12 +4,12 @@
 .back-link { display: inline-block; margin-bottom: 24px; color: var(--text-gray); font-size: 12px; text-decoration: none; }
 .back-link:hover { color: var(--text-light); text-decoration: underline; }
 .back-link:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid #cbd5e1; outline-offset: 3px; }
-.eyebrow, .note-label { margin: 0 0 8px; color: var(--text-muted); font-size: 10px; font-weight: 600; letter-spacing: .08em; }
+.eyebrow { margin: 0 0 8px; color: var(--text-muted); font-size: 10px; font-weight: 600; letter-spacing: .08em; }
 .eyebrow span { padding: 0 4px; }
 h1, h2, p { margin-top: 0; }
 h1 { margin-bottom: 7px; font-size: 24px; font-weight: 600; }
 .intro { margin-bottom: 22px; color: var(--text-gray); font-size: 13px; line-height: 1.5; }
-.demo-panel, .question-note { border: 1px solid rgba(148, 163, 184, .18); border-radius: var(--radius-md); background: var(--bg-card-dark); }
+.demo-panel { border: 1px solid rgba(148, 163, 184, .18); border-radius: var(--radius-md); background: var(--bg-card-dark); }
 .demo-panel { padding: 20px; }
 .panel-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid rgba(148, 163, 184, .14); }
 h2 { margin-bottom: 4px; font-size: 14px; font-weight: 600; }
@@ -28,7 +28,4 @@ h2 { margin-bottom: 4px; font-size: 14px; font-weight: 600; }
 .result-label { color: var(--text-muted); font-size: 11px; }
 .preview-result strong { overflow-wrap: anywhere; font-size: 14px; font-weight: 600; }
 .empty-hint { margin: 22px 0 0; padding: 13px 14px; border: 1px dashed rgba(148, 163, 184, .22); border-radius: var(--radius-sm); color: var(--text-muted); font-size: 12px; }
-.question-note { margin-top: 14px; padding: 15px 17px; }
-.question-note .note-label { display: block; margin-bottom: 6px; }
-.question-note p { margin-bottom: 0; color: var(--text-gray); font-size: 12px; line-height: 1.5; }
 @media (max-width: 600px) { .prototype-page { padding: 18px 14px; } .demo-panel { padding: 16px; } .field-meta { flex-direction: column; gap: 3px; } }

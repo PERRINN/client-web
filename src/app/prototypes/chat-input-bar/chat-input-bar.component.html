@@ -1,0 +1,49 @@
+<main class="prototype-page">
+  <a class="back-link" routerLink="/prototypes">← Prototyping</a>
+  <header class="prototype-header">
+    <div>
+      <p class="eyebrow">chat-input-bar</p>
+      <h1>A message composer that stays within reach</h1>
+      <p class="intro">Paste or choose an image, write a message, and send it into this local preview.</p>
+    </div>
+  </header>
+
+  <section class="demo-panel" aria-labelledby="demo-title">
+    <div class="panel-heading">
+      <div><h2 id="demo-title">Interactive preview</h2><p>Try pasting an image or selecting one from your device.</p></div>
+      <span class="field-tag">CHAT COMPOSER</span>
+    </div>
+
+    <div class="chat-window">
+      <div class="chat-topline"><span class="chat-avatar">424</span><div><strong>424 Design team</strong><small>Team conversation</small></div><span class="online-dot" aria-label="Active conversation"></span></div>
+      <div class="message-list" aria-live="polite" aria-label="Preview messages">
+        @for (message of messages; track $index) {
+          <article class="message" [class.own-message]="message.author === 'You'">
+            <span class="message-author">{{ message.author }}</span>
+            @if (message.text) { <p>{{ message.text }}</p> }
+            @if (message.image) { <img class="message-image" [src]="message.image" alt="Attached image"> }
+          </article>
+        }
+      </div>
+
+      <div class="composer" (paste)="onPaste($event)">
+        @if (imageUrl) {
+          <div class="attachment-preview">
+            <img [src]="imageUrl" alt="Selected image preview">
+            <span>{{ imageName }}</span>
+            <button type="button" class="remove-image" (click)="clearImage()" aria-label="Remove attached image">×</button>
+          </div>
+        }
+        <div class="composer-controls">
+          <input #imagePicker class="file-input" type="file" accept="image/*" (change)="onFileChange($event)" aria-label="Choose an image">
+          <button class="attach-button" type="button" (click)="imagePicker.click()" aria-label="Attach an image" title="Attach an image"><span aria-hidden="true"></span></button>
+          <textarea #messageInput [(ngModel)]="draft" rows="1" placeholder="Type a message" aria-label="Type a message" (input)="resizeInput(messageInput)" (keydown)="onInputKeydown($event)"></textarea>
+          @if (draft.trim() || imageUrl) {
+            <button class="send-button" type="button" (click)="send()" aria-label="Send message" title="Send message"><span aria-hidden="true">↑</span></button>
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>

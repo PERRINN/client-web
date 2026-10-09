@@ -9,74 +9,81 @@ import { Component } from '@angular/core';
 export class PrototypeGalleryComponent {
   readonly prototypes = [
     {
-      name: 'MEMBER-TEXT-FIELD',
+      name: 'chat-input-bar',
+      category: 'inputs',
+      type: 'Chat input',
+      description: 'A bottom-pinned message composer with image paste, file selection, preview, and local sending.',
+      route: '/prototypes/chat-input-bar'
+    },
+    {
+      name: 'member-text-field',
       category: 'inputs',
       type: 'Text input',
       description: 'A labeled text field with helper text, a character count, and a clear action.',
-      route: '/prototypes/MEMBER-TEXT-FIELD'
+      route: '/prototypes/member-text-field'
     },
     {
-      name: 'CLASSIC-SOCIAL-FEED',
+      name: 'classic-social-feed',
       category: 'layouts',
       type: 'Classic social feed',
       description: 'A familiar three-column community feed with member navigation and upcoming events.',
-      route: '/prototypes/CLASSIC-SOCIAL-FEED'
+      route: '/prototypes/classic-social-feed'
     },
     {
-      name: 'COMMUNITY-DASHBOARD',
+      name: 'community-dashboard',
       category: 'layouts',
       type: 'Community dashboard',
       description: 'A member home that brings updates, conversations, events, and community activity together.',
-      route: '/prototypes/COMMUNITY-DASHBOARD'
+      route: '/prototypes/community-dashboard'
     },
     {
-      name: 'MOBILE-FIRST-SOCIAL',
+      name: 'mobile-first-social',
       category: 'layouts',
       type: 'Mobile-first social',
       description: 'A compact, thumb-friendly social stream that expands into a desktop community workspace.',
-      route: '/prototypes/MOBILE-FIRST-SOCIAL'
+      route: '/prototypes/mobile-first-social'
     },
     {
-      name: 'CLEAR-SLATE',
+      name: 'clear-slate',
       category: 'colours',
       type: 'Colour palette · cool slate',
       description: 'A familiar slate base with stronger text contrast and bright blue actions.',
-      route: '/prototypes/CLEAR-SLATE'
+      route: '/prototypes/clear-slate'
     },
     {
-      name: 'WARM-GRAPHITE',
+      name: 'warm-graphite',
       category: 'colours',
       type: 'Colour palette · warm graphite',
       description: 'Warm charcoal surfaces, ivory text, and a restrained amber accent.',
-      route: '/prototypes/WARM-GRAPHITE'
+      route: '/prototypes/warm-graphite'
     },
     {
-      name: 'DEEP-TIDE',
+      name: 'deep-tide',
       category: 'colours',
       type: 'Colour palette · deep tide',
       description: 'A blue-green neutral base with crisp text and a mint accent.',
-      route: '/prototypes/DEEP-TIDE'
+      route: '/prototypes/deep-tide'
     },
     {
-      name: 'QUIET-PLUM',
+      name: 'quiet-plum',
       category: 'colours',
       type: 'Colour palette · quiet plum',
       description: 'Smoky plum surfaces, soft neutral text, and a lavender accent.',
-      route: '/prototypes/QUIET-PLUM'
+      route: '/prototypes/quiet-plum'
     },
     {
-      name: 'CLAY-EMBER',
+      name: 'clay-ember',
       category: 'colours',
       type: 'Colour palette · clay & ember',
       description: 'Earthy charcoal surfaces, warm stone text, and a softened coral accent.',
-      route: '/prototypes/CLAY-EMBER'
+      route: '/prototypes/clay-ember'
     },
     {
-      name: 'NIGHT-SIGNAL',
+      name: 'night-signal',
       category: 'colours',
       type: 'Colour palette · night signal',
       description: 'Ink-blue surfaces, cool neutral text, and a muted gold accent.',
-      route: '/prototypes/NIGHT-SIGNAL'
+      route: '/prototypes/night-signal'
     }
   ];
 

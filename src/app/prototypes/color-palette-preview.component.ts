@@ -19,7 +19,7 @@ type Palette = {
 export class ColorPalettePreviewComponent {
   readonly palettes: Palette[] = [
     {
-      id: 'CLEAR-SLATE',
+      id: 'clear-slate',
       name: 'Clear slate',
       direction: 'Cool slate · blue action',
       description: 'A familiar neutral foundation with brighter text, stronger panel separation, and a confident blue action colour.',
@@ -31,7 +31,7 @@ export class ColorPalettePreviewComponent {
       theme: { '--page': '#111827', '--surface': '#1F2937', '--raised': '#293548', '--border': '#46566A', '--text': '#F8FAFC', '--secondary': '#CBD5E1', '--muted': '#A8B4C5', '--accent': '#78A9FF', '--accent-ink': '#101A2B', '--selected': '#233A57' }
     },
     {
-      id: 'WARM-GRAPHITE',
+      id: 'warm-graphite',
       name: 'Warm graphite',
       direction: 'Warm charcoal · amber action',
       description: 'A softer charcoal base and warm ivory typography give the member space a more welcoming feel while keeping controls distinct.',
@@ -43,7 +43,7 @@ export class ColorPalettePreviewComponent {
       theme: { '--page': '#191716', '--surface': '#262321', '--raised': '#332E2A', '--border': '#514941', '--text': '#FFFAF2', '--secondary': '#E2D8CC', '--muted': '#C5B9AC', '--accent': '#F3AD72', '--accent-ink': '#25180D', '--selected': '#403126' }
     },
     {
-      id: 'DEEP-TIDE',
+      id: 'deep-tide',
       name: 'Deep tide',
       direction: 'Blue-green · mint action',
       description: 'A deep blue-green neutral adds a distinct identity, balanced by clean white text and a restrained mint accent.',
@@ -55,7 +55,7 @@ export class ColorPalettePreviewComponent {
       theme: { '--page': '#0D1920', '--surface': '#162630', '--raised': '#203641', '--border': '#3D5862', '--text': '#F3FAFC', '--secondary': '#C8D9DE', '--muted': '#A9BEC5', '--accent': '#74D9C2', '--accent-ink': '#10231F', '--selected': '#203B3C' }
     },
     {
-      id: 'QUIET-PLUM',
+      id: 'quiet-plum',
       name: 'Quiet plum',
       direction: 'Smoky plum · lavender action',
       description: 'A muted violet-charcoal foundation with soft lavender actions gives the member space a considered, creative tone.',
@@ -67,7 +67,7 @@ export class ColorPalettePreviewComponent {
       theme: { '--page': '#1B1720', '--surface': '#28222F', '--raised': '#373041', '--border': '#554A61', '--text': '#F8F5FA', '--secondary': '#D4CBDD', '--muted': '#B8AFC2', '--accent': '#C2A7F2', '--accent-ink': '#241B30', '--selected': '#3B3048' }
     },
     {
-      id: 'CLAY-EMBER',
+      id: 'clay-ember',
       name: 'Clay & ember',
       direction: 'Earth charcoal · coral action',
       description: 'A grounded charcoal with warm stone text and a softened coral accent brings warmth without brightening the whole interface.',
@@ -79,7 +79,7 @@ export class ColorPalettePreviewComponent {
       theme: { '--page': '#1D1918', '--surface': '#2B2422', '--raised': '#3B302D', '--border': '#5A4842', '--text': '#FAF5F2', '--secondary': '#DED0C9', '--muted': '#BFAFA8', '--accent': '#E9957D', '--accent-ink': '#2B1B17', '--selected': '#46332F' }
     },
     {
-      id: 'NIGHT-SIGNAL',
+      id: 'night-signal',
       name: 'Night signal',
       direction: 'Ink navy · soft gold action',
       description: 'A deep ink-blue base paired with balanced cool text and a muted gold accent feels focused and assured.',

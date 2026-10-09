@@ -8,9 +8,9 @@ import { Component } from '@angular/core';
 })
 export class ClassicSocialFeedComponent {
   readonly layouts = [
-    { id: 'CLASSIC-SOCIAL-FEED', name: 'Classic social feed' },
-    { id: 'COMMUNITY-DASHBOARD', name: 'Community dashboard' },
-    { id: 'MOBILE-FIRST-SOCIAL', name: 'Mobile-first social' }
+    { id: 'classic-social-feed', name: 'Classic social feed' },
+    { id: 'community-dashboard', name: 'Community dashboard' },
+    { id: 'mobile-first-social', name: 'Mobile-first social' }
   ];
   activeNav = 'Home';
   draft = '';
@@ -21,7 +21,7 @@ export class ClassicSocialFeedComponent {
     { name: 'Theo Williams', initials: 'TW', time: '1 hour ago', text: 'I have two spare places for Saturday’s community lunch. Who’s in?', likes: 14, liked: true }
   ];
 
-  get currentLayoutIndex(): number { return this.layouts.findIndex(layout => layout.id === 'CLASSIC-SOCIAL-FEED'); }
+  get currentLayoutIndex(): number { return this.layouts.findIndex(layout => layout.id === 'classic-social-feed'); }
   get previousLayout() { return this.layouts[(this.currentLayoutIndex + this.layouts.length - 1) % this.layouts.length]; }
   get nextLayout() { return this.layouts[(this.currentLayoutIndex + 1) % this.layouts.length]; }
 

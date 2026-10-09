@@ -25,6 +25,10 @@ h1 { margin-bottom: 6px; font-size: 25px; font-weight: 600; }
 .input-preview { width: 78%; padding: 12px; border: 1px solid rgba(148, 163, 184, .2); border-radius: 7px; background: var(--bg-card-dark); }
 .mini-label { display: block; margin-bottom: 6px; color: #dbe2e9; font-size: 8px; font-weight: 600; }
 .mini-input { display: flex; align-items: center; justify-content: space-between; min-height: 25px; padding: 0 7px; border: 1px solid rgba(148, 163, 184, .35); border-radius: 5px; color: #dbe2e9; font-size: 8px; }
+.chat-input-preview { display: flex; flex-direction: column; justify-content: space-between; width: 78%; height: 76px; padding: 10px; border: 1px solid var(--color-border); border-radius: 7px; background: var(--color-page); }
+.preview-bubble { width: 60%; height: 20px; border: 1px solid var(--color-border); border-radius: 8px 8px 8px 3px; background: var(--color-surface); }
+.preview-composer { display: flex; align-items: center; gap: 6px; height: 25px; padding: 0 5px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-raised); color: var(--color-text-muted); font-size: 7px; text-align: left; }
+.preview-composer i { font-size: 12px; font-style: normal; }.preview-composer span { flex: 1; }.preview-composer b { display: grid; width: 17px; height: 17px; place-items: center; border-radius: 5px; background: var(--color-accent); color: var(--color-accent-ink); font-size: 12px; }
 .mini-input span, .mini-caption { color: var(--text-muted); font-size: 6px; }
 .mini-caption { display: flex; justify-content: space-between; gap: 6px; margin-top: 5px; }
 .classic-preview, .dashboard-preview { display: flex; width: 86%; height: 82px; gap: 7px; padding: 8px; border: 1px solid rgba(148, 163, 184, .16); border-radius: 7px; background: var(--bg-slate); }

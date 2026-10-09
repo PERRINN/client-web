@@ -25,45 +25,48 @@
         <a class="prototype-card" [routerLink]="prototype.route">
           <div class="preview-stage" aria-hidden="true">
             @switch (prototype.name) {
-              @case ('MEMBER-TEXT-FIELD') {
+              @case ('member-text-field') {
                 <div class="input-preview">
                   <span class="mini-label">Display name</span>
                   <div class="mini-input">Alex Morgan <span>Clear</span></div>
                   <div class="mini-caption"><span>How your name appears to members</span><span>11 / 80</span></div>
                 </div>
               }
-              @case ('CLASSIC-SOCIAL-FEED') {
+              @case ('chat-input-bar') {
+                <div class="chat-input-preview"><div class="preview-bubble"></div><div class="preview-composer"><i>＋</i><span>Type a message</span><b>↑</b></div></div>
+              }
+              @case ('classic-social-feed') {
                 <div class="classic-preview">
                   <div class="mini-rail"><i></i><i></i><i></i><i></i></div>
                   <div class="mini-center"><b></b><div class="mini-post"><i></i><i></i><i></i></div><div class="mini-post short"><i></i><i></i></div></div>
                   <div class="mini-side"><b></b><i></i><i></i><i></i></div>
                 </div>
               }
-              @case ('COMMUNITY-DASHBOARD') {
+              @case ('community-dashboard') {
                 <div class="dashboard-preview">
                   <div class="mini-rail"><i></i><i></i><i></i><i></i></div>
                   <div class="dashboard-mini-main"><b></b><div class="mini-stats"><i></i><i></i><i></i></div><div class="mini-lower"><div class="mini-post"><i></i><i></i><i></i></div><div class="mini-post"><i></i><i></i></div></div></div>
                 </div>
               }
-              @case ('MOBILE-FIRST-SOCIAL') {
+              @case ('mobile-first-social') {
                 <div class="mobile-preview"><div class="phone-frame"><div class="phone-top"></div><div class="story-row"><i></i><i></i><i></i><i></i></div><div class="phone-post"><b></b><i></i><i></i><i></i></div><div class="phone-post"><b></b><i></i><i></i></div><div class="phone-bottom"><i></i><i></i><i></i><i></i></div></div><div class="mobile-notes"><i></i><i></i><i></i></div></div>
               }
-              @case ('CLEAR-SLATE') {
+              @case ('clear-slate') {
                 <div class="palette-mini slate"><div class="palette-mini-nav"></div><div class="palette-mini-main"><b></b><div></div><div></div></div><i></i></div>
               }
-              @case ('WARM-GRAPHITE') {
+              @case ('warm-graphite') {
                 <div class="palette-mini graphite"><div class="palette-mini-nav"></div><div class="palette-mini-main"><b></b><div></div><div></div></div><i></i></div>
               }
-              @case ('DEEP-TIDE') {
+              @case ('deep-tide') {
                 <div class="palette-mini tide"><div class="palette-mini-nav"></div><div class="palette-mini-main"><b></b><div></div><div></div></div><i></i></div>
               }
-              @case ('QUIET-PLUM') {
+              @case ('quiet-plum') {
                 <div class="palette-mini plum"><div class="palette-mini-nav"></div><div class="palette-mini-main"><b></b><div></div><div></div></div><i></i></div>
               }
-              @case ('CLAY-EMBER') {
+              @case ('clay-ember') {
                 <div class="palette-mini clay"><div class="palette-mini-nav"></div><div class="palette-mini-main"><b></b><div></div><div></div></div><i></i></div>
               }
-              @case ('NIGHT-SIGNAL') {
+              @case ('night-signal') {
                 <div class="palette-mini night"><div class="palette-mini-nav"></div><div class="palette-mini-main"><b></b><div></div><div></div></div><i></i></div>
               }
             }

@@ -11,19 +11,20 @@ import { LoginComponent }  from './login.component';
 import { ProfileComponent }  from './profile.component';
 import { SettingsComponent }  from './settings.component';
 import { DirectoryComponent }  from './directory.component';
-import { buyPRNComponent }  from './buyPRN.component';
+import { BuyPrnComponent }  from './buy-prn.component';
 import { PrototypeGalleryComponent } from './prototypes/prototype-gallery.component';
-import { MemberTextFieldComponent } from './prototypes/MEMBER-TEXT-FIELD/member-text-field.component';
-import { ClassicSocialFeedComponent } from './prototypes/CLASSIC-SOCIAL-FEED/classic-social-feed.component';
-import { CommunityDashboardComponent } from './prototypes/COMMUNITY-DASHBOARD/community-dashboard.component';
-import { MobileFirstSocialComponent } from './prototypes/MOBILE-FIRST-SOCIAL/mobile-first-social.component';
+import { MemberTextFieldComponent } from './prototypes/member-text-field/member-text-field.component';
+import { ClassicSocialFeedComponent } from './prototypes/classic-social-feed/classic-social-feed.component';
+import { CommunityDashboardComponent } from './prototypes/community-dashboard/community-dashboard.component';
+import { MobileFirstSocialComponent } from './prototypes/mobile-first-social/mobile-first-social.component';
 import { ColorPalettePreviewComponent } from './prototypes/color-palette-preview.component';
-import { ClearSlateComponent } from './prototypes/CLEAR-SLATE/clear-slate.component';
-import { WarmGraphiteComponent } from './prototypes/WARM-GRAPHITE/warm-graphite.component';
-import { DeepTideComponent } from './prototypes/DEEP-TIDE/deep-tide.component';
-import { QuietPlumComponent } from './prototypes/QUIET-PLUM/quiet-plum.component';
-import { ClayEmberComponent } from './prototypes/CLAY-EMBER/clay-ember.component';
-import { NightSignalComponent } from './prototypes/NIGHT-SIGNAL/night-signal.component';
+import { ClearSlateComponent } from './prototypes/clear-slate/clear-slate.component';
+import { WarmGraphiteComponent } from './prototypes/warm-graphite/warm-graphite.component';
+import { DeepTideComponent } from './prototypes/deep-tide/deep-tide.component';
+import { QuietPlumComponent } from './prototypes/quiet-plum/quiet-plum.component';
+import { ClayEmberComponent } from './prototypes/clay-ember/clay-ember.component';
+import { NightSignalComponent } from './prototypes/night-signal/night-signal.component';
+import { ChatInputBarComponent } from './prototypes/chat-input-bar/chat-input-bar.component';
 
 import { PipeModule }    from './pipes.module';
 
@@ -57,7 +58,7 @@ export const firebaseConfig = {
         ProfileComponent,
         SettingsComponent,
         DirectoryComponent,
-        buyPRNComponent,
+        BuyPrnComponent,
         PrototypeGalleryComponent,
         MemberTextFieldComponent,
         ClassicSocialFeedComponent,
@@ -70,6 +71,7 @@ export const firebaseConfig = {
         QuietPlumComponent,
         ClayEmberComponent,
         NightSignalComponent,
+        ChatInputBarComponent,
         ScrollableDirective,
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,

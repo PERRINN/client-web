@@ -5,37 +5,50 @@ import { ChatComponent } from './chat.component';
 import { ProfileComponent } from './profile.component';
 import { SettingsComponent } from './settings.component';
 import { DirectoryComponent } from './directory.component';
-import { buyPRNComponent } from './buyPRN.component';
+import { BuyPrnComponent } from './buy-prn.component';
 import { PrototypeGalleryComponent } from './prototypes/prototype-gallery.component';
-import { MemberTextFieldComponent } from './prototypes/MEMBER-TEXT-FIELD/member-text-field.component';
-import { ClassicSocialFeedComponent } from './prototypes/CLASSIC-SOCIAL-FEED/classic-social-feed.component';
-import { CommunityDashboardComponent } from './prototypes/COMMUNITY-DASHBOARD/community-dashboard.component';
-import { MobileFirstSocialComponent } from './prototypes/MOBILE-FIRST-SOCIAL/mobile-first-social.component';
-import { ClearSlateComponent } from './prototypes/CLEAR-SLATE/clear-slate.component';
-import { WarmGraphiteComponent } from './prototypes/WARM-GRAPHITE/warm-graphite.component';
-import { DeepTideComponent } from './prototypes/DEEP-TIDE/deep-tide.component';
-import { QuietPlumComponent } from './prototypes/QUIET-PLUM/quiet-plum.component';
-import { ClayEmberComponent } from './prototypes/CLAY-EMBER/clay-ember.component';
-import { NightSignalComponent } from './prototypes/NIGHT-SIGNAL/night-signal.component';
+import { MemberTextFieldComponent } from './prototypes/member-text-field/member-text-field.component';
+import { ClassicSocialFeedComponent } from './prototypes/classic-social-feed/classic-social-feed.component';
+import { CommunityDashboardComponent } from './prototypes/community-dashboard/community-dashboard.component';
+import { MobileFirstSocialComponent } from './prototypes/mobile-first-social/mobile-first-social.component';
+import { ClearSlateComponent } from './prototypes/clear-slate/clear-slate.component';
+import { WarmGraphiteComponent } from './prototypes/warm-graphite/warm-graphite.component';
+import { DeepTideComponent } from './prototypes/deep-tide/deep-tide.component';
+import { QuietPlumComponent } from './prototypes/quiet-plum/quiet-plum.component';
+import { ClayEmberComponent } from './prototypes/clay-ember/clay-ember.component';
+import { NightSignalComponent } from './prototypes/night-signal/night-signal.component';
+import { ChatInputBarComponent } from './prototypes/chat-input-bar/chat-input-bar.component';
 
 const appRoutes: Routes = [
-  { path: 'prototypes/MEMBER-TEXT-FIELD', component: MemberTextFieldComponent },
-  { path: 'prototypes/CLASSIC-SOCIAL-FEED', component: ClassicSocialFeedComponent },
-  { path: 'prototypes/COMMUNITY-DASHBOARD', component: CommunityDashboardComponent },
-  { path: 'prototypes/MOBILE-FIRST-SOCIAL', component: MobileFirstSocialComponent },
-  { path: 'prototypes/CLEAR-SLATE', component: ClearSlateComponent, data: { paletteId: 'CLEAR-SLATE' } },
-  { path: 'prototypes/WARM-GRAPHITE', component: WarmGraphiteComponent, data: { paletteId: 'WARM-GRAPHITE' } },
-  { path: 'prototypes/DEEP-TIDE', component: DeepTideComponent, data: { paletteId: 'DEEP-TIDE' } },
-  { path: 'prototypes/QUIET-PLUM', component: QuietPlumComponent, data: { paletteId: 'QUIET-PLUM' } },
-  { path: 'prototypes/CLAY-EMBER', component: ClayEmberComponent, data: { paletteId: 'CLAY-EMBER' } },
-  { path: 'prototypes/NIGHT-SIGNAL', component: NightSignalComponent, data: { paletteId: 'NIGHT-SIGNAL' } },
+  { path: 'prototypes/chat-input-bar', component: ChatInputBarComponent },
+  { path: 'prototypes/member-text-field', component: MemberTextFieldComponent },
+  { path: 'prototypes/classic-social-feed', component: ClassicSocialFeedComponent },
+  { path: 'prototypes/community-dashboard', component: CommunityDashboardComponent },
+  { path: 'prototypes/mobile-first-social', component: MobileFirstSocialComponent },
+  { path: 'prototypes/clear-slate', component: ClearSlateComponent, data: { paletteId: 'clear-slate' } },
+  { path: 'prototypes/warm-graphite', component: WarmGraphiteComponent, data: { paletteId: 'warm-graphite' } },
+  { path: 'prototypes/deep-tide', component: DeepTideComponent, data: { paletteId: 'deep-tide' } },
+  { path: 'prototypes/quiet-plum', component: QuietPlumComponent, data: { paletteId: 'quiet-plum' } },
+  { path: 'prototypes/clay-ember', component: ClayEmberComponent, data: { paletteId: 'clay-ember' } },
+  { path: 'prototypes/night-signal', component: NightSignalComponent, data: { paletteId: 'night-signal' } },
+  { path: 'prototypes/CHAT-INPUT-BAR', redirectTo: 'prototypes/chat-input-bar', pathMatch: 'full' },
+  { path: 'prototypes/MEMBER-TEXT-FIELD', redirectTo: 'prototypes/member-text-field', pathMatch: 'full' },
+  { path: 'prototypes/CLASSIC-SOCIAL-FEED', redirectTo: 'prototypes/classic-social-feed', pathMatch: 'full' },
+  { path: 'prototypes/COMMUNITY-DASHBOARD', redirectTo: 'prototypes/community-dashboard', pathMatch: 'full' },
+  { path: 'prototypes/MOBILE-FIRST-SOCIAL', redirectTo: 'prototypes/mobile-first-social', pathMatch: 'full' },
+  { path: 'prototypes/CLEAR-SLATE', redirectTo: 'prototypes/clear-slate', pathMatch: 'full' },
+  { path: 'prototypes/WARM-GRAPHITE', redirectTo: 'prototypes/warm-graphite', pathMatch: 'full' },
+  { path: 'prototypes/DEEP-TIDE', redirectTo: 'prototypes/deep-tide', pathMatch: 'full' },
+  { path: 'prototypes/QUIET-PLUM', redirectTo: 'prototypes/quiet-plum', pathMatch: 'full' },
+  { path: 'prototypes/CLAY-EMBER', redirectTo: 'prototypes/clay-ember', pathMatch: 'full' },
+  { path: 'prototypes/NIGHT-SIGNAL', redirectTo: 'prototypes/night-signal', pathMatch: 'full' },
   { path: 'prototypes', component: PrototypeGalleryComponent },
   { path: 'chat/:id', component: ChatComponent },
   { path: 'profile/:id', component: ProfileComponent },
   { path: 'settings', component: SettingsComponent },
   { path: 'login', component: LoginComponent },
   { path: 'directory', component: DirectoryComponent },
-  { path: 'buyPRN/:id', component: buyPRNComponent },
+  { path: 'buyPRN/:id', component: BuyPrnComponent },
   { path: 'buyPRN', redirectTo: 'buyPRN/', pathMatch: 'full' },
   { path: '',   redirectTo: 'profile/all', pathMatch: 'full' },
   { path: '**', component: ProfileComponent }

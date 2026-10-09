@@ -79,9 +79,9 @@ The Functions code in `functions/` handles trusted server-side workflows, includ
 
 Firebase Hosting is configured to serve the production client from `dist/` and rewrite application routes to `index.html`. Production builds enable the service worker; the development build disables it.
 
-For the current Firestore paths, message lifecycle, payment flow, image handling, and rule summary, see [DATA_MODEL.md](DATA_MODEL.md). Treat it as a source map; inspect the referenced code and rules before changing persisted data or authorization.
+For the current Firestore paths, message lifecycle, payment flow, image handling, and rule summary, see [data-model.md](data-model.md). Treat it as a source map; inspect the referenced code and rules before changing persisted data or authorization.
 
 ## Agent and UI guidance
 
 - `AGENTS.md` contains repository-specific instructions for coding agents, including architecture, component size, implementation preferences, and security-sensitive changes.
-- `UI_SPEC.md` is the design authority for new and rebuilt components. Read it before building or redesigning a component.
+- `ui-spec.md` is the design authority for new and rebuilt components. Read it before building or redesigning a component.

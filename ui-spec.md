@@ -104,7 +104,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 
 ## Rules for new components
 
-1. Read and follow `UI_SPEC.md` before building or rebuilding a component.
+1. Read and follow `ui-spec.md` before building or rebuilding a component.
 2. Reuse existing tokens and shared patterns where they fit this specification; where they conflict, follow this specification for new work.
 3. Follow these typography, colour, spacing, layout, interaction and responsive rules. Existing global CSS is not an exception to the spec; use the legacy CSS boundary above when rules conflict.
 4. Do not introduce a new visual pattern without a clear product reason.
