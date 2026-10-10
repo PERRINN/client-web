@@ -16,25 +16,18 @@ export class PrototypeGalleryComponent {
       route: '/prototypes/chat-input-bar'
     },
     {
-      name: 'classic-social-feed',
+      name: 'team-assistant-workspace',
       category: 'layouts',
-      type: 'Classic social feed',
-      description: 'A familiar three-column community feed with member navigation and upcoming events.',
-      route: '/prototypes/classic-social-feed'
+      type: 'Team assistant workspace',
+      description: 'Combine a focused assistant conversation with channels, team conversations, activity, and presence.',
+      route: '/prototypes/team-assistant-workspace'
     },
     {
-      name: 'community-dashboard',
+      name: 'conversation-sidebar',
       category: 'layouts',
-      type: 'Community dashboard',
-      description: 'A member home that brings updates, conversations, events, and community activity together.',
-      route: '/prototypes/community-dashboard'
-    },
-    {
-      name: 'mobile-first-social',
-      category: 'layouts',
-      type: 'Mobile-first social',
-      description: 'A compact, thumb-friendly social stream that expands into a desktop community workspace.',
-      route: '/prototypes/mobile-first-social'
+      type: 'Conversation sidebar',
+      description: 'A conversation-first workspace with app links above recent conversations.',
+      route: '/prototypes/conversation-sidebar'
     },
     {
       name: 'clear-slate',
@@ -81,8 +74,8 @@ export class PrototypeGalleryComponent {
   ];
 
   readonly categories = [
-    { id: 'inputs', title: 'Inputs', description: 'Fields and form interactions', prototypes: this.prototypes.filter(item => item.category === 'inputs') },
-    { id: 'layouts', title: 'Layouts', description: 'Ways to arrange community content', prototypes: this.prototypes.filter(item => item.category === 'layouts') },
-    { id: 'colours', title: 'Colour palettes', description: 'Surface, text, and accent combinations', prototypes: this.prototypes.filter(item => item.category === 'colours') }
+    { id: 'inputs', title: 'Inputs', prototypes: this.prototypes.filter(item => item.category === 'inputs') },
+    { id: 'layouts', title: 'Layouts', prototypes: this.prototypes.filter(item => item.category === 'layouts') },
+    { id: 'colours', title: 'Colour palettes', prototypes: this.prototypes.filter(item => item.category === 'colours') }
   ];
 }

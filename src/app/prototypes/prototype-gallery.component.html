@@ -8,16 +8,10 @@
     <span class="count">{{ prototypes.length }} {{ prototypes.length === 1 ? 'prototype' : 'prototypes' }}</span>
   </header>
 
-  <nav class="category-navigation" aria-label="Prototype categories">
-    @for (category of categories; track category.id) {
-      <a [href]="'#' + category.id">{{ category.title }} <span>{{ category.prototypes.length }}</span></a>
-    }
-  </nav>
-
   @for (category of categories; track category.id) {
     <section class="prototype-category" [id]="category.id" [attr.aria-labelledby]="category.id + '-title'">
       <header class="category-heading">
-        <div><h2 [id]="category.id + '-title'">{{ category.title }}</h2><p>{{ category.description }}</p></div>
+        <div><h2 [id]="category.id + '-title'">{{ category.title }}</h2></div>
         <span>{{ category.prototypes.length }}</span>
       </header>
       <div class="prototype-grid">
@@ -28,21 +22,11 @@
               @case ('chat-input-bar') {
                 <div class="chat-input-preview"><div class="preview-bubble"></div><div class="preview-composer"><i>＋</i><span>Type a message</span><b>↑</b></div></div>
               }
-              @case ('classic-social-feed') {
-                <div class="classic-preview">
-                  <div class="mini-rail"><i></i><i></i><i></i><i></i></div>
-                  <div class="mini-center"><b></b><div class="mini-post"><i></i><i></i><i></i></div><div class="mini-post short"><i></i><i></i></div></div>
-                  <div class="mini-side"><b></b><i></i><i></i><i></i></div>
-                </div>
+              @case ('team-assistant-workspace') {
+                <div class="team-assistant-preview"><div class="assistant-mini-rail"><i></i><i></i><i></i><i></i></div><div class="assistant-mini-center"><b></b><div class="assistant-mini-message"></div><div class="assistant-mini-response"><i></i><i></i><i></i></div><div class="assistant-mini-composer"></div></div><div class="assistant-mini-team"><b></b><i></i><i></i><b></b><i></i><i></i></div></div>
               }
-              @case ('community-dashboard') {
-                <div class="dashboard-preview">
-                  <div class="mini-rail"><i></i><i></i><i></i><i></i></div>
-                  <div class="dashboard-mini-main"><b></b><div class="mini-stats"><i></i><i></i><i></i></div><div class="mini-lower"><div class="mini-post"><i></i><i></i><i></i></div><div class="mini-post"><i></i><i></i></div></div></div>
-                </div>
-              }
-              @case ('mobile-first-social') {
-                <div class="mobile-preview"><div class="phone-frame"><div class="phone-top"></div><div class="story-row"><i></i><i></i><i></i><i></i></div><div class="phone-post"><b></b><i></i><i></i><i></i></div><div class="phone-post"><b></b><i></i><i></i></div><div class="phone-bottom"><i></i><i></i><i></i><i></i></div></div><div class="mobile-notes"><i></i><i></i><i></i></div></div>
+              @case ('conversation-sidebar') {
+                <div class="conversation-sidebar-preview"><div><i></i><i></i><i></i><i></i><b></b><i></i><i></i><i></i></div><section><b></b><i></i><i></i><i></i><em></em></section></div>
               }
               @case ('clear-slate') {
                 <div class="palette-mini slate"><div class="palette-mini-nav"></div><div class="palette-mini-main"><b></b><div></div><div></div></div><i></i></div>
@@ -67,10 +51,8 @@
           <div class="card-heading">
             <div>
               <h3>{{ prototype.name }}</h3>
-              <p class="type">{{ prototype.type }}</p>
             </div>
           </div>
-          <p class="description">{{ prototype.description }}</p>
         </a>
         }
       </div>

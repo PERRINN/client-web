@@ -13,9 +13,8 @@ import { SettingsComponent }  from './settings.component';
 import { DirectoryComponent }  from './directory.component';
 import { BuyPrnComponent }  from './buy-prn.component';
 import { PrototypeGalleryComponent } from './prototypes/prototype-gallery.component';
-import { ClassicSocialFeedComponent } from './prototypes/classic-social-feed/classic-social-feed.component';
-import { CommunityDashboardComponent } from './prototypes/community-dashboard/community-dashboard.component';
-import { MobileFirstSocialComponent } from './prototypes/mobile-first-social/mobile-first-social.component';
+import { TeamAssistantWorkspaceComponent } from './prototypes/team-assistant-workspace/team-assistant-workspace.component';
+import { ConversationSidebarComponent } from './prototypes/conversation-sidebar/conversation-sidebar.component';
 import { ColorPalettePreviewComponent } from './prototypes/color-palette-preview.component';
 import { ClearSlateComponent } from './prototypes/clear-slate/clear-slate.component';
 import { WarmGraphiteComponent } from './prototypes/warm-graphite/warm-graphite.component';
@@ -59,9 +58,8 @@ export const firebaseConfig = {
         DirectoryComponent,
         BuyPrnComponent,
         PrototypeGalleryComponent,
-        ClassicSocialFeedComponent,
-        CommunityDashboardComponent,
-        MobileFirstSocialComponent,
+        TeamAssistantWorkspaceComponent,
+        ConversationSidebarComponent,
         ColorPalettePreviewComponent,
         ClearSlateComponent,
         WarmGraphiteComponent,

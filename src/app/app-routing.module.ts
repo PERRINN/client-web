@@ -7,9 +7,8 @@ import { SettingsComponent } from './settings.component';
 import { DirectoryComponent } from './directory.component';
 import { BuyPrnComponent } from './buy-prn.component';
 import { PrototypeGalleryComponent } from './prototypes/prototype-gallery.component';
-import { ClassicSocialFeedComponent } from './prototypes/classic-social-feed/classic-social-feed.component';
-import { CommunityDashboardComponent } from './prototypes/community-dashboard/community-dashboard.component';
-import { MobileFirstSocialComponent } from './prototypes/mobile-first-social/mobile-first-social.component';
+import { TeamAssistantWorkspaceComponent } from './prototypes/team-assistant-workspace/team-assistant-workspace.component';
+import { ConversationSidebarComponent } from './prototypes/conversation-sidebar/conversation-sidebar.component';
 import { ClearSlateComponent } from './prototypes/clear-slate/clear-slate.component';
 import { WarmGraphiteComponent } from './prototypes/warm-graphite/warm-graphite.component';
 import { DeepTideComponent } from './prototypes/deep-tide/deep-tide.component';
@@ -20,9 +19,9 @@ import { ChatInputBarComponent } from './prototypes/chat-input-bar/chat-input-ba
 
 const appRoutes: Routes = [
   { path: 'prototypes/chat-input-bar', component: ChatInputBarComponent },
-  { path: 'prototypes/classic-social-feed', component: ClassicSocialFeedComponent },
-  { path: 'prototypes/community-dashboard', component: CommunityDashboardComponent },
-  { path: 'prototypes/mobile-first-social', component: MobileFirstSocialComponent },
+  { path: 'prototypes/team-assistant-workspace', component: TeamAssistantWorkspaceComponent },
+  { path: 'prototypes/conversation-sidebar', component: ConversationSidebarComponent },
+  { path: 'prototypes/team-ai-workspace', redirectTo: 'prototypes/team-assistant-workspace', pathMatch: 'full' },
   { path: 'prototypes/clear-slate', component: ClearSlateComponent, data: { paletteId: 'clear-slate' } },
   { path: 'prototypes/warm-graphite', component: WarmGraphiteComponent, data: { paletteId: 'warm-graphite' } },
   { path: 'prototypes/deep-tide', component: DeepTideComponent, data: { paletteId: 'deep-tide' } },
@@ -30,9 +29,6 @@ const appRoutes: Routes = [
   { path: 'prototypes/clay-ember', component: ClayEmberComponent, data: { paletteId: 'clay-ember' } },
   { path: 'prototypes/night-signal', component: NightSignalComponent, data: { paletteId: 'night-signal' } },
   { path: 'prototypes/CHAT-INPUT-BAR', redirectTo: 'prototypes/chat-input-bar', pathMatch: 'full' },
-  { path: 'prototypes/CLASSIC-SOCIAL-FEED', redirectTo: 'prototypes/classic-social-feed', pathMatch: 'full' },
-  { path: 'prototypes/COMMUNITY-DASHBOARD', redirectTo: 'prototypes/community-dashboard', pathMatch: 'full' },
-  { path: 'prototypes/MOBILE-FIRST-SOCIAL', redirectTo: 'prototypes/mobile-first-social', pathMatch: 'full' },
   { path: 'prototypes/CLEAR-SLATE', redirectTo: 'prototypes/clear-slate', pathMatch: 'full' },
   { path: 'prototypes/WARM-GRAPHITE', redirectTo: 'prototypes/warm-graphite', pathMatch: 'full' },
   { path: 'prototypes/DEEP-TIDE', redirectTo: 'prototypes/deep-tide', pathMatch: 'full' },
