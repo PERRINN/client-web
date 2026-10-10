@@ -1,9 +1,9 @@
 <section class="preview-shell">
-  <div class="preview-toolbar"><a routerLink="/prototypes">← Back to Prototypes</a><span class="device-indicator">{{ deviceLabel(frame.clientWidth) }}</span><nav class="layout-switcher" aria-label="Layout prototypes"><span>Layouts</span><a routerLink="/prototypes/team-assistant-workspace">Team</a><a routerLink="/prototypes/conversation-sidebar" aria-current="page">Chat</a></nav></div>
+  <div class="preview-toolbar"><a routerLink="/prototypes">← Back to Prototypes</a><span class="device-indicator">{{ deviceLabel(frame.clientWidth) }}</span></div>
   <div class="layout-frame" #frame [style.width.px]="previewWidth">
     <button class="resize-edge" type="button" role="slider" aria-label="Resize layout preview" aria-orientation="horizontal" [attr.aria-valuenow]="frame.clientWidth" aria-valuemin="320" aria-valuemax="1600" (pointerdown)="startResize($event, frame)" (pointermove)="resize($event)" (pointerup)="endResize()" (pointercancel)="endResize()" (keydown.arrowleft)="resizeBy(frame, -40)" (keydown.arrowright)="resizeBy(frame, 40)"><span></span></button>
     <main class="chat-layout" (keydown.escape)="closeSidebar()">
-      <aside id="layout-sidebar" class="sidebar" [class.open]="sidebarOpen" aria-label="Main navigation and recent conversations">
+      <aside id="layout-sidebar" class="sidebar" [class.open]="sidebarOpen" aria-label="Main navigation and recent chats">
         <div class="brand"><img src="assets/App%20icons/perrinn-02.png" alt=""><span>PERRINN</span></div>
         <button class="sidebar-close" type="button" aria-label="Close navigation" (click)="closeSidebar()">×</button>
         <nav class="app-links" aria-label="Main navigation">
@@ -12,8 +12,8 @@
           <span><i class="link-icon"></i>Discover</span>
           <span><i class="link-icon"></i>Directory</span>
         </nav>
-        <section class="recents" aria-label="Recent conversations">
-          <h2>Recent conversations</h2>
+        <section class="recents" aria-label="Recent chats">
+          <h2>Recent chats</h2>
           <span class="recent-item selected"><i></i><b></b></span>
           <span class="recent-item"><i></i><b></b></span>
           <span class="recent-item"><i></i><b></b></span>
@@ -26,13 +26,21 @@
         <button class="sidebar-backdrop" type="button" aria-label="Close navigation" (click)="closeSidebar()"></button>
       }
 
-      <section class="conversation" aria-label="Conversation">
-        <header class="conversation-header"><button class="menu-toggle" type="button" aria-label="Open navigation" aria-controls="layout-sidebar" [attr.aria-expanded]="sidebarOpen" (click)="toggleSidebar()"><span></span><span></span><span></span></button><span class="current-context">Conversation</span><span class="header-action">Conversation actions</span></header>
+      <section class="conversation" aria-label="Chat">
+        <header class="conversation-header"><button class="menu-toggle" type="button" aria-label="Open navigation" aria-controls="layout-sidebar" [attr.aria-expanded]="sidebarOpen" (click)="toggleSidebar()"><span></span><span></span><span></span></button><span class="current-context">Chat</span><span class="header-action">Chat actions</span></header>
         <div class="messages">
           <article class="message user-message" aria-label="User message"><i></i><i></i></article>
           <article class="message assistant-message" aria-label="Assistant response"><i></i><i></i><i class="short"></i><div class="response-tools"><span></span><span></span><span></span></div></article>
           <article class="message user-message second" aria-label="User message"><i></i></article>
           <article class="message assistant-message second-response" aria-label="Assistant response"><i></i><i class="short"></i></article>
+          <article class="message user-message" aria-label="User message"><i></i><i></i><i class="short"></i></article>
+          <article class="message assistant-message" aria-label="Assistant response"><i></i><i></i><i></i><i class="short"></i></article>
+          <article class="message user-message second" aria-label="User message"><i></i><i class="short"></i></article>
+          <article class="message assistant-message" aria-label="Assistant response"><i></i><i></i><i class="short"></i><div class="response-tools"><span></span><span></span><span></span></div></article>
+          <article class="message user-message" aria-label="User message"><i></i></article>
+          <article class="message assistant-message second-response" aria-label="Assistant response"><i></i><i></i><i class="short"></i></article>
+          <article class="message user-message second" aria-label="User message"><i></i><i></i></article>
+          <article class="message assistant-message" aria-label="Assistant response"><i></i><i class="short"></i></article>
         </div>
         <form class="composer" aria-label="Message composer"><span class="composer-add">＋</span><span class="composer-placeholder">Message composer</span><span class="send">↑</span></form>
       </section>

@@ -13,7 +13,6 @@ import { SettingsComponent }  from './settings.component';
 import { DirectoryComponent }  from './directory.component';
 import { BuyPrnComponent }  from './buy-prn.component';
 import { PrototypeGalleryComponent } from './prototypes/prototype-gallery.component';
-import { TeamAssistantWorkspaceComponent } from './prototypes/team-assistant-workspace/team-assistant-workspace.component';
 import { ConversationSidebarComponent } from './prototypes/conversation-sidebar/conversation-sidebar.component';
 import { ColorPalettePreviewComponent } from './prototypes/color-palette-preview.component';
 import { ClearSlateComponent } from './prototypes/clear-slate/clear-slate.component';
@@ -23,6 +22,8 @@ import { QuietPlumComponent } from './prototypes/quiet-plum/quiet-plum.component
 import { ClayEmberComponent } from './prototypes/clay-ember/clay-ember.component';
 import { NightSignalComponent } from './prototypes/night-signal/night-signal.component';
 import { ChatInputBarComponent } from './prototypes/chat-input-bar/chat-input-bar.component';
+import { AppMapComponent } from './prototypes/app-map/app-map.component';
+import { HomeComponent } from './prototypes/home/home.component';
 
 import { PipeModule }    from './pipes.module';
 
@@ -58,7 +59,6 @@ export const firebaseConfig = {
         DirectoryComponent,
         BuyPrnComponent,
         PrototypeGalleryComponent,
-        TeamAssistantWorkspaceComponent,
         ConversationSidebarComponent,
         ColorPalettePreviewComponent,
         ClearSlateComponent,
@@ -68,6 +68,8 @@ export const firebaseConfig = {
         ClayEmberComponent,
         NightSignalComponent,
         ChatInputBarComponent,
+        AppMapComponent,
+        HomeComponent,
         ScrollableDirective,
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,

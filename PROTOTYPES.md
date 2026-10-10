@@ -14,11 +14,11 @@ Statuses are `EXPERIMENT`, `CANDIDATE`, `SELECTED`, `REJECTED`, and `ARCHIVED`. 
 
 ## Prototypes
 
-The catalog groups prototypes into **Inputs**, **Layouts**, and **Colour palettes**, with jump links for moving directly between categories. Colour palette previews include previous/next controls to move through their category without returning to the catalog.
+The catalog groups prototypes into **Architecture maps**, **Inputs**, **Layouts**, and **Colour palettes**, with jump links for moving directly between categories. Colour palette previews include previous/next controls to move through their category without returning to the catalog.
 
 Layout prototypes are low-level structural wireframes for deciding page composition. Use a few standard UI labels for regions and components, such as Primary Navigation, Search, Page Title, Content Panel, and Composer. Represent content with neutral placeholder shapes; avoid realistic product data, names, dates, counts, and explanatory copy. Do not add responsive behavior descriptions: users inspect reflow by dragging the preview's right edge. Each layout preview should have keyboard width adjustment and container-based breakpoints so its layout responds to the simulated width independently of the browser window. Keep the layout easy to read, with clear grouping from the app UI specification's dark page and surface contrast, sparse borders, and enough space to distinguish hierarchy and component placement.
 
 - **Inputs:** `chat-input-bar` explores a bottom-pinned message composer with local-only message sending and attachment previews.
-- **Layouts:** `team-assistant-workspace` is the assistant conversation workspace with team channels and collaboration surfaces, represented as a structural wireframe.
-- **Layouts:** `conversation-sidebar` is a conversation-first workspace with app links above recent conversations and a bottom message composer.
+- **Architecture maps:** `app-wiring`, `data-model-map`, and `workflow-map` show the current source structure, persisted record relationships, and major client-to-server workflows.
+- **Layouts:** `conversation-sidebar` is a chat-first workspace with app links above recent chats and a bottom message composer.
 - **Colour palettes:** `clear-slate`, `warm-graphite`, `deep-tide`, `quiet-plum`, `clay-ember`, and `night-signal` compare distinct surface and accent combinations using the same mock member-home screen.

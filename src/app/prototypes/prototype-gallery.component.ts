@@ -9,6 +9,27 @@ import { Component } from '@angular/core';
 export class PrototypeGalleryComponent {
   readonly prototypes = [
     {
+      name: 'app-wiring',
+      category: 'architecture',
+      type: 'System map',
+      description: 'Trace the Angular client through Firebase services and Cloud Functions.',
+      route: '/prototypes/app-wiring'
+    },
+    {
+      name: 'data-model-map',
+      category: 'architecture',
+      type: 'Data model',
+      description: 'See how shared message records, read cursors, images and payment documents relate.',
+      route: '/prototypes/data-model-map'
+    },
+    {
+      name: 'workflow-map',
+      category: 'architecture',
+      type: 'Workflows',
+      description: 'Follow message, image upload and PRN purchase flows across client and server.',
+      route: '/prototypes/workflow-map'
+    },
+    {
       name: 'chat-input-bar',
       category: 'inputs',
       type: 'Chat input',
@@ -16,18 +37,18 @@ export class PrototypeGalleryComponent {
       route: '/prototypes/chat-input-bar'
     },
     {
-      name: 'team-assistant-workspace',
-      category: 'layouts',
-      type: 'Team assistant workspace',
-      description: 'Combine a focused assistant conversation with channels, team conversations, activity, and presence.',
-      route: '/prototypes/team-assistant-workspace'
-    },
-    {
       name: 'conversation-sidebar',
       category: 'layouts',
-      type: 'Conversation sidebar',
-      description: 'A conversation-first workspace with app links above recent conversations.',
+      type: 'Chat layout',
+      description: 'A chat-first workspace with app links above recent chats.',
       route: '/prototypes/conversation-sidebar'
+    },
+    {
+      name: 'home',
+      category: 'layouts',
+      type: 'Team dashboard',
+      description: 'A live overview of recent images, upcoming events, and recent chat activity.',
+      route: '/prototypes/home'
     },
     {
       name: 'clear-slate',
@@ -74,6 +95,7 @@ export class PrototypeGalleryComponent {
   ];
 
   readonly categories = [
+    { id: 'architecture', title: 'Architecture maps', prototypes: this.prototypes.filter(item => item.category === 'architecture') },
     { id: 'inputs', title: 'Inputs', prototypes: this.prototypes.filter(item => item.category === 'inputs') },
     { id: 'layouts', title: 'Layouts', prototypes: this.prototypes.filter(item => item.category === 'layouts') },
     { id: 'colours', title: 'Colour palettes', prototypes: this.prototypes.filter(item => item.category === 'colours') }

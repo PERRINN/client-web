@@ -1,0 +1,80 @@
+<main class="home-page">
+  <a class="back-link" routerLink="/prototypes">← Prototyping</a>
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">PERRINN · TEAM OVERVIEW</p>
+      <h1>Team dashboard</h1>
+      <p class="page-intro">A shared view of what’s happening across the team.</p>
+    </div>
+    <span class="live-indicator"><i></i>Live updates</span>
+  </header>
+
+  <div class="dashboard-grid">
+    <section class="image-panel" aria-label="Latest shared images">
+      @if (loadingImages) {
+        <div class="image-state" role="status"><span class="loader"></span><span>Loading images…</span></div>
+      } @else if (imageError) {
+        <div class="image-state" role="alert"><span>Images are unavailable right now.</span></div>
+      } @else if (imageTiles.length) {
+        <div class="image-grid" [class.count-one]="imageTiles.length === 1" [class.count-two]="imageTiles.length === 2" [class.count-three]="imageTiles.length === 3" [class.count-four]="imageTiles.length === 4" [class.count-five]="imageTiles.length === 5" [class.count-six]="imageTiles.length === 6" [class.count-seven]="imageTiles.length >= 7">
+          @for (image of imageTiles; track image.id; let i = $index) {
+            <article class="image-tile" [class]="'image-tile tile-' + ((i % 7) + 1)">
+              <button class="image-open" type="button" (click)="openImage(image)" aria-label="View full-size image">
+                <img class="tile-image" [src]="imageUrl(image)" [alt]="image.text || 'Image shared in a team message'">
+              </button>
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="image-state"><span class="state-icon">▧</span><strong>No images yet</strong><span>Images shared in conversations will show up here.</span></div>
+      }
+    </section>
+
+    <div class="side-panels">
+      <section class="panel events-panel" aria-label="Upcoming events">
+        @if (loadingEvents) {
+          <div class="compact-state" role="status"><span class="loader"></span>Loading events…</div>
+        } @else if (eventError) {
+          <div class="compact-state error" role="alert">Events are unavailable right now.</div>
+        } @else if (upcomingEvents.length) {
+          <div class="event-list">
+            @for (event of upcomingEvents; track event.id) {
+              <button class="event-row" type="button" (click)="openChat(event.chain)">
+                <span class="date-block"><strong>{{ event.eventDateStart | date:'d' }}</strong><span>{{ event.eventDateStart | date:'MMM' }}</span></span>
+                <span class="event-copy"><strong>{{ event.eventDescription || event.chatSubject || 'Team event' }}</strong><span>{{ event.eventDateStart | date:'EEEE, h:mm a' }}<span class="event-duration"> · {{ event.eventDuration }}h</span></span></span>
+              </button>
+            }
+          </div>
+        } @else {
+          <div class="compact-state empty-state">No upcoming events scheduled.</div>
+        }
+      </section>
+
+      <section class="panel visitors-panel" aria-labelledby="visitors-title">
+        <div class="panel-heading">
+          <div><p class="section-kicker">AROUND THE TEAM</p><h2 id="visitors-title">Recently active</h2></div>
+          <span class="heading-icon people-icon" aria-hidden="true">◎</span>
+        </div>
+        @if (loadingVisitors) {
+          <div class="compact-state" role="status"><span class="loader"></span>Loading activity…</div>
+        } @else if (visitorError) {
+          <div class="compact-state error" role="alert">Recent activity is unavailable right now.</div>
+        } @else if (visitors.length) {
+          <div class="visitor-list">
+            @for (visitor of visitors; track visitor.id) {
+              <button class="visitor-row" type="button" (click)="openProfile(visitor.id)">
+                @if (visitor.imageUrl) { <img [src]="visitor.imageUrl" [alt]="''" class="avatar"> }
+                @else { <span class="avatar avatar-placeholder">{{ visitor.name.slice(0, 1).toUpperCase() }}</span> }
+                <span class="visitor-name">{{ visitor.name }}</span>
+                <span class="visitor-time">{{ timeAgo(visitor.updatedAt) }}</span>
+              </button>
+            }
+          </div>
+          <p class="activity-note">Based on recent chat activity</p>
+        } @else {
+          <div class="compact-state empty-state">No recent activity to show.</div>
+        }
+      </section>
+    </div>
+  </div>
+</main>

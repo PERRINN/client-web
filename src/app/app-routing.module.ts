@@ -7,7 +7,6 @@ import { SettingsComponent } from './settings.component';
 import { DirectoryComponent } from './directory.component';
 import { BuyPrnComponent } from './buy-prn.component';
 import { PrototypeGalleryComponent } from './prototypes/prototype-gallery.component';
-import { TeamAssistantWorkspaceComponent } from './prototypes/team-assistant-workspace/team-assistant-workspace.component';
 import { ConversationSidebarComponent } from './prototypes/conversation-sidebar/conversation-sidebar.component';
 import { ClearSlateComponent } from './prototypes/clear-slate/clear-slate.component';
 import { WarmGraphiteComponent } from './prototypes/warm-graphite/warm-graphite.component';
@@ -16,12 +15,16 @@ import { QuietPlumComponent } from './prototypes/quiet-plum/quiet-plum.component
 import { ClayEmberComponent } from './prototypes/clay-ember/clay-ember.component';
 import { NightSignalComponent } from './prototypes/night-signal/night-signal.component';
 import { ChatInputBarComponent } from './prototypes/chat-input-bar/chat-input-bar.component';
+import { AppMapComponent } from './prototypes/app-map/app-map.component';
+import { HomeComponent } from './prototypes/home/home.component';
 
 const appRoutes: Routes = [
+  { path: 'prototypes/app-wiring', component: AppMapComponent, data: { mapView: 'wiring' } },
+  { path: 'prototypes/home', component: HomeComponent },
+  { path: 'prototypes/data-model-map', component: AppMapComponent, data: { mapView: 'data' } },
+  { path: 'prototypes/workflow-map', component: AppMapComponent, data: { mapView: 'flows' } },
   { path: 'prototypes/chat-input-bar', component: ChatInputBarComponent },
-  { path: 'prototypes/team-assistant-workspace', component: TeamAssistantWorkspaceComponent },
   { path: 'prototypes/conversation-sidebar', component: ConversationSidebarComponent },
-  { path: 'prototypes/team-ai-workspace', redirectTo: 'prototypes/team-assistant-workspace', pathMatch: 'full' },
   { path: 'prototypes/clear-slate', component: ClearSlateComponent, data: { paletteId: 'clear-slate' } },
   { path: 'prototypes/warm-graphite', component: WarmGraphiteComponent, data: { paletteId: 'warm-graphite' } },
   { path: 'prototypes/deep-tide', component: DeepTideComponent, data: { paletteId: 'deep-tide' } },

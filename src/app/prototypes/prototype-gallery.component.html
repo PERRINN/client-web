@@ -19,14 +19,23 @@
         <a class="prototype-card" [routerLink]="prototype.route">
           <div class="preview-stage" aria-hidden="true">
             @switch (prototype.name) {
+              @case ('app-wiring') {
+                <div class="architecture-preview"><i></i><b></b><i></i><b></b><i></i></div>
+              }
+              @case ('data-model-map') {
+                <div class="architecture-preview data-preview"><b></b><i></i><i></i><i></i></div>
+              }
+              @case ('workflow-map') {
+                <div class="architecture-preview flow-preview"><i></i><b></b><i></i><b></b><i></i></div>
+              }
               @case ('chat-input-bar') {
                 <div class="chat-input-preview"><div class="preview-bubble"></div><div class="preview-composer"><i>＋</i><span>Type a message</span><b>↑</b></div></div>
               }
-              @case ('team-assistant-workspace') {
-                <div class="team-assistant-preview"><div class="assistant-mini-rail"><i></i><i></i><i></i><i></i></div><div class="assistant-mini-center"><b></b><div class="assistant-mini-message"></div><div class="assistant-mini-response"><i></i><i></i><i></i></div><div class="assistant-mini-composer"></div></div><div class="assistant-mini-team"><b></b><i></i><i></i><b></b><i></i><i></i></div></div>
-              }
               @case ('conversation-sidebar') {
                 <div class="conversation-sidebar-preview"><div><i></i><i></i><i></i><i></i><b></b><i></i><i></i><i></i></div><section><b></b><i></i><i></i><i></i><em></em></section></div>
+              }
+              @case ('home') {
+                <div class="home-preview"><header><i></i><b></b></header><section><i></i><i></i><i></i></section><aside><b></b><i></i><i></i></aside></div>
               }
               @case ('clear-slate') {
                 <div class="palette-mini slate"><div class="palette-mini-nav"></div><div class="palette-mini-main"><b></b><div></div><div></div></div><i></i></div>

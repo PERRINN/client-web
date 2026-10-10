@@ -1,0 +1,50 @@
+<section class="map-page">
+  <div class="toolbar"><a routerLink="/prototypes">← Prototypes</a><nav aria-label="Architecture maps">
+    <a routerLink="/prototypes/app-wiring" [class.active]="view === 'wiring'">App wiring</a>
+    <a routerLink="/prototypes/data-model-map" [class.active]="view === 'data'">Data model</a>
+    <a routerLink="/prototypes/workflow-map" [class.active]="view === 'flows'">Workflows</a>
+  </nav></div>
+  <div class="map-frame" #frame [style.width.px]="previewWidth">
+    <button class="resize-edge" type="button" role="slider" aria-label="Resize map preview" aria-orientation="horizontal" [attr.aria-valuenow]="frame.clientWidth" aria-valuemin="320" aria-valuemax="1600" (pointerdown)="startResize($event)" (pointermove)="resize($event)" (pointerup)="endResize()" (pointercancel)="endResize()" (keydown.arrowleft)="resizeBy(-40)" (keydown.arrowright)="resizeBy(40)"><span></span></button>
+    <header class="page-heading"><div><p class="eyebrow">CURRENT IMPLEMENTATION · SOURCE MAP</p><h1>{{ title }}</h1><p>Trace the routes, components, records and server handlers that connect the current app.</p></div><span class="legend"><i></i>Client <b></b>Firebase <em></em>Cloud Function / external</span></header>
+
+    @if (view === 'wiring') {
+      <main class="map-content wiring">
+        <section class="layer"><header><span>01</span><h2>Angular client</h2><small>NgModules · routed templates</small></header><div class="nodes three">
+          <article><b>App shell</b><span>Top navigation · content outlet · chat profile split</span><code>app.component</code></article>
+          <article><b>Product routes</b><span>Chat · profile · directory · settings · PRN</span><code>app-routing.module</code></article>
+          <article><b>Shared state</b><span>Auth identity · latest profile snapshots · message creation</span><code>UserInterfaceService</code></article>
+        </div></section>
+        <div class="connector"><span>route + service calls</span><i>↓</i></div>
+        <section class="layer firebase"><header><span>02</span><h2>Firebase data services</h2><small>AngularFire compatibility APIs</small></header><div class="nodes four">
+          <article><b>Authentication</b><span>Current user identity</span><code>Firebase Auth</code></article><article><b>Message stream</b><span>Chat, profiles, directory, wallet and events</span><code>Cloud Firestore</code></article><article><b>Read cursors</b><span>Per-user, per-chat last seen</span><code>lastSeen/&#123;user&#125;/chats</code></article><article><b>Image objects</b><span>Client uploads under images/</span><code>Cloud Storage</code></article>
+        </div></section>
+        <div class="connector"><span>triggers · HTTPS · schedules</span><i>↓</i></div>
+        <section class="layer server"><header><span>03</span><h2>Trusted handlers and integrations</h2><small>Functions v2 · Admin SDK</small></header><div class="nodes three">
+          <article><b>Message verification</b><span>Enriches polymorphic records and sets verified state</span><code>dbMessagesOnCreate → verifyMessage</code></article><article><b>Payments + images</b><span>Revolut lifecycle; image derivatives and links</span><code>payment triggers · storage finalise</code></article><article><b>Scheduled activity</b><span>Membership refresh; Drive and GitHub activity</span><code>scheduled Functions</code></article>
+        </div></section>
+        <aside class="note"><strong>Read this map</strong><span>Solid downward links show the usual client-to-service flow. Server handlers also write back to Firestore, where the client subscriptions observe the updated records.</span></aside>
+      </main>
+    }
+
+    @if (view === 'data') {
+      <main class="map-content data-map">
+        <section class="entity primary"><label>Shared polymorphic collection</label><h2>PERRINNMessages/&#123;messageId&#125;</h2><div class="field-grid"><span>user · chain · text</span><span>serverTimestamp · verified</span><span>membership · wallet</span><span>purchaseCOIN · transactions</span><span>events · recipients · userChain</span><span>image timestamps · image URLs</span></div><small>Different workflows use different subsets. Not every record is a chat message.</small></section>
+        <div class="relations"><span>per-user latest verified record</span><i>↔</i><span>auth identity + profile snapshots</span></div>
+        <section class="entity-row"><article class="entity"><label>Unread state</label><h3>lastSeen/&#123;userId&#125;/chats/&#123;chain&#125;</h3><p>messageId · serverTimestamp · updatedAt</p><small>Chat advances it; profile reads it.</small></article><article class="entity"><label>Image metadata</label><h3>Images/&#123;imageId&#125;</h3><p>imageUrlThumb · imageUrlMedium</p><small>Storage finalization creates URLs and patches linked messages.</small></article><article class="entity"><label>Payment tracking</label><h3>PERRINNTeams/&#123;userId&#125;/payments/&#123;orderId&#125;</h3><p>provider · status · currency · amount</p><small>Webhook and sync update status; success creates a purchase message.</small></article></section>
+        <section class="entity external"><label>Object storage</label><h3>Cloud Storage · images/…</h3><p>Original uploads → generated image variants → message references</p></section>
+        <section class="policy"><label>Checked-in access rules</label><div><span>Firestore reads <b>public allow-read rule</b></span><span>Storage reads <b>public</b></span><span>Storage writes <b>authenticated</b></span><span>Realtime Database <b>no client access rules</b></span></div></section>
+        <aside class="note"><strong>Coupling to note</strong><span>Profiles, chat, wallet, membership and payments converge on PERRINNMessages. Changing its shape affects client readers and Functions together. The source map documents the current fields and workflows.</span></aside>
+      </main>
+    }
+
+    @if (view === 'flows') {
+      <main class="map-content flows">
+        <section class="flow"><header><span>A</span><div><h2>Send a chat message</h2><small>Client write → verification → live query</small></div></header><div class="steps"><article><b>ChatComponent</b><small>text / image fields</small></article><i>→</i><article><b>UserInterfaceService</b><small>adds user + timestamp</small></article><i>→</i><article class="store"><b>PERRINNMessages</b><small>new record</small></article><i>→</i><article class="server-step"><b>dbMessagesOnCreate</b><small>verifyMessage enriches</small></article><i>→</i><article><b>Chat subscription</b><small>chain + time query</small></article></div></section>
+        <section class="flow"><header><span>B</span><div><h2>Upload an image</h2><small>Storage event → metadata and message patch</small></div></header><div class="steps"><article><b>Chat / Settings</b><small>uploads image</small></article><i>→</i><article class="store"><b>Cloud Storage</b><small>images/…</small></article><i>→</i><article class="server-step"><b>storageOnFinalise</b><small>derivatives + URLs</small></article><i>→</i><article class="store"><b>Images + messages</b><small>linked by timestamp ID</small></article></div></section>
+        <section class="flow"><header><span>C</span><div><h2>Buy PRN</h2><small>Client checkout → provider status → verified credit</small></div></header><div class="steps"><article><b>BuyPrnComponent</b><small>requests order</small></article><i>→</i><article class="server-step"><b>createRevolutOrder</b><small>returns checkout URL</small></article><i>→</i><article class="provider"><b>Revolut</b><small>webhook / sync</small></article><i>→</i><article class="store"><b>Payment document</b><small>PERRINNTeams/…</small></article><i>→</i><article class="server-step"><b>purchase trigger</b><small>creates message credit</small></article><i>→</i><article><b>Verified message</b><small>page shows completion</small></article></div></section>
+        <aside class="note"><strong>Other connected processes</strong><span>Daily membership refresh and Drive/GitHub activity polling are scheduled Functions. Their state and output live in Firestore.</span></aside>
+      </main>
+    }
+  </div>
+</section>

@@ -50,12 +50,14 @@ These are observations of the checked-in rules, not a recommendation to change a
 ## Query and maintenance notes
 
 - `firestore.indexes.json` currently declares no composite indexes. Queries in the client and Functions may need indexes created/managed separately; check the Firebase error and deployment process before adding or changing a query.
+- The Home prototype at `/prototypes/home` listens to verified image messages, current event messages, and `lastSeen/*/chats` documents ordered by `updatedAt`. It uses the latest chat read per user as an approximation of recent activity; these records do not represent app visits.
 - There is no single typed schema for `PERRINNMessages`; the client uses `any` in several places and Functions mutate records after creation. Search exact field names across `src/app`, `functions`, and the rules before changing message fields.
 - `PERRINNTeams/{userId}/payments/{orderId}` is written from multiple server-side paths. Preserve idempotency flags and status transition handling when editing payment processing.
 
 ## Source map
 
 - Client routing and page composition: `src/app/app-routing.module.ts`, `src/app/app.module.ts`.
+- Visual orientation maps for client wiring, persisted record relationships, and key workflows are available at `/prototypes/app-wiring`, `/prototypes/data-model-map`, and `/prototypes/workflow-map`.
 - Shared message creation and current-user/member snapshots: `src/app/userInterface.service.ts`.
 - Chat messages and read cursors: `src/app/chat.component.ts`; profile unread state: `src/app/profile.component.ts`.
 - Message verification and backend message creation: `functions/dbMessagesOnCreate.f.js`, `functions/utils/verifyMessage.js`, `functions/utils/createMessage.js`.

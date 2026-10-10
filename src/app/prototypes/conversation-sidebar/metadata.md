@@ -1,4 +1,4 @@
 Name: conversation-sidebar
-Type: Conversation sidebar
-Description: Conversation-first workspace with app links above recent conversations.
+Type: Chat layout
+Description: Chat-first workspace with app links above recent chats.
 Status: EXPERIMENT
