@@ -64,6 +64,8 @@
 }
 html, body {
   background-color: var(--color-page);
+  height: 100%;
+  overflow: hidden;
 }
 body {
   border: 0;
@@ -160,9 +162,11 @@ th {
 
 /* 3. Global Utility Classes */
 #main_container {
+  width: 100%;
   margin: 0 auto;
-  height: calc(100vh - 113px);
-  height: calc(100dvh - 113px);
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
   overflow-y: auto;
 }
 #main_container:has(chat) {
@@ -372,13 +376,18 @@ th {
 /* 5. Layout/Shell Styles */
 app-root {
   display: block;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
   color: var(--color-text-secondary);
   background: var(--color-page);
-  min-height: 100vh;
 }
 app-root .appShell {
-  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
   padding: 16px;
   box-sizing: border-box;
 }
@@ -386,6 +395,8 @@ app-root .uploadProgress {
   visibility: hidden;
 }
 app-root .topNav {
+  flex: 0 0 auto;
+  width: 100%;
   max-width: 980px;
   margin: 0 auto 10px auto;
   background: var(--color-surface);

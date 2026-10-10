@@ -82,6 +82,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 ## Responsive
 
 - Design for desktop, tablet and mobile from the content outward; do not treat existing breakpoints as a required system.
+- The app shell occupies the dynamic viewport, with `#main_container` owning page scrolling. Avoid creating a second, document-level scroll surface around it.
 - On mobile, use a single column, adapt navigation and controls to the available width, and keep primary actions reachable.
 - On tablet, choose columns and navigation based on actual content fit. On desktop, use additional width for useful comparison or workspace layouts, not decorative empty space.
 - Preserve readable text, usable controls, and clear scroll ownership at every size.
