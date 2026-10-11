@@ -21,6 +21,11 @@ import { HomeComponent } from './prototypes/home/home.component';
 const appRoutes: Routes = [
   { path: 'prototypes/app-wiring', component: AppMapComponent, data: { mapView: 'wiring' } },
   { path: 'prototypes/home', component: HomeComponent },
+  { path: 'prototypes/editorial-mosaic', component: HomeComponent, data: { mosaicId: 'editorial-mosaic' } },
+  { path: 'prototypes/balanced-grid', component: HomeComponent, data: { mosaicId: 'balanced-grid' } },
+  { path: 'prototypes/masonry-flow', component: HomeComponent, data: { mosaicId: 'masonry-flow' } },
+  { path: 'prototypes/panorama-rail', component: HomeComponent, data: { mosaicId: 'panorama-rail' } },
+  { path: 'prototypes/staggered-collage', component: HomeComponent, data: { mosaicId: 'staggered-collage' } },
   { path: 'prototypes/data-model-map', component: AppMapComponent, data: { mapView: 'data' } },
   { path: 'prototypes/workflow-map', component: AppMapComponent, data: { mapView: 'flows' } },
   { path: 'prototypes/chat-input-bar', component: ChatInputBarComponent },

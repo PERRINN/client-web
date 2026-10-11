@@ -1,22 +1,40 @@
-<main class="home-page">
+<main class="home-page" [style.--mosaic-width.px]="mosaicWidth">
   <a class="back-link" routerLink="/prototypes">← Prototyping</a>
+  @if (activeMosaic) {
+  <nav class="variant-nav" aria-label="Image mosaic variants">
+    <span class="variant-label">Image mosaic</span>
+    @for (variant of mosaicVariants; track variant.id) {
+      <a [routerLink]="['/prototypes', variant.id]" [queryParams]="{ width: mosaicWidth }" [attr.aria-current]="activeMosaic === variant.id ? 'page' : null">{{ variant.name }}</a>
+    }
+  </nav>
+  }
+  @if (activeMosaic) {
+  <div class="comparison-width">
+    <label for="home-preview-width">Preview width <span>{{ mosaicWidth }}px</span></label>
+    <input id="home-preview-width" type="range" min="320" max="1440" step="1" [value]="mosaicWidth" (input)="setMosaicWidth($any($event.target).value)">
+    @if (activeMosaic) {
+    <span class="coverage-stat">Image tiles cover <strong>{{ imageCoveragePercent }}%</strong> of the mosaic</span>
+    }
+  </div>
+  }
+  @if (activeMosaic) {
+  <div class="prototype-frame" #frame [class]="'prototype-frame layout-' + activeMosaic" [style.width.px]="mosaicWidth">
   <header class="page-header">
     <div>
       <p class="eyebrow">PERRINN · TEAM OVERVIEW</p>
-      <h1>Team dashboard</h1>
-      <p class="page-intro">A shared view of what’s happening across the team.</p>
+      <h1>{{ activeMosaicName }}</h1>
+      <p class="page-intro">{{ activeMosaicDescription }}</p>
     </div>
-    <span class="live-indicator"><i></i>Live updates</span>
   </header>
+  <button class="resize-edge" type="button" role="slider" aria-label="Resize mosaic preview" aria-orientation="horizontal" [attr.aria-valuenow]="frame.clientWidth" aria-valuemin="320" aria-valuemax="1440" (pointerdown)="startResize($event, frame)" (pointermove)="resize($event)" (pointerup)="endResize()" (pointercancel)="endResize()" (keydown.arrowleft)="resizeBy(frame, -40)" (keydown.arrowright)="resizeBy(frame, 40)"><span></span></button>
 
-  <div class="dashboard-grid">
-    <section class="image-panel" aria-label="Latest shared images">
+    <section class="image-panel mosaic-only" aria-label="Latest shared images">
       @if (loadingImages) {
         <div class="image-state" role="status"><span class="loader"></span><span>Loading images…</span></div>
       } @else if (imageError) {
         <div class="image-state" role="alert"><span>Images are unavailable right now.</span></div>
       } @else if (imageTiles.length) {
-        <div class="image-grid" [class.count-one]="imageTiles.length === 1" [class.count-two]="imageTiles.length === 2" [class.count-three]="imageTiles.length === 3" [class.count-four]="imageTiles.length === 4" [class.count-five]="imageTiles.length === 5" [class.count-six]="imageTiles.length === 6" [class.count-seven]="imageTiles.length >= 7">
+        <div class="image-grid" #imageGrid [class]="'image-grid layout-' + activeMosaic" [attr.data-count]="imageTiles.length">
           @for (image of imageTiles; track image.id; let i = $index) {
             <article class="image-tile" [class]="'image-tile tile-' + ((i % 7) + 1)">
               <button class="image-open" type="button" (click)="openImage(image)" aria-label="View full-size image">
@@ -29,7 +47,36 @@
         <div class="image-state"><span class="state-icon">▧</span><strong>No images yet</strong><span>Images shared in conversations will show up here.</span></div>
       }
     </section>
-
+  </div>
+  } @else {
+  <div class="prototype-frame" #homeFrame [style.width.px]="mosaicWidth">
+  <button class="resize-edge" type="button" role="slider" aria-label="Resize home preview" aria-orientation="horizontal" [attr.aria-valuenow]="mosaicWidth" aria-valuemin="320" aria-valuemax="1440" (pointerdown)="startResize($event, homeFrame)" (pointermove)="resize($event)" (pointerup)="endResize()" (pointercancel)="endResize()" (keydown.arrowleft)="resizeBy(homeFrame, -40)" (keydown.arrowright)="resizeBy(homeFrame, 40)"><span></span></button>
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">PERRINN · TEAM OVERVIEW</p>
+      <h1 class="home-title">A team open to everyone, driven by shared ambition.</h1>
+    </div>
+  </header>
+  <div class="dashboard-grid">
+    <section class="image-panel" aria-label="Latest shared images">
+      @if (loadingImages) {
+        <div class="image-state" role="status"><span class="loader"></span><span>Loading images…</span></div>
+      } @else if (imageError) {
+        <div class="image-state" role="alert"><span>Images are unavailable right now.</span></div>
+      } @else if (imageTiles.length) {
+        <div class="image-grid" [class]="'image-grid layout-editorial-mosaic'" [attr.data-count]="imageTiles.length">
+          @for (image of imageTiles; track image.id; let i = $index) {
+            <article class="image-tile" [class]="'image-tile tile-' + ((i % 7) + 1)">
+              <button class="image-open" type="button" (click)="openImage(image)" aria-label="View full-size image">
+                <img class="tile-image" [src]="imageUrl(image)" [alt]="image.text || 'Image shared in a team message'">
+              </button>
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="image-state"><span class="state-icon">▧</span><strong>No images yet</strong><span>Images shared in conversations will show up here.</span></div>
+      }
+    </section>
     <div class="side-panels">
       <section class="panel events-panel" aria-label="Upcoming events">
         @if (loadingEvents) {
@@ -60,7 +107,7 @@
         } @else if (visitorError) {
           <div class="compact-state error" role="alert">Recent activity is unavailable right now.</div>
         } @else if (visitors.length) {
-          <div class="visitor-list">
+          <div class="visitor-list" tabindex="0" role="region" aria-label="Recently active users">
             @for (visitor of visitors; track visitor.id) {
               <button class="visitor-row" type="button" (click)="openProfile(visitor.id)">
                 @if (visitor.imageUrl) { <img [src]="visitor.imageUrl" [alt]="''" class="avatar"> }
@@ -70,11 +117,12 @@
               </button>
             }
           </div>
-          <p class="activity-note">Based on recent chat activity</p>
         } @else {
           <div class="compact-state empty-state">No recent activity to show.</div>
         }
       </section>
     </div>
   </div>
+  </div>
+  }
 </main>

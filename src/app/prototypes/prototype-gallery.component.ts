@@ -50,6 +50,11 @@ export class PrototypeGalleryComponent {
       description: 'A live overview of recent images, upcoming events, and recent chat activity.',
       route: '/prototypes/home'
     },
+    { name: 'editorial-mosaic', category: 'mosaics', type: 'Editorial mosaic', description: 'One broad lead image anchors a compact supporting grid.', route: '/prototypes/editorial-mosaic' },
+    { name: 'balanced-grid', category: 'mosaics', type: 'Balanced grid', description: 'A regular image grid adapts its column count to the available width.', route: '/prototypes/balanced-grid' },
+    { name: 'masonry-flow', category: 'mosaics', type: 'Masonry flow', description: 'Images keep varied heights in a responsive column flow.', route: '/prototypes/masonry-flow' },
+    { name: 'panorama-rail', category: 'mosaics', type: 'Panorama rail', description: 'A wide feature image leads into a compact six-column image field.', route: '/prototypes/panorama-rail' },
+    { name: 'staggered-collage', category: 'mosaics', type: 'Staggered collage', description: 'Alternating tile sizes create a denser, varied rhythm.', route: '/prototypes/staggered-collage' },
     {
       name: 'clear-slate',
       category: 'colours',
@@ -98,6 +103,7 @@ export class PrototypeGalleryComponent {
     { id: 'architecture', title: 'Architecture maps', prototypes: this.prototypes.filter(item => item.category === 'architecture') },
     { id: 'inputs', title: 'Inputs', prototypes: this.prototypes.filter(item => item.category === 'inputs') },
     { id: 'layouts', title: 'Layouts', prototypes: this.prototypes.filter(item => item.category === 'layouts') },
+    { id: 'mosaics', title: 'Mosaics', prototypes: this.prototypes.filter(item => item.category === 'mosaics') },
     { id: 'colours', title: 'Colour palettes', prototypes: this.prototypes.filter(item => item.category === 'colours') }
   ];
 }

@@ -1,8 +1,8 @@
-import { Component, EnvironmentInjector, OnDestroy, OnInit, runInInjectionContext } from '@angular/core';
+import { Component, ElementRef, EnvironmentInjector, OnDestroy, OnInit, ViewChild, runInInjectionContext } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { Router } from '@angular/router';
-import { Observable, Subscription, combineLatest, of } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription, combineLatest, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { UserInterfaceService } from '../../userInterface.service';
 
 interface HomeMessage {
@@ -24,6 +24,18 @@ interface HomeVisitor {
   standalone: false
 })
 export class HomeComponent implements OnInit, OnDestroy {
+  readonly mosaicVariants = [
+    { id: 'editorial-mosaic', name: 'Editorial mosaic', description: 'One broad lead image anchors a compact supporting grid.' },
+    { id: 'balanced-grid', name: 'Balanced grid', description: 'A regular image grid adapts its column count to the available width.' },
+    { id: 'masonry-flow', name: 'Masonry flow', description: 'Images keep varied heights in a responsive column flow.' },
+    { id: 'panorama-rail', name: 'Panorama rail', description: 'A wide feature image leads into a compact six-column image field.' },
+    { id: 'staggered-collage', name: 'Staggered collage', description: 'Alternating tile sizes create a denser, varied rhythm.' }
+  ];
+  activeMosaic = '';
+  mosaicWidth = 1080;
+  @ViewChild('frame') mosaicFrame?: ElementRef<HTMLElement>;
+  @ViewChild('imageGrid') mosaicGrid?: ElementRef<HTMLElement>;
+  private resizeStart: { x: number; width: number } | null = null;
   images: HomeMessage[] = [];
   events: HomeMessage[] = [];
   visitors: HomeVisitor[] = [];
@@ -34,16 +46,98 @@ export class HomeComponent implements OnInit, OnDestroy {
   eventError = false;
   visitorError = false;
   private subscriptions = new Subscription();
+  private homePanelsSubscribed = false;
 
   constructor(
     private afs: AngularFirestore,
     private injector: EnvironmentInjector,
+    private route: ActivatedRoute,
     public UI: UserInterfaceService,
     public router: Router
   ) {}
 
   ngOnInit() {
+    this.subscriptions.add(this.route.data.subscribe(data => {
+      this.activeMosaic = data['mosaicId'] || '';
+      if (!this.activeMosaic) this.subscribeToHomePanels();
+    }));
+    this.subscriptions.add(this.route.queryParamMap.subscribe(params => {
+      const width = Number(params.get('width'));
+      this.mosaicWidth = Number.isFinite(width) && width >= 320 && width <= 1440 ? Math.round(width) : this.savedMosaicWidth();
+    }));
     this.subscribeToImages();
+  }
+
+  get activeMosaicName(): string {
+    return this.mosaicVariants.find(variant => variant.id === this.activeMosaic)?.name || 'Team dashboard';
+  }
+
+  get activeMosaicDescription(): string {
+    return this.mosaicVariants.find(variant => variant.id === this.activeMosaic)?.description || '';
+  }
+
+  setMosaicWidth(value: number | string) {
+    this.mosaicWidth = this.clampWidth(Number(value));
+    this.saveMosaicWidth();
+  }
+
+  startResize(event: PointerEvent, frame: HTMLElement): void {
+    event.preventDefault();
+    this.resizeStart = { x: event.clientX, width: frame.getBoundingClientRect().width };
+    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+  }
+
+  resize(event: PointerEvent): void {
+    if (this.resizeStart) this.mosaicWidth = this.clampWidth(this.resizeStart.width + event.clientX - this.resizeStart.x);
+  }
+
+  endResize(): void {
+    if (!this.resizeStart) return;
+    this.resizeStart = null;
+    this.saveMosaicWidth();
+  }
+
+  resizeBy(frame: HTMLElement, amount: number): void {
+    this.mosaicWidth = this.clampWidth((this.mosaicWidth || frame.clientWidth) + amount);
+    this.saveMosaicWidth();
+  }
+
+  get imageCoveragePercent(): number {
+    const frame = this.mosaicFrame?.nativeElement;
+    const grid = this.mosaicGrid?.nativeElement;
+    if (!frame || !grid) return 0;
+    const frameRect = frame.getBoundingClientRect();
+    const frameArea = frameRect.width * frameRect.height;
+    if (!frameArea) return 0;
+    let imageArea = 0;
+    grid.querySelectorAll<HTMLElement>('.image-tile').forEach(tile => {
+      const rect = tile.getBoundingClientRect();
+      const width = Math.max(0, Math.min(rect.right, frameRect.right) - Math.max(rect.left, frameRect.left));
+      const height = Math.max(0, Math.min(rect.bottom, frameRect.bottom) - Math.max(rect.top, frameRect.top));
+      imageArea += width * height;
+    });
+    return Math.round(imageArea / frameArea * 100);
+  }
+
+  private clampWidth(width: number): number {
+    return Math.round(Math.max(320, Math.min(1440, width)));
+  }
+
+  private saveMosaicWidth(): void {
+    try { localStorage.setItem('home-mosaic-width', String(this.mosaicWidth)); } catch { /* Storage may be unavailable. */ }
+    this.router.navigate([], { relativeTo: this.route, queryParams: { width: this.mosaicWidth }, queryParamsHandling: 'merge', replaceUrl: true });
+  }
+
+  private savedMosaicWidth(): number {
+    try {
+      const width = Number(localStorage.getItem('home-mosaic-width'));
+      return Number.isFinite(width) && width >= 320 && width <= 1440 ? Math.round(width) : 1080;
+    } catch { return 1080; }
+  }
+
+  private subscribeToHomePanels(): void {
+    if (this.homePanelsSubscribed) return;
+    this.homePanelsSubscribed = true;
     this.subscribeToEvents();
     this.subscribeToVisitors();
   }
@@ -80,43 +174,53 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   private subscribeToVisitors() {
-    const recentReads = runInInjectionContext(this.injector, () => this.afs.collectionGroup('chats', ref =>
-      ref.orderBy('updatedAt', 'desc').limit(100)
-    ).snapshotChanges().pipe(
-      map(rows => {
-        const newestByUser = new Map<string, { id: string; updatedAt: number }>();
-        rows.forEach(row => {
-          const userId = row.payload.doc.ref.parent.parent?.id;
-          const data = row.payload.doc.data() as any;
-          const updatedAt = this.toMillis(data.updatedAt) || this.toMillis(data.serverTimestamp);
-          if (userId && userId !== this.UI.currentUser && updatedAt && !newestByUser.has(userId)) {
-            newestByUser.set(userId, { id: userId, updatedAt });
-          }
-        });
-        return Array.from(newestByUser.values()).slice(0, 5);
-      }),
-      switchMap(users => {
-        if (!users.length) return of([] as HomeVisitor[]);
-        const profiles: Observable<any[]>[] = users.map(user => runInInjectionContext(this.injector, () =>
-          this.afs.collection('PERRINNMessages', ref => ref.where('user', '==', user.id)
-            .where('verified', '==', true).orderBy('serverTimestamp', 'desc').limit(1))
-            .valueChanges().pipe(catchError(() => of([])))
-        ));
-        return combineLatest(profiles).pipe(map(rows => rows.flatMap((profileRows, index) => {
-          const profile = profileRows[0] as any;
-          if (!profile) return [];
-          return [{
-            id: users[index].id,
-            name: profile.name || 'Team member',
-            imageUrl: profile.imageUrlThumbUser || profile.imageUrlUser || '',
-            updatedAt: users[index].updatedAt
-          }];
-        })));
-      })
-    ));
+    // A single-field query finds the same latest user records used by the directory.
+    // Read each user's last-seen collection separately, as the profile page does,
+    // to avoid needing a collection-group index or changes to Firebase rules.
+    const recentReads = runInInjectionContext(this.injector, () =>
+      this.afs.collection<HomeMessage>('PERRINNMessages', ref =>
+        ref.where('userChain.nextMessage', '==', 'none')
+      ).valueChanges().pipe(
+        map(rows => {
+          const profiles = new Map<string, HomeMessage>();
+          rows.forEach(profile => {
+            if (!profile.verified || !profile.user) return;
+            const previous = profiles.get(profile.user);
+            if (!previous || this.toMillis(profile.serverTimestamp) > this.toMillis(previous.serverTimestamp)) {
+              profiles.set(profile.user, profile);
+            }
+          });
+          return Array.from(profiles.values());
+        }),
+        switchMap(profiles => {
+          if (!profiles.length) return of([] as HomeVisitor[]);
+          return combineLatest(profiles.map(profile => runInInjectionContext(this.injector, () =>
+            this.afs.collection(`lastSeen/${profile.user}/chats`, ref =>
+              ref.orderBy('updatedAt', 'desc').limit(1)
+            ).valueChanges().pipe(map(rows => {
+              const latest = rows[0] as any;
+              return {
+                id: profile.user,
+                name: profile.name || 'Team member',
+                imageUrl: profile.imageUrlThumbUser || profile.imageUrlMedium || profile.imageUrlOriginal || '',
+                updatedAt: this.toMillis(latest?.updatedAt) || this.toMillis(latest?.serverTimestamp)
+              } as HomeVisitor;
+            }))
+          ))).pipe(map(visitors => visitors
+            .filter(visitor => visitor.updatedAt > 0)
+            .sort((a, b) => b.updatedAt - a.updatedAt || a.id.localeCompare(b.id))
+            .slice(0, 10)
+          ));
+        })
+      )
+    );
     this.subscriptions.add(recentReads.subscribe({
       next: rows => { this.visitors = rows; this.loadingVisitors = false; },
-      error: () => { this.visitorError = true; this.loadingVisitors = false; }
+      error: error => {
+        console.error('Home recent activity query failed', error);
+        this.visitorError = true;
+        this.loadingVisitors = false;
+      }
     }));
   }
 
