@@ -1,6 +1,8 @@
 import { Component, NgZone, ViewChild, ElementRef, OnDestroy, HostListener, OnInit, AfterViewInit, EnvironmentInjector, runInInjectionContext } from '@angular/core';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
-import { Observable } from 'rxjs'
+import { Observable, Subscription, combineLatest } from 'rxjs'
+import { AngularFireAuth } from '@angular/fire/compat/auth'
+import { ReadCursorService, ReadCursorSession } from './readCursor.service'
 import { Router, ActivatedRoute } from '@angular/router'
 import { UserInterfaceService } from './userInterface.service'
 import { AngularFireStorage } from '@angular/fire/compat/storage'
@@ -9,6 +11,7 @@ import { map, tap, take, finalize } from 'rxjs/operators';
 @Component({
     selector: 'chat',
     templateUrl: './chat.component.html',
+    styleUrls: ['./chat.component.css'],
     standalone: false
 })
 
@@ -36,6 +39,13 @@ export class ChatComponent implements OnDestroy, OnInit, AfterViewInit {
   searchFilter: string | null = null
   lastSeenServerTimestampMessage = 0
   lastSeenMessageId: string | null = null
+  chatFlagged = false;
+  flagReady = false;
+  flagSaving = false;
+  flagError = '';
+  private flagUserId: string | null = null;
+  private flagSession: ReadCursorSession;
+  private flagSubscriptions = new Subscription();
   chatSubject = ''
   chatLastMessageObj: any = null
   chatChain = ''
@@ -97,7 +107,19 @@ export class ChatComponent implements OnDestroy, OnInit, AfterViewInit {
     private storage:AngularFireStorage,
     private zone: NgZone,
     private injector: EnvironmentInjector,
+    private cursors: ReadCursorService,
+    auth: AngularFireAuth,
   ) {
+      this.flagSession = cursors.createSession();
+      this.flagSubscriptions.add(this.flagSession.changes.subscribe(state => {
+        this.chatFlagged = !!state.flags[this.route.snapshot.params.id];
+        this.flagReady = state.ready && !state.unavailable;
+      }));
+      this.flagSubscriptions.add(combineLatest([auth.authState, this.route.params]).subscribe(([user, params]) => {
+        this.flagUserId = user?.uid || null;
+        this.flagError = '';
+        this.flagSession.update(this.flagUserId, [params.id]);
+      }));
       this.math = Math
       this.UI.loading = true
       this.lastSeenServerTimestampMessage = 0
@@ -140,6 +162,20 @@ export class ChatComponent implements OnDestroy, OnInit, AfterViewInit {
         this.refresheventDateList()
       })
     }
+
+  async toggleChatFlag() {
+    if (!this.flagUserId || !this.chatChain || !this.flagReady || this.flagSaving) return;
+    const userId = this.flagUserId, chain = this.chatChain;
+    this.flagSaving = true;
+    this.flagError = '';
+    try {
+      await this.cursors.setFlag(userId, chain, !this.chatFlagged);
+    } catch {
+      if (userId === this.flagUserId && chain === this.chatChain) this.flagError = 'Could not update flag. Try again.';
+    } finally {
+      this.flagSaving = false;
+    }
+  }
 
   private async loadLastSeen(chain: string): Promise<void> {
     if (!this.UI.currentUser || !chain) {
@@ -235,6 +271,8 @@ export class ChatComponent implements OnDestroy, OnInit, AfterViewInit {
   }
 
   ngOnDestroy() {
+    this.flagSubscriptions.unsubscribe();
+    this.flagSession.destroy();
     window.removeEventListener('resize', this.scheduleOffsetsRefresh);
     window.removeEventListener('orientationchange', this.scheduleOffsetsRefresh);
     window.visualViewport?.removeEventListener('resize', this.scheduleOffsetsRefresh);

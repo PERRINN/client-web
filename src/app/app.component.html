@@ -29,7 +29,7 @@
         <span>Apps</span>
       </button>
     </nav>
-      <section class="sideProfile" aria-label="Conversations">
+      <section class="sideProfile" aria-label="Conversations" [class.is-scrolling]="conversationScrollbarVisible" (scroll)="onConversationScroll()">
         <profile [sidePanelScope]="'all'"></profile>
       </section>
     <div class="navRight">

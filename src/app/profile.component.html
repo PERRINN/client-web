@@ -1,4 +1,4 @@
-<div class="profileModern" (click)="messageOptionsOpenFor = null">
+<div class="profileModern">
   <div class="profileContainer">
 
     @if (UI.currentUserLastMessageObj && !UI.currentUserLastMessageObj?.isImageUserUpdated && !sidePanelScope) {
@@ -299,23 +299,6 @@
                         @if (cursorsReady && UI.currentUser && blueFlagByChain[message.payload.doc.data()?.chain]) {
                           <div
                             class="chatListBlueFlag" role="img" aria-label="Flagged conversation">
-                          </div>
-                        }
-                        @if (UI.currentUser && (scope==='all'||mode==='inbox')) {
-                          <button
-                            class="messageOptionsBtn"
-                            aria-label="Chat options"
-                            (click)="$event.stopPropagation(); messageOptionsOpenFor = (messageOptionsOpenFor === message.payload.doc.data()?.chain ? null : message.payload.doc.data()?.chain)">
-                            <span class="material-icons-outlined prof-icon-14">keyboard_arrow_down</span>
-                          </button>
-                        }
-                        @if (messageOptionsOpenFor === message.payload.doc.data()?.chain) {
-                          <div
-                            class="messageOptionsMenu"
-                            (click)="$event.stopPropagation()">
-                            <button class="messageOptionsItem" [disabled]="!cursorsReady" (click)="$event.stopPropagation(); toggleBlueFlag(message.payload.doc.data()?.chain)">
-                              {{blueFlagByChain[message.payload.doc.data()?.chain] ? (sidePanelScope ? 'Remove flag' : 'Remove blue flag') : (sidePanelScope ? 'Add flag' : 'Add blue flag')}}
-                            </button>
                           </div>
                         }
                         <div class="prof-avatar-wrap">

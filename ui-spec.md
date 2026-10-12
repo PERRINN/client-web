@@ -90,6 +90,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 - Design for desktop, tablet and mobile from the content outward; do not treat existing breakpoints as a required system.
 - The app shell occupies the dynamic viewport, with `#main_container` owning page scrolling. Avoid creating a second, document-level scroll surface around it.
 - All pages, including prototypes, use a 320px conversation sidebar on desktop. Its conversation list scrolls independently, with navigation above and account/wallet controls below. Below 900px, the sidebar becomes a dismissible navigation drawer with focus containment and a header menu button. Prototype preview controls sit inside the shared app shell.
+- The conversation scrollbar track matches the sidebar surface. Its thumb appears during scrolling and hides after 800ms without scrolling, including when the list remains hovered or focused; retain scrollbar space to avoid layout shifts.
 - On mobile, use a single column, adapt navigation and controls to the available width, and keep primary actions reachable.
 - On tablet, choose columns and navigation based on actual content fit. On desktop, use additional width for useful comparison or workspace layouts, not decorative empty space.
 - Preserve readable text, usable controls, and clear scroll ownership at every size.

@@ -1,0 +1,8 @@
+:host .chatHeaderSubjectRow .chatSubject { min-width: 0; }
+:host .chat-flag-button { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 28px; width: 28px; height: 28px; margin: 0; padding: 4px; border: 0; background: transparent; color: var(--color-text-muted); transition: none; }
+:host .chat-flag-button .material-icons-outlined { font-size: 18px; }
+:host .chat-flag-button.is-flagged { color: var(--color-accent); }
+:host .chat-flag-button:hover { background: var(--color-raised); }
+:host .chat-flag-button:focus-visible { outline: 2px solid var(--color-text-secondary); outline-offset: -2px; }
+:host .chat-flag-button:disabled { opacity: .5; cursor: default; }
+:host .chat-flag-error { display: block; color: var(--color-danger-text); overflow: visible; }

@@ -17,11 +17,21 @@ import { Observable } from 'rxjs';
 export class AppComponent implements OnInit, OnDestroy {
   readonly activitySummary: Observable<ActivitySummary>;
   sidebarOpen = false;
+  conversationScrollbarVisible = false;
+  private conversationScrollbarTimer?: ReturnType<typeof setTimeout>;
   mobileLayout = window.innerWidth < 900;
   @ViewChild('menuToggle') menuToggle?: ElementRef<HTMLButtonElement>;
   @ViewChild('sidebarNavigation') sidebarNavigation?: ElementRef<HTMLElement>;
   private navigationSubscription: Subscription;
   private presenceSubscription?: Subscription;
+
+  onConversationScroll(): void {
+    this.conversationScrollbarVisible = true;
+    clearTimeout(this.conversationScrollbarTimer);
+    this.conversationScrollbarTimer = setTimeout(() => {
+      this.conversationScrollbarVisible = false;
+    }, 800);
+  }
 
   openSidebar(): void {
     this.sidebarOpen = true;
@@ -50,6 +60,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    clearTimeout(this.conversationScrollbarTimer);
     this.navigationSubscription.unsubscribe();
     this.presenceSubscription?.unsubscribe();
   }

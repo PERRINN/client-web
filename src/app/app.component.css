@@ -9,6 +9,13 @@
 :host .sidebarShell .iconBtn:hover { background: var(--color-raised); }
 :host .sidebarShell .brandIcon { width: 20px; height: 20px; }
 :host .sidebarShell .sideProfile { display: block; position: static; flex: 1 1 auto; min-height: 0; width: 100%; height: auto; overflow-y: auto; overscroll-behavior: contain; border: 0; border-radius: 0; animation: none; background: transparent; }
+:host .sidebarShell .sideProfile::-webkit-scrollbar-track { background-color: var(--color-surface); }
+:host .sidebarShell .sideProfile::-webkit-scrollbar-thumb { background-color: transparent; }
+:host .sidebarShell .sideProfile.is-scrolling::-webkit-scrollbar-thumb { background-color: var(--color-border); }
+@supports not selector(::-webkit-scrollbar) {
+  :host .sidebarShell .sideProfile { scrollbar-color: transparent var(--color-surface); }
+  :host .sidebarShell .sideProfile.is-scrolling { scrollbar-color: var(--color-border) var(--color-surface); }
+}
 :host .sidebarShell .navRight { display: flex; flex: 0 0 auto; flex-wrap: wrap; justify-content: flex-start; gap: 8px; padding: 10px 4px 0; background: transparent; border-radius: 0; }
 :host .sidebarShell .accountRow { display: flex; align-items: center; gap: 10px; width: 100%; min-width: 0; padding: 8px; margin: 0; border: 0; border-radius: 6px; background: transparent; color: var(--color-text); text-align: left; }
 :host .sidebarShell .accountRow:hover { background: var(--color-raised); }

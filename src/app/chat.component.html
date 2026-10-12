@@ -14,7 +14,16 @@
                 (error)="UI.handleChatImageError($event, chatLastMessageObj)">
             }
             <div class="chatSubject chatSubjectStrong chatSubjectTruncate">{{chatLastMessageObj?.chatSubject}}</div>
+            @if (UI.currentUser && chatLastMessageObj?.chatSubject) {
+              <button type="button" class="chat-flag-button" [class.is-flagged]="chatFlagged"
+                [attr.aria-pressed]="chatFlagged" [attr.aria-label]="chatFlagged ? 'Remove flag' : 'Add flag'"
+                [title]="flagReady ? (chatFlagged ? 'Remove flag' : 'Add flag') : 'Flag unavailable'"
+                [disabled]="!flagReady || flagSaving" (click)="$event.stopPropagation(); toggleChatFlag()">
+                <span class="material-icons-outlined" aria-hidden="true">{{chatFlagged ? 'flag' : 'outlined_flag'}}</span>
+              </button>
+            }
           </div>
+          @if (flagError) { <span class="chat-flag-error" role="alert">{{flagError}}</span> }
           <div class="chatHeaderRecipientList">
             @for (recipient of chatLastMessageObj?.recipientList; track recipient; let last = $last) {
               <span>{{recipient==UI.currentUser?'You':chatLastMessageObj?.recipients[recipient]?.name}}{{last?"":", "}}</span>

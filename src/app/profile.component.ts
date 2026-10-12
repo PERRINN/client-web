@@ -1,4 +1,4 @@
-import { Component, Input, NgZone, HostListener, ChangeDetectorRef, DoCheck, OnInit, OnDestroy, EnvironmentInjector, runInInjectionContext } from '@angular/core'
+import { Component, Input, NgZone, ChangeDetectorRef, DoCheck, OnInit, OnDestroy, EnvironmentInjector, runInInjectionContext } from '@angular/core'
 import { Subscription } from 'rxjs'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
@@ -6,7 +6,6 @@ import { map, filter, tap, take } from 'rxjs/operators'
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router'
 import { UserInterfaceService } from './userInterface.service'
 import { AngularFireAuth } from '@angular/fire/compat/auth'
-import { serverTimestamp } from 'firebase/firestore'
 import { AgChartOptions } from 'ag-charts-community'
 import { PresenceService } from './presence.service'
 import { MessageActivityService } from './messageActivity.service'
@@ -16,6 +15,7 @@ import { ReadCursorService, ReadCursorSession } from './readCursor.service'
     selector: 'profile',
     templateUrl: './profile.component.html',
     styleUrls: ['./profile.component.css'],
+    host: { '[class.sidebar-profile]': '!!sidePanelScope' },
     standalone: false
 })
 export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
@@ -42,7 +42,6 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
   previousTimestamp: any = { seconds: 0 }
   activeChatId: string | null = null;
   blueFlagByChain: Record<string, boolean> = {}
-  messageOptionsOpenFor: string | null = null
   previousIndex: any = 0
   previousPurchaseCOINAmountCummulate = 0
   previousContractAmountCummulate = 0
@@ -536,22 +535,5 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
     this.refreshMessages()
   }
 
-  toggleBlueFlag(chain: string) {
-    return runInInjectionContext(this.injector, () => {
-      const userId = this.UI.currentUser || this.currentUserId;
-    if (!userId || !chain || !this.cursorsReady) return;
-    const currentStatus = !!this.blueFlagByChain[chain];
-    this.afs.collection(`lastSeen/${userId}/chats`).doc(chain).set({
-      blueFlag: !currentStatus,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
-      this.messageOptionsOpenFor = null;
-    });
-  }
-
-  @HostListener('document:click')
-  onDocumentClick() {
-    this.messageOptionsOpenFor = null;
-  }
 
 }

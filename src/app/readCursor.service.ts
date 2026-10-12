@@ -1,6 +1,7 @@
 import { EnvironmentInjector, Injectable, runInInjectionContext } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { BehaviorSubject, Subscription } from 'rxjs';
+import { serverTimestamp } from 'firebase/firestore';
 
 interface ReadCursor {
   serverTimestamp?: { seconds?: number; toMillis?: () => number };
@@ -90,5 +91,10 @@ export class ReadCursorSession {
 @Injectable({ providedIn: 'root' })
 export class ReadCursorService {
   constructor(private afs: AngularFirestore, private injector: EnvironmentInjector) {}
+  setFlag(userId: string, chain: string, flagged: boolean) {
+    return runInInjectionContext(this.injector, () =>
+      this.afs.doc(`lastSeen/${userId}/chats/${chain}`).set({ blueFlag: flagged, updatedAt: serverTimestamp() }, { merge: true })
+    );
+  }
   createSession() { return new ReadCursorSession(this.afs, this.injector); }
 }
