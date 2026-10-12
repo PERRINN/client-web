@@ -3,6 +3,13 @@ service cloud.firestore {
     match /{document=**} {
       allow read;
     }
+    match /userPresence/{userId} {
+      // Activity is public. Only the owner can write a server-time-only record.
+      allow create, update: if request.auth != null
+                            && request.auth.uid == userId
+                            && request.resource.data.keys().hasOnly(['lastActiveAt'])
+                            && request.resource.data.lastActiveAt == request.time;
+    }
     match /lastSeen/{userId} {
       allow read, write: if request.auth.uid == userId;
       match /chats/{chatId} {
