@@ -62,7 +62,7 @@
             <div class="prof-meta-wrap">
               <span>Created in {{focusUserLastMessageObj?.createdTimestamp|date:'MMMM yyyy'}}</span>
               @if (scope!=='all') {
-                <span>Last seen {{formatFocusUserLastSeen()}}</span>
+                <span>{{formatFocusUserActivity()}}</span>
               }
               @if (focusUserLastMessageObj?.userChain?.index>1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)>1) {
                 <span>{{focusUserLastMessageObj?.userChain?.index}} created messages, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</span>

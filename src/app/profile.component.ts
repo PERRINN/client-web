@@ -8,6 +8,7 @@ import { UserInterfaceService } from './userInterface.service'
 import { AngularFireAuth } from '@angular/fire/compat/auth'
 import { serverTimestamp } from 'firebase/firestore'
 import { AgChartOptions } from 'ag-charts-community'
+import { PresenceService } from './presence.service'
 
 @Component({
     selector: 'profile',
@@ -25,11 +26,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
   focusUserLastMessageObj: any = null
   lastSeenByChain: Record<string, number> = {}
   lastSeenSubscription: Subscription | null = null;
-  focusUserLastSeenSubscription: Subscription | null = null;
+  focusUserActivitySubscription: Subscription | null = null;
   authSubscription: Subscription | null = null;
   routeSubscription: Subscription | null = null;
   currentUserId: string | null = null;
-  focusUserLastSeenTimestampMessage = 0
+  focusUserLastActiveAt = 0
+  loadingUserActivity = false
+  userActivityError = false
+  private scopeSubscription?: Subscription;
   scope!: string
   mode!: string
   previousBalance: any = 0
@@ -57,15 +61,16 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private route:ActivatedRoute,
     private cd: ChangeDetectorRef,
     private zone: NgZone,
-    private injector: EnvironmentInjector
+    private injector: EnvironmentInjector,
+    private presence: PresenceService
   ) {
     this.math=Math
     this.lastSeenByChain={}
     this.lastSeenSubscription = null;
-    this.focusUserLastSeenSubscription = null;
+    this.focusUserActivitySubscription = null;
     this.authSubscription = null;
     this.currentUserId = null;
-    this.focusUserLastSeenTimestampMessage=0
+    this.focusUserLastActiveAt=0
     this.authSubscription = this.afAuth.authState.subscribe(user => {
       this.currentUserId = user?.uid || this.UI.currentUser || null;
       this.subscribeToLastSeen();
@@ -134,7 +139,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     });
     this.updateActiveChatState();
 
-    this.route.params.subscribe(params => {
+    this.scopeSubscription = this.route.params.subscribe(params => {
       const targetScope = this.sidePanelScope || params.id;
       if (this.scope === targetScope) {
         this.cd.detectChanges();
@@ -154,7 +159,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
           if (this.mode == 'forecast') this.refreshForecastChart()
         })
       })
-      this.subscribeToFocusUserLastSeen();
+      this.subscribeToFocusUserActivity();
       this.refreshMessages()
       this.subscribeToLastSeen();
     })
@@ -336,35 +341,38 @@ export class ProfileComponent implements OnInit, OnDestroy {
     });
   }
 
-  private focusUserLastSeenUnsubscribe() {
-    if (this.focusUserLastSeenSubscription) {
-      this.focusUserLastSeenSubscription.unsubscribe();
-      this.focusUserLastSeenSubscription = null;
+  private focusUserActivityUnsubscribe() {
+    if (this.focusUserActivitySubscription) {
+      this.focusUserActivitySubscription.unsubscribe();
+      this.focusUserActivitySubscription = null;
     }
   }
 
-  private subscribeToFocusUserLastSeen() {
-    this.focusUserLastSeenUnsubscribe();
-    this.focusUserLastSeenTimestampMessage = 0;
+  private subscribeToFocusUserActivity() {
+    this.focusUserActivityUnsubscribe();
+    this.focusUserLastActiveAt = 0;
     if (!this.scope || this.scope === 'all') return;
 
-    this.focusUserLastSeenSubscription = runInInjectionContext(this.injector, () =>
-      this.afs.collection<any>(`lastSeen/${this.scope}/chats`, ref => ref
-        .orderBy('updatedAt', 'desc')
-        .limit(1)
-      ).snapshotChanges()
-    ).subscribe(snaps => {
-      const latest = snaps[0]?.payload?.doc?.data() || {};
-      this.focusUserLastSeenTimestampMessage =
-        this.toMillis(latest['updatedAt']) ||
-        this.toMillis(latest['serverTimestamp']);
-      this.cd.detectChanges();
+    this.loadingUserActivity = true;
+    this.userActivityError = false;
+    this.focusUserActivitySubscription = this.presence.lastActiveAt(this.scope).subscribe({
+      next: timestamp => {
+        this.focusUserLastActiveAt = timestamp;
+        this.loadingUserActivity = false;
+        this.cd.markForCheck();
+      },
+      error: () => {
+        this.userActivityError = true;
+        this.loadingUserActivity = false;
+        this.cd.markForCheck();
+      }
     });
   }
 
   ngOnDestroy() {
     this.lastSeenUnsubscribe();
-    this.focusUserLastSeenUnsubscribe();
+    this.focusUserActivityUnsubscribe();
+    this.scopeSubscription?.unsubscribe();
     if (this.authSubscription) {
       this.authSubscription.unsubscribe();
       this.authSubscription = null;
@@ -390,9 +398,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
     return !!lastSeenTimestampMessage&&messageTimestampMessage>0&&messageTimestampMessage<=lastSeenTimestampMessage
   }
 
-  formatFocusUserLastSeen():string{
-    if(!this.focusUserLastSeenTimestampMessage)return '--'
-    return this.UI.formatSecondsToDhm1(this.math.max(0,this.UI.nowSeconds-this.focusUserLastSeenTimestampMessage/1000))+' ago'
+  formatFocusUserActivity():string{
+    if(this.loadingUserActivity)return 'Loading activity…'
+    if(this.userActivityError)return 'Activity unavailable'
+    if(!this.focusUserLastActiveAt)return 'No activity recorded'
+    return 'Last active '+this.UI.formatSecondsToDhm1(this.math.max(0,this.UI.nowSeconds-this.focusUserLastActiveAt/1000))+' ago'
   }
 
   scrollMainToBottom() {

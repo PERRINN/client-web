@@ -4,6 +4,7 @@ import { UserInterfaceService } from './userInterface.service';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { filter, interval, Subscription } from 'rxjs';
+import { PresenceService } from './presence.service';
 
 @Component({
     selector: 'app-root',
@@ -17,6 +18,7 @@ export class AppComponent implements OnInit, OnDestroy {
   @ViewChild('menuToggle') menuToggle?: ElementRef<HTMLButtonElement>;
   @ViewChild('sidebarNavigation') sidebarNavigation?: ElementRef<HTMLElement>;
   private navigationSubscription: Subscription;
+  private presenceSubscription?: Subscription;
 
   openSidebar(): void {
     this.sidebarOpen = true;
@@ -44,7 +46,10 @@ export class AppComponent implements OnInit, OnDestroy {
     else if (!event.shiftKey && document.activeElement === last) { first?.focus(); event.preventDefault(); }
   }
 
-  ngOnDestroy(): void { this.navigationSubscription.unsubscribe(); }
+  ngOnDestroy(): void {
+    this.navigationSubscription.unsubscribe();
+    this.presenceSubscription?.unsubscribe();
+  }
 
   private cleanupLegacyLocalStorage(): void {
     const legacyKeys = [
@@ -61,7 +66,8 @@ export class AppComponent implements OnInit, OnDestroy {
     public router:Router,
     public afs:AngularFirestore,
     public UI:UserInterfaceService,
-    private updates: SwUpdate
+    private updates: SwUpdate,
+    private presence: PresenceService
   ) {
     this.cleanupLegacyLocalStorage();
     this.navigationSubscription = this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(() => {
@@ -90,6 +96,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.presenceSubscription = this.presence.trackActivity();
     const uploader = document.getElementById('uploader');
     if (uploader) uploader.style.visibility = 'hidden';
     const fullScreenImage = document.getElementById('fullScreenImage');

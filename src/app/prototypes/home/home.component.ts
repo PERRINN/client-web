@@ -1,20 +1,14 @@
 import { ChangeDetectorRef, Component, ElementRef, EnvironmentInjector, OnDestroy, OnInit, ViewChild, runInInjectionContext } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription, from, of, timer } from 'rxjs';
-import { catchError, distinctUntilChanged, exhaustMap, map, mergeMap, scan, switchMap, take, timeout } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { UserInterfaceService } from '../../userInterface.service';
+import { PresenceService, RecentVisitor } from '../../presence.service';
 
 interface HomeMessage {
   id: string;
   [key: string]: any;
-}
-
-interface HomeVisitor {
-  id: string;
-  name: string;
-  imageUrl: string;
-  updatedAt: number;
 }
 
 @Component({
@@ -38,7 +32,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private resizeStart: { x: number; width: number } | null = null;
   images: HomeMessage[] = [];
   events: HomeMessage[] = [];
-  visitors: HomeVisitor[] = [];
+  visitors: RecentVisitor[] = [];
   loadingImages = true;
   loadingEvents = true;
   loadingVisitors = true;
@@ -50,6 +44,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   constructor(
     private afs: AngularFirestore,
+    private presence: PresenceService,
     private injector: EnvironmentInjector,
     private changeDetector: ChangeDetectorRef,
     private route: ActivatedRoute,
@@ -175,59 +170,10 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   private subscribeToVisitors() {
-    // A single-field query finds the same latest user records used by the directory.
-    // Read existing per-user activity paths with bounded concurrency.
-    // Refresh snapshots once a minute instead of holding a listener per user.
-    const recentReads = runInInjectionContext(this.injector, () =>
-      this.afs.collection<HomeMessage>('PERRINNMessages', ref =>
-        ref.where('userChain.nextMessage', '==', 'none')
-      ).valueChanges().pipe(
-        map(rows => {
-          const profiles = new Map<string, HomeMessage>();
-          rows.forEach(profile => {
-            if (!profile.verified || !profile.user) return;
-            const previous = profiles.get(profile.user);
-            if (!previous || this.toMillis(profile.serverTimestamp) > this.toMillis(previous.serverTimestamp)) {
-              profiles.set(profile.user, profile);
-            }
-          });
-          return Array.from(profiles.values());
-        }),
-        distinctUntilChanged((previous, current) => previous.length === current.length && previous.every((profile, index) => {
-          const next = current[index];
-          return profile.user === next.user && profile.name === next.name &&
-            profile.imageUrlThumbUser === next.imageUrlThumbUser && profile.imageUrlMedium === next.imageUrlMedium && profile.imageUrlOriginal === next.imageUrlOriginal;
-        })),
-        switchMap(profiles => {
-          if (!profiles.length) return of({ visitors: [] as HomeVisitor[], failed: false });
-          return timer(0, 60000).pipe(exhaustMap(() => from(profiles).pipe(
-            mergeMap(profile => runInInjectionContext(this.injector, () =>
-              this.afs.collection(`lastSeen/${profile.user}/chats`, ref =>
-                ref.orderBy('updatedAt', 'desc').limit(1)
-              ).valueChanges().pipe(take(1), timeout(10000), map(rows => {
-                const latest = rows[0] as any;
-                return {
-                  id: profile.user,
-                  name: profile.name || 'Team member',
-                  imageUrl: profile.imageUrlThumbUser || profile.imageUrlMedium || profile.imageUrlOriginal || '',
-                  updatedAt: this.toMillis(latest?.updatedAt) || this.toMillis(latest?.serverTimestamp)
-                } as HomeVisitor;
-              }), catchError(() => of(null)))
-            ), 6),
-            scan((state, visitor) => ({
-              visitors: visitor && visitor.updatedAt > 0
-                ? [...state.visitors, visitor].sort((a, b) => b.updatedAt - a.updatedAt || a.id.localeCompare(b.id)).slice(0, 10)
-                : state.visitors,
-              failed: state.failed || visitor === null
-            }), { visitors: [] as HomeVisitor[], failed: false })
-          )));
-        })
-      )
-    );
-    this.subscriptions.add(recentReads.subscribe({
-      next: state => {
-        this.visitors = state.visitors;
-        this.visitorError = state.failed && !state.visitors.length;
+    this.subscriptions.add(this.presence.recentVisitors().subscribe({
+      next: visitors => {
+        this.visitors = visitors;
+        this.visitorError = false;
         this.loadingVisitors = false;
         this.changeDetector.markForCheck();
       },
