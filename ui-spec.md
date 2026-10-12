@@ -14,7 +14,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 
 - Make the interface understated, engineered and calm, with a balanced information hierarchy.
 - Keep useful information visible and organized; avoid both overcrowding and unnecessary whitespace.
-- Use a dark-mode language inspired by current ChatGPT: deep neutral backgrounds, subtly differentiated dark surfaces, restrained borders and light neutral typography.
+- Use a dark-mode language inspired by current ChatGPT: deep neutral backgrounds, subtly differentiated dark surfaces and light neutral typography. Keep cards and panels borderless by default.
 - Use panels to group most sections, but distinguish them subtly. Keep spacing compact and functional.
 
 ## Colour
@@ -35,7 +35,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
   | Selected surface | `--color-selected` | `#34404A` |
   | Error text | `--color-danger-text` | `#FCA5A5` |
 
-- Use the page, surface and raised tokens to distinguish the canvas, grouped content, and controls or nested emphasis. Use the border token for subtle separation.
+- Use the page, surface and raised tokens to distinguish the canvas, grouped content, and controls or nested emphasis. Reserve the border token for controls, focus indicators, or states where a border materially improves clarity or accessibility.
 - Use light neutral primary text, cool secondary text and muted text for clear hierarchy. Keep text readable; do not use muted text for essential content when contrast is insufficient.
 - Use gold for primary actions and restrained emphasis. Keep green for success, use the selected-surface token for selected controls, and use restrained red for errors. Use `--color-danger` for error fills and `--color-danger-text` for readable error text. Do not use gold as the sole indication of status.
 - Never use pure black as a page or component background. Avoid gradients, shadows, and unrelated saturated accents.
@@ -49,13 +49,14 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 - Use a clean system sans stack: `'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif`.
 - Keep headings quietly distinct from body text through modest size and weight changes, not display styling.
 - Use the same typeface for text and numbers. Emphasize important values through size and weight, not a separate monospace face.
+- Keep text within the same line consistent in font size, weight, family, and style, including inline dates, durations, units, and metadata. Do not vary typography within a line for routine emphasis. Set nested inline elements to inherit these properties explicitly when legacy global styles override inheritance.
 - Maintain readable contrast and concise labels. Use the existing page-level type sizes as references, not the conflicting global Verdana reset.
 
 ## Layout & spacing
 
 - Adapt content width and columns to the content. Use a readable maximum width for focused forms and detail views; allow data-heavy or workspace layouts to use more of the viewport when that improves scanning.
 - Stack multi-column layouts into one column on mobile and keep key actions visible. On tablet, adapt to content and available space; retain columns only when they remain readable.
-- Use distinct panels for most meaningful sections, with restrained surface contrast and borders. Avoid splitting a single task or closely related information across unnecessary panels.
+- Use distinct panels for most meaningful sections, separated through background contrast, spacing, and alignment. Avoid splitting a single task or closely related information across unnecessary panels.
 - Keep spacing compact and functional. Use consistent gaps within a component and stronger separation between sections; do not add whitespace for decoration.
 - Align related labels, values and actions. Choose grids, lists or tables according to the information rather than forcing one layout onto every data set.
 
@@ -63,7 +64,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 
 - **Buttons:** use one filled gold primary style per task area, with accent ink for legible text. Secondary actions should have less visual weight. Destructive actions remain neutral; use clear wording and confirmation for consequential operations. Selected controls use the selected-surface token.
 - **Inputs:** use dark filled fields with the surface or raised token, a subtle border, clear text and a restrained neutral focus outline. Keep labels and validation associated with their field.
-- **Cards and panels:** use the surface or raised token and restrained borders to group related content. Do not use shadows or gradients.
+- **Cards and panels:** use borderless surfaces by default, with the surface or raised token. Separate them through background contrast, spacing, and alignment. Do not add outline borders for decoration or routine grouping. Reserve borders for controls, focus indicators, or states where they materially improve clarity or accessibility. Do not use shadows or gradients.
 - **Navigation:** prefer visible labels, adding icons where they improve recognition. Keep hierarchy clear and selected state restrained.
 - **Tabs and selections:** make the selected state clear using the selected-surface token. Do not make every tab or option visually prominent.
 - **Tables and data:** choose between aligned compact rows and cards based on the content. Align comparable values and use consistent number emphasis; do not add decorative containers around every value.
@@ -73,7 +74,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 
 ## Interaction
 
-- Keep hover changes subtle and neutral, such as a small surface or border change. Use a subtle neutral focus outline for keyboard users.
+- Keep hover changes subtle and neutral, such as a small surface change. For controls that already have borders, a subtle border change is also appropriate. Use a subtle neutral focus outline for keyboard users.
 - Show disabled controls with lower contrast and prevent interaction. Keep their labels legible.
 - Keep layouts stable while loading. Where useful, show both a concise loading label and a small spinner or progress indicator.
 - Avoid animations and transitions. Do not animate routine navigation, hover, panel changes or feedback.
@@ -91,7 +92,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 
 **Do**
 
-- Use dark neutral surfaces, light neutral typography and restrained borders.
+- Use dark neutral surfaces, light neutral typography and borderless cards and panels separated through contrast, spacing, and alignment.
 - Keep hierarchy clear, information balanced and spacing functional.
 - Use green sparingly for selected and success states, and red for errors.
 - Prefer inline feedback and content-appropriate data layouts.

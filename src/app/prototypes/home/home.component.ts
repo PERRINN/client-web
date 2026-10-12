@@ -1,4 +1,4 @@
-import { Component, ElementRef, EnvironmentInjector, OnDestroy, OnInit, ViewChild, runInInjectionContext } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, EnvironmentInjector, OnDestroy, OnInit, ViewChild, runInInjectionContext } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription, combineLatest, of } from 'rxjs';
@@ -51,6 +51,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   constructor(
     private afs: AngularFirestore,
     private injector: EnvironmentInjector,
+    private changeDetector: ChangeDetectorRef,
     private route: ActivatedRoute,
     public UI: UserInterfaceService,
     public router: Router
@@ -154,8 +155,9 @@ export class HomeComponent implements OnInit, OnDestroy {
       next: rows => {
         this.images = rows.filter(row => row.chatImageUrlMedium || row.chatImageUrlThumb || row.chatImageUrlOriginal);
         this.loadingImages = false;
+        this.changeDetector.markForCheck();
       },
-      error: () => { this.imageError = true; this.loadingImages = false; }
+      error: () => { this.imageError = true; this.loadingImages = false; this.changeDetector.markForCheck(); }
     }));
   }
 
@@ -165,11 +167,10 @@ export class HomeComponent implements OnInit, OnDestroy {
         .where('verified', '==', true)
         .orderBy('eventDateEnd')
         .where('eventDateEnd', '>', Date.now())
-        .limit(10)
     ).snapshotChanges().pipe(map(rows => rows.map(row => ({ id: row.payload.doc.id, ...row.payload.doc.data() } as HomeMessage)))));
     this.subscriptions.add(events.subscribe({
-      next: rows => { this.events = rows; this.loadingEvents = false; },
-      error: () => { this.eventError = true; this.loadingEvents = false; }
+      next: rows => { this.events = rows; this.loadingEvents = false; this.changeDetector.markForCheck(); },
+      error: () => { this.eventError = true; this.loadingEvents = false; this.changeDetector.markForCheck(); }
     }));
   }
 
@@ -215,11 +216,12 @@ export class HomeComponent implements OnInit, OnDestroy {
       )
     );
     this.subscriptions.add(recentReads.subscribe({
-      next: rows => { this.visitors = rows; this.loadingVisitors = false; },
+      next: rows => { this.visitors = rows; this.loadingVisitors = false; this.changeDetector.markForCheck(); },
       error: error => {
         console.error('Home recent activity query failed', error);
         this.visitorError = true;
         this.loadingVisitors = false;
+        this.changeDetector.markForCheck();
       }
     }));
   }
@@ -229,7 +231,10 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   get upcomingEvents(): HomeMessage[] {
-    return this.events.filter(event => Number(event.eventDateEnd) > this.UI.nowSeconds * 1000).slice(0, 4);
+    return this.events
+      .filter(event => Number(event.eventDateEnd) > this.UI.nowSeconds * 1000)
+      .sort((a, b) => this.toMillis(a.eventDateStart) - this.toMillis(b.eventDateStart))
+      .slice(0, 4);
   }
 
   imageUrl(message: HomeMessage): string {
