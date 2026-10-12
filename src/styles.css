@@ -534,57 +534,6 @@ app-root .buttonSecondary:hover:not(:disabled) {
 app-root .buyBtn {
   margin-left: 8px;
 }
-app-root .socialPopupBackdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 1100;
-  background: rgba(18, 25, 35, 0.58);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-}
-app-root .socialPopupCard {
-  width: 100%;
-  max-width: 420px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 14px;
-  padding: 14px;
-}
-app-root .socialPopupHeader {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-app-root .socialPopupTitle {
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  color: var(--color-text);
-}
-app-root .socialPopupGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-app-root .socialPopupBtn {
-  width: 100%;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 9px 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-app-root .socialPopupBtn .material-icons-outlined {
-  font-size: 16px;
-  line-height: 1;
-}
 app-root .contentWrap {
   max-width: 980px;
   margin: 0 auto;
@@ -3199,9 +3148,6 @@ app-root chat .cancelEventModalBtn {
   }
   app-root .buyBtn {
     margin-left: auto;
-  }
-  app-root .socialPopupGrid {
-    grid-template-columns: 1fr;
   }
 }
 @media (max-width: 760px) {

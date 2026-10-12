@@ -1,0 +1,30 @@
+.profile-wallet-actions { display: flex; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: 10px; overflow: visible; }
+.profile-wallet-actions > button { margin: 0; transition: none; }
+.profile-wallet-actions > button:focus-visible { outline: 2px solid var(--color-text-secondary); outline-offset: 2px; }
+.profile-wallet-actions > span { overflow: visible; line-height: 1.35; }
+
+/* Compact sidebar rows; the main profile feed retains its existing presentation. */
+:host .listLight.sidebar-conversations { margin: 0; padding: 0; background: transparent; overflow: visible; }
+:host .sidebar-conversations.listLight > li { margin: 0; padding: 6px 4px; border: 0; border-radius: 0; background: transparent !important; overflow: visible; transition: none; }
+:host .sidebar-conversations.listLight > li:hover { background: var(--color-raised) !important; }
+:host .sidebar-conversations.listLight > li.activeChatListItem { background: var(--color-selected) !important; }
+:host .sidebar-conversations.listLight > li:focus-visible { outline: 2px solid var(--color-text-secondary); outline-offset: -2px; }
+:host .sidebar-conversations.listLight > li > div { display: flex; align-items: center; gap: 8px; min-height: 30px; overflow: visible; }
+:host .sidebar-conversations.listLight .prof-avatar-wrap { order: 0; float: none; flex: 0 0 24px; min-width: 0; min-height: 0; }
+:host .sidebar-conversations.listLight .profile-list-avatar { display: block; float: none; width: 24px; height: 24px; margin: 0; border-radius: 50%; }
+:host .sidebar-conversations.listLight .prof-avatar-wrap + div { order: 1; flex: 1; min-width: 0; }
+:host .sidebar-conversations.listLight .profile-chat-subject-wrap { float: none; width: 100%; margin: 0; }
+:host .sidebar-conversations.listLight .chatSubject { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 13px; font-weight: 400; line-height: 1.4; }
+:host .sidebar-conversations.listLight .profile-chat-timing, :host .sidebar-conversations.listLight .profile-chat-preview { display: none; }
+:host .sidebar-conversations.listLight .chatListUnreadFlag, :host .sidebar-conversations.listLight .chatListBlueFlag { position: static; order: 2; flex: 0 0 6px; width: 6px; height: 6px; border-radius: 50%; }
+:host .sidebar-conversations.listLight .messageOptionsBtn { position: static; order: 3; flex: 0 0 24px; width: 24px; height: 24px; margin: 0; border: 0; background: transparent; transition: none; }
+:host .sidebar-conversations.listLight .messageOptionsMenu { top: 34px; right: 4px; border: 0; background: var(--color-raised); }
+:host .sidebar-conversations.listLight .messageOptionsBtn:focus-visible, :host .sidebar-conversations.listLight .messageOptionsItem:focus-visible { outline: 2px solid var(--color-text-secondary); }
+
+:host .prof-load-more-wrap.sidebar-load-more { margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+:host .sidebar-load-more .sidebar-load-more-button { display: flex; align-items: center; justify-content: flex-start; gap: 8px; width: 100%; min-height: 42px; margin: 0; padding: 6px 4px; appearance: none; border: 0; border-radius: 0; background: transparent; box-shadow: none; color: var(--color-text-secondary); text-align: left; transition: none; }
+:host .sidebar-load-more .sidebar-load-more-button:hover { background: transparent; color: var(--color-text); }
+:host .sidebar-load-more .sidebar-load-more-button:focus-visible { outline: 2px solid var(--color-text-secondary); outline-offset: -2px; }
+:host .sidebar-load-more-button .material-icons-outlined { width: 24px; font-size: 20px; }
+:host .sidebar-load-more-button > span:not(.material-icons-outlined) { font-family: inherit; font-size: 13px; font-weight: 400; line-height: 1.4; overflow: visible; }
+

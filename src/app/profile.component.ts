@@ -12,6 +12,7 @@ import { AgChartOptions } from 'ag-charts-community'
 @Component({
     selector: 'profile',
     templateUrl: './profile.component.html',
+    styleUrls: ['./profile.component.css'],
     standalone: false
 })
 export class ProfileComponent implements OnInit, OnDestroy {
@@ -175,6 +176,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   private forceScrollTop() {
+    if (this.sidePanelScope) {
+      const sidebar = document.querySelector('.sideProfile');
+      if (sidebar) sidebar.scrollTop = 0;
+      return;
+    }
     const mainContainer = document.getElementById('main_container');
     if (mainContainer) {
       mainContainer.scrollTop = 0;
@@ -391,7 +397,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   scrollMainToBottom() {
     const mc = document.getElementById('main_container');
-    if (mc) mc.scrollTop = mc.scrollHeight;
+    if (mc && !this.sidePanelScope) mc.scrollTop = mc.scrollHeight;
     const sp = document.querySelector('.sideProfile');
     if (sp) sp.scrollTop = sp.scrollHeight;
   }

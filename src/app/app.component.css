@@ -1,0 +1,46 @@
+:host { display: block; height: 100%; }
+:host .sidebarShell { display: grid; grid-template-columns: 320px minmax(0, 1fr); height: 100dvh; padding: 0; gap: 0; border-radius: 0; background: var(--color-page); font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; }
+:host .sidebarShell span:not([class*="material-icons"]):not([class*="material-symbols"]), :host .sidebarShell a, :host .sidebarShell button, :host .sidebarShell h2 { font-family: inherit; line-height: 1.35; overflow: visible; }
+:host .sidebarShell h2 { font-size: 12px; font-weight: 600; color: var(--color-text-muted); padding: 8px 6px; }
+:host .sidebarShell .shellSidebar { display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 12px; width: 100%; min-height: 0; max-width: none; margin: 0; padding: 16px 12px; border: 0; border-radius: 0; background: var(--color-surface); }
+:host .sidebarShell .navLeft { display: grid; grid-template-columns: minmax(0, 1fr); justify-content: stretch; justify-items: stretch; gap: 2px; flex: 0 0 auto; }
+:host .sidebarShell .iconBtn { display: flex; justify-content: flex-start; margin: 0; text-align: left; width: 100%; min-height: 36px; gap: 12px; padding: 7px 10px; background: transparent; border: 0; border-radius: 7px; color: var(--color-text-secondary); }
+:host .sidebarShell .iconBtn.activeNav { background: var(--color-selected); color: var(--color-text); }
+:host .sidebarShell .iconBtn:hover { background: var(--color-raised); }
+:host .sidebarShell .brandIcon { width: 20px; height: 20px; }
+:host .sidebarShell .sideProfile { display: block; position: static; flex: 1 1 auto; min-height: 0; width: 100%; height: auto; overflow-y: auto; overscroll-behavior: contain; border: 0; border-radius: 0; animation: none; background: transparent; }
+:host .sidebarShell .navRight { display: flex; flex: 0 0 auto; flex-wrap: wrap; justify-content: flex-start; gap: 8px; padding: 10px 4px 0; background: transparent; border-radius: 0; }
+:host .sidebarShell .accountRow { display: flex; align-items: center; gap: 10px; width: 100%; min-width: 0; padding: 8px; margin: 0; border: 0; border-radius: 6px; background: transparent; color: var(--color-text); text-align: left; }
+:host .sidebarShell .accountRow:hover { background: var(--color-raised); }
+:host .accountAvatar { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 50%; object-fit: cover; }
+:host .accountFallback { display: grid; place-items: center; background: var(--color-raised); color: var(--color-text-secondary); font-size: 22px; }
+:host .accountInfo { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+:host .sidebarShell .accountName { display: block; overflow-wrap: anywhere; font-size: 13px; font-weight: 600; }
+:host .sidebarShell .accountBalance { display: block; overflow-wrap: anywhere; font-size: 13px; font-weight: 400; color: var(--color-text-secondary); }
+:host .accountMember { flex: 0 0 auto; color: var(--color-success); font-size: 18px; }
+:host .sidebarShell .navRight > button { margin: 0; }
+:host .sidebarShell #main_container { min-width: 0; width: 100%; height: 100%; padding: 16px; border-radius: 0; }
+:host .sidebarShell .contentWrap { width: 100%; max-width: 980px; min-height: 100%; margin: 0 auto; }
+:host .sidebarShell .contentWrap:has(chat) { max-width: none; }
+:host .sidebarShell .contentCard { min-height: 100%; border: 0; background: transparent; }
+:host .mobileShellHeader, :host .shellBackdrop { display: none; }
+:host .sidebarShell button { transition: none; }
+:host .sidebarShell button:focus-visible, :host .sidebarShell a:focus-visible { outline: 2px solid var(--color-text-secondary); outline-offset: -2px; }
+/* The reused legacy panel has no encapsulated stylesheet. These overrides stay within this shell. */
+:host ::ng-deep .sidebarShell .sideProfile .profileModern { padding: 0; }
+:host ::ng-deep .sidebarShell .sideProfile .profileContainer { width: 100%; max-width: none; margin: 0; padding: 0; }
+:host ::ng-deep .sidebarShell .sideProfile .splitContainer { display: block; }
+:host ::ng-deep .sidebarShell .sideProfile .profileModern *:not([class*="material-icons"]):not([class*="material-symbols"]) { font-family: inherit; }
+@media (max-width: 899px) {
+  :host .sidebarShell { display: flex; flex-direction: column; }
+  :host .mobileShellHeader { display: flex; align-items: center; gap: 12px; flex: 0 0 48px; padding: 6px 12px; background: var(--color-page); border-radius: 0; }
+  :host .mobileShellHeader a { color: var(--color-text); text-decoration: none; font-weight: 600; }
+  :host .mobileShellHeader button { display: grid; place-items: center; margin: 0; padding: 0; flex: 0 0 36px; line-height: 1; }
+  :host .mobileShellHeader .hamburgerIcon { display: flex; flex-direction: column; justify-content: center; gap: 4px; width: 18px; height: 18px; }
+  :host .mobileShellHeader .hamburgerIcon > span { display: block; flex: 0 0 2px; width: 18px; height: 2px; border-radius: 1px; background: currentColor; }
+  :host .mobileShellHeader button { width: 36px; height: 36px; border: 0; background: var(--color-raised); color: var(--color-text); font-size: 22px; }
+  :host .sidebarShell .shellSidebar { position: fixed; inset: 0 auto 0 0; z-index: 10002; display: none; width: min(340px, 88vw); height: 100dvh; }
+  :host .sidebarShell .shellSidebar.sidebarOpen { display: flex; }
+  :host .shellBackdrop { display: block; position: fixed; inset: 0; z-index: 10001; width: 100%; height: 100%; border: 0; border-radius: 0; background: var(--color-page); opacity: .7; }
+  :host .sidebarShell #main_container { flex: 1 1 auto; height: auto; padding: 0 8px; }
+}

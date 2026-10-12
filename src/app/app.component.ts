@@ -1,46 +1,50 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, OnDestroy, HostListener, ViewChild, ElementRef } from '@angular/core';
+import { Router, NavigationEnd } from '@angular/router';
 import { UserInterfaceService } from './userInterface.service';
-import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
-import { filter, interval } from 'rxjs';
+import { filter, interval, Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
+    styleUrls: ['./app.component.css'],
     standalone: false
 })
-export class AppComponent implements OnInit {
-  showSocialLinksPopup = false;
-  isDragging = false;
+export class AppComponent implements OnInit, OnDestroy {
+  sidebarOpen = false;
+  mobileLayout = window.innerWidth < 900;
+  @ViewChild('menuToggle') menuToggle?: ElementRef<HTMLButtonElement>;
+  @ViewChild('sidebarNavigation') sidebarNavigation?: ElementRef<HTMLElement>;
+  private navigationSubscription: Subscription;
 
-  private onMouseMove = (event: MouseEvent) => {
-    if (!this.isDragging) return;
-    const widthPct = (event.clientX / window.innerWidth) * 100;
-    if (widthPct > 20 && widthPct < 80) {
-      document.documentElement.style.setProperty('--side-panel-width', `${widthPct}vw`);
-      localStorage.setItem('sidePanelWidth', `${widthPct}vw`);
-      window.dispatchEvent(new Event('resize'));
-    }
-  };
-
-  private onMouseUp = () => {
-    if (this.isDragging) {
-      this.isDragging = false;
-      document.body.style.cursor = '';
-      document.removeEventListener('mousemove', this.onMouseMove);
-      document.removeEventListener('mouseup', this.onMouseUp);
-    }
-  };
-
-  startDragging(event: MouseEvent) {
-    if (window.innerWidth < 900) return;
-    this.isDragging = true;
-    document.body.style.cursor = 'col-resize';
-    document.addEventListener('mousemove', this.onMouseMove);
-    document.addEventListener('mouseup', this.onMouseUp);
-    event.preventDefault();
+  openSidebar(): void {
+    this.sidebarOpen = true;
+    setTimeout(() => this.sidebarNavigation?.nativeElement.querySelector<HTMLButtonElement>('button')?.focus());
   }
+
+  closeSidebar(restoreFocus = true): void {
+    this.sidebarOpen = false;
+    if (restoreFocus) this.menuToggle?.nativeElement.focus();
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.mobileLayout = window.innerWidth < 900;
+    if (!this.mobileLayout) this.sidebarOpen = false;
+  }
+
+  onSidebarKeydown(event: KeyboardEvent): void {
+    if (!this.mobileLayout || !this.sidebarOpen) return;
+    if (event.key === 'Escape') { this.closeSidebar(); event.preventDefault(); }
+    if (event.key !== 'Tab') return;
+    const controls = Array.from((event.currentTarget as HTMLElement).querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input, select, textarea, [tabindex="0"]')).filter(el => el.getClientRects().length > 0);
+    const first = controls[0], last = controls[controls.length - 1];
+    if (event.shiftKey && document.activeElement === first) { last?.focus(); event.preventDefault(); }
+    else if (!event.shiftKey && document.activeElement === last) { first?.focus(); event.preventDefault(); }
+  }
+
+  ngOnDestroy(): void { this.navigationSubscription.unsubscribe(); }
 
   private cleanupLegacyLocalStorage(): void {
     const legacyKeys = [
@@ -60,6 +64,11 @@ export class AppComponent implements OnInit {
     private updates: SwUpdate
   ) {
     this.cleanupLegacyLocalStorage();
+    this.navigationSubscription = this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(() => {
+      const wasOpen = this.sidebarOpen;
+      this.closeSidebar(wasOpen);
+      requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+    });
 
     if (this.updates.isEnabled) {
       this.updates.versionUpdates
@@ -81,10 +90,6 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
-    const savedWidth = localStorage.getItem('sidePanelWidth');
-    if (savedWidth) {
-      document.documentElement.style.setProperty('--side-panel-width', savedWidth);
-    }
     const uploader = document.getElementById('uploader');
     if (uploader) uploader.style.visibility = 'hidden';
     const fullScreenImage = document.getElementById('fullScreenImage');
@@ -100,25 +105,6 @@ export class AppComponent implements OnInit {
 
   openDiscover() {
     window.open('https://discover.perrinn.com', '_blank');
-  }
-
-  toggleSocialLinksPopup() {
-    this.showSocialLinksPopup = !this.showSocialLinksPopup;
-  }
-
-  closeSocialLinksPopup() {
-    this.showSocialLinksPopup = false;
-  }
-
-  openPrototyping() {
-    this.closeSocialLinksPopup();
-    this.router.navigate(['/prototypes']);
-  }
-
-  openSocialLink(url: string) {
-    if (!url) return;
-    window.open(url, '_blank');
-    this.closeSocialLinksPopup();
   }
 
 }

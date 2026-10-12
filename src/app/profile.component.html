@@ -8,7 +8,7 @@
       </div>
     }
 
-    @if (UI.hasTouch&&!UI.isStandalone) {
+    @if (UI.hasTouch&&!UI.isStandalone && !sidePanelScope) {
       <div class="island warning-island">
         Add this app to your home screen for a better experience.
       </div>
@@ -38,7 +38,10 @@
                   <span class="material-icons-outlined prof-icon-18" (click)="UI.openWindow(focusUserLastMessageObj?.publicLink)">link</span>
                 }
               </div>
-              <span class="prof-balance-text">{{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance||0)}}</span>
+              <div class="profile-wallet-actions">
+                <button type="button" class="buttonPrimary" routerLink="/buyPRN/">Buy PRN</button>
+                <span class="prof-balance-text">{{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance||0)}}</span>
+              </div>
             </div>
             <div class="prof-stats-grid">
               <div class="profile-stat-box">
@@ -275,23 +278,27 @@
           }
           @if (mode!=='forecast' || scope==='all') {
             <div [class.table-scroll-wrapper]="scope !== 'all' && (mode==='chain'||mode==='history')">
-              <ul class="listLight">
+              <ul class="listLight" [class.sidebar-conversations]="sidePanelScope">
                 @for (message of messages|async; track message; let first = $first; let last = $last) {
                   <li class="guardedChatItem prof-list-item-rel"
+                    [attr.tabindex]="sidePanelScope ? 0 : null"
+                    [attr.title]="sidePanelScope ? message.payload.doc.data()?.chatSubject : null"
+                    (keydown.enter)="sidePanelScope && $event.target === $event.currentTarget && openListedChat(message.payload.doc.data()?.chain)"
+                    (keydown.space)="sidePanelScope && $event.target === $event.currentTarget && openListedChat(message.payload.doc.data()?.chain); sidePanelScope && $event.target === $event.currentTarget && $event.preventDefault()"
                     [class.activeChatListItem]="activeChatId === message.payload.doc.data()?.chain"
                     (click)="openListedChat(message.payload.doc.data()?.chain)">
                     @if (scope==='all'||mode==='inbox') {
                       <div>
                         @if (UI.currentUser && (UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds && !isMessageSeen(message.payload.doc.data()?.chain,message.payload.doc.data()?.serverTimestamp)) {
                           <div
-                            class="chatListUnreadFlag"
+                            class="chatListUnreadFlag" role="img" aria-label="Unread conversation"
                             [class.alertFlag]="message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name)"
                             [class.recipientFlag]="!message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name) && message.payload.doc.data()?.recipients[UI.currentUser]">
                           </div>
                         }
                         @if (UI.currentUser && blueFlagByChain[message.payload.doc.data()?.chain]) {
                           <div
-                            class="chatListBlueFlag">
+                            class="chatListBlueFlag" role="img" aria-label="Flagged conversation">
                           </div>
                         }
                         @if (UI.currentUser && (scope==='all'||mode==='inbox')) {
@@ -307,7 +314,7 @@
                             class="messageOptionsMenu"
                             (click)="$event.stopPropagation()">
                             <button class="messageOptionsItem" (click)="$event.stopPropagation(); toggleBlueFlag(message.payload.doc.data()?.chain)">
-                              {{blueFlagByChain[message.payload.doc.data()?.chain] ? 'Remove blue flag' : 'Add blue flag'}}
+                              {{blueFlagByChain[message.payload.doc.data()?.chain] ? (sidePanelScope ? 'Remove flag' : 'Remove blue flag') : (sidePanelScope ? 'Add flag' : 'Add blue flag')}}
                             </button>
                           </div>
                         }
@@ -412,9 +419,9 @@
                 <div class="bounce3"></div>
               </div>
             }
-            <div class="island prof-load-more-wrap">
+            <div class="prof-load-more-wrap" [class.island]="!sidePanelScope" [class.sidebar-load-more]="sidePanelScope">
               @if ((!UI.loading && !['forecast', 'history'].includes(mode)) || scope==='all') {
-                <button class="buttonPrimary prof-btn-200" (click)="loadMore()">Load more</button>
+                <button [class.buttonPrimary]="!sidePanelScope" [class.prof-btn-200]="!sidePanelScope" [class.sidebar-load-more-button]="sidePanelScope" type="button" (click)="loadMore()">@if (sidePanelScope) { <span class="material-icons-outlined" aria-hidden="true">expand_more</span> }<span>Load more</span></button>
               }
             </div>
           </div>

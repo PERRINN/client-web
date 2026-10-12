@@ -1,0 +1,27 @@
+<section class="apps-page" aria-labelledby="apps-title">
+  <header class="page-header">
+    <h1 id="apps-title">Apps</h1>
+    <p>Team resources, community channels and tools.</p>
+  </header>
+  <div class="apps-grid">
+    @if (UI.PERRINNProfileLastMessageObj?.publicLink; as driveUrl) {
+      <a class="app-card" [href]="driveUrl" target="_blank" rel="noopener noreferrer">
+        <span class="material-icons-outlined app-icon" aria-hidden="true">cloud</span>
+        <div class="app-details"><h2>Google Drive</h2><p>Open the team’s shared files and resources.</p></div>
+        <span class="link-hint">Open Google Drive<span class="material-icons-outlined" aria-hidden="true">open_in_new</span><span class="visually-hidden"> in a new tab</span></span>
+      </a>
+    }
+    @for (app of externalApps; track app.url) {
+      <a class="app-card" [href]="app.url" target="_blank" rel="noopener noreferrer">
+        <span class="material-icons-outlined app-icon" aria-hidden="true">{{ app.icon }}</span>
+        <div class="app-details"><h2>{{ app.name }}</h2><p>{{ app.description }}</p></div>
+        <span class="link-hint">Open {{ app.name }}<span class="material-icons-outlined" aria-hidden="true">open_in_new</span><span class="visually-hidden"> in a new tab</span></span>
+      </a>
+    }
+    <a class="app-card" routerLink="/prototypes">
+      <span class="material-icons-outlined app-icon" aria-hidden="true">science</span>
+      <div class="app-details"><h2>Prototyping</h2><p>Explore layouts and ideas for the app.</p></div>
+      <span class="link-hint">Explore prototypes<span class="material-icons-outlined" aria-hidden="true">arrow_forward</span></span>
+    </a>
+  </div>
+</section>

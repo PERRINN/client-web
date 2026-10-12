@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { ServiceWorkerModule } from '@angular/service-worker';
 
+import { AppsComponent } from './apps.component';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { ChatComponent }  from './chat.component';
@@ -52,6 +53,7 @@ export const firebaseConfig = {
 
 @NgModule({ declarations: [
         AppComponent,
+        AppsComponent,
         ChatComponent,
         LoginComponent,
         ProfileComponent,

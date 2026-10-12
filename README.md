@@ -10,7 +10,11 @@ PERRINN is a member collaboration app for profiles and member discovery, convers
 - **PRN and membership** pages for wallet-related information, membership, and payment flows.
 - **Community information** and links to related resources.
 
-The main client routes are `/profile/:id`, `/directory`, `/chat/:id`, `/settings`, `/login`, and `/buyPRN/:id`. The root route redirects to `/profile/all`.
+The main client routes are `/profile/:id`, `/directory`, `/apps`, `/chat/:id`, `/settings`, `/login`, and `/buyPRN/:id`. The root route redirects to `/profile/all`.
+
+All pages, including prototypes, share a conversation sidebar with PERRINN, Directory, Discover and Apps navigation. The sidebar uses a scrollable, single-line conversation list with icons, truncated subjects, unread/flag dots, chat options (Add flag / Remove flag) and Load more. The main profile feed retains its existing presentation. The account area below it shows Login when signed out, or a flat clickable row with avatar, name, PRN balance and membership indicator that opens your profile and wallet. User profile headers show Buy PRN before the PRN balance; Settings remain accessible from your profile page. Below 900px, use the header menu button to open navigation; Escape or the backdrop dismisses it, and page navigation closes it automatically. Prototype pages retain their own preview controls within the shared shell. The main chat interface and existing route URLs are unchanged.
+
+The `/apps` page replaces the Apps popup with a responsive grid linking to Google Drive (when the existing team public link is available), WhatsApp, YouTube, LinkedIn, GitHub and Prototyping. External links open in a new tab; Prototyping opens within the app. The page reads the existing team profile through `UserInterfaceService` and introduces no new persisted data.
 
 ## Technology
 
@@ -85,3 +89,5 @@ For the current Firestore paths, message lifecycle, payment flow, image handling
 
 - `AGENTS.md` contains repository-specific instructions for coding agents, including architecture, component size, implementation preferences, and security-sensitive changes.
 - `ui-spec.md` is the design authority for new and rebuilt components. Read it before building or redesigning a component.
+
+The home prototype’s Recently active panel reads existing per-user activity snapshots with at most six concurrent requests and refreshes once a minute. Results appear progressively; each activity read takes the first available snapshot and times out after ten seconds, so one failed read cannot block the list. It avoids a persistent live Firestore listener for every user; leaving the prototype cancels its subscriptions and refresh timer.

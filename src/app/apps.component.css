@@ -1,0 +1,26 @@
+:host { display: block; color: var(--color-text); font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; }
+:host h1, :host h2, :host h3 { overflow: visible; line-height: 1.35; font-family: inherit; }
+:host p, :host a, :host div, :host span:not(.material-icons-outlined) { overflow: visible; line-height: 1.5; font-family: inherit; }
+.apps-page { padding: 20px 12px; }
+.page-header { margin-bottom: 24px; }
+h1 { color: var(--color-text); font-size: 24px; font-weight: 600; margin-bottom: 6px; }
+.page-header p { color: var(--color-text-secondary); font-size: 14px; }
+.apps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 12px; }
+.app-card { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; min-width: 0; padding: 20px; border-radius: 10px; background: var(--color-surface); color: var(--color-text); text-decoration: none; }
+.app-card:hover { background: var(--color-raised); }
+.app-card:focus-visible { outline: 2px solid var(--color-text-secondary); outline-offset: 3px; }
+.app-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 8px; background: var(--color-raised); color: var(--color-text-secondary); font-size: 23px; }
+h2 { margin-bottom: 5px; font-size: 16px; font-weight: 600; }
+.app-details p { color: var(--color-text-secondary); font-size: 13px; }
+.link-hint { display: flex; align-items: center; gap: 8px; margin-top: auto; color: var(--color-text-muted); font-size: 12px; }
+.link-hint .material-icons-outlined { font-size: 16px; }
+:host .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 540px) {
+  .apps-page { padding: 12px 4px; }
+  .page-header { margin-bottom: 16px; }
+  .apps-grid { grid-template-columns: 1fr; gap: 8px; }
+  .app-card { display: grid; grid-template-columns: 32px minmax(0, 1fr); align-items: start; gap: 6px 10px; padding: 12px; }
+  .app-icon { width: 32px; height: 32px; font-size: 20px; }
+  h2 { margin-bottom: 2px; }
+  .link-hint { grid-column: 2; margin-top: 0; }
+}
