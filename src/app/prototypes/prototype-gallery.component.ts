@@ -8,6 +8,7 @@ import { Component } from '@angular/core';
 })
 export class PrototypeGalleryComponent {
   readonly prototypes = [
+    { name: 'dil-sensitivity-analysis', category: 'engineering', type: 'DIL analysis', description: 'Trace the 424 replay workflow and compare synthetic setup sensitivities through individual corners.', route: '/prototypes/dil-sensitivity-analysis' },
     {
       name: 'app-wiring',
       category: 'architecture',
@@ -35,13 +36,6 @@ export class PrototypeGalleryComponent {
       type: 'Chat input',
       description: 'A bottom-pinned message composer with image paste, file selection, preview, and local sending.',
       route: '/prototypes/chat-input-bar'
-    },
-    {
-      name: 'conversation-sidebar',
-      category: 'layouts',
-      type: 'Chat layout',
-      description: 'A chat-first workspace with app links above recent chats.',
-      route: '/prototypes/conversation-sidebar'
     },
     {
       name: 'home',
@@ -100,6 +94,7 @@ export class PrototypeGalleryComponent {
   ];
 
   readonly categories = [
+    { id: 'engineering', title: '424 engineering', prototypes: this.prototypes.filter(item => item.category === 'engineering') },
     { id: 'architecture', title: 'Architecture maps', prototypes: this.prototypes.filter(item => item.category === 'architecture') },
     { id: 'inputs', title: 'Inputs', prototypes: this.prototypes.filter(item => item.category === 'inputs') },
     { id: 'layouts', title: 'Layouts', prototypes: this.prototypes.filter(item => item.category === 'layouts') },

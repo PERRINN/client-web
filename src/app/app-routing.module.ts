@@ -8,7 +8,6 @@ import { DirectoryComponent } from './directory.component';
 import { AppsComponent } from './apps.component';
 import { BuyPrnComponent } from './buy-prn.component';
 import { PrototypeGalleryComponent } from './prototypes/prototype-gallery.component';
-import { ConversationSidebarComponent } from './prototypes/conversation-sidebar/conversation-sidebar.component';
 import { ClearSlateComponent } from './prototypes/clear-slate/clear-slate.component';
 import { WarmGraphiteComponent } from './prototypes/warm-graphite/warm-graphite.component';
 import { DeepTideComponent } from './prototypes/deep-tide/deep-tide.component';
@@ -18,8 +17,10 @@ import { NightSignalComponent } from './prototypes/night-signal/night-signal.com
 import { ChatInputBarComponent } from './prototypes/chat-input-bar/chat-input-bar.component';
 import { AppMapComponent } from './prototypes/app-map/app-map.component';
 import { HomeComponent } from './prototypes/home/home.component';
+import { DilSensitivityAnalysisComponent } from './prototypes/dil-sensitivity-analysis/dil-sensitivity-analysis.component';
 
 const appRoutes: Routes = [
+  { path: 'prototypes/dil-sensitivity-analysis', component: DilSensitivityAnalysisComponent },
   { path: 'prototypes/app-wiring', component: AppMapComponent, data: { mapView: 'wiring' } },
   { path: 'prototypes/home', component: HomeComponent },
   { path: 'prototypes/editorial-mosaic', component: HomeComponent, data: { mosaicId: 'editorial-mosaic' } },
@@ -30,7 +31,6 @@ const appRoutes: Routes = [
   { path: 'prototypes/data-model-map', component: AppMapComponent, data: { mapView: 'data' } },
   { path: 'prototypes/workflow-map', component: AppMapComponent, data: { mapView: 'flows' } },
   { path: 'prototypes/chat-input-bar', component: ChatInputBarComponent },
-  { path: 'prototypes/conversation-sidebar', component: ConversationSidebarComponent },
   { path: 'prototypes/clear-slate', component: ClearSlateComponent, data: { paletteId: 'clear-slate' } },
   { path: 'prototypes/warm-graphite', component: WarmGraphiteComponent, data: { paletteId: 'warm-graphite' } },
   { path: 'prototypes/deep-tide', component: DeepTideComponent, data: { paletteId: 'deep-tide' } },

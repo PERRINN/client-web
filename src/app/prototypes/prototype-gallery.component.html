@@ -19,6 +19,9 @@
         <a class="prototype-card" [routerLink]="prototype.route">
           <div class="preview-stage" aria-hidden="true">
             @switch (prototype.name) {
+              @case ('dil-sensitivity-analysis') {
+                <svg class="dil-preview" viewBox="0 0 240 80"><path d="M15 20 H225 M15 45 H225 M15 70 H225" class="dil-grid"/><path d="M15 25 Q70 25 100 62 T225 24" class="dil-baseline"/><path d="M15 25 Q70 22 100 54 T225 22" class="dil-modified"/></svg>
+              }
               @case ('app-wiring') {
                 <div class="architecture-preview"><i></i><b></b><i></i><b></b><i></i></div>
               }
@@ -30,9 +33,6 @@
               }
               @case ('chat-input-bar') {
                 <div class="chat-input-preview"><div class="preview-bubble"></div><div class="preview-composer"><i>＋</i><span>Type a message</span><b>↑</b></div></div>
-              }
-              @case ('conversation-sidebar') {
-                <div class="conversation-sidebar-preview"><div><i></i><i></i><i></i><i></i><b></b><i></i><i></i><i></i></div><section><b></b><i></i><i></i><i></i><em></em></section></div>
               }
               @case ('home') {
                 <div class="home-preview"><header><i></i><b></b></header><section><i></i><i></i><i></i></section><aside><b></b><i></i><i></i></aside></div>

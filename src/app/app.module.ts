@@ -14,7 +14,6 @@ import { SettingsComponent }  from './settings.component';
 import { DirectoryComponent }  from './directory.component';
 import { BuyPrnComponent }  from './buy-prn.component';
 import { PrototypeGalleryComponent } from './prototypes/prototype-gallery.component';
-import { ConversationSidebarComponent } from './prototypes/conversation-sidebar/conversation-sidebar.component';
 import { ColorPalettePreviewComponent } from './prototypes/color-palette-preview.component';
 import { ClearSlateComponent } from './prototypes/clear-slate/clear-slate.component';
 import { WarmGraphiteComponent } from './prototypes/warm-graphite/warm-graphite.component';
@@ -25,6 +24,9 @@ import { NightSignalComponent } from './prototypes/night-signal/night-signal.com
 import { ChatInputBarComponent } from './prototypes/chat-input-bar/chat-input-bar.component';
 import { AppMapComponent } from './prototypes/app-map/app-map.component';
 import { HomeComponent } from './prototypes/home/home.component';
+import { DilSensitivityAnalysisComponent } from './prototypes/dil-sensitivity-analysis/dil-sensitivity-analysis.component';
+import { DilWorkflowComponent } from './prototypes/dil-sensitivity-analysis/dil-workflow.component';
+import { DilChartComponent } from './prototypes/dil-sensitivity-analysis/dil-chart.component';
 
 import { PipeModule }    from './pipes.module';
 
@@ -61,7 +63,6 @@ export const firebaseConfig = {
         DirectoryComponent,
         BuyPrnComponent,
         PrototypeGalleryComponent,
-        ConversationSidebarComponent,
         ColorPalettePreviewComponent,
         ClearSlateComponent,
         WarmGraphiteComponent,
@@ -72,6 +73,9 @@ export const firebaseConfig = {
         ChatInputBarComponent,
         AppMapComponent,
         HomeComponent,
+        DilSensitivityAnalysisComponent,
+        DilWorkflowComponent,
+        DilChartComponent,
         ScrollableDirective,
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,
