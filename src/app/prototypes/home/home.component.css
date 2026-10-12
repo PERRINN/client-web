@@ -65,9 +65,12 @@ input{transition:none}
 .event-list,.visitor-list{display:grid;gap:6px}
 .event-row,.visitor-row{display:flex;width:100%;align-items:center;gap:11px;padding:11px 8px;border:0;border-radius:0;background:transparent;text-align:left;cursor:pointer}
 .event-row:hover,.visitor-row:hover{background:var(--color-selected)}
+.event-list{gap:2px}
+.event-row{padding:6px 4px;gap:8px}
+.event-logo{width:32px;height:32px;flex:0 0 32px;object-fit:contain;border-radius:0}
 .date-block{display:grid;width:40px;height:43px;flex:0 0 40px;align-content:center;justify-items:center;gap:1px;border-radius:0;background:transparent}
 .date-block strong{font-size:15px;font-weight:650;line-height:1.2}.date-block span{color:var(--color-text-muted);font-size:9px;text-transform:uppercase}
-.event-copy{display:grid;min-width:0;flex:1;gap:3px}
+.event-copy{display:grid;min-width:0;flex:1;gap:1px}
 .event-copy strong{overflow:hidden;color:var(--color-text);font-size:11px;font-weight:550;text-overflow:ellipsis;white-space:nowrap}
 .event-copy>span{color:var(--color-text-muted);font-size:10px}
 .event-duration{font:inherit;color:inherit}
@@ -91,6 +94,7 @@ input{transition:none}
   .panel{padding:12px}
   .panel-heading{margin-bottom:8px}
   .event-row,.visitor-row{padding:7px 6px;gap:8px}
+  .event-row{padding:5px 4px}
   .date-block{width:34px;height:36px;flex-basis:34px}
   .avatar{width:26px;height:26px;flex-basis:26px}
   .visitor-list{max-height:205px;overflow-y:auto;overflow-x:hidden;grid-auto-rows:41px;gap:3px;align-content:start}

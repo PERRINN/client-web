@@ -44,3 +44,12 @@
   :host .shellBackdrop { display: block; position: fixed; inset: 0; z-index: 10001; width: 100%; height: 100%; border: 0; border-radius: 0; background: var(--color-page); opacity: .7; }
   :host .sidebarShell #main_container { flex: 1 1 auto; height: auto; padding: 0 8px; }
 }
+
+:host .mobile-brand, :host .activity-dots { display: inline-flex; align-items: center; gap: 6px; }
+:host .activity-dots { margin-left: 2px; }
+:host .activity-dot { display: block; width: 6px; height: 6px; flex: 0 0 6px; border-radius: 50%; }
+:host .mention-dot { background: var(--color-danger); }
+:host .recipient-dot { background: var(--color-success); }
+:host .other-dot { background: var(--color-text-muted); }
+:host .flagged-dot { background: var(--color-accent); }
+:host .activity-unavailable { color: var(--color-text-muted); font-size: 12px; }

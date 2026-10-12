@@ -5,6 +5,8 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { filter, interval, Subscription } from 'rxjs';
 import { PresenceService } from './presence.service';
+import { MessageActivityService, ActivitySummary } from './messageActivity.service';
+import { Observable } from 'rxjs';
 
 @Component({
     selector: 'app-root',
@@ -13,6 +15,7 @@ import { PresenceService } from './presence.service';
     standalone: false
 })
 export class AppComponent implements OnInit, OnDestroy {
+  readonly activitySummary: Observable<ActivitySummary>;
   sidebarOpen = false;
   mobileLayout = window.innerWidth < 900;
   @ViewChild('menuToggle') menuToggle?: ElementRef<HTMLButtonElement>;
@@ -67,8 +70,10 @@ export class AppComponent implements OnInit, OnDestroy {
     public afs:AngularFirestore,
     public UI:UserInterfaceService,
     private updates: SwUpdate,
-    private presence: PresenceService
+    private presence: PresenceService,
+    activity: MessageActivityService
   ) {
+    this.activitySummary = activity.summary();
     this.cleanupLegacyLocalStorage();
     this.navigationSubscription = this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(() => {
       const wasOpen = this.sidebarOpen;

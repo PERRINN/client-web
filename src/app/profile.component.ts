@@ -1,4 +1,4 @@
-import { Component, Input, NgZone, HostListener, ChangeDetectorRef, OnInit, OnDestroy, EnvironmentInjector, runInInjectionContext } from '@angular/core'
+import { Component, Input, NgZone, HostListener, ChangeDetectorRef, DoCheck, OnInit, OnDestroy, EnvironmentInjector, runInInjectionContext } from '@angular/core'
 import { Subscription } from 'rxjs'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
@@ -9,6 +9,8 @@ import { AngularFireAuth } from '@angular/fire/compat/auth'
 import { serverTimestamp } from 'firebase/firestore'
 import { AgChartOptions } from 'ag-charts-community'
 import { PresenceService } from './presence.service'
+import { MessageActivityService } from './messageActivity.service'
+import { ReadCursorService, ReadCursorSession } from './readCursor.service'
 
 @Component({
     selector: 'profile',
@@ -16,7 +18,7 @@ import { PresenceService } from './presence.service'
     styleUrls: ['./profile.component.css'],
     standalone: false
 })
-export class ProfileComponent implements OnInit, OnDestroy {
+export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
   @Input() sidePanelScope?: string;
   messages!: Observable<any[]>
   comingEvents!: Observable<any[]>
@@ -52,6 +54,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
   chartOptions!: AgChartOptions
   forecastChartOptions!: AgChartOptions
   private pendingLoadMoreScroll = false;
+  private loadedConversations: any[] = [];
+  cursorsReady = false;
+  private cursorUnavailable = false;
+  private cursorSession: ReadCursorSession;
 
   constructor(
     public afAuth:AngularFireAuth,
@@ -62,17 +68,26 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private cd: ChangeDetectorRef,
     private zone: NgZone,
     private injector: EnvironmentInjector,
-    private presence: PresenceService
+    private presence: PresenceService,
+    private activity: MessageActivityService,
+    cursors: ReadCursorService
   ) {
     this.math=Math
     this.lastSeenByChain={}
-    this.lastSeenSubscription = null;
+    this.cursorSession = cursors.createSession();
+    this.lastSeenSubscription = this.cursorSession.changes.subscribe(state => {
+      this.lastSeenByChain = state.timestamps;
+      this.blueFlagByChain = state.flags;
+      this.cursorsReady = state.ready;
+      this.cursorUnavailable = state.unavailable;
+      this.zone.run(() => this.cd.markForCheck());
+    });
     this.focusUserActivitySubscription = null;
     this.authSubscription = null;
     this.currentUserId = null;
     this.focusUserLastActiveAt=0
     this.authSubscription = this.afAuth.authState.subscribe(user => {
-      this.currentUserId = user?.uid || this.UI.currentUser || null;
+      this.currentUserId = user?.uid || null;
       this.subscribeToLastSeen();
     });
     this.messageNumberDisplay=30
@@ -146,6 +161,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
         return;
       }
       this.scope = targetScope;
+      this.loadedConversations = [];
+      this.subscribeToLastSeen();
       if (this.scope === 'all') this.mode = 'inbox';
       if (!this.sidePanelScope) this.forceScrollTop();
       runInInjectionContext(this.injector, () => {
@@ -198,7 +215,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   refreshMessages(){
     return runInInjectionContext(this.injector, () => {
-      // lastSeenByChain is now updated in real-time
+      if (this.scope !== 'all' && ['history', 'chain', 'forecast'].includes(this.mode)) {
+        this.loadedConversations = [];
+        this.subscribeToLastSeen();
+      }
       this.UI.loading=true
       if(this.scope=='all'){
         this.comingEvents=this.afs.collection<any>('PERRINNMessages',ref=>ref
@@ -233,6 +253,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
           .limit(this.messageNumberDisplay)
         ).snapshotChanges().pipe(map(changes=>{
           this.UI.loading=false
+          this.setLoadedConversations(changes);
           return changes.map(c=>({payload:c.payload}))
         }),
         tap(() => this.scrollToBottomOnLoadMore())
@@ -302,6 +323,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
           .limit(this.messageNumberDisplay)
         ).snapshotChanges().pipe(map(changes=>{
           this.UI.loading=false
+          this.setLoadedConversations(changes);
           return changes.map(c=>({payload:c.payload}))
         }),
         tap(() => this.scrollToBottomOnLoadMore())
@@ -317,28 +339,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
   }
 
+  private setLoadedConversations(changes: any[]) {
+    this.loadedConversations = changes.map(row => row.payload.doc.data());
+    this.subscribeToLastSeen();
+  }
+
   private subscribeToLastSeen() {
-    return runInInjectionContext(this.injector, () => {
-      this.lastSeenUnsubscribe();
-      const userId = this.UI.currentUser || this.currentUserId;
-      if (!userId) {
-        this.lastSeenByChain = {};
-        return;
-      }
-      this.lastSeenSubscription = this.afs.collection<any>(`lastSeen/${userId}/chats`).snapshotChanges().subscribe(snaps => {
-        const mapByChain: Record<string, number> = {};
-        const blueFlagMap: Record<string, boolean> = {};
-        snaps.forEach(snap => {
-          const data = snap.payload.doc.data() || {};
-          const timestampMessage = this.toMillis(data['serverTimestamp']);
-          if (timestampMessage > 0) mapByChain[snap.payload.doc.id] = timestampMessage;
-          blueFlagMap[snap.payload.doc.id] = !!data['blueFlag'];
-        });
-        this.lastSeenByChain = mapByChain;
-        this.blueFlagByChain = blueFlagMap;
-        this.cd.detectChanges();
-      });
-    });
+    this.cursorSession.update(this.currentUserId, this.loadedConversations.map(message => message.chain));
   }
 
   private focusUserActivityUnsubscribe() {
@@ -369,8 +376,27 @@ export class ProfileComponent implements OnInit, OnDestroy {
     });
   }
 
+  ngDoCheck() {
+    if (this.sidePanelScope !== 'all') return;
+    const summary = { mention: false, recipient: false, other: false, flagged: false, unavailable: this.cursorUnavailable };
+    const userId = this.UI.currentUser;
+    const profile = this.UI.currentUserLastMessageObj;
+    if (userId && this.cursorsReady) this.loadedConversations.forEach(message => {
+      summary.flagged ||= !!this.blueFlagByChain[message.chain];
+      // Use exactly the same conditions as the conversation-row template.
+      if (!(profile?.createdTimestamp / 1000 < message.serverTimestamp?.seconds) ||
+          this.isMessageSeen(message.chain, message.serverTimestamp)) return;
+      if (message.text?.includes(profile?.name)) summary.mention = true;
+      else if (message.recipients?.[userId]) summary.recipient = true;
+      else summary.other = true;
+    });
+    this.activity.update(summary);
+  }
+
   ngOnDestroy() {
+    if (this.sidePanelScope === 'all') this.activity.clear();
     this.lastSeenUnsubscribe();
+    this.cursorSession.destroy();
     this.focusUserActivityUnsubscribe();
     this.scopeSubscription?.unsubscribe();
     if (this.authSubscription) {
@@ -399,7 +425,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   formatFocusUserActivity():string{
-    if(this.loadingUserActivity)return 'Loading activity…'
+    if(this.loadingUserActivity)return 'Loading'
     if(this.userActivityError)return 'Activity unavailable'
     if(!this.focusUserLastActiveAt)return 'No activity recorded'
     return 'Last active '+this.UI.formatSecondsToDhm1(this.math.max(0,this.UI.nowSeconds-this.focusUserLastActiveAt/1000))+' ago'
@@ -513,7 +539,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   toggleBlueFlag(chain: string) {
     return runInInjectionContext(this.injector, () => {
       const userId = this.UI.currentUser || this.currentUserId;
-    if (!userId || !chain) return;
+    if (!userId || !chain || !this.cursorsReady) return;
     const currentStatus = !!this.blueFlagByChain[chain];
     this.afs.collection(`lastSeen/${userId}/chats`).doc(chain).set({
       blueFlag: !currentStatus,

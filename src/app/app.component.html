@@ -4,7 +4,7 @@
 
     <header class="mobileShellHeader">
       <button #menuToggle type="button" (click)="openSidebar()" aria-label="Open navigation" aria-controls="shell-navigation" [attr.aria-expanded]="sidebarOpen"><span class="hamburgerIcon" aria-hidden="true"><span></span><span></span><span></span></span></button>
-      <a routerLink="/profile/all">PERRINN</a>
+      <a class="mobile-brand" routerLink="/profile/all">PERRINN<ng-container [ngTemplateOutlet]="activityDots"></ng-container></a>
     </header>
     @if (sidebarOpen) {
       <button class="shellBackdrop" type="button" aria-label="Close navigation" (click)="closeSidebar()"></button>
@@ -14,6 +14,7 @@
       <button class="iconBtn" (click)="router.navigate(['profile','all'])" aria-label="Go to profile">
         <img src="./../assets/App icons/perrinn-02.png" class="brandIcon" alt="">
         <span>PERRINN</span>
+        <ng-container [ngTemplateOutlet]="activityDots"></ng-container>
       </button>
       <button class="iconBtn" (click)="router.navigate(['directory'])" aria-label="Open directory">
         <span class="material-icons">list</span>
@@ -67,3 +68,15 @@
   </div>
 
 </div>
+
+<ng-template #activityDots>
+  @if (activitySummary | async; as activity) {
+    <span class="activity-dots">
+      @if (activity.mention) { <span class="activity-dot mention-dot" role="img" aria-label="Unread name mention" title="Unread name mention"></span> }
+      @if (activity.recipient) { <span class="activity-dot recipient-dot" role="img" aria-label="Unread conversation addressed to you" title="Unread conversation addressed to you"></span> }
+      @if (activity.other) { <span class="activity-dot other-dot" role="img" aria-label="Other unread activity" title="Other unread activity"></span> }
+      @if (activity.flagged) { <span class="activity-dot flagged-dot" role="img" aria-label="Flagged conversation" title="Flagged conversation"></span> }
+      @if (activity.unavailable) { <span class="activity-unavailable" role="img" aria-label="Message activity unavailable" title="Message activity unavailable">?</span> }
+    </span>
+  }
+</ng-template>

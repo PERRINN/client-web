@@ -213,6 +213,20 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.router.navigate(['/profile', userId]);
   }
 
+  eventStartsIn(event: HomeMessage): string {
+    const start = this.toMillis(event.eventDateStart);
+    if (!start) return 'Start time unavailable';
+    const remaining = start - this.UI.nowSeconds * 1000;
+    if (remaining <= 0) return 'In progress';
+    if (remaining < 60000) return 'In less than 1m';
+    const minutes = Math.ceil(remaining / 60000);
+    if (minutes < 60) return `In ${minutes}m`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `In ${hours}h${minutes % 60 ? ` ${minutes % 60}m` : ''}`;
+    const days = Math.floor(hours / 24);
+    return `In ${days}d${hours % 24 ? ` ${hours % 24}h` : ''}`;
+  }
+
   timeAgo(timestamp: number): string {
     const minutes = Math.max(0, Math.floor((Date.now() - timestamp) / 60000));
     if (minutes < 1) return 'Just now';

@@ -289,14 +289,14 @@
                     (click)="openListedChat(message.payload.doc.data()?.chain)">
                     @if (scope==='all'||mode==='inbox') {
                       <div>
-                        @if (UI.currentUser && (UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds && !isMessageSeen(message.payload.doc.data()?.chain,message.payload.doc.data()?.serverTimestamp)) {
+                        @if (cursorsReady && UI.currentUser && (UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds && !isMessageSeen(message.payload.doc.data()?.chain,message.payload.doc.data()?.serverTimestamp)) {
                           <div
                             class="chatListUnreadFlag" role="img" aria-label="Unread conversation"
                             [class.alertFlag]="message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name)"
                             [class.recipientFlag]="!message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name) && message.payload.doc.data()?.recipients[UI.currentUser]">
                           </div>
                         }
-                        @if (UI.currentUser && blueFlagByChain[message.payload.doc.data()?.chain]) {
+                        @if (cursorsReady && UI.currentUser && blueFlagByChain[message.payload.doc.data()?.chain]) {
                           <div
                             class="chatListBlueFlag" role="img" aria-label="Flagged conversation">
                           </div>
@@ -313,7 +313,7 @@
                           <div
                             class="messageOptionsMenu"
                             (click)="$event.stopPropagation()">
-                            <button class="messageOptionsItem" (click)="$event.stopPropagation(); toggleBlueFlag(message.payload.doc.data()?.chain)">
+                            <button class="messageOptionsItem" [disabled]="!cursorsReady" (click)="$event.stopPropagation(); toggleBlueFlag(message.payload.doc.data()?.chain)">
                               {{blueFlagByChain[message.payload.doc.data()?.chain] ? (sidePanelScope ? 'Remove flag' : 'Remove blue flag') : (sidePanelScope ? 'Add flag' : 'Add blue flag')}}
                             </button>
                           </div>

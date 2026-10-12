@@ -30,7 +30,7 @@
 
     <section class="image-panel mosaic-only" aria-label="Latest shared images">
       @if (loadingImages) {
-        <div class="image-state" role="status"><span class="loader"></span><span>Loading images…</span></div>
+        <div class="image-state" role="status"><span class="loader"></span><span>Loading</span></div>
       } @else if (imageError) {
         <div class="image-state" role="alert"><span>Images are unavailable right now.</span></div>
       } @else if (imageTiles.length) {
@@ -60,7 +60,7 @@
   <div class="dashboard-grid">
     <section class="image-panel" aria-label="Latest shared images">
       @if (loadingImages) {
-        <div class="image-state" role="status"><span class="loader"></span><span>Loading images…</span></div>
+        <div class="image-state" role="status"><span class="loader"></span><span>Loading</span></div>
       } @else if (imageError) {
         <div class="image-state" role="alert"><span>Images are unavailable right now.</span></div>
       } @else if (imageTiles.length) {
@@ -80,15 +80,18 @@
     <div class="side-panels">
       <section class="panel events-panel" aria-label="Upcoming events">
         @if (loadingEvents) {
-          <div class="compact-state" role="status"><span class="loader"></span>Loading events…</div>
+          <div class="compact-state" role="status"><span class="loader"></span>Loading</div>
         } @else if (eventError) {
           <div class="compact-state error" role="alert">Events are unavailable right now.</div>
         } @else if (upcomingEvents.length) {
           <div class="event-list">
             @for (event of upcomingEvents; track event.id) {
               <button class="event-row" type="button" (click)="openChat(event.chain)">
+                @if (event.chatProfileImageUrlThumb || event.chatProfileImageUrlMedium) {
+                  <img class="event-logo" [src]="event.chatProfileImageUrlThumb || event.chatProfileImageUrlMedium" alt="" loading="lazy" (error)="$any($event.target).style.visibility = 'hidden'">
+                }
                 <span class="date-block"><strong>{{ event.eventDateStart | date:'d' }}</strong><span>{{ event.eventDateStart | date:'MMM' }}</span></span>
-                <span class="event-copy"><strong>{{ event.eventDescription || event.chatSubject || 'Team event' }}</strong><span>{{ event.eventDateStart | date:'EEEE, h:mm a' }}<span class="event-duration"> · {{ event.eventDuration }}h</span></span></span>
+                <span class="event-copy"><strong>{{ event.eventDescription || event.chatSubject || 'Team event' }}</strong><span>{{ event.eventDateStart | date:'EEEE, h:mm a' }}<span class="event-duration"> · {{ event.eventDuration }}h</span></span><span>{{ eventStartsIn(event) }}</span></span>
               </button>
             }
           </div>
@@ -103,7 +106,7 @@
           <span class="heading-icon people-icon" aria-hidden="true">◎</span>
         </div>
         @if (loadingVisitors) {
-          <div class="compact-state" role="status"><span class="loader"></span>Loading activity…</div>
+          <div class="compact-state" role="status"><span class="loader"></span>Loading</div>
         } @else if (visitorError) {
           <div class="compact-state error" role="alert">Recent activity is unavailable right now.</div>
         } @else if (visitors.length) {

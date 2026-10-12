@@ -7,15 +7,18 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 - Treat the existing global stylesheet and existing screens as legacy implementation, not as examples of the intended design. Reuse a rule only after confirming that it agrees with this specification.
 - The legacy universal selector in `src/styles.css` applies `overflow: hidden` and a fixed `line-height: 20px` to all elements. Scoped component styles must reset those inherited global declarations where they clip text; for page headings, use `overflow: visible` and a suitable proportional line height (the existing prototype pattern is `:host h1, :host h2, :host h3 { overflow: visible; line-height: 1.35; }`).
 - For new or rebuilt UI, follow this specification even when global CSS or nearby legacy UI conflicts with it. Keep new styling scoped to the relevant component or page where the existing Angular setup allows it.
-- Do not change global CSS or redesign unrelated screens as part of a feature task. If a global rule prevents the specified UI or interaction, describe the affected rule and its visible impact, then propose the smallest focused CSS change for review.
+- Follow the UI inspection and global CSS review workflow in [AGENTS.md](AGENTS.md) when a legacy rule blocks this specification.
 - The approved Night Signal rollout is a global stylesheet reconciliation. Migrate production colors to shared palette and semantic tokens, including color bindings in templates and services. Keep dynamic values dynamic, and retain component or page rules only where they express screen-specific behavior. Avoid unrelated layout or behavior changes during this rollout.
 
 ## Design character
 
 - Make the interface understated, engineered and calm, with a balanced information hierarchy.
 - Keep useful information visible and organized; avoid both overcrowding and unnecessary whitespace.
+- Make intent and available actions clear through layout, hierarchy, familiar controls and concise labels. Avoid descriptions, instructions and repeated wording when the interface already makes the meaning obvious. Add explanatory text only when it provides necessary information, such as an unfamiliar action, a consequential choice or an error; preserve accessible names for controls.
 - Use a dark-mode language inspired by current ChatGPT: deep neutral backgrounds, subtly differentiated dark surfaces and light neutral typography. Keep cards and panels borderless by default.
 - Use panels to group most sections, but distinguish them subtly. Keep spacing compact and functional.
+
+- Do not brand or label user-facing product UI as AI-driven. Use neutral terms such as “Assistant” where a conversational assistant needs a label; do not add AI badges, headings, navigation labels, or promotional copy unless the user explicitly requests that branding.
 
 ## Colour
 
@@ -65,7 +68,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 - **Buttons:** use one filled gold primary style per task area, with accent ink for legible text. Secondary actions should have less visual weight. Destructive actions remain neutral; use clear wording and confirmation for consequential operations. Selected controls use the selected-surface token.
 - **Inputs:** use dark filled fields with the surface or raised token, a subtle border, clear text and a restrained neutral focus outline. Keep labels and validation associated with their field.
 - **Cards and panels:** use borderless surfaces by default, with the surface or raised token. Separate them through background contrast, spacing, and alignment. Do not add outline borders for decoration or routine grouping. Reserve borders for controls, focus indicators, or states where they materially improve clarity or accessibility. Do not use shadows or gradients.
-- **Navigation:** prefer visible labels, adding icons where they improve recognition. Keep hierarchy clear and selected state restrained.
+- **Navigation:** prefer visible labels, adding icons where they improve recognition. Keep hierarchy clear and selected state restrained. PERRINN’s conversation activity summary repeats the conversation indicators as small red, green, grey and gold dots, with accessible names and hover titles; gold here denotes a manual flag, not an action.
 - **Tabs and selections:** make the selected state clear using the selected-surface token. Do not make every tab or option visually prominent.
 - **Lists within panels:** keep routine event, user and similar list rows transparent at rest. Use spacing and alignment to separate items; do not give every row a card, raised surface or decorative container. Keep supporting date blocks transparent too. Subtle hover backgrounds and visible keyboard focus indicators are appropriate for interactive rows.
 - **Tables and data:** choose between aligned compact rows and cards based on the content. Align comparable values and use consistent number emphasis; do not add decorative containers around every value.
@@ -77,9 +80,10 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 
 - Keep hover changes subtle and neutral, such as a small surface change. For controls that already have borders, a subtle border change is also appropriate. Use a subtle neutral focus outline for keyboard users.
 - Show disabled controls with lower contrast and prevent interaction. Keep their labels legible.
-- Keep layouts stable while loading. Where useful, show both a concise loading label and a small spinner or progress indicator.
+- Keep layouts stable while loading. When showing a loading label, use “Loading”; the surrounding UI supplies context. Where useful, include a small spinner or progress indicator.
 - Avoid animations and transitions. Do not animate routine navigation, hover, panel changes or feedback.
 - Make selected, success, error and disabled states distinguishable without relying on color alone. Support keyboard use and preserve visible focus.
+- Include loading and error states, and empty states where relevant.
 
 ## Responsive
 
@@ -89,6 +93,12 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 - On mobile, use a single column, adapt navigation and controls to the available width, and keep primary actions reachable.
 - On tablet, choose columns and navigation based on actual content fit. On desktop, use additional width for useful comparison or workspace layouts, not decorative empty space.
 - Preserve readable text, usable controls, and clear scroll ownership at every size.
+
+## Prototypes
+
+- Give every standalone prototype page a visible, keyboard-accessible link back to `/prototypes`, following the existing “← Prototyping” pattern.
+- Do not add design question prompts or sections to prototypes unless the user explicitly requests them.
+- Layout prototypes are structural wireframes, not populated product mockups. Label only key regions with standard UI terms (for example, Primary Navigation, Search, Page Title, Content Panel, Feed Item, and Composer); use simple placeholder shapes instead of realistic names, copy, metrics, dates, or records. Do not add responsive behavior descriptions: users inspect responsiveness by resizing the preview width. Give each layout prototype a draggable right-edge width control, keyboard adjustment, and a width-constrained container so its own breakpoints respond independently of the browser window. Keep the wireframe visually clear and quiet, using the app UI specification's dark page, surface, and raised-surface contrast. Prefer surface contrast, spacing, and alignment over borders; keep labels sparse so the component hierarchy is immediately legible.
 
 ## Do / Don't
 
