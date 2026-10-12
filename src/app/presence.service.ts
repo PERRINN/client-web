@@ -73,9 +73,9 @@ export class PresenceService {
   }
 
   recentVisitors(): Observable<RecentVisitor[]> {
-    const presence = runInInjectionContext(this.injector, () =>
+    const records = runInInjectionContext(this.injector, () =>
       this.afs.collection<PresenceRecord>('userPresence', ref =>
-        ref.orderBy('lastActiveAt', 'desc').limit(10)
+        ref.orderBy('lastActiveAt', 'desc').limit(11)
       ).snapshotChanges().pipe(
         map(rows => rows.map(row => ({
           id: row.payload.doc.id,
@@ -83,6 +83,15 @@ export class PresenceService {
         }))),
         shareReplay({ bufferSize: 1, refCount: true })
       )
+    );
+    const currentUser = runInInjectionContext(this.injector, () => this.auth.authState.pipe(
+      map(user => user?.uid || null),
+      distinctUntilChanged()
+    ));
+    // Fetch one extra record so excluding the viewer still leaves up to ten users.
+    const presence = combineLatest([records, currentUser]).pipe(
+      map(([visitors, userId]) => visitors.filter(visitor => visitor.id !== userId).slice(0, 10)),
+      shareReplay({ bufferSize: 1, refCount: true })
     );
     const profiles = presence.pipe(
       map(visitors => visitors.map(visitor => visitor.id).sort()),
