@@ -16,6 +16,37 @@
         <h1 class="home-title">A place for everyone to contribute to something extraordinary.</h1>
       </div>
     </header>
+    @if (UI.currentUser && mentionActivity.userId === UI.currentUser && mentionActivity.status !== 'signed-out') {
+      <section class="panel mentions-panel" aria-labelledby="mentions-title">
+        <div class="panel-heading"><h2 id="mentions-title">Mentioned you</h2>
+          @if (mentionActivity.status === 'ready' && mentionActivity.chats.length) {
+            <span class="mention-count">{{ mentionActivity.chats.length }} {{ mentionActivity.chats.length === 1 ? 'chat' : 'chats' }}</span>
+          }
+        </div>
+        @if (mentionActivity.status === 'loading') {
+          <div class="compact-state" role="status"><span class="loader" aria-hidden="true"></span>Loading</div>
+        } @else if (mentionActivity.status === 'unavailable') {
+          <div class="compact-state error" role="alert">Mentions are unavailable right now.</div>
+        } @else if (mentionActivity.chats.length) {
+          <div class="mention-list">
+            @for (chat of mentionActivity.chats; track chat.chain) {
+              <button class="mention-row" type="button" (click)="openChat(chat.chain)">
+                <span class="mention-dot" role="img" aria-label="Unread name mention" title="Unread name mention"></span>
+                @if (chat.imageUrl && !failedChatImages.has(chat.imageUrl)) {
+                  <img class="mention-avatar" [src]="chat.imageUrl" alt="" (error)="failedChatImages.add(chat.imageUrl)">
+                } @else {
+                  <span class="mention-avatar mention-avatar-placeholder" aria-hidden="true">{{ chat.title.slice(0, 1).toUpperCase() }}</span>
+                }
+                <span class="mention-copy"><strong>{{ chat.title }}</strong><span>{{ chat.preview }}</span></span>
+                <span class="mention-time">{{ timeAgo(chat.timestamp) }}</span><span class="mention-arrow" aria-hidden="true">→</span>
+              </button>
+            }
+          </div>
+        } @else {
+          <p class="mention-empty">No unread mentions.</p>
+        }
+      </section>
+    }
     <div class="dashboard-grid">
       <section class="image-panel" aria-label="Latest shared images">
         @if (loadingImages) {

@@ -25,6 +25,7 @@ import { ChatInputBarComponent } from './prototypes/chat-input-bar/chat-input-ba
 import { AppMapComponent } from './prototypes/app-map/app-map.component';
 import { ImageMosaicComponent } from './prototypes/image-mosaic/image-mosaic.component';
 import { HomeComponent } from './home.component';
+import { HomeMentionsComponent } from './prototypes/home-mentions/home-mentions.component';
 import { DilSensitivityAnalysisComponent } from './prototypes/dil-sensitivity-analysis/dil-sensitivity-analysis.component';
 import { DilWorkflowComponent } from './prototypes/dil-sensitivity-analysis/dil-workflow.component';
 import { DilChartComponent } from './prototypes/dil-sensitivity-analysis/dil-chart.component';
@@ -75,6 +76,7 @@ export const firebaseConfig = {
         AppMapComponent,
         ImageMosaicComponent,
         HomeComponent,
+        HomeMentionsComponent,
         DilSensitivityAnalysisComponent,
         DilWorkflowComponent,
         DilChartComponent,

@@ -56,6 +56,8 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
   private loadedConversations: any[] = [];
   cursorsReady = false;
   private cursorUnavailable = false;
+  private conversationsReady = false;
+  private conversationsUnavailable = false;
   private cursorSession: ReadCursorSession;
 
   constructor(
@@ -220,6 +222,8 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
       }
       this.UI.loading=true
       if(this.scope=='all'){
+        this.conversationsReady = false;
+        this.conversationsUnavailable = false;
         this.comingEvents=this.afs.collection<any>('PERRINNMessages',ref=>ref
           .where('lastMessage','==',true)
           .where('verified','==',true)
@@ -255,6 +259,10 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
           this.setLoadedConversations(changes);
           return changes.map(c=>({payload:c.payload}))
         }),
+        tap({ error: () => {
+          this.conversationsUnavailable = true;
+          this.zone.run(() => this.cd.markForCheck());
+        } }),
         tap(() => this.scrollToBottomOnLoadMore())
         )
       }
@@ -340,6 +348,8 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
 
   private setLoadedConversations(changes: any[]) {
     this.loadedConversations = changes.map(row => row.payload.doc.data());
+    this.conversationsReady = true;
+    this.conversationsUnavailable = false;
     this.subscribeToLastSeen();
   }
 
@@ -377,19 +387,15 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
 
   ngDoCheck() {
     if (this.sidePanelScope !== 'all') return;
-    const summary = { mention: false, recipient: false, other: false, flagged: false, unavailable: this.cursorUnavailable };
-    const userId = this.UI.currentUser;
-    const profile = this.UI.currentUserLastMessageObj;
-    if (userId && this.cursorsReady) this.loadedConversations.forEach(message => {
-      summary.flagged ||= !!this.blueFlagByChain[message.chain];
-      // Use exactly the same conditions as the conversation-row template.
-      if (!(profile?.createdTimestamp / 1000 < message.serverTimestamp?.seconds) ||
-          this.isMessageSeen(message.chain, message.serverTimestamp)) return;
-      if (message.text?.includes(profile?.name)) summary.mention = true;
-      else if (message.recipients?.[userId]) summary.recipient = true;
-      else summary.other = true;
+    this.activity.updateConversations({
+      conversations: this.loadedConversations,
+      userId: this.UI.currentUser || null,
+      profile: this.UI.currentUserLastMessageObj?.user === this.UI.currentUser ? this.UI.currentUserLastMessageObj : null,
+      timestamps: this.lastSeenByChain,
+      flags: this.blueFlagByChain,
+      ready: this.conversationsReady && this.cursorsReady && this.currentUserId === this.UI.currentUser,
+      unavailable: this.cursorUnavailable || this.conversationsUnavailable
     });
-    this.activity.update(summary);
   }
 
   ngOnDestroy() {

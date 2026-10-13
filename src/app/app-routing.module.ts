@@ -18,9 +18,11 @@ import { ChatInputBarComponent } from './prototypes/chat-input-bar/chat-input-ba
 import { AppMapComponent } from './prototypes/app-map/app-map.component';
 import { ImageMosaicComponent } from './prototypes/image-mosaic/image-mosaic.component';
 import { HomeComponent } from './home.component';
+import { HomeMentionsComponent } from './prototypes/home-mentions/home-mentions.component';
 import { DilSensitivityAnalysisComponent } from './prototypes/dil-sensitivity-analysis/dil-sensitivity-analysis.component';
 
 const appRoutes: Routes = [
+  { path: 'prototypes/home-mentions', component: HomeMentionsComponent },
   { path: 'prototypes/dil-sensitivity-analysis', component: DilSensitivityAnalysisComponent },
   { path: 'prototypes/app-wiring', component: AppMapComponent, data: { mapView: 'wiring' } },
   { path: 'prototypes/home', redirectTo: 'prototypes', pathMatch: 'full' },

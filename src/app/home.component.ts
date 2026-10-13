@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { HomeFeedService, HomeMessage } from './homeFeed.service';
 import { PresenceService, RecentVisitor } from './presence.service';
+import { MessageActivityService, MentionActivity } from './messageActivity.service';
 import { UserInterfaceService } from './userInterface.service';
 
 @Component({
@@ -12,6 +13,8 @@ import { UserInterfaceService } from './userInterface.service';
   standalone: false
 })
 export class HomeComponent implements OnInit, OnDestroy {
+  mentionActivity: MentionActivity = { userId: null, status: 'signed-out', chats: [] };
+  failedChatImages = new Set<string>();
   imageTiles: HomeMessage[] = [];
   events: HomeMessage[] = [];
   visitors: RecentVisitor[] = [];
@@ -28,12 +31,17 @@ export class HomeComponent implements OnInit, OnDestroy {
   constructor(
     private feed: HomeFeedService,
     private presence: PresenceService,
+    private activity: MessageActivityService,
     private changeDetector: ChangeDetectorRef,
     private router: Router,
     public UI: UserInterfaceService
   ) {}
 
   ngOnInit(): void {
+    this.subscriptions.add(this.activity.mentions().subscribe(state => {
+      this.mentionActivity = state;
+      this.changeDetector.markForCheck();
+    }));
     try {
       this.homeScreenHintDismissed = sessionStorage.getItem('home-screen-hint-dismissed') === 'true';
     } catch { /* The hint still works when browser storage is unavailable. */ }
@@ -92,13 +100,11 @@ export class HomeComponent implements OnInit, OnDestroy {
     if (!start) return 'Start time unavailable';
     const remaining = start - this.UI.nowSeconds * 1000;
     if (remaining <= 0) return 'In progress';
-    if (remaining < 60000) return 'In less than 1m';
-    const minutes = Math.ceil(remaining / 60000);
-    if (minutes < 60) return `In ${minutes}m`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `In ${hours}h${minutes % 60 ? ` ${minutes % 60}m` : ''}`;
-    const days = Math.floor(hours / 24);
-    return `In ${days}d${hours % 24 ? ` ${hours % 24}h` : ''}`;
+    if (remaining < 60000) return 'Starting now';
+    const unit = remaining >= 86400000 ? 'day' : remaining >= 3600000 ? 'hour' : 'minute';
+    const duration = unit === 'day' ? 86400000 : unit === 'hour' ? 3600000 : 60000;
+    const amount = unit === 'minute' ? Math.ceil(remaining / duration) : Math.max(1, Math.round(remaining / duration));
+    return `In ${amount} ${unit}${amount === 1 ? '' : 's'}`;
   }
 
   timeAgo(timestamp: number): string {
