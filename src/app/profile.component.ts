@@ -6,7 +6,7 @@ import { map, filter, tap, take } from 'rxjs/operators'
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router'
 import { UserInterfaceService } from './userInterface.service'
 import { AngularFireAuth } from '@angular/fire/compat/auth'
-import { AgChartOptions } from 'ag-charts-community'
+import { AgChartOptions, AgChartTheme } from 'ag-charts-community'
 import { PresenceService } from './presence.service'
 import { MessageActivityService } from './messageActivity.service'
 import { ReadCursorService, ReadCursorSession } from './readCursor.service'
@@ -98,7 +98,22 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
     this.scope=''
     this.mode='inbox'
     this.scrollTeam=''
-    const paletteAccent = getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim();
+    const palette = getComputedStyle(document.documentElement);
+    const paletteAccent = palette.getPropertyValue('--color-accent').trim();
+    const paletteSurface = palette.getPropertyValue('--color-surface').trim();
+    // Canvas text does not inherit CSS, so use the same family as the document.
+    const fontFamily = getComputedStyle(document.documentElement).fontFamily;
+    const chartTheme: AgChartTheme = {
+      baseTheme: 'ag-default-dark',
+      overrides: { common: {
+        title: { fontFamily },
+        legend: { item: { label: { fontFamily } } },
+        axes: {
+          number: { label: { fontFamily }, title: { fontFamily } },
+          time: { label: { fontFamily }, title: { fontFamily } }
+        }
+      } }
+    };
     this.chartOptions = {
           series: [
             { type: 'line', xKey: 'timestamp', yKey: 'balance', marker: { size: 0 }},
@@ -107,7 +122,8 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
             { type: 'line', xKey: 'timestamp', yKey: 'interest', marker: { size: 0 } },
             { type: 'line', xKey: 'timestamp', yKey: 'contract', marker: { size: 0 } }
           ],
-          theme: 'ag-default-dark',
+          theme: chartTheme,
+          background: { fill: paletteSurface },
           axes: [
             {type: 'time', position: 'bottom' },
             {
@@ -130,7 +146,8 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
           series: [
             { type: 'line', xKey: 'year', yKey: 'balance', marker: { size: 0 }, stroke: paletteAccent, strokeWidth: 2 }
           ],
-          theme: 'ag-default-dark',
+          theme: chartTheme,
+          background: { fill: paletteSurface },
           axes: [
             {type: 'number', position: 'bottom', title: {text: 'Year'} },
             {

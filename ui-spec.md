@@ -5,10 +5,20 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 ## Legacy CSS boundary
 
 - Treat the existing global stylesheet and existing screens as legacy implementation, not as examples of the intended design. Reuse a rule only after confirming that it agrees with this specification.
-- The legacy universal selector in `src/styles.css` applies `overflow: hidden` and a fixed `line-height: 20px` to all elements. Scoped component styles must reset those inherited global declarations where they clip text; for page headings, use `overflow: visible` and a suitable proportional line height (the existing prototype pattern is `:host h1, :host h2, :host h3 { overflow: visible; line-height: 1.35; }`).
+- The legacy universal selector in `src/styles.css` applies `overflow: hidden` and a fixed `line-height: 21px` to all elements. Scoped component styles must reset those inherited global declarations where they clip text; for page headings, use `overflow: visible` and a suitable proportional line height (the existing prototype pattern is `:host h1, :host h2, :host h3 { overflow: visible; line-height: 1.35; }`).
 - For new or rebuilt UI, follow this specification even when global CSS or nearby legacy UI conflicts with it. Keep new styling scoped to the relevant component or page where the existing Angular setup allows it.
 - Follow the UI inspection and global CSS review workflow in [AGENTS.md](AGENTS.md) when a legacy rule blocks this specification.
-- The approved Night Signal rollout is a global stylesheet reconciliation. Migrate production colors to shared palette and semantic tokens, including color bindings in templates and services. Keep dynamic values dynamic, and retain component or page rules only where they express screen-specific behavior. Avoid unrelated layout or behavior changes during this rollout.
+- The approved Night Signal Dark rollout is a global stylesheet reconciliation. Migrate production colors to shared palette and semantic tokens, including color bindings in templates and services. Keep dynamic values dynamic, and retain component or page rules only where they express screen-specific behavior. Avoid unrelated layout or behavior changes during this rollout.
+
+## Styling ownership and migration
+
+- `src/styles.css` owns production colour tokens, the legacy base/reset, shared controls and unmigrated screen rules. Shell layout belongs in `src/app/app.component.css`; Home, Chat, Profile, Settings, Login, Directory and Buy PRN presentation belongs in their respective component stylesheets.
+- Keep shell viewport sizing, `#main_container` scroll ownership, sidebar and mobile drawer rules in the App component. Preserve `main_container` and `secondary_container` IDs: legacy pages use them for scrolling and chat positioning.
+- Component styles own their typography, layout, responsive rules and states. Use inherited typography within each migrated component, with explicit icon-font exceptions. The global reset still applies to legacy screens; do not remove it as part of an isolated migration.
+- Profile owns its sidebar embedding through `:host.sidebar-profile` and the compact conversation-list rules in `profile.component.css`. The shell owns the scroll region and row-height token; it must not reach into Profile through `::ng-deep`.
+- Settings, Login, Directory and Buy PRN retain their existing layouts and interactions during CSS ownership migration. Their local styles preserve legacy typography and states; this migration is not a screen redesign. Buy PRN owns its currency-selector layout, including its mobile breakpoint. Shared progress, control and table utilities remain global while other components consume them.
+- Before moving global rules, inspect template and runtime consumers, preserve effective styles, then verify the scoped replacement and remove superseded rules. Shared classes still used across screens remain global until their consumers are migrated.
+- Night Signal Dark is the approved production palette. `/prototypes/night-signal-dark` remains available for comparison with the original `/prototypes/night-signal` study. Keep the original study’s local palette values for comparison.
 
 ## Design character
 
@@ -22,51 +32,54 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 
 ## Colour
 
-- Use the **Night Signal** palette as the production colour direction. Its core tokens are:
+- Use the **Night Signal Dark** palette as the production colour direction. Its core tokens are:
 
   | Role | Token | Value |
   | --- | --- | --- |
-  | Page background | `--color-page` | `#121923` |
-  | Surface | `--color-surface` | `#1D2835` |
-  | Raised surface | `--color-raised` | `#2A3745` |
-  | Border | `--color-border` | `#435263` |
+  | Page background | `--color-page` | `#0B1118` |
+  | Surface | `--color-surface` | `#17212C` |
+  | Raised surface | `--color-raised` | `#263443` |
+  | Border | `--color-border` | `#7A8CA0` |
+  | Keyboard focus | `--color-focus` | `var(--color-text-secondary)` |
   | Primary text | `--color-text` | `#F4F6F8` |
   | Secondary text | `--color-text-secondary` | `#CBD4DE` |
   | Muted text | `--color-text-muted` | `#AAB7C5` |
   | Primary action accent | `--color-accent` | `#E5C477` |
   | Accent text | `--color-accent-ink` | `#2A2417` |
-  | Selected surface | `--color-selected` | `#34404A` |
+  | Selected surface | `--color-selected` | `#344552` |
   | Error text | `--color-danger-text` | `#FCA5A5` |
 
-- Use the page, surface and raised tokens to distinguish the canvas, grouped content, and controls or nested emphasis. Reserve the border token for controls, focus indicators, or states where a border materially improves clarity or accessibility.
+- For translucent production colours, use `color-mix(in srgb, var(--color-…) N%, transparent)` so they follow the shared palette. Do not repeat palette RGB values. PWA theme and launch backgrounds in `src/index.html` and `src/manifest.json` mirror the page token; chart backgrounds read the surface token.
+- Use the page, surface and raised tokens to distinguish the canvas, grouped content, and controls or nested emphasis. Use the focus token for keyboard outlines. Reserve the border token for controls, or states where a border materially improves clarity or accessibility.
 - Use light neutral primary text, cool secondary text and muted text for clear hierarchy. Keep text readable; do not use muted text for essential content when contrast is insufficient.
 - Use gold for primary actions and restrained emphasis. Keep green for success, use the selected-surface token for selected controls, and use restrained red for errors. Use `--color-danger` for error fills and `--color-danger-text` for readable error text. Do not use gold as the sole indication of status.
 - Never use pure black as a page or component background. Avoid gradients, shadows, and unrelated saturated accents.
 - Use restrained red for errors. Keep destructive actions neutral and make their consequence clear in the label and confirmation.
-- Define shared production colour tokens in `src/styles.css` and use them in global rules and components where the style is genuinely shared. Legacy tokens remain for existing prototypes; production rules must use the Night Signal and semantic tokens. Do not add palette hex values to individual component styles when a shared token represents the role.
+- Define shared production colour tokens in `src/styles.css` and use them in global rules and components where the style is genuinely shared. Legacy tokens remain for existing prototypes; production rules must use the Night Signal Dark and semantic tokens. Do not add palette hex values to individual component styles when a shared token represents the role.
 - Existing `--bg-black` is pure black and conflicts with this specification; do not use it for new or migrated page backgrounds. Keep component-specific layout and one-off styling scoped to components when it is not a shared design rule.
 - Keep accent color sparse. Avoid gradients and high-contrast decorative color treatments.
 
 ## Typography
 
-- Use a clean system sans stack: `'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif`.
+- Use the shared `--font-family-ui` token in `src/styles.css`: `'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif`. The document sets this family and a regular 400 weight; the universal reset inherits both so routed components, sidebar lists, forms and nested text use the same family. Component rules should reference the token rather than repeat the stack. Exclude Material Icons and Material Symbols from local text-family resets so their glyph fonts remain intact. Canvas charts must read the document font family for their titles, axes and legends because canvas text does not inherit CSS.
 - Use the approved Home typography scale for all new and rebuilt UI, including prototypes:
 
   | Text role | Font size |
   | --- | --- |
-  | Page headline | 22px |
-  | Section heading | 16px |
-  | Primary body text, names and row/event titles | 15px |
-  | Supporting text, dates, durations, timestamps and loading/error/empty messages | 14px |
-  | Minor labels, section kickers, hints and helper text | 13px |
+  | Page headline | 23px |
+  | Section heading | 17px |
+  | Primary body text, names and row/event titles | 16px |
+  | Supporting text, dates, durations, timestamps and loading/error/empty messages | 15px |
+  | Minor labels, section kickers, hints and helper text | 14px |
 
+- Production text sizes were increased by 1px for readability; compact sidebar labels use 14px. Keep icon dimensions independent of text sizes.
 - Keep these sizes on mobile. Resolve limited space through wrapping, layout and spacing rather than shrinking text. Do not use 9–12px text for ordinary labels or information users need to read.
-- Use regular weight 400 for body text and metadata, medium weight around 550 for row titles, and semibold around 600 for headings and emphasized labels. Override the legacy global `font-weight: 100` in scoped component styles; preserve the intended size and weight on nested text instead of letting the universal reset take over.
+- Use regular weight 400 for body text and metadata, medium weight around 550 for row titles, and semibold around 600 for headings and emphasized labels. Set emphasis in scoped component styles; let nested text inherit the intended weight instead of resetting every descendant.
 - Use proportional line heights: about 1.45 for body text and metadata, and 1.35 for headings. Let rows grow when names or titles wrap; avoid fixed heights that clip larger text. Keep compact numeric date blocks legible with enough space for both lines.
 - Keep headings quietly distinct from body text through modest size and weight changes, not display styling.
 - Use the same typeface for text and numbers. Emphasize important values through size and weight, not a separate monospace face.
 - Keep text within the same line consistent in font size, weight, family, and style, including inline dates, durations, units, and metadata. Do not vary typography within a line for routine emphasis. Set nested inline elements to inherit these properties explicitly when legacy global styles override inheritance.
-- Maintain readable contrast and concise labels. Use this approved scale as the reference, not older compact prototypes or the conflicting global Verdana reset. Apply it incrementally to the requested screen; do not restyle unrelated legacy pages.
+- Maintain readable contrast and concise labels. Use this approved scale as the reference, not older compact prototypes or legacy typography overrides. Apply it incrementally to the requested screen; do not restyle unrelated legacy pages.
 
 ## Layout & spacing
 
@@ -122,7 +135,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 
 - Use dark neutral surfaces, light neutral typography and borderless cards and panels separated through contrast, spacing, and alignment.
 - Keep hierarchy clear, information balanced and spacing functional.
-- Use green sparingly for selected and success states, and red for errors.
+- Use neutral surfaces for selected states, green sparingly for success, and red for errors.
 - Prefer inline feedback and content-appropriate data layouts.
 
 **Don't**

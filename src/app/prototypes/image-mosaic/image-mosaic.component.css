@@ -1,4 +1,4 @@
-:host{display:block;min-height:100%;color:var(--color-text);font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif}
+:host{display:block;min-height:100%;color:var(--color-text);font-family:var(--font-family-ui)}
 :host *{font-family:inherit;font-weight:400}
 :host h1,:host h2,:host h3{overflow:visible;line-height:1.35}
 :host p,:host span,:host strong,:host button{overflow:visible;line-height:1.45}

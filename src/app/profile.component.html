@@ -86,10 +86,10 @@
         </div>
         <div class="modeSwitchWrap">
           <div class="modeSwitchTrack">
-            <button [class.buttonPrimary]="mode==='inbox'" [class.buttonBlack]="mode!=='inbox'" class="modeSwitchBtn" (click)="mode='inbox';refreshMessages()">Inbox</button>
-            <button [class.buttonPrimary]="mode==='history'" [class.buttonBlack]="mode!=='history'" class="modeSwitchBtn" (click)="mode='history';refreshMessages();refreshChart()">History</button>
-            <button [class.buttonPrimary]="mode==='chain'" [class.buttonBlack]="mode!=='chain'" class="modeSwitchBtn" (click)="mode='chain';refreshMessages()">Chain</button>
-            <button [class.buttonPrimary]="mode==='forecast'" [class.buttonBlack]="mode!=='forecast'" class="modeSwitchBtn" (click)="mode='forecast';refreshMessages();refreshForecastChart()">Forecast</button>
+            <button [attr.aria-pressed]="mode==='inbox'" [class.buttonPrimary]="mode==='inbox'" [class.buttonBlack]="mode!=='inbox'" class="modeSwitchBtn" (click)="mode='inbox';refreshMessages()">Inbox</button>
+            <button [attr.aria-pressed]="mode==='history'" [class.buttonPrimary]="mode==='history'" [class.buttonBlack]="mode!=='history'" class="modeSwitchBtn" (click)="mode='history';refreshMessages();refreshChart()">History</button>
+            <button [attr.aria-pressed]="mode==='chain'" [class.buttonPrimary]="mode==='chain'" [class.buttonBlack]="mode!=='chain'" class="modeSwitchBtn" (click)="mode='chain';refreshMessages()">Chain</button>
+            <button [attr.aria-pressed]="mode==='forecast'" [class.buttonPrimary]="mode==='forecast'" [class.buttonBlack]="mode!=='forecast'" class="modeSwitchBtn" (click)="mode='forecast';refreshMessages();refreshForecastChart()">Forecast</button>
           </div>
         </div>
         <div class="prof-action-bar">

@@ -13,7 +13,7 @@
     }
     <header class="page-header">
       <div>
-        <h1 class="home-title">A place for everyone to contribute to something extraordinary.</h1>
+        <h1>A place for everyone to contribute to something extraordinary.</h1>
       </div>
     </header>
     @if (UI.currentUser && mentionActivity.userId === UI.currentUser && mentionActivity.status !== 'signed-out') {
@@ -88,7 +88,7 @@
         <section class="panel visitors-panel" aria-labelledby="visitors-title">
           <div class="panel-heading">
             <div><p class="section-kicker">AROUND THE TEAM</p><h2 id="visitors-title">Recently active</h2></div>
-            <span class="heading-icon people-icon" aria-hidden="true">◎</span>
+            <span class="heading-icon" aria-hidden="true">◎</span>
           </div>
           @if (loadingVisitors) {
             <div class="compact-state" role="status"><span class="loader"></span>Loading</div>

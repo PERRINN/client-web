@@ -1,29 +1,174 @@
+/* Scoped profile presentation. Shared tokens and legacy base rules live in styles.css. */
+:host { display: block; font-family: var(--font-family-ui); color: var(--color-text); background-color: var(--color-page); background-image: none; min-height: 100vh; min-height: 100dvh; padding: 0 0 calc(20px + env(safe-area-inset-bottom, 0px)) 0; box-sizing: border-box; }
+:host, :host * { -webkit-user-select: none; user-select: none; }
+:host img { -webkit-user-drag: none; -webkit-touch-callout: none; }
+:host .island { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); color: var(--color-text-secondary); margin-bottom: 16px; }
+:host .profileContainer { max-width: none; width: 100%; margin: 0; padding: 16px; }
+:host .profileModern { background: var(--color-page); padding-bottom: 8px; }
+:host .prof-p-14 { padding: 14px; }
+:host .prof-header-wrap { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-start; }
+:host .prof-main-area { flex: 1; min-width: 240px; }
+:host .prof-top-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+:host .prof-name-area { display: flex; align-items: center; gap: 8px; min-width: 0; }
+:host .prof-name-text { color: var(--color-text); font-size: 21px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
+:host .prof-balance-text { color: var(--color-text); font-size: 19px; font-weight: 700; }
+:host .prof-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; margin-bottom: 8px; }
+:host .prof-pres-text { font-size: 14px; color: var(--color-text-muted); line-height: 1.5; margin-bottom: 8px; }
+:host .prof-meta-wrap { display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px; color: var(--color-text-secondary); margin-bottom: 8px; }
+:host .prof-contract-area { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 8px; }
+:host .prof-contract-signed { color: var(--color-success); font-weight: 600; }
+:host .prof-action-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 16px; margin-bottom: 4px; }
+:host .prof-msg-btn { display: inline-flex; align-items: center; gap: 6px; }
+:host .prof-settings-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; }
+:host .prof-no-events { padding: 14px; border: 1px solid color-mix(in srgb, var(--color-selected) 10%, transparent); background: color-mix(in srgb, var(--color-selected) 3%, transparent); color: var(--color-text-muted); font-size: 14px; }
+:host .prof-fund-card-body { padding: 8px; border-radius: 10px; background: color-mix(in srgb, var(--color-selected) 5%, transparent); }
+:host .prof-fund-header { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+:host .prof-fund-meta { margin-top: 5px; font-size: 12px; color: var(--color-text-muted); display: flex; justify-content: space-between; align-items: center; }
+:host .prof-fund-days { color: var(--color-success); font-weight: 500; margin-left: auto; }
+:host .prof-fund-desc { margin-top: 3px; font-size: 12px; color: var(--color-text-muted); line-height: 1.35; }
+:host .prof-fund-amounts { margin-top: 3px; font-size: 12px; color: var(--color-text-secondary); line-height: 1.35; }
+:host .prof-chart-box { height: 400px; margin: 10px; }
+:host .prof-list-item-rel { position: relative; }
+:host .prof-icon-14 { font-size: 14px; line-height: 1; }
+:host .prof-icon-16 { font-size: 16px; }
+:host .prof-icon-18 { font-size: 18px; color: var(--color-accent); cursor: pointer; }
+:host .prof-avatar-wrap { float: left; min-width: 58px; min-height: 40px; }
+:host .prof-load-more-wrap { margin-bottom: 0; }
+:host .prof-btn-200 { width: 200px; margin: 10px auto; }
+:host .prof-margin-left-10 { margin-left: 10px; }
+:host .listLight > li { background: color-mix(in srgb, var(--color-raised) 88%, transparent); border: none; color: var(--color-text-secondary); border-radius: 14px; margin-bottom: 10px; -webkit-tap-highlight-color: transparent; }
+:host .eventCardBody { background: color-mix(in srgb, var(--color-raised) 88%, transparent); border: none; color: var(--color-text); }
+:host .eventCardChatImage { border: none; width: auto; height: 68px; max-width: 180px; border-radius: 10px; object-fit: contain; flex: 0 0 auto; margin-top: 0; }
+:host .nonMemberIslandButton { background: var(--color-accent); border: none; color: var(--color-accent-ink); margin: 0 auto; min-width: 230px; font-size: 15px; font-weight: 800; padding: 11px 20px; }
+:host .nonMemberIslandButton:hover { transform: none; }
+:host .nonMemberIsland { margin-top: 12px; background: color-mix(in srgb, var(--color-text) 5%, transparent); border: none; padding: 24px 22px; text-align: center; color: var(--color-text); }
+:host .nonMemberIslandFooter { margin-top: 14px; font-size: 15px; font-weight: 700; letter-spacing: 0.2px; color: color-mix(in srgb, var(--color-text) 96%, transparent); }
+:host .nonMemberIslandHelper { margin-top: 10px; font-size: 13px; line-height: 1.45; font-weight: 500; color: color-mix(in srgb, var(--color-text-secondary) 92%, transparent); }
+:host .nonMemberIslandHelper a { color: inherit; text-decoration: underline; font-weight: 700; }
+
+/* Events, funds and activity feed */
+:host .profile-events-item { order: 1; width: 100%; min-width: 0; }
+:host .profile-funds-item { order: 2; width: 100%; min-width: 0; }
+:host .profile-banner-item { order: 3; grid-column: 1 / -1; }
+:host .listLight { list-style: none; margin: 0; padding: 0; }
+:host .listLight li:hover, :host .eventCardBody:hover, :host .imageCarousel .carouselItem:hover, :host .carouselMeta:hover { background: color-mix(in srgb, var(--color-raised) 94%, transparent); }
+:host .listLight li.no-interaction-row { cursor: default; }
+:host .listLight li.no-interaction-row:hover { background: color-mix(in srgb, var(--color-page) 82%, transparent); border-color: color-mix(in srgb, var(--color-border) 30%, transparent); }
+:host .tableRow.no-interaction-row:hover { opacity: 1; }
+:host .eventCardBody, :host .imageCarousel .carouselItem, :host .carouselMeta, :host .tableRow { background: color-mix(in srgb, var(--color-raised) 80%, transparent); border: none; color: var(--color-text-secondary); }
+:host .eventCardBody { padding: 8px 10px; border-radius: 10px; }
+:host .eventListItem, :host .fundListItem, :host .eventListItem:hover, :host .fundListItem:hover { background: transparent; border: none; padding: 0; margin-bottom: 10px; }
+:host .eventCardHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 0; }
+:host .eventCardMedia { display: flex; gap: 10px; min-width: 0; align-items: flex-start; }
+:host .eventCardTitleBlock { min-width: 0; }
+:host .eventCardLabel { font-size: 12px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; }
+:host .eventCardIconBadge { font-size: 22px; color: var(--color-text-secondary); margin-top: 1px; }
+:host .eventCardJoinBtn { width: 100%; max-width: 140px; margin: 0; flex: 0 0 auto; }
+:host .eventCardMeta { display: flex; align-items: center; gap: 7px; margin-bottom: 0; flex-wrap: wrap; }
+:host .eventCardMeta.compact { margin-top: 4px; gap: 6px; font-size: 12px; }
+:host .eventCardSubjectRow { display: flex; align-items: center; gap: 10px; min-width: 0; margin-bottom: 4px; }
+:host .eventCardSubjectRow .chatSubject { flex: 1 1 auto; min-width: 0; }
+:host .eventCardDescriptionInline { flex: 0 1 auto; color: var(--color-text-muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%; }
+:host .eventCardStatusChip { background: color-mix(in srgb, var(--color-selected) 16%, transparent); color: var(--color-success); font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 999px; }
+:host .eventCardStatusNow { background: color-mix(in srgb, var(--color-danger) 92%, transparent); color: var(--color-text); border: 1px solid color-mix(in srgb, var(--color-danger-text) 86%, transparent); font-weight: 700; }
+:host .eventCardDateText { font-size: 13px; color: var(--color-text-secondary); }
+:host .eventCardToggleBtn { margin: 8px 0 0 auto; width: 170px; display: block; }
+
+/* Controls and profile layout */
+:host .buttonBlack, :host .buttonPrimary { border-radius: 8px; padding: 8px 12px; font-size: 13px; font-weight: 600; }
+:host .buttonBlack { border: 1px solid color-mix(in srgb, var(--color-selected) 25%, transparent); background: var(--color-surface); color: var(--color-text-secondary); }
+:host .buttonBlack:hover { background: var(--color-page); border-color: color-mix(in srgb, var(--color-selected) 40%, transparent); }
+:host .warning-island { background-color: var(--color-raised); color: var(--color-text); cursor: pointer; }
+:host .profile-header-img { object-fit: cover; width: 132px; height: 132px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--color-selected) 18%, transparent); cursor: pointer; flex-shrink: 0; }
+:host .profile-stat-box { background: color-mix(in srgb, var(--color-selected) 8%, transparent); border: 1px solid color-mix(in srgb, var(--color-selected) 15%, transparent); border-radius: 8px; padding: 8px; font-size: 13px; color: var(--color-text-secondary); line-height: 1.4; }
+:host .modeSwitchWrap { width: 100%; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; align-items: center; }
+:host .modeSwitchTrack { border: 1px solid color-mix(in srgb, var(--color-selected) 20%, transparent); max-width: 100%; box-sizing: border-box; border-radius: 14px; padding: 4px; display: inline-flex; background: var(--color-raised); gap: 4px; flex-wrap: wrap; }
+:host .modeSwitchBtn { min-width: 86px; padding: 7px 10px; text-align: center; line-height: 1.1; border-radius: 999px; border: none; }
+:host .profile-list-avatar { float: left; margin: 12px 4px 12px 4px; object-fit: cover; height: 40px; width: 40px; }
+:host .profile-chat-subject-wrap { float: left; margin-top: 10px; width: 60%; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+:host .profile-chat-timing { float: right; margin-top: 10px; margin-right: 36px; width: 40px; }
+:host .profile-chat-preview { clear: both; float: left; margin-bottom: 10px; width: 90%; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-clamp: 2; overflow: hidden; }
+
+/* History and forecast tables */
+:host table { color: var(--color-text-secondary); border-collapse: collapse; width: 100%; }
+:host th { color: var(--color-text-muted); font-weight: 600; font-size: 12px; }
+:host .tableRow { background: color-mix(in srgb, var(--color-text) 10%, transparent); border: none; border-radius: 10px; margin-bottom: 6px; position: relative; display: flex; user-select: text; }
+:host .splitContainer { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: stretch; }
+:host .table-scroll-wrapper { width: 100%; overflow-x: auto; overflow-y: hidden; margin-bottom: 10px; }
+:host .table-scroll-wrapper .listLight { width: max-content; min-width: 100%; }
+:host .table-scroll-wrapper .listLight li { overflow: visible; }
+
+/* Image carousel */
+:host .imageCarousel { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 10px; padding: 4px 2px 8px 2px; margin-top: 10px; margin-bottom: 14px; scroll-snap-type: none; }
+:host .imageCarousel .carouselItem { flex: 0 0 25%; min-width: 200px; background: color-mix(in srgb, var(--color-raised) 96%, transparent); border: none; border-radius: 14px; overflow: hidden; margin-bottom: 0; scroll-snap-align: none; display: flex; flex-direction: column; }
+:host .carouselImageWrap { cursor: pointer; background: color-mix(in srgb, var(--color-page) 72%, transparent); display: flex; align-items: center; justify-content: center; min-height: 112px; }
+:host .carouselImage { width: 100%; height: 112px; object-fit: contain; display: block; }
+:host .carouselMeta { border: none; background: color-mix(in srgb, var(--color-raised) 96%, transparent); padding: 8px 10px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
+:host .messageImageBadge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; margin-right: 6px; border-radius: 6px; color: var(--color-text-secondary); vertical-align: text-bottom; }
+
+/* Conversation indicators and actions */
+:host .chatListUnreadFlag { position: absolute; top: 30px; right: 5px; width: 22px; height: 14px; line-height: 14px; text-align: center; border-radius: 4px; background: var(--color-text-muted); }
+:host .chatListUnreadFlag.alertFlag { background: var(--color-danger); }
+:host .chatListUnreadFlag.recipientFlag { background: var(--color-success); }
+:host .chatListBlueFlag { position: absolute; top: 48px; right: 5px; width: 22px; height: 14px; line-height: 14px; text-align: center; border-radius: 4px; background-color: var(--color-accent); z-index: 1; }
+:host a { color: var(--color-accent); }
+:host ag-charts-angular { pointer-events: none; }
+
+@media (max-width: 900px) {
+  :host .splitContainer { grid-template-columns: 1fr; }
+  :host .profile-funds-item { order: 3; }
+  :host .profile-banner-item { order: 2; grid-column: auto; }
+  :host .modeSwitchTrack { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; gap: 6px; padding: 5px; }
+  :host .modeSwitchBtn { width: 100%; min-width: 0; }
+}
+
+@media (min-width: 900px) {
+  :host .listLight li.activeChatListItem { background: color-mix(in srgb, var(--color-selected) 28%, transparent); border: none; }
+}
+
+/* Local actions and compact sidebar conversation list. */
 .profile-wallet-actions { display: flex; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: 10px; overflow: visible; }
-.profile-wallet-actions > button { margin: 0; transition: none; }
-.profile-wallet-actions > button:focus-visible { outline: 2px solid var(--color-text-secondary); outline-offset: 2px; }
+.profile-wallet-actions > button { margin: 0; }
+.profile-wallet-actions > button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .profile-wallet-actions > span { overflow: visible; line-height: 1.35; }
 
 /* Compact sidebar rows; the main profile feed retains its existing presentation. */
 :host.sidebar-profile { padding: 0; background: transparent; }
-:host.sidebar-profile .profileModern { background: transparent !important; }
+:host.sidebar-profile .profileModern { background: transparent; }
 :host .listLight.sidebar-conversations { margin: 0; padding: 0; background: transparent; overflow: visible; }
-:host .sidebar-conversations.listLight > li { height: var(--conversation-row-height, 42px); box-sizing: border-box; margin: 0; padding: 6px 4px; border: 0 !important; border-radius: 0; background: transparent !important; overflow: visible; transition: none; scroll-snap-align: start; }
-:host .sidebar-conversations.listLight > li:hover { background: var(--color-raised) !important; }
-:host .sidebar-conversations.listLight > li.activeChatListItem { background: var(--color-selected) !important; }
-:host .sidebar-conversations.listLight > li:focus-visible { outline: 2px solid var(--color-text-secondary); outline-offset: -2px; }
+:host .sidebar-conversations.listLight > li { height: var(--conversation-row-height, 42px); box-sizing: border-box; margin: 0; padding: 6px 4px; border: 0; border-radius: 0; background: transparent; overflow: visible; scroll-snap-align: start; }
+:host .sidebar-conversations.listLight > li:hover { background: var(--color-raised); }
+:host .sidebar-conversations.listLight > li.activeChatListItem { background: var(--color-selected); }
+:host .sidebar-conversations.listLight > li:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
 :host .sidebar-conversations.listLight > li > div { display: flex; align-items: center; gap: 8px; min-height: 30px; overflow: visible; }
 :host .sidebar-conversations.listLight .prof-avatar-wrap { order: 0; float: none; flex: 0 0 24px; min-width: 0; min-height: 0; }
 :host .sidebar-conversations.listLight .profile-list-avatar { display: block; float: none; width: 24px; height: 24px; margin: 0; border-radius: 50%; }
 :host .sidebar-conversations.listLight .prof-avatar-wrap + div { order: 1; flex: 1; min-width: 0; }
 :host .sidebar-conversations.listLight .profile-chat-subject-wrap { float: none; width: 100%; margin: 0; }
-:host .sidebar-conversations.listLight .chatSubject { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 13px; font-weight: 400; line-height: 1.4; }
+:host .sidebar-conversations.listLight .chatSubject { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 14px; font-weight: 400; line-height: 1.4; }
 :host .sidebar-conversations.listLight .profile-chat-timing, :host .sidebar-conversations.listLight .profile-chat-preview { display: none; }
 :host .sidebar-conversations.listLight .chatListUnreadFlag, :host .sidebar-conversations.listLight .chatListBlueFlag { position: static; order: 2; flex: 0 0 6px; width: 6px; height: 6px; border-radius: 50%; }
 
 :host .prof-load-more-wrap.sidebar-load-more { margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
-:host .sidebar-load-more .sidebar-load-more-button { display: flex; align-items: center; justify-content: flex-start; gap: 8px; width: 100%; height: var(--conversation-row-height, 42px); margin: 0; padding: 6px 4px; appearance: none; border: 0; border-radius: 0; background: transparent; box-shadow: none; color: var(--color-text-secondary); text-align: left; transition: none; scroll-snap-align: start; }
+:host .sidebar-load-more .sidebar-load-more-button { display: flex; align-items: center; justify-content: flex-start; gap: 8px; width: 100%; height: var(--conversation-row-height, 42px); margin: 0; padding: 6px 4px; appearance: none; border: 0; border-radius: 0; background: transparent; box-shadow: none; color: var(--color-text-secondary); text-align: left; scroll-snap-align: start; }
 :host .sidebar-load-more .sidebar-load-more-button:hover { background: transparent; color: var(--color-text); }
-:host .sidebar-load-more .sidebar-load-more-button:focus-visible { outline: 2px solid var(--color-text-secondary); outline-offset: -2px; }
+:host .sidebar-load-more .sidebar-load-more-button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
 :host .sidebar-load-more-button .material-icons-outlined { width: 24px; font-size: 20px; }
 :host .sidebar-load-more-button > span:not(.material-icons-outlined) { font-family: inherit; font-size: 13px; font-weight: 400; line-height: 1.4; overflow: visible; }
 
+
+/* Sidebar embedding is owned here, not by the app shell. */
+:host.sidebar-profile .profileModern { padding: 0; }
+:host.sidebar-profile .profileContainer { width: 100%; max-width: none; margin: 0; padding: 0; }
+:host.sidebar-profile .splitContainer { display: block; }
+:host.sidebar-profile .profileModern *:not([class*="material-icons"]):not([class*="material-symbols"]) { font-family: inherit; }
+
+/* Neutral selections share the approved palette; primary actions remain gold. */
+:host .modeSwitchBtn.buttonPrimary { background: var(--color-selected); color: var(--color-text); }
+:host button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+@media (pointer:fine) and (hover:hover)
+{
+  :host #scroll-images {
+    padding-bottom: 16px;
+  }
+}

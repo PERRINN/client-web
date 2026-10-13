@@ -78,6 +78,7 @@ export class PrototypeGalleryComponent {
       description: 'Earthy charcoal surfaces, warm stone text, and a softened coral accent.',
       route: '/prototypes/clay-ember'
     },
+    { name: 'night-signal-dark', category: 'colours', type: 'Colour palette · Night Signal Dark', description: 'Deeper ink surfaces with clear text, raised controls and soft gold actions.', route: '/prototypes/night-signal-dark' },
     {
       name: 'night-signal',
       category: 'colours',

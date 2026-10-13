@@ -9,6 +9,7 @@ import { AngularFireAuth } from '@angular/fire/compat/auth'
 @Component({
     selector: 'directory',
     templateUrl: './directory.component.html',
+    styleUrls: ['./directory.component.css'],
     standalone: false
 })
 

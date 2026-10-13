@@ -89,6 +89,18 @@ export class ColorPalettePreviewComponent {
         { label: 'Secondary', value: '#CBD4DE' }, { label: 'Accent', value: '#E5C477' }
       ],
       theme: { '--page': '#121923', '--surface': '#1D2835', '--raised': '#2A3745', '--border': '#435263', '--text': '#F4F6F8', '--secondary': '#CBD4DE', '--muted': '#AAB7C5', '--accent': '#E5C477', '--accent-ink': '#2A2417', '--selected': '#34404A' }
+    },
+    {
+      id: 'night-signal-dark',
+      name: 'Night Signal Dark',
+      direction: 'Deeper ink navy · clearer controls · soft gold',
+      description: 'A darker canvas and panels retain Night Signal’s light text and soft gold, with clearer raised controls and neutral selections.',
+      colors: [
+        { label: 'Page', value: '#0B1118' }, { label: 'Surface', value: '#17212C' },
+        { label: 'Raised', value: '#263443' }, { label: 'Text', value: '#F4F6F8' },
+        { label: 'Secondary', value: '#CBD4DE' }, { label: 'Accent', value: '#E5C477' }
+      ],
+      theme: { '--page': '#0B1118', '--surface': '#17212C', '--raised': '#263443', '--border': '#7A8CA0', '--text': '#F4F6F8', '--secondary': '#CBD4DE', '--muted': '#AAB7C5', '--accent': '#E5C477', '--accent-ink': '#2A2417', '--selected': '#344552' }
     }
   ];
 

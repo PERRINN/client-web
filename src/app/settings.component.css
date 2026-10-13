@@ -1,0 +1,53 @@
+/* settings: existing screen presentation, scoped to this component.
+   Shared palette and controls remain in styles.css. Keep dynamic styles in the template/TypeScript. */
+
+:host { display: block; font-family: var(--font-family-ui); color: var(--color-text); }
+
+/* Page and profile summary */
+:host .settingsPage { max-width: none; width: 100%; margin: 0; padding: 0 0 calc(60px + env(safe-area-inset-bottom)) 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; }
+:host .settingsPageTitle { font-size: 21px; font-weight: 800; color: var(--color-text); letter-spacing: 0.2px; line-height: 25px; margin: 2px 2px 4px 2px; }
+:host .island { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); color: var(--color-text-secondary); width: 100%; max-width: none; padding: 14px; margin: 0; box-sizing: border-box; }
+:host .profileSummary { background: var(--color-surface); }
+:host .profileSummary img.imageWithZoom { border-radius: 12px; border: 1px solid color-mix(in srgb, var(--color-selected) 20%, transparent); margin: 0 0 10px 0; }
+:host .settingsProfileCard { padding: 14px; }
+:host .settingsProfileHead { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-start; }
+:host .settingsProfileImage { object-fit: cover; width: 132px; height: 132px; cursor: pointer; flex-shrink: 0; margin: 0; }
+:host .settingsProfileMain { flex: 1; min-width: 240px; }
+:host .settingsProfileTopRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+:host .settingsProfileNameWrap { display: flex; align-items: center; gap: 8px; min-width: 0; }
+:host .settingsProfileName { color: var(--color-text); font-size: 21px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
+:host .settingsProfileBalance { color: var(--color-text); font-size: 19px; font-weight: 700; }
+:host .settingsProfilePresentation { font-size: 14px; color: var(--color-text-muted); line-height: 1.5; margin-bottom: 8px; }
+:host .settingsProfileMeta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px; color: var(--color-text-secondary); margin-bottom: 10px; }
+:host .settingsUploadRow { display: flex; align-items: center; flex-wrap: wrap; }
+:host .settingsUploadBtn { font-size: 13px; text-align: center; width: 250px; padding: 8px 12px; margin: 0; cursor: pointer; display: inline-block; }
+
+/* Account fields and actions */
+:host .title { font-size: 16px; font-weight: 700; color: var(--color-text); margin-bottom: 8px; }
+:host input { width: 100%; box-sizing: border-box; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--color-border) 30%, transparent); background: color-mix(in srgb, var(--color-raised) 55%, transparent); color: var(--color-text); padding: 10px 12px; margin: 6px 0; }
+:host input:focus { border-color: color-mix(in srgb, var(--color-selected) 55%, transparent); }
+:host .buttonPrimary { font-weight: 700; padding: 9px 14px; }
+:host .buttonPrimary:disabled { opacity: 0.6; cursor: not-allowed; }
+:host .buttonBlack { border-radius: 8px; border: 1px solid color-mix(in srgb, var(--color-selected) 25%, transparent); background: color-mix(in srgb, var(--color-raised) 70%, transparent); color: var(--color-text-secondary); font-weight: 600; }
+:host .buttonBlack.activeCurrency { background: var(--color-selected); border-color: var(--color-border); color: var(--color-text); font-weight: 700; pointer-events: none; }
+:host .buttonRed { border: none; border-radius: 8px; background: var(--color-danger); color: var(--color-text); font-weight: 700; padding: 10px 14px; }
+:host .logout-btn { width: 120px; margin: 10px auto; display: block; }
+:host .settings-action-btn { font-size: 13px; width: 200px; margin: 10px; }
+:host .settings-help-text { color: var(--color-text-muted); line-height: 1.5; margin: 20px; }
+:host .settings-info-text { float: left; margin: 10px 10px 5px 15px; }
+:host .listLight { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+:host .listLight li { width: 125px; }
+:host .settings-upload-input { display: none; }
+:host .settings-currency-container { padding: 10px; }
+:host .settings-help-margin-top { margin: 10px 20px 0 20px; }
+:host .settings-help-margin-all { margin: 20px 20px 0 20px; }
+:host .settings-help-margin-contract { margin: 15px 20px 0 20px; }
+:host .settings-btn-email { width: 250px; }
+:host .settings-btn-centered { margin: 10px auto; display: block; }
+:host .settings-info-details { margin: 5px 10px 10px 15px; }
+
+/* Mobile layout */
+@media (max-width: 760px) {
+  :host .settingsUploadBtn { width: 100%; }
+  :host .listLight { flex-direction: column; align-items: center; }
+}

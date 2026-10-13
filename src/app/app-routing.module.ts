@@ -13,6 +13,7 @@ import { WarmGraphiteComponent } from './prototypes/warm-graphite/warm-graphite.
 import { DeepTideComponent } from './prototypes/deep-tide/deep-tide.component';
 import { QuietPlumComponent } from './prototypes/quiet-plum/quiet-plum.component';
 import { ClayEmberComponent } from './prototypes/clay-ember/clay-ember.component';
+import { ColorPalettePreviewComponent } from './prototypes/color-palette-preview.component';
 import { NightSignalComponent } from './prototypes/night-signal/night-signal.component';
 import { ChatInputBarComponent } from './prototypes/chat-input-bar/chat-input-bar.component';
 import { AppMapComponent } from './prototypes/app-map/app-map.component';
@@ -39,6 +40,7 @@ const appRoutes: Routes = [
   { path: 'prototypes/deep-tide', component: DeepTideComponent, data: { paletteId: 'deep-tide' } },
   { path: 'prototypes/quiet-plum', component: QuietPlumComponent, data: { paletteId: 'quiet-plum' } },
   { path: 'prototypes/clay-ember', component: ClayEmberComponent, data: { paletteId: 'clay-ember' } },
+  { path: 'prototypes/night-signal-dark', component: ColorPalettePreviewComponent, data: { paletteId: 'night-signal-dark' } },
   { path: 'prototypes/night-signal', component: NightSignalComponent, data: { paletteId: 'night-signal' } },
   { path: 'prototypes/CHAT-INPUT-BAR', redirectTo: 'prototypes/chat-input-bar', pathMatch: 'full' },
   { path: 'prototypes/CLEAR-SLATE', redirectTo: 'prototypes/clear-slate', pathMatch: 'full' },

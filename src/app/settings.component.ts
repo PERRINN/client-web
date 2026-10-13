@@ -10,6 +10,7 @@ import firebase from 'firebase/compat/app';
 @Component({
     selector: 'settings',
     templateUrl: './settings.component.html',
+    styleUrls: ['./settings.component.css'],
     standalone: false
 })
 export class SettingsComponent implements OnInit {

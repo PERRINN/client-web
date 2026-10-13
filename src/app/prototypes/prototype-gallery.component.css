@@ -1,4 +1,4 @@
-:host { display: block; color: var(--text-light); font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; }
+:host { display: block; color: var(--text-light); font-family: var(--font-family-ui); }
 :host h1, :host h2, :host h3 { overflow: visible; line-height: 1.35; }
 .prototype-gallery { max-width: 960px; margin: 0 auto; padding: 24px; }
 .gallery-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 24px; }
@@ -50,6 +50,7 @@ h1 { margin-bottom: 6px; font-size: 25px; font-weight: 600; }
 .palette-mini.tide { --mini-page: #0d1920; --mini-surface: #162630; --mini-raised: #203641; --mini-text: #f3fafc; --mini-accent: #74d9c2; background: var(--mini-page); }
 .palette-mini.plum { --mini-page: #1b1720; --mini-surface: #28222f; --mini-raised: #373041; --mini-text: #f8f5fa; --mini-accent: #c2a7f2; background: var(--mini-page); }
 .palette-mini.clay { --mini-page: #1d1918; --mini-surface: #2b2422; --mini-raised: #3b302d; --mini-text: #faf5f2; --mini-accent: #e9957d; background: var(--mini-page); }
+.palette-mini.night-dark { --mini-page: #0b1118; --mini-surface: #17212c; --mini-raised: #263443; --mini-text: #f4f6f8; --mini-accent: #e5c477; background: var(--mini-page); }
 .palette-mini.night { --mini-page: #121923; --mini-surface: #1d2835; --mini-raised: #2a3745; --mini-text: #f4f6f8; --mini-accent: #e5c477; background: var(--mini-page); }
 .palette-mini-nav { flex: 0 0 22%; border-right: 1px solid rgba(203,213,225,.25); background: var(--mini-surface); }
 .palette-mini-main { display: flex; flex: 1; flex-direction: column; gap: 6px; padding: 3px; }

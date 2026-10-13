@@ -7,7 +7,7 @@ import { UserInterfaceService } from "./userInterface.service";
 import { AngularFirestore } from "@angular/fire/compat/firestore";
 import { AngularFireAuth } from "@angular/fire/compat/auth";
 import { environment } from "../environments/environment";
-import { AgChartOptions } from "ag-charts-community";
+import { AgChartOptions, AgChartTheme } from "ag-charts-community";
 import { firstValueFrom } from "rxjs";
 
 interface RevolutOrderResponse {
@@ -29,6 +29,7 @@ type PaymentState =
 @Component({
     selector: 'buyPRN',
     templateUrl: './buy-prn.component.html',
+    styleUrls: ['./buy-prn.component.css'],
     standalone: false
 })
 export class BuyPrnComponent implements OnInit, OnDestroy {
@@ -340,6 +341,19 @@ export class BuyPrnComponent implements OnInit, OnDestroy {
 
 
   private buildChartOptions(): AgChartOptions {
+    // Canvas text does not inherit CSS, so use the same family as the document.
+    const fontFamily = getComputedStyle(document.documentElement).fontFamily;
+    const chartTheme: AgChartTheme = {
+      baseTheme: 'ag-default-dark',
+      overrides: { common: {
+        title: { fontFamily },
+        legend: { item: { label: { fontFamily } } },
+        axes: {
+          number: { label: { fontFamily }, title: { fontFamily } },
+          time: { label: { fontFamily }, title: { fontFamily } }
+        }
+      } }
+    };
     const now = this.UI.nowSeconds * 1000;
     const start = 1296578670000;
     const yearMs = 365 * 24 * 3600000;
@@ -357,7 +371,7 @@ export class BuyPrnComponent implements OnInit, OnDestroy {
         { year: now + 6 * yearMs, price: calcPrice(now + 6 * yearMs) },
       ],
       series: [{ type: "line", xKey: "year", yKey: "price" }],
-      theme: "ag-default-dark",
+      theme: chartTheme,
       axes: [
         { type: "time", position: "bottom" },
         { type: "number", position: "left", keys: ["price"] },

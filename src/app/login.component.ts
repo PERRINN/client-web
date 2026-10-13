@@ -10,6 +10,7 @@ import { first } from 'rxjs/operators';
 @Component({
     selector: 'login',
     templateUrl: './login.component.html',
+    styleUrls: ['./login.component.css'],
     standalone: false
 })
 

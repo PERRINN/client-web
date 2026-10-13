@@ -1,4 +1,4 @@
-<main class="palette-page">
+<main class="palette-page" [class.night-study]="palette.id.startsWith('night-signal')">
   <a class="back-link" routerLink="/prototypes">← Prototyping</a>
   <header class="page-heading">
     <div>
@@ -12,6 +12,14 @@
       <a [routerLink]="['/prototypes', nextPalette.id]" [attr.aria-label]="'Next: ' + nextPalette.name">→</a>
     </nav>
   </header>
+
+  @if (palette.id.startsWith('night-signal')) {
+    <nav class="night-comparison" aria-label="Compare Night Signal palettes">
+      <a routerLink="/prototypes/night-signal" [attr.aria-current]="palette.id === 'night-signal' ? 'page' : null">Original Night Signal</a>
+      <a routerLink="/prototypes/night-signal-dark" [attr.aria-current]="palette.id === 'night-signal-dark' ? 'page' : null">Night Signal Dark</a>
+      <span>{{ palette.id === 'night-signal-dark' ? 'Current production palette' : 'Original palette' }}</span>
+    </nav>
+  }
 
   <section class="app-preview" [ngStyle]="palette.theme" aria-label="Member home colour preview">
     <aside class="app-nav">
@@ -49,7 +57,7 @@
   </section>
 
   <section class="palette-details" aria-label="Palette colours">
-    <div class="palette-description"><p class="eyebrow">PALETTE</p><h2>{{ palette.direction }}</h2><p>Text and controls stay clear across the darker surfaces. The accent marks primary actions and selected navigation.</p></div>
+    <div class="palette-description"><p class="eyebrow">PALETTE</p><h2>{{ palette.direction }}</h2><p>Text and controls stay clear across the darker surfaces. Gold marks primary actions; neutral surfaces mark selected navigation.</p></div>
     <div class="swatches"><div class="swatch" *ngFor="let color of palette.colors"><span class="swatch-color" [style.backgroundColor]="color.value" [attr.aria-label]="color.label + ' colour ' + color.value"></span><span>{{ color.label }}<small>{{ color.value }}</small></span></div></div>
   </section>
 </main>
