@@ -16,18 +16,19 @@ import { ClayEmberComponent } from './prototypes/clay-ember/clay-ember.component
 import { NightSignalComponent } from './prototypes/night-signal/night-signal.component';
 import { ChatInputBarComponent } from './prototypes/chat-input-bar/chat-input-bar.component';
 import { AppMapComponent } from './prototypes/app-map/app-map.component';
-import { HomeComponent } from './prototypes/home/home.component';
+import { HomeComponent as PrototypeHomeComponent } from './prototypes/home/home.component';
+import { HomeComponent } from './home.component';
 import { DilSensitivityAnalysisComponent } from './prototypes/dil-sensitivity-analysis/dil-sensitivity-analysis.component';
 
 const appRoutes: Routes = [
   { path: 'prototypes/dil-sensitivity-analysis', component: DilSensitivityAnalysisComponent },
   { path: 'prototypes/app-wiring', component: AppMapComponent, data: { mapView: 'wiring' } },
-  { path: 'prototypes/home', component: HomeComponent },
-  { path: 'prototypes/editorial-mosaic', component: HomeComponent, data: { mosaicId: 'editorial-mosaic' } },
-  { path: 'prototypes/balanced-grid', component: HomeComponent, data: { mosaicId: 'balanced-grid' } },
-  { path: 'prototypes/masonry-flow', component: HomeComponent, data: { mosaicId: 'masonry-flow' } },
-  { path: 'prototypes/panorama-rail', component: HomeComponent, data: { mosaicId: 'panorama-rail' } },
-  { path: 'prototypes/staggered-collage', component: HomeComponent, data: { mosaicId: 'staggered-collage' } },
+  { path: 'prototypes/home', component: PrototypeHomeComponent },
+  { path: 'prototypes/editorial-mosaic', component: PrototypeHomeComponent, data: { mosaicId: 'editorial-mosaic' } },
+  { path: 'prototypes/balanced-grid', component: PrototypeHomeComponent, data: { mosaicId: 'balanced-grid' } },
+  { path: 'prototypes/masonry-flow', component: PrototypeHomeComponent, data: { mosaicId: 'masonry-flow' } },
+  { path: 'prototypes/panorama-rail', component: PrototypeHomeComponent, data: { mosaicId: 'panorama-rail' } },
+  { path: 'prototypes/staggered-collage', component: PrototypeHomeComponent, data: { mosaicId: 'staggered-collage' } },
   { path: 'prototypes/data-model-map', component: AppMapComponent, data: { mapView: 'data' } },
   { path: 'prototypes/workflow-map', component: AppMapComponent, data: { mapView: 'flows' } },
   { path: 'prototypes/chat-input-bar', component: ChatInputBarComponent },
@@ -45,6 +46,7 @@ const appRoutes: Routes = [
   { path: 'prototypes/CLAY-EMBER', redirectTo: 'prototypes/clay-ember', pathMatch: 'full' },
   { path: 'prototypes/NIGHT-SIGNAL', redirectTo: 'prototypes/night-signal', pathMatch: 'full' },
   { path: 'prototypes', component: PrototypeGalleryComponent },
+  { path: 'home', component: HomeComponent },
   { path: 'chat/:id', component: ChatComponent },
   { path: 'profile/:id', component: ProfileComponent },
   { path: 'settings', component: SettingsComponent },
@@ -53,7 +55,7 @@ const appRoutes: Routes = [
   { path: 'apps', component: AppsComponent },
   { path: 'buyPRN/:id', component: BuyPrnComponent },
   { path: 'buyPRN', redirectTo: 'buyPRN/', pathMatch: 'full' },
-  { path: '',   redirectTo: 'profile/all', pathMatch: 'full' },
+  { path: '',   redirectTo: 'home', pathMatch: 'full' },
   { path: '**', component: ProfileComponent }
 ];
 
