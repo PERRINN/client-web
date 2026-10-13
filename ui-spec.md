@@ -50,10 +50,23 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 ## Typography
 
 - Use a clean system sans stack: `'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif`.
+- Use the approved Home typography scale for all new and rebuilt UI, including prototypes:
+
+  | Text role | Font size |
+  | --- | --- |
+  | Page headline | 22px |
+  | Section heading | 16px |
+  | Primary body text, names and row/event titles | 15px |
+  | Supporting text, dates, durations, timestamps and loading/error/empty messages | 14px |
+  | Minor labels, section kickers, hints and helper text | 13px |
+
+- Keep these sizes on mobile. Resolve limited space through wrapping, layout and spacing rather than shrinking text. Do not use 9–12px text for ordinary labels or information users need to read.
+- Use regular weight 400 for body text and metadata, medium weight around 550 for row titles, and semibold around 600 for headings and emphasized labels. Override the legacy global `font-weight: 100` in scoped component styles; preserve the intended size and weight on nested text instead of letting the universal reset take over.
+- Use proportional line heights: about 1.45 for body text and metadata, and 1.35 for headings. Let rows grow when names or titles wrap; avoid fixed heights that clip larger text. Keep compact numeric date blocks legible with enough space for both lines.
 - Keep headings quietly distinct from body text through modest size and weight changes, not display styling.
 - Use the same typeface for text and numbers. Emphasize important values through size and weight, not a separate monospace face.
 - Keep text within the same line consistent in font size, weight, family, and style, including inline dates, durations, units, and metadata. Do not vary typography within a line for routine emphasis. Set nested inline elements to inherit these properties explicitly when legacy global styles override inheritance.
-- Maintain readable contrast and concise labels. Use the existing page-level type sizes as references, not the conflicting global Verdana reset.
+- Maintain readable contrast and concise labels. Use this approved scale as the reference, not older compact prototypes or the conflicting global Verdana reset. Apply it incrementally to the requested screen; do not restyle unrelated legacy pages.
 
 ## Layout & spacing
 
