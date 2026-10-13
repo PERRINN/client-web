@@ -90,4 +90,4 @@ For the current Firestore paths, message lifecycle, payment flow, image handling
 - `AGENTS.md` contains repository-specific instructions for coding agents, including architecture, component size, implementation preferences, and security-sensitive changes.
 - `ui-spec.md` is the design authority for new and rebuilt components. Read it before building or redesigning a component.
 
-The home prototype’s Recently active panel reads existing per-user activity snapshots with at most six concurrent requests and refreshes once a minute. Results appear progressively; each activity read takes the first available snapshot and times out after ten seconds, so one failed read cannot block the list. It avoids a persistent live Firestore listener for every user; leaving the prototype cancels its subscriptions and refresh timer.
+The Home prototype and Layouts gallery category have been retired. Old `/prototypes/home` links return to `/prototypes`. The five mosaic experiments remain available through their existing routes and use a dedicated `ImageMosaicComponent`; production Home at `/home` remains independent.

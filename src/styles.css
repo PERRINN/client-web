@@ -566,10 +566,6 @@ app-root .contentCard:has(> directory) {
   min-height: auto;
   overflow: visible;
 }
-app-root .banner-img {
-  width: 100%;
-  display: block;
-}
 app-root .messageTiming {
   color: var(--color-text-muted);
   font-size: 11px;
@@ -1055,12 +1051,6 @@ app-root directory .island {
   border: 1px solid rgba(52, 64, 74, 0.12);
   border-radius: 12px;
   color: var(--color-text-secondary);
-}
-app-root directory .directory-banner-item {
-  padding: 0;
-  overflow: hidden;
-  margin-bottom: 20px;
-  line-height: 0;
 }
 app-root directory .directory-overview-island {
   background: var(--color-surface);

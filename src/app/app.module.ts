@@ -23,7 +23,7 @@ import { ClayEmberComponent } from './prototypes/clay-ember/clay-ember.component
 import { NightSignalComponent } from './prototypes/night-signal/night-signal.component';
 import { ChatInputBarComponent } from './prototypes/chat-input-bar/chat-input-bar.component';
 import { AppMapComponent } from './prototypes/app-map/app-map.component';
-import { HomeComponent as PrototypeHomeComponent } from './prototypes/home/home.component';
+import { ImageMosaicComponent } from './prototypes/image-mosaic/image-mosaic.component';
 import { HomeComponent } from './home.component';
 import { DilSensitivityAnalysisComponent } from './prototypes/dil-sensitivity-analysis/dil-sensitivity-analysis.component';
 import { DilWorkflowComponent } from './prototypes/dil-sensitivity-analysis/dil-workflow.component';
@@ -73,7 +73,7 @@ export const firebaseConfig = {
         NightSignalComponent,
         ChatInputBarComponent,
         AppMapComponent,
-        PrototypeHomeComponent,
+        ImageMosaicComponent,
         HomeComponent,
         DilSensitivityAnalysisComponent,
         DilWorkflowComponent,

@@ -14,12 +14,6 @@
       </div>
     }
 
-    @if (scope==='all'&&UI.PERRINNProfileLastMessageObj?.imageUrlOriginal!=undefined && !sidePanelScope) {
-      <div class="island profile-banner-item">
-        <img [src]="UI.PERRINNProfileLastMessageObj?.imageUrlOriginal" class="banner-img">
-      </div>
-    }
-
     @if (scope!=='all') {
       <div class="island prof-p-14">
         <div class="prof-header-wrap">

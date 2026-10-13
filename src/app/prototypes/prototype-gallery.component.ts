@@ -37,13 +37,6 @@ export class PrototypeGalleryComponent {
       description: 'A bottom-pinned message composer with image paste, file selection, preview, and local sending.',
       route: '/prototypes/chat-input-bar'
     },
-    {
-      name: 'home',
-      category: 'layouts',
-      type: 'Team dashboard',
-      description: 'A live overview of recent images, upcoming events, and recent chat activity.',
-      route: '/prototypes/home'
-    },
     { name: 'editorial-mosaic', category: 'mosaics', type: 'Editorial mosaic', description: 'One broad lead image anchors a compact supporting grid.', route: '/prototypes/editorial-mosaic' },
     { name: 'balanced-grid', category: 'mosaics', type: 'Balanced grid', description: 'A regular image grid adapts its column count to the available width.', route: '/prototypes/balanced-grid' },
     { name: 'masonry-flow', category: 'mosaics', type: 'Masonry flow', description: 'Images keep varied heights in a responsive column flow.', route: '/prototypes/masonry-flow' },
@@ -97,7 +90,6 @@ export class PrototypeGalleryComponent {
     { id: 'engineering', title: '424 engineering', prototypes: this.prototypes.filter(item => item.category === 'engineering') },
     { id: 'architecture', title: 'Architecture maps', prototypes: this.prototypes.filter(item => item.category === 'architecture') },
     { id: 'inputs', title: 'Inputs', prototypes: this.prototypes.filter(item => item.category === 'inputs') },
-    { id: 'layouts', title: 'Layouts', prototypes: this.prototypes.filter(item => item.category === 'layouts') },
     { id: 'mosaics', title: 'Mosaics', prototypes: this.prototypes.filter(item => item.category === 'mosaics') },
     { id: 'colours', title: 'Colour palettes', prototypes: this.prototypes.filter(item => item.category === 'colours') }
   ];

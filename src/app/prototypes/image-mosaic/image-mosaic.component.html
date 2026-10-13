@@ -1,0 +1,43 @@
+<main class="mosaic-page">
+  <a class="back-link" routerLink="/prototypes">← Prototyping</a>
+  <nav class="variant-nav" aria-label="Image mosaic variants">
+    <span class="variant-label">Image mosaic</span>
+    @for (variant of mosaicVariants; track variant.id) {
+      <a [routerLink]="['/prototypes', variant.id]" [queryParams]="{ width: mosaicWidth }" [attr.aria-current]="activeMosaic === variant.id ? 'page' : null">{{ variant.name }}</a>
+    }
+  </nav>
+  <div class="comparison-width">
+    <label for="mosaic-preview-width">Preview width <span>{{ mosaicWidth }}px</span></label>
+    <input id="mosaic-preview-width" type="range" min="320" max="1440" step="1" [value]="mosaicWidth" (input)="setMosaicWidth($any($event.target).value)">
+    <span class="coverage-stat">Image tiles cover <strong>{{ imageCoveragePercent }}%</strong> of the mosaic</span>
+  </div>
+  <div class="prototype-frame" #frame [class]="'prototype-frame layout-' + activeMosaic" [style.width.px]="mosaicWidth">
+  <header class="page-header">
+    <div>
+      <h1>{{ activeMosaicName }}</h1>
+      <p class="page-intro">{{ activeMosaicDescription }}</p>
+    </div>
+  </header>
+  <button class="resize-edge" type="button" role="slider" aria-label="Resize mosaic preview" aria-orientation="horizontal" [attr.aria-valuenow]="frame.clientWidth" aria-valuemin="320" aria-valuemax="1440" (pointerdown)="startResize($event, frame)" (pointermove)="resize($event)" (pointerup)="endResize()" (pointercancel)="endResize()" (keydown.arrowleft)="resizeBy(frame, -40)" (keydown.arrowright)="resizeBy(frame, 40)"><span></span></button>
+
+    <section class="image-panel mosaic-only" aria-label="Latest shared images">
+      @if (loadingImages) {
+        <div class="image-state" role="status"><span class="loader"></span><span>Loading</span></div>
+      } @else if (imageError) {
+        <div class="image-state" role="alert"><span>Images are unavailable right now.</span></div>
+      } @else if (imageTiles.length) {
+        <div class="image-grid" #imageGrid [class]="'image-grid layout-' + activeMosaic" [attr.data-count]="imageTiles.length">
+          @for (image of imageTiles; track image.id; let i = $index) {
+            <article class="image-tile" [class]="'image-tile tile-' + ((i % 7) + 1)">
+              <button class="image-open" type="button" (click)="openImage(image)" aria-label="View full-size image">
+                <img class="tile-image" [src]="imageUrl(image)" [alt]="image.text || 'Image shared in a team message'">
+              </button>
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="image-state"><span class="state-icon">▧</span><strong>No images yet</strong><span>Images shared in conversations will show up here.</span></div>
+      }
+    </section>
+  </div>
+</main>

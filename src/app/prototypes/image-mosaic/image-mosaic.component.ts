@@ -1,23 +1,16 @@
-import { ChangeDetectorRef, Component, ElementRef, EnvironmentInjector, OnDestroy, OnInit, ViewChild, runInInjectionContext } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { map } from 'rxjs/operators';
 import { UserInterfaceService } from '../../userInterface.service';
-import { PresenceService, RecentVisitor } from '../../presence.service';
-
-interface HomeMessage {
-  id: string;
-  [key: string]: any;
-}
+import { HomeFeedService, HomeMessage } from '../../homeFeed.service';
 
 @Component({
-  selector: 'prototype-home',
-  templateUrl: './home.component.html',
-  styleUrls: ['./home.component.css'],
+  selector: 'app-image-mosaic',
+  templateUrl: './image-mosaic.component.html',
+  styleUrls: ['./image-mosaic.component.css'],
   standalone: false
 })
-export class HomeComponent implements OnInit, OnDestroy {
+export class ImageMosaicComponent implements OnInit, OnDestroy {
   readonly mosaicVariants = [
     { id: 'editorial-mosaic', name: 'Editorial mosaic', description: 'One broad lead image anchors a compact supporting grid.' },
     { id: 'balanced-grid', name: 'Balanced grid', description: 'A regular image grid adapts its column count to the available width.' },
@@ -25,27 +18,18 @@ export class HomeComponent implements OnInit, OnDestroy {
     { id: 'panorama-rail', name: 'Panorama rail', description: 'A wide feature image leads into a compact six-column image field.' },
     { id: 'staggered-collage', name: 'Staggered collage', description: 'Alternating tile sizes create a denser, varied rhythm.' }
   ];
-  activeMosaic = '';
+  activeMosaic = 'editorial-mosaic';
   mosaicWidth = 1080;
   @ViewChild('frame') mosaicFrame?: ElementRef<HTMLElement>;
   @ViewChild('imageGrid') mosaicGrid?: ElementRef<HTMLElement>;
   private resizeStart: { x: number; width: number } | null = null;
   images: HomeMessage[] = [];
-  events: HomeMessage[] = [];
-  visitors: RecentVisitor[] = [];
   loadingImages = true;
-  loadingEvents = true;
-  loadingVisitors = true;
   imageError = false;
-  eventError = false;
-  visitorError = false;
   private subscriptions = new Subscription();
-  private homePanelsSubscribed = false;
 
   constructor(
-    private afs: AngularFirestore,
-    private presence: PresenceService,
-    private injector: EnvironmentInjector,
+    private feed: HomeFeedService,
     private changeDetector: ChangeDetectorRef,
     private route: ActivatedRoute,
     public UI: UserInterfaceService,
@@ -54,8 +38,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.subscriptions.add(this.route.data.subscribe(data => {
-      this.activeMosaic = data['mosaicId'] || '';
-      if (!this.activeMosaic) this.subscribeToHomePanels();
+      this.activeMosaic = data['mosaicId'] || 'editorial-mosaic';
     }));
     this.subscriptions.add(this.route.queryParamMap.subscribe(params => {
       const width = Number(params.get('width'));
@@ -65,7 +48,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   get activeMosaicName(): string {
-    return this.mosaicVariants.find(variant => variant.id === this.activeMosaic)?.name || 'Team dashboard';
+    return this.mosaicVariants.find(variant => variant.id === this.activeMosaic)?.name || 'Image mosaic';
   }
 
   get activeMosaicDescription(): string {
@@ -131,24 +114,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     } catch { return 1080; }
   }
 
-  private subscribeToHomePanels(): void {
-    if (this.homePanelsSubscribed) return;
-    this.homePanelsSubscribed = true;
-    this.subscribeToEvents();
-    this.subscribeToVisitors();
-  }
-
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
   }
 
   private subscribeToImages() {
-    const images = runInInjectionContext(this.injector, () => this.afs.collection<HomeMessage>('PERRINNMessages', ref =>
-      ref.where('verified', '==', true).orderBy('chatImageTimestamp', 'desc').limit(50)
-    ).snapshotChanges().pipe(map(rows => rows.map(row => ({ id: row.payload.doc.id, ...row.payload.doc.data() } as HomeMessage)))));
-    this.subscriptions.add(images.subscribe({
+    this.subscriptions.add(this.feed.images().subscribe({
       next: rows => {
-        this.images = rows.filter(row => row.chatImageUrlMedium || row.chatImageUrlThumb || row.chatImageUrlOriginal);
+        this.images = rows;
         this.loadingImages = false;
         this.changeDetector.markForCheck();
       },
@@ -156,45 +129,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     }));
   }
 
-  private subscribeToEvents() {
-    const events = runInInjectionContext(this.injector, () => this.afs.collection<HomeMessage>('PERRINNMessages', ref =>
-      ref.where('lastMessage', '==', true)
-        .where('verified', '==', true)
-        .orderBy('eventDateEnd')
-        .where('eventDateEnd', '>', Date.now())
-    ).snapshotChanges().pipe(map(rows => rows.map(row => ({ id: row.payload.doc.id, ...row.payload.doc.data() } as HomeMessage)))));
-    this.subscriptions.add(events.subscribe({
-      next: rows => { this.events = rows; this.loadingEvents = false; this.changeDetector.markForCheck(); },
-      error: () => { this.eventError = true; this.loadingEvents = false; this.changeDetector.markForCheck(); }
-    }));
-  }
-
-  private subscribeToVisitors() {
-    this.subscriptions.add(this.presence.recentVisitors().subscribe({
-      next: visitors => {
-        this.visitors = visitors;
-        this.visitorError = false;
-        this.loadingVisitors = false;
-        this.changeDetector.markForCheck();
-      },
-      error: error => {
-        console.error('Home recent activity query failed', error);
-        this.visitorError = true;
-        this.loadingVisitors = false;
-        this.changeDetector.markForCheck();
-      }
-    }));
-  }
-
   get imageTiles(): HomeMessage[] {
     return this.images.slice(0, 25);
-  }
-
-  get upcomingEvents(): HomeMessage[] {
-    return this.events
-      .filter(event => Number(event.eventDateEnd) > this.UI.nowSeconds * 1000)
-      .sort((a, b) => this.toMillis(a.eventDateStart) - this.toMillis(b.eventDateStart))
-      .slice(0, 4);
   }
 
   imageUrl(message: HomeMessage): string {
@@ -205,43 +141,4 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.UI.showFullScreenImage(message.chatImageUrlOriginal || this.imageUrl(message));
   }
 
-  openChat(chain: string) {
-    if (chain) this.router.navigate(['/chat', chain]);
-  }
-
-  openProfile(userId: string) {
-    this.router.navigate(['/profile', userId]);
-  }
-
-  eventStartsIn(event: HomeMessage): string {
-    const start = this.toMillis(event.eventDateStart);
-    if (!start) return 'Start time unavailable';
-    const remaining = start - this.UI.nowSeconds * 1000;
-    if (remaining <= 0) return 'In progress';
-    if (remaining < 60000) return 'In less than 1m';
-    const minutes = Math.ceil(remaining / 60000);
-    if (minutes < 60) return `In ${minutes}m`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `In ${hours}h${minutes % 60 ? ` ${minutes % 60}m` : ''}`;
-    const days = Math.floor(hours / 24);
-    return `In ${days}d${hours % 24 ? ` ${hours % 24}h` : ''}`;
-  }
-
-  timeAgo(timestamp: number): string {
-    const minutes = Math.max(0, Math.floor((Date.now() - timestamp) / 60000));
-    if (minutes < 1) return 'Just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.floor(hours / 24)}d ago`;
-  }
-
-  private toMillis(value: any): number {
-    if (!value) return 0;
-    if (typeof value === 'number') return value;
-    if (typeof value.toMillis === 'function') return value.toMillis();
-    if (typeof value.seconds === 'number') return value.seconds * 1000;
-    if (typeof value.toDate === 'function') return value.toDate().getTime();
-    return 0;
-  }
 }
