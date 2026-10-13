@@ -6,6 +6,20 @@
         <button type="button" aria-label="Dismiss home screen tip" (click)="dismissHomeScreenHint()"><span aria-hidden="true">×</span></button>
       </aside>
     }
+    @if (eventNotices.length) {
+      <section class="panel event-notices" aria-label="Events starting soon or in progress">
+        @for (event of eventNotices; track event.chain) {
+          <div class="event-notice">
+            <div class="event-notice-copy">
+              <p class="event-notice-status">{{ eventNoticeStatus(event) }}</p>
+              <h2>{{ event.eventDescription || event.chatSubject || 'Team event' }}</h2>
+              <p class="event-notice-time">{{ event.eventDateStart | date:'EEE, d MMM, h:mm a' }}</p>
+            </div>
+            <a class="event-notice-action" [routerLink]="['/chat', event.chain]" [attr.aria-label]="'Open event: ' + (event.eventDescription || event.chatSubject || 'Team event')">Open event</a>
+          </div>
+        }
+      </section>
+    }
     @if (bannerUrl; as imageUrl) {
       <div class="home-banner">
         <img [src]="imageUrl" alt="PERRINN team banner" (error)="failedBannerUrl = imageUrl">

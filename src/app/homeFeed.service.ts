@@ -45,6 +45,20 @@ export class HomeFeedService {
       .slice(0, 4);
   }
 
+  eventNotices(events: HomeMessage[], now: number): HomeMessage[] {
+    const eligible = events.filter(event => {
+      const start = Number(event.eventDateStart);
+      const end = Number(event.eventDateEnd);
+      return event.chain && Number.isFinite(start) && start > 0
+        && Number.isFinite(end) && end > start && end > now;
+    }).sort((a, b) => Number(a.eventDateStart) - Number(b.eventDateStart));
+    // Select from the full loaded feed: ongoing events must not hide the next start.
+    const active = eligible.find(event => Number(event.eventDateStart) <= now);
+    const next = eligible.find(event => Number(event.eventDateStart) > now
+      && Number(event.eventDateStart) - now <= 3600000);
+    return [active, next].filter((event): event is HomeMessage => !!event);
+  }
+
   // Keep the existing end-date query/index and start-date display order. Traverse
   // bounded live pages so a long event cannot hide an earlier-starting event.
   private eventPage(now: number, cursor?: firebase.firestore.QueryDocumentSnapshot<HomeMessage>): Observable<HomeMessage[]> {

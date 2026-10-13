@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { fromEvent, merge, Subscription, timer } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { HomeFeedService, HomeMessage } from './homeFeed.service';
 import { PresenceService, RecentVisitor } from './presence.service';
 import { MessageActivityService, MentionActivity } from './messageActivity.service';
@@ -26,6 +27,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   visitorError = false;
   failedBannerUrl = '';
   homeScreenHintDismissed = false;
+  eventNow = Date.now();
   private subscriptions = new Subscription();
 
   constructor(
@@ -38,6 +40,13 @@ export class HomeComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // Keep event boundaries current without polling Firestore; refresh on tab return.
+    this.subscriptions.add(merge(
+      timer(0, 1000), fromEvent(document, 'visibilitychange'), fromEvent(window, 'focus')
+    ).pipe(filter(() => !document.hidden)).subscribe(() => {
+      this.eventNow = Date.now();
+      this.changeDetector.markForCheck();
+    }));
     this.subscriptions.add(this.activity.mentions().subscribe(state => {
       this.mentionActivity = state;
       this.changeDetector.markForCheck();
@@ -71,7 +80,19 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   get upcomingEvents(): HomeMessage[] {
-    return this.feed.upcomingEvents(this.events, this.UI.nowSeconds * 1000);
+    return this.feed.upcomingEvents(this.events, this.eventNow);
+  }
+
+  get eventNotices(): HomeMessage[] {
+    return this.loadingEvents || this.eventError ? [] : this.feed.eventNotices(this.events, this.eventNow);
+  }
+
+  eventNoticeStatus(event: HomeMessage): string {
+    const remaining = Number(event.eventDateStart) - this.eventNow;
+    if (remaining <= 0) return 'In progress';
+    if (remaining < 60000) return 'Starting now';
+    const minutes = Math.ceil(remaining / 60000);
+    return `Starts in ${minutes} minute${minutes === 1 ? '' : 's'}`;
   }
 
   get bannerUrl(): string {
@@ -98,7 +119,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   eventStartsIn(event: HomeMessage): string {
     const start = Number(event.eventDateStart || 0);
     if (!start) return 'Start time unavailable';
-    const remaining = start - this.UI.nowSeconds * 1000;
+    const remaining = start - this.eventNow;
     if (remaining <= 0) return 'In progress';
     if (remaining < 60000) return 'Starting now';
     if (remaining < 10800000) {
