@@ -11,6 +11,7 @@ module.exports = {
       }
 
       messageObj.serverTimestamp=FieldValue.serverTimestamp()
+      messageObj.isBackendMessage=true
       messageObj.chain=messageObj.chain||autoId
       if (typeof messageObj.text === 'string' && !messageObj.text.endsWith(' (Backend message)')) {
         messageObj.text = `${messageObj.text} (Backend message)`

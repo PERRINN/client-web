@@ -11,6 +11,7 @@ export interface ActivitySummary {
 }
 
 export interface ActivityConversation {
+  isBackendMessage?: boolean;
   chain?: string;
   text?: string;
   chatSubject?: string;
@@ -65,6 +66,7 @@ export class MessageActivityService {
     const status = !input.userId ? 'signed-out' : input.unavailable ? 'unavailable'
       : !input.ready || !input.profile ? 'loading' : 'ready';
     if (input.userId && input.ready) for (const message of input.conversations) {
+      if (message.isBackendMessage === true) continue;
       const chain = message.chain || '';
       summary.flagged ||= !!input.flags[chain];
       const timestamp = (message.serverTimestamp?.seconds || 0) * 1000;

@@ -1,4 +1,15 @@
 {
-  "indexes": [],
+  "indexes": [
+    {
+      "collectionGroup": "PERRINNMessages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "lastMessage", "order": "ASCENDING" },
+        { "fieldPath": "verified", "order": "ASCENDING" },
+        { "fieldPath": "isBackendMessage", "order": "ASCENDING" },
+        { "fieldPath": "serverTimestamp", "order": "DESCENDING" }
+      ]
+    }
+  ],
   "fieldOverrides": []
 }

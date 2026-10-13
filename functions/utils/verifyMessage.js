@@ -307,6 +307,7 @@ module.exports = {
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{membership:membership},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{currencyList:(messageData.currencyList||userPreviousMessageData.currencyList||PERRINNAdminLastMessageData.currencyList||{})},{create:true})
         //message verified
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{isBackendMessage:messageData.isBackendMessage===true},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{verified:true},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{verifiedTimestamp:admin.firestore.FieldValue.serverTimestamp()},{create:true})
 

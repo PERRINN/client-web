@@ -10,6 +10,7 @@ import { AgChartOptions } from 'ag-charts-community'
 import { PresenceService } from './presence.service'
 import { MessageActivityService } from './messageActivity.service'
 import { ReadCursorService, ReadCursorSession } from './readCursor.service'
+import { SidebarConversationsService } from './sidebarConversations.service'
 
 @Component({
     selector: 'profile',
@@ -71,6 +72,7 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
     private injector: EnvironmentInjector,
     private presence: PresenceService,
     private activity: MessageActivityService,
+    private sidebarConversations: SidebarConversationsService,
     cursors: ReadCursorService
   ) {
     this.math=Math
@@ -249,12 +251,12 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
         ).snapshotChanges().pipe(map(changes=>{
           return changes.map(c=>({payload:c.payload}))
         }))
-        this.messages=this.afs.collection<any>('PERRINNMessages',ref=>ref
+        this.messages=(this.sidePanelScope === 'all' ? this.sidebarConversations.human(this.messageNumberDisplay) : this.afs.collection<any>('PERRINNMessages',ref=>ref
           .where('lastMessage','==',true)
           .where('verified','==',true)
           .orderBy('serverTimestamp','desc')
           .limit(this.messageNumberDisplay)
-        ).snapshotChanges().pipe(map(changes=>{
+        ).snapshotChanges()).pipe(map(changes=>{
           this.UI.loading=false
           this.setLoadedConversations(changes);
           return changes.map(c=>({payload:c.payload}))

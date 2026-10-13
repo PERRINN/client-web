@@ -7,6 +7,9 @@ import { filter, interval, Subscription } from 'rxjs';
 import { PresenceService } from './presence.service';
 import { MessageActivityService, ActivitySummary } from './messageActivity.service';
 import { Observable } from 'rxjs';
+import { SidebarConversationsService, SidebarConversation } from './sidebarConversations.service';
+import { catchError, map, startWith } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Component({
     selector: 'app-root',
@@ -16,6 +19,9 @@ import { Observable } from 'rxjs';
 })
 export class AppComponent implements OnInit, OnDestroy {
   readonly activitySummary: Observable<ActivitySummary>;
+  readonly automaticConversations: Observable<{ status: 'loading' | 'ready' | 'unavailable'; chats: SidebarConversation[] }>;
+  automaticScrollbarVisible = false;
+  private automaticScrollbarTimer?: ReturnType<typeof setTimeout>;
   sidebarOpen = false;
   conversationScrollbarVisible = false;
   private conversationScrollbarTimer?: ReturnType<typeof setTimeout>;
@@ -31,6 +37,12 @@ export class AppComponent implements OnInit, OnDestroy {
     this.conversationScrollbarTimer = setTimeout(() => {
       this.conversationScrollbarVisible = false;
     }, 800);
+  }
+
+  onAutomaticScroll(): void {
+    this.automaticScrollbarVisible = true;
+    clearTimeout(this.automaticScrollbarTimer);
+    this.automaticScrollbarTimer = setTimeout(() => this.automaticScrollbarVisible = false, 800);
   }
 
   openSidebar(): void {
@@ -61,6 +73,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     clearTimeout(this.conversationScrollbarTimer);
+    clearTimeout(this.automaticScrollbarTimer);
     this.navigationSubscription.unsubscribe();
     this.presenceSubscription?.unsubscribe();
   }
@@ -82,9 +95,15 @@ export class AppComponent implements OnInit, OnDestroy {
     public UI:UserInterfaceService,
     private updates: SwUpdate,
     private presence: PresenceService,
-    activity: MessageActivityService
+    activity: MessageActivityService,
+    conversations: SidebarConversationsService
   ) {
     this.activitySummary = activity.summary();
+    this.automaticConversations = conversations.automatic().pipe(
+      map(chats => ({ status: 'ready' as const, chats })),
+      startWith({ status: 'loading' as const, chats: [] }),
+      catchError(() => of({ status: 'unavailable' as const, chats: [] }))
+    );
     this.cleanupLegacyLocalStorage();
     this.navigationSubscription = this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(() => {
       const wasOpen = this.sidebarOpen;

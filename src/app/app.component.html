@@ -29,9 +29,27 @@
         <span>Apps</span>
       </button>
     </nav>
+    <div class="conversationSpace">
       <section class="sideProfile" aria-label="Conversations" [class.is-scrolling]="conversationScrollbarVisible" (scroll)="onConversationScroll()">
         <profile [sidePanelScope]="'all'"></profile>
       </section>
+    </div>
+    @if (automaticConversations | async; as automatic) {
+      <section class="automaticSection" aria-label="Automatic updates">
+          <div class="automaticList" [attr.tabindex]="automatic.chats.length > 3 ? 0 : null" role="region" aria-label="Automatic conversations" [attr.aria-busy]="automatic.status === 'loading'" [class.is-scrolling]="automaticScrollbarVisible" (scroll)="onAutomaticScroll()">
+            @for (chat of automatic.chats; track chat.chain) {
+              <button type="button" class="automaticRow" [class.activeAutomatic]="router.url === '/chat/' + chat.chain" [attr.title]="chat.chatSubject" [disabled]="!chat.chain" (click)="router.navigate(['/chat', chat.chain])">
+                @if (chat.chatProfileImageUrlThumb || chat.chatProfileImageUrlMedium || chat.imageUrlThumbUser) {
+                  <img [src]="chat.chatProfileImageUrlThumb || chat.chatProfileImageUrlMedium || chat.imageUrlThumbUser" alt="" (error)="UI.handleChatImageError($event, chat)">
+                } @else {
+                  <span class="automaticAvatar" aria-hidden="true">{{ (chat.chatSubject || 'Update').slice(0, 1).toUpperCase() }}</span>
+                }
+                <span class="automaticCopy"><strong>{{chat.chatSubject || 'Conversation'}}</strong><span>{{chat.text}}</span></span>
+              </button>
+            }
+          </div>
+      </section>
+    }
     <div class="navRight">
       @if (!UI.currentUser) {
         <button class="buttonSecondary" (click)="router.navigate(['login'])" [disabled]='this.router.url.startsWith("/login")'>

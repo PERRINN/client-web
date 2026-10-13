@@ -2,13 +2,14 @@
 :host .sidebarShell { display: grid; grid-template-columns: 320px minmax(0, 1fr); height: 100dvh; padding: 0; gap: 0; border-radius: 0; background: var(--color-page); font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; }
 :host .sidebarShell span:not([class*="material-icons"]):not([class*="material-symbols"]), :host .sidebarShell a, :host .sidebarShell button, :host .sidebarShell h2 { font-family: inherit; line-height: 1.35; overflow: visible; }
 :host .sidebarShell h2 { font-size: 12px; font-weight: 600; color: var(--color-text-muted); padding: 8px 6px; }
-:host .sidebarShell .shellSidebar { display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 12px; width: 100%; min-height: 0; max-width: none; margin: 0; padding: 16px 12px; border: 0; border-radius: 0; background: var(--color-surface); }
+:host .sidebarShell .shellSidebar { --conversation-row-height: 42px; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 12px; width: 100%; min-height: 0; max-width: none; margin: 0; padding: 16px 12px; border: 0; border-radius: 0; background: var(--color-surface); }
 :host .sidebarShell .navLeft { display: grid; grid-template-columns: minmax(0, 1fr); justify-content: stretch; justify-items: stretch; gap: 2px; flex: 0 0 auto; }
 :host .sidebarShell .iconBtn { display: flex; justify-content: flex-start; margin: 0; text-align: left; width: 100%; min-height: 36px; gap: 12px; padding: 7px 10px; background: transparent; border: 0; border-radius: 7px; color: var(--color-text-secondary); }
 :host .sidebarShell .iconBtn.activeNav { background: var(--color-selected); color: var(--color-text); }
 :host .sidebarShell .iconBtn:hover { background: var(--color-raised); }
 :host .sidebarShell .brandIcon { width: 20px; height: 20px; }
-:host .sidebarShell .sideProfile { display: block; position: static; flex: 1 1 auto; min-height: 0; width: 100%; height: auto; overflow-y: auto; overscroll-behavior: contain; border: 0; border-radius: 0; animation: none; background: transparent; }
+:host .conversationSpace { flex: 1 1 0; min-height: 0; }
+:host .sidebarShell .sideProfile { display: block; position: static; min-height: 0; width: 100%; height: 100%; height: round(down, 100%, var(--conversation-row-height)); overflow-y: auto; overscroll-behavior: contain; scroll-snap-type: y mandatory; border: 0; border-radius: 0; animation: none; background: transparent; }
 :host .sidebarShell .sideProfile::-webkit-scrollbar-track { background-color: var(--color-surface); }
 :host .sidebarShell .sideProfile::-webkit-scrollbar-thumb { background-color: transparent; }
 :host .sidebarShell .sideProfile.is-scrolling::-webkit-scrollbar-thumb { background-color: var(--color-border); }
@@ -60,3 +61,24 @@
 :host .other-dot { background: var(--color-text-muted); }
 :host .flagged-dot { background: var(--color-accent); }
 :host .activity-unavailable { color: var(--color-text-muted); font-size: 12px; }
+
+:host .automaticSection { flex: 0 0 auto; min-height: 0; overflow: visible; }
+:host .automaticList { height: 192px; background: var(--color-raised); overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scroll-snap-type: y mandatory; scrollbar-gutter: stable; }
+:host .automaticList::-webkit-scrollbar-track { background: var(--color-raised); }
+:host .automaticList::-webkit-scrollbar-thumb { background: transparent; }
+:host .automaticList.is-scrolling::-webkit-scrollbar-thumb { background: var(--color-border); }
+:host .automaticList:focus-visible { outline: 2px solid var(--color-text-secondary); outline-offset: -2px; }
+:host .automaticRow { display: flex; align-items: center; gap: 10px; width: 100%; height: 64px; margin: 0; padding: 8px; border: 0; border-radius: 6px; background: transparent; color: var(--color-text); text-align: left; cursor: pointer; scroll-snap-align: start; }
+:host .automaticRow:hover { background: var(--color-selected); }
+:host .automaticRow.activeAutomatic { background: var(--color-selected); }
+:host .automaticRow:disabled { opacity: .6; cursor: default; }
+:host .automaticRow img, :host .automaticAvatar { width: 32px; height: 32px; flex: 0 0 32px; object-fit: contain; border-radius: 6px; }
+:host .sidebarShell .automaticAvatar { display: grid; place-items: center; background: var(--color-raised); font-size: 15px; font-weight: 400; }
+:host .sidebarShell .automaticCopy { display: grid; min-width: 0; flex: 1; gap: 3px; }
+:host .sidebarShell .automaticCopy strong, :host .sidebarShell .automaticCopy > span { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: inherit; line-height: 1.45; }
+:host .sidebarShell .automaticCopy strong { font-size: 15px; font-weight: 550; }
+:host .sidebarShell .automaticCopy > span { color: var(--color-text-secondary); font-size: 14px; font-weight: 400; }
+@supports not selector(::-webkit-scrollbar) {
+  :host .automaticList { scrollbar-color: transparent var(--color-raised); }
+  :host .automaticList.is-scrolling { scrollbar-color: var(--color-border) var(--color-raised); }
+}

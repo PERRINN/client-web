@@ -17,12 +17,7 @@
       </div>
     </header>
     @if (UI.currentUser && mentionActivity.userId === UI.currentUser && mentionActivity.status !== 'signed-out') {
-      <section class="panel mentions-panel" aria-labelledby="mentions-title">
-        <div class="panel-heading"><h2 id="mentions-title">Mentioned you</h2>
-          @if (mentionActivity.status === 'ready' && mentionActivity.chats.length) {
-            <span class="mention-count">{{ mentionActivity.chats.length }} {{ mentionActivity.chats.length === 1 ? 'chat' : 'chats' }}</span>
-          }
-        </div>
+      <section class="panel mentions-panel" aria-label="Mentioned you">
         @if (mentionActivity.status === 'loading') {
           <div class="compact-state" role="status"><span class="loader" aria-hidden="true"></span>Loading</div>
         } @else if (mentionActivity.status === 'unavailable') {
@@ -43,7 +38,7 @@
             }
           </div>
         } @else {
-          <p class="mention-empty">No unread mentions.</p>
+          <p class="mention-empty">You're all caught up.</p>
         }
       </section>
     }

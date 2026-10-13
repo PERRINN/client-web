@@ -81,9 +81,7 @@ button{font:inherit;color:inherit;transition:none}
   .compact-state{min-height:48px}
 }
 .mentions-panel{margin-bottom:16px}
-.mentions-panel .panel-heading{margin-bottom:8px}
 .mention-empty{margin:0;color:var(--color-text-muted);font-size:14px}
-.mention-count{color:var(--color-text-muted);font-size:14px}
 .mention-list{display:grid;gap:2px}
 .mention-row{display:flex;align-items:center;gap:12px;width:100%;min-height:66px;padding:10px 8px;border:0;border-radius:0;background:transparent;text-align:left;cursor:pointer}
 .mention-row:hover{background:var(--color-selected)}

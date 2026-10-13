@@ -4,10 +4,10 @@
 .profile-wallet-actions > span { overflow: visible; line-height: 1.35; }
 
 /* Compact sidebar rows; the main profile feed retains its existing presentation. */
-:host.sidebar-profile { background: transparent; }
+:host.sidebar-profile { padding: 0; background: transparent; }
 :host.sidebar-profile .profileModern { background: transparent !important; }
 :host .listLight.sidebar-conversations { margin: 0; padding: 0; background: transparent; overflow: visible; }
-:host .sidebar-conversations.listLight > li { margin: 0; padding: 6px 4px; border: 0; border-radius: 0; background: transparent !important; overflow: visible; transition: none; }
+:host .sidebar-conversations.listLight > li { height: var(--conversation-row-height, 42px); box-sizing: border-box; margin: 0; padding: 6px 4px; border: 0 !important; border-radius: 0; background: transparent !important; overflow: visible; transition: none; scroll-snap-align: start; }
 :host .sidebar-conversations.listLight > li:hover { background: var(--color-raised) !important; }
 :host .sidebar-conversations.listLight > li.activeChatListItem { background: var(--color-selected) !important; }
 :host .sidebar-conversations.listLight > li:focus-visible { outline: 2px solid var(--color-text-secondary); outline-offset: -2px; }
@@ -21,7 +21,7 @@
 :host .sidebar-conversations.listLight .chatListUnreadFlag, :host .sidebar-conversations.listLight .chatListBlueFlag { position: static; order: 2; flex: 0 0 6px; width: 6px; height: 6px; border-radius: 50%; }
 
 :host .prof-load-more-wrap.sidebar-load-more { margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
-:host .sidebar-load-more .sidebar-load-more-button { display: flex; align-items: center; justify-content: flex-start; gap: 8px; width: 100%; min-height: 42px; margin: 0; padding: 6px 4px; appearance: none; border: 0; border-radius: 0; background: transparent; box-shadow: none; color: var(--color-text-secondary); text-align: left; transition: none; }
+:host .sidebar-load-more .sidebar-load-more-button { display: flex; align-items: center; justify-content: flex-start; gap: 8px; width: 100%; height: var(--conversation-row-height, 42px); margin: 0; padding: 6px 4px; appearance: none; border: 0; border-radius: 0; background: transparent; box-shadow: none; color: var(--color-text-secondary); text-align: left; transition: none; scroll-snap-align: start; }
 :host .sidebar-load-more .sidebar-load-more-button:hover { background: transparent; color: var(--color-text); }
 :host .sidebar-load-more .sidebar-load-more-button:focus-visible { outline: 2px solid var(--color-text-secondary); outline-offset: -2px; }
 :host .sidebar-load-more-button .material-icons-outlined { width: 24px; font-size: 20px; }
