@@ -1,11 +1,11 @@
-:host { display: block; min-width: 0; color: var(--color-text)}
-:host * { font-family: inherit; font-size: inherit; font-weight: inherit; line-height: 1.5; overflow: visible}
+:host { display: block; min-width: 0; color: var(--color-text); font-family: inherit; font-size: inherit; font-weight: 400}
+:host * { font-family: inherit; font-size: inherit; font-weight: inherit; line-height: 1.45; overflow: visible}
 figure { margin: 0; background: var(--color-page); padding: 16px; border-radius: 10px}
 figcaption { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap}
-h3 { font-weight: 600; line-height: 1.35}
-figcaption span { color: var(--color-text-muted); font-size: 12px}
-svg { display: block; width: 100%; height: auto; border-radius: 0; margin: 8px 0}
-text { fill: var(--color-text-muted); font-size: 11px}
+:host h3 { font-size: 16px; font-weight: 600; line-height: 1.35}
+:host figcaption span { color: var(--color-text-muted); font-size: 14px}
+svg { display: block; width: 570px; min-width: 570px; height: auto; border-radius: 0; margin: 8px auto}
+:host text { fill: var(--color-text-muted); font-size: 13px}
 .grid { stroke: var(--color-raised); stroke-width: 1}
 .zero { stroke: var(--color-text-muted); stroke-dasharray: 3 5}
 .trace { fill: none; stroke: var(--color-accent); stroke-width: 2.5; stroke-linejoin: round}
@@ -13,6 +13,12 @@ text { fill: var(--color-text-muted); font-size: 11px}
 circle { fill: var(--color-accent)}
 circle.reference-dot { fill: var(--color-text-secondary)}
 .cursor { stroke: var(--color-text-muted); stroke-dasharray: 2 4}
-.readout { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px}
+.readout { display: flex; gap: 14px; flex-wrap: wrap; font-size: 14px}
 .key { display: inline-block; width: 18px; border-top: 2px solid var(--color-accent); vertical-align: middle; margin-right: 6px; border-radius: 0}
 .key.dashed { border-color: var(--color-text-secondary); border-top-style: dashed}
+
+:host :is(b,strong) { font-style: inherit; font-family: inherit; font-size: inherit; font-weight: inherit; line-height: inherit}
+.plot-scroll { overflow-x: auto; touch-action: pan-x pan-y}
+.plot-scroll:focus-visible { outline: 2px solid var(--color-text); outline-offset: 3px}
+.axis-label { font-size: 13px; color: var(--color-text-muted); text-align: center; overflow-wrap: anywhere}
+.readout p { color: var(--color-text-secondary)}
