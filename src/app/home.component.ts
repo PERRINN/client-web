@@ -101,9 +101,16 @@ export class HomeComponent implements OnInit, OnDestroy {
     const remaining = start - this.UI.nowSeconds * 1000;
     if (remaining <= 0) return 'In progress';
     if (remaining < 60000) return 'Starting now';
-    const unit = remaining >= 86400000 ? 'day' : remaining >= 3600000 ? 'hour' : 'minute';
-    const duration = unit === 'day' ? 86400000 : unit === 'hour' ? 3600000 : 60000;
-    const amount = unit === 'minute' ? Math.ceil(remaining / duration) : Math.max(1, Math.round(remaining / duration));
+    if (remaining < 10800000) {
+      const totalMinutes = Math.ceil(remaining / 60000);
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      const hourDisplay = hours ? `${hours} hour${hours === 1 ? '' : 's'} ` : '';
+      return `In ${hourDisplay}${minutes} minute${minutes === 1 ? '' : 's'}`;
+    }
+    const unit = remaining >= 86400000 ? 'day' : 'hour';
+    const duration = unit === 'day' ? 86400000 : 3600000;
+    const amount = Math.max(1, Math.round(remaining / duration));
     return `In ${amount} ${unit}${amount === 1 ? '' : 's'}`;
   }
 
