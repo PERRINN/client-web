@@ -21,7 +21,6 @@
   <div class="prototype-frame" #frame [class]="'prototype-frame layout-' + activeMosaic" [style.width.px]="mosaicWidth">
   <header class="page-header">
     <div>
-      <p class="eyebrow">PERRINN · TEAM OVERVIEW</p>
       <h1>{{ activeMosaicName }}</h1>
       <p class="page-intro">{{ activeMosaicDescription }}</p>
     </div>
@@ -53,7 +52,6 @@
   <button class="resize-edge" type="button" role="slider" aria-label="Resize home preview" aria-orientation="horizontal" [attr.aria-valuenow]="mosaicWidth" aria-valuemin="320" aria-valuemax="1440" (pointerdown)="startResize($event, homeFrame)" (pointermove)="resize($event)" (pointerup)="endResize()" (pointercancel)="endResize()" (keydown.arrowleft)="resizeBy(homeFrame, -40)" (keydown.arrowright)="resizeBy(homeFrame, 40)"><span></span></button>
   <header class="page-header">
     <div>
-      <p class="eyebrow">PERRINN · TEAM OVERVIEW</p>
       <h1 class="home-title">A team open to everyone, driven by shared ambition.</h1>
     </div>
   </header>
