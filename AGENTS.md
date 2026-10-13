@@ -50,6 +50,7 @@ The application currently includes profiles and a directory, chat, account setti
 - Treat authentication, authorization, payment, membership, wallet, and private user data as security-sensitive. Read applicable rules and server handlers before changing related flows.
 - Preserve least privilege. Check ownership and authorization in rules or trusted server code. Do not expose secrets, credentials, personal data, or payment details in client code, logs, or documentation. Browser environment configuration is public; keep privileged credentials in the project's approved server-side mechanism.
 - Changes to Firestore paths, message fields, indexes, retention, or access rules can affect existing users and Functions. Keep client and server behavior aligned, and explain compatibility or migration implications.
+- Maintain required composite indexes in `firestore.indexes.json` alongside query changes. Follow the [index audit and maintenance workflow](data-model.md#firestore-index-audit), including live-versus-repository comparison before deployment and explicit review of deletions. Dated files in `audits/` are historical evidence, not deployment configuration.
 - Never weaken or bypass Firebase rules to make a feature work. Review rule changes for unintended access and describe existing policy assumptions rather than silently expanding them.
 
 ## Validation and testing

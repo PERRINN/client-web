@@ -1,0 +1,1018 @@
+{
+  "project": "perrinn-d5fc1",
+  "database": "(default)",
+  "date": "2026-10-13",
+  "sourceCommit": "f21536e",
+  "analyze": false,
+  "queries": [
+    {
+      "id": "Q01",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "chain",
+          "op": "==",
+          "value": "_audit_"
+        },
+        {
+          "field": "lastMessage",
+          "op": "==",
+          "value": true
+        }
+      ],
+      "orders": [],
+      "references": [
+        {
+          "file": "functions/utils/verifyMessage.js",
+          "line": 116
+        }
+      ]
+    },
+    {
+      "id": "Q02",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "chain",
+          "op": "==",
+          "value": "_audit_"
+        }
+      ],
+      "orders": [
+        {
+          "field": "chatImageTimestamp",
+          "direction": "DESCENDING"
+        }
+      ],
+      "references": [
+        {
+          "file": "src/app/chat.component.ts",
+          "line": 452
+        }
+      ]
+    },
+    {
+      "id": "Q03",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "chain",
+          "op": "==",
+          "value": "_audit_"
+        }
+      ],
+      "orders": [
+        {
+          "field": "serverTimestamp",
+          "direction": "DESCENDING"
+        }
+      ],
+      "references": [
+        {
+          "file": "src/app/chat.component.ts",
+          "line": 393
+        }
+      ]
+    },
+    {
+      "id": "Q04",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "chatImageTimestamp",
+          "op": "==",
+          "value": "_audit_"
+        }
+      ],
+      "orders": [],
+      "references": [
+        {
+          "file": "functions/storageOnFinalise.f.js",
+          "line": 18
+        }
+      ]
+    },
+    {
+      "id": "Q05",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "chatProfileImageTimestamp",
+          "op": "==",
+          "value": "_audit_"
+        }
+      ],
+      "orders": [],
+      "references": [
+        {
+          "file": "functions/storageOnFinalise.f.js",
+          "line": 19
+        }
+      ]
+    },
+    {
+      "id": "Q06",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "eventDateEnd",
+          "op": ">",
+          "value": 1791901552062
+        },
+        {
+          "field": "lastMessage",
+          "op": "==",
+          "value": true
+        },
+        {
+          "field": "recipientList",
+          "op": "array-contains-any",
+          "value": [
+            "_audit_"
+          ]
+        },
+        {
+          "field": "verified",
+          "op": "==",
+          "value": true
+        }
+      ],
+      "orders": [
+        {
+          "field": "eventDateEnd",
+          "direction": "ASCENDING"
+        }
+      ],
+      "references": [
+        {
+          "file": "src/app/profile.component.ts",
+          "line": 299
+        }
+      ]
+    },
+    {
+      "id": "Q07",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "eventDateEnd",
+          "op": ">",
+          "value": 1791901552056
+        },
+        {
+          "field": "lastMessage",
+          "op": "==",
+          "value": true
+        },
+        {
+          "field": "verified",
+          "op": "==",
+          "value": true
+        }
+      ],
+      "orders": [
+        {
+          "field": "eventDateEnd",
+          "direction": "ASCENDING"
+        }
+      ],
+      "references": [
+        {
+          "file": "src/app/homeFeed.service.ts",
+          "line": 54
+        },
+        {
+          "file": "src/app/profile.component.ts",
+          "line": 229
+        }
+      ]
+    },
+    {
+      "id": "Q08",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "fund.active",
+          "op": "==",
+          "value": true
+        },
+        {
+          "field": "lastMessage",
+          "op": "==",
+          "value": true
+        },
+        {
+          "field": "recipientList",
+          "op": "array-contains-any",
+          "value": [
+            "_audit_"
+          ]
+        },
+        {
+          "field": "verified",
+          "op": "==",
+          "value": true
+        }
+      ],
+      "orders": [
+        {
+          "field": "fund.daysLeft",
+          "direction": "ASCENDING"
+        }
+      ],
+      "references": [
+        {
+          "file": "src/app/profile.component.ts",
+          "line": 308
+        }
+      ]
+    },
+    {
+      "id": "Q09",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "fund.active",
+          "op": "==",
+          "value": true
+        },
+        {
+          "field": "lastMessage",
+          "op": "==",
+          "value": true
+        },
+        {
+          "field": "verified",
+          "op": "==",
+          "value": true
+        }
+      ],
+      "orders": [
+        {
+          "field": "fund.daysLeft",
+          "direction": "ASCENDING"
+        }
+      ],
+      "references": [
+        {
+          "file": "src/app/profile.component.ts",
+          "line": 237
+        }
+      ]
+    },
+    {
+      "id": "Q10",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "isBackendMessage",
+          "op": "==",
+          "value": true
+        },
+        {
+          "field": "lastMessage",
+          "op": "==",
+          "value": true
+        },
+        {
+          "field": "verified",
+          "op": "==",
+          "value": true
+        }
+      ],
+      "orders": [
+        {
+          "field": "serverTimestamp",
+          "direction": "DESCENDING"
+        }
+      ],
+      "references": [
+        {
+          "file": "src/app/sidebarConversations.service.ts",
+          "line": 19
+        }
+      ]
+    },
+    {
+      "id": "Q11",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "lastMessage",
+          "op": "==",
+          "value": true
+        },
+        {
+          "field": "recipientList",
+          "op": "array-contains-any",
+          "value": [
+            "_audit_"
+          ]
+        },
+        {
+          "field": "verified",
+          "op": "==",
+          "value": true
+        }
+      ],
+      "orders": [
+        {
+          "field": "serverTimestamp",
+          "direction": "DESCENDING"
+        }
+      ],
+      "references": [
+        {
+          "file": "src/app/profile.component.ts",
+          "line": 327
+        }
+      ]
+    },
+    {
+      "id": "Q12",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "lastMessage",
+          "op": "==",
+          "value": true
+        },
+        {
+          "field": "verified",
+          "op": "==",
+          "value": true
+        }
+      ],
+      "orders": [
+        {
+          "field": "fund.daysLeft",
+          "direction": "DESCENDING"
+        }
+      ],
+      "references": [
+        {
+          "file": "src/app/buy-prn.component.ts",
+          "line": 321
+        }
+      ]
+    },
+    {
+      "id": "Q13",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "lastMessage",
+          "op": "==",
+          "value": true
+        },
+        {
+          "field": "verified",
+          "op": "==",
+          "value": true
+        }
+      ],
+      "orders": [
+        {
+          "field": "serverTimestamp",
+          "direction": "DESCENDING"
+        }
+      ],
+      "references": [
+        {
+          "file": "src/app/profile.component.ts",
+          "line": 254
+        },
+        {
+          "file": "src/app/sidebarConversations.service.ts",
+          "line": 38
+        }
+      ]
+    },
+    {
+      "id": "Q14",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "nameLowerCase",
+          "op": "<=",
+          "value": "_audit_"
+        },
+        {
+          "field": "nameLowerCase",
+          "op": ">=",
+          "value": "_audit_"
+        },
+        {
+          "field": "userChain.nextMessage",
+          "op": "==",
+          "value": "none"
+        },
+        {
+          "field": "verified",
+          "op": "==",
+          "value": true
+        }
+      ],
+      "orders": [
+        {
+          "field": "nameLowerCase",
+          "direction": "ASCENDING"
+        }
+      ],
+      "references": [
+        {
+          "file": "src/app/chat.component.ts",
+          "line": 965
+        }
+      ]
+    },
+    {
+      "id": "Q15",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "recipientList",
+          "op": "array-contains-any",
+          "value": [
+            "_audit_"
+          ]
+        },
+        {
+          "field": "verified",
+          "op": "==",
+          "value": true
+        }
+      ],
+      "orders": [
+        {
+          "field": "chatImageTimestamp",
+          "direction": "DESCENDING"
+        }
+      ],
+      "references": [
+        {
+          "file": "src/app/profile.component.ts",
+          "line": 319
+        }
+      ]
+    },
+    {
+      "id": "Q16",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "user",
+          "op": "==",
+          "value": "_audit_"
+        },
+        {
+          "field": "userChain.newMonth",
+          "op": "==",
+          "value": true
+        },
+        {
+          "field": "verified",
+          "op": "==",
+          "value": true
+        }
+      ],
+      "orders": [
+        {
+          "field": "serverTimestamp",
+          "direction": "DESCENDING"
+        }
+      ],
+      "references": [
+        {
+          "file": "src/app/profile.component.ts",
+          "line": 275
+        }
+      ]
+    },
+    {
+      "id": "Q17",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "user",
+          "op": "==",
+          "value": "_audit_"
+        },
+        {
+          "field": "userChain.nextMessage",
+          "op": "==",
+          "value": "none"
+        },
+        {
+          "field": "verified",
+          "op": "==",
+          "value": true
+        }
+      ],
+      "orders": [
+        {
+          "field": "serverTimestamp",
+          "direction": "DESCENDING"
+        }
+      ],
+      "references": [
+        {
+          "file": "functions/utils/verifyMessage.js",
+          "line": 43
+        }
+      ]
+    },
+    {
+      "id": "Q18",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "user",
+          "op": "==",
+          "value": "_audit_"
+        },
+        {
+          "field": "verified",
+          "op": "==",
+          "value": true
+        }
+      ],
+      "orders": [
+        {
+          "field": "serverTimestamp",
+          "direction": "DESCENDING"
+        }
+      ],
+      "references": [
+        {
+          "file": "src/app/buy-prn.component.ts",
+          "line": 257
+        },
+        {
+          "file": "src/app/presence.service.ts",
+          "line": 103
+        },
+        {
+          "file": "src/app/profile.component.ts",
+          "line": 172
+        },
+        {
+          "file": "src/app/profile.component.ts",
+          "line": 286
+        },
+        {
+          "file": "src/app/settings.component.ts",
+          "line": 45
+        },
+        {
+          "file": "src/app/userInterface.service.ts",
+          "line": 91
+        },
+        {
+          "file": "src/app/userInterface.service.ts",
+          "line": 115
+        },
+        {
+          "file": "src/app/userInterface.service.ts",
+          "line": 127
+        },
+        {
+          "file": "functions/scheduledDailyMembership.f.js",
+          "line": 61
+        },
+        {
+          "file": "functions/utils/verifyMessage.js",
+          "line": 17
+        },
+        {
+          "file": "functions/utils/verifyMessage.js",
+          "line": 29
+        },
+        {
+          "file": "functions/utils/verifyMessage.js",
+          "line": 155
+        },
+        {
+          "file": "functions/utils/verifyMessage.js",
+          "line": 189
+        },
+        {
+          "file": "functions/utils/verifyMessage.js",
+          "line": 201
+        },
+        {
+          "file": "functions/utils/verifyMessage.js",
+          "line": 355
+        }
+      ]
+    },
+    {
+      "id": "Q19",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "user",
+          "op": "==",
+          "value": "_audit_"
+        }
+      ],
+      "orders": [
+        {
+          "field": "serverTimestamp",
+          "direction": "DESCENDING"
+        }
+      ],
+      "references": [
+        {
+          "file": "functions/scheduledDailyMembership.f.js",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "id": "Q20",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "userChain.nextMessage",
+          "op": "==",
+          "value": "none"
+        },
+        {
+          "field": "verified",
+          "op": "==",
+          "value": true
+        },
+        {
+          "field": "wallet.balance",
+          "op": ">",
+          "value": 0
+        }
+      ],
+      "orders": [
+        {
+          "field": "wallet.balance",
+          "direction": "DESCENDING"
+        }
+      ],
+      "references": [
+        {
+          "file": "src/app/directory.component.ts",
+          "line": 68
+        }
+      ]
+    },
+    {
+      "id": "Q21",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "userImageTimestamp",
+          "op": "==",
+          "value": "_audit_"
+        }
+      ],
+      "orders": [],
+      "references": [
+        {
+          "file": "functions/storageOnFinalise.f.js",
+          "line": 17
+        }
+      ]
+    },
+    {
+      "id": "Q22",
+      "collection": "PERRINNMessages",
+      "filters": [
+        {
+          "field": "verified",
+          "op": "==",
+          "value": true
+        }
+      ],
+      "orders": [
+        {
+          "field": "chatImageTimestamp",
+          "direction": "DESCENDING"
+        }
+      ],
+      "references": [
+        {
+          "file": "src/app/homeFeed.service.ts",
+          "line": 30
+        },
+        {
+          "file": "src/app/profile.component.ts",
+          "line": 247
+        }
+      ]
+    },
+    {
+      "id": "Q23",
+      "collection": "userPresence",
+      "filters": [],
+      "orders": [
+        {
+          "field": "lastActiveAt",
+          "direction": "DESCENDING"
+        }
+      ],
+      "references": [
+        {
+          "file": "src/app/presence.service.ts",
+          "line": 78
+        }
+      ]
+    }
+  ],
+  "results": [
+    {
+      "id": "Q01",
+      "plan": {
+        "indexesUsed": [
+          {
+            "properties": "(chain ASC, __name__ ASC)",
+            "query_scope": "Collection"
+          },
+          {
+            "properties": "(lastMessage ASC, __name__ ASC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q02",
+      "plan": {
+        "indexesUsed": [
+          {
+            "properties": "(chain ASC, chatImageTimestamp DESC, __name__ DESC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q03",
+      "plan": {
+        "indexesUsed": [
+          {
+            "properties": "(chain ASC, serverTimestamp DESC, __name__ DESC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q04",
+      "plan": {
+        "indexesUsed": [
+          {
+            "query_scope": "Collection",
+            "properties": "(chatImageTimestamp ASC, __name__ ASC)"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q05",
+      "plan": {
+        "indexesUsed": [
+          {
+            "properties": "(chatProfileImageTimestamp ASC, __name__ ASC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q06",
+      "plan": {
+        "indexesUsed": [
+          {
+            "properties": "(recipientList ARRAY_CONTAINS, lastMessage ASC, verified ASC, eventDateEnd ASC, __name__ ASC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q07",
+      "plan": {
+        "indexesUsed": [
+          {
+            "query_scope": "Collection",
+            "properties": "(lastMessage ASC, verified ASC, eventDateEnd ASC, __name__ ASC)"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q08",
+      "plan": {
+        "indexesUsed": [
+          {
+            "properties": "(recipientList ARRAY_CONTAINS, fund.active ASC, lastMessage ASC, verified ASC, fund.daysLeft ASC, __name__ ASC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q09",
+      "plan": {
+        "indexesUsed": [
+          {
+            "query_scope": "Collection",
+            "properties": "(fund.active ASC, lastMessage ASC, verified ASC, fund.daysLeft ASC, __name__ ASC)"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q10",
+      "plan": {
+        "indexesUsed": [
+          {
+            "properties": "(lastMessage ASC, verified ASC, isBackendMessage ASC, serverTimestamp DESC, __name__ DESC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q11",
+      "plan": {
+        "indexesUsed": [
+          {
+            "query_scope": "Collection",
+            "properties": "(recipientList ARRAY_CONTAINS, lastMessage ASC, serverTimestamp DESC, __name__ DESC)"
+          },
+          {
+            "properties": "(lastMessage ASC, verified ASC, serverTimestamp DESC, __name__ DESC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q12",
+      "plan": {
+        "indexesUsed": [
+          {
+            "properties": "(lastMessage ASC, verified ASC, fund.daysLeft DESC, __name__ DESC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q13",
+      "plan": {
+        "indexesUsed": [
+          {
+            "query_scope": "Collection",
+            "properties": "(lastMessage ASC, verified ASC, serverTimestamp DESC, __name__ DESC)"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q14",
+      "plan": {
+        "indexesUsed": [
+          {
+            "properties": "(userChain.nextMessage ASC, verified ASC, nameLowerCase ASC, __name__ ASC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q15",
+      "plan": {
+        "indexesUsed": [
+          {
+            "properties": "(recipientList ARRAY_CONTAINS, verified ASC, chatImageTimestamp DESC, __name__ DESC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q16",
+      "plan": {
+        "indexesUsed": [
+          {
+            "properties": "(user ASC, userChain.newMonth ASC, serverTimestamp DESC, __name__ DESC)",
+            "query_scope": "Collection"
+          },
+          {
+            "properties": "(user ASC, verified ASC, serverTimestamp DESC, __name__ DESC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q17",
+      "plan": {
+        "indexesUsed": [
+          {
+            "properties": "(user ASC, userChain.nextMessage ASC, verified ASC, serverTimestamp DESC, __name__ DESC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q18",
+      "plan": {
+        "indexesUsed": [
+          {
+            "properties": "(user ASC, verified ASC, serverTimestamp DESC, __name__ DESC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q19",
+      "plan": {
+        "indexesUsed": [
+          {
+            "properties": "(user ASC, serverTimestamp DESC, __name__ DESC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q20",
+      "plan": {
+        "indexesUsed": [
+          {
+            "properties": "(userChain.nextMessage ASC, verified ASC, wallet.balance DESC, __name__ DESC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q21",
+      "plan": {
+        "indexesUsed": [
+          {
+            "properties": "(userImageTimestamp ASC, __name__ ASC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q22",
+      "plan": {
+        "indexesUsed": [
+          {
+            "properties": "(verified ASC, chatImageTimestamp DESC, __name__ DESC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    },
+    {
+      "id": "Q23",
+      "plan": {
+        "indexesUsed": [
+          {
+            "properties": "(lastActiveAt DESC, __name__ DESC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      "returnedDocuments": 0
+    }
+  ]
+}

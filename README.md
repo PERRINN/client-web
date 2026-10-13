@@ -85,7 +85,7 @@ The root app component provides the shared navigation and layout. The router ren
 
 ## Firebase backend
 
-The Functions code in `functions/` handles trusted server-side workflows, including message and payment processing, membership scheduling, storage events, and Drive/GitHub activity integrations. Firebase rules and indexes are maintained at the repository root. Changes to Firestore paths, stored data, rules, or Functions can affect existing client and server workflows, so review the related readers, writers, and access policies together.
+The Functions code in `functions/` handles trusted server-side workflows, including message and payment processing, membership scheduling, storage events, and Drive/GitHub activity integrations. Firebase rules and indexes are maintained at the repository root. `firestore.indexes.json` is the desired composite-index configuration; see the [query coverage audit and index maintenance workflow](data-model.md#firestore-index-audit). Changes to Firestore paths, stored data, rules, or Functions can affect existing client and server workflows, so review the related readers, writers, and access policies together.
 
 Firebase Hosting is configured to serve the production client from `dist/` and rewrite application routes to `index.html`. Production builds enable the service worker; the development build disables it.
 
