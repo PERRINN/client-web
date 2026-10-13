@@ -71,11 +71,11 @@
           } @else if (upcomingEvents.length) {
             <div class="event-list">
               @for (event of upcomingEvents; track event.id) {
-                <button class="event-row" type="button" (click)="openChat(event.chain)">
+                <button class="event-row" [class.event-row-with-image]="event.chatProfileImageUrlThumb || event.chatProfileImageUrlMedium" type="button" (click)="openChat(event.chain)">
+                  <span class="date-block"><strong>{{ event.eventDateStart | date:'d' }}</strong><span>{{ event.eventDateStart | date:'MMM' }}</span></span>
                   @if (event.chatProfileImageUrlThumb || event.chatProfileImageUrlMedium) {
                     <img class="event-logo" [src]="event.chatProfileImageUrlThumb || event.chatProfileImageUrlMedium" alt="" loading="lazy" (error)="$any($event.target).style.visibility = 'hidden'">
                   }
-                  <span class="date-block"><strong>{{ event.eventDateStart | date:'d' }}</strong><span>{{ event.eventDateStart | date:'MMM' }}</span></span>
                   <span class="event-copy"><strong>{{ event.eventDescription || event.chatSubject || 'Team event' }}</strong><span>{{ event.eventDateStart | date:'EEEE, h:mm a' }}<span class="event-duration"> · {{ event.eventDuration }}h</span></span><span>{{ eventStartsIn(event) }}</span></span>
                 </button>
               }

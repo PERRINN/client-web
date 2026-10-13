@@ -30,10 +30,10 @@
 }
 
 /* Desktop shell and primary navigation. */
-:host .sidebarShell { display: grid; grid-template-columns: 320px minmax(0, 1fr); height: 100dvh; padding: 0; gap: 0; border-radius: 0; background: var(--color-page); font-weight: 400; font-family: var(--font-family-ui); }
+:host .sidebarShell { display: grid; grid-template-columns: 320px minmax(0, 1fr); height: 100dvh; padding: 0; gap: 0; border-radius: 0; background: var(--color-page); font-weight: var(--font-weight-body); font-family: var(--font-family-ui); }
 /* Scoped defaults do not reach routed components or the reused profile list. */
 :host .sidebarShell *:not([class*="material-icons"]):not([class*="material-symbols"]) { font-family: inherit; font-weight: inherit; }
-:host .sidebarShell button, :host .sidebarShell a { font-family: var(--font-family-ui); font-weight: 400; }
+:host .sidebarShell button, :host .sidebarShell a { font-family: var(--font-family-ui); font-weight: var(--font-weight-body); }
 :host .sidebarShell span:not([class*="material-icons"]):not([class*="material-symbols"]), :host .sidebarShell a, :host .sidebarShell button { line-height: 1.35; overflow: visible; }
 :host .sidebarShell .shellSidebar { flex: 0 0 auto; --conversation-row-height: 42px; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 12px; width: 100%; min-height: 0; max-width: none; margin: 0; padding: 16px 12px; border: 0; border-radius: 0; background: var(--color-surface); }
 :host .sidebarShell .navLeft { align-items: center; display: grid; grid-template-columns: minmax(0, 1fr); justify-content: stretch; justify-items: stretch; gap: 2px; flex: 0 0 auto; }
@@ -57,7 +57,7 @@
 :host .accountFallback { display: grid; place-items: center; background: var(--color-raised); color: var(--color-text-secondary); font-size: 22px; }
 :host .accountInfo { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
 :host .sidebarShell .accountName { display: block; overflow-wrap: anywhere; font-size: 14px; font-weight: 600; }
-:host .sidebarShell .accountBalance { display: block; overflow-wrap: anywhere; font-size: 14px; font-weight: 400; color: var(--color-text-secondary); }
+:host .sidebarShell .accountBalance { display: block; overflow-wrap: anywhere; font-size: 14px; font-weight: var(--font-weight-body); color: var(--color-text-secondary); }
 :host .accountMember { flex: 0 0 auto; color: var(--color-success); font-size: 18px; }
 :host .sidebarShell .navRight > button { margin: 0; }
 :host .sidebarShell #main_container { min-width: 0; width: 100%; height: 100%; padding: 16px; border-radius: 0; }
@@ -102,8 +102,8 @@
 :host .automaticRow.activeAutomatic { background: var(--color-selected); }
 :host .automaticRow:disabled { opacity: .6; cursor: default; }
 :host .automaticRow img, :host .automaticAvatar { display: block; width: 24px; height: 24px; flex: 0 0 24px; margin: 0; border-radius: 50%; }
-:host .sidebarShell .automaticAvatar { display: grid; place-items: center; background: var(--color-raised); font-size: 14px; font-weight: 400; }
-:host .sidebarShell .automaticCopy { display: block; min-width: 0; flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 14px; font-weight: 400; line-height: 1.4; }
+:host .sidebarShell .automaticAvatar { display: grid; place-items: center; background: var(--color-raised); font-size: 14px; font-weight: var(--font-weight-body); }
+:host .sidebarShell .automaticCopy { display: block; min-width: 0; flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 14px; font-weight: var(--font-weight-body); line-height: 1.4; }
 @supports not selector(::-webkit-scrollbar) {
   :host .automaticList { scrollbar-color: transparent var(--color-raised); }
   :host .automaticList.is-scrolling { scrollbar-color: var(--color-border) var(--color-raised); }

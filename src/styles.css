@@ -2,6 +2,9 @@
   /* Shared text family; icon classes retain their own font families. */
   --font-family-ui: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
 
+  /* Medium body text improves readability across screens and controls. */
+  --font-weight-body: 500;
+
   /* Night Signal Dark palette */
   --color-page: #0B1118;
   --color-surface: #17212C;
@@ -68,7 +71,7 @@
 }
 html {
   font-family: var(--font-family-ui);
-  font-weight: 400;
+  font-weight: var(--font-weight-body);
 }
 html, body {
   background-color: var(--color-page);

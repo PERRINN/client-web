@@ -61,7 +61,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 
 ## Typography
 
-- Use the shared `--font-family-ui` token in `src/styles.css`: `'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif`. The document sets this family and a regular 400 weight; the universal reset inherits both so routed components, sidebar lists, forms and nested text use the same family. Component rules should reference the token rather than repeat the stack. Exclude Material Icons and Material Symbols from local text-family resets so their glyph fonts remain intact. Canvas charts must read the document font family for their titles, axes and legends because canvas text does not inherit CSS.
+- Use the shared `--font-family-ui` token in `src/styles.css`: `'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif`. The document sets this family and the shared `--font-weight-body` token (medium 500); the universal reset inherits both so routed components, sidebar lists, forms and nested text use the same family. Component rules should reference the token rather than repeat the stack. Exclude Material Icons and Material Symbols from local text-family resets so their glyph fonts remain intact. Canvas charts must read the document font family for their titles, axes and legends because canvas text does not inherit CSS.
 - Use the approved Home typography scale for all new and rebuilt UI, including prototypes:
 
   | Text role | Font size |
@@ -74,7 +74,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 
 - Production text sizes were increased by 1px for readability; compact sidebar labels use 14px. Keep icon dimensions independent of text sizes.
 - Keep these sizes on mobile. Resolve limited space through wrapping, layout and spacing rather than shrinking text. Do not use 9–12px text for ordinary labels or information users need to read.
-- Use regular weight 400 for body text and metadata, medium weight around 550 for row titles, and semibold around 600 for headings and emphasized labels. Set emphasis in scoped component styles; let nested text inherit the intended weight instead of resetting every descendant.
+- Use the shared `--font-weight-body` token (medium 500) for body text, metadata, navigation and form controls, weight around 550 for row titles, and semibold around 600 for headings and emphasized labels. Set emphasis in scoped component styles; let nested text inherit the intended weight instead of resetting every descendant. Component-wide descendant rules must not override their own heading and emphasis weights; the global reset already supplies weight inheritance.
 - Use proportional line heights: about 1.45 for body text and metadata, and 1.35 for headings. Let rows grow when names or titles wrap; avoid fixed heights that clip larger text. Keep compact numeric date blocks legible with enough space for both lines.
 - Keep headings quietly distinct from body text through modest size and weight changes, not display styling.
 - Use the same typeface for text and numbers. Emphasize important values through size and weight, not a separate monospace face.
