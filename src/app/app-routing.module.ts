@@ -1,3 +1,4 @@
+import { UnityLiveLinkComponent } from './prototypes/unity-live-link/unity-live-link.component';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { LoginComponent } from './login.component';
@@ -23,6 +24,7 @@ import { HomeMentionsComponent } from './prototypes/home-mentions/home-mentions.
 import { DilSensitivityAnalysisComponent } from './prototypes/dil-sensitivity-analysis/dil-sensitivity-analysis.component';
 
 const appRoutes: Routes = [
+  { path: 'prototypes/unity-live-link', component: UnityLiveLinkComponent },
   { path: 'prototypes/home-mentions', component: HomeMentionsComponent },
   { path: 'prototypes/dil-sensitivity-analysis', component: DilSensitivityAnalysisComponent },
   { path: 'prototypes/app-wiring', component: AppMapComponent, data: { mapView: 'wiring' } },

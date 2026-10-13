@@ -63,3 +63,11 @@ h1 { margin-bottom: 6px; font-size: 25px; font-weight: 600; }
 @media (max-width: 600px) { .prototype-gallery { padding: 18px 14px; } .gallery-header { align-items: flex-start; flex-direction: column; gap: 10px; } }
 
 .dil-preview{width:84%;height:80px}.dil-preview path{fill:none;stroke-width:2}.dil-grid{stroke:var(--color-raised)}.dil-baseline{stroke:var(--color-text-secondary);stroke-dasharray:5 4}.dil-modified{stroke:var(--color-accent)}
+
+.unity-live-preview { width: 84%; height: 80px; }
+.unity-live-preview path { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.live-preview-panel { fill: var(--color-page); }
+.live-preview-grid { stroke: var(--color-raised); }
+.live-preview-trace, .live-preview-link { stroke: var(--color-accent); }
+.live-preview-controls { stroke: var(--color-text-secondary); }
+.live-preview-knob { fill: var(--color-text-secondary); }

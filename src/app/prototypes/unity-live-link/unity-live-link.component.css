@@ -1,0 +1,81 @@
+:host { display: block; color: var(--color-text); }
+.live-link { max-width: 1200px; margin: 0 auto; padding: 24px; font-size: 16px; }
+:host * { overflow: visible; line-height: 1.45; font-size: inherit; border-radius: 0; }
+.back { display: inline-block; color: var(--color-text-secondary); font-size: 15px; margin-bottom: 18px; }
+header { margin-bottom: 18px; }
+h1 { font-size: 23px; font-weight: 600; line-height: 1.35; }
+h2 { font-size: 17px; font-weight: 600; margin-bottom: 10px; }
+h3 { font-size: 16px; font-weight: 550; }
+header p, .hint, .empty { color: var(--color-text-secondary); font-size: 15px; }
+.panel { background: var(--color-surface); border-radius: 10px; padding: 18px; margin-bottom: 16px; }
+.status { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 14px; }
+.status strong { font-weight: 600; }
+.status span, .command { font-size: 15px; }
+.connect-form { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.connect-form input { flex: 1; min-width: 220px; }
+input { background: var(--color-raised); color: var(--color-text); border: 1px solid var(--color-border); padding: 10px 12px; border-radius: 6px; min-width: 0; width: 100%; }
+button { background: var(--color-accent); color: var(--color-accent-ink); border: 0; border-radius: 6px; padding: 10px 16px; cursor: pointer; font-weight: 600; }
+button.secondary { background: var(--color-raised); color: var(--color-text); }
+button:disabled, input:disabled { opacity: 0.6; cursor: default; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
+.parameters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 14px; }
+.parameter label { display: block; margin-bottom: 8px; }
+.parameter-input { display: flex; gap: 10px; }
+.parameter p { margin-top: 8px; }
+.error { color: var(--color-danger-text); font-size: 15px; }
+.channels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; margin-top: 8px; }
+.channel { padding: 14px 0; }
+.channel-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; }
+.channel-heading strong { font-weight: 600; }
+svg { display: block; width: 100%; height: 60px; margin: 8px 0; }
+path { fill: none; stroke: var(--color-text-secondary); stroke-width: 1.5; vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round; }
+.channel-caption { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px; color: var(--color-text-muted); font-size: 14px; }
+.stale { opacity: 0.65; }
+@media (max-width: 680px) { .live-link { padding: 16px; } .parameters, .channels { grid-template-columns: 1fr; } .connect-form label { width: 100%; } }
+
+.session-history { margin: 14px 0; }
+.session-history label { display: block; margin-top: 12px; font-size: 14px; }
+.recording-path { overflow-wrap: anywhere; }
+.overview { height: 80px; cursor: crosshair; background: var(--color-raised); }
+.selection { fill: color-mix(in srgb, var(--color-accent) 12%, transparent); stroke: var(--color-accent); stroke-width: 1; }
+.timeline-controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+button[aria-pressed="true"] { background: var(--color-selected); }
+input[type="range"] { padding: 4px 0; border: 0; accent-color: var(--color-accent); }
+.gap { fill: color-mix(in srgb, var(--color-danger-text) 25%, transparent); }
+.change-marker { stroke: var(--color-accent); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.changes { margin-top: 20px; }
+.change-row { font-size: 15px; margin: 8px 0; }
+
+.recording-input { margin: 12px 0; }
+.recording-input label { display: block; margin-bottom: 8px; font-size: 14px; }
+
+.channel svg { cursor: crosshair; }
+.channel svg:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
+.cursor-readout { min-height: 48px; margin: 12px 0; color: var(--color-text-secondary); font-size: 15px; }
+.cursor-active { color: var(--color-text); }
+.shared-cursor { stroke: var(--color-text); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; pointer-events: none; }
+.cursor-point { fill: var(--color-text); pointer-events: none; }
+
+.unpin { margin-left: 12px; padding: 6px 10px; font-size: 14px; }
+
+.chart-hit-area { fill: transparent; pointer-events: all; }
+
+@media (max-width: 680px) { .cursor-readout { min-height: 100px; } }
+
+.channel svg { touch-action: pan-y; user-select: none; }
+.channel svg.cursor-pinned { cursor: ew-resize; }
+.channel svg.cursor-dragging { cursor: grabbing; }
+
+.chart-frame { display: grid; grid-template-columns: 8ch minmax(0, 1fr); gap: 8px; margin: 10px 0; font-size: 14px; }
+.plot-column { min-width: 0; }
+.chart-frame svg { margin: 0; }
+.channel .chart-frame svg { height: 120px; }
+.y-axis { position: relative; height: 120px; color: var(--color-text-muted); }
+.overview-frame .y-axis { height: 80px; }
+.y-axis span { position: absolute; right: 0; transform: translateY(-50%); white-space: nowrap; font-size: 14px; }
+.x-axis { position: relative; height: 24px; margin-top: 6px; color: var(--color-text-muted); }
+.x-axis span { position: absolute; transform: translateX(-50%); white-space: nowrap; font-size: 14px; }
+.x-axis .first-tick { transform: none; }
+.x-axis .last-tick { transform: translateX(-100%); }
+.grid-line { stroke: color-mix(in srgb, var(--color-text-muted) 18%, transparent); stroke-width: 1; vector-effect: non-scaling-stroke; pointer-events: none; }
+@media (max-width: 400px) { .x-axis .middle-tick { display: none; } }

@@ -1,3 +1,4 @@
+import { UnityLiveLinkComponent } from './prototypes/unity-live-link/unity-live-link.component';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -65,6 +66,7 @@ export const firebaseConfig = {
         DirectoryComponent,
         BuyPrnComponent,
         PrototypeGalleryComponent,
+        UnityLiveLinkComponent,
         ColorPalettePreviewComponent,
         ClearSlateComponent,
         WarmGraphiteComponent,

@@ -1,0 +1,93 @@
+{
+  "type": "welcome",
+  "protocol": 2,
+  "session": "03a500c7d9494eddbb33470cd7eb8ed1",
+  "rateHz": 50,
+  "channels": [
+    {
+      "id": "Speed",
+      "unit": "km/h",
+      "sourceHz": 49.999996185302734,
+      "available": true
+    },
+    {
+      "id": "Throttle",
+      "unit": "%",
+      "sourceHz": 49.999996185302734,
+      "available": true
+    },
+    {
+      "id": "Brake",
+      "unit": "%",
+      "sourceHz": 49.999996185302734,
+      "available": true
+    },
+    {
+      "id": "SteeringAngle",
+      "unit": "\u00b0",
+      "sourceHz": 49.999996185302734,
+      "available": true
+    },
+    {
+      "id": "RideHeightFront",
+      "unit": "mm",
+      "sourceHz": 99.99999237060547,
+      "available": true
+    },
+    {
+      "id": "RideHeightRear",
+      "unit": "mm",
+      "sourceHz": 99.99999237060547,
+      "available": true
+    },
+    {
+      "id": "UndersteerAngle",
+      "unit": "\u00b0",
+      "sourceHz": 99.99999237060547,
+      "available": true
+    },
+    {
+      "id": "MotorRpmFront",
+      "unit": "rpm",
+      "sourceHz": 49.999996185302734,
+      "available": true
+    },
+    {
+      "id": "MotorRpmRear",
+      "unit": "rpm",
+      "sourceHz": 49.999996185302734,
+      "available": true
+    },
+    {
+      "id": "ElectricalPowerTotal",
+      "unit": "kW",
+      "sourceHz": 49.999996185302734,
+      "available": true
+    }
+  ],
+  "parameters": [
+    {
+      "id": "frontSpringRate",
+      "label": "Front spring rate (both wheels)",
+      "unit": "N/m",
+      "value": 230000.0,
+      "min": 10000.0,
+      "max": 1000000.0,
+      "available": true
+    },
+    {
+      "id": "autopilotPositionOffset",
+      "label": "Autopilot position offset",
+      "unit": "m",
+      "value": 0.44999998807907104,
+      "min": -10.0,
+      "max": 10.0,
+      "available": true
+    }
+  ],
+  "recordingPath": "Bundled sample session",
+  "recordingError": "",
+  "recordedSamples": 6861,
+  "recordedEvents": 0,
+  "complete": true
+}

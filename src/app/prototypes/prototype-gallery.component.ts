@@ -8,6 +8,7 @@ import { Component } from '@angular/core';
 })
 export class PrototypeGalleryComponent {
   readonly prototypes = [
+    { name: 'unity-live-link', category: 'engineering', type: 'Unity live link', description: 'Connect to local Unity telemetry and change front spring rate and autopilot position offset during a session.', route: '/prototypes/unity-live-link' },
     { name: 'home-mentions', category: 'home', type: 'Home mentions', description: 'A full-width panel surfaces three mentioned chats with a preview and direct conversation access.', route: '/prototypes/home-mentions' },
     { name: 'dil-sensitivity-analysis', category: 'engineering', type: 'DIL analysis', description: 'Trace the 424 replay workflow and compare synthetic setup sensitivities through individual corners.', route: '/prototypes/dil-sensitivity-analysis' },
     {
