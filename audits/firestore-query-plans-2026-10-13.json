@@ -1014,5 +1014,301 @@
       },
       "returnedDocuments": 0
     }
-  ]
+  ],
+  "postCleanupVerification": {
+    "date": "2026-10-13",
+    "liveCompositeIndexCount": 18,
+    "matchesDesiredConfiguration": true,
+    "analyze": false,
+    "results": [
+      {
+        "id": "Q01",
+        "plan": {
+          "indexesUsed": [
+            {
+              "query_scope": "Collection",
+              "properties": "(chain ASC, __name__ ASC)"
+            },
+            {
+              "query_scope": "Collection",
+              "properties": "(lastMessage ASC, __name__ ASC)"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q02",
+        "plan": {
+          "indexesUsed": [
+            {
+              "properties": "(chain ASC, chatImageTimestamp DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q03",
+        "plan": {
+          "indexesUsed": [
+            {
+              "properties": "(chain ASC, serverTimestamp DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q04",
+        "plan": {
+          "indexesUsed": [
+            {
+              "properties": "(chatImageTimestamp ASC, __name__ ASC)",
+              "query_scope": "Collection"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q05",
+        "plan": {
+          "indexesUsed": [
+            {
+              "query_scope": "Collection",
+              "properties": "(chatProfileImageTimestamp ASC, __name__ ASC)"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q06",
+        "plan": {
+          "indexesUsed": [
+            {
+              "properties": "(recipientList ARRAY_CONTAINS, lastMessage ASC, verified ASC, eventDateEnd ASC, __name__ ASC)",
+              "query_scope": "Collection"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q07",
+        "plan": {
+          "indexesUsed": [
+            {
+              "query_scope": "Collection",
+              "properties": "(lastMessage ASC, verified ASC, eventDateEnd ASC, __name__ ASC)"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q08",
+        "plan": {
+          "indexesUsed": [
+            {
+              "query_scope": "Collection",
+              "properties": "(recipientList ARRAY_CONTAINS, fund.active ASC, lastMessage ASC, verified ASC, fund.daysLeft ASC, __name__ ASC)"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q09",
+        "plan": {
+          "indexesUsed": [
+            {
+              "query_scope": "Collection",
+              "properties": "(fund.active ASC, lastMessage ASC, verified ASC, fund.daysLeft ASC, __name__ ASC)"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q10",
+        "plan": {
+          "indexesUsed": [
+            {
+              "properties": "(lastMessage ASC, verified ASC, isBackendMessage ASC, serverTimestamp DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q11",
+        "plan": {
+          "indexesUsed": [
+            {
+              "properties": "(recipientList ARRAY_CONTAINS, lastMessage ASC, serverTimestamp DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "properties": "(lastMessage ASC, verified ASC, serverTimestamp DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q12",
+        "plan": {
+          "indexesUsed": [
+            {
+              "properties": "(lastMessage ASC, verified ASC, fund.daysLeft DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q13",
+        "plan": {
+          "indexesUsed": [
+            {
+              "properties": "(lastMessage ASC, verified ASC, serverTimestamp DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q14",
+        "plan": {
+          "indexesUsed": [
+            {
+              "properties": "(userChain.nextMessage ASC, verified ASC, nameLowerCase ASC, __name__ ASC)",
+              "query_scope": "Collection"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q15",
+        "plan": {
+          "indexesUsed": [
+            {
+              "properties": "(recipientList ARRAY_CONTAINS, verified ASC, chatImageTimestamp DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q16",
+        "plan": {
+          "indexesUsed": [
+            {
+              "properties": "(user ASC, userChain.newMonth ASC, serverTimestamp DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "properties": "(user ASC, verified ASC, serverTimestamp DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q17",
+        "plan": {
+          "indexesUsed": [
+            {
+              "properties": "(user ASC, userChain.nextMessage ASC, verified ASC, serverTimestamp DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q18",
+        "plan": {
+          "indexesUsed": [
+            {
+              "properties": "(user ASC, verified ASC, serverTimestamp DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q19",
+        "plan": {
+          "indexesUsed": [
+            {
+              "properties": "(user ASC, serverTimestamp DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q20",
+        "plan": {
+          "indexesUsed": [
+            {
+              "properties": "(userChain.nextMessage ASC, verified ASC, wallet.balance DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q21",
+        "plan": {
+          "indexesUsed": [
+            {
+              "properties": "(userImageTimestamp ASC, __name__ ASC)",
+              "query_scope": "Collection"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q22",
+        "plan": {
+          "indexesUsed": [
+            {
+              "properties": "(verified ASC, chatImageTimestamp DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      },
+      {
+        "id": "Q23",
+        "plan": {
+          "indexesUsed": [
+            {
+              "properties": "(lastActiveAt DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            }
+          ]
+        },
+        "returnedDocuments": 0
+      }
+    ]
+  }
 }
