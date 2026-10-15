@@ -48,6 +48,95 @@ Client uploads go to Cloud Storage under `images/`. Message fields such as `user
 
 These are observations of the checked-in rules, not a recommendation to change access. Treat any rules or authorization change as security-sensitive and review its user impact before implementation.
 
+### Proposed least-privilege read policy — 2026-10-15
+
+**Investigation and proposal only. Not implemented or approved for deployment.** No production documents or deployed rules were read during this investigation. Findings below follow the checked-in readers, writers and rules; they establish a source-level exposure, not a confirmed production breach. `firestore.rules`, Functions, application code, indexes and persisted data remain unchanged.
+
+#### Why narrowing the wildcard alone is insufficient
+
+The recursive `allow read;` makes all document reads and queries public, including per-user cursors, provider payment payloads and scheduler state. An overlapping owner rule cannot revoke this permission. The `lastSeen/{userId}/payments/{payment}` clause is also misplaced: real orders live under `PERRINNTeams/{userId}/payments/{orderId}`, and its `team` identifier is not defined. No current client/server reader or writer for the misplaced path was found.
+
+More seriously, public feed documents already mix public content and private account data:
+
+- [verifyMessage.js](functions/utils/verifyMessage.js) lines 82–87 obtains or inherits `emails.auth` and can use it to update the user's Authentication email; line 305 writes `emails` onto the message. This runs for ordinary chat/profile/payment messages, not only account-setting commands. A `verified == true` public-read condition would still disclose the email.
+- The same verifier stores `transactionPending.code` and `reference` (lines 181–186), plus financial and contract state. [dbTeamPaymentsOnCreate.f.js](functions/dbTeamPaymentsOnCreate.f.js) writes `source.email` on payment records and writes an order identifier as `purchaseCOIN.chargeID` on the shared ledger. Removing public payment-document access alone does not hide the ledger's copy of that identifier. The verifier also puts a transaction reference into generated message text (around line 324), so deleting nested fields alone is insufficient.
+- Settings sends email-change commands through the shared collection and reads `emails.auth` back from the latest user message. Public pages consume many of the same documents. Merely removing an email field would break that private account workflow and the verifier's inherited state unless its readers/writers are migrated together.
+
+Firestore grants reads at document granularity; it cannot redact selected fields. Queries must satisfy the rules for their potential results, rather than relying on client-side filtering. See [field access](https://firebase.google.com/docs/firestore/security/rules-fields), [query rules](https://firebase.google.com/docs/firestore/security/rules-query), and [overlapping matches](https://firebase.google.com/docs/firestore/security/rules-structure#overlapping_match_statements).
+
+#### Compatibility inventory
+
+| Workflow | Current access that must be accounted for | Proposed boundary |
+| --- | --- | --- |
+| Home images/events and sidebar/automatic updates | Public `PERRINNMessages` queries in `homeFeed.service.ts` and `sidebarConversations.service.ts`; image limit 50, event pages 50, human sidebar pages 30, automatic list 15 | Anonymous access to approved public documents; retain ordering, pagination and live updates |
+| Public profile, histories, directory and recipient search | `profile.component.ts`, `directory.component.ts`, `presence.service.ts` and `chat.component.ts`; latest user records, `userChain`, name, wallet/membership, recipient and event/fund filters | Public projection retains explicitly approved displayed fields and query keys; public wallet/contract fields need the decision below |
+| Chat history and image gallery | `chat.component.ts` queries by `chain`, without a `verified` constraint; pagination and read markers use original message IDs | Public history reads sanitized public messages; retain IDs and timestamps. Sender-only pending feedback must be handled separately if needed |
+| Shared app configuration | `userInterface.service.ts` reads latest PERRINN profile/admin records while signed out; currency conversion uses admin message fields | Public projection must include approved team profile, currency/rate and aggregate configuration; never expose the entire raw admin snapshot |
+| Account state/settings and purchase-credit completion | Latest authenticated user's raw messages in `userInterface.service.ts`, `settings.component.ts`, `buy-prn.component.ts` | Owner-only raw account/message reads constrained by `user == request.auth.uid`; preserve private email and order linkage there |
+| Read cursors and flags | Only own `lastSeen/{uid}/chats/{chain}` document listeners/writes in chat and `readCursor.service.ts` | Owner-only access; no recursive grant to arbitrary future subcollections |
+| Payment tracking | `buy-prn.component.ts` listens to one known `PERRINNTeams/{uid}/payments/{orderId}` doc | Owner-only document get/listen; deny client list and writes because neither is required by this reader |
+| Transaction link `/buyPRN/:id` | Direct raw-message read in `buy-prn.component.ts`, potentially for another author's pending transaction | Must design an authenticated, validated claim/details path before restricting raw reads; document ID knowledge and a client-controlled recipient list are not authorization |
+| Image metadata and integration state | `Images/{id}` is read/written by Admin code; `Integrations/*` holds poll cursors. No direct browser access found | Deny all client access; Admin workflows continue through IAM |
+| Recent activity | Public `userPresence` list/direct reads; owner writes only `lastActiveAt` | Explicit public reads and existing timestamp-only owner writes; this intentionally keeps recent activity public |
+
+No current collection-group query was found. Client rendering, TypeScript interfaces, hidden settings controls and `recipientList` do not provide a security boundary. The existing recipient list selects and displays conversations; this proposal does not reinterpret it as private-chat membership or make public chats private.
+
+#### Recommended implementation in two independently reviewed stages
+
+**Stage A: narrow collection access without changing feed queries.** Remove the database-wide public grant. Add exact public reads for top-level `PERRINNMessages/{messageId}` and `userPresence/{uid}` only. Retain existing message-create and presence-write behavior for this containment step. Keep owner access to the current `lastSeen` root/chats paths, add owner-only `get` on the real payment path, and deny all other client paths by absence of a grant. Remove the unused misplaced payment clause after checking deployed/other-client compatibility. Do not use recursive public or owner matches that automatically include unknown subcollections.
+
+The essential proposed read clauses are:
+
+```text
+PERRINNMessages/{id}:                  public get/list (temporary residual risk)
+userPresence/{uid}:                    public get/list
+lastSeen/{uid}:                        owner read/write (existing intent)
+lastSeen/{uid}/chats/{chain}:          owner read/write
+PERRINNTeams/{uid}/payments/{orderId}: owner get only; no client list/write
+Images/*, Integrations/*, all others:  no client grant
+```
+
+Here “owner” means `request.auth != null && request.auth.uid == uid`, using the authenticated UID and the path, never a request-body `user` value. Document listeners must be tested with the get-only payment rule. Admin SDK processing bypasses these client rules, so this stage requires no Functions/schema change and should preserve current public feed behavior. It closes unnecessary cross-user/payment/state reads, but **does not solve embedded emails or other private values in the message ledger**. Do not describe Stage A as complete least privilege or make its residual exposure permanent. A temporary `verified` predicate is not recommended: chat lacks that filter, and verified documents themselves contain private fields.
+
+**Stage B: separate public feed documents from the private ledger.** Recommended design: retain `PERRINNMessages` as the canonical private workflow ledger and publish a server-produced, explicitly allowlisted public projection. `PublicMessages/{originalMessageId}` is a proposed name, not an established or approved path. Keeping source records private avoids destroying historical ledger/account inputs while public reads move to sanitized documents. This stays within Angular/Firebase and needs no new infrastructure service.
+
+- Only trusted server code publishes or removes public documents. Never spread a raw record into a public object or recursively copy financial objects. Map approved fields individually, including nested fields. Preserve original IDs, `chain`, timestamps, approved profile/media/event/fund fields, `userChain`/recipient query keys, and the approved public financial/configuration values required by existing views.
+- Exclude emails, raw provider `source`, order IDs/charge IDs, redemption codes/references, private command payloads and unapproved account state. For generated administrative/payment text, construct a safe public summary; raw `text` and `chatSubject` can themselves contain sensitive references. User-authored public chat remains intentionally public. Do not publish private account commands simply because their text is short or the message is verified.
+- Define trusted publication eligibility and a typed public DTO. Current client creation permits extra fields, including `verified` and `isBackendMessage`; neither flag is currently proof of server processing or safe disclosure. A public/private flag supplied by a client must not determine authorization. Tighten workflow submission contracts and prevent clients from assigning server-owned processing/publication/financial result fields before using them as trust signals. Existing command inputs such as `transactionOut` must be distinguished from computed results rather than banned indiscriminately.
+- Keep anonymous reads for the new public projection and public presence. Deny client writes to projections. Restrict raw ledger reads to approved private needs, initially the author/owner for account state and credit tracking, with matching `user == auth.uid` query constraints. A recipient does not automatically gain access to an author's complete raw record and email. Resolve transaction-link access separately before cutover.
+- Move public readers behind focused service contracts while retaining existing Angular routes and templates' required inputs. Update Home, profile, sidebar, directory/search, chat/gallery, presence profile lookup, and shared team/admin configuration reads. Keep Settings/current-user private state and purchase-credit lookup on owner-authorized records. Do not point all `UserInterfaceService` reads at one public collection: it currently serves both public and private purposes.
+- Publication must react to source changes after verification, including later image URL patches, daily reverification, latest-chat flips and deletions. A proposed new `publicMessageProjection.f.js` handler plus export in `functions/main.js` could isolate this responsibility; choose the exact mechanism only after backend review. Handle duplicate/out-of-order events by reconciling current authoritative state, remove no-longer-public documents, and never publish unverified raw values between lifecycle steps. Projection lag must not lose latest-chat rows or restore stale versions.
+- Backfill only approved safe public fields using idempotent bounded batches, preserving IDs/history. Do not delete raw history to sanitize it. New projection queries need matching indexes, explicit result limits and pagination; existing unbounded event/fund/history queries must be paginated without truncating required results. Compare live/repository indexes before deployment and do not delete old ones until all old readers retire.
+
+This stage changes persisted paths, client contracts and trusted server behavior. AGENTS.md requires approval of the schema/rules change **and a separate concrete explanation/approval of the affected Functions implementation before editing it**. None has been implemented here. Existing verifier, scheduler, payment trigger and storage writers need regression coverage even if a separate publisher leaves their business calculations unchanged. Payment HTTPS handlers must independently authorize identity/ownership and webhook authenticity; Firestore rules do not protect Admin-backed endpoints.
+
+#### Product decisions required before Stage B
+
+1. Keep the current public wallet balances, membership indicators, financial/contract summaries and histories, or deliberately reduce their visibility? **Recommended compatibility baseline:** retain currently displayed summaries only, subject to explicit confirmation; hide emails, provider details, identifiers and redemption secrets. These are nested field decisions, not approval to publish entire financial objects.
+2. Are all current chat chains intended to remain public? The current implementation permits public reads; it has no trusted private-chat ACL. Keep that behavior for approved public content. Private chats, including historical access decisions, would be a separate authorized design.
+3. What are the intended recipients/expiry/claim rules for pending transaction links? Preserve the supported claim workflow through a separately authorized details/claim contract; do not silently replace it with a broken owner-only raw-document read.
+
+Historical private command text and arbitrary message bodies cannot be perfectly classified from this source inspection. Exact public-history parity cannot be promised until representative records are reviewed securely. Unknown or sensitive types should be withheld from publication pending review, with the public-content preservation criteria agreed before rollout.
+
+#### Validation and rollout gates
+
+No emulator tests or live authorization checks were run for this proposal: there is no changed ruleset or backend implementation to validate. The current root package has no Firestore rules test suite; use synthetic emulator fixtures for the approved implementation, never production customer records. Existing public audit self-tests are not rules authorization tests.
+
+| Test category | Required expected result |
+| --- | --- |
+| Anonymous public compatibility | Home images/events, directory, profile/history, chat/gallery, sidebar/automatic updates, team currency/config and recent activity remain available with pagination and live changes |
+| Anonymous private paths | Cursor get/list, payment get/list, integration/image-metadata reads and unknown/subcollection paths denied; in Stage B raw ledger reads denied too |
+| Two real auth identities | Each can access own cursors and known payment document; other user's get/list/listen and writes denied, including forged body UID. Payment list stays denied even for owner unless a new use is approved |
+| Anonymous and cross-user writes | No cursor/presence/private/projection writes by non-owner; no client payment/projection writes at all. Existing owner timestamp-only presence behavior retained |
+| Publication integrity | Client-spoofed processing flags do not publish; private values in nested fields, text and subjects do not appear; unknown fields cannot leak through copying |
+| Query compatibility | Full actual query shapes, limits, pagination, missing/legacy fields, direct document reads and document listeners pass as intended. Query denial is not treated as an empty feed |
+| Workflow compatibility | Email update and private Settings values, purchase status/idempotency/credit lookup, pending claim workflow, image finalization and daily reverification work against synthetic data |
+| Publisher lifecycle | Duplicate/reordered updates, delayed verification, deletes/unpublishing, source changes during backfill, latest-message flips and image updates converge without stale disclosure |
+
+Rollout order after approvals: inspect the currently deployed rules/IAM without data reads; verify other consumers; test Stage A in emulators/staging; review/deploy Stage A on its own. For Stage B, approve the publication/field policy and specific backend plan; deploy/test publisher and safe backfill, build required indexes, switch public readers, verify anonymous/owner/cross-user behavior, then remove public raw-ledger access. The period before final lockdown retains the old email exposure and must be an explicit, short transition. Do not promise zero exposure during that overlap.
+
+Verify deployed rules and query behavior after each authorized release. Plan for stale clients and service-worker caches: they must update or show an explicit upgrade state after raw reads close. IndexedDB may retain previously downloaded records and any earlier public downloads cannot be recalled. A rollback must keep private boundaries closed, using the safe public projection or a compatible safe client; never restore the global wildcard to recover a feed. Historical backfill volume/cost, privacy response, cache cleanup and deployment scheduling need operational approval rather than being executed by this proposal.
+
 ## Query and maintenance notes
 
 - `firestore.indexes.json` tracks all required composite indexes for the current client and Functions, including the backend-message sidebar query. See the [Firestore index audit](#firestore-index-audit) for query coverage, cleanup decisions, the original live export, and the maintenance workflow. Deploy required additions and wait for readiness before releasing dependent queries.

@@ -1,0 +1,46 @@
+name: Enterprise accessibility audit
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 7 * * 1'
+  push:
+    paths:
+      - 'scripts/enterprise-audit/**'
+      - '.github/workflows/enterprise-accessibility-audit.yml'
+  pull_request:
+    paths:
+      - 'scripts/enterprise-audit/**'
+      - '.github/workflows/enterprise-accessibility-audit.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: enterprise-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  public-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # No npm install, Firebase CLI, secrets, login or application build required.
+      - name: Test audit policies without network
+        run: npm run audit:enterprise:test
+      - name: Audit public production configuration
+        run: npm run audit:enterprise -- --output audit-results/enterprise.json
+      - name: Retain evidence even when findings fail the job
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: enterprise-accessibility-audit
+          path: audit-results/enterprise.json
+          if-no-files-found: warn
+          retention-days: 30

@@ -1,0 +1,38 @@
+{
+  "core": {
+    "perrinn.com": "Application and bundled scripts; HTTPS TCP 443",
+    "www.perrinn.com": "Published www URL / alternate entry point",
+    "identitytoolkit.googleapis.com": "Firebase email/password login, registration, account changes and password reset",
+    "securetoken.googleapis.com": "Firebase ID token renewal; required after initial sign-in",
+    "firestore.googleapis.com": "Firestore reads, writes and WebChannel real-time listeners",
+    "firebasestorage.googleapis.com": "Firebase image uploads and download URLs",
+    "storage.googleapis.com": "Server-generated signed profile and chat image URLs",
+    "fonts.googleapis.com": "Material Icons/Symbols CSS in source; production optimizer currently inlines it (also a build-time dependency)",
+    "fonts.gstatic.com": "Font files referenced by Google Fonts CSS"
+  },
+  "conditional": {
+    "perrinn-d5fc1.firebaseapp.com": "Configured auth helper domain, subject to authDodash typo; email action links / future federated auth",
+    "perrinn-d5fc1.firebaseio.com": "Configured Realtime Database; module imported but no active client database calls found",
+    "us-central1-perrinn-d5fc1.cloudfunctions.net": "PRN purchases: createRevolutOrder and syncRevolutOrderStatus only",
+    "www.google.com": "Possible Firebase Auth reCAPTCHA if enabled by project policy; not observed",
+    "www.gstatic.com": "Possible reCAPTCHA assets if enabled; not observed",
+    "recaptchaenterprise.googleapis.com": "Possible Auth bot protection if enabled; not observed",
+    "apis.google.com": "Firebase popup/redirect helper loader; dormant for current email/password login"
+  },
+  "optional": {
+    "discover.perrinn.com": "Discover navigation",
+    "meet.google.com": "Join meeting action",
+    "drive.google.com": "Team Drive link / server-generated activity links",
+    "chat.whatsapp.com": "Community link",
+    "www.youtube.com": "Community link",
+    "www.linkedin.com": "Community link",
+    "github.com": "Community and server-generated activity links",
+    "tinyurl.com": "Open Graph image shortener; metadata for preview crawlers, not app execution"
+  },
+  "localOnly": {
+    "127.0.0.1": "Unity prototype ws://127.0.0.1:42480/live; never a corporate core-app exception"
+  },
+  "documentationOnly": {
+    "angular.io": "Comment in src/polyfills.ts; no runtime dependency"
+  }
+}

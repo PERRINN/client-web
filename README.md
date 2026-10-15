@@ -50,6 +50,8 @@ The app is served at `http://localhost:4200/`. The development configuration use
 
 ## Common commands
 
+For safe public network/configuration checks, current findings, the enterprise IT allowlist and CI usage, see [ENTERPRISE_ACCESSIBILITY_AUDIT.md](ENTERPRISE_ACCESSIBILITY_AUDIT.md). Run `npm run audit:enterprise:test` and `npm run audit:enterprise -- --output /tmp/perrinn-enterprise-audit.json`; no credentials or production changes are required.
+
 | Command | Purpose |
 | --- | --- |
 | `npm start` | Run the Angular development server with the `dev` configuration. |

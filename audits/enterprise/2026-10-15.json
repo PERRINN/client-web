@@ -1,0 +1,1006 @@
+{
+  "generatedAt": "2026-10-15T07:57:55.688Z",
+  "mode": "live",
+  "scope": "Public transport/configuration only; not an authenticated app, WCAG, or reputation certification",
+  "findings": [
+    {
+      "status": "WARNING",
+      "check": "Firebase auth configuration",
+      "detail": "app.module.ts maps authDodash instead of authDomain. Email/password does not require redirect auth; helpers/future OAuth may fail."
+    },
+    {
+      "status": "FAIL",
+      "check": "Repository Firestore privacy boundary",
+      "detail": "Recursive allow read grants unauthenticated reads across all paths, including lastSeen and payment subcollections. Deployed rules were not read or tested."
+    },
+    {
+      "status": "WARNING",
+      "check": "Repository Storage boundary",
+      "detail": "Any authenticated user can write every object path under the recursive match; no per-owner, size or content-type constraints. Deployed rules were not tested."
+    },
+    {
+      "status": "WARNING",
+      "check": "Repository payment handlers",
+      "detail": "Review createRevolutOrder/syncRevolutOrderStatus: no verifyIdToken call in these handlers; permissive CORS is not authorization. Deployment/IAM not verified."
+    },
+    {
+      "status": "INFO",
+      "check": "Inventory scope",
+      "detail": "Static source inventory excludes binary/assets and dev config; runtime database URLs, checkout redirects and SDK policy-dependent resources need browser validation."
+    },
+    {
+      "status": "PASS",
+      "check": "DNS perrinn.com",
+      "detail": "{\"A\":[\"151.101.1.195\",\"151.101.65.195\"],\"AAAA\":{\"error\":\"ENODATA\"},\"CNAME\":{\"error\":\"ENODATA\"}}"
+    },
+    {
+      "status": "PASS",
+      "check": "DNS www.perrinn.com",
+      "detail": "{\"A\":[\"151.101.65.195\",\"151.101.1.195\"],\"AAAA\":[],\"CNAME\":[\"perrinn.com\"]}"
+    },
+    {
+      "status": "PASS",
+      "check": "DNS identitytoolkit.googleapis.com",
+      "detail": "{\"A\":[\"172.217.114.4\",\"172.217.112.4\",\"172.217.115.4\",\"172.217.118.4\",\"172.217.119.4\",\"172.217.117.4\",\"172.217.113.4\",\"172.217.116.4\"],\"AAAA\":[\"2001:4860:4844:400::\",\"2001:4860:4843:400::\",\"2001:4860:4841:400::\",\"2001:4860:4845:400::\",\"2001:4860:4846:400::\",\"2001:4860:4847:400::\",\"2001:4860:4840:400::\",\"2001:4860:4842:400::\"],\"CNAME\":{\"error\":\"ENODATA\"}}"
+    },
+    {
+      "status": "PASS",
+      "check": "DNS securetoken.googleapis.com",
+      "detail": "{\"A\":[\"172.217.118.4\",\"172.217.117.4\",\"172.217.114.4\",\"172.217.116.4\",\"172.217.115.4\",\"172.217.113.4\",\"172.217.112.4\",\"172.217.119.4\"],\"AAAA\":[\"2001:4860:4842:400::\",\"2001:4860:4844:400::\",\"2001:4860:4847:400::\",\"2001:4860:4843:400::\",\"2001:4860:4840:400::\",\"2001:4860:4841:400::\",\"2001:4860:4846:400::\",\"2001:4860:4845:400::\"],\"CNAME\":{\"error\":\"ENODATA\"}}"
+    },
+    {
+      "status": "PASS",
+      "check": "DNS firestore.googleapis.com",
+      "detail": "{\"A\":[\"142.250.140.95\"],\"AAAA\":[\"2a00:1450:4009:c19::5f\"],\"CNAME\":{\"error\":\"ENODATA\"}}"
+    },
+    {
+      "status": "PASS",
+      "check": "DNS firebasestorage.googleapis.com",
+      "detail": "{\"A\":[\"172.217.116.4\",\"172.217.119.4\",\"172.217.117.4\",\"172.217.118.4\",\"172.217.113.4\",\"172.217.114.4\",\"172.217.115.4\",\"172.217.112.4\"],\"AAAA\":[\"2001:4860:4846:400::\",\"2001:4860:4842:400::\",\"2001:4860:4841:400::\",\"2001:4860:4844:400::\",\"2001:4860:4845:400::\",\"2001:4860:4847:400::\",\"2001:4860:4843:400::\",\"2001:4860:4840:400::\"],\"CNAME\":{\"error\":\"ENODATA\"}}"
+    },
+    {
+      "status": "PASS",
+      "check": "DNS storage.googleapis.com",
+      "detail": "{\"A\":[\"142.250.151.207\",\"142.251.30.207\",\"142.250.117.207\",\"142.251.29.207\",\"192.178.223.207\",\"142.250.129.207\",\"142.250.140.207\"],\"AAAA\":[\"2a00:1450:4009:c08::cf\",\"2a00:1450:4009:c04::cf\",\"2a00:1450:4009:c15::cf\",\"2a00:1450:4009:c0f::cf\"],\"CNAME\":{\"error\":\"ENODATA\"}}"
+    },
+    {
+      "status": "PASS",
+      "check": "DNS fonts.googleapis.com",
+      "detail": "{\"A\":[\"142.251.29.95\"],\"AAAA\":[\"2a00:1450:4009:c08::5f\"],\"CNAME\":{\"error\":\"ENODATA\"}}"
+    },
+    {
+      "status": "PASS",
+      "check": "DNS fonts.gstatic.com",
+      "detail": "{\"A\":[\"142.250.129.94\"],\"AAAA\":[\"2a00:1450:4009:c15::5e\"],\"CNAME\":{\"error\":\"ENODATA\"}}"
+    },
+    {
+      "status": "INFO",
+      "check": "DNS NS",
+      "detail": "[\"ns01.domaincontrol.com\",\"ns02.domaincontrol.com\"]"
+    },
+    {
+      "status": "INFO",
+      "check": "DNS CAA",
+      "detail": "ENODATA: queryCaa ENODATA perrinn.com"
+    },
+    {
+      "status": "PASS",
+      "check": "TLS perrinn.com",
+      "detail": "Trusted chain and hostname verified; expires Dec 19 08:29:12 2026 GMT (65 days); TLSv1.3"
+    },
+    {
+      "status": "PASS",
+      "check": "TLS www.perrinn.com",
+      "detail": "Trusted chain and hostname verified; expires Dec 25 00:21:56 2026 GMT (70 days); TLSv1.3"
+    },
+    {
+      "status": "PASS",
+      "check": "Entry http://perrinn.com/",
+      "detail": "301 http://perrinn.com/ → 200 https://perrinn.com/"
+    },
+    {
+      "status": "PASS",
+      "check": "Entry https://perrinn.com/",
+      "detail": "200 https://perrinn.com/"
+    },
+    {
+      "status": "PASS",
+      "check": "Entry http://www.perrinn.com/",
+      "detail": "301 http://www.perrinn.com/ → 301 https://www.perrinn.com/ → 200 https://perrinn.com/"
+    },
+    {
+      "status": "PASS",
+      "check": "Entry https://www.perrinn.com/",
+      "detail": "301 https://www.perrinn.com/ → 200 https://perrinn.com/"
+    },
+    {
+      "status": "PASS",
+      "check": "HSTS",
+      "detail": "max-age=31556926"
+    },
+    {
+      "status": "WARNING",
+      "check": "content-security-policy",
+      "detail": "Missing"
+    },
+    {
+      "status": "WARNING",
+      "check": "x-content-type-options",
+      "detail": "Missing"
+    },
+    {
+      "status": "WARNING",
+      "check": "referrer-policy",
+      "detail": "Missing"
+    },
+    {
+      "status": "WARNING",
+      "check": "permissions-policy",
+      "detail": "Missing"
+    },
+    {
+      "status": "WARNING",
+      "check": "App shell caching",
+      "detail": "Root HTML Cache-Control=max-age=3600; verify fresh deployments through corporate caches"
+    },
+    {
+      "status": "PASS",
+      "check": "App shell mixed content",
+      "detail": "No HTTP resource URLs in initial HTML (does not execute JavaScript)"
+    },
+    {
+      "status": "PASS",
+      "check": "Inlined font https://fonts.gstatic.com/s/materialicons/v145/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2",
+      "detail": "200; ACAO=*"
+    },
+    {
+      "status": "PASS",
+      "check": "Inlined font https://fonts.gstatic.com/s/materialiconsoutlined/v110/gok-H7zzDkdnRel8-DQ6KAXJ69wP1tGnf4ZGhUce.woff2",
+      "detail": "200; ACAO=*"
+    },
+    {
+      "status": "PASS",
+      "check": "Inlined font https://fonts.gstatic.com/s/materialiconsround/v109/LDItaoyNOAY6Uewc665JcIzCKsKc_M9flwmP.woff2",
+      "detail": "200; ACAO=*"
+    },
+    {
+      "status": "PASS",
+      "check": "Inlined font https://fonts.gstatic.com/s/materialiconssharp/v110/oPWQ_lt5nv4pWNJpghLP75WiFR4kLh3kvmvR.woff2",
+      "detail": "200; ACAO=*"
+    },
+    {
+      "status": "PASS",
+      "check": "Inlined font https://fonts.gstatic.com/s/materialiconstwotone/v113/hESh6WRmNCxEqUmNyh3JDeGxjVVyMg4tHGctNCu0.woff2",
+      "detail": "200; ACAO=*"
+    },
+    {
+      "status": "PASS",
+      "check": "Inlined font https://fonts.gstatic.com/s/materialsymbolsoutlined/v377/kJF1BvYX7BgnkSrUwT8OhrdQw4oELdPIeeII9v6oDMzByHX9rA6RzaxHMPdY43zj-jCxv3fzvRNU22ZXGJpEpjC_1n-q_4MrImHCIJIZrDCvHOej.woff2",
+      "detail": "200; ACAO=*"
+    },
+    {
+      "status": "PASS",
+      "check": "Asset https://perrinn.com/styles.4531533e172cda30.css",
+      "detail": "200; text/css; charset=utf-8"
+    },
+    {
+      "status": "INFO",
+      "check": "Public asset hostname candidates",
+      "detail": "/styles.4531533e172cda30.css: ; not all are runtime dependencies"
+    },
+    {
+      "status": "PASS",
+      "check": "Asset https://perrinn.com/runtime.7339bf73001721a5.js",
+      "detail": "200; text/javascript; charset=utf-8"
+    },
+    {
+      "status": "INFO",
+      "check": "Public asset hostname candidates",
+      "detail": "/runtime.7339bf73001721a5.js: ; not all are runtime dependencies"
+    },
+    {
+      "status": "PASS",
+      "check": "Asset https://perrinn.com/polyfills.d4c6f66a6ba9b013.js",
+      "detail": "200; text/javascript; charset=utf-8"
+    },
+    {
+      "status": "INFO",
+      "check": "Public asset hostname candidates",
+      "detail": "/polyfills.d4c6f66a6ba9b013.js: github.com; not all are runtime dependencies"
+    },
+    {
+      "status": "PASS",
+      "check": "Asset https://perrinn.com/scripts.080fb4e6ab918a9d.js",
+      "detail": "200; text/javascript; charset=utf-8"
+    },
+    {
+      "status": "INFO",
+      "check": "Public asset hostname candidates",
+      "detail": "/scripts.080fb4e6ab918a9d.js: ; not all are runtime dependencies"
+    },
+    {
+      "status": "PASS",
+      "check": "Asset https://perrinn.com/main.cbe9315bb7d2ae43.js",
+      "detail": "200; text/javascript; charset=utf-8"
+    },
+    {
+      "status": "INFO",
+      "check": "Public asset hostname candidates",
+      "detail": "/main.cbe9315bb7d2ae43.js: securetoken.google.com, angular.dev, www.w3.org, stackoverflow.com, www.apache.org, content-firebaseappcheck.googleapis.com, charts.ag-grid.com, www.ag-grid.com, chat.whatsapp.com, discover.perrinn.com, storage.googleapis.com, firebasestorage.googleapis.com, firebase.google.com, meet.google.com, www.youtube.com, www.linkedin.com, github.com, us-central1-perrinn-d5fc1.cloudfunctions.net, console.firebase.google.com, perrinn-d5fc1.firebaseio.com, localhost, apis.google.com, www.google.com; not all are runtime dependencies"
+    },
+    {
+      "status": "PASS",
+      "check": "Public /login",
+      "detail": "200; text/html; charset=utf-8"
+    },
+    {
+      "status": "PASS",
+      "check": "Public /home",
+      "detail": "200; text/html; charset=utf-8"
+    },
+    {
+      "status": "PASS",
+      "check": "Public /manifest.json",
+      "detail": "200; application/json"
+    },
+    {
+      "status": "PASS",
+      "check": "Public /ngsw.json",
+      "detail": "200; application/json"
+    },
+    {
+      "status": "PASS",
+      "check": "Public /ngsw-worker.js",
+      "detail": "200; text/javascript; charset=utf-8"
+    },
+    {
+      "status": "WARNING",
+      "check": "Service worker caching",
+      "detail": "Stable worker filename served with public,max-age=31536000,immutable; review update/revalidation behavior"
+    },
+    {
+      "status": "PASS",
+      "check": "CORS preflight https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword (https://perrinn.com)",
+      "detail": "200; ACAO=https://perrinn.com; methods=DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT; requested headers=content-type; preflight only, no functional/auth/rules assertion"
+    },
+    {
+      "status": "PASS",
+      "check": "CORS preflight https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword (https://www.perrinn.com)",
+      "detail": "200; ACAO=https://www.perrinn.com; methods=DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT; requested headers=content-type; preflight only, no functional/auth/rules assertion"
+    },
+    {
+      "status": "PASS",
+      "check": "CORS preflight https://securetoken.googleapis.com/v1/token (https://perrinn.com)",
+      "detail": "200; ACAO=https://perrinn.com; methods=DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT; requested headers=content-type; preflight only, no functional/auth/rules assertion"
+    },
+    {
+      "status": "PASS",
+      "check": "CORS preflight https://securetoken.googleapis.com/v1/token (https://www.perrinn.com)",
+      "detail": "200; ACAO=https://www.perrinn.com; methods=DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT; requested headers=content-type; preflight only, no functional/auth/rules assertion"
+    },
+    {
+      "status": "PASS",
+      "check": "CORS preflight https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel (https://perrinn.com)",
+      "detail": "200; ACAO=https://perrinn.com; methods=GET,POST; requested headers=content-type,x-goog-api-client; preflight only, no functional/auth/rules assertion"
+    },
+    {
+      "status": "PASS",
+      "check": "CORS preflight https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel (https://www.perrinn.com)",
+      "detail": "200; ACAO=https://www.perrinn.com; methods=GET,POST; requested headers=content-type,x-goog-api-client; preflight only, no functional/auth/rules assertion"
+    },
+    {
+      "status": "WARNING",
+      "check": "CORS preflight https://firebasestorage.googleapis.com/v0/b/perrinn-d5fc1.appspot.com/o (https://perrinn.com)",
+      "detail": "200; ACAO=*; methods=GET; requested headers=content-type,authorization,x-firebase-storage-version; preflight only, no functional/auth/rules assertion"
+    },
+    {
+      "status": "WARNING",
+      "check": "CORS preflight https://firebasestorage.googleapis.com/v0/b/perrinn-d5fc1.appspot.com/o (https://www.perrinn.com)",
+      "detail": "200; ACAO=*; methods=GET; requested headers=content-type,authorization,x-firebase-storage-version; preflight only, no functional/auth/rules assertion"
+    },
+    {
+      "status": "PASS",
+      "check": "CORS preflight https://us-central1-perrinn-d5fc1.cloudfunctions.net/createRevolutOrder (https://perrinn.com)",
+      "detail": "204; ACAO=https://perrinn.com; methods=GET,HEAD,PUT,PATCH,POST,DELETE; requested headers=content-type; preflight only, no functional/auth/rules assertion"
+    },
+    {
+      "status": "PASS",
+      "check": "CORS preflight https://us-central1-perrinn-d5fc1.cloudfunctions.net/createRevolutOrder (https://www.perrinn.com)",
+      "detail": "204; ACAO=https://www.perrinn.com; methods=GET,HEAD,PUT,PATCH,POST,DELETE; requested headers=content-type; preflight only, no functional/auth/rules assertion"
+    },
+    {
+      "status": "PASS",
+      "check": "CORS preflight https://us-central1-perrinn-d5fc1.cloudfunctions.net/syncRevolutOrderStatus (https://perrinn.com)",
+      "detail": "204; ACAO=https://perrinn.com; methods=GET,HEAD,PUT,PATCH,POST,DELETE; requested headers=content-type; preflight only, no functional/auth/rules assertion"
+    },
+    {
+      "status": "PASS",
+      "check": "CORS preflight https://us-central1-perrinn-d5fc1.cloudfunctions.net/syncRevolutOrderStatus (https://www.perrinn.com)",
+      "detail": "204; ACAO=https://www.perrinn.com; methods=GET,HEAD,PUT,PATCH,POST,DELETE; requested headers=content-type; preflight only, no functional/auth/rules assertion"
+    },
+    {
+      "status": "WARNING",
+      "check": "End-to-end verification outstanding",
+      "detail": "Corporate proxy/categories, TLS inspection, authenticated login/token renewal, Firestore streaming/writes, uploads and checkout require an authorized browser test. No reputation/blocklist certification performed."
+    }
+  ],
+  "dns": {
+    "perrinn.com": {
+      "A": [
+        "151.101.1.195",
+        "151.101.65.195"
+      ],
+      "AAAA": {
+        "error": "ENODATA"
+      },
+      "CNAME": {
+        "error": "ENODATA"
+      },
+      "NS": [
+        "ns01.domaincontrol.com",
+        "ns02.domaincontrol.com"
+      ]
+    },
+    "www.perrinn.com": {
+      "A": [
+        "151.101.65.195",
+        "151.101.1.195"
+      ],
+      "AAAA": [],
+      "CNAME": [
+        "perrinn.com"
+      ]
+    },
+    "identitytoolkit.googleapis.com": {
+      "A": [
+        "172.217.114.4",
+        "172.217.112.4",
+        "172.217.115.4",
+        "172.217.118.4",
+        "172.217.119.4",
+        "172.217.117.4",
+        "172.217.113.4",
+        "172.217.116.4"
+      ],
+      "AAAA": [
+        "2001:4860:4844:400::",
+        "2001:4860:4843:400::",
+        "2001:4860:4841:400::",
+        "2001:4860:4845:400::",
+        "2001:4860:4846:400::",
+        "2001:4860:4847:400::",
+        "2001:4860:4840:400::",
+        "2001:4860:4842:400::"
+      ],
+      "CNAME": {
+        "error": "ENODATA"
+      }
+    },
+    "securetoken.googleapis.com": {
+      "A": [
+        "172.217.118.4",
+        "172.217.117.4",
+        "172.217.114.4",
+        "172.217.116.4",
+        "172.217.115.4",
+        "172.217.113.4",
+        "172.217.112.4",
+        "172.217.119.4"
+      ],
+      "AAAA": [
+        "2001:4860:4842:400::",
+        "2001:4860:4844:400::",
+        "2001:4860:4847:400::",
+        "2001:4860:4843:400::",
+        "2001:4860:4840:400::",
+        "2001:4860:4841:400::",
+        "2001:4860:4846:400::",
+        "2001:4860:4845:400::"
+      ],
+      "CNAME": {
+        "error": "ENODATA"
+      }
+    },
+    "firestore.googleapis.com": {
+      "A": [
+        "142.250.140.95"
+      ],
+      "AAAA": [
+        "2a00:1450:4009:c19::5f"
+      ],
+      "CNAME": {
+        "error": "ENODATA"
+      }
+    },
+    "firebasestorage.googleapis.com": {
+      "A": [
+        "172.217.116.4",
+        "172.217.119.4",
+        "172.217.117.4",
+        "172.217.118.4",
+        "172.217.113.4",
+        "172.217.114.4",
+        "172.217.115.4",
+        "172.217.112.4"
+      ],
+      "AAAA": [
+        "2001:4860:4846:400::",
+        "2001:4860:4842:400::",
+        "2001:4860:4841:400::",
+        "2001:4860:4844:400::",
+        "2001:4860:4845:400::",
+        "2001:4860:4847:400::",
+        "2001:4860:4843:400::",
+        "2001:4860:4840:400::"
+      ],
+      "CNAME": {
+        "error": "ENODATA"
+      }
+    },
+    "storage.googleapis.com": {
+      "A": [
+        "142.250.151.207",
+        "142.251.30.207",
+        "142.250.117.207",
+        "142.251.29.207",
+        "192.178.223.207",
+        "142.250.129.207",
+        "142.250.140.207"
+      ],
+      "AAAA": [
+        "2a00:1450:4009:c08::cf",
+        "2a00:1450:4009:c04::cf",
+        "2a00:1450:4009:c15::cf",
+        "2a00:1450:4009:c0f::cf"
+      ],
+      "CNAME": {
+        "error": "ENODATA"
+      }
+    },
+    "fonts.googleapis.com": {
+      "A": [
+        "142.251.29.95"
+      ],
+      "AAAA": [
+        "2a00:1450:4009:c08::5f"
+      ],
+      "CNAME": {
+        "error": "ENODATA"
+      }
+    },
+    "fonts.gstatic.com": {
+      "A": [
+        "142.250.129.94"
+      ],
+      "AAAA": [
+        "2a00:1450:4009:c15::5e"
+      ],
+      "CNAME": {
+        "error": "ENODATA"
+      }
+    }
+  },
+  "tls": {
+    "perrinn.com": {
+      "authorized": true,
+      "matchingSubjectAltNames": [
+        "DNS:perrinn.com"
+      ],
+      "certificateNameCount": 100,
+      "issuer": {
+        "C": "US",
+        "O": "Google Trust Services",
+        "CN": "WR3"
+      },
+      "validFrom": "Sep 20 07:31:17 2026 GMT",
+      "validTo": "Dec 19 08:29:12 2026 GMT",
+      "daysRemaining": 65,
+      "protocol": "TLSv1.3"
+    },
+    "www.perrinn.com": {
+      "authorized": true,
+      "matchingSubjectAltNames": [
+        "DNS:www.perrinn.com"
+      ],
+      "certificateNameCount": 100,
+      "issuer": {
+        "C": "US",
+        "O": "Google Trust Services",
+        "CN": "WR3"
+      },
+      "validFrom": "Sep 25 23:24:07 2026 GMT",
+      "validTo": "Dec 25 00:21:56 2026 GMT",
+      "daysRemaining": 70,
+      "protocol": "TLSv1.3"
+    }
+  },
+  "requests": [
+    {
+      "url": "http://perrinn.com/",
+      "method": "GET",
+      "status": 301,
+      "headers": {},
+      "location": "https://perrinn.com/"
+    },
+    {
+      "url": "https://perrinn.com/",
+      "method": "GET",
+      "status": 200,
+      "headers": {
+        "cache-control": "max-age=3600",
+        "content-type": "text/html; charset=utf-8",
+        "strict-transport-security": "max-age=31556926"
+      }
+    },
+    {
+      "url": "https://perrinn.com/",
+      "method": "GET",
+      "status": 200,
+      "headers": {
+        "cache-control": "max-age=3600",
+        "content-type": "text/html; charset=utf-8",
+        "strict-transport-security": "max-age=31556926"
+      }
+    },
+    {
+      "url": "http://www.perrinn.com/",
+      "method": "GET",
+      "status": 301,
+      "headers": {},
+      "location": "https://www.perrinn.com/"
+    },
+    {
+      "url": "https://www.perrinn.com/",
+      "method": "GET",
+      "status": 301,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "location": "https://perrinn.com/"
+    },
+    {
+      "url": "https://perrinn.com/",
+      "method": "GET",
+      "status": 200,
+      "headers": {
+        "cache-control": "max-age=3600",
+        "content-type": "text/html; charset=utf-8",
+        "strict-transport-security": "max-age=31556926"
+      }
+    },
+    {
+      "url": "https://www.perrinn.com/",
+      "method": "GET",
+      "status": 301,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "location": "https://perrinn.com/"
+    },
+    {
+      "url": "https://perrinn.com/",
+      "method": "GET",
+      "status": 200,
+      "headers": {
+        "cache-control": "max-age=3600",
+        "content-type": "text/html; charset=utf-8",
+        "strict-transport-security": "max-age=31556926"
+      }
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/materialicons/v145/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2",
+      "method": "HEAD",
+      "status": 200,
+      "headers": {
+        "access-control-allow-origin": "*",
+        "content-security-policy-report-only": "require-trusted-types-for 'script'; report-uri https://csp.withgoogle.com/csp/apps-themes",
+        "x-content-type-options": "nosniff",
+        "cache-control": "public, max-age=31536000",
+        "content-type": "font/woff2"
+      }
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/materialiconsoutlined/v110/gok-H7zzDkdnRel8-DQ6KAXJ69wP1tGnf4ZGhUce.woff2",
+      "method": "HEAD",
+      "status": 200,
+      "headers": {
+        "access-control-allow-origin": "*",
+        "content-security-policy-report-only": "require-trusted-types-for 'script'; report-uri https://csp.withgoogle.com/csp/apps-themes",
+        "x-content-type-options": "nosniff",
+        "cache-control": "public, max-age=31536000",
+        "content-type": "font/woff2"
+      }
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/materialiconsround/v109/LDItaoyNOAY6Uewc665JcIzCKsKc_M9flwmP.woff2",
+      "method": "HEAD",
+      "status": 200,
+      "headers": {
+        "access-control-allow-origin": "*",
+        "content-security-policy-report-only": "require-trusted-types-for 'script'; report-uri https://csp.withgoogle.com/csp/apps-themes",
+        "x-content-type-options": "nosniff",
+        "cache-control": "public, max-age=31536000",
+        "content-type": "font/woff2"
+      }
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/materialiconssharp/v110/oPWQ_lt5nv4pWNJpghLP75WiFR4kLh3kvmvR.woff2",
+      "method": "HEAD",
+      "status": 200,
+      "headers": {
+        "access-control-allow-origin": "*",
+        "content-security-policy-report-only": "require-trusted-types-for 'script'; report-uri https://csp.withgoogle.com/csp/apps-themes",
+        "x-content-type-options": "nosniff",
+        "cache-control": "public, max-age=31536000",
+        "content-type": "font/woff2"
+      }
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/materialiconstwotone/v113/hESh6WRmNCxEqUmNyh3JDeGxjVVyMg4tHGctNCu0.woff2",
+      "method": "HEAD",
+      "status": 200,
+      "headers": {
+        "access-control-allow-origin": "*",
+        "content-security-policy-report-only": "require-trusted-types-for 'script'; report-uri https://csp.withgoogle.com/csp/apps-themes",
+        "x-content-type-options": "nosniff",
+        "cache-control": "public, max-age=31536000",
+        "content-type": "font/woff2"
+      }
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/materialsymbolsoutlined/v377/kJF1BvYX7BgnkSrUwT8OhrdQw4oELdPIeeII9v6oDMzByHX9rA6RzaxHMPdY43zj-jCxv3fzvRNU22ZXGJpEpjC_1n-q_4MrImHCIJIZrDCvHOej.woff2",
+      "method": "HEAD",
+      "status": 200,
+      "headers": {
+        "access-control-allow-origin": "*",
+        "content-security-policy-report-only": "require-trusted-types-for 'script'; report-uri https://csp.withgoogle.com/csp/apps-themes",
+        "x-content-type-options": "nosniff",
+        "cache-control": "public, max-age=31536000",
+        "content-type": "font/woff2"
+      }
+    },
+    {
+      "url": "https://perrinn.com/styles.4531533e172cda30.css",
+      "method": "GET",
+      "status": 200,
+      "headers": {
+        "cache-control": "public,max-age=31536000,immutable",
+        "content-type": "text/css; charset=utf-8",
+        "strict-transport-security": "max-age=31556926"
+      }
+    },
+    {
+      "url": "https://perrinn.com/runtime.7339bf73001721a5.js",
+      "method": "GET",
+      "status": 200,
+      "headers": {
+        "cache-control": "public,max-age=31536000,immutable",
+        "content-type": "text/javascript; charset=utf-8",
+        "strict-transport-security": "max-age=31556926"
+      }
+    },
+    {
+      "url": "https://perrinn.com/polyfills.d4c6f66a6ba9b013.js",
+      "method": "GET",
+      "status": 200,
+      "headers": {
+        "cache-control": "public,max-age=31536000,immutable",
+        "content-type": "text/javascript; charset=utf-8",
+        "strict-transport-security": "max-age=31556926"
+      }
+    },
+    {
+      "url": "https://perrinn.com/scripts.080fb4e6ab918a9d.js",
+      "method": "GET",
+      "status": 200,
+      "headers": {
+        "cache-control": "public,max-age=31536000,immutable",
+        "content-type": "text/javascript; charset=utf-8",
+        "strict-transport-security": "max-age=31556926"
+      }
+    },
+    {
+      "url": "https://perrinn.com/main.cbe9315bb7d2ae43.js",
+      "method": "GET",
+      "status": 200,
+      "headers": {
+        "cache-control": "public,max-age=31536000,immutable",
+        "content-type": "text/javascript; charset=utf-8",
+        "strict-transport-security": "max-age=31556926"
+      }
+    },
+    {
+      "url": "https://perrinn.com/login",
+      "method": "GET",
+      "status": 200,
+      "headers": {
+        "cache-control": "max-age=3600",
+        "content-type": "text/html; charset=utf-8",
+        "strict-transport-security": "max-age=31556926"
+      }
+    },
+    {
+      "url": "https://perrinn.com/home",
+      "method": "GET",
+      "status": 200,
+      "headers": {
+        "cache-control": "max-age=3600",
+        "content-type": "text/html; charset=utf-8",
+        "strict-transport-security": "max-age=31556926"
+      }
+    },
+    {
+      "url": "https://perrinn.com/manifest.json",
+      "method": "GET",
+      "status": 200,
+      "headers": {
+        "cache-control": "max-age=3600",
+        "content-type": "application/json",
+        "strict-transport-security": "max-age=31556926"
+      }
+    },
+    {
+      "url": "https://perrinn.com/ngsw.json",
+      "method": "GET",
+      "status": 200,
+      "headers": {
+        "cache-control": "max-age=3600",
+        "content-type": "application/json",
+        "strict-transport-security": "max-age=31556926"
+      }
+    },
+    {
+      "url": "https://perrinn.com/ngsw-worker.js",
+      "method": "GET",
+      "status": 200,
+      "headers": {
+        "cache-control": "public,max-age=31536000,immutable",
+        "content-type": "text/javascript; charset=utf-8",
+        "strict-transport-security": "max-age=31556926"
+      }
+    },
+    {
+      "url": "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword",
+      "method": "OPTIONS",
+      "status": 200,
+      "headers": {
+        "access-control-allow-origin": "https://perrinn.com",
+        "access-control-allow-methods": "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT",
+        "access-control-allow-headers": "content-type",
+        "content-type": "text/html",
+        "x-frame-options": "SAMEORIGIN",
+        "x-content-type-options": "nosniff"
+      }
+    },
+    {
+      "url": "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword",
+      "method": "OPTIONS",
+      "status": 200,
+      "headers": {
+        "access-control-allow-origin": "https://www.perrinn.com",
+        "access-control-allow-methods": "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT",
+        "access-control-allow-headers": "content-type",
+        "content-type": "text/html",
+        "x-frame-options": "SAMEORIGIN",
+        "x-content-type-options": "nosniff"
+      }
+    },
+    {
+      "url": "https://securetoken.googleapis.com/v1/token",
+      "method": "OPTIONS",
+      "status": 200,
+      "headers": {
+        "access-control-allow-origin": "https://perrinn.com",
+        "access-control-allow-methods": "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT",
+        "access-control-allow-headers": "content-type",
+        "content-type": "text/html",
+        "x-frame-options": "SAMEORIGIN",
+        "x-content-type-options": "nosniff"
+      }
+    },
+    {
+      "url": "https://securetoken.googleapis.com/v1/token",
+      "method": "OPTIONS",
+      "status": 200,
+      "headers": {
+        "access-control-allow-origin": "https://www.perrinn.com",
+        "access-control-allow-methods": "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT",
+        "access-control-allow-headers": "content-type",
+        "content-type": "text/html",
+        "x-frame-options": "SAMEORIGIN",
+        "x-content-type-options": "nosniff"
+      }
+    },
+    {
+      "url": "https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel",
+      "method": "OPTIONS",
+      "status": 200,
+      "headers": {
+        "access-control-allow-origin": "https://perrinn.com",
+        "access-control-allow-credentials": "true",
+        "access-control-allow-methods": "GET,POST",
+        "access-control-allow-headers": "content-type,x-goog-api-client",
+        "content-type": "text/html",
+        "x-frame-options": "SAMEORIGIN",
+        "x-content-type-options": "nosniff"
+      }
+    },
+    {
+      "url": "https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel",
+      "method": "OPTIONS",
+      "status": 200,
+      "headers": {
+        "access-control-allow-origin": "https://www.perrinn.com",
+        "access-control-allow-credentials": "true",
+        "access-control-allow-methods": "GET,POST",
+        "access-control-allow-headers": "content-type,x-goog-api-client",
+        "content-type": "text/html",
+        "x-frame-options": "SAMEORIGIN",
+        "x-content-type-options": "nosniff"
+      }
+    },
+    {
+      "url": "https://firebasestorage.googleapis.com/v0/b/perrinn-d5fc1.appspot.com/o",
+      "method": "OPTIONS",
+      "status": 200,
+      "headers": {
+        "access-control-allow-methods": "GET",
+        "access-control-allow-headers": "Authorization, Content-Type, Range, X-Firebase-Storage-Version, X-Firebase-Storage-XSRF, X-Firebase-AppCheck, X-Firebase-GMPID, X-Goog-AuthUser, X-Goog-Upload-Command, X-Goog-Upload-Header-Content-Length, X-Goog-Upload-Header-Content-Type, X-Goog-Upload-Protocol",
+        "access-control-allow-origin": "*",
+        "cache-control": "private, max-age=0",
+        "content-type": "text/plain"
+      }
+    },
+    {
+      "url": "https://firebasestorage.googleapis.com/v0/b/perrinn-d5fc1.appspot.com/o",
+      "method": "OPTIONS",
+      "status": 200,
+      "headers": {
+        "access-control-allow-methods": "GET",
+        "access-control-allow-headers": "Authorization, Content-Type, Range, X-Firebase-Storage-Version, X-Firebase-Storage-XSRF, X-Firebase-AppCheck, X-Firebase-GMPID, X-Goog-AuthUser, X-Goog-Upload-Command, X-Goog-Upload-Header-Content-Length, X-Goog-Upload-Header-Content-Type, X-Goog-Upload-Protocol",
+        "access-control-allow-origin": "*",
+        "cache-control": "private, max-age=0",
+        "content-type": "text/plain"
+      }
+    },
+    {
+      "url": "https://us-central1-perrinn-d5fc1.cloudfunctions.net/createRevolutOrder",
+      "method": "OPTIONS",
+      "status": 204,
+      "headers": {
+        "access-control-allow-origin": "https://perrinn.com",
+        "access-control-allow-methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
+        "access-control-allow-headers": "content-type",
+        "content-type": "text/html"
+      }
+    },
+    {
+      "url": "https://us-central1-perrinn-d5fc1.cloudfunctions.net/createRevolutOrder",
+      "method": "OPTIONS",
+      "status": 204,
+      "headers": {
+        "access-control-allow-origin": "https://www.perrinn.com",
+        "access-control-allow-methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
+        "access-control-allow-headers": "content-type",
+        "content-type": "text/html"
+      }
+    },
+    {
+      "url": "https://us-central1-perrinn-d5fc1.cloudfunctions.net/syncRevolutOrderStatus",
+      "method": "OPTIONS",
+      "status": 204,
+      "headers": {
+        "access-control-allow-origin": "https://perrinn.com",
+        "access-control-allow-methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
+        "access-control-allow-headers": "content-type",
+        "content-type": "text/html"
+      }
+    },
+    {
+      "url": "https://us-central1-perrinn-d5fc1.cloudfunctions.net/syncRevolutOrderStatus",
+      "method": "OPTIONS",
+      "status": 204,
+      "headers": {
+        "access-control-allow-origin": "https://www.perrinn.com",
+        "access-control-allow-methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
+        "access-control-allow-headers": "content-type",
+        "content-type": "text/html"
+      }
+    }
+  ],
+  "sourceHosts": {
+    "discover.perrinn.com": [
+      "src/app/app.component.ts"
+    ],
+    "chat.whatsapp.com": [
+      "src/app/apps.component.ts",
+      "src/app/buy-prn.component.html",
+      "src/app/profile.component.html"
+    ],
+    "www.youtube.com": [
+      "src/app/apps.component.ts"
+    ],
+    "www.linkedin.com": [
+      "src/app/apps.component.ts"
+    ],
+    "github.com": [
+      "src/app/apps.component.ts"
+    ],
+    "us-central1-perrinn-d5fc1.cloudfunctions.net": [
+      "src/app/buy-prn.component.ts"
+    ],
+    "meet.google.com": [
+      "src/app/chat.component.ts"
+    ],
+    "storage.googleapis.com": [
+      "src/app/login.component.ts",
+      "src/app/settings.component.html"
+    ],
+    "firebasestorage.googleapis.com": [
+      "src/app/login.component.ts",
+      "src/ngsw-config.json"
+    ],
+    "127.0.0.1": [
+      "src/app/prototypes/unity-live-link/unityLiveLink.service.ts"
+    ],
+    "perrinn-d5fc1.firebaseio.com": [
+      "src/environments/environment.prod.ts"
+    ],
+    "www.perrinn.com": [
+      "src/index.html"
+    ],
+    "tinyurl.com": [
+      "src/index.html"
+    ],
+    "fonts.googleapis.com": [
+      "src/index.html"
+    ],
+    "angular.io": [
+      "src/polyfills.ts"
+    ]
+  },
+  "dependencies": {
+    "core": {
+      "perrinn.com": "Application and bundled scripts; HTTPS TCP 443",
+      "www.perrinn.com": "Published www URL / alternate entry point",
+      "identitytoolkit.googleapis.com": "Firebase email/password login, registration, account changes and password reset",
+      "securetoken.googleapis.com": "Firebase ID token renewal; required after initial sign-in",
+      "firestore.googleapis.com": "Firestore reads, writes and WebChannel real-time listeners",
+      "firebasestorage.googleapis.com": "Firebase image uploads and download URLs",
+      "storage.googleapis.com": "Server-generated signed profile and chat image URLs",
+      "fonts.googleapis.com": "Material Icons/Symbols CSS in source; production optimizer currently inlines it (also a build-time dependency)",
+      "fonts.gstatic.com": "Font files referenced by Google Fonts CSS"
+    },
+    "conditional": {
+      "perrinn-d5fc1.firebaseapp.com": "Configured auth helper domain, subject to authDodash typo; email action links / future federated auth",
+      "perrinn-d5fc1.firebaseio.com": "Configured Realtime Database; module imported but no active client database calls found",
+      "us-central1-perrinn-d5fc1.cloudfunctions.net": "PRN purchases: createRevolutOrder and syncRevolutOrderStatus only",
+      "www.google.com": "Possible Firebase Auth reCAPTCHA if enabled by project policy; not observed",
+      "www.gstatic.com": "Possible reCAPTCHA assets if enabled; not observed",
+      "recaptchaenterprise.googleapis.com": "Possible Auth bot protection if enabled; not observed",
+      "apis.google.com": "Firebase popup/redirect helper loader; dormant for current email/password login"
+    },
+    "optional": {
+      "discover.perrinn.com": "Discover navigation",
+      "meet.google.com": "Join meeting action",
+      "drive.google.com": "Team Drive link / server-generated activity links",
+      "chat.whatsapp.com": "Community link",
+      "www.youtube.com": "Community link",
+      "www.linkedin.com": "Community link",
+      "github.com": "Community and server-generated activity links",
+      "tinyurl.com": "Open Graph image shortener; metadata for preview crawlers, not app execution"
+    },
+    "localOnly": {
+      "127.0.0.1": "Unity prototype ws://127.0.0.1:42480/live; never a corporate core-app exception"
+    },
+    "documentationOnly": {
+      "angular.io": "Comment in src/polyfills.ts; no runtime dependency"
+    }
+  },
+  "summary": {
+    "PASS": 43,
+    "WARNING": 12,
+    "FAIL": 1,
+    "INFO": 8
+  }
+}
