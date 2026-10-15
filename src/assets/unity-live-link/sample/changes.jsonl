@@ -1,0 +1,2 @@
+{"id":1,"time":42.6920585,"sequence":15449,"result":{"type":"result","requestId":"lap-2","parameter":"frontSpringRate","ok":true,"value":253000.0,"effectiveFromFrame":154411,"error":""}}
+{"id":2,"time":84.902405291000008,"sequence":30341,"result":{"type":"result","requestId":"lap-3","parameter":"frontSpringRate","ok":true,"value":276000.0,"effectiveFromFrame":303266,"error":""}}

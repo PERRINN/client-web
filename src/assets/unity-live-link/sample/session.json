@@ -1,7 +1,7 @@
 {
   "type": "welcome",
   "protocol": 2,
-  "session": "bb0beed849ba4d7797ca236cdf65d836",
+  "session": "cbc2da42fe9d413ba180490d503f8cdc",
   "rateHz": 50,
   "canStopSimulation": true,
   "channels": [
@@ -306,19 +306,19 @@
   ],
   "lapPlan": [
     {
-      "parameter": "",
-      "mode": "offset",
-      "amount": 0.0
+      "parameter": "frontSpringRate",
+      "mode": "gain",
+      "amount": 1.100000023841858
     },
     {
-      "parameter": "",
-      "mode": "offset",
-      "amount": 0.0
+      "parameter": "frontSpringRate",
+      "mode": "gain",
+      "amount": 1.2000000476837158
     }
   ],
   "recordingPath": "Bundled sample session",
   "recordingError": "",
-  "recordedSamples": 45395,
-  "recordedEvents": 0,
+  "recordedSamples": 45165,
+  "recordedEvents": 2,
   "complete": true
 }
