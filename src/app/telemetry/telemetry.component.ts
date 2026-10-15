@@ -5,7 +5,7 @@ import { ChartNavigation } from './chartNavigation';
 import { LapOverlay, LapTrace } from './lapOverlay';
 import { TelemetryTrace, telemetryPlots } from './telemetryPlots';
 import { SessionAnalysis, SessionLap, lapTime } from './sessionAnalysis';
-import { chartIndices, channelName } from './chartChannels';
+import { chartGroups, channelName } from './chartChannels';
 import { TrackTrajectory } from './trackTrajectory';
 import { timeAxis, TimeTick } from './timeAxis';
 import { axisY, verticalAxis } from './verticalAxis';
@@ -108,7 +108,8 @@ export class TelemetryComponent implements OnInit, OnDestroy {
   get frontRideIndex() { return this.live.channels.findIndex(c=>c.id==='RideHeightFront'); }
   get rearRideIndex() { return this.live.channels.findIndex(c=>c.id==='RideHeightRear'); }
   get missingTrajectoryError() { return !this.live.channels.some(c=>c.id==='AutopilotDistanceError'); }
-  get chartIndices() { return chartIndices(this.live.channels); }
+  trackGroup = (_: number, group: {label:string}) => group.label;
+  get chartGroups() { return chartGroups(this.live.channels); }
   readonly channelName = channelName;
   get duration() { return this.distanceAxis ? this.overlay.max : this.live.history.end; }
   get maxStart() { return Math.max(this.origin, this.duration - this.span); }

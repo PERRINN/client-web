@@ -1,4 +1,4 @@
-import { axisY, verticalAxis } from './verticalAxis';
+import { axisY, verticalAxis, VerticalAxis } from './verticalAxis';
 
 export interface LiveSample { sequence: number; frame: number; time: number; simulationTime: number; paused: boolean; values: (number | null)[] }
 export interface ParameterChange { id: number; time: number; sequence: number; result: { parameter: string; value: number; effectiveFromFrame: number } }
@@ -109,11 +109,12 @@ export class SessionHistory {
   formatValue(channel: number, value: number | null | undefined) {
     const range = this.range(channel); return formatTelemetryValue(value, range.min, range.max);
   }
-  trace(channel: number, start: number, end: number, resolution = 300, displayRange?: { min: number; max: number }, coordinate?: (time: number, index?: number) => number, horizontalRange?: {start: number; end: number}) {
+  trace(channel: number, start: number, end: number, resolution = 300, displayRange?: { min: number; max: number } | VerticalAxis, coordinate?: (time: number, index?: number) => number, horizontalRange?: {start: number; end: number}) {
     const a = this.lower(start), endIndex = this.lower(end);
     const z = Math.min(this.length, endIndex + (endIndex < this.length && this.time(endIndex) <= end ? 1 : 0));
     const { min, max } = this.range(channel);
-    const axis = verticalAxis(displayRange?.min ?? min, displayRange?.max ?? max);
+    // A supplied chart axis is already rounded. Reusing it keeps traces, ticks and cursors aligned.
+    const axis = displayRange && 'ticks' in displayRange ? displayRange : verticalAxis(displayRange?.min ?? min, displayRange?.max ?? max);
     let above = '', below = '', aboveBucket = -1, belowBucket = -1;
     if (a >= z || !this.hasRange(channel)) return { path: '', min, max, axis, above, below };
     resolution = Math.max(1, Math.floor(resolution));

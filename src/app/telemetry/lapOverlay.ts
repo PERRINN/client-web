@@ -32,7 +32,7 @@ export class LapOverlay {
         rows.push(i); distances.push(Math.max(0, distance));
       }
       this.max = Math.max(this.max, distances[distances.length - 1] || 0);
-      return { lap, rows, distances, color: lap.number === 1 ? 'var(--color-text-secondary)' : lap.number === 2 ? 'var(--color-accent)' : 'var(--color-data-comparison)' };
+      return { lap, rows, distances, color: lap.number === 1 ? 'var(--color-text-secondary)' : lap.number === 2 ? 'var(--color-data-comparison)' : 'var(--color-accent)' };
     });
     if (!this.tracks.some(t => t.lap.number === this.activeLap)) this.activeLap = this.tracks.find(t => t.lap.complete)?.lap.number ?? this.tracks[0]?.lap.number;
     if (this.cursorDistance !== undefined) this.inspect(this.cursorDistance);
@@ -71,7 +71,7 @@ export class LapOverlay {
       if (first >= rows.length || last < first) return { lap: track.lap.number, color: track.color, path: '', above: '', below: '', gaps: [] };
       const a = history.time(rows[first]), b = history.time(rows[last]);
       const coordinate = (time: number, index?: number) => index === undefined ? this.distance(history.nearest(time)) : Math.max(0, history.value(index, this.channel));
-      const trace = history.trace(channel, a, b, resolution, {min:axis.min,max:axis.max}, coordinate, {start,end});
+      const trace = history.trace(channel, a, b, resolution, axis, coordinate, {start,end});
       return { lap: track.lap.number, color: track.color, path: trace.path, above: trace.above, below: trace.below,
         gaps: recordingGapBands(history, channel, axis, a, b, coordinate, {start,end}) };
     });

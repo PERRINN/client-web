@@ -1,7 +1,7 @@
 {
   "type": "welcome",
   "protocol": 2,
-  "session": "5485cd1c0d7a41cb91a448deb0a25cdc",
+  "session": "bb0beed849ba4d7797ca236cdf65d836",
   "rateHz": 50,
   "canStopSimulation": true,
   "channels": [
@@ -243,6 +243,24 @@
       "id": "LapCompleteTrigger",
       "unit": "",
       "sourceHz": 50.0,
+      "available": true
+    },
+    {
+      "id": "AutopilotDistanceError",
+      "unit": "mm",
+      "sourceHz": 49.999996185302734,
+      "available": true
+    },
+    {
+      "id": "AeroFrontFlap",
+      "unit": "\u00b0",
+      "sourceHz": 49.999996185302734,
+      "available": true
+    },
+    {
+      "id": "AeroDrsPosition",
+      "unit": "%",
+      "sourceHz": 49.999996185302734,
       "available": true
     }
   ],

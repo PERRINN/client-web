@@ -99,7 +99,6 @@ button[aria-pressed="true"] { background: var(--color-selected); }
 .lap-reading { display: grid; grid-template-columns: 5ch minmax(0, 1fr); gap: 8px; }
 .lap-reading > span { white-space: nowrap; }
 .session-navigation .axis-label .axis-switch { flex: 0 0 10px; width: 10px; height: 12px; margin: 0; }
-
 .session-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
 .session-heading h2 { margin: 0; }
 .session-heading > span, .lap-status, .timing-reference, .setup-target { font-size: 14px; color: var(--color-text-muted); }
@@ -132,7 +131,9 @@ button[aria-pressed="true"] { background: var(--color-selected); }
 .amount-field span { white-space: nowrap; font-size: 14px; color: var(--color-text-secondary); }
 .setup-target { display: block; margin-top: 4px; }
 @media (max-width: 680px) { .session-panel { padding: 14px; } .timing-table th, .timing-table td { padding: 12px 10px; } }
-
 .timing-table tr > :first-child { position: sticky; left: 0; z-index: 1; background: var(--color-surface); }
 .timing-table thead tr > :first-child { background: var(--color-raised); }
 .timing-table .running-row > :first-child { background: var(--color-selected); }
+.chart-group-label { display:flex; align-items:center; gap:10px; margin:12px 0 2px; color:var(--color-text-muted); font-size:14px; font-weight:600; }
+.chart-group-label::after { content:''; flex:1; height:1px; background:color-mix(in srgb, var(--color-text-muted) 20%, transparent); }
+.chart-group:first-child > .chart-group-label { margin-top:0; }
