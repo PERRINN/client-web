@@ -1,7 +1,7 @@
 {
   "type": "welcome",
   "protocol": 2,
-  "session": "03a500c7d9494eddbb33470cd7eb8ed1",
+  "session": "a3054acc88e848ea86000c68798470bf",
   "rateHz": 50,
   "channels": [
     {
@@ -63,6 +63,132 @@
       "unit": "kW",
       "sourceHz": 49.999996185302734,
       "available": true
+    },
+    {
+      "id": "PositionX",
+      "unit": "m",
+      "sourceHz": 50.0,
+      "available": true
+    },
+    {
+      "id": "PositionY",
+      "unit": "m",
+      "sourceHz": 50.0,
+      "available": true
+    },
+    {
+      "id": "PositionZ",
+      "unit": "m",
+      "sourceHz": 50.0,
+      "available": true
+    },
+    {
+      "id": "ElectricalPowerFront",
+      "unit": "kW",
+      "sourceHz": 49.999996185302734,
+      "available": true
+    },
+    {
+      "id": "ElectricalPowerRear",
+      "unit": "kW",
+      "sourceHz": 49.999996185302734,
+      "available": true
+    },
+    {
+      "id": "RpmDiffFront",
+      "unit": "rpm",
+      "sourceHz": 49.999996185302734,
+      "available": true
+    },
+    {
+      "id": "RpmDiffRear",
+      "unit": "rpm",
+      "sourceHz": 49.999996185302734,
+      "available": true
+    },
+    {
+      "id": "AccelerationLat",
+      "unit": "G",
+      "sourceHz": 99.99999237060547,
+      "available": true
+    },
+    {
+      "id": "AccelerationLong",
+      "unit": "G",
+      "sourceHz": 99.99999237060547,
+      "available": true
+    },
+    {
+      "id": "AccelerationVert",
+      "unit": "G",
+      "sourceHz": 99.99999237060547,
+      "available": true
+    },
+    {
+      "id": "WheelLoadFL",
+      "unit": "N",
+      "sourceHz": 99.99999237060547,
+      "available": true
+    },
+    {
+      "id": "WheelLoadFR",
+      "unit": "N",
+      "sourceHz": 99.99999237060547,
+      "available": true
+    },
+    {
+      "id": "WheelLoadRL",
+      "unit": "N",
+      "sourceHz": 99.99999237060547,
+      "available": true
+    },
+    {
+      "id": "WheelLoadRR",
+      "unit": "N",
+      "sourceHz": 99.99999237060547,
+      "available": true
+    },
+    {
+      "id": "PowerBalanceDelivered",
+      "unit": "%",
+      "sourceHz": 49.999996185302734,
+      "available": true
+    },
+    {
+      "id": "WheelTorqueBalance",
+      "unit": "%",
+      "sourceHz": 49.999996185302734,
+      "available": true
+    },
+    {
+      "id": "AeroRoll",
+      "unit": "\u00b0",
+      "sourceHz": 49.999996185302734,
+      "available": true
+    },
+    {
+      "id": "AeroScx",
+      "unit": "m\u00b2",
+      "sourceHz": 49.999996185302734,
+      "available": true
+    },
+    {
+      "id": "AeroSczFront",
+      "unit": "m\u00b2",
+      "sourceHz": 49.999996185302734,
+      "available": true
+    },
+    {
+      "id": "AeroSczRear",
+      "unit": "m\u00b2",
+      "sourceHz": 49.999996185302734,
+      "available": true
+    },
+    {
+      "id": "AeroBalance",
+      "unit": "%",
+      "sourceHz": 49.999996185302734,
+      "available": true
     }
   ],
   "parameters": [
@@ -87,7 +213,7 @@
   ],
   "recordingPath": "Bundled sample session",
   "recordingError": "",
-  "recordedSamples": 6861,
+  "recordedSamples": 22409,
   "recordedEvents": 0,
   "complete": true
 }

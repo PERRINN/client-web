@@ -1,5 +1,9 @@
-import { Component, OnDestroy, NgZone, ElementRef } from '@angular/core';
-import { LiveSample } from './sessionHistory';
+import { chartIndices, channelName, fixedChartRange } from './chartChannels';
+import { TrackTrajectory } from './trackTrajectory';
+import { timeAxis, TimeTick } from './timeAxis';
+import { axisY, VerticalAxis } from './verticalAxis';
+import { Component, OnInit, OnDestroy, NgZone, ElementRef } from '@angular/core';
+import { formatAxisValue, LiveSample, SessionHistory } from './sessionHistory';
 import { UnityLiveLinkService } from './unityLiveLink.service';
 
 @Component({
@@ -7,20 +11,22 @@ import { UnityLiveLinkService } from './unityLiveLink.service';
   templateUrl: './unity-live-link.component.html',
   styleUrls: ['./unity-live-link.component.css'], providers: [UnityLiveLinkService]
 })
-export class UnityLiveLinkComponent implements OnDestroy {
+export class UnityLiveLinkComponent implements OnInit, OnDestroy {
+  readonly formatAxisValue = formatAxisValue;
   token = '';
   cursor?: LiveSample;
   cursorTime?: number;
   cursorPinned = false;
+  readonly track = new TrackTrajectory();
+  private navigationDrag?: { id: number; chart: SVGElement; offset: number; mode: 'pan' | 'left' | 'right'; anchor: number };
+  get resizingNavigation() { return !!this.navigationDrag && this.navigationDrag.mode !== 'pan'; }
   private drag?: { id: number; chart: SVGElement };
   get dragging() { return !!this.drag; }
   private cursorFraction?: number;
   drafts: Record<string, number> = {};
-  traces: { path: string; min: number; max: number; ticks: { value: number; y: number }[] }[] = [];
-  timeTicks: { value: number; position: number }[] = [];
-  overviewTicks: { value: number; position: number }[] = [];
-  readonly gridX = [0, 75, 150, 225, 300];
-  readonly gridY = [8, 19, 30, 41, 52];
+  traces: { path: string; above: string; below: string; min: number; max: number; axis: VerticalAxis; ticks: { value: number; y: number }[] }[] = [];
+  timeTicks: TimeTick[] = [];
+  overviewTicks: TimeTick[] = [];
   overview = '';
   start = 0;
   end = 30;
@@ -36,6 +42,7 @@ export class UnityLiveLinkComponent implements OnDestroy {
   private overviewVersion = -1;
   private overviewRange = '';
   private session = '';
+  private recordedHistory?: SessionHistory;
   private refresh: ReturnType<typeof setInterval>;
   constructor(public live: UnityLiveLinkService, zone: NgZone, private element: ElementRef<HTMLElement>) {
     zone.runOutsideAngular(() => {
@@ -43,18 +50,22 @@ export class UnityLiveLinkComponent implements OnDestroy {
     });
   }
   connect() { this.drafts = {}; this.live.connect(this.token); this.token = ''; }
-  openSample() { this.drafts = {}; void this.live.openSample(); }
+  ngOnInit() { void this.live.openSample(); }
   openRecording(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files?.length) { this.drafts = {}; void this.live.openRecording(input.files); }
     input.value = '';
   }
+  get chartIndices() { return chartIndices(this.live.channels); }
+  readonly channelName = channelName;
   get duration() { return this.live.history.end; }
   get maxStart() { return Math.max(0, this.duration - this.span); }
   get windowEvents() { return this.live.history.events.filter(e => e.time >= this.start && e.time <= this.end); }
   get shownEvents() { return this.windowEvents.slice(this.eventPage * 20, (this.eventPage + 1) * 20); }
-  get overviewX() { return this.duration ? this.start / this.duration * 300 : 0; }
-  get overviewWidth() { return this.duration ? (this.end - this.start) / this.duration * 300 : 300; }
+  get overviewX() { return (this.start - this.live.history.start) / Math.max(0.02, this.duration - this.live.history.start) * 300; }
+  get overviewWidth() { return this.duration ? (this.end - this.start) / Math.max(0.02, this.duration - this.live.history.start) * 300 : 300; }
+  get overviewCursorX() { return ((this.cursor?.time ?? this.cursorTime ?? 0) - this.live.history.start) / Math.max(0.02, this.duration - this.live.history.start) * 300; }
+  get mapDot() { return this.track.position(this.cursorTime === undefined ? this.live.latest : this.cursor); }
   all() { this.full = true; this.follow = false; this.rendered = ''; }
   followLive() { this.full = false; this.follow = true; this.span = 30; this.rendered = ''; }
   pan(value: number) { this.full = this.follow = false; this.start = Math.max(0, Math.min(this.maxStart, Number(value))); this.end = Math.min(this.duration, this.start + this.span); this.eventPage = 0; this.rendered = ''; }
@@ -65,9 +76,49 @@ export class UnityLiveLinkComponent implements OnDestroy {
     this.span = Math.max(0.2, Math.min(Math.max(0.2, this.duration), (this.end - this.start) * factor));
     this.pan(Math.max(0, Math.min(this.maxStart, center - this.span / 2)));
   }
-  selectOverview(event: MouseEvent) {
-    const box = (event.currentTarget as SVGElement).getBoundingClientRect();
-    this.pan(Math.max(0, Math.min(this.maxStart, (event.clientX - box.left) / box.width * this.duration - this.span / 2)));
+  panOverview(direction: number) { this.span = Math.max(0.02, this.end - this.start); this.pan(this.start + direction * this.span / 2); }
+  pointerFocus(event: PointerEvent) { event.preventDefault(); (event.currentTarget as SVGElement).blur(); }
+  startNavigation(event: PointerEvent) {
+    if (event.button !== 0 || !event.isPrimary || !this.live.history.length) return;
+    this.pointerFocus(event);
+    const chart = event.currentTarget as SVGElement, box = chart.getBoundingClientRect();
+    if (!box.width) return;
+    const time = this.live.history.start + (event.clientX - box.left) / box.width * (this.duration - this.live.history.start);
+    this.span = Math.max(0.02, this.end - this.start);
+    const leftDistance = Math.abs(event.clientX - box.left - this.overviewX / 300 * box.width);
+    const rightDistance = Math.abs(event.clientX - box.left - (this.overviewX + this.overviewWidth) / 300 * box.width);
+    const mode = Math.min(leftDistance, rightDistance) <= (event.pointerType === 'touch' ? 16 : 8)
+      ? leftDistance <= rightDistance ? 'left' : 'right' : 'pan';
+    const edge = mode === 'left' ? this.start : this.end;
+    this.navigationDrag = { id: event.pointerId, chart, mode, anchor: mode === 'left' ? this.end : this.start,
+      offset: mode === 'pan' ? time >= this.start && time <= this.end ? time - this.start : this.span / 2 : time - edge };
+    chart.setPointerCapture(event.pointerId); this.moveNavigation(event);
+  }
+  moveNavigation(event: PointerEvent) {
+    if (this.navigationDrag?.id !== event.pointerId) return;
+    const box = this.navigationDrag.chart.getBoundingClientRect();
+    if (!box.width) return;
+    const drag = this.navigationDrag, time = this.live.history.start + (event.clientX - box.left) / box.width * (this.duration - this.live.history.start) - drag.offset;
+    if (drag.mode === 'pan') { this.pan(time); return; }
+    const minimum = Math.min(0.2, this.duration - this.live.history.start);
+    this.full = this.follow = false;
+    if (drag.mode === 'left') { this.end = drag.anchor; this.start = Math.max(this.live.history.start, Math.min(this.end - minimum, time)); }
+    else { this.start = drag.anchor; this.end = Math.min(this.duration, Math.max(this.start + minimum, time)); }
+    this.span = this.end - this.start; this.eventPage = 0; this.rendered = '';
+  }
+  endNavigation(event?: PointerEvent) {
+    if (!this.navigationDrag || event && event.pointerId !== this.navigationDrag.id) return;
+    const drag = this.navigationDrag; this.navigationDrag = undefined;
+    if (drag.chart.hasPointerCapture(drag.id)) drag.chart.releasePointerCapture(drag.id);
+  }
+  selectMap(event: MouseEvent) {
+    const box = (event.currentTarget as SVGElement).getBoundingClientRect(), scale = Math.min(box.width, box.height) / 160;
+    const x = (event.clientX - box.left - (box.width - scale * 160) / 2) / scale;
+    const y = (event.clientY - box.top - (box.height - scale * 160) / 2) / scale;
+    const sample = this.track.nearest(x, y, this.cursor?.time ?? (this.start + this.end) / 2);
+    if (!sample) return;
+    if (sample.time < this.start || sample.time > this.end) this.pan(sample.time - (this.end - this.start) / 2);
+    this.inspectTime(sample.time); this.pinCursor();
   }
   get cursorX() { return ((this.cursor?.time ?? this.cursorTime ?? this.start) - this.start) / Math.max(0.02, this.end - this.start) * 300; }
   inspectTime(time: number) {
@@ -104,6 +155,7 @@ export class UnityLiveLinkComponent implements OnDestroy {
   }
   startDrag(event: PointerEvent) {
     if (event.button !== 0 || !event.isPrimary || !this.live.history.length) return;
+    this.pointerFocus(event);
     const chart = event.currentTarget as SVGElement;
     this.pinCursor(event);
     this.drag = { id: event.pointerId, chart };
@@ -126,17 +178,20 @@ export class UnityLiveLinkComponent implements OnDestroy {
   }
   cursorY(channel: number) {
     const value = this.cursor?.values[channel], trace = this.traces[channel];
-    return value === null || value === undefined || !trace ? 30 : 52 - (value - trace.min) / (trace.max - trace.min || 1) * 44;
+    return value === null || value === undefined || !trace ? 30 : Math.max(8, Math.min(52, axisY(value, trace.axis)));
   }
-  private valueTicks(min: number, max: number) {
-    return min === max ? [{ value: min, y: 52 }] : [{ value: max, y: 8 }, { value: (min + max) / 2, y: 30 }, { value: min, y: 52 }];
-  }
-  private axisTimes(start: number, end: number) {
-    return [0, 50, 100].map(position => ({ position, value: start + (end - start) * position / 100 }));
+  cursorOverflow(channel: number) {
+    const value = this.cursor?.values[channel], axis = this.traces[channel]?.axis;
+    return value !== null && value !== undefined && !!axis && (value < axis.min || value > axis.max);
   }
   private render() {
     const history = this.live.history;
-    if (this.session !== this.live.session) { this.session = this.live.session; this.clearCursor(true); this.followLive(); this.overviewAt = 0; this.overview = ''; this.eventPage = 0; }
+    if (this.session !== this.live.session || this.live.state === 'Recorded session' && this.recordedHistory !== history) {
+      this.session = this.live.session; this.clearCursor(true); this.endNavigation();
+      this.recordedHistory = this.live.state === 'Recorded session' ? history : undefined;
+      if (this.recordedHistory) this.all(); else this.followLive();
+      this.overviewAt = 0; this.overview = ''; this.eventPage = 0;
+    }
     for (const p of this.live.parameters) if (this.drafts[p.id] === undefined) this.drafts[p.id] = p.value;
     if (this.full) { this.start = history.start; this.end = history.end; }
     else if (this.follow) { this.end = history.end; this.start = Math.max(history.start, this.end - this.span); }
@@ -154,21 +209,23 @@ export class UnityLiveLinkComponent implements OnDestroy {
     const speedRange = history.range(0), rangeKey = `${speedRange.min}:${speedRange.max}`;
     if (!this.overview || this.overviewRange !== rangeKey || this.overviewResolution !== overviewResolution ||
         this.overviewVersion !== history.version && performance.now() - this.overviewAt >= 1000) {
+      this.track.update(history, this.live.channels.map(c => c.id));
       this.overview = history.trace(0, history.start, history.end, overviewResolution).path;
       this.overviewAt = performance.now(); this.overviewResolution = overviewResolution; this.overviewVersion = history.version; this.overviewRange = rangeKey;
     }
     if (this.rendered === key) return;
     this.rendered = key;
-    this.timeTicks = this.axisTimes(this.start, this.end);
-    this.overviewTicks = this.axisTimes(history.start, history.end);
-    this.traces = this.live.channels.map((_, i) => {
-      const trace = history.trace(i, this.start, this.end, chartResolution);
-      return { ...trace, ticks: history.hasRange(i) ? this.valueTicks(trace.min, trace.max) : [] };
+    this.timeTicks = timeAxis(this.start, this.end, this.element.nativeElement.querySelector('.channel svg')?.getBoundingClientRect().width || 300);
+    this.overviewTicks = timeAxis(history.start, history.end, this.element.nativeElement.querySelector('.overview')?.getBoundingClientRect().width || 300);
+    this.traces = this.live.channels.map((channel, i) => {
+      const range = fixedChartRange(channel.id);
+      const trace = history.trace(i, this.start, this.end, chartResolution, range);
+      return { ...trace, ticks: range || history.hasRange(i) ? trace.axis.ticks : [] };
     });
     const x = (t: number) => Math.max(0, Math.min(300, (t - this.start) / Math.max(0.02, this.end - this.start) * 300));
     this.markers = this.windowEvents.map(e => ({ x: x(e.time), label: `${e.time.toFixed(2)} s · ${e.result.parameter} = ${e.result.value} · frame ${e.result.effectiveFromFrame}` }));
     this.gaps = history.gaps.filter(g => g.end >= this.start && g.start <= this.end).map(g => ({ x: x(g.start), width: Math.max(1, x(g.end) - x(g.start)), label: `No recorded samples · ${g.start.toFixed(2)}–${g.end.toFixed(2)} s` }));
 
   }
-  ngOnDestroy() { this.endDrag(); clearInterval(this.refresh); this.live.disconnect(); }
+  ngOnDestroy() { this.endNavigation(); this.endDrag(); clearInterval(this.refresh); this.live.disconnect(); }
 }

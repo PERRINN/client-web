@@ -89,7 +89,7 @@ export class UnityLiveLinkService implements OnDestroy {
     this.lastReceived = performance.now();
     switch (message['type']) {
       case 'welcome': {
-        if (message['protocol'] !== 2 || !Array.isArray(message['channels']) || message['channels'].length !== 10 || !Array.isArray(message['parameters'])) throw new Error();
+        if (message['protocol'] !== 2 || !Array.isArray(message['channels']) || message['channels'].length < 1 || message['channels'].length > 64 || !Array.isArray(message['parameters'])) throw new Error();
         const channels = message['channels'] as LiveChannel[];
         const parameters = message['parameters'] as LiveParameter[];
         if (!channels.every(c => typeof c.id === 'string' && typeof c.unit === 'string' && Number.isFinite(c.sourceHz) && typeof c.available === 'boolean') ||
@@ -98,7 +98,7 @@ export class UnityLiveLinkService implements OnDestroy {
         this.channels = channels;
         this.parameters = parameters;
         const session = String(message['session']);
-        if (session !== this.session) { this.history = new SessionHistory(); this.head = 0; this.eventHead = 0; }
+        if (session !== this.session || this.history.channelCount !== channels.length) { this.history = new SessionHistory(channels.length); this.head = 0; this.eventHead = 0; }
         this.session = session;
         this.recordingPath = String(message['recordingPath'] || '');
         this.recordingError = String(message['recordingError'] || '');
@@ -185,15 +185,16 @@ export class UnityLiveLinkService implements OnDestroy {
       if (!metadataFile || !binaryFile || !eventFile) throw new Error('Choose one session folder containing session.json, samples.bin and changes.jsonl.');
       const metadata = JSON.parse(await metadataFile.text());
       const binary = new DataView(await binaryFile.arrayBuffer());
-      if (binary.byteLength < 8 || String.fromCharCode(...new Uint8Array(binary.buffer, 0, 4)) !== 'ULL2' || binary.getInt32(4, true) !== 10 || (binary.byteLength - 8) % 65 !== 0) throw new Error('Invalid or incomplete recording. Stop the Unity bridge before opening its files.');
-      const history = new SessionHistory();
-      for (let offset = 8; offset < binary.byteLength; offset += 65) {
-        const values = Array.from({ length: 10 }, (_, c) => { const v = binary.getFloat32(offset + 25 + c * 4, true); return Number.isFinite(v) ? v : null; });
-        history.append(this.validateSample({ sequence: binary.getInt32(offset, true), frame: binary.getInt32(offset + 4, true), time: binary.getFloat64(offset + 8, true), simulationTime: binary.getFloat64(offset + 16, true), paused: !!binary.getUint8(offset + 24), values }));
+      const count = binary.byteLength >= 8 ? binary.getInt32(4, true) : 0, rowBytes = 25 + count * 4;
+      if (metadata.protocol !== 2 || !Array.isArray(metadata.channels) || metadata.channels.length !== count || !Array.isArray(metadata.parameters)) throw new Error('Invalid recording metadata.');
+      if (binary.byteLength < 8 || String.fromCharCode(...new Uint8Array(binary.buffer, 0, 4)) !== 'ULL2' || count < 1 || count > 64 || (binary.byteLength - 8) % rowBytes !== 0) throw new Error('Invalid or incomplete recording. Stop the Unity bridge before opening its files.');
+      const history = new SessionHistory(count);
+      for (let offset = 8; offset < binary.byteLength; offset += rowBytes) {
+        const values = Array.from({ length: count }, (_, c) => { const v = binary.getFloat32(offset + 25 + c * 4, true); return Number.isFinite(v) ? v : null; });
+        history.append(this.validateSample({ sequence: binary.getInt32(offset, true), frame: binary.getInt32(offset + 4, true), time: binary.getFloat64(offset + 8, true), simulationTime: binary.getFloat64(offset + 16, true), paused: !!binary.getUint8(offset + 24), values }, count));
       }
       const changes = (await eventFile.text()).trim();
       history.addEvents(changes ? changes.split(/\r?\n/).map(line => JSON.parse(line)) : []);
-      if (metadata.protocol !== 2 || !Array.isArray(metadata.channels) || metadata.channels.length !== 10 || !Array.isArray(metadata.parameters)) throw new Error('Invalid recording metadata.');
       if (metadata.complete !== true || metadata.recordedSamples !== history.length || metadata.recordedEvents !== history.events.length) throw new Error('Recording is incomplete or the selected files do not match. Stop the Unity bridge before opening its files.');
       if (operation !== this.connectionVersion) return;
       this.history = history; this.head = history.length; this.eventHead = history.events.length;
@@ -203,9 +204,9 @@ export class UnityLiveLinkService implements OnDestroy {
       this.commands = {}; this.recordingError = ''; this.state = 'Recorded session';
     } catch (error) { if (operation === this.connectionVersion) this.error = error instanceof Error ? error.message : 'Cannot open recording.'; }
   }
-  private validateSample(value: unknown): LiveSample {
+  private validateSample(value: unknown, channelCount = this.channels.length): LiveSample {
     const s = value as LiveSample;
-    if (!s || !Number.isSafeInteger(s.sequence) || s.sequence < 1 || !Number.isSafeInteger(s.frame) || !Number.isFinite(s.time) || !Number.isFinite(s.simulationTime) || typeof s.paused !== 'boolean' || !Array.isArray(s.values) || s.values.length !== 10 || !s.values.every(v => v === null || typeof v === 'number' && Number.isFinite(v))) throw new Error();
+    if (!s || !Number.isSafeInteger(s.sequence) || s.sequence < 1 || !Number.isSafeInteger(s.frame) || !Number.isFinite(s.time) || !Number.isFinite(s.simulationTime) || typeof s.paused !== 'boolean' || !Array.isArray(s.values) || s.values.length !== channelCount || !s.values.every(v => v === null || typeof v === 'number' && Number.isFinite(v))) throw new Error();
     return s;
   }
   private requestHistory(force = false) {
