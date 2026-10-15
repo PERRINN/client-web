@@ -1,6 +1,6 @@
 // Display order is independent of recording order; all reads retain their original channel index.
 export const chartChannels: [string, string][] = [
-  ['LapDistance', 'Lap distance'], ['Speed', 'Speed'], ['Throttle', 'Throttle'], ['Brake', 'Brake'], ['SteeringAngle', 'Steering angle'], ['UndersteerAngle', 'Understeer angle'],
+  ['LapDistance', 'Lap distance'], ['AutopilotDistanceError', 'Distance error to trajectory'], ['Speed', 'Speed'], ['Throttle', 'Throttle'], ['Brake', 'Brake'], ['SteeringAngle', 'Steering angle'], ['UndersteerAngle', 'Understeer angle'],
   ['AccelerationLong', 'Longitudinal acceleration'], ['AccelerationLat', 'Lateral acceleration'], ['AccelerationVert', 'Vertical acceleration'],
   ['RideHeightFront', 'Front ride height'], ['RideHeightRear', 'Rear ride height'], ['AeroRoll', 'Chassis roll angle'],
   ['WheelLoadFL', 'Front left tire vertical force'], ['WheelLoadFR', 'Front right tire vertical force'],

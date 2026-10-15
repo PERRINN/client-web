@@ -1,5 +1,6 @@
 import { simulationDuration } from './simulationPace';
 import { comparison, deltaTime, target, setupError, LapChange } from './sessionSetup';
+import { ChartSelection } from './chartSelection';
 import { ChartNavigation } from './chartNavigation';
 import { LapOverlay, LapTrace } from './lapOverlay';
 import { TelemetryTrace, telemetryPlots } from './telemetryPlots';
@@ -24,7 +25,6 @@ export class TelemetryComponent implements OnInit, OnDestroy {
   readonly overlay = new LapOverlay();
   private readonly navigation = new ChartNavigation();
   overviewLayers: LapTrace[] = [];
-  private pin?: {position:number; lap?:number};
   distanceAxis = false;
   private distancePreferred = true;
   get axisLabel() { return this.distanceAxis ? 'Distance' : 'Time'; }
@@ -41,11 +41,10 @@ export class TelemetryComponent implements OnInit, OnDestroy {
     const sample = this.cursor;
     this.endNavigation(); this.endDrag(); this.clearCursor(true); this.distanceAxis = !this.distanceAxis; this.distancePreferred = this.distanceAxis;
     this.all(); this.start = this.origin; this.end = this.duration; this.overview = ''; this.overviewLayers = [];
-    if (!sample && this.distanceAxis) { this.inspectTime(this.start); this.pinCursor(); }
-    if (sample) { if (this.distanceAxis) this.overlay.select(sample); this.inspectTime(this.distanceAxis ? this.overlay.distance(sample) : sample.time); this.pinCursor(); }
+    if (sample) { if (this.distanceAxis) this.overlay.select(sample); this.inspectTime(this.distanceAxis ? this.overlay.distance(sample) : sample.time); }
   }
   selectLap(lap: SessionLap) {
-    if (this.distanceAxis) { this.overlay.activeLap = lap.number; this.inspectTime(this.overlay.cursorDistance ?? this.start); this.pinCursor(); return; }
+    if (this.distanceAxis) { this.overlay.activeLap = lap.number; if (this.cursorTime !== undefined) this.inspectTime(this.overlay.cursorDistance ?? this.start); return; }
     this.full = this.follow = false; this.start = lap.start; this.end = lap.end;
     this.span = Math.max(0.02, this.end - this.start); this.clearCursor(true); this.rendered = '';
   }
@@ -53,11 +52,9 @@ export class TelemetryComponent implements OnInit, OnDestroy {
   pairingRequested = false;
   cursor?: LiveSample;
   cursorTime?: number;
-  cursorPinned = false;
   readonly track = new TrackTrajectory();
   get resizingNavigation() { return this.navigation.resizing; }
-  private drag?: { id: number; chart: SVGElement };
-  get dragging() { return !!this.drag; }
+  readonly selection = new ChartSelection();
   private cursorFraction?: number;
   readonly sessionRows = [1, 2, 3];
   readonly deltaTime = deltaTime;
@@ -108,6 +105,9 @@ export class TelemetryComponent implements OnInit, OnDestroy {
     if (input.files?.length) { void this.live.openRecording(input.files); }
     input.value = '';
   }
+  get frontRideIndex() { return this.live.channels.findIndex(c=>c.id==='RideHeightFront'); }
+  get rearRideIndex() { return this.live.channels.findIndex(c=>c.id==='RideHeightRear'); }
+  get missingTrajectoryError() { return !this.live.channels.some(c=>c.id==='AutopilotDistanceError'); }
   get chartIndices() { return chartIndices(this.live.channels); }
   readonly channelName = channelName;
   get duration() { return this.distanceAxis ? this.overlay.max : this.live.history.end; }
@@ -126,12 +126,11 @@ export class TelemetryComponent implements OnInit, OnDestroy {
   zoom(factor: number) {
     if (this.distanceAxis) {
       const width = Math.max(0.2, (this.end - this.start) * factor);
-      const center = this.cursorPinned && this.cursorTime !== undefined ? this.overlay.cursorDistance ?? this.start : (this.start + this.end) / 2;
+      const center = (this.start + this.end) / 2;
       this.distanceWindow(center - width / 2, width); return;
     }
     this.full = false;
-    const center = this.cursorPinned && this.cursorTime !== undefined
-      ? this.cursor?.time ?? this.cursorTime : (this.start + this.end) / 2;
+    const center = (this.start + this.end) / 2;
     this.span = Math.max(0.2, Math.min(Math.max(0.2, this.duration), (this.end - this.start) * factor));
     this.pan(Math.max(0, Math.min(this.maxStart, center - this.span / 2)));
   }
@@ -155,13 +154,8 @@ export class TelemetryComponent implements OnInit, OnDestroy {
     if (!Number.isFinite(position)) return;
     if (this.distanceAxis) this.overlay.select(sample);
     if (position < this.start || position > this.end) this.pan(position - (this.end - this.start) / 2);
-    this.inspectTime(position); this.pinCursor();
+    this.inspectTime(position);
   }
-  get pinnedVisible() { return !!this.pin && this.pin.position >= this.start && this.pin.position <= this.end; }
-  get pinnedOverviewVisible() { return !!this.pin && this.pin.position >= this.origin && this.pin.position <= this.duration; }
-  get pinnedX() { return this.fraction(this.pin?.position ?? this.start) * 300; }
-  get pinnedOverviewX() { return this.fraction(this.pin?.position ?? this.origin, this.origin, this.duration) * 300; }
-  get transientCursor() { return !this.pin || this.cursorFraction !== undefined; }
   get cursorX() { return this.fraction(this.distanceAxis ? this.overlay.cursorDistance ?? this.start : this.cursor?.time ?? this.cursorTime ?? this.start) * 300; }
   inspectTime(time: number) {
     if (!Number.isFinite(time)) return;
@@ -169,11 +163,9 @@ export class TelemetryComponent implements OnInit, OnDestroy {
     this.cursorTime = Math.max(this.start, Math.min(this.end, time));
     this.cursor = this.live.history.nearest(this.cursorTime, this.start, this.end);
   }
+  inspectScatter(sample?: LiveSample) { this.cursorFraction=undefined; if (!sample) return this.clearCursor(); if (this.distanceAxis) { this.overlay.select(sample); const reading=this.overlay.readings.find(r=>r.lap===this.overlay.activeLap); if (reading) reading.sample=sample; } this.cursor=sample; this.cursorTime=sample.time; }
   hover(event: PointerEvent) {
-    if (this.drag) {
-      if (event.pointerId === this.drag.id) this.pinCursor(event);
-      return;
-    }
+    if (this.selection.active) { this.selection.move(event); if (this.selection.band) this.full = this.follow = false; return; }
     const box = (event.currentTarget as SVGElement).getBoundingClientRect();
     if (box.width) {
       this.cursorFraction = Math.max(0, Math.min(1, (event.clientX - box.left) / box.width));
@@ -181,44 +173,24 @@ export class TelemetryComponent implements OnInit, OnDestroy {
     }
   }
   clearCursor(force = false) {
-    if (this.pin && !force) {
-      this.cursorFraction = undefined; this.overlay.activeLap = this.pin.lap;
-      this.cursor = this.distanceAxis ? this.overlay.inspect(this.pin.position) : this.live.history.nearest(this.pin.position);
-      this.cursorTime = this.cursor?.time ?? (this.distanceAxis ? 0 : this.pin.position); return;
-    }
-    this.pin = undefined; this.overlay.cursorDistance = undefined; this.overlay.readings = [];
+    if (this.selection.active && !force) return;
+    this.overlay.cursorDistance = undefined; this.overlay.readings = [];
     this.endDrag();
-    this.cursor = undefined; this.cursorTime = undefined; this.cursorFraction = undefined; this.cursorPinned = false;
+    this.cursor = undefined; this.cursorTime = undefined; this.cursorFraction = undefined;
   }
-  focusCursor() { if (!this.cursorPinned) this.inspectTime(this.start); }
+  focusCursor() { this.inspectTime(this.start); }
   get cursorVisible() { const position = this.distanceAxis ? this.overlay.cursorDistance : this.cursor?.time ?? this.cursorTime; return position !== undefined && position >= this.start && position <= this.end; }
-  pinCursor(event?: MouseEvent) {
-    if (!this.live.history.length) return;
-    if (event) {
-      const box = (event.currentTarget as SVGElement).getBoundingClientRect();
-      if (box.width) this.inspectTime(this.timeAtFraction((event.clientX - box.left) / box.width));
-    } else if (this.cursorTime === undefined) this.inspectTime(this.start);
-    this.cursorTime = this.cursor?.time ?? this.cursorTime;
-    this.pin = {position:this.distanceAxis ? this.overlay.cursorDistance ?? this.start : this.cursorTime ?? this.start,lap:this.overlay.activeLap};
-    this.cursorPinned = true; this.cursorFraction = undefined; this.follow = false;
-  }
+  resetChart() { this.clearCursor(true); this.all(); }
   startDrag(event: PointerEvent) {
-    if (event.button !== 0 || !event.isPrimary || !this.live.history.length) return;
-    this.pointerFocus(event);
-    const chart = event.currentTarget as SVGElement;
-    this.pinCursor(event);
-    this.drag = { id: event.pointerId, chart };
-    chart.setPointerCapture(event.pointerId);
+    if (this.live.history.length) this.selection.start(event, {start:this.start,end:this.end});
   }
   finishDrag(event: PointerEvent) {
-    if (!this.drag || event.pointerId !== this.drag.id) return;
-    this.pinCursor(event); this.endDrag();
+    const range = this.selection.finish(event);
+    if (!range) return;
+    this.start = range.start; this.end = range.end; this.span = range.end - range.start;
+    this.full = this.follow = false; this.rendered = ''; this.clearCursor();
   }
-  endDrag(event?: PointerEvent) {
-    if (!this.drag || event && event.pointerId !== this.drag.id) return;
-    const drag = this.drag; this.drag = undefined;
-    if (drag.chart.hasPointerCapture(drag.id)) drag.chart.releasePointerCapture(drag.id);
-  }
+  endDrag(event?: PointerEvent) { this.selection.end(event); }
   stepCursor(direction: number) {
     this.cursorFraction = undefined;
     const active = this.overlay.tracks.find(t=>t.lap.number===this.overlay.activeLap);
@@ -227,7 +199,7 @@ export class TelemetryComponent implements OnInit, OnDestroy {
     if (sample) {
       if (this.distanceAxis && (!active || sample.time < active.lap.start || sample.time > active.lap.end)) return;
       const position = this.distanceAxis ? this.overlay.distance(sample) : sample.time;
-      if (position >= this.start && position <= this.end) { if (this.distanceAxis) this.overlay.select(sample); this.inspectTime(position); this.pinCursor(); }
+      if (position >= this.start && position <= this.end) { if (this.distanceAxis) this.overlay.select(sample); this.inspectTime(position); }
     }
   }
   cursorY(channel: number) {
@@ -253,7 +225,7 @@ export class TelemetryComponent implements OnInit, OnDestroy {
     if (this.full) { this.start = this.origin; this.end = this.duration; }
     else if (this.follow) { if (this.distanceAxis) { const window = this.overlay.followWindow(); this.start = window.start; this.end = window.end; } else { this.end = history.end; this.start = Math.max(history.start,this.end-this.span); } }
     if (this.cursorFraction !== undefined) this.inspectTime(this.timeAtFraction(this.cursorFraction));
-    if (this.cursorTime !== undefined && !this.cursorPinned && !this.distanceAxis) {
+    if (this.cursorTime !== undefined && !this.distanceAxis) {
       if (this.cursorTime < this.start || this.cursorTime > this.end) this.clearCursor();
       else this.inspectTime(this.cursorTime);
     }

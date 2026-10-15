@@ -1,3 +1,4 @@
+import { RideHeightScatterComponent } from './telemetry/ride-height-scatter.component';
 import { TelemetryComponent } from './telemetry/telemetry.component';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
@@ -78,7 +79,7 @@ export const firebaseConfig = {
         HomeMentionsComponent,
         ScrollableDirective,
     ],
-    bootstrap: [AppComponent], imports: [BrowserModule,
+    bootstrap: [AppComponent], imports: [BrowserModule, RideHeightScatterComponent,
         FormsModule,
         AngularFireModule.initializeApp(firebaseConfig),
         AngularFirestoreModule.enablePersistence({ synchronizeTabs: true }),
