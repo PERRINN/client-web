@@ -1,5 +1,6 @@
 import { simulationDuration } from './simulationPace';
 import { comparison, deltaTime, target, setupError, LapChange } from './sessionSetup';
+import { ChartDoubleTap } from './chartDoubleTap';
 import { ChartSelection } from './chartSelection';
 import { ChartNavigation } from './chartNavigation';
 import { LapOverlay, LapTrace } from './lapOverlay';
@@ -9,6 +10,7 @@ import { chartGroups, channelName } from './chartChannels';
 import { TrackTrajectory } from './trackTrajectory';
 import { timeAxis, TimeTick } from './timeAxis';
 import { axisY, verticalAxis } from './verticalAxis';
+import { Title } from '@angular/platform-browser';
 import { Component, OnInit, OnDestroy, NgZone, ElementRef } from '@angular/core';
 import { formatAxisValue, LiveSample, SessionHistory } from './sessionHistory';
 import { TelemetryService } from './telemetry.service';
@@ -24,6 +26,7 @@ export class TelemetryComponent implements OnInit, OnDestroy {
   readonly simulationDuration = simulationDuration;
   readonly overlay = new LapOverlay();
   private readonly navigation = new ChartNavigation();
+  private readonly doubleTap = new ChartDoubleTap();
   overviewLayers: LapTrace[] = [];
   distanceAxis = false;
   private distancePreferred = true;
@@ -87,9 +90,10 @@ export class TelemetryComponent implements OnInit, OnDestroy {
   private overviewVersion = -1;
   private overviewRange = '';
   private session = '';
+  private previousTitle?: string;
   private recordedHistory?: SessionHistory;
   private refresh: ReturnType<typeof setInterval>;
-  constructor(public live: TelemetryService, zone: NgZone, private element: ElementRef<HTMLElement>) {
+  constructor(public live: TelemetryService, zone: NgZone, private element: ElementRef<HTMLElement>, private title: Title) {
     zone.runOutsideAngular(() => {
       this.refresh = setInterval(() => zone.run(() => this.render()), 100);
     });
@@ -99,7 +103,7 @@ export class TelemetryComponent implements OnInit, OnDestroy {
     if (this.live.editor.needsPairing && !this.token.trim()) return;
     this.live.startSimulation(this.token); this.token = '';
   }
-  ngOnInit() { this.live.editor.watch(); void this.live.openSample(); }
+  ngOnInit() { this.previousTitle = this.title.getTitle(); this.title.setTitle('424 Nürburgring Telemetry'); this.live.editor.watch(); void this.live.openSample(); }
   openRecording(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files?.length) { void this.live.openRecording(input.files); }
@@ -139,12 +143,20 @@ export class TelemetryComponent implements OnInit, OnDestroy {
   pointerFocus(event: PointerEvent) { event.preventDefault(); (event.currentTarget as SVGElement).blur(); }
   startNavigation(event: PointerEvent) {
     if (!this.live.history.length) return;
-    this.navigation.start(event, {start:this.start,end:this.end,origin:this.origin,duration:this.duration}, (start,end)=>{
+    if (!this.doubleTap.start(event)) { this.endNavigation(); return; }
+    const navigating = this.navigation.start(event, {start:this.start,end:this.end,origin:this.origin,duration:this.duration}, (start,end)=>{
       this.start=start;this.end=end;this.span=end-start;this.full=this.follow=false;this.rendered='';
     });
+    if (!navigating) this.selection.start(event, {start:this.origin,end:this.duration});
   }
-  moveNavigation(event: PointerEvent) { this.navigation.move(event); }
-  endNavigation(event?: PointerEvent) { this.navigation.end(event); }
+  moveNavigation(event: PointerEvent) {
+    this.doubleTap.move(event);
+    if (this.selection.active) this.moveSelection(event); else this.navigation.move(event);
+  }
+  finishNavigation(event: PointerEvent) {
+    this.navigation.move(event); this.navigation.end(event); this.finishDrag(event);
+  }
+  endNavigation(event?: PointerEvent) { this.navigation.end(event); this.endDrag(event); }
   selectMap(event: MouseEvent) {
     const box = (event.currentTarget as SVGElement).getBoundingClientRect(), scale = Math.min(box.width, box.height) / 160;
     const x = (event.clientX - box.left - (box.width - scale * 160) / 2) / scale;
@@ -165,8 +177,10 @@ export class TelemetryComponent implements OnInit, OnDestroy {
     this.cursor = this.live.history.nearest(this.cursorTime, this.start, this.end);
   }
   inspectScatter(sample?: LiveSample) { this.cursorFraction=undefined; if (!sample) return this.clearCursor(); if (this.distanceAxis) { this.overlay.select(sample); const reading=this.overlay.readings.find(r=>r.lap===this.overlay.activeLap); if (reading) reading.sample=sample; } this.cursor=sample; this.cursorTime=sample.time; }
+  private moveSelection(event: PointerEvent) { this.selection.move(event); if (this.selection.band) this.full = this.follow = false; }
   hover(event: PointerEvent) {
-    if (this.selection.active) { this.selection.move(event); if (this.selection.band) this.full = this.follow = false; return; }
+    this.doubleTap.move(event);
+    if (this.selection.active) { this.moveSelection(event); return; }
     const box = (event.currentTarget as SVGElement).getBoundingClientRect();
     if (box.width) {
       this.cursorFraction = Math.max(0, Math.min(1, (event.clientX - box.left) / box.width));
@@ -176,22 +190,24 @@ export class TelemetryComponent implements OnInit, OnDestroy {
   clearCursor(force = false) {
     if (this.selection.active && !force) return;
     this.overlay.cursorDistance = undefined; this.overlay.readings = [];
-    this.endDrag();
+    this.selection.end();
     this.cursor = undefined; this.cursorTime = undefined; this.cursorFraction = undefined;
   }
   focusCursor() { this.inspectTime(this.start); }
   get cursorVisible() { const position = this.distanceAxis ? this.overlay.cursorDistance : this.cursor?.time ?? this.cursorTime; return position !== undefined && position >= this.start && position <= this.end; }
-  resetChart() { this.clearCursor(true); this.all(); }
+  resetChart() { this.endNavigation(); this.clearCursor(true); this.all(); }
   startDrag(event: PointerEvent) {
+    if (!this.doubleTap.start(event)) { this.endNavigation(); return; }
     if (this.live.history.length) this.selection.start(event, {start:this.start,end:this.end});
   }
   finishDrag(event: PointerEvent) {
+    if (this.doubleTap.finish(event)) { event.preventDefault(); this.resetChart(); return; }
     const range = this.selection.finish(event);
     if (!range) return;
     this.start = range.start; this.end = range.end; this.span = range.end - range.start;
     this.full = this.follow = false; this.rendered = ''; this.clearCursor();
   }
-  endDrag(event?: PointerEvent) { this.selection.end(event); }
+  endDrag(event?: PointerEvent) { this.doubleTap.cancel(event); this.selection.end(event); }
   stepCursor(direction: number) {
     this.cursorFraction = undefined;
     const active = this.overlay.tracks.find(t=>t.lap.number===this.overlay.activeLap);
@@ -252,5 +268,5 @@ export class TelemetryComponent implements OnInit, OnDestroy {
     const x = (t: number) => Math.max(0, Math.min(300, this.fraction(t) * 300));
     this.markers = this.windowEvents.map(e => ({ x: x(this.distanceAxis ? this.overlay.distance(history.nearest(e.time)) : e.time), label: `${e.time.toFixed(2)} s · ${e.result.parameter} = ${e.result.value} · frame ${e.result.effectiveFromFrame}` }));
   }
-  ngOnDestroy() { this.endNavigation(); this.endDrag(); clearInterval(this.refresh); this.live.disconnect(); }
+  ngOnDestroy() { if (this.previousTitle !== undefined) this.title.setTitle(this.previousTitle); this.endNavigation(); this.endDrag(); clearInterval(this.refresh); this.live.disconnect(); }
 }
