@@ -50,12 +50,12 @@
           <ng-template #mapUnavailable><p class="map-unavailable">Track map<br>Position data unavailable</p></ng-template>
         </div>
       <div class="chart-frame overview-frame">
-        <div class="y-axis" aria-label="Speed values"><span *ngFor="let tick of traces[0]?.ticks" [style.top.%]="tick.y / 60 * 100">{{ formatAxisValue(tick.value, traces[0].axis.step) }}</span></div>
+        <div class="y-axis" aria-label="Speed values"><span *ngFor="let tick of overviewYTicks" [style.top.%]="tick.y / 60 * 100">{{ formatAxisValue(tick.value, overviewAxisStep) }}</span></div>
         <div class="plot-column">
       <svg (dblclick)="resetChart()" (keydown.enter)="followLive(); $event.preventDefault()" (keydown.home)="resetChart(); $event.preventDefault()" (keydown.+)="zoom(0.5); $event.preventDefault()" (keydown.-)="zoom(2); $event.preventDefault()" class="overview" [class.resizing-window]="resizingNavigation" tabindex="0" (keydown.arrowleft)="panOverview(-1); $event.preventDefault()" (keydown.arrowright)="panOverview(1); $event.preventDefault()" viewBox="0 0 300 60" role="img" aria-label="Full session speed overview. Drag the background to zoom, the selected window to pan, or either edge to resize. Double-click or double-tap for the full session. Use arrow keys to pan, plus/minus to zoom, Home for the full session, and Enter to follow live." (pointerdown)="startNavigation($event)" (pointermove)="moveNavigation($event)" (pointerup)="finishNavigation($event)" (pointercancel)="endNavigation($event)" (lostpointercapture)="endNavigation($event)" preserveAspectRatio="none">
         <rect class="chart-hit-area" x="0" y="0" width="300" height="60" />
         <line *ngFor="let tick of overviewTicks" class="grid-line" [attr.x1]="tick.position * 3" [attr.x2]="tick.position * 3" y1="8" y2="52" />
-        <line *ngFor="let tick of traces[0]?.ticks" class="grid-line" [class.zero-line]="tick.value === 0" x1="0" x2="300" [attr.y1]="tick.y" [attr.y2]="tick.y" />
+        <line *ngFor="let tick of overviewYTicks" class="grid-line" [class.zero-line]="tick.value === 0" x1="0" x2="300" [attr.y1]="tick.y" [attr.y2]="tick.y" />
         <path *ngIf="!distanceAxis" [attr.d]="overview" />
         <path *ngFor="let layer of overviewLayers" [attr.d]="layer.path" [style.stroke]="layer.color"><title>Lap {{ layer.lap }}</title></path>
         <rect class="selection" [attr.x]="overviewX" y="0" [attr.width]="overviewWidth" height="60" />

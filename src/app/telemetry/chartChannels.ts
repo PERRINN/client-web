@@ -24,6 +24,9 @@ export function chartIndices(channels: {id: string}[]) {
 }
 export function channelName(id: string) { return chartChannels.find(channel => channel[0] === id)?.[1] ?? id; }
 
-const balanceRange = { min: 0, max: 100 };
-const percentChannels = new Set(['PowerBalanceDelivered', 'WheelTorqueBalance', 'AeroBalance', 'AeroDrsPosition']);
-export function fixedChartRange(id: string) { return id === 'AutopilotDistanceError' ? { min: -50, max: 50 } : percentChannels.has(id) ? balanceRange : undefined; }
+// Autoscaling may tighten these axes, but must never expand beyond their limits.
+export function chartRangeLimits(id: string) {
+  if (['PowerBalanceDelivered', 'WheelTorqueBalance', 'AeroBalance', 'AeroDrsPosition'].includes(id)) return {min:0,max:100};
+  if (['RpmDiffFront', 'RpmDiffRear', 'AutopilotDistanceError'].includes(id)) return {min:-500,max:500};
+  return undefined;
+}

@@ -146,3 +146,96 @@ test('telemetry page title is restored when leaving the page', () => {
   component.ngOnInit(); assert.equal(title, '424 Nürburgring Telemetry');
   component.ngOnDestroy(); assert.equal(title, 'PERRINN');
 });
+
+
+const { SessionHistory } = load('sessionHistory');
+const { telemetryPlots } = load('telemetryPlots');
+const { LapOverlay } = load('lapOverlay');
+function historyOf(rows) {
+  const history = new SessionHistory(rows[0].length);
+  rows.forEach((values, i) => history.append({ sequence:i+1, frame:i, time:i*.02, simulationTime:i*.02, paused:false, values }));
+  return history;
+}
+function channelsOf(...ids) { return ids.map(id => ({id, unit:'', sourceHz:50, available:true})); }
+
+test('Y axes fit visible original samples, including previously fixed channels', () => {
+  const channels = channelsOf('Speed', 'PowerBalanceDelivered', 'AeroDrsPosition', 'AutopilotDistanceError');
+  const history = historyOf([[1000,0,0,-1000], [20,41,61,1], [21,42,62,2], [900,100,100,1000]]);
+  const plots = telemetryPlots(history, channels, .02, .04, 1);
+  for (const [i, min, max] of [[0,20,21],[1,41,42],[2,61,62],[3,1,2]]) {
+    assert.equal(plots[i].min, min); assert.equal(plots[i].max, max);
+    assert.ok(plots[i].axis.min <= min && plots[i].axis.max >= max);
+    assert.ok(plots[i].axis.max - plots[i].axis.min < 10);
+    assert.equal(plots[i].above + plots[i].below, '');
+  }
+  const full = telemetryPlots(history, channels, 0, .06, 1);
+  assert.ok(full[0].axis.max >= 1000);
+  assert.equal(full[3].axis.min, -500); assert.equal(full[3].axis.max, 500);
+  assert.ok(full[3].above && full[3].below);
+  const panned = telemetryPlots(history, channels, .04, .06, 1);
+  assert.ok(panned[0].axis.max >= 900);
+});
+
+test('Y axes handle empty, missing and constant visible values without session extrema', () => {
+  const channels = channelsOf('Speed', 'Brake');
+  const history = historyOf([[999,100], [null,0], [NaN,0], [null,0]]);
+  const plots = telemetryPlots(history, channels, .02, .06, 300);
+  assert.equal(plots[0].path, ''); assert.deepEqual(plots[0].ticks, []);
+  assert.ok(plots[1].axis.min < 0 && plots[1].axis.max > 0);
+  assert.ok(plots[1].axis.max < 100);
+  for (const plot of telemetryPlots(history, channels, 1, 2, 300)) {
+    assert.equal(plot.path, ''); assert.deepEqual(plot.ticks, []);
+    assert.ok(Number.isFinite(plot.axis.min) && Number.isFinite(plot.axis.max));
+  }
+});
+
+test('distance Y axes combine visible laps and exclude outliers outside the distance window', () => {
+  const channels = channelsOf('LapDistance', 'AeroBalance');
+  const history = historyOf([[0,-1000], [10,40], [20,41], [30,999], [0,-999], [10,60], [20,61], [30,1000]]);
+  const overlay = new LapOverlay();
+  overlay.update(history, channels, [{number:1,start:0,end:.06,complete:true,sectors:[]}, {number:2,start:.08,end:.14,complete:true,sectors:[]}]);
+  const plot = telemetryPlots(history, channels, 10, 20, 300, overlay)[1];
+  assert.equal(plot.min, 40); assert.equal(plot.max, 61);
+  assert.ok(plot.axis.min > 0 && plot.axis.max < 100);
+  assert.equal(plot.layers.length, 2);
+  assert.ok(plot.layers.every(layer => layer.path && !layer.above && !layer.below));
+  const empty = telemetryPlots(history, channels, 100, 200, 300, overlay)[1];
+  assert.deepEqual(empty.ticks, []); assert.ok(empty.layers.every(layer => !layer.path));
+});
+
+test('visible peaks survive range calculation before low-resolution reduction', () => {
+  const rows = Array.from({length:100}, (_,i) => [i === 47 ? 1234 : 10]);
+  const history = historyOf(rows);
+  const plot = telemetryPlots(history, channelsOf('Speed'), .2, 1.5, 1)[0];
+  assert.equal(plot.max,1234); assert.ok(plot.axis.max >= 1234);
+  assert.ok(plot.path.includes('L'));
+});
+
+
+test('bounded channels autoscale within hard limits, including constant and out-of-range data', () => {
+  const ids = ['PowerBalanceDelivered','WheelTorqueBalance','AeroBalance','AeroDrsPosition','RpmDiffFront','RpmDiffRear','AutopilotDistanceError'];
+  for (const id of ids) {
+    const min = id.includes('Balance') || id === 'AeroDrsPosition' ? 0 : -500, max = min === 0 ? 100 : 500;
+    for (const values of [[min,max], [min,min], [max,max], [min-1000,max+1000], [max+1000,max+1000], [min-1000,min-1000]]) {
+      const history = historyOf(values.map(value => [value]));
+      const plot = telemetryPlots(history, channelsOf(id), 0, .02, 300)[0];
+      assert.ok(plot.axis.min >= min && plot.axis.max <= max, id);
+      assert.ok(plot.axis.max > plot.axis.min, id);
+      assert.ok(plot.ticks.length && plot.ticks.every(tick => tick.value >= min && tick.value <= max), id);
+      assert.equal(history.value(0,0), values[0]);
+      if (values[0] < min) assert.ok(plot.below, id);
+      if (values[1] > max) assert.ok(plot.above, id);
+    }
+    const plot = telemetryPlots(historyOf([[40],[41]]), channelsOf(id), 0, .02, 300)[0];
+    assert.ok(plot.axis.max-plot.axis.min < 10, id);
+  }
+});
+
+test('distance overlays apply the same hard limits and preserve edge markers', () => {
+  const history = historyOf([[0,-900], [10,900]]), channels = channelsOf('LapDistance','RpmDiffFront');
+  const overlay = new LapOverlay();
+  overlay.update(history,channels,[{number:1,start:0,end:.02,complete:true,sectors:[]}]);
+  const plot = telemetryPlots(history,channels,0,10,300,overlay)[1];
+  assert.equal(plot.axis.min,-500); assert.equal(plot.axis.max,500);
+  assert.ok(plot.layers[0].above && plot.layers[0].below);
+});

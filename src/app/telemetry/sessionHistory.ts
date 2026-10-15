@@ -105,6 +105,15 @@ export class SessionHistory {
   range(channel: number) {
     return this.hasRange(channel) ? { min: this.minima[channel], max: this.maxima[channel] } : { min: 0, max: 0 };
   }
+  windowRange(channel: number, start: number, end: number) {
+    let min = Infinity, max = -Infinity;
+    for (let i = this.lower(start); i < this.length && this.time(i) <= end; i++) {
+      const value = this.value(i, channel);
+      if (Number.isFinite(value)) { min = Math.min(min, value); max = Math.max(max, value); }
+    }
+    const hasValues = Number.isFinite(min);
+    return { min: hasValues ? min : 0, max: hasValues ? max : 0, hasValues };
+  }
   displayPrecision(channel: number) { const range = this.range(channel); return precisionForRange(range.min, range.max); }
   formatValue(channel: number, value: number | null | undefined) {
     const range = this.range(channel); return formatTelemetryValue(value, range.min, range.max);

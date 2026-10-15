@@ -77,6 +77,8 @@ export class TelemetryComponent implements OnInit, OnDestroy {
   traces: TelemetryTrace[] = [];
   timeTicks: TimeTick[] = [];
   overviewTicks: TimeTick[] = [];
+  overviewAxisStep = 1;
+  overviewYTicks: {value:number;y:number}[] = [];
   overview = '';
   start = 0;
   end = 30;
@@ -256,8 +258,12 @@ export class TelemetryComponent implements OnInit, OnDestroy {
     if (!this.overview || this.overviewRange !== rangeKey || this.overviewResolution !== overviewResolution ||
         this.overviewVersion !== history.version && performance.now() - this.overviewAt >= 1000) {
       this.track.update(history, this.live.channels.map(c => c.id));
-      this.overview = history.trace(0, history.start, history.end, overviewResolution).path;
-      this.overviewLayers = this.distanceAxis ? this.overlay.trace(0,verticalAxis(speedRange.min,speedRange.max),0,this.duration,overviewResolution) : [];
+      const range = this.distanceAxis ? this.overlay.windowRange(0,0,this.duration) : history.windowRange(0,history.start,history.end);
+      const axis = verticalAxis(range.min,range.max);
+      this.overviewAxisStep = axis.step;
+      this.overviewYTicks = range.hasValues ? axis.ticks : [];
+      this.overview = history.trace(0, history.start, history.end, overviewResolution,axis).path;
+      this.overviewLayers = this.distanceAxis ? this.overlay.trace(0,axis,0,this.duration,overviewResolution) : [];
       this.overviewAt = performance.now(); this.overviewResolution = overviewResolution; this.overviewVersion = history.version; this.overviewRange = rangeKey;
     }
     if (this.rendered === key) return;

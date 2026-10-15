@@ -7,8 +7,10 @@ export function niceStep(value: number) {
 export function axisY(value: number, axis: Pick<VerticalAxis, 'min' | 'max'>) {
   return 52 - (value - axis.min) / (axis.max - axis.min || 1) * 44;
 }
-export function verticalAxis(min: number, max: number): VerticalAxis {
+export function verticalAxis(min: number, max: number, limits?: {min:number;max:number}): VerticalAxis {
   if (!Number.isFinite(min) || !Number.isFinite(max) || min > max) { min = 0; max = 0; }
+  const clamp = (value: number) => limits ? Math.max(limits.min, Math.min(limits.max,value)) : value;
+  min = clamp(min); max = clamp(max);
   if (min === max) {
     const padding = Math.abs(min) * 0.1 || 1;
     min -= padding; max += padding;
@@ -28,7 +30,7 @@ export function verticalAxis(min: number, max: number): VerticalAxis {
     step = niceStep(step * 1.01);
   }
   const rounded = (n: number) => n === 0 ? 0 : Number((n * step).toPrecision(12));
-  const axis: VerticalAxis = { min: Math.min(rounded(first), min), max: Math.max(rounded(last), max), step, ticks: [] };
-  for (let n = last; n >= first; n--) { const value = rounded(n); axis.ticks.push({ value, y: axisY(value, axis) }); }
+  const axis: VerticalAxis = { min: clamp(Math.min(rounded(first), min)), max: clamp(Math.max(rounded(last), max)), step, ticks: [] };
+  for (let n = last; n >= first; n--) { const value = rounded(n); if (value >= axis.min && value <= axis.max) axis.ticks.push({ value, y: axisY(value, axis) }); }
   return axis;
 }

@@ -63,6 +63,17 @@ export class LapOverlay {
     if (track) this.activeLap = track.lap.number;
     return this.inspect(this.distance(sample));
   }
+  windowRange(channel: number, start: number, end: number) {
+    let min = Infinity, max = -Infinity;
+    for (const { rows, distances } of this.tracks) {
+      for (let i = this.lower(distances, start); i < rows.length && distances[i] <= end; i++) {
+        const value = this.history!.value(rows[i], channel);
+        if (Number.isFinite(value)) { min = Math.min(min, value); max = Math.max(max, value); }
+      }
+    }
+    const hasValues = Number.isFinite(min);
+    return { min: hasValues ? min : 0, max: hasValues ? max : 0, hasValues };
+  }
   trace(channel: number, axis: VerticalAxis, start: number, end: number, resolution: number): LapTrace[] {
     const history = this.history!;
     return this.tracks.map(track => {
