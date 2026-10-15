@@ -27,9 +27,6 @@ import { AppMapComponent } from './prototypes/app-map/app-map.component';
 import { ImageMosaicComponent } from './prototypes/image-mosaic/image-mosaic.component';
 import { HomeComponent } from './home.component';
 import { HomeMentionsComponent } from './prototypes/home-mentions/home-mentions.component';
-import { DilSensitivityAnalysisComponent } from './prototypes/dil-sensitivity-analysis/dil-sensitivity-analysis.component';
-import { DilWorkflowComponent } from './prototypes/dil-sensitivity-analysis/dil-workflow.component';
-import { DilChartComponent } from './prototypes/dil-sensitivity-analysis/dil-chart.component';
 
 import { PipeModule }    from './pipes.module';
 
@@ -79,9 +76,6 @@ export const firebaseConfig = {
         ImageMosaicComponent,
         HomeComponent,
         HomeMentionsComponent,
-        DilSensitivityAnalysisComponent,
-        DilWorkflowComponent,
-        DilChartComponent,
         ScrollableDirective,
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,

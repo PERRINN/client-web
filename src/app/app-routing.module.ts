@@ -21,13 +21,11 @@ import { AppMapComponent } from './prototypes/app-map/app-map.component';
 import { ImageMosaicComponent } from './prototypes/image-mosaic/image-mosaic.component';
 import { HomeComponent } from './home.component';
 import { HomeMentionsComponent } from './prototypes/home-mentions/home-mentions.component';
-import { DilSensitivityAnalysisComponent } from './prototypes/dil-sensitivity-analysis/dil-sensitivity-analysis.component';
 
 const appRoutes: Routes = [
   { path: '424-telemetry', component: TelemetryComponent },
   { path: 'prototypes/unity-live-link', redirectTo: '424-telemetry', pathMatch: 'full' },
   { path: 'prototypes/home-mentions', component: HomeMentionsComponent },
-  { path: 'prototypes/dil-sensitivity-analysis', component: DilSensitivityAnalysisComponent },
   { path: 'prototypes/app-wiring', component: AppMapComponent, data: { mapView: 'wiring' } },
   { path: 'prototypes/home', redirectTo: 'prototypes', pathMatch: 'full' },
   { path: 'prototypes/editorial-mosaic', component: ImageMosaicComponent, data: { mosaicId: 'editorial-mosaic' } },

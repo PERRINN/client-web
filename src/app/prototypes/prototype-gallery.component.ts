@@ -9,7 +9,6 @@ import { Component } from '@angular/core';
 export class PrototypeGalleryComponent {
   readonly prototypes = [
     { name: 'home-mentions', category: 'home', type: 'Home mentions', description: 'A full-width panel surfaces three mentioned chats with a preview and direct conversation access.', route: '/prototypes/home-mentions' },
-    { name: 'dil-sensitivity-analysis', category: 'engineering', type: 'DIL analysis', description: 'Trace the 424 replay workflow and compare synthetic setup sensitivities through individual corners.', route: '/prototypes/dil-sensitivity-analysis' },
     {
       name: 'app-wiring',
       category: 'architecture',
@@ -90,7 +89,6 @@ export class PrototypeGalleryComponent {
 
   readonly categories = [
     { id: 'home', title: 'Home', prototypes: this.prototypes.filter(item => item.category === 'home') },
-    { id: 'engineering', title: '424 engineering', prototypes: this.prototypes.filter(item => item.category === 'engineering') },
     { id: 'architecture', title: 'Architecture maps', prototypes: this.prototypes.filter(item => item.category === 'architecture') },
     { id: 'inputs', title: 'Inputs', prototypes: this.prototypes.filter(item => item.category === 'inputs') },
     { id: 'mosaics', title: 'Mosaics', prototypes: this.prototypes.filter(item => item.category === 'mosaics') },

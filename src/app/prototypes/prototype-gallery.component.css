@@ -61,5 +61,3 @@ h1 { margin-bottom: 6px; font-size: 25px; font-weight: 600; }
 .card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .card-heading h3 { margin-bottom: 0; font-size: 15px; font-weight: 600; }
 @media (max-width: 600px) { .prototype-gallery { padding: 18px 14px; } .gallery-header { align-items: flex-start; flex-direction: column; gap: 10px; } }
-
-.dil-preview{width:84%;height:80px}.dil-preview path{fill:none;stroke-width:2}.dil-grid{stroke:var(--color-raised)}.dil-baseline{stroke:var(--color-text-secondary);stroke-dasharray:5 4}.dil-modified{stroke:var(--color-accent)}
