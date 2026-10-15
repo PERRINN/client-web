@@ -109,7 +109,7 @@ export class SessionHistory {
   formatValue(channel: number, value: number | null | undefined) {
     const range = this.range(channel); return formatTelemetryValue(value, range.min, range.max);
   }
-  trace(channel: number, start: number, end: number, resolution = 300, displayRange?: { min: number; max: number }) {
+  trace(channel: number, start: number, end: number, resolution = 300, displayRange?: { min: number; max: number }, coordinate?: (time: number, index?: number) => number, horizontalRange?: {start: number; end: number}) {
     const a = this.lower(start), endIndex = this.lower(end);
     const z = Math.min(this.length, endIndex + (endIndex < this.length && this.time(endIndex) <= end ? 1 : 0));
     const { min, max } = this.range(channel);
@@ -118,9 +118,10 @@ export class SessionHistory {
     if (a >= z || !this.hasRange(channel)) return { path: '', min, max, axis, above, below };
     resolution = Math.max(1, Math.floor(resolution));
     const scale = (v: number) => axisY(displayRange ? Math.max(axis.min, Math.min(axis.max, v)) : v, axis).toFixed(3);
-    const span = Math.max(0.02, end - start);
+    const origin = horizontalRange?.start ?? (coordinate ? coordinate(start) : start);
+    const span = Math.max(0.02, (horizontalRange?.end ?? (coordinate ? coordinate(end) : end)) - origin);
     // SVG coordinates stay fixed; reduction density follows the rendered pixel width.
-    const position = (i: number) => Math.max(0, Math.min(1, (this.time(i) - start) / span));
+    const position = (i: number) => Math.max(0, Math.min(1, ((coordinate ? coordinate(this.time(i), i) : this.time(i)) - origin) / span));
     // Mark every outlier before decimation, bounded to one tick per pixel bucket per edge.
     const markOverflow = (i: number, value: number) => {
       if (!displayRange || value >= axis.min && value <= axis.max) return;
@@ -136,7 +137,7 @@ export class SessionHistory {
     if (z - a <= resolution * 2) {
       for (let i = a; i < z; i++) {
         const v = this.value(i, channel);
-        if (!Number.isFinite(v)) { pen = false; continue; }
+        if (!Number.isFinite(v) || !Number.isFinite(position(i))) { pen = false; continue; }
         if (i > a && this.time(i) - this.time(i - 1) > 0.1) pen = false;
         markOverflow(i, v); point(i);
       }
@@ -152,7 +153,7 @@ export class SessionHistory {
       };
       for (let i = a; i < z; i++) {
         const v = this.value(i, channel);
-        if (!Number.isFinite(v)) { flush(); pen = false; continue; }
+        if (!Number.isFinite(v) || !Number.isFinite(position(i))) { flush(); pen = false; continue; }
         if (i > a && this.time(i) - this.time(i - 1) > 0.1) { flush(); pen = false; }
         markOverflow(i, v);
         const nextBucket = Math.min(resolution - 1, Math.floor(position(i) * resolution));

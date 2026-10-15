@@ -112,7 +112,7 @@
 :host .contentCard:has(> settings), :host .contentCard:has(> profile), :host .contentCard:has(> directory) { border-radius: 0; min-height: auto; overflow: visible; }
 
 /* Live Link navigation sticks to main_container; these wrappers must not intercept it. */
-:host .sidebarShell .contentWrap:has(app-unity-live-link), :host .sidebarShell .contentCard:has(app-unity-live-link) { overflow: visible; }
+:host .sidebarShell .contentWrap:has(app-telemetry), :host .sidebarShell .contentCard:has(app-telemetry) { overflow: visible; }
 
 /* Let Live Link session navigation reach the top edge of its scroll viewport. */
-:host .sidebarShell #main_container:has(app-unity-live-link) { padding-top: 0; }
+:host .sidebarShell #main_container:has(app-telemetry) { padding-top: 0; }

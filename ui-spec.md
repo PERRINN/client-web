@@ -25,6 +25,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 - Make the interface understated, engineered and calm, with a balanced information hierarchy.
 - Keep useful information visible and organized; avoid both overcrowding and unnecessary whitespace.
 - Make intent and available actions clear through layout, hierarchy, familiar controls and concise labels. Avoid descriptions, instructions and repeated wording when the interface already makes the meaning obvious. Add explanatory text only when it provides necessary information, such as an unfamiliar action, a consequential choice or an error; preserve accessible names for controls.
+- Default to the smallest useful amount of visible copy. Show actions, labels, units, data and navigation; let the interface explain itself. Do not add introductory descriptions, user guides, interaction instructions, repeated status messages or implementation diagnostics (sample counts, memory use, file paths, frame numbers) to routine screens unless explicitly requested. Keep essential errors and required setup conditional, and retain accessible names and keyboard support. For 424 Telemetry, preserve the compact connection actions, three-lap Session table and charts/navigation without explanatory or diagnostic blocks. Before delivering UI, remove copy that repeats what its controls or layout already communicate.
 - Use a dark-mode language inspired by current ChatGPT: deep neutral backgrounds, subtly differentiated dark surfaces and light neutral typography. Keep cards and panels borderless by default.
 - Use panels to group most sections, but distinguish them subtly. Keep spacing compact and functional.
 
@@ -48,6 +49,8 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
   | Accent text | `--color-accent-ink` | `#2A2417` |
   | Selected surface | `--color-selected` | `#344552` |
   | Error text | `--color-danger-text` | `#FCA5A5` |
+
+- Data comparison traces may use `--color-data-comparison` (`#56B4E9`, sky blue) alongside neutral silver and gold. Keep lap identities consistent across charts, overview and cursor readouts; use thin solid lines and reserve success/error colours for status and timing deltas.
 
 - For translucent production colours, use `color-mix(in srgb, var(--color-…) N%, transparent)` so they follow the shared palette. Do not repeat palette RGB values. PWA theme and launch backgrounds in `src/index.html` and `src/manifest.json` mirror the page token; chart backgrounds read the surface token.
 - Use the page, surface and raised tokens to distinguish the canvas, grouped content, and controls or nested emphasis. Use the focus token for keyboard outlines. Reserve the border token for controls, or states where a border materially improves clarity or accessibility.

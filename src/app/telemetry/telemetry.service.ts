@@ -1,3 +1,6 @@
+import { SimulationPace } from './simulationPace';
+import { LapChange, emptyPlan, setupError } from './sessionSetup';
+import { EditorSimulationControl } from './editorSimulationControl';
 import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { LiveSample, ParameterChange, SessionHistory } from './sessionHistory';
 export { LiveSample } from './sessionHistory';
@@ -7,18 +10,31 @@ export interface LiveParameter { id: string; label: string; unit: string; value:
 export interface CommandState { pending: boolean; message: string; error: boolean }
 
 @Injectable()
-export class UnityLiveLinkService implements OnDestroy {
+export class TelemetryService implements OnDestroy {
+  readonly editor = new EditorSimulationControl(token => this.connect(token), message => this.error = message);
   state = 'Disconnected';
+  lapPlan = emptyPlan();
+  baselineParameters: LiveParameter[] = [];
+  private completedTotal?: number;
+  private completedEvents = 0;
   error = '';
   session = '';
   channels: LiveChannel[] = [];
   parameters: LiveParameter[] = [];
   latest?: LiveSample;
+  private readonly pace = new SimulationPace();
+  get simulationRatio() { return this.stale ? undefined : this.pace.ratio; }
   history = new SessionHistory();
   recordingPath = '';
   recordingError = '';
   loadingSample = false;
   sampleSession = false;
+  stopping = false;
+  stopMessage = '';
+  private supportsStop = false;
+  private stopRequestId = '';
+  private stopTimer?: ReturnType<typeof setTimeout>;
+  get canStopSimulation() { return this.state === 'Connected' && this.supportsStop && !this.stopping; }
   head = 0;
   private eventHead = 0;
   private historyPending = false;
@@ -41,10 +57,16 @@ export class UnityLiveLinkService implements OnDestroy {
 
   constructor(private zone: NgZone) {}
   get stale() { return !this.latest || !this.lastTelemetry || performance.now() - this.lastTelemetry > 2000; }
-  get ready() { return this.state === 'Connected' && !this.stale; }
+  get ready() { return this.state === 'Connected' && !this.stale && !this.stopping; }
 
+  startSimulation(token = '') {
+    if (!this.editor.available || this.editor.starting) return;
+    const error = this.lapPlan.map(lap => setupError(lap, this.baselineParameters.length ? this.baselineParameters : this.parameters)).find(Boolean);
+    if (error) { this.error = error; return; }
+    this.disconnect(); this.error = ''; this.editor.start(token, this.lapPlan);
+  }
   connect(token: string) {
-    this.disconnect();
+    this.disconnect(); this.stopMessage = '';
     if (!/^[a-f0-9]{32}$/i.test(token.trim())) { this.error = 'Paste the 32-character session token from Unity.'; return; }
     this.token = token.trim();
     this.reconnect = true;
@@ -63,7 +85,7 @@ export class UnityLiveLinkService implements OnDestroy {
         socket.send(JSON.stringify({ type: 'hello', protocol: 2, token: this.token }));
         this.heartbeat = setInterval(() => {
           if (socket !== this.socket) return;
-          if (performance.now() - this.lastReceived > 5000) { socket.close(); return; }
+          if (performance.now() - this.lastReceived > (this.stopping ? 10000 : 5000)) { socket.close(); return; }
           if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: 'ping' }));
         }, 1000);
       };
@@ -79,6 +101,8 @@ export class UnityLiveLinkService implements OnDestroy {
       socket.onclose = () => {
         if (socket !== this.socket) return;
         clearInterval(this.heartbeat); clearInterval(this.historyTimer); this.historyPending = false;
+        if (this.stopping) this.error = 'Unity disconnected before confirming the stop. Check Unity before reconnecting.';
+        this.clearStop();
         this.state = this.reconnect ? 'Reconnecting' : 'Disconnected';
         this.failPending('Connection lost. Application is unconfirmed; reconnect to read current values.');
         if (this.reconnect) this.retryTimer = setTimeout(() => this.open(), 2000);
@@ -94,16 +118,19 @@ export class UnityLiveLinkService implements OnDestroy {
         const parameters = message['parameters'] as LiveParameter[];
         if (!channels.every(c => typeof c.id === 'string' && typeof c.unit === 'string' && Number.isFinite(c.sourceHz) && typeof c.available === 'boolean') ||
             !parameters.every(p => typeof p.id === 'string' && typeof p.label === 'string' && typeof p.unit === 'string' && [p.value, p.min, p.max].every(Number.isFinite) && typeof p.available === 'boolean')) throw new Error();
-        this.sampleSession = false;
+        this.sampleSession = false; this.supportsStop = message['canStopSimulation'] === true;
         this.channels = channels;
         this.parameters = parameters;
+        if (Array.isArray(message['baselineParameters'])) this.baselineParameters = message['baselineParameters'] as LiveParameter[];
+        else if (message['session'] !== this.session) this.baselineParameters = parameters.map(p => ({...p}));
+        if (Array.isArray(message['lapPlan']) && message['lapPlan'].length === 2) this.lapPlan = message['lapPlan'] as LapChange[];
         const session = String(message['session']);
         if (session !== this.session || this.history.channelCount !== channels.length) { this.history = new SessionHistory(channels.length); this.head = 0; this.eventHead = 0; }
         this.session = session;
         this.recordingPath = String(message['recordingPath'] || '');
         this.recordingError = String(message['recordingError'] || '');
         this.head = Number(message['recordedSamples']) || 0;
-        this.latest = undefined; this.lastTelemetry = 0; this.commands = {};
+        this.latest = undefined; this.lastTelemetry = 0; this.commands = {}; this.pace.reset();
         this.historyPending = false;
         clearInterval(this.historyTimer);
         this.historyTimer = setInterval(() => this.requestHistory(), 100);
@@ -112,11 +139,24 @@ export class UnityLiveLinkService implements OnDestroy {
         this.requestHistory(true);
         break;
       }
+      case 'sessionComplete': {
+        if (!Number.isSafeInteger(message['total']) || !Number.isSafeInteger(message['eventTotal'])) throw new Error();
+        this.completedTotal = message['total'] as number; this.completedEvents = message['eventTotal'] as number;
+        this.head = Math.max(this.head, this.completedTotal); this.eventHead = Math.max(this.eventHead, this.completedEvents);
+        this.finishCompletedSession(); this.requestHistory(true); break;
+      }
+      case 'simulationStopped': {
+        if (!this.stopping || message['requestId'] !== this.stopRequestId) return;
+        this.recordingError = typeof message['recordingError'] === 'string' ? message['recordingError'] : '';
+        const complete = this.completedTotal !== undefined;
+        this.disconnect(); this.stopMessage = complete ? 'Session complete · 3 / 3 laps' : 'Unity simulation stopped.';
+        break;
+      }
       case 'telemetry': {
         if (this.state !== 'Connected') return;
         const sample = this.validateSample(message['sample']);
         this.lastTelemetry = performance.now();
-        this.latest = sample;
+        this.latest = sample; this.pace.update(sample);
         this.head = Math.max(this.head, sample.sequence);
         const status = message['recordingError'] as { error?: string };
         this.recordingError = status?.error || '';
@@ -133,6 +173,7 @@ export class UnityLiveLinkService implements OnDestroy {
         this.eventHead = message['eventTotal'] as number;
         this.historyPending = false;
         if (this.missingSamples > 0 || this.eventHead > this.history.events.length) this.requestHistory();
+        this.finishCompletedSession();
         break;
       }
       case 'result': {
@@ -199,6 +240,8 @@ export class UnityLiveLinkService implements OnDestroy {
       if (operation !== this.connectionVersion) return;
       this.history = history; this.head = history.length; this.eventHead = history.events.length;
       this.channels = metadata.channels; this.parameters = metadata.parameters;
+      this.baselineParameters = (metadata.baselineParameters || this.parameters).map((p: LiveParameter) => ({...p}));
+      if (Array.isArray(metadata.lapPlan) && metadata.lapPlan.length === 2) this.lapPlan = metadata.lapPlan;
       for (const event of history.events) { const p = this.parameters.find(p => p.id === event.result.parameter); if (p) p.value = event.result.value; }
       this.session = String(metadata.session); this.latest = undefined; this.recordingPath = String(metadata.recordingPath || 'Opened local recording');
       this.commands = {}; this.recordingError = ''; this.state = 'Recorded session';
@@ -234,11 +277,30 @@ export class UnityLiveLinkService implements OnDestroy {
     this.pending.set(requestId, { parameter: parameter.id, timer });
     this.socket?.send(JSON.stringify({ type: 'setParameter', requestId, parameter: parameter.id, value }));
   }
+  private finishCompletedSession() {
+    if (this.completedTotal !== undefined && this.history.length >= this.completedTotal && this.history.events.length >= this.completedEvents && !this.stopping) this.stopSimulation();
+  }
+  stopSimulation() {
+    if (!this.canStopSimulation || this.socket?.readyState !== WebSocket.OPEN) return;
+    this.stopping = true; this.stopMessage = ''; this.error = ''; this.reconnect = false;
+    this.stopRequestId = crypto.randomUUID();
+    clearTimeout(this.retryTimer);
+    this.stopTimer = setTimeout(() => {
+      this.error = 'Unity has not confirmed the stop. Check Unity before reconnecting.';
+      this.disconnect();
+    }, 10000);
+    try { this.socket.send(JSON.stringify({ type: 'stopSimulation', requestId: this.stopRequestId })); }
+    catch { this.error = 'Could not send the stop command. Check Unity before reconnecting.'; this.disconnect(); }
+  }
+  private clearStop() { clearTimeout(this.stopTimer); this.stopRequestId = ''; this.stopping = false; }
   private failPending(message: string) {
     this.pending.forEach(p => { clearTimeout(p.timer); this.commands[p.parameter] = { pending: false, error: true, message }; });
     this.pending.clear();
   }
   disconnect() {
+    this.editor.cancel();
+    this.completedTotal = undefined; this.completedEvents = 0;
+    this.clearStop(); this.supportsStop = false;
     this.connectionVersion++;
     this.reconnect = false;
     clearTimeout(this.retryTimer); clearInterval(this.heartbeat); clearInterval(this.historyTimer); this.historyPending = false; clearInterval(this.historyTimer); this.historyPending = false;
@@ -246,5 +308,5 @@ export class UnityLiveLinkService implements OnDestroy {
     const previous = this.socket; this.socket = undefined; previous?.close();
     this.token = ''; this.state = 'Disconnected'; this.receivedHz = 0;
   }
-  ngOnDestroy() { this.disconnect(); }
+  ngOnDestroy() { this.disconnect(); this.editor.dispose(); }
 }

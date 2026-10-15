@@ -1,6 +1,6 @@
 // Display order is independent of recording order; all reads retain their original channel index.
 export const chartChannels: [string, string][] = [
-  ['Speed', 'Speed'], ['Throttle', 'Throttle'], ['Brake', 'Brake'], ['SteeringAngle', 'Steering angle'], ['UndersteerAngle', 'Understeer angle'],
+  ['LapDistance', 'Lap distance'], ['Speed', 'Speed'], ['Throttle', 'Throttle'], ['Brake', 'Brake'], ['SteeringAngle', 'Steering angle'], ['UndersteerAngle', 'Understeer angle'],
   ['AccelerationLong', 'Longitudinal acceleration'], ['AccelerationLat', 'Lateral acceleration'], ['AccelerationVert', 'Vertical acceleration'],
   ['RideHeightFront', 'Front ride height'], ['RideHeightRear', 'Rear ride height'], ['AeroRoll', 'Chassis roll angle'],
   ['WheelLoadFL', 'Front left tire vertical force'], ['WheelLoadFR', 'Front right tire vertical force'],
@@ -14,7 +14,7 @@ export const chartChannels: [string, string][] = [
 ];
 export function chartIndices(channels: {id: string}[]) {
   const order = new Map(chartChannels.map(([id], i) => [id, i]));
-  return channels.flatMap((channel, i) => ['PositionX', 'PositionZ'].includes(channel.id) ? [] : [i])
+  return channels.flatMap((channel, i) => ['PositionX', 'PositionZ', 'LapTrigger', 'SectorTrigger', 'SectorIndex', 'SectorTime', 'SectorValid', 'LapTime', 'LapValid', 'LapCompleteTrigger'].includes(channel.id) ? [] : [i])
     .sort((a, b) => (order.get(channels[a].id) ?? chartChannels.length) - (order.get(channels[b].id) ?? chartChannels.length));
 }
 export function channelName(id: string) { return chartChannels.find(channel => channel[0] === id)?.[1] ?? id; }

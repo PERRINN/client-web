@@ -2,7 +2,7 @@ import { niceStep } from './verticalAxis';
 import { formatAxisValue } from './sessionHistory';
 
 export interface TimeTick { value: number; position: number; labelPosition: number; label: string }
-export function timeAxis(start: number, end: number, width = 300): TimeTick[] {
+export function timeAxis(start: number, end: number, width = 300, unit = 's'): TimeTick[] {
   if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return [];
   width = Math.max(1, width);
   const span = end - start;
@@ -20,7 +20,7 @@ export function timeAxis(start: number, end: number, width = 300): TimeTick[] {
   for (let n = first; n <= last && ticks.length < 10; n++) {
     const value = n === 0 ? 0 : Number((n * step).toPrecision(12));
     const position = Math.max(0, Math.min(100, (value - start) / span * 100));
-    const label = formatAxisValue(value, step) + ' s';
+    const label = formatAxisValue(value, step) + ' ' + unit;
     const halfLabel = Math.min(50, label.length * 4 / width * 100);
     ticks.push({ value, position, labelPosition: Math.max(halfLabel, Math.min(100 - halfLabel, position)), label });
   }

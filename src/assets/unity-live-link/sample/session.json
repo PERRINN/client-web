@@ -1,8 +1,9 @@
 {
   "type": "welcome",
   "protocol": 2,
-  "session": "a3054acc88e848ea86000c68798470bf",
+  "session": "5485cd1c0d7a41cb91a448deb0a25cdc",
   "rateHz": 50,
+  "canStopSimulation": true,
   "channels": [
     {
       "id": "Speed",
@@ -189,6 +190,60 @@
       "unit": "%",
       "sourceHz": 49.999996185302734,
       "available": true
+    },
+    {
+      "id": "LapDistance",
+      "unit": "m",
+      "sourceHz": 49.999996185302734,
+      "available": true
+    },
+    {
+      "id": "LapTrigger",
+      "unit": "",
+      "sourceHz": 50.0,
+      "available": true
+    },
+    {
+      "id": "SectorTrigger",
+      "unit": "",
+      "sourceHz": 50.0,
+      "available": true
+    },
+    {
+      "id": "SectorIndex",
+      "unit": "",
+      "sourceHz": 50.0,
+      "available": true
+    },
+    {
+      "id": "SectorTime",
+      "unit": "s",
+      "sourceHz": 50.0,
+      "available": true
+    },
+    {
+      "id": "SectorValid",
+      "unit": "",
+      "sourceHz": 50.0,
+      "available": true
+    },
+    {
+      "id": "LapTime",
+      "unit": "s",
+      "sourceHz": 50.0,
+      "available": true
+    },
+    {
+      "id": "LapValid",
+      "unit": "",
+      "sourceHz": 50.0,
+      "available": true
+    },
+    {
+      "id": "LapCompleteTrigger",
+      "unit": "",
+      "sourceHz": 50.0,
+      "available": true
     }
   ],
   "parameters": [
@@ -211,9 +266,41 @@
       "available": true
     }
   ],
+  "baselineParameters": [
+    {
+      "id": "frontSpringRate",
+      "label": "Front spring rate (both wheels)",
+      "unit": "N/m",
+      "value": 230000.0,
+      "min": 10000.0,
+      "max": 1000000.0,
+      "available": true
+    },
+    {
+      "id": "autopilotPositionOffset",
+      "label": "Autopilot position offset",
+      "unit": "m",
+      "value": 0.44999998807907104,
+      "min": -10.0,
+      "max": 10.0,
+      "available": true
+    }
+  ],
+  "lapPlan": [
+    {
+      "parameter": "",
+      "mode": "offset",
+      "amount": 0.0
+    },
+    {
+      "parameter": "",
+      "mode": "offset",
+      "amount": 0.0
+    }
+  ],
   "recordingPath": "Bundled sample session",
   "recordingError": "",
-  "recordedSamples": 22409,
+  "recordedSamples": 45395,
   "recordedEvents": 0,
   "complete": true
 }

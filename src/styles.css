@@ -18,6 +18,9 @@
   --color-accent-ink: #2A2417;
   --color-selected: #344552;
 
+  /* Data comparison colour, independent of success/error status. */
+  --color-data-comparison: #56B4E9;
+
   /* Semantic status colors */
   --color-success: #10b981;
   --color-danger: #b91c1c;

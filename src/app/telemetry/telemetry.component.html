@@ -1,0 +1,100 @@
+<section class="live-link">
+  <a class="back" routerLink="/apps">← Apps</a>
+  <header><h1>424 Telemetry</h1></header>
+  <section class="panel connection" aria-label="Unity connection">
+    <form (ngSubmit)="live.state === 'Connected' ? live.stopSimulation() : startSimulation()" class="connect-form" [attr.aria-busy]="live.editor.starting || live.stopping">
+      <button type="submit" [class.secondary]="live.state === 'Connected'" [disabled]="live.state === 'Connected' ? !live.canStopSimulation : !live.editor.available || live.editor.starting || live.stopping || live.state === 'Connecting' || live.state === 'Pairing' || live.state === 'Reconnecting'" [title]="!live.editor.available && live.state !== 'Connected' ? 'Unity Editor unavailable' : ''">{{ live.stopping ? 'Stopping…' : live.state === 'Connected' ? 'Stop simulation' : live.editor.starting || live.state === 'Connecting' || live.state === 'Pairing' || live.state === 'Reconnecting' ? 'Starting…' : 'Start simulation' }}</button>
+      <button type="button" class="secondary" (click)="recordingFiles.click()">Open saved session</button>
+      <div class="simulation-pace" *ngIf="live.state === 'Connected' && live.latest as sample">
+        <span aria-label="Simulation time">Sim {{ simulationDuration(sample.simulationTime) }}</span>
+        <span aria-label="Simulation speed relative to real time">{{ live.simulationRatio === undefined ? '—' : (live.simulationRatio | number:'1.1-1') + '×' }}</span>
+      </div>
+      <input #recordingFiles id="recording-files" type="file" multiple webkitdirectory hidden (change)="openRecording($event)" aria-label="Open saved session">
+      <div class="pairing-field" *ngIf="pairingRequested && live.editor.needsPairing && live.state !== 'Connected'">
+        <label for="session-token">Pairing token</label>
+        <input id="session-token" type="password" name="sessionToken" [(ngModel)]="token" autocomplete="off" spellcheck="false" placeholder="Unity Editor pairing token" [disabled]="live.editor.starting">
+      </div>
+    </form>
+    <p class="error connection-error" role="alert" *ngIf="live.error">{{ live.error }}</p>
+    <p class="error connection-error" role="alert" *ngIf="live.recordingError && live.recordingError !== live.error">{{ live.recordingError }}</p>
+  </section>
+  <section class="panel session-panel" aria-labelledby="setup-heading">
+    <div class="session-heading"><h2 id="setup-heading">Session</h2><span>3 laps</span></div>
+    <div class="timing-scroll" tabindex="0" role="region" aria-label="Three-lap session timing and setup">
+      <table class="timing-table">
+        <thead><tr><th scope="col">Lap</th><th scope="col">Lap time<span>Δ Baseline</span></th><th scope="col" *ngFor="let index of sectorIndices">S{{ index }}<span>Δ Baseline</span></th><th scope="col" class="setup-column">Parameter change</th></tr></thead>
+        <tbody><tr *ngFor="let number of sessionRows" [class.baseline-row]="number === 1" [class.running-row]="lapStatus(number) === 'Running'">
+          <th scope="row"><div class="lap-identity"><span class="lap-number">{{ number }}</span><div><button class="lap-name" type="button" (click)="selectLap(lapRow(number))" [disabled]="!lapRow(number)" [attr.aria-label]="'Select lap ' + number" [attr.aria-pressed]="distanceAxis && overlay.activeLap === lapRow(number)?.number">{{ number === 1 ? 'Baseline' : 'Test ' + (number - 1) }}</button><span class="lap-status">{{ lapStatus(number) }}</span></div></div></th>
+          <td class="timing-cell"><strong>{{ lapTime(lapRow(number)?.duration) }}</strong><span *ngIf="number > 1" class="timing-delta" [class.faster]="comparison(lapRow(number), lapRow(1)) < 0" [class.slower]="comparison(lapRow(number), lapRow(1)) > 0">{{ deltaTime(comparison(lapRow(number), lapRow(1))) }}</span><span *ngIf="number === 1" class="timing-reference">Reference</span></td>
+          <td *ngFor="let index of sectorIndices" class="timing-cell" [class.faster]="comparison(lapRow(number), lapRow(1), index) < 0" [class.slower]="comparison(lapRow(number), lapRow(1), index) > 0"><strong>{{ lapTime(sectorTime(number, index)) }}</strong><span class="timing-delta">{{ sectorInvalid(number, index) ? 'Invalid' : number === 1 ? 'Reference' : deltaTime(comparison(lapRow(number), lapRow(1), index)) }}</span></td>
+          <td class="setup-cell"><span *ngIf="number === 1" class="timing-reference">Original setup</span>
+            <ng-container *ngIf="number > 1"><ng-container *ngIf="live.lapPlan[number - 2] as change">
+              <select [attr.aria-label]="'Lap ' + number + ' parameter'" [(ngModel)]="change.parameter" (ngModelChange)="changeParameter(change)" [disabled]="setupLocked"><option value="">No change</option><option *ngFor="let parameter of setupParameters" [value]="parameter.id" [disabled]="!parameter.available">{{ parameter.id === 'frontSpringRate' ? 'Front spring rate' : parameter.label }}</option></select>
+              <div class="lap-adjustment" *ngIf="change.parameter"><select [attr.aria-label]="'Lap ' + number + ' change type'" [(ngModel)]="change.mode" (ngModelChange)="changeMode(change)" [disabled]="setupLocked"><option value="offset">Offset</option><option value="gain">Gain</option></select><label class="amount-field"><input type="number" [attr.aria-label]="'Lap ' + number + ' ' + change.mode + ' in ' + (change.mode === 'gain' ? 'multiples' : parameterUnit(change))" [(ngModel)]="change.amount" [step]="change.mode === 'gain' ? 0.01 : parameterUnit(change) === 'm' ? 0.05 : 1000" [disabled]="setupLocked"><span>{{ change.mode === 'gain' ? '×' : parameterUnit(change) }}</span></label></div>
+              <span *ngIf="change.parameter && !setupError(change)" class="setup-target">→ {{ setupTarget(change) | number:'1.0-3' }} {{ parameterUnit(change) }}</span><span *ngIf="setupError(change)" class="error" role="alert">{{ setupError(change) }}</span>
+            </ng-container></ng-container>
+          </td>
+        </tr></tbody>
+      </table>
+    </div>
+  </section>
+  <section class="panel" aria-labelledby="telemetry-heading">
+    <h2 id="telemetry-heading">Telemetry</h2>
+    <p class="empty" *ngIf="!live.channels.length">No telemetry</p>
+    <div *ngIf="live.channels.length" class="session-navigation" role="region" aria-label="Session navigation">
+      <div class="navigation-plots">
+        <div class="track-map">
+          <svg *ngIf="track.path; else mapUnavailable" class="trajectory" (pointerdown)="pointerFocus($event)" viewBox="0 0 160 160" role="img" tabindex="0" aria-label="Session track map. Click the trajectory to pin the nearest recorded position. Arrow keys step the cursor." (click)="selectMap($event)" (keydown.arrowleft)="stepCursor(-1); pinCursor(); $event.preventDefault()" (keydown.arrowright)="stepCursor(1); pinCursor(); $event.preventDefault()">
+            <rect class="chart-hit-area" x="0" y="0" width="160" height="160" /><path [attr.d]="track.path" /><circle *ngIf="mapDot as dot" class="map-dot" [attr.cx]="dot.x" [attr.cy]="dot.y" r="3" />
+          </svg>
+          <ng-template #mapUnavailable><p class="map-unavailable">Track map<br>Position data unavailable</p></ng-template>
+        </div>
+      <div class="chart-frame overview-frame">
+        <div class="y-axis" aria-label="Speed values"><span *ngFor="let tick of traces[0]?.ticks" [style.top.%]="tick.y / 60 * 100">{{ formatAxisValue(tick.value, traces[0].axis.step) }}</span></div>
+        <div class="plot-column">
+      <svg (dblclick)="followLive()" (keydown.enter)="followLive(); $event.preventDefault()" (keydown.home)="all(); $event.preventDefault()" (keydown.+)="zoom(0.5); $event.preventDefault()" (keydown.-)="zoom(2); $event.preventDefault()" class="overview" [class.resizing-window]="resizingNavigation" tabindex="0" (keydown.arrowleft)="panOverview(-1); $event.preventDefault()" (keydown.arrowright)="panOverview(1); $event.preventDefault()" viewBox="0 0 300 60" role="img" aria-label="Full session speed overview. Drag the selected window to pan, or drag either edge to resize it. Double-click to follow live. Use arrow keys to pan, plus/minus to zoom, Home for the full session, and Enter to follow live." (pointerdown)="startNavigation($event)" (pointermove)="moveNavigation($event)" (pointerup)="moveNavigation($event); endNavigation($event)" (pointercancel)="endNavigation($event)" (lostpointercapture)="endNavigation($event)" preserveAspectRatio="none">
+        <rect class="chart-hit-area" x="0" y="0" width="300" height="60" />
+        <line *ngFor="let tick of overviewTicks" class="grid-line" [attr.x1]="tick.position * 3" [attr.x2]="tick.position * 3" y1="8" y2="52" />
+        <line *ngFor="let tick of traces[0]?.ticks" class="grid-line" [class.zero-line]="tick.value === 0" x1="0" x2="300" [attr.y1]="tick.y" [attr.y2]="tick.y" />
+        <path *ngIf="!distanceAxis" [attr.d]="overview" />
+        <path *ngFor="let layer of overviewLayers" [attr.d]="layer.path" [style.stroke]="layer.color"><title>Lap {{ layer.lap }}</title></path>
+        <rect class="selection" [attr.x]="overviewX" y="0" [attr.width]="overviewWidth" height="60" />
+        <line *ngFor="let edge of [overviewX, overviewX + overviewWidth]" class="resize-hit-area" [attr.x1]="edge" [attr.x2]="edge" y1="0" y2="60" />
+        <line *ngFor="let edge of [overviewX, overviewX + overviewWidth]" class="resize-grip" [attr.x1]="edge" [attr.x2]="edge" y1="20" y2="40" />
+        <line *ngIf="pinnedOverviewVisible" class="pinned-cursor" [attr.x1]="pinnedOverviewX" [attr.x2]="pinnedOverviewX" y1="0" y2="60"><title>Pinned position</title></line>
+        <line *ngIf="transientCursor && cursorTime !== undefined && duration" class="shared-cursor" [attr.x1]="overviewCursorX" [attr.x2]="overviewCursorX" y1="0" y2="60" />
+      </svg>
+          <div class="x-axis" [attr.aria-label]="'Full session '+ axisLabel + ' in '+ axisUnit"><span *ngFor="let tick of overviewTicks" [style.left.%]="tick.labelPosition">{{ tick.label }}</span></div>
+        </div>
+      </div>
+      </div>
+      <div class="shared-time-row"><div class="chart-frame shared-time-frame">
+        <button type="button" class="axis-label" (click)="toggleAxis()" [disabled]="!overlay.tracks.length" [attr.aria-label]="axisLabel + ' axis. Click to switch to ' + (distanceAxis ? 'time' : 'distance')" [title]="overlay.tracks.length ? 'Switch between time and distance' : 'Lap distance was not recorded in this session'">{{ axisLabel }}<svg class="axis-switch" aria-hidden="true" viewBox="0 0 12 12"><path d="M1 4h10L8 1M11 8H1l3 3" /></svg></button>
+        <div class="x-axis" [attr.aria-label]="axisLabel + ' in '+ axisUnit + ' for all channels'"><span *ngFor="let tick of timeTicks" [style.left.%]="tick.labelPosition">{{ tick.label }}</span></div>
+      </div></div>
+    </div>
+    <div class="channels">
+      <ng-container *ngFor="let i of chartIndices">
+      <article *ngIf="live.channels[i] as channel" class="channel" [class.stale]="live.state !== 'Recorded session' && live.stale">
+        <div class="channel-heading"><h3>{{ channelName(channel.id) }}</h3><strong *ngIf="!distanceAxis && cursorTime !== undefined; else latestValue">{{ live.history.formatValue(i, cursor?.values[i]) }} {{ channel.unit }}</strong><ng-template #latestValue><strong *ngIf="!distanceAxis">{{ live.history.formatValue(i, live.latest?.values[i]) }} {{ channel.unit }}</strong></ng-template><span *ngIf="distanceAxis" class="lap-values"><span *ngFor="let reading of overlay.readings" [style.color]="reading.color">Lap {{ reading.lap }} · {{ live.history.formatValue(i, reading.sample?.values[i]) }} {{ channel.unit }}</span></span><span *ngIf="!channel.available" class="unavailable">Unavailable</span></div>
+        <div class="chart-frame">
+          <div class="y-axis" [attr.aria-label]="channelName(channel.id) + ' values in ' + channel.unit"><span *ngFor="let tick of traces[i]?.ticks" [style.top.%]="tick.y / 60 * 100">{{ formatAxisValue(tick.value, traces[i].axis.step) }}</span></div>
+          <div class="plot-column">
+        <svg tabindex="0" [class.cursor-pinned]="cursorPinned" [class.cursor-dragging]="dragging" (pointerdown)="startDrag($event)" (pointerup)="finishDrag($event)" (pointercancel)="endDrag($event)" (lostpointercapture)="endDrag($event)" (pointermove)="hover($event)" (pointerleave)="clearCursor()" (focus)="focusCursor()" (click)="pinCursor($event)" (keydown.enter)="pinCursor(); $event.preventDefault()" (keydown.space)="pinCursor(); $event.preventDefault()" (keydown.escape)="clearCursor()" (blur)="clearCursor()" (keydown.arrowleft)="stepCursor(-1); $event.preventDefault()" (keydown.arrowright)="stepCursor(1); $event.preventDefault()" viewBox="0 0 300 60" role="img" [attr.aria-label]="channelName(channel.id) + ' selected session history'" preserveAspectRatio="none"><rect class="chart-hit-area" x="0" y="0" width="300" height="60" /><line *ngFor="let tick of timeTicks" class="grid-line" [attr.x1]="tick.position * 3" [attr.x2]="tick.position * 3" y1="8" y2="52" /><line *ngFor="let tick of traces[i]?.ticks" class="grid-line" [class.zero-line]="tick.value === 0" x1="0" x2="300" [attr.y1]="tick.y" [attr.y2]="tick.y" /><polygon *ngFor="let gap of traces[i]?.gaps" class="gap" [attr.points]="gap.points"><title>{{ gap.label }}</title></polygon>
+          <path [attr.d]="traces[i]?.path || ''" />
+          <g *ngFor="let layer of traces[i]?.layers"><polygon *ngFor="let gap of layer.gaps" class="gap" [attr.points]="gap.points"><title>Lap {{ layer.lap }} · {{ gap.label }}</title></polygon><path [attr.d]="layer.path" [style.stroke]="layer.color"><title>Lap {{ layer.lap }}</title></path><path class="range-overflow" [attr.d]="layer.above + layer.below" /></g>
+          <path *ngIf="traces[i]?.above" class="range-overflow" [attr.d]="traces[i].above"><title>Values above 100%. Cursor readouts show original values.</title></path>
+          <path *ngIf="traces[i]?.below" class="range-overflow" [attr.d]="traces[i].below"><title>Values below 0%. Cursor readouts show original values.</title></path>
+          <line *ngFor="let marker of markers" class="change-marker" [attr.x1]="marker.x" [attr.x2]="marker.x" y1="0" y2="60"><title>{{ marker.label }}</title></line>
+          <line *ngIf="pinnedVisible" class="pinned-cursor" [attr.x1]="pinnedX" [attr.x2]="pinnedX" y1="0" y2="60"><title>Pinned position</title></line>
+          <line *ngIf="transientCursor && cursorVisible" class="shared-cursor" [attr.x1]="cursorX" [attr.x2]="cursorX" y1="0" y2="60" />
+          <circle *ngIf="!distanceAxis && cursorVisible && cursor && cursor.values[i] !== null" class="cursor-point" [class.outside-range]="cursorOverflow(i)" [attr.cx]="cursorX" [attr.cy]="cursorY(i)" r="2" />
+          <ng-container *ngIf="distanceAxis && cursorVisible"><ng-container *ngFor="let reading of overlay.readings"><circle *ngIf="reading.sample && reading.sample.values[i] !== null" class="cursor-point" [style.fill]="reading.color" [attr.cx]="cursorX" [attr.cy]="overlay.dotY(reading.sample, i, traces[i].axis)" r="2"><title>Lap {{ reading.lap }}</title></circle></ng-container></ng-container>
+        </svg>
+          </div>
+        </div>
+      </article>
+      </ng-container>
+    </div>
+  </section>
+</section>
