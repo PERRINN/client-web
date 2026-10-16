@@ -106,7 +106,7 @@ test('mouse clicks never count as touch double-taps', () => {
 
 test('component shares overview/channel zoom and preserves taps across touch pointerleave', t => {
   const { TelemetryComponent } = load('telemetry.component');
-  const component = new TelemetryComponent({ history: { length: 1, start: 100, end: 1100 }, disconnect() {} },
+  const component = new TelemetryComponent({ history: { length: 1, start: 100, end: 1100, nearest: time => ({ time }) }, disconnect() {} },
     { runOutsideAngular() {} }, { nativeElement: {} });
   t.after(() => component.ngOnDestroy());
   const svg = chart();
@@ -128,7 +128,7 @@ test('component shares overview/channel zoom and preserves taps across touch poi
         start(pointer(svg, 600, { pointerType: 'touch', timeStamp: time }));
         finish(pointer(svg, 600, { pointerType: 'touch', timeStamp: time + 50 }));
         component.endDrag(pointer(svg, 600)); // lostpointercapture
-        component.clearCursor(); // touch pointerleave
+        component.leaveChart(pointer(svg, 600, { pointerType: 'touch' }));
       }
       assert.equal(component.full, true);
       assert.equal(component.follow, false);
@@ -157,6 +157,45 @@ function historyOf(rows) {
   return history;
 }
 function channelsOf(...ids) { return ids.map(id => ({id, unit:'', sourceHz:50, available:true})); }
+
+test('touch taps inspect the plot position without pointermove, focus reset or release clearing', t => {
+  const { TelemetryComponent } = load('telemetry.component');
+  const history = historyOf(Array.from({ length: 101 }, (_, i) => [i * 10, i]));
+  const component = new TelemetryComponent({ history, disconnect() {} }, { runOutsideAngular() {} }, { nativeElement: {} });
+  t.after(() => component.ngOnDestroy());
+  component.overlay.update(history, channelsOf('LapDistance', 'Speed'), [{ number: 1, start: 0, end: 2, complete: true, sectors: [] }]);
+  for (const distance of [false, true]) {
+    component.distanceAxis = distance;
+    component.start = distance ? 200 : .4; component.end = distance ? 800 : 1.6;
+    const svg = chart();
+    for (const fraction of [.02, .5, .98]) {
+      const event = pointer(svg, 100 + fraction * 1000, { pointerType: 'touch', timeStamp: fraction * 10000 });
+      component.focusCursor(); // Browsers may focus a touch target before pointerdown.
+      let prevented = false;
+      component.startDrag({ ...event, preventDefault() { prevented = true; } });
+      const position = component.start + fraction * (component.end - component.start);
+      assert.equal(prevented, true);
+      assert.ok(Math.abs((distance ? component.overlay.cursorDistance : component.cursorTime) - position) < 1e-9);
+      assert.ok(component.cursor);
+      assert.equal(component.cursorVisible, true);
+      component.focusCursor(); // A later focus event must not move the cursor back to the start.
+      assert.ok(Math.abs((distance ? component.overlay.cursorDistance : component.cursorTime) - position) < 1e-9);
+      component.finishDrag({ ...event, timeStamp: event.timeStamp + 50 });
+      component.endDrag(event); // lostpointercapture
+      component.leaveChart(event); // Touch release emits pointerleave even for a stationary tap.
+      assert.equal(component.cursorVisible, true);
+      assert.equal(component.selection.band, undefined);
+      assert.equal(component.start, distance ? 200 : .4);
+      assert.equal(component.end, distance ? 800 : 1.6);
+    }
+    component.clearCursor(); assert.equal(component.cursorVisible, false);
+    component.focusCursor(); assert.equal(component.cursorVisible, true);
+    component.leaveChart(pointer(svg, 600)); assert.equal(component.cursorVisible, false);
+    component.hover(pointer(svg, 600));
+    assert.ok(Math.abs((distance ? component.overlay.cursorDistance : component.cursorTime) - (component.start + component.end) / 2) < 1e-9);
+    component.clearCursor();
+  }
+});
 
 test('Y axes fit visible original samples, including previously fixed channels', () => {
   const channels = channelsOf('Speed', 'PowerBalanceDelivered', 'AeroDrsPosition', 'AutopilotDistanceError');

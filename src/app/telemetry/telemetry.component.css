@@ -32,6 +32,12 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 .unavailable { color: var(--color-text-muted); font-size: 14px; }
 .channel-heading strong { font-weight: 600; }
 svg { display: block; width: 100%; height: 60px; margin: 8px 0; }
+.channel svg, .overview, .trajectory {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
 path { fill: none; stroke: var(--color-text-secondary); stroke-width: 1; vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round; }
 .stale { opacity: 0.65; }
 @media (max-width: 680px) { .live-link { padding: 16px; } .parameters { grid-template-columns: 1fr; } .pairing-field { grid-template-columns: 1fr; gap: 6px; } }

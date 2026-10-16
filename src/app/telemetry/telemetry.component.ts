@@ -183,6 +183,9 @@ export class TelemetryComponent implements OnInit, OnDestroy {
   hover(event: PointerEvent) {
     this.doubleTap.move(event);
     if (this.selection.active) { this.moveSelection(event); return; }
+    this.inspectPointer(event);
+  }
+  private inspectPointer(event: PointerEvent) {
     const box = (event.currentTarget as SVGElement).getBoundingClientRect();
     if (box.width) {
       this.cursorFraction = Math.max(0, Math.min(1, (event.clientX - box.left) / box.width));
@@ -195,12 +198,13 @@ export class TelemetryComponent implements OnInit, OnDestroy {
     this.selection.end();
     this.cursor = undefined; this.cursorTime = undefined; this.cursorFraction = undefined;
   }
-  focusCursor() { this.inspectTime(this.start); }
+  leaveChart(event: PointerEvent) { if (event.pointerType !== 'touch') this.clearCursor(); }
+  focusCursor() { if (this.cursorTime === undefined) this.inspectTime(this.start); }
   get cursorVisible() { const position = this.distanceAxis ? this.overlay.cursorDistance : this.cursor?.time ?? this.cursorTime; return position !== undefined && position >= this.start && position <= this.end; }
   resetChart() { this.endNavigation(); this.clearCursor(true); this.all(); }
   startDrag(event: PointerEvent) {
     if (!this.doubleTap.start(event)) { this.endNavigation(); return; }
-    if (this.live.history.length) this.selection.start(event, {start:this.start,end:this.end});
+    if (this.live.history.length && this.selection.start(event, {start:this.start,end:this.end}) && event.pointerType === 'touch') this.inspectPointer(event);
   }
   finishDrag(event: PointerEvent) {
     if (this.doubleTap.finish(event)) { event.preventDefault(); this.resetChart(); return; }
