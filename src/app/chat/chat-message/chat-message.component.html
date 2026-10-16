@@ -25,5 +25,12 @@
                       <img [src]="message.image" [alt]="message.imageName || 'Shared image'" (load)="imageLoaded.emit()">
                     </button>
                   }
+                  @if (message.timeCredits; as credit) {
+                    <div class="time-credit-summary" role="group" aria-label="Time credits">
+                      <div class="credit-heading"><span class="credit-label">Time credits</span><strong class="credit-amount">+{{ timeCreditAmount }}</strong></div>
+                      <p>@if (credit.declaredHours !== undefined && credit.declaredHours > credit.creditedHours) { {{ creditDuration(credit.creditedHours) }} credited of {{ creditDuration(credit.declaredHours) }} declared } @else { {{ creditDuration(credit.creditedHours) }} credited }</p>
+                      @if (credit.remainingHours !== undefined) { <p class="credit-window" title="Remaining declaration allowance in the moving window at that time">{{ creditDuration(credit.remainingHours) }} left to declare after this message</p> }
+                    </div>
+                  }
                 </div>
               </article>

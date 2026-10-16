@@ -17,7 +17,8 @@ const funds = load('../src/app/chat/chat-fund/chatFund.ts');
 const events = load('../src/app/chat/chat-event/chatEvent.ts');
 const dates = load('../src/app/chat/chatDate.ts');
 const transfers = load('../src/app/chat/chatTransfer.ts');
-const model = load('../src/app/chat/chatData.ts', { './chatDate': dates, './chatTransfer': transfers });
+const credits = load('../src/app/chat/chatTimeCredits.ts');
+const model = load('../src/app/chat/chatData.ts', { './chatDate': dates, './chatTransfer': transfers, './chatTimeCredits': credits });
 const core = { Injectable: () => target => target, runInInjectionContext: (_, fn) => fn() };
 const { ChatDataService } = load('../src/app/chat/chatData.service.ts', {
   '@angular/core': core, './chatData': model, './chat-event/chatEvent': events, './chat-fund/chatFund': funds
@@ -959,4 +960,74 @@ test('chat entry uses canonical navigation and preserves meaningful empty/error 
   }
   const broken = new ChatComponent(route('chat'), {}, { watch: () => throwError(() => Error('offline')) }, {}, zone, reads);
   assert.equal(broken.state, 'error'); broken.ngOnDestroy();
+});
+
+
+test('time credits retain earned PRN and show the allowance remaining after each declaration', () => {
+  const record = { user: 'owner', name: 'Nico', verified: true, text: '>> Contribution update', contract: {
+    amount: 24.375, hoursValidated: 1.5, hoursDeclared: 2, hoursAvailable: 1.5, hoursTotal: 900, amountCummulate: 40000, message: 'private-signature'
+  }, wallet: { balance: 999 } };
+  const message = model.bubbleMessage('credit', record, 'owner');
+  assert.deepEqual(message.timeCredits, { amount: 24.375, creditedHours: 1.5, declaredHours: 2, remainingHours: 0 });
+  assert.equal(message.text, record.text); assert.equal('contract' in message, false); assert.equal('wallet' in message, false);
+  assert.equal(model.bubbleMessage('credit', record, null).timeCredits.amount, 24.375);
+  assert.equal(credits.creditDuration(1.5), '1h 30m'); assert.equal(credits.creditDuration(2), '2h');
+});
+
+test('remaining moving-window allowance uses the stored post-declaration result and supports older records', () => {
+  const contract = { amount: 210, hoursValidated: 7, hoursAvailable: 10, hoursDeclared: 7 };
+  const remaining = changes => credits.timeCredits({ verified: true, contract: { ...contract, ...changes } }).remainingHours;
+  assert.equal(remaining({}), 3);
+  assert.equal(remaining({ previousContractMessageHoursAvailable: 2.75 }), 2.75);
+  assert.equal(remaining({ previousContractMessageHoursAvailable: 0 }), 0);
+  for (const invalid of [undefined, null, -1, NaN, Infinity, '3']) assert.equal(remaining({ previousContractMessageHoursAvailable: invalid }), 3);
+  assert.equal(remaining({ hoursAvailable: 6 }), 0);
+  assert.equal(remaining({ hoursAvailable: undefined }), undefined);
+  assert.equal(remaining({ hoursAvailable: undefined, previousContractMessageHoursAvailable: 0.5 }), 0.5);
+});
+
+test('time-credit amounts use the existing viewer-selected currency conversion and update with preferences', () => {
+  const { UserInterfaceService } = load('../src/app/userInterface.service.ts', {
+    '@angular/core': core, '../environments/environment': { environment: {} },
+    '@angular/common': { formatNumber: (amount, locale, digits) => {
+      const [, minimumFractionDigits, maximumFractionDigits] = digits.match(/\d+\.(\d+)-(\d+)/).map(Number);
+      return new Intl.NumberFormat(locale, { minimumFractionDigits, maximumFractionDigits }).format(amount);
+    } }
+  });
+  const UI = Object.create(UserInterfaceService.prototype);
+  UI.PERRINNAdminLastMessageObj = { currencyList: { gbp: { toCOIN: 10, symbol: '£' }, usd: { toCOIN: 5, symbol: '$' } } };
+  const service = new ChatDataService({}, {}, {}, {}, UI);
+  UI.currentUserLastMessageObj = { userCurrency: 'gbp' };
+  assert.equal(service.timeCreditAmount(210), 'PRN £21.00');
+  UI.currentUserLastMessageObj = { userCurrency: 'usd' };
+  assert.equal(service.timeCreditAmount(210), 'PRN $42.00');
+  UI.currentUserLastMessageObj = null;
+  assert.equal(service.timeCreditAmount(210), 'PRN $42.00');
+});
+
+test('time credit notes require confirmed positive awards and do not infer them from declaration text', () => {
+  const valid = { verified: true, contract: { amount: 20, hoursValidated: 2, hoursDeclared: 2, hoursAvailable: 3 } };
+  for (const verified of [undefined, false, 'true']) assert.equal(credits.timeCredits({ ...valid, verified }), null);
+  for (const invalid of [undefined, null, 0, -1, NaN, Infinity, '20']) {
+    assert.equal(credits.timeCredits({ ...valid, contract: { ...valid.contract, amount: invalid } }), null);
+    assert.equal(credits.timeCredits({ ...valid, contract: { ...valid.contract, hoursValidated: invalid } }), null);
+  }
+  assert.equal(model.bubbleMessage('plain', { verified: true, text: '>>>> Four hours' }, null).timeCredits, null);
+});
+
+test('legacy missing window data is omitted and fractional credit durations stay readable', () => {
+  assert.deepEqual(credits.timeCredits({ verified: true, contract: { amount: 0.00012, hoursValidated: 0.001 } }), { amount: 0.00012, creditedHours: 0.001 });
+  assert.deepEqual(credits.timeCredits({ verified: true, contract: { amount: 20, hoursValidated: 2, hoursDeclared: NaN, hoursAvailable: -1 } }), { amount: 20, creditedHours: 2 });
+  assert.equal(credits.creditDuration(0), '0m'); assert.equal(credits.creditDuration(0.001), '<1 min');
+  assert.equal(credits.creditDuration(0.5), '30m'); assert.equal(credits.creditDuration(25), '25h');
+});
+
+test('live history projects time credits without adding reads or changing ordinary grouping', async () => {
+  const f = fixture();
+  Object.assign(f.rows[0].payload.doc.data(), { verified: true, contract: { amount: 20, hoursValidated: 2, hoursDeclared: 2, hoursAvailable: 3 } });
+  const chat = await firstValueFrom(f.service.watch('chat', 30));
+  assert.equal(chat.messages.find(message => message.id === 'latest').timeCredits.amount, 20);
+  assert.equal(f.queries.filter(query => query[0] === 'limit').length, 1);
+  const first = model.bubbleMessage('one', { user: 'owner', serverTimestamp: 10000, verified: true, contract: { amount: 20, hoursValidated: 2 } }, 'owner');
+  assert.equal(model.continuesMessageGroup(first, { ...first, id: 'two', timestamp: 20000 }, ''), true);
 });

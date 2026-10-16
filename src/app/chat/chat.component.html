@@ -28,7 +28,7 @@
               @let continued = isContinued($index);
               @if ($index === 0 || (messages[$index - 1].timestamp | date:'yyyy-MM-dd') !== (message.timestamp | date:'yyyy-MM-dd')) { <p class="date-divider"><time [attr.datetime]="message.timestamp ? (message.timestamp | date:'yyyy-MM-dd') : null" [attr.title]="message.timestamp ? (message.timestamp | date:'fullDate') : null">{{ dateLabel(message.timestamp) }}</time></p> }
               @if (message.id === unreadId) { <div class="unread-divider" role="separator" aria-label="New messages"><span>New messages</span></div> }
-              <app-chat-message [message]="message" [continued]="continued" [groupEnd]="$last || !isContinued($index + 1)" [signedIn]="signedIn" [viewerName]="viewerName" (imageOpened)="openImage($event)" (imageLoaded)="onImageLoad()" />
+              <app-chat-message [message]="message" [timeCreditAmount]="message.timeCredits ? timeCreditAmount(message.timeCredits.amount) : ''" [continued]="continued" [groupEnd]="$last || !isContinued($index + 1)" [signedIn]="signedIn" [viewerName]="viewerName" (imageOpened)="openImage($event)" (imageLoaded)="onImageLoad()" />
             }
           }
         </div>

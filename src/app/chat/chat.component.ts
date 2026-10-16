@@ -27,6 +27,7 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
   fundSaving = false;
   transferBusy = false;
   get viewerName(): string { return this.signedIn ? this.data.viewerName : ''; }
+  timeCreditAmount(amount: number): string { return this.data.timeCreditAmount(amount); }
   @ViewChild('fundEditor') fundEditor?: ChatFundEditorComponent;
   get fundCurrency() { return this.data.fundCurrency; }
   @ViewChild('eventEditor') eventEditor?: ChatEventEditorComponent;
@@ -51,6 +52,7 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
   avatar = '';
   detailsOpen = false;
   awayFromLatest = false;
+  showLatest = false;
   activeImage = '';
   activeImageName = '';
   imageError = false;
@@ -79,7 +81,7 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
       this.event = null; this.eventSaving = false; this.fund = null; this.fundSaving = false; this.transferBusy = false;
       this.chain = params.get('id') || ''; this.messages = []; this.members = [];
       this.state = 'loading'; this.title = 'Conversation'; this.avatar = ''; this.unreadId = '';
-      this.detailsOpen = false; this.awayFromLatest = false; this.sendError = ''; this.loadMoreError = '';
+      this.detailsOpen = false; this.awayFromLatest = false; this.showLatest = false; this.sendError = ''; this.loadMoreError = '';
       this.hasMore = false; this.loadingMore = false; this.pendingAnchor = undefined; this.composer?.clearDraft();
       this.scrollTarget = this.route.snapshot.queryParamMap.get('scroll') || '';
       this.limit = this.scrollTarget ? 100 : 30;
@@ -114,7 +116,7 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
         else if (stick) {
           if (entering && this.unreadId) this.scrollTarget = this.unreadId;
           if (this.scrollTarget) this.onImageLoad(); else this.jumpToLatest();
-        }
+        } else requestAnimationFrame(() => this.updateLatestVisibility());
       }),
       error: () => this.zone.run(() => {
         this.loadingMore = false;
@@ -161,12 +163,14 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
   onScroll(): void {
     const list = this.messageList?.nativeElement;
     if (list) this.awayFromLatest = list.scrollHeight - list.clientHeight - list.scrollTop > 100;
+    this.updateLatestVisibility();
     this.scrollTarget = '';
   }
 
-  get showLatest(): boolean {
+  // Measure after rendering or scrolling, never from a template binding.
+  private updateLatestVisibility(): void {
     const list = this.messageList?.nativeElement;
-    return !!list && list.scrollHeight - list.clientHeight - list.scrollTop > Math.max(300, list.clientHeight);
+    this.showLatest = !!list && list.scrollHeight - list.clientHeight - list.scrollTop > Math.max(300, list.clientHeight);
   }
 
   private restoreAnchor(): void {
@@ -174,6 +178,7 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
     if (!list?.clientHeight || !this.pendingAnchor) return;
     list.scrollTop = this.pendingAnchor.top + list.scrollHeight - this.pendingAnchor.height;
     this.pendingAnchor = undefined;
+    this.updateLatestVisibility();
   }
 
   onImageLoad(): void {
@@ -182,8 +187,10 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
       requestAnimationFrame(() => {
         const target = document.getElementById(`bubble-${this.scrollTarget}`);
         if (target) target.scrollIntoView({ block: 'center' });
+        this.updateLatestVisibility();
       });
     } else if (!this.awayFromLatest) this.jumpToLatest();
+    else requestAnimationFrame(() => this.updateLatestVisibility());
   }
 
   jumpToLatest(): void {
@@ -192,6 +199,7 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
       const list = this.messageList?.nativeElement;
       if (list) list.scrollTop = list.scrollHeight;
       this.awayFromLatest = false;
+      this.updateLatestVisibility();
     });
   }
 

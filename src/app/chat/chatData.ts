@@ -1,8 +1,9 @@
 import { EventRecord } from './chat-event/chatEvent';
 import { ChatFund } from './chat-fund/chatFund';
 import { TransferRecord, TransferSummary, transferSummaries } from './chatTransfer';
+import { TimeCreditRecord, TimeCredits, timeCredits } from './chatTimeCredits';
 export type ChatTimestamp = { seconds?: number; toMillis?: () => number } | number | null;
-export interface ChatRecord extends EventRecord, TransferRecord {
+export interface ChatRecord extends EventRecord, TransferRecord, TimeCreditRecord {
   isBackendMessage?: boolean;
   fund?: Partial<ChatFund>;
   chain?: string;
@@ -38,6 +39,7 @@ export interface ChatMessage {
   originalImage: string;
   imageName: string;
   transfers?: TransferSummary[];
+  timeCredits?: TimeCredits | null;
 }
 export const timestampMillis = (value?: ChatTimestamp): number => {
   const timestamp = typeof value === 'number' ? value : value?.toMillis?.() || (value?.seconds || 0) * 1000;
@@ -51,7 +53,7 @@ export function bubbleMessage(id: string, record: ChatRecord, userId: string | n
   const image = record.chatImageUrlMedium || record.chatImageUrlThumb || record.chatImageUrlOriginal || '';
   return {
     id, user: record.user || '', author, avatarName: record.name || 'Contributor', avatarSources: [record.imageUrlThumbUser, record.imageUrlMedium, record.imageUrlOriginal].filter((url): url is string => !!url),
-    text: record.text || '', transfers, timestamp: timestampMillis(record.serverTimestamp), own: !!userId && record.user === userId, verified: record.verified === true,
+    text: record.text || '', transfers, timeCredits: timeCredits(record), timestamp: timestampMillis(record.serverTimestamp), own: !!userId && record.user === userId, verified: record.verified === true,
     image, originalImage: record.chatImageUrlOriginal || image, imageName: image ? `Image from ${author}` : ''
   };
 }

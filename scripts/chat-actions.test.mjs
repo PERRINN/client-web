@@ -15,12 +15,45 @@ class Emitter { values = []; emit(value) { this.values.push(value); } }
 const core = { Injectable: () => target => target, Component: () => target => target, Input: () => () => {}, Output: () => () => {}, ViewChild: () => () => {}, EventEmitter: Emitter, runInInjectionContext: (_, fn) => fn() };
 const model = load('../src/app/chat/prn-send-manager/prnTransfer.ts');
 const mentions = load('../src/app/chat/chatMention.ts');
+const credits = load('../src/app/chat/chatTimeCredits.ts');
 const context = { userId: 'owner', name: 'Nico', avatar: '', balance: 50, currency: 'gbp', rate: 10 };
 const members = [{ id: 'owner', name: 'You' }, { id: 'other', name: 'Alex' }];
 const draft = { mode: 'direct', amount: 2, recipient: 'other', code: '', reference: '  Team work  ' };
 const makeReview = changes => ({ ...model.reviewTransfer('chat', { ...draft, ...changes }, context, members), messageId: 'transfer' });
 const zone = { run: fn => fn() };
 globalThis.requestAnimationFrame = fn => fn();
+
+test('latest-message visibility stays stable during rendering and refreshes after scroll, resize and history restoration', () => {
+  const { ChatComponent } = load('../src/app/chat/chat.component.ts', {
+    '@angular/core': core, './chatRead.service': { ChatReadService: class {} },
+    './chat-composer/chat-composer.component': { ChatComposerComponent: class {} },
+    './chatData': { messageDateLabel: () => '', continuesMessageGroup: () => false }
+  });
+  const frames = [], previousFrame = globalThis.requestAnimationFrame;
+  globalThis.requestAnimationFrame = fn => frames.push(fn);
+  const flush = () => { while (frames.length) frames.shift()(); };
+  try {
+    const component = new ChatComponent({ paramMap: of({ get: () => null }), snapshot: { queryParamMap: { get: () => null } } }, {}, {},
+      { latestHuman: of({ status: 'loading' }) }, zone, { reset() {} });
+    const list = { clientHeight: 500, scrollHeight: 1500, top: 0,
+      get scrollTop() { return this.top; }, set scrollTop(value) { this.top = Math.max(0, Math.min(value, this.scrollHeight - this.clientHeight)); } };
+    component.messageList = { nativeElement: list };
+    assert.equal(component.showLatest, false); // Assigning the view or laying out messages cannot change a binding.
+    component.onScroll(); assert.equal(component.showLatest, true); assert.equal(component.awayFromLatest, true);
+    list.scrollHeight = 600;
+    assert.equal(component.showLatest, true); // A second template check still sees the same value.
+    component.onImageLoad(); assert.equal(component.showLatest, true);
+    flush(); assert.equal(component.showLatest, false);
+    list.scrollHeight = 2000; component.onScroll(); assert.equal(component.showLatest, true);
+    component.pendingAnchor = { top: 0, height: 1500 }; component.onImageLoad();
+    assert.equal(list.scrollTop, 500); assert.equal(component.showLatest, true);
+    list.scrollTop = 1000; component.onScroll(); assert.equal(component.showLatest, false); // Exact one-viewport threshold.
+    list.scrollTop = 999; component.onScroll(); assert.equal(component.showLatest, true);
+    component.jumpToLatest(); flush();
+    assert.equal(list.scrollTop, 1500); assert.equal(component.showLatest, false); assert.equal(component.awayFromLatest, false);
+    component.ngOnDestroy();
+  } finally { globalThis.requestAnimationFrame = previousFrame; }
+});
 
 test('mentions match full Unicode names and case without substring or regex false positives', () => {
   for (const [text, name, expected] of [
@@ -33,7 +66,7 @@ test('mentions match full Unicode names and case without substring or regex fals
 });
 
 test('message rows highlight incoming mentions only, and clear on sign-out or name change', () => {
-  const { ChatMessageComponent } = load('../src/app/chat/chat-message/chat-message.component.ts', { '@angular/core': core, '../chatMention': mentions });
+  const { ChatMessageComponent } = load('../src/app/chat/chat-message/chat-message.component.ts', { '@angular/core': core, '../chatMention': mentions, '../chatTimeCredits': credits });
   const row = new ChatMessageComponent();
   Object.assign(row, { signedIn: true, viewerName: 'Nico', message: { own: false, text: 'Hi NICO!' } });
   row.ngOnChanges(); assert.equal(row.mentioned, true);

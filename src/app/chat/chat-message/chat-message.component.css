@@ -41,3 +41,9 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--color-focus); o
 .transfer-summary dt { color: var(--color-text-secondary); font-size: 13px; }
 .transfer-summary dd { min-width: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
 .activation-link { display: inline-flex; align-items: center; min-height: 44px; margin-top: 8px; color: var(--color-text); text-underline-offset: 3px; }
+.time-credit-summary { display: grid; gap: 4px; margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--color-page) 55%, var(--color-surface)); overflow: visible; }
+.time-credit-summary p { margin: 0; color: var(--color-text-secondary); font-size: 13px; line-height: 1.45; white-space: normal; }
+.credit-heading { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; overflow: visible; }
+.credit-label { color: var(--color-text-secondary); font-size: 13px; }
+.time-credit-summary .credit-amount { min-width: 0; color: var(--color-accent); font-size: 14px; font-weight: 550; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.time-credit-summary .credit-window { margin-top: 4px; color: var(--color-text-muted); }

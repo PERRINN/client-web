@@ -47,6 +47,10 @@ export class ChatDataService {
     return this.UI.currentUser && profile?.user === this.UI.currentUser ? profile.name || '' : '';
   }
 
+  timeCreditAmount(amount: number): string {
+    return this.UI.convertAndFormatPRNToPRNCurrency(null, amount);
+  }
+
   acknowledgeSubmission(chain: string, userId: string, messageId: string): void {
     this.submittedMessages.next({ chain, userId, messageId });
   }
