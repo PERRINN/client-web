@@ -1,19 +1,20 @@
-import { Component, OnInit, EnvironmentInjector, runInInjectionContext } from '@angular/core';
+import { Component, NgZone, OnDestroy, OnInit, EnvironmentInjector, runInInjectionContext } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { UserInterfaceService } from './userInterface.service';
-import { AngularFireStorage } from '@angular/fire/compat/storage';
+import { ImageUploadService, imageUploadState } from './imageUpload.service';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
 import firebase from 'firebase/compat/app';
 
 @Component({
     selector: 'settings',
     templateUrl: './settings.component.html',
-    styleUrls: ['./settings.component.css'],
+    styleUrls: ['./settings.component.css', './upload-progress.css'],
     standalone: false
 })
-export class SettingsComponent implements OnInit {
+export class SettingsComponent implements OnInit, OnDestroy {
+  profileUpload = imageUploadState();
   name:string
   userPresentation:string
   emailsAuth:string
@@ -24,9 +25,10 @@ export class SettingsComponent implements OnInit {
   constructor(
     public afAuth:AngularFireAuth,
     public afs:AngularFirestore,
-    private storage:AngularFireStorage,
+    private uploads: ImageUploadService,
     public UI:UserInterfaceService,
-    private injector: EnvironmentInjector
+    private injector: EnvironmentInjector,
+    private zone: NgZone
   ) {
     this.contract={}
     this.name=(this.UI.currentUserLastMessageObj||{}).name||null
@@ -169,51 +171,26 @@ export class SettingsComponent implements OnInit {
   addChild(team){
   }
 
-  onImageChange(event:any) {
-    const image = event.target.files[0];
-    const uploader = document.getElementById('uploader') as HTMLInputElement;
-    const storageRef = this.storage.ref('images/'+Date.now()+image.name);
-    const task = storageRef.put(image);
+  ngOnDestroy(): void { this.profileUpload = imageUploadState(); }
 
-    task.snapshotChanges().subscribe((snapshot) => {
-      document.getElementById('buttonFile').style.visibility = 'hidden';
-      document.getElementById('uploader').style.visibility = 'visible';
-
-      const percentage = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-      uploader.value = percentage.toString();
-    },
-    (err:any) => {
-      document.getElementById('buttonFile').style.visibility = 'visible';
-      document.getElementById('uploader').style.visibility = 'hidden';
-      uploader.value = '0';
-    },
-    () => {
-      uploader.value = '0';
-      document.getElementById('buttonFile').style.visibility = 'visible';
-      document.getElementById('uploader').style.visibility = 'hidden';
-      const imageTimestamp = task.task.snapshot.ref.name.substring(0, 13);
-      storageRef.getDownloadURL().subscribe(url => {
-        this.UI.createMessage({
-          chain:this.UI.currentUser,
-          text:'updating my profile picture',
-          userImageTimestamp:imageTimestamp,
-          chatImageTimestamp:imageTimestamp,
-          chatImageUrlThumb:url,
-          chatImageUrlMedium:url,
-          chatImageUrlOriginal:url,
-          imageUrlThumbUser:url,
-          imageUrlMedium:url,
-          imageUrlOriginal:url
-        })
-        this.UI.currentUserLastMessageObj = {
-          ...(this.UI.currentUserLastMessageObj || {}),
-          userImageTimestamp:imageTimestamp,
-          imageUrlThumbUser:url,
-          imageUrlMedium:url,
-          imageUrlOriginal:url
-        }
+  async onImageChange(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement, image = input.files?.[0], state = this.profileUpload;
+    if (!image || state.busy) return;
+    const userId = this.UI.currentUser, timestamp = String(Date.now());
+    state.busy = true; state.percent = 0; state.error = '';
+    try {
+      const url = await this.uploads.upload(`images/${timestamp}${image.name}`, image, percent => this.zone.run(() => state.percent = percent));
+      if (state !== this.profileUpload) return;
+      if (!userId || this.UI.currentUser !== userId) throw new Error('Account changed');
+      const photos = { userImageTimestamp: timestamp, imageUrlThumbUser: url, imageUrlMedium: url, imageUrlOriginal: url };
+      await this.UI.createMessage({ chain: userId, text: 'updating my profile picture', ...photos,
+        chatImageTimestamp: timestamp, chatImageUrlThumb: url, chatImageUrlMedium: url, chatImageUrlOriginal: url });
+      this.zone.run(() => {
+        if (state === this.profileUpload && this.UI.currentUser === userId) this.UI.currentUserLastMessageObj = { ...(this.UI.currentUserLastMessageObj || {}), ...photos };
       });
-    });
+    } catch {
+      this.zone.run(() => state.error = 'Profile picture couldn’t save. Try again.');
+    } finally { this.zone.run(() => { state.busy = false; state.percent = null; input.value = ''; }); }
   }
 
   objectToArray(obj) {

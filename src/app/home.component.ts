@@ -2,7 +2,8 @@ import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { fromEvent, merge, Subscription, timer } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { HomeFeedService, HomeMessage } from './homeFeed.service';
+import { HomeFeedService, HomeFund, HomeMessage } from './homeFeed.service';
+import { fundAmount, fundCurrency, fundProgress } from './prototypes/chat-fund/chatFund';
 import { PresenceService, RecentVisitor } from './presence.service';
 import { MessageActivityService, MentionActivity } from './messageActivity.service';
 import { UserInterfaceService } from './userInterface.service';
@@ -19,6 +20,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   imageTiles: HomeMessage[] = [];
   events: HomeMessage[] = [];
   visitors: RecentVisitor[] = [];
+  funds: HomeFund[] = [];
+  fundLimit = 4;
+  loadingFunds = true;
+  fundError = false;
+  readonly fundProgress = fundProgress;
+  private fundSubscription?: Subscription;
   loadingImages = true;
   loadingEvents = true;
   loadingVisitors = true;
@@ -63,6 +70,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       next: events => { this.events = events; this.loadingEvents = false; this.changeDetector.markForCheck(); },
       error: () => { this.eventError = true; this.loadingEvents = false; this.changeDetector.markForCheck(); }
     }));
+    this.loadFunds();
     this.subscriptions.add(this.presence.recentVisitors().subscribe({
       next: visitors => { this.visitors = visitors; this.loadingVisitors = false; this.changeDetector.markForCheck(); },
       error: () => { this.visitorError = true; this.loadingVisitors = false; this.changeDetector.markForCheck(); }
@@ -71,6 +79,20 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
+  }
+
+  loadFunds(more = false): void {
+    if (more) this.fundLimit += 4;
+    this.fundSubscription?.unsubscribe(); this.loadingFunds = true; this.fundError = false;
+    this.fundSubscription = this.feed.funds(this.fundLimit + 1).subscribe({
+      next: funds => { this.funds = funds; this.loadingFunds = false; this.changeDetector.markForCheck(); },
+      error: () => { this.fundError = true; this.loadingFunds = false; this.changeDetector.markForCheck(); }
+    });
+    this.subscriptions.add(this.fundSubscription);
+  }
+
+  fundAmount(value: number): string {
+    return fundAmount(value, fundCurrency(this.UI.currentUserLastMessageObj?.userCurrency, this.UI.PERRINNAdminLastMessageObj?.currencyList));
   }
 
   dismissHomeScreenHint(): void {

@@ -15,4 +15,10 @@
     }
   </div>
 </div>
+@if (sending) {
+  <div class="send-status">
+    <span role="status">{{ uploadProgress === null ? 'Sending' : 'Uploading image · ' + uploadProgress + '%' }}</span>
+    @if (uploadProgress !== null) { <span class="upload-track" role="progressbar" aria-label="Image upload" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="uploadProgress"><span [style.width.%]="uploadProgress"></span></span> }
+  </div>
+}
 @if (error) { <p class="attachment-error" role="alert">{{ error }}</p> }

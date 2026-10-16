@@ -4,12 +4,13 @@
       <div class="conversation">
         <header class="chat-header">
           <h1 class="chat-heading">
-            <button #detailsTrigger type="button" class="chat-identity-button" (click)="toggleDetails()" [disabled]="state === 'loading' || !chain || savingDetails || eventSaving" [attr.aria-expanded]="detailsOpen" aria-controls="chat-details" [attr.aria-label]="'Chat details: ' + title">
+            <button #detailsTrigger type="button" class="chat-identity-button" (click)="toggleDetails()" [disabled]="state === 'loading' || !chain || savingDetails || eventSaving || fundSaving" [attr.aria-expanded]="detailsOpen" aria-controls="chat-details" [attr.aria-label]="'Chat details: ' + title">
               <span class="chat-avatar" aria-hidden="true">{{ title.slice(0, 2) }}@if (avatar) { <img [src]="avatar" alt="" (error)="hideAvatar($event)"> }</span>
               <span class="chat-title"><span class="chat-subject">{{ title }}</span>@if (members.length) { <span class="chat-participants">{{ members.length }} participants</span> }</span>
             </button>
           </h1>
           <app-chat-event-summary [event]="event" (openEvent)="openEventDetails()" />
+          <app-chat-fund-summary [fund]="fund" [currency]="fundCurrency" (openFund)="openFundDetails()" />
         </header>
         <div #messageList class="message-list" role="region" aria-label="Messages" tabindex="0" [attr.aria-busy]="state === 'loading'" (scroll)="onScroll()">
           @if (state === 'loading') {
@@ -45,16 +46,15 @@
           }
         </div>
         @if (showLatest && state === 'ready') { <button class="latest-button" type="button" (click)="jumpToLatest()">Latest messages ↓</button> }
-        <div class="composer-area"><app-prototype-chat-composer [disabled]="!signedIn || sending || !chain || state === 'loading' || state === 'error'" (messageSent)="send($event)" /></div>
+        <div class="composer-area"><app-prototype-chat-composer [disabled]="!signedIn || sending || !chain || state === 'loading' || state === 'error'" [sending]="sending" (messageSent)="send($event)" /></div>
         @if (reads.error) { <div class="read-error" role="alert"><span>{{ reads.error }}</span><button type="button" (click)="reads.retry(); retry()">Try again</button></div> }
-        @if (sending) { <p class="composer-status" role="status">Sending</p> }
         @if (sendError) { <p class="inline-error" role="alert">{{ sendError }}</p> }
         @if (!signedIn && chain && state !== 'loading' && state !== 'error') { <p class="composer-status"><a routerLink="/login">Sign in to send</a></p> }
         <span class="sr-only" role="status">{{ sentCount ? 'Message sent (' + sentCount + ')' : '' }}</span>
       </div>
       @if (detailsOpen) {
         <aside id="chat-details" class="chat-details" tabindex="-1" aria-labelledby="details-title" (keydown.escape)="onDetailsEscape($event)">
-          <header><h2 id="details-title">Chat details</h2><button #detailsClose type="button" (click)="closeDetails()" [disabled]="savingDetails || eventSaving" aria-label="Close chat details">×</button></header>
+          <header><h2 id="details-title">Chat details</h2><button #detailsClose type="button" (click)="closeDetails()" [disabled]="savingDetails || eventSaving || fundSaving" aria-label="Close chat details">×</button></header>
           <div class="details-body">
             <div class="chat-identity">
               <span class="details-avatar" aria-hidden="true">{{ (editingDetails ? subjectDraft : title).slice(0, 2) }}@if (imagePreview || avatar) { <img [src]="imagePreview || avatar" alt="" (error)="hideAvatar($event)"> }</span>
@@ -75,6 +75,7 @@
             } @else { <a class="edit-details" routerLink="/login">Sign in to edit</a> }
             @if (detailsNotice) { <p class="details-notice" role="status">{{ detailsNotice }}</p> }
             <app-chat-event-editor #eventEditor [chain]="chain" [event]="event" [signedIn]="signedIn" (busyChange)="eventSaving = $event" />
+            <app-chat-fund-editor #fundEditor [chain]="chain" [fund]="fund" [signedIn]="signedIn" (busyChange)="fundSaving = $event" />
             <h3>Participants <span>{{ members.length }}</span></h3>
             <ul>@for (member of members; track member.id) { <li><app-user-avatar class="member-avatar" [name]="member.avatarName" [sources]="member.avatar" aria-hidden="true"></app-user-avatar><div><strong>{{ member.name }}</strong></div></li> }</ul>
             <h3>Shared images</h3>

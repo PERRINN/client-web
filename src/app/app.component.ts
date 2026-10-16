@@ -141,8 +141,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.presenceSubscription = this.presence.trackActivity();
-    const uploader = document.getElementById('uploader');
-    if (uploader) uploader.style.visibility = 'hidden';
     const fullScreenImage = document.getElementById('fullScreenImage');
     if (fullScreenImage) fullScreenImage.style.visibility = 'hidden';
   }

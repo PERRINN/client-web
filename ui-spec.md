@@ -79,7 +79,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
   | Supporting text, dates, durations, timestamps and loading/error/empty messages | 15px |
   | Minor labels, section kickers, hints and helper text | 14px |
 
-- The live Bubbles chat prototype uses an approved compact chat scale: 18px chat title, 16px section headings, 14px messages/names/body text and 13px supporting text. Its event summary and details follow the same scale. Text-entry fields use 14px on desktop and retain 16px at mobile widths to avoid focus zoom; icon and touch-target sizes remain independent. This exception is scoped to Bubbles and its composer/event components.
+- The live Bubbles chat prototype uses an approved compact chat scale: 18px chat title, 16px section headings, 14px messages/names/body text and 13px supporting text. Its event and fund summaries and details follow the same scale. Text-entry fields use 14px on desktop and retain 16px at mobile widths to avoid focus zoom; icon and touch-target sizes remain independent. This exception is scoped to Bubbles and its composer/event/fund components.
 
 - Production text sizes were increased by 1px for readability; compact sidebar labels use 14px. Keep icon dimensions independent of text sizes.
 - Keep these sizes on mobile. Resolve limited space through wrapping, layout and spacing rather than shrinking text. Do not use 9–12px text for ordinary labels or information users need to read.
@@ -111,6 +111,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 - **Lists within panels:** keep routine event, user and similar list rows transparent at rest. Use spacing and alignment to separate items; do not give every row a card, raised surface or decorative container. Keep supporting date blocks transparent too. Subtle hover backgrounds and visible keyboard focus indicators are appropriate for interactive rows.
 - **Tables and data:** choose between aligned compact rows and cards based on the content. Align comparable values and use consistent number emphasis; do not add decorative containers around every value.
 - **Dialogs:** prefer inline panels when they can handle the task. Use a modal only when a focused interruption or confirmation is needed; keep it plain, compact and easy to dismiss.
+- **Upload feedback:** show a small local bar and whole-number upload percentage beside the relevant image control or composer. After transfer completes, use a short Preparing image, Sending or Saving status for the remaining work. Keep errors inline, block duplicate uploads and restore controls after failures. Do not use a shell-wide upload bar or global positioning for native progress elements.
 - **Notifications:** show field errors inline. Use a toast for broader success or error updates. Keep success green and errors restrained red.
 - **Data displays:** establish hierarchy through alignment, labels, size and weight. Avoid color as the only way to communicate meaning.
 

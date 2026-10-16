@@ -13,12 +13,13 @@ function load(path, overrides = {}) {
   new Function('exports', 'require', code)(exports, name => overrides[name] || require(name));
   return exports;
 }
+const funds = load('../src/app/prototypes/chat-fund/chatFund.ts');
 const events = load('../src/app/prototypes/chat-event/chatEvent.ts');
 const dates = load('../src/app/prototypes/chatDate.ts');
 const model = load('../src/app/prototypes/chat-bubbles/chatBubbleData.ts', { '../chatDate': dates });
 const core = { Injectable: () => target => target, runInInjectionContext: (_, fn) => fn() };
 const { ChatBubbleDataService } = load('../src/app/prototypes/chat-bubbles/chatBubbleData.service.ts', {
-  '@angular/core': core, './chatBubbleData': model, '../chat-event/chatEvent': events
+  '@angular/core': core, './chatBubbleData': model, '../chat-event/chatEvent': events, '../chat-fund/chatFund': funds
 });
 
 function fixture(uid = 'owner') {
@@ -190,6 +191,7 @@ test('failed detail saves retain the subject and image draft for retry', async (
     '@angular/core': { Component: () => target => target, ViewChild: decorator },
     './chatBubbleRead.service': { ChatBubbleReadService: class {} },
     '../chat-event/chat-event-editor.component': { ChatEventEditorComponent: class {} },
+    '../chat-fund/chat-fund-editor.component': { ChatFundEditorComponent: class {} },
     '../chat-composer/chat-composer.component': { ChatComposerComponent: class {} },
     './chatBubbleData': model
   });
@@ -208,6 +210,7 @@ test('detail editor submits only changed fields, clears after success and cancel
     '@angular/core': { Component: () => target => target, ViewChild: decorator },
     './chatBubbleRead.service': { ChatBubbleReadService: class {} },
     '../chat-event/chat-event-editor.component': { ChatEventEditorComponent: class {} },
+    '../chat-fund/chat-fund-editor.component': { ChatFundEditorComponent: class {} },
     '../chat-composer/chat-composer.component': { ChatComposerComponent: class {} }, './chatBubbleData': model
   });
   const writes = [];
@@ -264,7 +267,7 @@ test('cursor read failures stay unavailable and verification requires the explic
 });
 
 const { ChatBubbleReadService } = load('../src/app/prototypes/chat-bubbles/chatBubbleRead.service.ts', {
-  '@angular/core': core, './chatBubbleData': model, '../chat-event/chatEvent': events
+  '@angular/core': core, './chatBubbleData': model, '../chat-event/chatEvent': events, '../chat-fund/chatFund': funds
 });
 function readView() {
   const oldDocument = globalThis.document, oldWindow = globalThis.window;
@@ -511,6 +514,7 @@ test('Bubbles opens with 30 messages and delays Latest until beyond a viewport w
     '@angular/core': { Component: () => target => target, ViewChild: () => () => {} },
     './chatBubbleRead.service': { ChatBubbleReadService: class {} },
     '../chat-event/chat-event-editor.component': { ChatEventEditorComponent: class {} },
+    '../chat-fund/chat-fund-editor.component': { ChatFundEditorComponent: class {} },
     '../chat-composer/chat-composer.component': { ChatComposerComponent: class {} }, './chatBubbleData': model
   });
   const limits = [];
@@ -685,4 +689,166 @@ test('user avatar projection retains stored names and photo alternatives when au
   assert.equal(members[0].name, 'You');
   assert.equal(members[0].avatarName, 'Alex Morgan');
   assert.equal(members[1].avatarName, 'Blair Lee');
+});
+
+const fundCore = { Component: () => target => target, Input: () => () => {}, Output: () => () => {}, ViewChild: () => () => {}, EventEmitter: class { emit() {} } };
+const { ChatFundEditorComponent } = load('../src/app/prototypes/chat-fund/chat-fund-editor.component.ts', {
+  '@angular/core': fundCore, './chatFund': funds
+});
+const { ChatFundSummaryComponent } = load('../src/app/prototypes/chat-fund/chat-fund-summary.component.ts', {
+  '@angular/core': fundCore, './chatFund': funds
+});
+const sampleFund = { description: 'Track testing', amountGBPTarget: 1000, amountGBPRaised: 125, daysLeft: 12.5 };
+
+test('fund projection hides legacy cancellation markers, handles old fields and caps progress', () => {
+  for (const record of [{}, { fund: {} }, { fund: { amountGBPTarget: NaN } }, { fund: { amountGBPTarget: 0.0001, daysLeft: 0.1 } }]) assert.equal(funds.chatFund(record), null);
+  assert.deepEqual(funds.chatFund({ fund: { amountGBPTarget: 20 } }), { description: '', amountGBPTarget: 20, amountGBPRaised: 0, daysLeft: 0 });
+  assert.equal(funds.fundProgress({ ...sampleFund, amountGBPRaised: 2000 }), 100);
+  const summary = new ChatFundSummaryComponent();
+  summary.fund = sampleFund; assert.equal(summary.active, true);
+  summary.fund = { ...sampleFund, daysLeft: 0 }; assert.equal(summary.active, false);
+  assert.equal(funds.activeFund(null), false);
+});
+
+test('fund validation converts selected currencies to GBP and rejects invalid targets and days', () => {
+  const currency = { code: 'usd', perGBP: 1.25 };
+  const draft = { description: ' Testing ', amount: 125, days: 30 };
+  assert.deepEqual(funds.fundFromDraft(draft, currency), { description: 'Testing', amountGBPTarget: 100, daysLeft: 30 });
+  assert.equal(funds.fundAmount(100, currency), 'US$125');
+  assert.equal(funds.fundAmount(100.39, currency), 'US$125');
+  assert.equal(funds.fundAmount(100.4, currency), 'US$126');
+  for (const invalid of [ { description: '' }, { description: 'a'.repeat(201) }, { amount: null }, { amount: -1 }, { amount: Infinity }, { amount: 0.001 }, { amount: 1e20 }, { days: null }, { days: 0 }, { days: 1.5 }, { days: Infinity } ]) {
+    assert.throws(() => funds.fundFromDraft({ ...draft, ...invalid }, currency));
+  }
+  assert.throws(() => funds.fundFromDraft(draft, { code: 'usd', perGBP: 0 }));
+});
+
+test('fund service uses existing messages and cancellation sentinels without writing raised amounts', async () => {
+  const f = fixture(), submitted = [];
+  f.UI.PERRINNAdminLastMessageObj = { currencyList: { gbp: { toCOIN: 2 }, usd: { toCOIN: 1.6 } } };
+  f.UI.currentUserLastMessageObj = { userCurrency: 'usd' };
+  assert.deepEqual(f.service.fundCurrency, { code: 'usd', perGBP: 1.25 });
+  const subscription = f.service.submitted.subscribe(value => submitted.push(value));
+  try {
+    await f.service.saveFund('chat', { ...sampleFund, daysLeft: 12, amountGBPRaised: 9999 });
+    await f.service.cancelFund('chat', sampleFund);
+    assert.deepEqual(f.writes[0].fund, { description: sampleFund.description, amountGBPTarget: 1000, daysLeft: 12 });
+    assert.deepEqual(f.writes[1].fund, { description: 'add a description', amountGBPTarget: 0.0001, daysLeft: 0.1 });
+    assert.equal(funds.chatFund(f.writes[1]), null);
+    assert.equal(submitted.length, 2);
+    assert.ok(f.writes.every(write => write.text.length <= 500 && write.chain === 'chat'));
+    await assert.rejects(f.service.saveFund('', { ...sampleFund, daysLeft: 12 }));
+    await assert.rejects(f.service.saveFund('chat', { ...sampleFund, daysLeft: 0 }));
+    assert.equal(f.writes.length, 2);
+    const out = fixture(null);
+    await assert.rejects(out.service.saveFund('chat', { ...sampleFund, daysLeft: 12 }));
+    await assert.rejects(out.service.cancelFund('chat', sampleFund));
+    assert.deepEqual(out.writes, []);
+    f.UI.currentUser = 'another';
+    await assert.rejects(f.service.saveFund('chat', { ...sampleFund, daysLeft: 12 }));
+    assert.equal(f.writes.length, 2);
+    f.UI.PERRINNAdminLastMessageObj = {};
+    assert.deepEqual(f.service.fundCurrency, { code: 'gbp', perGBP: 1 });
+  } finally { subscription.unsubscribe(); }
+});
+
+
+test('fund editor retains failed drafts, detects changed data and requires confirmation', async () => {
+  const previousRAF = globalThis.requestAnimationFrame;
+  globalThis.requestAnimationFrame = fn => fn();
+  const calls = [];
+  const data = { fundCurrency: { code: 'usd', perGBP: 1.25 }, saveFund: async (...args) => { calls.push(args); throw new Error('offline'); }, cancelFund: async (...args) => calls.push(args) };
+  const editor = new ChatFundEditorComponent(data, { run: fn => fn() });
+  Object.assign(editor, { chain: 'chat', signedIn: true, fund: sampleFund });
+  editor.ngOnChanges();
+  try {
+    editor.edit(); assert.equal(editor.draft.amount, 1250); assert.equal(editor.draft.days, 13);
+    editor.draft.description = 'New testing';
+    await editor.save();
+    assert.equal(editor.editing, true); assert.equal(editor.draft.description, 'New testing');
+    assert.match(editor.error, /couldn’t save/); assert.equal(editor.saving, false);
+    editor.fund = { ...sampleFund, amountGBPRaised: 150 };
+    await editor.save(); assert.match(editor.error, /fund changed/); assert.equal(calls.length, 1);
+    editor.edit(); editor.draft.amount = 0; await editor.save(); assert.match(editor.error, /target/); assert.equal(calls.length, 1);
+    editor.dismiss(); await editor.cancel(); assert.equal(calls.length, 1);
+    editor.askCancel(); editor.fund = { ...sampleFund, description: 'Changed' }; editor.ngOnChanges();
+    assert.equal(editor.confirmingCancel, false); await editor.cancel(); assert.equal(calls.length, 1);
+    editor.askCancel(); await editor.cancel(); assert.equal(calls.length, 2); assert.equal(editor.notice, 'Cancellation sent');
+    editor.signedIn = false; editor.ngOnChanges(); editor.edit(); assert.equal(editor.editing, false);
+  } finally { editor.ngOnDestroy(); globalThis.requestAnimationFrame = previousRAF; }
+});
+
+test('fund edits preserve unchanged GBP targets and ignore old chat completions', async () => {
+  const previousRAF = globalThis.requestAnimationFrame;
+  globalThis.requestAnimationFrame = fn => fn();
+  let finish;
+  const writes = [];
+  const data = { fundCurrency: { code: 'usd', perGBP: 1.2345 }, saveFund: (...args) => { writes.push(args); return new Promise(resolve => finish = resolve); } };
+  const editor = new ChatFundEditorComponent(data, { run: fn => fn() });
+  Object.assign(editor, { chain: 'chat', signedIn: true, fund: { ...sampleFund, amountGBPTarget: 0.05 } });
+  editor.ngOnChanges();
+  try {
+    editor.edit(); editor.draft.description = 'New';
+    const saving = editor.save();
+    assert.equal(writes[0][1].amountGBPTarget, 0.05); assert.equal(editor.saving, true);
+    editor.chain = 'another'; editor.ngOnChanges(); finish(); await saving;
+    assert.equal(editor.notice, ''); assert.equal(editor.saving, false);
+    editor.edit(); editor.draft.description = 'Changed'; data.fundCurrency = { code: 'gbp', perGBP: 1 };
+    await editor.save(); assert.match(editor.error, /Currency rates changed/); assert.equal(writes.length, 1);
+  } finally { editor.ngOnDestroy(); globalThis.requestAnimationFrame = previousRAF; }
+});
+
+test('image sends report real upload percentages and switch to Sending before saving the message', async () => {
+  const f = fixture(), percentages = new Subject(), url = new Subject(), progress = [];
+  let finish;
+  const task = Object.assign(new Promise(resolve => finish = resolve), { percentageChanges: () => percentages });
+  f.service.storage.ref = () => ({ put: () => task, getDownloadURL: () => url });
+  const sending = f.service.send('chat', { text: 'Image', image: { name: 'test.png', type: 'image/png', size: 100 } }, value => progress.push(value));
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(progress, [0]); assert.equal(percentages.observed, true);
+  for (const value of [undefined, NaN, 12.4, 55.6, 150]) percentages.next(value);
+  assert.deepEqual(progress, [0, 12, 56, 100]); assert.deepEqual(f.writes, []);
+  finish(); await new Promise(resolve => setImmediate(resolve));
+  assert.equal(progress.at(-1), null); assert.equal(percentages.observed, false);
+  percentages.next(100); assert.equal(progress.at(-1), null); assert.deepEqual(f.writes, []);
+  url.next('https://example.com/test.png'); await sending;
+  assert.equal(f.writes.length, 1); assert.equal(f.writes[0].chatImageUrlOriginal, 'https://example.com/test.png');
+});
+
+test('upload failures release progress listeners, preserve the draft and never create a message', async () => {
+  const f = fixture(), percentages = new Subject(), progress = [];
+  let fail;
+  const task = Object.assign(new Promise((_, reject) => fail = reject), { percentageChanges: () => percentages });
+  f.service.storage.ref = () => ({ put: () => task });
+  const draft = { text: 'Keep this', image: { name: 'test.png', type: 'image/png', size: 100 } };
+  const sending = f.service.send('chat', draft, value => progress.push(value));
+  const rejection = assert.rejects(sending, /offline/);
+  await new Promise(resolve => setImmediate(resolve));
+  percentages.next(25); percentages.error(Error('offline')); fail(Error('offline')); await rejection;
+  assert.equal(percentages.observed, false); assert.deepEqual(f.writes, []); assert.equal(draft.text, 'Keep this'); assert.ok(draft.image);
+  assert.deepEqual(progress, [0, 25]);
+  const text = fixture(), textProgress = [];
+  await text.service.send('chat', { text: 'Text only', image: null }, value => textProgress.push(value));
+  assert.deepEqual(textProgress, []); assert.deepEqual(text.uploads, []);
+});
+
+test('Bubbles clears upload feedback after a failed send and ignores progress for a different chat', async () => {
+  const { ChatBubblesComponent } = load('../src/app/prototypes/chat-bubbles/chat-bubbles.component.ts', {
+    '@angular/core': { Component: () => target => target, ViewChild: () => () => {} },
+    './chatBubbleRead.service': { ChatBubbleReadService: class {} },
+    '../chat-event/chat-event-editor.component': { ChatEventEditorComponent: class {} },
+    '../chat-fund/chat-fund-editor.component': { ChatFundEditorComponent: class {} },
+    '../chat-composer/chat-composer.component': { ChatComposerComponent: class {} }, './chatBubbleData': model
+  });
+  const progress = [];
+  let report, fail;
+  const data = { send: (_, __, callback) => { report = callback; return new Promise((_, reject) => fail = reject); } };
+  const component = new ChatBubblesComponent({ paramMap: of() }, {}, data, {}, { run: fn => fn() });
+  Object.assign(component, { chain: 'chat', signedIn: true, composer: { setUploadProgress: value => progress.push(value) } });
+  const sending = component.send({ text: 'Image', image: {} });
+  report(35); assert.deepEqual(progress, [35]); assert.equal(component.sending, true);
+  component.chain = 'another'; report(60); assert.deepEqual(progress, [35]);
+  component.chain = 'chat'; fail(Error('offline')); await sending;
+  assert.equal(component.sending, false); assert.equal(progress.at(-1), null); assert.match(component.sendError, /couldn’t send/);
+  component.ngOnDestroy();
 });

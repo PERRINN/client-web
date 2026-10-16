@@ -29,19 +29,23 @@
 
           <div class="settingsUploadRow">
             <input
+              #profilePicturePicker
+              [disabled]="profileUpload.busy"
               type="file"
               id="chatImage"
               (change)="onImageChange($event)"
               accept="image/*"
               class="settings-upload-input"
               />
-              <label
-                for="chatImage"
-                id="buttonFile"
+              <button type="button"
+                (click)="profilePicturePicker.click()"
+                [disabled]="profileUpload.busy"
                 class="buttonPrimary settingsUploadBtn"
                 >
                 Upload a new profile picture
-              </label>
+              </button>
+              @if (profileUpload.busy) { <div class="local-upload-status"><span role="status">{{ profileUpload.percent === null ? 'Saving' : 'Uploading image · ' + profileUpload.percent + '%' }}</span>@if (profileUpload.percent !== null) { <span class="local-upload-track" role="progressbar" aria-label="Image upload" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="profileUpload.percent"><span [style.width.%]="profileUpload.percent"></span></span> }</div> }
+              @if (profileUpload.error) { <p class="local-upload-error" role="alert">{{ profileUpload.error }}</p> }
             </div>
           </div>
         </div>

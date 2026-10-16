@@ -1,0 +1,8 @@
+@if (fund && active) {
+  <button type="button" (click)="openFund.emit()" [attr.aria-label]="'Fund details: ' + fund.description">
+    <span class="fund-copy"><strong>{{ fund.description }}</strong>
+      <span>{{ amount(fund.amountGBPRaised) }} / {{ amount(fund.amountGBPTarget) }} · {{ fund.daysLeft | number:'1.0-0' }} days left</span>
+      <progress max="100" [value]="progress(fund)" aria-label="Fund raised" [attr.aria-valuetext]="amount(fund.amountGBPRaised) + ' raised of ' + amount(fund.amountGBPTarget)"></progress>
+    </span><span class="open-indicator" aria-hidden="true">›</span>
+  </button>
+}

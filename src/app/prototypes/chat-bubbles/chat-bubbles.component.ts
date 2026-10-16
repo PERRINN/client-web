@@ -1,4 +1,6 @@
 import { ChatEvent } from '../chat-event/chatEvent';
+import { ChatFund } from '../chat-fund/chatFund';
+import { ChatFundEditorComponent } from '../chat-fund/chat-fund-editor.component';
 import { ChatEventEditorComponent } from '../chat-event/chat-event-editor.component';
 import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -21,6 +23,10 @@ export class ChatBubblesComponent implements AfterViewInit, OnDestroy {
   readonly dateLabel = messageDateLabel;
   event: ChatEvent | null = null;
   eventSaving = false;
+  fund: ChatFund | null = null;
+  fundSaving = false;
+  @ViewChild('fundEditor') fundEditor?: ChatFundEditorComponent;
+  get fundCurrency() { return this.data.fundCurrency; }
   @ViewChild('eventEditor') eventEditor?: ChatEventEditorComponent;
   @ViewChild('subjectInput') subjectInput?: ElementRef<HTMLInputElement>;
   @ViewChild('editDetailsButton') editDetailsButton?: ElementRef<HTMLButtonElement>;
@@ -68,7 +74,7 @@ export class ChatBubblesComponent implements AfterViewInit, OnDestroy {
     this.subscriptions.add(route.paramMap.subscribe(params => {
       this.messageSubscription?.unsubscribe(); this.latestSubscription?.unsubscribe(); this.reads.reset();
       this.resetDetailsEditor(); this.savingDetails = false; this.detailsNotice = '';
-      this.event = null; this.eventSaving = false;
+      this.event = null; this.eventSaving = false; this.fund = null; this.fundSaving = false;
       this.chain = params.get('id') || ''; this.messages = []; this.members = [];
       this.state = 'loading'; this.title = 'Conversation'; this.avatar = ''; this.unreadId = '';
       this.detailsOpen = false; this.awayFromLatest = false; this.sendError = ''; this.loadMoreError = '';
@@ -95,7 +101,7 @@ export class ChatBubblesComponent implements AfterViewInit, OnDestroy {
     this.messageSubscription = this.data.watch(this.chain, this.limit).subscribe({
       next: chat => this.zone.run(() => {
         const stick = !this.awayFromLatest, entering = this.state === 'loading';
-        this.event = chat.event; this.messages = chat.messages; this.title = chat.title; this.members = chat.members; this.avatar = chat.avatar;
+        this.event = chat.event; this.fund = chat.fund; this.messages = chat.messages; this.title = chat.title; this.members = chat.members; this.avatar = chat.avatar;
         this.unreadId = this.reads.update(this.chain, chat); this.hasMore = chat.hasMore; this.signedIn = chat.signedIn;
         if (!chat.signedIn && this.editingDetails) this.resetDetailsEditor();
         this.loadingMore = false; this.loadMoreError = ''; this.state = this.messages.length ? 'ready' : 'empty';
@@ -141,13 +147,13 @@ export class ChatBubblesComponent implements AfterViewInit, OnDestroy {
     const chain = this.chain;
     this.sending = true; this.sendError = '';
     try {
-      await this.data.send(chain, draft);
+      await this.data.send(chain, draft, percent => this.zone.run(() => { if (this.chain === chain) this.composer?.setUploadProgress(percent); }));
       this.zone.run(() => { if (this.chain === chain) { this.composer?.clearDraft(); this.sentCount++; this.jumpToLatest(); } });
     } catch (error) {
       this.zone.run(() => {
         if (this.chain === chain) this.sendError = error instanceof Error && error.message.startsWith('Sign in') ? error.message : 'Message couldn’t send. Try again.';
       });
-    } finally { this.zone.run(() => this.sending = false); }
+    } finally { this.zone.run(() => { this.sending = false; this.composer?.setUploadProgress(null); }); }
   }
 
   onScroll(): void {
@@ -251,6 +257,7 @@ export class ChatBubblesComponent implements AfterViewInit, OnDestroy {
     if (!this.detailsOpen) this.toggleDetails();
     requestAnimationFrame(() => this.eventEditor?.focus());
   }
+  openFundDetails(): void { if (!this.detailsOpen) this.toggleDetails(); requestAnimationFrame(() => this.fundEditor?.focus()); }
 
   toggleDetails(): void {
     if (this.detailsOpen) { this.closeDetails(); return; }
@@ -260,7 +267,7 @@ export class ChatBubblesComponent implements AfterViewInit, OnDestroy {
   }
 
   closeDetails(): void {
-    if (this.savingDetails || this.eventSaving) return;
+    if (this.savingDetails || this.eventSaving || this.fundSaving) return;
     this.resetDetailsEditor(); this.detailsNotice = '';
     this.detailsOpen = false; this.reads.paused = false; this.reads.scan();
     requestAnimationFrame(() => this.detailsTrigger?.nativeElement.focus());

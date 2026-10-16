@@ -118,9 +118,11 @@
                 }
               </div>
               <div class="chatProfileImageActions">
-                <input type="file" name="chatProfileImage" id="chatProfileImage" class="inputfile" (change)="onChatProfileImageChange($event)" accept="image/*">
-                <label class="buttonPrimary chatProfileBtn" for="chatProfileImage">Upload chat image</label>
-                <button class="buttonPrimary chatProfileBtn" (click)="saveChatProfileImage()" [disabled]="!chatProfileImageTimestamp">Save chat image</button>
+                <input #chatPicturePicker [disabled]="chatPictureUpload.busy" type="file" name="chatProfileImage" id="chatProfileImage" class="inputfile" (change)="onChatProfileImageChange($event)" accept="image/*">
+                <button type="button" class="buttonPrimary chatProfileBtn" (click)="chatPicturePicker.click()" [disabled]="chatPictureUpload.busy">Upload chat image</button>
+                <button class="buttonPrimary chatProfileBtn" (click)="saveChatProfileImage()" [disabled]="chatPictureUpload.busy || !chatProfileImageTimestamp">Save chat image</button>
+                @if (chatPictureUpload.busy) { <div class="local-upload-status"><span role="status">{{ chatPictureUpload.percent === null ? 'Preparing image' : 'Uploading image · ' + chatPictureUpload.percent + '%' }}</span>@if (chatPictureUpload.percent !== null) { <span class="local-upload-track" role="progressbar" aria-label="Image upload" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="chatPictureUpload.percent"><span [style.width.%]="chatPictureUpload.percent"></span></span> }</div> }
+                @if (chatPictureUpload.error) { <p class="local-upload-error" role="alert">{{ chatPictureUpload.error }}</p> }
               </div>
             </div>
           </div>
@@ -442,19 +444,21 @@
       </div>
       @if (draftMessage||imageDownloadUrl) {
         <div class="composerActionWrap">
-          <button class="composerActionBtn sendBtn" (click)="addMessage()" aria-label="Send message">
+          <button class="composerActionBtn sendBtn" [disabled]="imageUpload.busy" (click)="addMessage()" aria-label="Send message">
             <span class="material-icons-outlined chat-icon-22">send</span>
           </button>
         </div>
       }
       @if (!draftMessage&&!imageDownloadUrl) {
         <div class="composerActionWrap">
-          <input type="file" name="chatImage" id="chatImage" class="inputfile" (change)="onImageChange($event)" accept="image/*">
-          <label class="buttonUploadImage composerActionBtn cameraBtn" for="chatImage" id="chatButtonFile" aria-label="Upload image">
+          <input #chatImagePicker [disabled]="imageUpload.busy" type="file" name="chatImage" id="chatImage" class="inputfile" (change)="onImageChange($event)" accept="image/*">
+          <button type="button" class="buttonUploadImage composerActionBtn cameraBtn" (click)="chatImagePicker.click()" [disabled]="imageUpload.busy" aria-label="Upload image">
             <span class="material-icons-outlined chat-icon-22-muted">photo_camera</span>
-          </label>
+          </button>
         </div>
       }
+      @if (imageUpload.busy) { <div class="local-upload-status"><span role="status">{{ imageUpload.percent === null ? 'Preparing image' : 'Uploading image · ' + imageUpload.percent + '%' }}</span>@if (imageUpload.percent !== null) { <span class="local-upload-track" role="progressbar" aria-label="Image upload" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="imageUpload.percent"><span [style.width.%]="imageUpload.percent"></span></span> }</div> }
+      @if (imageUpload.error) { <p class="local-upload-error" role="alert">{{ imageUpload.error }}</p> }
     </div>
   }
 

@@ -1,4 +1,6 @@
 import { ChatEventSummaryComponent } from './prototypes/chat-event/chat-event-summary.component';
+import { ChatFundSummaryComponent } from './prototypes/chat-fund/chat-fund-summary.component';
+import { ChatFundEditorComponent } from './prototypes/chat-fund/chat-fund-editor.component';
 import { ChatEventEditorComponent } from './prototypes/chat-event/chat-event-editor.component';
 import { RideHeightScatterComponent } from './telemetry/ride-height-scatter.component';
 import { TelemetryComponent } from './telemetry/telemetry.component';
@@ -79,6 +81,8 @@ export const firebaseConfig = {
         ChatBubblesComponent,
         ChatEventSummaryComponent,
         ChatEventEditorComponent,
+        ChatFundSummaryComponent,
+        ChatFundEditorComponent,
         AppMapComponent,
         ImageMosaicComponent,
         HomeComponent,

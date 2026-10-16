@@ -5,13 +5,13 @@ import { AngularFireAuth } from '@angular/fire/compat/auth'
 import { ReadCursorService, ReadCursorSession } from './readCursor.service'
 import { Router, ActivatedRoute } from '@angular/router'
 import { UserInterfaceService } from './userInterface.service'
-import { AngularFireStorage } from '@angular/fire/compat/storage'
-import { map, tap, take, finalize } from 'rxjs/operators';
+import { ImageUploadService, imageUploadState } from './imageUpload.service'
+import { map, tap, take } from 'rxjs/operators';
 
 @Component({
     selector: 'chat',
     templateUrl: './chat.component.html',
-    styleUrls: ['./chat.component.css'],
+    styleUrls: ['./chat.component.css', './upload-progress.css'],
     standalone: false
 })
 
@@ -20,6 +20,8 @@ export class ChatComponent implements OnDestroy, OnInit, AfterViewInit {
   @ViewChild('chatTopBar') chatTopBar!: ElementRef;
   @ViewChild('chatComposer') chatComposer?: ElementRef<HTMLDivElement>;
   @ViewChild('scrollContainer') scrollContainer?: ElementRef<HTMLDivElement>;
+  imageUpload = imageUploadState();
+  chatPictureUpload = imageUploadState();
   draftMessage = ''
   imageTimestamp: string | null = null
   imageDownloadUrl: string | null = null
@@ -104,7 +106,7 @@ export class ChatComponent implements OnDestroy, OnInit, AfterViewInit {
     public router:Router,
     public UI:UserInterfaceService,
     private route:ActivatedRoute,
-    private storage:AngularFireStorage,
+    private uploads: ImageUploadService,
     private zone: NgZone,
     private injector: EnvironmentInjector,
     private cursors: ReadCursorService,
@@ -271,6 +273,7 @@ export class ChatComponent implements OnDestroy, OnInit, AfterViewInit {
   }
 
   ngOnDestroy() {
+    this.imageUpload = imageUploadState(); this.chatPictureUpload = imageUploadState();
     this.flagSubscriptions.unsubscribe();
     this.flagSession.destroy();
     window.removeEventListener('resize', this.scheduleOffsetsRefresh);
@@ -854,6 +857,7 @@ export class ChatComponent implements OnDestroy, OnInit, AfterViewInit {
   }
 
   addMessage() {
+    if (this.imageUpload.busy) return;
     this.UI.createMessage({
       text: this.draftMessage,
       chain: this.chatLastMessageObj.chain || this.chatChain,
@@ -866,7 +870,7 @@ export class ChatComponent implements OnDestroy, OnInit, AfterViewInit {
   }
 
   saveChatProfileImage() {
-    if (!this.chatProfileImageTimestamp || !this.chatProfileImageDownloadUrl) return;
+    if (this.chatPictureUpload.busy || !this.chatProfileImageTimestamp || !this.chatProfileImageDownloadUrl) return;
     this.UI.createMessage({
       text: 'Changing chat profile image',
       chain: this.chatLastMessageObj.chain || this.chatChain,
@@ -887,74 +891,25 @@ export class ChatComponent implements OnDestroy, OnInit, AfterViewInit {
     this.imageDownloadUrl = null
   }
 
-  onImageChange(event: any) {
-    const input = event.target as HTMLInputElement | null;
-    if (!input?.files?.length) return;
+  onImageChange(event: Event) { return this.uploadSelectedImage(event.target as HTMLInputElement); }
+  onChatProfileImageChange(event: Event) { return this.uploadSelectedImage(event.target as HTMLInputElement, true); }
 
-    const image = input.files[0];
-    const uploader = document.getElementById('uploader') as HTMLProgressElement | null;
-    const buttonFile = document.getElementById('chatButtonFile') as HTMLElement | null;
-    const storageRef = this.storage.ref('images/' + Date.now() + '-' + image.name.replace(/\s+/g, '_'));
-    const task = storageRef.put(image);
-
-    if (buttonFile) buttonFile.style.visibility = 'hidden';
-    if (uploader) {
-      uploader.style.visibility = 'visible';
-      uploader.value = 0;
-    }
-
-    task.snapshotChanges().pipe(
-      finalize(() => {
-        if (uploader) {
-          uploader.value = 0;
-          uploader.style.visibility = 'hidden';
-        }
-        if (buttonFile) buttonFile.style.visibility = 'visible';
-      })
-    ).subscribe(
-      (snapshot) => {
-        if (uploader && snapshot?.totalBytes) {
-          const percentage = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          uploader.value = Math.min(Math.max(percentage, 0), 100);
-        }
-      },
-      (err: any) => {
-        if (input) input.value = '';
-      },
-      () => {
-        this.imageTimestamp = task.task.snapshot.ref.name.substring(0, 13);
-        storageRef.getDownloadURL().subscribe(
-          url => {
-            this.imageDownloadUrl = url;
-            if (input) input.value = '';
-          },
-          () => {
-            if (input) input.value = '';
-          }
-        );
-      }
-    );
-  }
-
-  onChatProfileImageChange(event: any) {
-    const image = event.target.files[0]
-    if (!image) return;
-    const storageRef = this.storage.ref('images/' + Date.now() + image.name)
-    const task = storageRef.put(image)
-
-    task.snapshotChanges().subscribe(
-      () => {},
-      () => {
-        event.target.value = ''
-      },
-      () => {
-        this.chatProfileImageTimestamp = task.task.snapshot.ref.name.substring(0, 13)
-        storageRef.getDownloadURL().subscribe(url => {
-          this.chatProfileImageDownloadUrl = url
-          event.target.value = ''
-        })
-      }
-    )
+  private async uploadSelectedImage(input: HTMLInputElement, chatPicture = false): Promise<void> {
+    const image = input.files?.[0], state = chatPicture ? this.chatPictureUpload : this.imageUpload;
+    if (!image || state.busy) return;
+    const timestamp = String(Date.now());
+    const path = chatPicture ? `images/${timestamp}${image.name}` : `images/${timestamp}-${image.name.replace(/\s+/g, '_')}`;
+    state.busy = true; state.percent = 0; state.error = '';
+    try {
+      const url = await this.uploads.upload(path, image, percent => this.zone.run(() => state.percent = percent));
+      this.zone.run(() => {
+        if (state !== (chatPicture ? this.chatPictureUpload : this.imageUpload)) return;
+        if (chatPicture) { this.chatProfileImageTimestamp = timestamp; this.chatProfileImageDownloadUrl = url; }
+        else { this.imageTimestamp = timestamp; this.imageDownloadUrl = url; }
+      });
+    } catch {
+      this.zone.run(() => state.error = 'Image couldn’t upload. Try again.');
+    } finally { this.zone.run(() => { state.busy = false; state.percent = null; input.value = ''; }); }
   }
 
   refreshSearchLists() {
@@ -983,6 +938,7 @@ export class ChatComponent implements OnDestroy, OnInit, AfterViewInit {
   }
 
   resetChat() {
+    this.imageUpload = imageUploadState(); this.chatPictureUpload = imageUploadState();
     this.searchFilter = null
     this.teams = null
     this.draftMessage = ''

@@ -1,6 +1,8 @@
 import { EventRecord } from '../chat-event/chatEvent';
+import { ChatFund } from '../chat-fund/chatFund';
 export type ChatTimestamp = { seconds?: number; toMillis?: () => number } | number | null;
 export interface ChatRecord extends EventRecord {
+  fund?: Partial<ChatFund>;
   chain?: string;
   user?: string;
   name?: string;

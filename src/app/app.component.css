@@ -19,9 +19,6 @@
   color: var(--color-text-secondary);
   background: var(--color-page);
 }
-:host .uploadProgress {
-  visibility: hidden;
-}
 :host .brandIcon {
   width: 20px;
   height: 20px;

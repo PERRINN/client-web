@@ -1,4 +1,5 @@
 import { chatEvent, ChatEvent, eventActionText, normalizeEvent } from '../chat-event/chatEvent';
+import { chatFund, ChatFund, FundCurrency, fundCurrency, fundFromDraft } from '../chat-fund/chatFund';
 import { EnvironmentInjector, Injectable, runInInjectionContext } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
@@ -29,7 +30,7 @@ export class ChatBubbleDataService {
         const latest = rows.find(row => row.payload.doc.data().lastMessage)?.payload.doc.data() || rows[0]?.payload.doc.data() || {};
         const messages = [...rows].reverse().map(row => bubbleMessage(row.payload.doc.id, row.payload.doc.data(), user?.uid || null));
         return {
-          messages, event: chatEvent(latest), title: latest.chatSubject || 'Conversation', members: chatMembers(latest, user?.uid || null),
+          messages, event: chatEvent(latest), fund: chatFund(latest), title: latest.chatSubject || 'Conversation', members: chatMembers(latest, user?.uid || null),
           avatar: latest.chatProfileImageUrlThumb || latest.chatProfileImageUrlMedium || '',
           unreadId: firstUnread(messages, seen?.timestamp || 0, seen?.messageId), userId: user?.uid || null, seen, cursorUnavailable: !!user && seen === null, hasMore: rows.length === limit, signedIn: !!user
         };
@@ -52,11 +53,11 @@ export class ChatBubbleDataService {
     });
   }
 
-  async send(chain: string, draft: PrototypeChatDraft): Promise<void> {
+  async send(chain: string, draft: PrototypeChatDraft, onUploadProgress?: (percent: number | null) => void): Promise<void> {
     const userId = await this.requireSender();
     if (!chain || (!draft.text.trim() && !draft.image)) throw new Error('Write a message or choose an image.');
     if (draft.text.length > 500) throw new Error('Messages can contain up to 500 characters.');
-    const image = draft.image ? await this.uploadImage(draft.image) : { timestamp: null, url: null };
+    const image = draft.image ? await this.uploadImage(draft.image, onUploadProgress) : { timestamp: null, url: null };
     await this.checkSender(userId);
     await this.createMessage(userId, {
       text: draft.text.trim(), chain, chatImageTimestamp: image.timestamp,
@@ -99,6 +100,27 @@ export class ChatBubbleDataService {
     await this.createMessage(userId, { text, chain, eventDateStart: past, eventDateEnd: past });
   }
 
+  get fundCurrency(): FundCurrency {
+    return fundCurrency(this.UI.currentUserLastMessageObj?.userCurrency, this.UI.PERRINNAdminLastMessageObj?.currencyList);
+  }
+
+  async saveFund(chain: string, fields: Pick<ChatFund, 'description' | 'amountGBPTarget' | 'daysLeft'>, editing = false): Promise<void> {
+    const userId = await this.requireSender();
+    if (!chain) throw new Error('Choose a chat.');
+    const fund = fundFromDraft({ description: fields.description, amount: fields.amountGBPTarget, days: fields.daysLeft }, { code: 'gbp', perGBP: 1 });
+    await this.checkSender(userId);
+    await this.createMessage(userId, { chain, text: `${editing ? 'Updated' : 'Created'} fund: ${fund.description}\nTarget: GBP ${fund.amountGBPTarget.toFixed(0)}\nDays remaining: ${fund.daysLeft}`, fund });
+  }
+
+  async cancelFund(chain: string, fund: ChatFund): Promise<void> {
+    const userId = await this.requireSender();
+    if (!chain) throw new Error('Choose a chat.');
+    await this.checkSender(userId);
+    // Match production: zero values are inherited by the verifier rather than clearing a fund.
+    await this.createMessage(userId, { chain, text: `Cancelled fund: ${fund.description.slice(0, 200)}`,
+      fund: { description: 'add a description', amountGBPTarget: 0.0001, daysLeft: 0.1 } });
+  }
+
   private async createMessage(userId: string, message: { chain: string; text: string; [key: string]: unknown }): Promise<void> {
     const ref = await this.UI.createMessage(message);
     if (ref?.id) this.submittedMessages.next({ chain: message.chain, userId, messageId: ref.id });
@@ -114,14 +136,24 @@ export class ChatBubbleDataService {
     if (await this.requireSender() !== userId) throw new Error('Your account changed. Sign in again.');
   }
 
-  private async uploadImage(image: File): Promise<{ timestamp: string; url: string }> {
+  private async uploadImage(image: File, onProgress?: (percent: number | null) => void): Promise<{ timestamp: string; url: string }> {
     const error = chatImageError(image);
     if (error) throw new Error(error);
     const timestamp = String(Date.now());
     const path = `images/${timestamp}-${image.name.replace(/[^\w.-]/g, '_')}`;
     const ref = runInInjectionContext(this.injector, () => this.storage.ref(path));
-    await runInInjectionContext(this.injector, () => ref.put(image));
-    const url = await firstValueFrom(runInInjectionContext(this.injector, () => ref.getDownloadURL()));
-    return { timestamp, url };
+    onProgress?.(0);
+    const task = runInInjectionContext(this.injector, () => ref.put(image));
+    const progress = onProgress ? runInInjectionContext(this.injector, () => task.percentageChanges().subscribe({
+      next: percent => { if (typeof percent === 'number' && Number.isFinite(percent)) onProgress(Math.max(0, Math.min(100, Math.round(percent)))); },
+      error: () => { /* The awaited task reports upload failures to the sender. */ }
+    })) : undefined;
+    try {
+      await task;
+      progress?.unsubscribe();
+      onProgress?.(null);
+      const url = await firstValueFrom(runInInjectionContext(this.injector, () => ref.getDownloadURL()));
+      return { timestamp, url };
+    } finally { progress?.unsubscribe(); }
   }
 }

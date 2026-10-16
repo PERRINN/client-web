@@ -25,6 +25,10 @@
 
 button:disabled { cursor: default; opacity: .5; }
 .attachment-error { margin: 8px; color: var(--color-danger-text); font-size: 13px; line-height: 1.45; overflow: visible; }
+.send-status { display: flex; align-items: center; gap: 8px; padding: 6px 8px 0; color: var(--color-text-muted); font-size: 13px; line-height: 1.45; }
+.send-status > span { font: inherit; line-height: inherit; overflow: visible; }
+.send-status .upload-track { display: block; flex: 0 1 80px; height: 3px; border-radius: 3px; overflow: hidden; background: var(--color-selected); }
+.upload-track > span { display: block; height: 100%; border-radius: inherit; background: var(--color-text-secondary); }
 @media (max-width: 500px) { .composer { padding: 5px 6px; } .composer-controls { gap: 3px; } }
 
 @media (max-width: 600px) { .composer textarea { font-size: 16px; line-height: 23px; } }

@@ -1,0 +1,14 @@
+:host { display: block; flex: 0 1 340px; max-width: 100%; min-width: 0; color: var(--color-text); }
+:host:not(.has-fund) { display: none; }
+:host * { box-sizing: border-box; font-family: inherit; line-height: 1.4; transition: none; }
+button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 4px 8px; margin: 0; border: 0; border-radius: 8px; background: transparent; color: inherit; text-align: left; }
+button:hover { background: var(--color-raised); }
+button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.fund-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 3px; }
+strong { font-size: 14px; font-weight: 550; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fund-copy > span { font-size: 13px; color: var(--color-text-secondary); overflow: visible; overflow-wrap: anywhere; }
+.open-indicator { flex-shrink: 0; font-size: 22px; color: var(--color-text-muted); }
+progress { position: static; z-index: auto; display: block; width: 100%; height: 4px; border: 0; border-radius: 4px; appearance: none; background: var(--color-raised); }
+progress::-webkit-progress-bar { background: var(--color-raised); }
+progress::-webkit-progress-value { background: var(--color-text-secondary) !important; }
+progress::-moz-progress-bar { background: var(--color-text-secondary); }

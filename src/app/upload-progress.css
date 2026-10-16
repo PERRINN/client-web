@@ -1,0 +1,6 @@
+.local-upload-status { display: flex; flex: 0 0 100%; align-items: center; gap: 8px; clear: both; padding: 6px 8px; color: var(--color-text-muted); font-family: var(--font-family-ui); font-size: 15px; line-height: 1.45; overflow: visible; }
+.local-upload-status > span { font: inherit; line-height: inherit; overflow: visible; }
+.local-upload-status > span:first-child { white-space: nowrap; }
+.local-upload-status .local-upload-track { display: block; flex: 0 1 80px; height: 3px; border-radius: 3px; overflow: hidden; background: var(--color-selected); }
+.local-upload-track > span { display: block; height: 100%; border-radius: inherit; background: var(--color-text-secondary); }
+.local-upload-error { clear: both; margin: 6px 8px; color: var(--color-danger-text); font-size: 15px; line-height: 1.45; overflow: visible; }

@@ -11,6 +11,8 @@ export interface PrototypeChatDraft { text: string; image: File | null; }
 })
 export class ChatComposerComponent implements OnDestroy {
   @Input() disabled = false;
+  @Input() sending = false;
+  uploadProgress: number | null = null;
   @Output() messageSent = new EventEmitter<PrototypeChatDraft>();
   @ViewChild('messageInput') messageInput?: ElementRef<HTMLTextAreaElement>;
   draft = '';
@@ -50,8 +52,10 @@ export class ChatComposerComponent implements OnDestroy {
     this.messageSent.emit({ text, image: this.image });
   }
 
+  setUploadProgress(percent: number | null): void { this.uploadProgress = percent; }
+
   clearDraft(): void {
-    this.draft = ''; this.clearImage();
+    this.draft = ''; this.clearImage(); this.uploadProgress = null;
     const input = this.messageInput?.nativeElement;
     if (input) { input.style.height = '42px'; input.style.overflowY = 'hidden'; requestAnimationFrame(() => input.focus()); }
   }
