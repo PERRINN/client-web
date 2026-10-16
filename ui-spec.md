@@ -75,6 +75,8 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
   | Supporting text, dates, durations, timestamps and loading/error/empty messages | 15px |
   | Minor labels, section kickers, hints and helper text | 14px |
 
+- The live Bubbles chat prototype uses an approved compact chat scale: 18px chat title, 16px section headings, 14px messages/names/body text and 13px supporting text. Its event summary and details follow the same scale. Text-entry fields use 14px on desktop and retain 16px at mobile widths to avoid focus zoom; icon and touch-target sizes remain independent. This exception is scoped to Bubbles and its composer/event components.
+
 - Production text sizes were increased by 1px for readability; compact sidebar labels use 14px. Keep icon dimensions independent of text sizes.
 - Keep these sizes on mobile. Resolve limited space through wrapping, layout and spacing rather than shrinking text. Do not use 9–12px text for ordinary labels or information users need to read.
 - All telemetry chart text uses 13px on desktop and mobile: channel names, current/cursor/lap values, X/Y ticks and axis controls, group labels, track-map states, and correlation plot titles, readings and canvas axes.
@@ -131,7 +133,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 
 - Every prototype listed in the gallery must include a subject-specific graphic preview in its grid tile. Add the corresponding preview case in `prototype-gallery.component.html` and any scoped styles in `prototype-gallery.component.css` alongside the gallery entry. Prefer lightweight inline SVG or CSS using shared colour tokens; keep decorative previews hidden from assistive technology through the existing `aria-hidden` preview stage. Verify that the tile renders a graphic and opens the intended route; never leave its preview stage empty.
 
-- Give every standalone prototype page a visible, keyboard-accessible link back to `/prototypes`, following the existing “← Prototyping” pattern.
+- Give every standalone prototype page a visible, keyboard-accessible link back to `/prototypes`, following the existing “← Prototyping” pattern. The live Bubbles chat study is an approved exception: it uses the normal chat viewport without prototype navigation or preview controls.
 - Do not add design question prompts or sections to prototypes unless the user explicitly requests them.
 - Layout prototypes are structural wireframes, not populated product mockups. Label only key regions with standard UI terms (for example, Primary Navigation, Search, Page Title, Content Panel, Feed Item, and Composer); use simple placeholder shapes instead of realistic names, copy, metrics, dates, or records. Do not add responsive behavior descriptions: users inspect responsiveness by resizing the preview width. Give each layout prototype a draggable right-edge width control, keyboard adjustment, and a width-constrained container so its own breakpoints respond independently of the browser window. Keep the wireframe visually clear and quiet, using the app UI specification's dark page, surface, and raised-surface contrast. Prefer surface contrast, spacing, and alignment over borders; keep labels sparse so the component hierarchy is immediately legible.
 

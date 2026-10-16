@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, HostListener, ViewChild, ElementRef } from '@angular/core';
+import { activeChatChain, sidebarChatCommands } from './chatNavigation';
 import { Router, NavigationEnd } from '@angular/router';
 import { UserInterfaceService } from './userInterface.service';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
@@ -30,6 +31,14 @@ export class AppComponent implements OnInit, OnDestroy {
   @ViewChild('sidebarNavigation') sidebarNavigation?: ElementRef<HTMLElement>;
   private navigationSubscription: Subscription;
   private presenceSubscription?: Subscription;
+
+  get activeSidebarChatId(): string | null { return activeChatChain(this.router.url); }
+
+  openSidebarChat(chain?: string): void {
+    if (!chain) return;
+    this.closeSidebar();
+    void this.router.navigate(sidebarChatCommands(this.router.url, chain));
+  }
 
   onConversationScroll(): void {
     this.conversationScrollbarVisible = true;

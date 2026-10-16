@@ -1,4 +1,4 @@
-import { Component, Input, NgZone, ChangeDetectorRef, DoCheck, OnInit, OnDestroy, EnvironmentInjector, runInInjectionContext } from '@angular/core'
+import { Component, EventEmitter, Input, Output, NgZone, ChangeDetectorRef, DoCheck, OnInit, OnDestroy, EnvironmentInjector, runInInjectionContext } from '@angular/core'
 import { Subscription } from 'rxjs'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
 import { Observable } from 'rxjs'
@@ -11,6 +11,7 @@ import { PresenceService } from './presence.service'
 import { formatLastSeen } from './lastSeen'
 import { MessageActivityService } from './messageActivity.service'
 import { ReadCursorService, ReadCursorSession } from './readCursor.service'
+import { activeChatChain, sidebarChatCommands } from './chatNavigation';
 import { SidebarConversationsService } from './sidebarConversations.service'
 
 @Component({
@@ -22,6 +23,7 @@ import { SidebarConversationsService } from './sidebarConversations.service'
 })
 export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
   @Input() sidePanelScope?: string;
+  @Output() chatOpened = new EventEmitter<void>();
   messages!: Observable<any[]>
   comingEvents!: Observable<any[]>
   currentFunds!: Observable<any[]>
@@ -209,12 +211,7 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   private updateActiveChatState() {
-    const url = this.router.url;
-    if (url.startsWith('/chat/')) {
-      this.activeChatId = url.split('/')[2].split('?')[0];
-    } else {
-      this.activeChatId = null;
-    }
+    this.activeChatId = activeChatChain(this.router.url);
     this.cd.detectChanges();
   }
 
@@ -534,11 +531,12 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
 
   openListedChat(chain: string, messageKey?: string) {
     if (!chain) return;
-    // readFlagClick removed: lastSeen is now updated only on reload/refresh
+    const commands = this.sidePanelScope ? sidebarChatCommands(this.router.url, chain) : ['/chat', chain];
+    if (this.sidePanelScope) this.chatOpened.emit();
     if (messageKey) {
-      this.router.navigate(['chat', chain], { queryParams: { scroll: messageKey } });
+      this.router.navigate(commands, { queryParams: { scroll: messageKey } });
     } else {
-      this.router.navigate(['chat', chain]);
+      this.router.navigate(commands);
     }
   }
 

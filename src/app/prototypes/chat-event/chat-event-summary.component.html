@@ -1,0 +1,9 @@
+@if (event && active) {
+  <div class="event-summary">
+    <button type="button" (click)="openEvent.emit()" [attr.aria-label]="'Event details: ' + event.description">
+      <span class="event-copy" [attr.title]="event.start | date:'fullDate'"><strong>{{ event.description }}</strong><span>@if (event.start <= now) { Now · ends {{ event.end | date:'HH:mm' }} } @else { {{ dateLabel(event.start, now, true) }}, {{ event.start | date:'HH:mm' }} · {{ durationLabel(event.duration) }} }</span></span>
+      <span class="open-indicator" aria-hidden="true">›</span>
+    </button>
+    @if (joinUrl) { <a [href]="joinUrl" target="_blank" rel="noopener noreferrer">Join</a> }
+  </div>
+}

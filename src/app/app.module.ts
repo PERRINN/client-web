@@ -1,3 +1,5 @@
+import { ChatEventSummaryComponent } from './prototypes/chat-event/chat-event-summary.component';
+import { ChatEventEditorComponent } from './prototypes/chat-event/chat-event-editor.component';
 import { RideHeightScatterComponent } from './telemetry/ride-height-scatter.component';
 import { TelemetryComponent } from './telemetry/telemetry.component';
 import { BrowserModule } from '@angular/platform-browser';
@@ -23,11 +25,11 @@ import { DeepTideComponent } from './prototypes/deep-tide/deep-tide.component';
 import { QuietPlumComponent } from './prototypes/quiet-plum/quiet-plum.component';
 import { ClayEmberComponent } from './prototypes/clay-ember/clay-ember.component';
 import { NightSignalComponent } from './prototypes/night-signal/night-signal.component';
-import { ChatInputBarComponent } from './prototypes/chat-input-bar/chat-input-bar.component';
+import { ChatBubblesComponent } from './prototypes/chat-bubbles/chat-bubbles.component';
+import { ChatComposerComponent } from './prototypes/chat-composer/chat-composer.component';
 import { AppMapComponent } from './prototypes/app-map/app-map.component';
 import { ImageMosaicComponent } from './prototypes/image-mosaic/image-mosaic.component';
 import { HomeComponent } from './home.component';
-import { HomeMentionsComponent } from './prototypes/home-mentions/home-mentions.component';
 
 import { PipeModule }    from './pipes.module';
 
@@ -72,11 +74,13 @@ export const firebaseConfig = {
         QuietPlumComponent,
         ClayEmberComponent,
         NightSignalComponent,
-        ChatInputBarComponent,
+        ChatComposerComponent,
+        ChatBubblesComponent,
+        ChatEventSummaryComponent,
+        ChatEventEditorComponent,
         AppMapComponent,
         ImageMosaicComponent,
         HomeComponent,
-        HomeMentionsComponent,
         ScrollableDirective,
     ],
     bootstrap: [AppComponent], imports: [BrowserModule, RideHeightScatterComponent,

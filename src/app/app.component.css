@@ -116,3 +116,8 @@
 
 /* Let Live Link session navigation reach the top edge of its scroll viewport. */
 :host .sidebarShell #main_container:has(app-telemetry) { padding-top: 0; }
+
+/* Bubbles uses the shell's available chat viewport, without gallery framing. */
+:host .sidebarShell #main_container:has(app-chat-bubbles) { overflow-y: hidden; }
+:host .sidebarShell .contentWrap:has(app-chat-bubbles) { max-width: none; height: 100%; min-height: 0; }
+:host .sidebarShell .contentCard:has(app-chat-bubbles) { height: 100%; min-height: 0; }

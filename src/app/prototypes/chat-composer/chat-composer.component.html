@@ -1,0 +1,18 @@
+<div class="composer" (paste)="onPaste($event)">
+  @if (imageUrl) {
+    <div class="attachment-preview">
+      <img [src]="imageUrl" alt="Selected image preview">
+      <span>{{ imageName }}</span>
+      <button type="button" class="remove-image" (click)="clearImage()" [disabled]="disabled" aria-label="Remove attached image">×</button>
+    </div>
+  }
+  <div class="composer-controls">
+    <input #imagePicker class="file-input" type="file" accept="image/png,image/jpeg,image/gif,image/webp" [disabled]="disabled" (change)="onFileChange($event)" aria-label="Choose an image">
+    <button class="attach-button" type="button" (click)="imagePicker.click()" [disabled]="disabled" aria-label="Attach an image" title="Attach an image"><span aria-hidden="true"></span></button>
+    <textarea #messageInput [(ngModel)]="draft" [disabled]="disabled" rows="1" maxlength="500" placeholder="Type a message" aria-label="Type a message" (input)="resizeInput(messageInput)" (keydown)="onInputKeydown($event)"></textarea>
+    @if (draft.trim() || imageUrl) {
+      <button class="send-button" type="button" (click)="send()" [disabled]="disabled" aria-label="Send message" title="Send message"><span aria-hidden="true">↑</span></button>
+    }
+  </div>
+</div>
+@if (error) { <p class="attachment-error" role="alert">{{ error }}</p> }

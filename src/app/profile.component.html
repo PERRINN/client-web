@@ -277,7 +277,7 @@
                   <li class="guardedChatItem prof-list-item-rel"
                     [attr.tabindex]="sidePanelScope ? 0 : null"
                     [attr.title]="sidePanelScope ? message.payload.doc.data()?.chatSubject : null"
-                    (keydown.enter)="sidePanelScope && $event.target === $event.currentTarget && openListedChat(message.payload.doc.data()?.chain)"
+                    (keydown.enter)="sidePanelScope && $event.target === $event.currentTarget && $event.preventDefault(); sidePanelScope && $event.target === $event.currentTarget && openListedChat(message.payload.doc.data()?.chain)"
                     (keydown.space)="sidePanelScope && $event.target === $event.currentTarget && openListedChat(message.payload.doc.data()?.chain); sidePanelScope && $event.target === $event.currentTarget && $event.preventDefault()"
                     [class.activeChatListItem]="activeChatId === message.payload.doc.data()?.chain"
                     (click)="openListedChat(message.payload.doc.data()?.chain)">

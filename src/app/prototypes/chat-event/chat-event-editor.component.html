@@ -1,0 +1,35 @@
+<section #eventSection tabindex="-1" aria-labelledby="chat-event-title" (keydown.escape)="escape($event)">
+  <h3 id="chat-event-title">Event</h3>
+  @if (editing) {
+    <form (ngSubmit)="save()" aria-label="Edit event">
+      <label for="event-description">Description</label>
+      <textarea #descriptionInput id="event-description" name="description" [(ngModel)]="draft.description" maxlength="200" rows="2" required [disabled]="saving"></textarea>
+      <div class="event-fields">
+        <div><label for="event-date">Date</label><input id="event-date" type="date" name="date" [(ngModel)]="draft.date" required [disabled]="saving"></div>
+        <div><label for="event-time">Time</label><input id="event-time" type="time" name="time" [(ngModel)]="draft.time" step="60" required [disabled]="saving"></div>
+      </div>
+      <p class="timezone">{{ timezoneLabel }}</p>
+      <label for="event-duration">Duration</label>
+      <select id="event-duration" name="durationPreset" [ngModel]="durationPreset" (ngModelChange)="chooseDuration($event)" [disabled]="saving"><option value="0.5">30 min</option><option value="1">1 hour</option><option value="1.5">1 hour 30 min</option><option value="2">2 hours</option><option value="custom">Custom</option></select>
+      @if (durationPreset === 'custom') { <label for="event-hours">Hours</label><input id="event-hours" name="hours" type="number" inputmode="decimal" step="any" [(ngModel)]="draft.duration" required [disabled]="saving"> }
+      <label for="event-location">Location or meeting link</label>
+      <input id="event-location" name="location" [(ngModel)]="draft.location" maxlength="200" required [disabled]="saving" autocomplete="off">
+      @if (error) { <p class="error" role="alert">{{ error }}</p> }
+      <div class="actions"><button type="button" (click)="dismiss()" [disabled]="saving">Cancel</button><button class="primary" type="submit" [disabled]="saving || !changed">{{ saving ? 'Saving' : 'Save event' }}</button></div>
+    </form>
+  } @else {
+    @if (event) {
+      <strong class="description">{{ event.description }}</strong>
+      <p><time [attr.datetime]="event.start | date:'yyyy-MM-ddTHH:mm:ssZZZZZ'" [attr.title]="event.start | date:'fullDate'">{{ dateLabel(event.start) }}, {{ event.start | date:'HH:mm' }}</time> · {{ durationLabel(event.duration) }}</p>
+      <p class="timezone">{{ timezone }}</p>
+      @if (locationUrl(event.location)) { <a class="location" [href]="locationUrl(event.location)" target="_blank" rel="noopener noreferrer">{{ event.location }}</a> } @else { <p>{{ event.location }}</p> }
+    }
+    @if (confirmingCancel) {
+      <div class="confirmation"><p>Cancel this event?</p><div class="actions"><button #keepEventButton type="button" (click)="dismiss()" [disabled]="saving">Keep event</button><button type="button" (click)="cancel()" [disabled]="saving">{{ saving ? 'Cancelling' : 'Cancel event' }}</button></div></div>
+    } @else if (signedIn) {
+      <div class="actions"><button type="button" (click)="edit()">{{ active ? 'Edit event' : 'Schedule event' }}</button>@if (active) { <button type="button" (click)="askCancel()">Cancel event</button> }</div>
+    } @else { <a class="sign-in" routerLink="/login">Sign in to manage events</a> }
+    @if (error) { <p class="error" role="alert">{{ error }}</p> }
+  }
+  @if (notice) { <p class="notice" role="status">{{ notice }}</p> }
+</section>

@@ -1,0 +1,30 @@
+:host { display: block; min-width: 0; flex: 0 0 auto; color: var(--color-text); }
+:host * { box-sizing: border-box; transition: none; }
+.composer { display: flex; flex-direction: column; box-sizing: border-box; width: 100%; padding: 6px 8px; border: 0; border-radius: 32px; background: var(--color-raised); }
+.composer:focus-within { background: var(--color-selected); }
+.composer textarea:focus-visible { outline: 2px solid var(--color-text-secondary); outline-offset: 2px; border-radius: 6px; }
+.composer-controls { display: flex; align-items: center; gap: 7px; min-height: 48px; }
+.file-input { display: none; }
+.attach-button, .send-button { display: grid; flex: 0 0 40px; align-self: center; box-sizing: border-box; width: 40px; height: 40px; padding: 0; place-items: center; border: 0; border-radius: 50%; cursor: pointer; line-height: 1; }
+.attach-button { margin: 0; background: transparent; color: var(--color-text-secondary); font-size: 28px; font-weight: 300; }
+.attach-button span, .send-button span { display: block; font-size: inherit; line-height: 1; }
+.attach-button > span { position: relative; width: 18px; height: 18px; font-size: 0; }
+.attach-button > span::before, .attach-button > span::after { position: absolute; top: 50%; left: 50%; content: ''; border-radius: 1px; background: currentColor; transform: translate(-50%, -50%); }
+.attach-button > span::before { width: 18px; height: 2px; }
+.attach-button > span::after { width: 2px; height: 18px; }
+.attach-button:hover { background: var(--color-surface); }
+.composer textarea { box-sizing: border-box; flex: 1; min-width: 0; height: 42px; min-height: 42px; max-height: 160px; overflow-y: hidden; padding: 9px 2px; border: 0; outline: 0; resize: none; background: transparent; color: var(--color-text); font: inherit; font-size: 14px; line-height: 21px; }
+.composer textarea::placeholder { color: var(--color-text-muted); }
+.send-button { margin: 0; background: var(--color-accent); color: var(--color-accent-ink); font-size: 23px; font-weight: 700; }
+.send-button:disabled { cursor: default; opacity: .45; }
+.send-button:focus-visible, .attach-button:focus-visible, .remove-image:focus-visible, .back-link:focus-visible { outline: 2px solid var(--color-text-secondary); outline-offset: 2px; }
+.attachment-preview { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 8px; margin: 2px 4px 7px; border-radius: 18px; background: var(--color-surface); color: var(--color-text-secondary); font-size: 13px; }
+.attachment-preview img { width: 38px; height: 38px; border-radius: 5px; object-fit: cover; }
+.attachment-preview span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.remove-image { width: 40px; height: 40px; margin-left: auto; border: 0; border-radius: 50%; background: var(--color-raised); color: var(--color-text); font-size: 19px; cursor: pointer; }
+
+button:disabled { cursor: default; opacity: .5; }
+.attachment-error { margin: 8px; color: var(--color-danger-text); font-size: 13px; line-height: 1.45; overflow: visible; }
+@media (max-width: 500px) { .composer { padding: 5px 6px; } .composer-controls { gap: 3px; } }
+
+@media (max-width: 600px) { .composer textarea { font-size: 16px; line-height: 23px; } }

@@ -16,16 +16,14 @@ import { QuietPlumComponent } from './prototypes/quiet-plum/quiet-plum.component
 import { ClayEmberComponent } from './prototypes/clay-ember/clay-ember.component';
 import { ColorPalettePreviewComponent } from './prototypes/color-palette-preview.component';
 import { NightSignalComponent } from './prototypes/night-signal/night-signal.component';
-import { ChatInputBarComponent } from './prototypes/chat-input-bar/chat-input-bar.component';
+import { ChatBubblesComponent } from './prototypes/chat-bubbles/chat-bubbles.component';
 import { AppMapComponent } from './prototypes/app-map/app-map.component';
 import { ImageMosaicComponent } from './prototypes/image-mosaic/image-mosaic.component';
 import { HomeComponent } from './home.component';
-import { HomeMentionsComponent } from './prototypes/home-mentions/home-mentions.component';
 
 const appRoutes: Routes = [
   { path: '424-telemetry', component: TelemetryComponent },
   { path: 'prototypes/unity-live-link', redirectTo: '424-telemetry', pathMatch: 'full' },
-  { path: 'prototypes/home-mentions', component: HomeMentionsComponent },
   { path: 'prototypes/app-wiring', component: AppMapComponent, data: { mapView: 'wiring' } },
   { path: 'prototypes/home', redirectTo: 'prototypes', pathMatch: 'full' },
   { path: 'prototypes/editorial-mosaic', component: ImageMosaicComponent, data: { mosaicId: 'editorial-mosaic' } },
@@ -35,7 +33,8 @@ const appRoutes: Routes = [
   { path: 'prototypes/staggered-collage', component: ImageMosaicComponent, data: { mosaicId: 'staggered-collage' } },
   { path: 'prototypes/data-model-map', component: AppMapComponent, data: { mapView: 'data' } },
   { path: 'prototypes/workflow-map', component: AppMapComponent, data: { mapView: 'flows' } },
-  { path: 'prototypes/chat-input-bar', component: ChatInputBarComponent },
+  { path: 'prototypes/chat-bubbles', component: ChatBubblesComponent },
+  { path: 'prototypes/chat-bubbles/:id', component: ChatBubblesComponent },
   { path: 'prototypes/clear-slate', component: ClearSlateComponent, data: { paletteId: 'clear-slate' } },
   { path: 'prototypes/warm-graphite', component: WarmGraphiteComponent, data: { paletteId: 'warm-graphite' } },
   { path: 'prototypes/deep-tide', component: DeepTideComponent, data: { paletteId: 'deep-tide' } },
@@ -43,7 +42,6 @@ const appRoutes: Routes = [
   { path: 'prototypes/clay-ember', component: ClayEmberComponent, data: { paletteId: 'clay-ember' } },
   { path: 'prototypes/night-signal-dark', component: ColorPalettePreviewComponent, data: { paletteId: 'night-signal-dark' } },
   { path: 'prototypes/night-signal', component: NightSignalComponent, data: { paletteId: 'night-signal' } },
-  { path: 'prototypes/CHAT-INPUT-BAR', redirectTo: 'prototypes/chat-input-bar', pathMatch: 'full' },
   { path: 'prototypes/CLEAR-SLATE', redirectTo: 'prototypes/clear-slate', pathMatch: 'full' },
   { path: 'prototypes/WARM-GRAPHITE', redirectTo: 'prototypes/warm-graphite', pathMatch: 'full' },
   { path: 'prototypes/DEEP-TIDE', redirectTo: 'prototypes/deep-tide', pathMatch: 'full' },

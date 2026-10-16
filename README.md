@@ -103,7 +103,7 @@ For the current Firestore paths, message lifecycle, payment flow, image handling
 
 The former Home prototype and Layouts gallery category have been retired. Old `/prototypes/home` links return to `/prototypes`. The five mosaic experiments remain available through their existing routes and use a dedicated `ImageMosaicComponent`; production Home at `/home` remains independent.
 
-The `/prototypes/home-mentions` UX prototype explores a full-width “Mentioned you” panel below the Home headline, with up to three chat titles, one-line mention previews and relative times. It uses sample content and local conversation previews, with controls for loading, empty and error states and a keyboard-accessible resize handle. It is listed under Home in the prototype gallery; the preview remains independent of the production Home mention list and never changes persisted mention/read state.
+The Chat gallery includes `/prototypes/chat-bubbles`. It opens the latest sidebar conversation with live Firestore messages and real sending through the production workflow. See [prototypes.md](prototypes.md) for its routes, limits and composer behavior.
 
 The colour gallery includes `/prototypes/night-signal-dark`, the approved production palette with direct comparison to the original Night Signal study. For CSS ownership and the incremental legacy migration process, see [ui-spec.md](ui-spec.md#styling-ownership-and-migration).
 

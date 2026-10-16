@@ -1,8 +1,8 @@
 import { EnvironmentInjector, Injectable, runInInjectionContext } from '@angular/core';
 import { AngularFirestore, DocumentChangeAction } from '@angular/fire/compat/firestore';
 import firebase from 'firebase/compat/app';
-import { Observable, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { map, switchMap, tap } from 'rxjs/operators';
 import { ActivityConversation } from './messageActivity.service';
 
 export interface SidebarConversation extends ActivityConversation {
@@ -12,6 +12,9 @@ export interface SidebarConversation extends ActivityConversation {
 
 @Injectable({ providedIn: 'root' })
 export class SidebarConversationsService {
+  private latestHumanState = new BehaviorSubject<{ status: 'loading' | 'ready' | 'error'; chain: string }>({ status: 'loading', chain: '' });
+  readonly latestHuman = this.latestHumanState.asObservable();
+
   constructor(private afs: AngularFirestore, private injector: EnvironmentInjector) {}
 
   automatic(): Observable<SidebarConversation[]> {
@@ -25,7 +28,10 @@ export class SidebarConversationsService {
   }
 
   human(limit: number): Observable<DocumentChangeAction<SidebarConversation>[]> {
-    return this.humanPage(limit);
+    return this.humanPage(limit).pipe(tap({
+      next: rows => this.latestHumanState.next({ status: 'ready', chain: rows[0]?.payload.doc.data().chain || '' }),
+      error: () => this.latestHumanState.next({ status: 'error', chain: '' })
+    }));
   }
 
   // Equality/inequality queries omit legacy records without the flag. Scan live
