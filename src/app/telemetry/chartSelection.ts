@@ -47,5 +47,5 @@ export class ChartSelection {
     const d = this.drag; this.drag = undefined;
     if (d?.chart.hasPointerCapture(d.id)) d.chart.releasePointerCapture(d.id);
   }
-  bandFor(chart: SVGElement) { return this.drag?.chart === chart ? this.band : undefined; }
+  bandFor(group: HTMLElement) { return this.drag && group.contains(this.drag.chart) ? this.band : undefined; }
 }

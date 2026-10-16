@@ -28,6 +28,7 @@ export class TelemetryService implements OnDestroy {
   recordingPath = '';
   recordingError = '';
   loadingSample = false;
+  loadingRecording = false;
   sampleSession = false;
   stopping = false;
   stopMessage = '';
@@ -58,6 +59,19 @@ export class TelemetryService implements OnDestroy {
   constructor(private zone: NgZone) {}
   get stale() { return !this.latest || !this.lastTelemetry || performance.now() - this.lastTelemetry > 2000; }
   get ready() { return this.state === 'Connected' && !this.stale && !this.stopping; }
+  get sessionActive() { return this.editor.starting || this.stopping || ['Connecting', 'Pairing', 'Connected', 'Reconnecting'].includes(this.state); }
+  get hasSessionData() { return this.history.length > 0 || this.history.events.length > 0 || this.head > 0 || !!this.latest; }
+  get setupLocked() { return this.sessionActive || this.hasSessionData || this.loadingSample || this.loadingRecording; }
+  get canClearSession() { return !this.sessionActive && (this.hasSessionData || this.loadingSample || this.loadingRecording || this.channels.length > 0); }
+  clearSession() {
+    if (!this.canClearSession) return false;
+    this.disconnect();
+    this.history = new SessionHistory(); this.channels = []; this.latest = undefined; this.session = '';
+    this.head = this.eventHead = 0; this.commands = {}; this.pace.reset(); this.lastTelemetry = 0;
+    this.recordingPath = this.recordingError = this.stopMessage = this.error = '';
+    this.sampleSession = this.loadingSample = this.loadingRecording = false;
+    return true;
+  }
 
   startSimulation(token = '') {
     if (!this.editor.available || this.editor.starting) return;
@@ -197,7 +211,7 @@ export class TelemetryService implements OnDestroy {
   async openSample() {
     if (this.loadingSample) return;
     this.disconnect(); this.error = ''; this.state = 'Loading sample'; this.loadingSample = true;
-    const operation = this.connectionVersion;
+    let operation = this.connectionVersion;
     try {
       const base = new URL('assets/unity-live-link/sample/', document.baseURI);
       const files = await Promise.all(['session.json', 'samples.bin', 'changes.jsonl'].map(async name => {
@@ -207,16 +221,18 @@ export class TelemetryService implements OnDestroy {
       }));
       if (operation !== this.connectionVersion) return;
       const parsing = this.openRecording(files), parsingVersion = this.connectionVersion;
+      operation = parsingVersion;
       await parsing;
       if (parsingVersion === this.connectionVersion && this.state === 'Recorded session' && !this.error) this.sampleSession = true;
     } catch (error) {
       if (operation === this.connectionVersion) { this.state = 'Disconnected'; this.error = error instanceof Error ? error.message : 'Cannot load the sample session.'; }
-    } finally { this.loadingSample = false; }
+    } finally { if (operation === this.connectionVersion) this.loadingSample = false; }
   }
   async openRecording(files: FileList | File[]) {
     this.sampleSession = false;
     this.disconnect(); this.error = '';
     const operation = this.connectionVersion;
+    this.loadingRecording = true; this.loadingSample = false;
     try {
       // Directory pickers include descendants: only use files directly in the chosen folder.
       const selected = Array.from(files).filter(f => !f.webkitRelativePath || f.webkitRelativePath.split('/').length === 2);
@@ -246,6 +262,7 @@ export class TelemetryService implements OnDestroy {
       this.session = String(metadata.session); this.latest = undefined; this.recordingPath = String(metadata.recordingPath || 'Opened local recording');
       this.commands = {}; this.recordingError = ''; this.state = 'Recorded session';
     } catch (error) { if (operation === this.connectionVersion) this.error = error instanceof Error ? error.message : 'Cannot open recording.'; }
+    finally { if (operation === this.connectionVersion) this.loadingRecording = false; }
   }
   private validateSample(value: unknown, channelCount = this.channels.length): LiveSample {
     const s = value as LiveSample;
@@ -302,6 +319,7 @@ export class TelemetryService implements OnDestroy {
     this.completedTotal = undefined; this.completedEvents = 0;
     this.clearStop(); this.supportsStop = false;
     this.connectionVersion++;
+    this.loadingSample = this.loadingRecording = false;
     this.reconnect = false;
     clearTimeout(this.retryTimer); clearInterval(this.heartbeat); clearInterval(this.historyTimer); this.historyPending = false; clearInterval(this.historyTimer); this.historyPending = false;
     this.failPending('Disconnected. Application is unconfirmed.');

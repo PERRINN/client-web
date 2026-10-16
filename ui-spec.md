@@ -77,6 +77,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 
 - Production text sizes were increased by 1px for readability; compact sidebar labels use 14px. Keep icon dimensions independent of text sizes.
 - Keep these sizes on mobile. Resolve limited space through wrapping, layout and spacing rather than shrinking text. Do not use 9–12px text for ordinary labels or information users need to read.
+- All telemetry chart text uses 13px on desktop and mobile: channel names, current/cursor/lap values, X/Y ticks and axis controls, group labels, track-map states, and correlation plot titles, readings and canvas axes.
 - Use the shared `--font-weight-body` token (medium 500) for body text, metadata, navigation and form controls, weight around 550 for row titles, and semibold around 600 for headings and emphasized labels. Set emphasis in scoped component styles; let nested text inherit the intended weight instead of resetting every descendant. Component-wide descendant rules must not override their own heading and emphasis weights; the global reset already supplies weight inheritance.
 - Use proportional line heights: about 1.45 for body text and metadata, and 1.35 for headings. Let rows grow when names or titles wrap; avoid fixed heights that clip larger text. Keep compact numeric date blocks legible with enough space for both lines.
 - Keep headings quietly distinct from body text through modest size and weight changes, not display styling.

@@ -11,7 +11,7 @@ function load(name) {
   const exports = {};
   new Function('exports', 'require', code)(exports, id => {
     if (id === '@angular/platform-browser') return {};
-    if (id === '@angular/core') return { Component: () => target => target };
+    if (id === '@angular/core') return { Component: () => target => target, Injectable: () => target => target };
     if (id === './telemetry.service') return {};
     return id.startsWith('./') ? load(id.slice(2)) : createRequire(import.meta.url)(id);
   });
@@ -62,6 +62,34 @@ test('channel zoom uses the current window, clamps outside drags and ignores cli
   selection.start(pointer(svg, 350), { start: 20, end: 60 }); selection.end(pointer(svg, 500));
   assert.equal(selection.finish(pointer(svg, 850)), undefined);
   assert.equal(selection.start(pointer(svg, 350, { button: 2 }), { start: 20, end: 60 }), false);
+});
+
+test('zoom previews share the originating group, exclude other groups and clear on release or cancellation', () => {
+  const selection = new ChartSelection(), charts = [chart(), chart(), chart()];
+  const group = { contains: node => charts.includes(node) }, other = { contains: () => false };
+  for (const pointerType of ['mouse', 'touch']) {
+    for (const [from, to] of [[350, 850], [850, 350]]) {
+      for (const source of charts) {
+        const event = x => pointer(source, x, { pointerType });
+        selection.start(event(from), { start: 20, end: 60 });
+        assert.equal(selection.bandFor(group), undefined); // A stationary press is not a selection.
+        selection.move(event(to));
+        assert.deepEqual(selection.bandFor(group), { x: 75, width: 150 });
+        assert.equal(selection.bandFor(other), undefined);
+        assert.deepEqual(selection.overviewBand(0, 100), { x: 90, width: 60 });
+        assert.deepEqual(selection.finish(event(to)), { start: 30, end: 50 });
+        assert.equal(selection.bandFor(group), undefined);
+        selection.start(event(from), { start: 20, end: 60 });
+        selection.move(event(to)); selection.end(event(to));
+        assert.equal(selection.bandFor(group), undefined);
+      }
+    }
+  }
+  const overview = chart();
+  selection.start(pointer(overview, 350), { start: 0, end: 100 });
+  selection.move(pointer(overview, 850));
+  assert.equal(selection.bandFor(group), undefined);
+  selection.end();
 });
 
 function tap(gesture, svg, time, x = 500, extra = {}) {
@@ -157,6 +185,151 @@ function historyOf(rows) {
   return history;
 }
 function channelsOf(...ids) { return ids.map(id => ({id, unit:'', sourceHz:50, available:true})); }
+
+const { TelemetryService } = load('telemetry.service');
+function recordingFiles() {
+  return ['session.json', 'samples.bin', 'changes.jsonl'].map(name => new File([readFileSync(new URL(`../../src/assets/unity-live-link/sample/${name}`, import.meta.url))], name));
+}
+
+test('loaded sessions lock lap setup until cleared, retaining settings for the next run', async t => {
+  const service = new TelemetryService({});
+  t.after(() => service.ngOnDestroy());
+  assert.equal(service.setupLocked, false);
+  assert.equal(service.canClearSession, false);
+  const loading = service.openRecording(recordingFiles());
+  assert.equal(service.setupLocked, true);
+  await loading;
+  assert.equal(service.state, 'Recorded session');
+  assert.ok(service.history.length > 0);
+  assert.equal(service.setupLocked, true);
+  const plan = structuredClone(service.lapPlan), baseline = structuredClone(service.baselineParameters);
+  service.error = service.recordingError = service.stopMessage = 'Old status';
+  assert.equal(service.clearSession(), true);
+  assert.equal(service.history.length, 0);
+  assert.deepEqual(service.history.events, []);
+  assert.deepEqual(service.channels, []);
+  assert.equal(service.latest, undefined);
+  assert.equal(service.head, 0);
+  assert.equal(service.session, '');
+  assert.equal(service.recordingPath + service.recordingError + service.error + service.stopMessage, '');
+  assert.equal(service.setupLocked, false);
+  assert.equal(service.canClearSession, false);
+  assert.deepEqual(service.lapPlan, plan);
+  assert.deepEqual(service.baselineParameters, baseline);
+});
+
+test('active and starting sessions cannot be cleared or have lap setup edited', t => {
+  const service = new TelemetryService({});
+  t.after(() => service.ngOnDestroy());
+  service.history = historyOf([[1]]);
+  for (const state of ['Connecting', 'Pairing', 'Connected', 'Reconnecting', 'Starting', 'Stopping']) {
+    service.state = ['Starting', 'Stopping'].includes(state) ? 'Disconnected' : state;
+    service.editor.starting = state === 'Starting'; service.stopping = state === 'Stopping';
+    assert.equal(service.setupLocked, true, state);
+    assert.equal(service.canClearSession, false, state);
+    assert.equal(service.clearSession(), false, state);
+    assert.equal(service.history.length, 1, state);
+  }
+  service.stopping = false; service.history = new SessionHistory(); service.head = 1;
+  assert.equal(service.setupLocked, true); // Announced telemetry locks setup before recovery finishes.
+});
+
+test('clearing cancels pending imports and an old completion cannot unlock a newer import', async t => {
+  const service = new TelemetryService({});
+  t.after(() => service.ngOnDestroy());
+  const first = recordingFiles(), second = recordingFiles();
+  const metadata = await first[0].text();
+  let finishFirst, finishSecond;
+  first[0] = { name: 'session.json', text: () => new Promise(resolve => finishFirst = resolve) };
+  second[0] = { name: 'session.json', text: () => new Promise(resolve => finishSecond = resolve) };
+  const pendingFirst = service.openRecording(first);
+  assert.equal(service.canClearSession, true);
+  assert.equal(service.clearSession(), true);
+  assert.equal(service.setupLocked, false);
+  const pendingSecond = service.openRecording(second);
+  finishFirst(metadata); await pendingFirst;
+  assert.equal(service.history.length, 0);
+  assert.equal(service.loadingRecording, true);
+  assert.equal(service.setupLocked, true);
+  finishSecond(metadata); await pendingSecond;
+  assert.equal(service.state, 'Recorded session');
+  assert.equal(service.loadingRecording, false);
+  assert.equal(service.setupLocked, true);
+});
+
+test('clear during bundled sample loading prevents late data from refilling the session', async t => {
+  const service = new TelemetryService({}), requests = [];
+  t.after(() => service.ngOnDestroy());
+  const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: { baseURI: 'http://localhost/' } });
+  t.after(() => previousDocument ? Object.defineProperty(globalThis, 'document', previousDocument) : delete globalThis.document);
+  t.mock.method(globalThis, 'fetch', url => new Promise(resolve => requests.push({ name: url.pathname.split('/').pop(), resolve })));
+  const loading = service.openSample();
+  assert.equal(service.setupLocked, true);
+  assert.equal(service.clearSession(), true);
+  for (const request of requests) request.resolve({ ok: true, arrayBuffer: async () => readFileSync(new URL(`../../src/assets/unity-live-link/sample/${request.name}`, import.meta.url)) });
+  await loading;
+  assert.equal(service.history.length, 0);
+  assert.equal(service.channels.length, 0);
+  assert.equal(service.state, 'Disconnected');
+  assert.equal(service.setupLocked, false);
+  assert.equal(service.loadingSample, false);
+});
+
+function chartGroup({ left = 100, top = 200, width = 1000, gap = 12 } = {}) {
+  const plots = [chart(), chart()];
+  plots.forEach((svg, i) => svg.getBoundingClientRect = () => ({ left, top: top + i * (120 + gap), width, bottom: top + i * (120 + gap) + 120 }));
+  return { plots, querySelectorAll: () => plots, getBoundingClientRect: () => ({ left: 20, top: 150 }) };
+}
+
+test('group cursor spans measured plots and gaps without including headings or axes', () => {
+  const { chartGroupBounds, chartGroupCursorStyle } = load('chartGroupCursor');
+  for (const dimensions of [{}, { left: 70, top: 270, width: 260, gap: 104 }]) {
+    const group = chartGroup(dimensions), first = group.plots[0].getBoundingClientRect(), last = group.plots[1].getBoundingClientRect();
+    assert.deepEqual(chartGroupBounds(group), { left: first.left, top: first.top, width: first.width, height: last.bottom - first.top });
+    assert.deepEqual(chartGroupCursorStyle(group), { left: `${first.left - 20}px`, top: `${first.top - 150}px`, width: `${first.width}px`, height: `${last.bottom - first.top}px` });
+    // Re-measure after responsive layout changes, rather than retaining old coordinates.
+    group.plots[0].getBoundingClientRect = () => ({ ...first, left: 75, width: 300 });
+    assert.equal(chartGroupBounds(group).width, 300);
+    assert.equal(chartGroupCursorStyle(group).left, '55px');
+  }
+  assert.equal(chartGroupBounds({ querySelectorAll: () => [] }), undefined);
+  assert.equal(chartGroupCursorStyle(chartGroup({ width: 0 })), undefined);
+});
+
+test('group hover stays synchronized across vertical gaps, excludes gutters and preserves zoom', t => {
+  const { TelemetryComponent } = load('telemetry.component');
+  const history = historyOf(Array.from({ length: 101 }, (_, i) => [i * 10, i]));
+  const component = new TelemetryComponent({ history, disconnect() {} }, { runOutsideAngular() {} }, { nativeElement: {} });
+  t.after(() => component.ngOnDestroy());
+  component.overlay.update(history, channelsOf('LapDistance', 'Speed'), [{ number: 1, start: 0, end: 2, complete: true, sectors: [] }]);
+  const group = chartGroup(), svg = group.plots[0];
+  for (const distance of [false, true]) {
+    component.distanceAxis = distance;
+    component.start = distance ? 200 : .4; component.end = distance ? 800 : 1.6;
+    for (const y of [220, 325, 350]) {
+      component.hoverGroup(pointer(group, 600, { clientY: y }));
+      assert.equal(component.cursorVisible, true);
+      assert.ok(Math.abs(component.cursorX - 150) < 1e-9);
+      assert.equal(distance ? component.overlay.cursorDistance : component.cursorTime, distance ? 500 : 1);
+    }
+    component.hoverGroup(pointer(group, 850, { clientY: 325 }));
+    assert.ok(Math.abs(component.cursorX - 225) < 1e-9);
+    for (const [x, y] of [[50, 220], [1150, 220], [600, 180], [600, 470]]) {
+      component.hoverGroup(pointer(group, x, { clientY: y }));
+      assert.equal(component.cursorVisible, false);
+    }
+    component.hoverGroup(pointer(group, 600, { clientY: 325 }));
+    component.leaveChart(pointer(group, 600)); assert.equal(component.cursorVisible, false);
+    const start = component.start, end = component.end;
+    component.startDrag(pointer(svg, 350, { clientY: 220 }));
+    component.hoverGroup(pointer(group, 850, { clientY: 325 }));
+    assert.deepEqual(component.selection.band, { x: 75, width: 150 });
+    component.finishDrag(pointer(svg, 850, { clientY: 325 }));
+    assert.equal(component.start, start + (end - start) * .25);
+    assert.equal(component.end, start + (end - start) * .75);
+  }
+});
 
 test('touch taps inspect the plot position without pointermove, focus reset or release clearing', t => {
   const { TelemetryComponent } = load('telemetry.component');

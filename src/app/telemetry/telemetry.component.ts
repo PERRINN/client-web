@@ -3,6 +3,7 @@ import { comparison, deltaTime, target, setupError, LapChange } from './sessionS
 import { ChartDoubleTap } from './chartDoubleTap';
 import { ChartSelection } from './chartSelection';
 import { ChartNavigation } from './chartNavigation';
+import { chartGroupBounds, chartGroupCursorStyle } from './chartGroupCursor';
 import { LapOverlay, LapTrace } from './lapOverlay';
 import { TelemetryTrace, telemetryPlots } from './telemetryPlots';
 import { SessionAnalysis, SessionLap, lapTime } from './sessionAnalysis';
@@ -62,7 +63,7 @@ export class TelemetryComponent implements OnInit, OnDestroy {
   readonly sessionRows = [1, 2, 3];
   readonly deltaTime = deltaTime;
   readonly comparison = comparison;
-  get setupLocked() { return this.live.editor.starting || ['Connecting', 'Pairing', 'Connected', 'Reconnecting'].includes(this.live.state) || this.live.stopping; }
+  get setupLocked() { return this.live.setupLocked; }
   get setupParameters() { return this.live.baselineParameters.length ? this.live.baselineParameters : this.live.parameters; }
   lapRow(number: number) { return this.analysis.laps[number - 1]; }
   get sectorIndices() { return Array.from({length: Math.max(3, ...this.analysis.laps.slice(0, 3).flatMap(l => l.sectors.map(s => s.index)))}, (_, i) => i + 1); }
@@ -111,12 +112,17 @@ export class TelemetryComponent implements OnInit, OnDestroy {
     if (input.files?.length) { void this.live.openRecording(input.files); }
     input.value = '';
   }
+  clearSession() {
+    if (!this.live.clearSession()) return;
+    this.endNavigation(); this.clearCursor(true); this.render();
+  }
   get frontRideIndex() { return this.live.channels.findIndex(c=>c.id==='RideHeightFront'); }
   get rearRideIndex() { return this.live.channels.findIndex(c=>c.id==='RideHeightRear'); }
   get missingTrajectoryError() { return !this.live.channels.some(c=>c.id==='AutopilotDistanceError'); }
   trackGroup = (_: number, group: {label:string}) => group.label;
   get chartGroups() { return chartGroups(this.live.channels); }
   readonly channelName = channelName;
+  readonly groupCursorStyle = chartGroupCursorStyle;
   get duration() { return this.distanceAxis ? this.overlay.max : this.live.history.end; }
   get maxStart() { return Math.max(this.origin, this.duration - this.span); }
   get windowEvents() { return this.live.history.events.filter(e => (this.distanceAxis ? this.overlay.distance(this.live.history.nearest(e.time)) >= this.start && this.overlay.distance(this.live.history.nearest(e.time)) <= this.end : e.time >= this.start && e.time <= this.end)); }
@@ -180,13 +186,17 @@ export class TelemetryComponent implements OnInit, OnDestroy {
   }
   inspectScatter(sample?: LiveSample) { this.cursorFraction=undefined; if (!sample) return this.clearCursor(); if (this.distanceAxis) { this.overlay.select(sample); const reading=this.overlay.readings.find(r=>r.lap===this.overlay.activeLap); if (reading) reading.sample=sample; } this.cursor=sample; this.cursorTime=sample.time; }
   private moveSelection(event: PointerEvent) { this.selection.move(event); if (this.selection.band) this.full = this.follow = false; }
-  hover(event: PointerEvent) {
+  hoverGroup(event: PointerEvent) {
+    const box = chartGroupBounds(event.currentTarget as HTMLElement);
+    if (box) this.hover(event, box);
+  }
+  hover(event: PointerEvent, box?: { left: number; top: number; width: number; height: number }) {
     this.doubleTap.move(event);
     if (this.selection.active) { this.moveSelection(event); return; }
-    this.inspectPointer(event);
+    if (box && (event.clientX < box.left || event.clientX > box.left + box.width || event.clientY < box.top || event.clientY > box.top + box.height)) { this.clearCursor(); return; }
+    this.inspectPointer(event, box);
   }
-  private inspectPointer(event: PointerEvent) {
-    const box = (event.currentTarget as SVGElement).getBoundingClientRect();
+  private inspectPointer(event: PointerEvent, box: { left: number; width: number } = (event.currentTarget as SVGElement).getBoundingClientRect()) {
     if (box.width) {
       this.cursorFraction = Math.max(0, Math.min(1, (event.clientX - box.left) / box.width));
       this.inspectTime(this.timeAtFraction(this.cursorFraction));
