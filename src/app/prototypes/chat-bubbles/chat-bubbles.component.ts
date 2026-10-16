@@ -55,7 +55,7 @@ export class ChatBubblesComponent implements AfterViewInit, OnDestroy {
   hasMore = false;
   unreadId = '';
   messages: BubbleMessage[] = [];
-  members: { id: string; name: string; initials: string; avatar: string }[] = [];
+  members: { id: string; name: string; avatarName: string; avatar: string }[] = [];
   private limit = 30;
   private scrollTarget = '';
   private pendingAnchor?: { top: number; height: number };

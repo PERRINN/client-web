@@ -27,7 +27,7 @@
               @if ($index === 0 || (messages[$index - 1].timestamp | date:'yyyy-MM-dd') !== (message.timestamp | date:'yyyy-MM-dd')) { <p class="date-divider"><time [attr.datetime]="message.timestamp ? (message.timestamp | date:'yyyy-MM-dd') : null" [attr.title]="message.timestamp ? (message.timestamp | date:'fullDate') : null">{{ dateLabel(message.timestamp) }}</time></p> }
               @if (message.id === unreadId) { <div class="unread-divider" role="separator" aria-label="New messages"><span>New messages</span></div> }
               <article [attr.data-message-id]="message.id" [id]="'bubble-' + message.id" class="message-row" [class.own]="message.own" [class.continued]="continued" [attr.aria-label]="'Message from ' + message.author">
-                @if (!continued) { <span class="member-avatar" aria-hidden="true">{{ message.initials }}@if (message.avatar) { <img [src]="message.avatar" alt="" (error)="hideAvatar($event)"> }</span> }
+                @if (!continued) { <app-user-avatar class="member-avatar" [name]="message.avatarName" [sources]="message.avatarSources" aria-hidden="true"></app-user-avatar> }
                 <div class="message-content">
                   @if (!continued) { <div class="message-meta"><strong>{{ message.author }}</strong><time [attr.datetime]="message.timestamp ? (message.timestamp | date:'yyyy-MM-ddTHH:mm:ssZZZZZ') : null">{{ message.timestamp ? (message.timestamp | date:'HH:mm') : 'Sending' }}@if (signedIn && message.own && message.verified) { <span class="verification-tick" role="img" aria-label="Verified by platform" title="Verified by platform">✓</span> }</time></div> }
                   <div class="message-text">
@@ -76,7 +76,7 @@
             @if (detailsNotice) { <p class="details-notice" role="status">{{ detailsNotice }}</p> }
             <app-chat-event-editor #eventEditor [chain]="chain" [event]="event" [signedIn]="signedIn" (busyChange)="eventSaving = $event" />
             <h3>Participants <span>{{ members.length }}</span></h3>
-            <ul>@for (member of members; track member.id) { <li><span class="member-avatar" aria-hidden="true">{{ member.initials }}@if (member.avatar) { <img [src]="member.avatar" alt="" (error)="hideAvatar($event)"> }</span><div><strong>{{ member.name }}</strong></div></li> }</ul>
+            <ul>@for (member of members; track member.id) { <li><app-user-avatar class="member-avatar" [name]="member.avatarName" [sources]="member.avatar" aria-hidden="true"></app-user-avatar><div><strong>{{ member.name }}</strong></div></li> }</ul>
             <h3>Shared images</h3>
             <div class="shared-images">
               @for (message of messages; track message.id) {

@@ -19,7 +19,7 @@ interface PresenceProfile {
 export interface RecentVisitor {
   id: string;
   name: string;
-  imageUrl: string;
+  imageUrls: string[];
   updatedAt: number;
 }
 
@@ -121,7 +121,7 @@ export class PresenceService {
     return {
       ...visitor,
       name: profile?.name || 'Contributor',
-      imageUrl: profile?.imageUrlThumbUser || profile?.imageUrlMedium || profile?.imageUrlOriginal || ''
+      imageUrls: [profile?.imageUrlThumbUser, profile?.imageUrlMedium, profile?.imageUrlOriginal].filter((url): url is string => !!url)
     };
   }
 }

@@ -22,8 +22,8 @@ h1 { margin-bottom: 5px; font-size: 25px; font-weight: 650; }
 .nav-item.active { background: var(--selected); color: var(--text); font-weight: 650; }
 .nav-item.active > span { color: var(--accent); }
 .nav-item b { display: grid; width: 17px; height: 17px; place-items: center; margin-left: auto; border-radius: 5px; background: var(--raised); color: var(--text); font-size: 9px; }
-.nav-member { display: flex; align-items: center; gap: 8px; margin-top: auto; padding: 11px 5px 0; border-top: 1px solid var(--border); color: var(--text); font-size: 10px; }
-.nav-member small { display: block; margin-top: 1px; color: var(--secondary); font-size: 9px; }
+.nav-person { display: flex; align-items: center; gap: 8px; margin-top: auto; padding: 11px 5px 0; border-top: 1px solid var(--border); color: var(--text); font-size: 10px; }
+.nav-person small { display: block; margin-top: 1px; color: var(--secondary); font-size: 9px; }
 .avatar { display: grid; flex: 0 0 auto; width: 31px; height: 31px; place-items: center; border: 1px solid var(--border); border-radius: 50%; background: var(--raised); color: var(--text); font-size: 9px; font-weight: 700; }
 .avatar-you { background: var(--selected); }.avatar-jules { background: var(--raised); }.avatar-sam { background: var(--selected); }.avatar-small { width: 25px; height: 25px; font-size: 8px; }
 .more { margin-left: auto; color: var(--muted); font-size: 16px; }
@@ -83,14 +83,14 @@ button { font: inherit; cursor: pointer; }
 .night-study :is(p, span, strong, small, b, button, a) { overflow: visible; line-height: 1.45; }
 .night-study h1 { font-size: 22px; font-weight: 600; }
 .night-study :is(h2, h3) { font-size: 16px; font-weight: 600; }
-.night-study :is(.back-link, .intro, .palette-switcher, .welcome-copy, .nav-item, .nav-member, .primary-action, .post-body > p, .event-card > div:last-child > strong, .secondary-action, .swatch) { font-size: 15px; }
+.night-study :is(.back-link, .intro, .palette-switcher, .welcome-copy, .nav-item, .nav-person, .primary-action, .post-body > p, .event-card > div:last-child > strong, .secondary-action, .swatch) { font-size: 15px; }
 .night-study :is(.post-meta strong, .nav-item.active, .event-card > div:last-child > strong) { font-size: 15px; font-weight: 550; }
-.night-study :is(.nav-member small, .app-topbar, .top-actions, .stat-card small, .panel-heading p, .post-meta, .post-footer, .event-card p, .event-card small, .palette-description > p:last-child, .swatch small) { font-size: 14px; }
+.night-study :is(.nav-person small, .app-topbar, .top-actions, .stat-card small, .panel-heading p, .post-meta, .post-footer, .event-card p, .event-card small, .palette-description > p:last-child, .swatch small) { font-size: 14px; }
 .night-study :is(.eyebrow, .overline, .nav-label, .stat-card > span, .quiet-action, .tag, .date-block span, .avatar, .avatar-small, .nav-item b) { font-size: 13px; }
 .night-study .stat-card strong { font-size: 22px; font-weight: 600; }
 .night-study .stat-card .event-stat { font-size: 16px; }
 .night-study .date-block strong { font-size: 15px; font-weight: 550; }
-.night-study :is(.app-preview, .app-nav, .stat-card, .panel, .panel-heading, .post, .event-card, .date-block, .nav-member, .app-topbar) { border: 0; }
+.night-study :is(.app-preview, .app-nav, .stat-card, .panel, .panel-heading, .post, .event-card, .date-block, .nav-person, .app-topbar) { border: 0; }
 .night-study .app-preview { grid-template-columns: 210px minmax(0, 1fr); }
 .night-study .date-block { background: transparent; }
 .night-study .nav-item.active > span { color: var(--text); }

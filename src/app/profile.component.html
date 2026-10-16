@@ -18,11 +18,12 @@
       <div class="island prof-p-14">
         <div class="prof-header-wrap">
           @if (focusUserLastMessageObj) {
-            <img
-              [src]="focusUserLastMessageObj?.imageUrlMedium"
-              (error)="UI.handleUserImageError($event, focusUserLastMessageObj)"
-              class="profile-header-img imageWithZoom"
-              (click)="UI.showFullScreenImage(focusUserLastMessageObj?.imageUrlOriginal)">
+            <button type="button" class="user-photo-button" [disabled]="!profileAvatar.src" aria-label="View profile photo"
+              (click)="UI.showFullScreenImage(profileAvatar.previewSource(focusUserLastMessageObj?.imageUrlOriginal))">
+              <app-user-avatar [name]="focusUserLastMessageObj?.name" #profileAvatar
+                [sources]="[focusUserLastMessageObj?.imageUrlMedium, focusUserLastMessageObj?.imageUrlThumbUser, focusUserLastMessageObj?.imageUrlOriginal]"
+                class="profile-header-img" aria-hidden="true"></app-user-avatar>
+            </button>
           }
           <div class="prof-main-area">
             <div class="prof-top-row">
@@ -244,13 +245,7 @@
                   </ul>
                 </div>
               }
-              @if (!UI.isCurrentUserMember && !sidePanelScope) {
-                <div class="island nonMemberIsland profile-banner-item">
-                  <button class="buttonPrimary nonMemberIslandButton" (click)="router.navigate(['buyPRN'])">Contribute funds</button>
-                  <div class="nonMemberIslandFooter">Support PERRINN projects.</div>
-                  <div class="nonMemberIslandHelper">Questions about contributing? <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" rel="noopener noreferrer" class="buy-link-whatsapp">Join our WhatsApp community</a> to speak with Nico.</div>
-                </div>
-              }
+
             </div>
           }
 
@@ -303,14 +298,9 @@
                           </div>
                         }
                         <div class="prof-avatar-wrap">
-                          @if (message.payload.doc.data()?.chatProfileImageUrlThumb || message.payload.doc.data()?.chatProfileImageUrlMedium) {
-                            <img
-                              [src]="message.payload.doc.data()?.chatProfileImageUrlThumb || message.payload.doc.data()?.chatProfileImageUrlMedium"
-                              (error)="UI.handleChatImageError($event, message.payload.doc.data())"
-                              class="profile-list-avatar">
-                            } @else {
-                              <img [src]="message.payload.doc.data()?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload.doc.data())" class="profile-list-avatar">
-                            }
+                          <app-user-avatar class="profile-list-avatar"
+                            [name]="message.payload.doc.data()?.chain === message.payload.doc.data()?.user ? message.payload.doc.data()?.name : message.payload.doc.data()?.chatSubject || message.payload.doc.data()?.name"
+                            [sources]="[message.payload.doc.data()?.chatProfileImageUrlThumb, message.payload.doc.data()?.chatProfileImageUrlMedium, message.payload.doc.data()?.chatProfileImageUrlOriginal, message.payload.doc.data()?.imageUrlThumbUser, message.payload.doc.data()?.imageUrlMedium, message.payload.doc.data()?.imageUrlOriginal]" aria-hidden="true"></app-user-avatar>
                           </div>
                           <div>
                             <div class="profile-chat-subject-wrap">

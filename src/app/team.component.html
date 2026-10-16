@@ -1,0 +1,73 @@
+<div class="team-page">
+  <header class="page-heading">
+    <h1>Team</h1>
+    <p class="team-balance">
+      <span>Team balance</span>
+      <span>{{UI.convertAndFormatPRNToPRNCurrency(null, UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}</span>
+    </p>
+  </header>
+
+  <section class="contributors" aria-label="Contributors" [attr.aria-busy]="team.loading">
+    <div class="toolbar">
+      <div class="search-control">
+        <span class="material-icons-outlined" aria-hidden="true">search</span>
+        <input type="search" [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange()"
+          placeholder="Name or bio" aria-label="Search loaded contributors by name or bio">
+        @if (searchQuery) {
+          <button type="button" class="clear-search" (click)="clearSearch()" aria-label="Clear search">
+            <span class="material-icons-outlined" aria-hidden="true">close</span>
+          </button>
+        }
+      </div>
+      <div class="view-toggle" role="group" aria-label="Team view">
+        <button type="button" [attr.aria-pressed]="viewMode === 'cards'" (click)="viewMode = 'cards'">
+          <span class="material-icons-outlined" aria-hidden="true">grid_view</span>Cards
+        </button>
+        <button type="button" [attr.aria-pressed]="viewMode === 'list'" (click)="viewMode = 'list'">
+          <span class="material-icons-outlined" aria-hidden="true">view_list</span>List
+        </button>
+      </div>
+    </div>
+
+    @if (filteredMessages | async; as people) {
+      <p class="result-count" aria-live="polite" aria-atomic="true">
+        {{people.length}} {{people.length === 1 ? 'contributor' : 'contributors'}}{{team.hasMore ? ' shown' : ''}}
+      </p>
+      <div class="results" [class.list-view]="viewMode === 'list'">
+        @if (viewMode === 'list' && people.length) {
+          <div class="list-heading" aria-hidden="true"><span>Contributor</span><span>PRN balance</span></div>
+        }
+        <ul class="contributor-grid">
+          @for (person of people; track person.key) {
+            <li>
+              <a class="contributor" [routerLink]="['/profile', person.values.user]">
+                <app-user-avatar class="contributor-avatar" [name]="person.values.name"
+                  [sources]="[person.values.imageUrlThumbUser, person.values.imageUrlMedium, person.values.imageUrlOriginal]" aria-hidden="true"></app-user-avatar>
+                <h2 class="contributor-name">{{person.values.name || 'Contributor'}}</h2>
+                <p class="contributor-bio">{{person.values.userPresentation}}</p>
+                <p class="contributor-balance">{{UI.convertAndFormatPRNToPRNCurrency(null, person.values.wallet?.balance || 0)}}</p>
+              </a>
+            </li>
+          }
+        </ul>
+      </div>
+      @if (!people.length && !team.loading && !team.error) {
+        <div class="empty-state" role="status">
+          <p>{{searchQuery.trim() ? 'No matching contributors.' : 'No contributors yet.'}}</p>
+          @if (searchQuery) { <button type="button" class="quiet-button" (click)="clearSearch()">Clear search</button> }
+        </div>
+      }
+    }
+
+    <footer class="team-footer">
+      @if (team.error) {
+        <p class="error-state" role="alert">Could not load contributors.</p>
+        <button type="button" class="quiet-button" (click)="team.loadMore()">Retry</button>
+      } @else if (team.hasMore || team.loading) {
+        <button type="button" class="quiet-button" [disabled]="team.loading" (click)="team.loadMore()">
+          {{team.loading ? 'Loading' : 'Load more'}}
+        </button>
+      }
+    </footer>
+  </section>
+</div>

@@ -39,12 +39,6 @@
 :host .listLight > li { background: color-mix(in srgb, var(--color-raised) 88%, transparent); border: none; color: var(--color-text-secondary); border-radius: 14px; margin-bottom: 10px; -webkit-tap-highlight-color: transparent; }
 :host .eventCardBody { background: color-mix(in srgb, var(--color-raised) 88%, transparent); border: none; color: var(--color-text); }
 :host .eventCardChatImage { border: none; width: auto; height: 68px; max-width: 180px; border-radius: 10px; object-fit: contain; flex: 0 0 auto; margin-top: 0; }
-:host .nonMemberIslandButton { background: var(--color-accent); border: none; color: var(--color-accent-ink); margin: 0 auto; min-width: 230px; font-size: 15px; font-weight: 800; padding: 11px 20px; }
-:host .nonMemberIslandButton:hover { transform: none; }
-:host .nonMemberIsland { margin-top: 12px; background: color-mix(in srgb, var(--color-text) 5%, transparent); border: none; padding: 24px 22px; text-align: center; color: var(--color-text); }
-:host .nonMemberIslandFooter { margin-top: 14px; font-size: 15px; font-weight: 700; letter-spacing: 0.2px; color: color-mix(in srgb, var(--color-text) 96%, transparent); }
-:host .nonMemberIslandHelper { margin-top: 10px; font-size: 13px; line-height: 1.45; font-weight: 500; color: color-mix(in srgb, var(--color-text-secondary) 92%, transparent); }
-:host .nonMemberIslandHelper a { color: inherit; text-decoration: underline; font-weight: 700; }
 
 /* Events, funds and activity feed */
 :host .profile-events-item { order: 1; width: 100%; min-width: 0; }
@@ -174,3 +168,8 @@
 }
 
 :host .profile-illustration-note { color: var(--color-text-secondary); font-size: 15px; line-height: 1.45; overflow: visible; margin: 12px 0; }
+
+/* Photo previews are actions only when a stored photo is available. */
+:host .user-photo-button { display: block; flex-shrink: 0; margin: 0; padding: 0; border: 0; background: transparent; line-height: 0; overflow: visible; transition: none; }
+:host .user-photo-button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
+:host .user-photo-button:disabled .profile-header-img { cursor: default; }

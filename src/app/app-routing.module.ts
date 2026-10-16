@@ -5,7 +5,7 @@ import { LoginComponent } from './login.component';
 import { ChatComponent } from './chat.component';
 import { ProfileComponent } from './profile.component';
 import { SettingsComponent } from './settings.component';
-import { DirectoryComponent } from './directory.component';
+import { TeamComponent } from './team.component';
 import { AppsComponent } from './apps.component';
 import { BuyPrnComponent } from './buy-prn.component';
 import { PrototypeGalleryComponent } from './prototypes/prototype-gallery.component';
@@ -54,7 +54,8 @@ const appRoutes: Routes = [
   { path: 'profile/:id', component: ProfileComponent },
   { path: 'settings', component: SettingsComponent },
   { path: 'login', component: LoginComponent },
-  { path: 'directory', component: DirectoryComponent },
+  { path: 'team', component: TeamComponent },
+  { path: 'directory', redirectTo: 'team', pathMatch: 'full' },
   { path: 'apps', component: AppsComponent },
   { path: 'buyPRN/:id', component: BuyPrnComponent },
   { path: 'buyPRN', redirectTo: 'buyPRN/', pathMatch: 'full' },

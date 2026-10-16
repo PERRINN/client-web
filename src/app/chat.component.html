@@ -144,7 +144,7 @@
                   @for (recipient of chatLastMessageObj?.recipientList; track recipient) {
                     <li>
                       <div class="chatTransferRecipientCard" [class.selectedRecipient]="transactionUser === recipient" (click)="selectRecipient(recipient)">
-                        <img [src]="chatLastMessageObj?.recipients[recipient]?.imageUrlThumb" class="chatTransferRecipientAvatar">
+                        <app-user-avatar [name]="chatLastMessageObj?.recipients[recipient]?.name" [sources]="chatLastMessageObj?.recipients[recipient]?.imageUrlThumb" class="chatTransferRecipientAvatar" aria-hidden="true"></app-user-avatar>
                         <div class="chatTransferRecipientName">{{chatLastMessageObj?.recipients[recipient]?.name}}</div>
                       </div>
                     </li>
@@ -301,9 +301,11 @@
                 @if (isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first) {
                   <div class="chat-msg-spacer"></div>
                 }
-                @if (message.payload?.imageUrlThumbUser&&(isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first)) {
+                @if (isMessageNewUserGroup(message.payload?.user,message.payload?.serverTimestamp||{seconds:UI.nowSeconds*1000})||first) {
                   <div class="chat-msg-avatar-area">
-                    <img [src]="message.payload?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, message.payload)" class="messageUserAvatar" (click)="router.navigate(['profile',message.payload?.user])">
+                    <a class="message-avatar-link" [routerLink]="['/profile', message.payload?.user]" [attr.aria-label]="'View profile: ' + (message.payload?.name || 'Contributor')">
+                      <app-user-avatar [name]="message.payload?.name" [sources]="[message.payload?.imageUrlThumbUser, message.payload?.imageUrlMedium, message.payload?.imageUrlOriginal]" class="messageUserAvatar" aria-hidden="true"></app-user-avatar>
+                    </a>
                   </div>
                 }
                 <div class="messageBubble"

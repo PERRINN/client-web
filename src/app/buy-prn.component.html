@@ -33,45 +33,6 @@
         }
       </div>
     }
-    <br/>
-    @if (!UI.isCurrentUserMember) {
-      <div class="island membership-card">
-        <div class="membership-title">
-          PRN Contribution Credits
-        </div>
-        <div class="buy-p-0 buy-text-center">
-          <div class="membership-amount">
-            {{UI.convertAndRoundUpAndFormatPRNToCurrency(currencySelected,UI.PERRINNAdminLastMessageObj?.membership?.amountRequired)}}
-          </div>
-          <span class="membership-subtitle">
-            One-time contribution. No recurring charges.
-          </span>
-          <br />
-          <div class="membership-details-box">
-            <span class="membership-details-list">
-              PRN records and recognises contributions to PERRINN projects.
-            </span>
-          </div>
-          <div class="membership-footer-text">
-            Questions about contributing? <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" rel="noopener noreferrer" class="buy-link-whatsapp">Join our WhatsApp community</a> to speak with Nico.
-          </div>
-        </div>
-      </div>
-    }
-    @if (UI.isCurrentUserMember) {
-      <div class="island membership-card">
-        <div class="membership-title">
-          Participation threshold reached
-        </div>
-        <div class="buy-p-0 buy-text-center">
-          <div class="membership-amount">
-            {{UI.convertAndFormatPRNToPRNCurrency(currencySelected, UI.currentUserLastMessageObj?.wallet?.balance || 0)}}
-          </div>
-        </div>
-      </div>
-    }
-    <br/>
-
     <div class="island buy-island">
       <div class="buy-section-title">
         Funding Projects
@@ -130,6 +91,8 @@
           Contribute funds
         </div>
       </div>
+
+      <p class="buy-text-normal">Contributions are voluntary. No payment is needed to participate.</p>
 
       <div class="payment-provider-badge">
         <span class="payment-provider-container">
@@ -195,7 +158,7 @@
       @if (UI.currentUser && !processing && creditSelected!=undefined && currencySelected!=undefined) {
         <button class="buttonPrimary checkout-btn"
           (click)="payWithRevolutLink()"
-          [disabled]="isPaymentFlowLocked">
+          [disabled]="isPaymentFlowLocked || !canContribute">
           <span class="material-symbols-outlined buy-btn-icon">arrow_forward</span>
           Proceed to Checkout
         </button>
@@ -276,8 +239,8 @@
               </div>
               <div class="info-grid-2cols">
                 <div class="info-stat-card">
-                  <div class="info-stat-box">CONTRIBUTORS AT THRESHOLD</div>
-                  <div class="info-stat-value-large">{{UI.PERRINNAdminLastMessageObj?.statistics?.membersCount}}</div>
+                  <div class="info-stat-box">PEOPLE</div>
+                  <div class="info-stat-value-large">{{UI.PERRINNAdminLastMessageObj?.statistics?.userCount}}</div>
                 </div>
                 <div class="info-stat-card">
                   <div class="info-stat-box">TOTAL PRN BALANCE</div>
@@ -285,7 +248,7 @@
                 </div>
               </div>
             </div>
-            <button class="buttonSecondary buy-btn-auto" (click)="router.navigate(['directory']); closePrnInfoPopup()">Contributors</button>
+            <button class="buttonSecondary buy-btn-auto" (click)="router.navigate(['team']); closePrnInfoPopup()">Team</button>
           </div>
           <div class="info-growth-box">
             <div class="info-growth-label">Annual balance adjustment</div>

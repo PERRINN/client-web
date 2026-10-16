@@ -12,15 +12,19 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 
 ## Styling ownership and migration
 
-- `src/styles.css` owns production colour tokens, the legacy base/reset, shared controls and unmigrated screen rules. Shell layout belongs in `src/app/app.component.css`; Home, Chat, Profile, Settings, Login, Directory and Buy PRN presentation belongs in their respective component stylesheets.
+- `src/styles.css` owns production colour tokens, the legacy base/reset, shared controls and unmigrated screen rules. Shell layout belongs in `src/app/app.component.css`; Home, Chat, Profile, Settings, Login, Team and Buy PRN presentation belongs in their respective component stylesheets.
 - Keep shell viewport sizing, `#main_container` scroll ownership, sidebar and mobile drawer rules in the App component. Preserve `main_container` and `secondary_container` IDs: legacy pages use them for scrolling and chat positioning.
 - Component styles own their typography, layout, responsive rules and states. Use inherited typography within each migrated component, with explicit icon-font exceptions. The global reset still applies to legacy screens; do not remove it as part of an isolated migration.
 - Profile owns its sidebar embedding through `:host.sidebar-profile` and the compact conversation-list rules in `profile.component.css`. The shell owns the scroll region and row-height token; it must not reach into Profile through `::ng-deep`.
-- Settings, Login, Directory and Buy PRN retain their existing layouts and interactions during CSS ownership migration. Their local styles preserve legacy typography and states; this migration is not a screen redesign. Buy PRN owns its currency-selector layout, including its mobile breakpoint. Shared progress, control and table utilities remain global while other components consume them.
+- Settings, Login, Team and Buy PRN retain their existing layouts and interactions during CSS ownership migration. Their local styles preserve legacy typography and states; this migration is not a screen redesign. Buy PRN owns its currency-selector layout, including its mobile breakpoint. Shared progress, control and table utilities remain global while other components consume them.
 - Before moving global rules, inspect template and runtime consumers, preserve effective styles, then verify the scoped replacement and remove superseded rules. Shared classes still used across screens remain global until their consumers are migrated.
 - Night Signal Dark is the approved production palette. `/prototypes/night-signal-dark` remains available for comparison with the original `/prototypes/night-signal` study. Keep the original study’s local palette values for comparison.
 
 ## Design character
+
+- Refer to PERRINN people as the **team** and **contributors**. Do not label the team as a community.
+
+- Participation is open and contributions are voluntary. Do not show membership badges, eligibility thresholds, paid participation gates or upgrade prompts. Present PRN as contribution records, with funding available independently of belonging.
 
 - Make the interface understated, engineered and calm, with a balanced information hierarchy.
 - Keep useful information visible and organized; avoid both overcrowding and unnecessary whitespace.
@@ -96,6 +100,8 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 - Align related labels, values and actions. Choose grids, lists or tables according to the information rather than forcing one layout onto every data set.
 
 ## Components
+
+- **User avatars:** use `app-user-avatar` for live user photos, including authors, recipients, profiles, Home and account controls. Missing, failed or known legacy placeholder photos fall back to up to two initials in a neutral circle, rendered with HTML/CSS. Keep valid stored photos and existing avatar dimensions. Do not generate fallback image assets or data URLs, upload replacements, or send names to an external avatar service. Conversation rows that use user photos share this component; attachment images and logos are separate content.
 
 - **Buttons:** use one filled gold primary style per task area, with accent ink for legible text. Secondary actions should have less visual weight. Destructive actions remain neutral; use clear wording and confirmation for consequential operations. Selected controls use the selected-surface token.
 - **Inputs:** use dark filled fields with the surface or raised token, a subtle border, clear text and a restrained neutral focus outline. Keep labels and validation associated with their field.

@@ -51,3 +51,8 @@
   :host .settingsUploadBtn { width: 100%; }
   :host .listLight { flex-direction: column; align-items: center; }
 }
+
+/* Photo previews are actions only when a stored photo is available. */
+:host .user-photo-button { display: block; flex-shrink: 0; margin: 0; padding: 0; border: 0; background: transparent; line-height: 0; overflow: visible; transition: none; }
+:host .user-photo-button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
+:host .user-photo-button:disabled .settingsProfileImage { cursor: default; }

@@ -34,7 +34,7 @@ export class ColorPalettePreviewComponent {
       id: 'warm-graphite',
       name: 'Warm graphite',
       direction: 'Warm charcoal · amber action',
-      description: 'A softer charcoal base and warm ivory typography give the member space a more welcoming feel while keeping controls distinct.',
+      description: 'A softer charcoal base and warm ivory typography give the team space a more welcoming feel while keeping controls distinct.',
       colors: [
         { label: 'Page', value: '#191716' }, { label: 'Surface', value: '#262321' },
         { label: 'Raised', value: '#332E2A' }, { label: 'Text', value: '#FFFAF2' },
@@ -58,7 +58,7 @@ export class ColorPalettePreviewComponent {
       id: 'quiet-plum',
       name: 'Quiet plum',
       direction: 'Smoky plum · lavender action',
-      description: 'A muted violet-charcoal foundation with soft lavender actions gives the member space a considered, creative tone.',
+      description: 'A muted violet-charcoal foundation with soft lavender actions gives the team space a considered, creative tone.',
       colors: [
         { label: 'Page', value: '#1B1720' }, { label: 'Surface', value: '#28222F' },
         { label: 'Raised', value: '#373041' }, { label: 'Text', value: '#F8F5FA' },

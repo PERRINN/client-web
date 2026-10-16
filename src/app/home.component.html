@@ -41,11 +41,7 @@
             @for (chat of mentionActivity.chats; track chat.chain) {
               <button class="mention-row" type="button" (click)="openChat(chat.chain)">
                 <span class="mention-dot" role="img" aria-label="Unread name mention" title="Unread name mention"></span>
-                @if (chat.imageUrl && !failedChatImages.has(chat.imageUrl)) {
-                  <img class="mention-avatar" [src]="chat.imageUrl" alt="" (error)="failedChatImages.add(chat.imageUrl)">
-                } @else {
-                  <span class="mention-avatar mention-avatar-placeholder" aria-hidden="true">{{ chat.title.slice(0, 1).toUpperCase() }}</span>
-                }
+                <app-user-avatar class="mention-avatar" [name]="chat.title" [sources]="chat.imageUrl" aria-hidden="true"></app-user-avatar>
                 <span class="mention-copy"><strong>{{ chat.title }}</strong><span>{{ chat.preview }}</span></span>
                 <span class="mention-time">{{ timeAgo(chat.timestamp) }}</span><span class="mention-arrow" aria-hidden="true">→</span>
               </button>
@@ -112,8 +108,7 @@
             <div class="visitor-list" tabindex="0" role="region" aria-label="Recently active users">
               @for (visitor of visitors; track visitor.id) {
                 <button class="visitor-row" type="button" (click)="openProfile(visitor.id)">
-                  @if (visitor.imageUrl) { <img [src]="visitor.imageUrl" [alt]="''" class="avatar"> }
-                  @else { <span class="avatar avatar-placeholder">{{ visitor.name.slice(0, 1).toUpperCase() }}</span> }
+                  <app-user-avatar [name]="visitor.name" [sources]="visitor.imageUrls" class="avatar" aria-hidden="true"></app-user-avatar>
                   <span class="visitor-name">{{ visitor.name }}</span>
                   <span class="visitor-time">{{ formatLastSeen(visitor.updatedAt, eventNow) }}</span>
                 </button>

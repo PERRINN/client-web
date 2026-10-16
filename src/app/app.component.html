@@ -16,9 +16,9 @@
         <span>PERRINN</span>
         <ng-container [ngTemplateOutlet]="activityDots"></ng-container>
       </button>
-      <button class="iconBtn" (click)="router.navigate(['directory'])" aria-label="Open directory">
-        <span class="material-icons">list</span>
-        <span>Directory</span>
+      <button class="iconBtn" routerLink="/team" routerLinkActive="activeNav" [attr.aria-current]="router.url === '/team' ? 'page' : null" aria-label="Open team">
+        <span class="material-icons">group</span>
+        <span>Team</span>
       </button>
       <button class="iconBtn" (click)="openDiscover()" aria-label="Open discover">
         <span class="material-icons-outlined">info</span>
@@ -39,11 +39,8 @@
           <div class="automaticList" [attr.tabindex]="automatic.chats.length > 3 ? 0 : null" role="region" aria-label="Automatic conversations" [attr.aria-busy]="automatic.status === 'loading'" [class.is-scrolling]="automaticScrollbarVisible" (scroll)="onAutomaticScroll()">
             @for (chat of automatic.chats; track chat.chain) {
               <button type="button" class="automaticRow" [class.activeAutomatic]="activeSidebarChatId === chat.chain" [attr.title]="chat.chatSubject" [disabled]="!chat.chain" (click)="openSidebarChat(chat.chain)">
-                @if (chat.chatProfileImageUrlThumb || chat.chatProfileImageUrlMedium || chat.imageUrlThumbUser) {
-                  <img [src]="chat.chatProfileImageUrlThumb || chat.chatProfileImageUrlMedium || chat.imageUrlThumbUser" alt="" (error)="UI.handleChatImageError($event, chat)">
-                } @else {
-                  <span class="automaticAvatar" aria-hidden="true">{{ (chat.chatSubject || 'Update').slice(0, 1).toUpperCase() }}</span>
-                }
+                <app-user-avatar class="automaticAvatar" [name]="chat.chatSubject || chat.name"
+                  [sources]="[chat.chatProfileImageUrlThumb, chat.chatProfileImageUrlMedium, chat.imageUrlThumbUser]" aria-hidden="true"></app-user-avatar>
                 <span class="automaticCopy">{{chat.chatSubject || 'Conversation'}}</span>
               </button>
             }
@@ -59,18 +56,12 @@
 
       @if (UI.currentUser) {
         <button type="button" class="accountRow" (click)="router.navigate(['profile',UI.currentUser])" aria-label="Open your profile and wallet">
-          @if (UI.currentUserLastMessageObj?.imageUrlThumbUser) {
-            <img [src]="UI.currentUserLastMessageObj?.imageUrlThumbUser" (error)="UI.handleUserImageError($event, UI.currentUserLastMessageObj)" class="accountAvatar" alt="">
-          } @else {
-            <span class="material-icons-outlined accountAvatar accountFallback" aria-hidden="true">person</span>
-          }
+          <app-user-avatar [name]="UI.currentUserLastMessageObj?.name"
+            [sources]="[UI.currentUserLastMessageObj?.imageUrlThumbUser, UI.currentUserLastMessageObj?.imageUrlMedium, UI.currentUserLastMessageObj?.imageUrlOriginal]" class="accountAvatar" aria-hidden="true"></app-user-avatar>
           <span class="accountInfo">
             <span class="accountName">{{UI.currentUserLastMessageObj?.name || 'Your profile'}}</span>
             <span class="accountBalance">{{UI.convertAndFormatPRNToPRNCurrency(null,UI.currentUserLastMessageObj?.wallet?.balance||0)}}</span>
           </span>
-          @if (UI.isCurrentUserMember) {
-            <span class="material-icons accountMember" role="img" aria-label="Participation threshold reached">check_circle</span>
-          }
         </button>
       }
 

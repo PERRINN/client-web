@@ -1,0 +1,3 @@
+:host { display: inline-block; position: relative; flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; overflow: hidden; container-type: inline-size; vertical-align: middle; }
+.initials { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 50%; background: var(--color-raised); color: var(--color-text-secondary); font-family: var(--font-family-ui); font-weight: 550; font-size: 40cqi; line-height: 1; }
+img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; border-radius: inherit; object-fit: var(--avatar-image-fit, cover); }

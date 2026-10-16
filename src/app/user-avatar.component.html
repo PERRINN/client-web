@@ -1,0 +1,4 @@
+<span class="initials" aria-hidden="true">{{initials}}</span>
+@if (src) {
+  <img [src]="src" alt="" loading="lazy" (error)="onPhotoError()">
+}

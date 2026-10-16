@@ -16,7 +16,6 @@ import { formatLastSeen } from './lastSeen';
 })
 export class HomeComponent implements OnInit, OnDestroy {
   mentionActivity: MentionActivity = { userId: null, status: 'signed-out', chats: [] };
-  failedChatImages = new Set<string>();
   imageTiles: HomeMessage[] = [];
   events: HomeMessage[] = [];
   visitors: RecentVisitor[] = [];

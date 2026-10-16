@@ -211,3 +211,6 @@
 /* Explicit states replace the former global precedence overrides. */
 :host .chatDateIsland#date { padding: 2.5px; color: var(--color-text-secondary); background: var(--color-surface); }
 :host button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+:host .message-avatar-link { display: flow-root; overflow: visible; }
+:host .message-avatar-link:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }

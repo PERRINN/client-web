@@ -3,7 +3,6 @@ const admin = require('firebase-admin')
 try { admin.initializeApp() } catch (e) {}
 const verifyMessageUtils = require('./utils/verifyMessage')
 const createMessageUtils = require('./utils/createMessage')
-const { defineSecret } = require('firebase-functions/params')
 
 exports.scheduledDailyMembership = onSchedule(
   {
@@ -15,7 +14,6 @@ exports.scheduledDailyMembership = onSchedule(
   async (context) => {
     try {
       const adminUserId='FHk0zgOQUja7rsB9jxDISXzHaro2'
-      const now=Date.now()
       let statistics={}
       statistics.wallet={}
       statistics.interest={}
@@ -23,11 +21,13 @@ exports.scheduledDailyMembership = onSchedule(
       statistics.transactionIn={}
       statistics.transactionOut={}
       statistics.purchaseCOIN={}
-      let listUsersResult1={}
-      let listUsersResult2={}
-      listUsersResult1=await admin.auth().listUsers(1000)
-      if(listUsersResult1.pageToken)listUsersResult2=await admin.auth().listUsers(1000,listUsersResult1.pageToken)
-      let listUsersResult=listUsersResult1.users.concat(listUsersResult2.users)
+      const listUsersResult=[]
+      let pageToken
+      do {
+        const page=await admin.auth().listUsers(1000,pageToken)
+        listUsersResult.push(...page.users)
+        pageToken=page.pageToken
+      } while(pageToken)
       var reads=[]
       listUsersResult.forEach(userRecord=>{
         reads.push(admin.firestore().collection('PERRINNMessages').where('user','==',userRecord.uid).orderBy('serverTimestamp','desc').limit(1).get())
@@ -41,7 +41,6 @@ exports.scheduledDailyMembership = onSchedule(
       })
       const results=await Promise.all(verifyMessageBatch)
       results.forEach((result)=>{
-        if ((result.membership||{}).isMember||false)statistics.membersCount=(statistics.membersCount||0)+1
         statistics.wallet.balance=((statistics.wallet||{}).balance||0)+((result.wallet||{}).balance||0)
         statistics.interest.amount=((statistics.interest||{}).amount||0)+((result.interest||{}).amount||0)
         statistics.interest.rateDay=statistics.wallet.balance*(Math.exp(((result.interest||{}).yearRate||0)/365)-1)
@@ -58,18 +57,12 @@ exports.scheduledDailyMembership = onSchedule(
       })
       statistics.serverTimestamp=admin.firestore.FieldValue.serverTimestamp()
 
-      const adminLastMessages=await admin.firestore().collection('PERRINNMessages').where('user','==',adminUserId).where('verified','==',true).orderBy('serverTimestamp','desc').limit(1).get()
-      const adminLastMessageData=adminLastMessages.docs[0]!=undefined?(adminLastMessages.docs[0].data()||{}):{}
-      const membershipThreshold=((adminLastMessageData.membership||{}).amountRequired)||0
-
       const usersCount=statistics.userCount||0
-      const membersCount=statistics.membersCount||0
       const investedAmount=((statistics.wallet||{}).balance)||0
       const investedAmountRounded=Math.round(Number(investedAmount||0)*1000)/1000
-      const membershipThresholdRounded=Math.round(Number(membershipThreshold||0)*1000)/1000
-      const statisticsSummaryText=`${usersCount} users, ${membersCount} members. ${investedAmountRounded} invested. ${membershipThresholdRounded} membership threashold.`
+      const statisticsSummaryText=`${usersCount} people. ${investedAmountRounded} total PRN balance.`
   
-      createMessageUtils.createMessageAFS({
+      await createMessageUtils.createMessageAFS({
         user:adminUserId,
         text:statisticsSummaryText,
         statistics:statistics,
@@ -77,7 +70,6 @@ exports.scheduledDailyMembership = onSchedule(
       })
   
       console.log(statistics.userCount+' users processed.')
-      console.log(statistics.membersCount+' PRN holders.')
       } catch (error) {
       console.error('Scheduled function error:', error);
     }

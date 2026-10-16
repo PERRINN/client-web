@@ -675,3 +675,14 @@ test('new own actions do not create an unread divider and entry markers stay fix
     assert.equal(f.service.update('chat', { ...context, messages: [older, incoming, own] }), 'incoming');
   } finally { f.dispose(); }
 });
+
+test('user avatar projection retains stored names and photo alternatives when authors are labelled You', () => {
+  const message = model.bubbleMessage('own', { user: 'owner', name: 'Alex Morgan', imageUrlThumbUser: 'thumb', imageUrlMedium: 'medium', imageUrlOriginal: 'original' }, 'owner');
+  assert.equal(message.author, 'You');
+  assert.equal(message.avatarName, 'Alex Morgan');
+  assert.deepEqual(message.avatarSources, ['thumb', 'medium', 'original']);
+  const members = model.chatMembers({ user: 'owner', name: 'Alex Morgan', recipientList: ['owner', 'other'], recipients: { other: { name: 'Blair Lee' } } }, 'owner');
+  assert.equal(members[0].name, 'You');
+  assert.equal(members[0].avatarName, 'Alex Morgan');
+  assert.equal(members[1].avatarName, 'Blair Lee');
+});

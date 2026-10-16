@@ -20,9 +20,7 @@ export class UserInterfaceService {
   nowSeconds = 0
   hasTouch = false
   isStandalone = false
-  profileSimulatorNonMember = false
   profileSimulatorLoggedOut = false
-  isCurrentUserMember = false
   public isDev = false
   public revolutMode: 'sandbox' | 'prod' = 'sandbox'
   private authenticatedUser: string | null = null
@@ -40,8 +38,7 @@ export class UserInterfaceService {
     this.profileUserId='ubiLUzQOd0ZIAEDYsOltrUMUdim2'
     this.adminUserId='FHk0zgOQUja7rsB9jxDISXzHaro2'
 
-    this.profileSimulatorNonMember = false;
-  this.profileSimulatorLoggedOut = false;
+    this.profileSimulatorLoggedOut = false;
 
     const host = location.hostname;
     this.isDev =
@@ -97,9 +94,6 @@ export class UserInterfaceService {
             .valueChanges()
             .subscribe((snapshot) => {
               this.currentUserLastMessageObj = snapshot[0];
-              this.isCurrentUserMember = this.profileSimulatorLoggedOut
-                ? false
-                : (this.profileSimulatorNonMember ? false : (this.currentUserLastMessageObj?.membership?.isMember || false));
             });
         } else {
           this.authenticatedUser = null;
@@ -136,22 +130,15 @@ export class UserInterfaceService {
     })
   }
 
-  toggleprofileSimulatorNonMember() {
-    this.profileSimulatorNonMember = !this.profileSimulatorNonMember;
-    this.isCurrentUserMember = this.profileSimulatorLoggedOut ? false : (this.profileSimulatorNonMember ? false : (this.currentUserLastMessageObj?.membership?.isMember || false));
-  }
-
   toggleprofileSimulatorLoggedOut() {
     this.profileSimulatorLoggedOut = !this.profileSimulatorLoggedOut;
     if (this.profileSimulatorLoggedOut) {
       this.currentUser = null;
       this.currentUserEmail = null;
-      this.isCurrentUserMember = false;
       return;
     }
     this.currentUser = this.authenticatedUser || null;
     this.currentUserEmail = this.authenticatedUserEmail || null;
-    this.isCurrentUserMember = this.profileSimulatorNonMember ? false : (this.currentUserLastMessageObj?.membership?.isMember || false);
   }
 
   createMessage(messageObj: any) {
@@ -261,10 +248,6 @@ export class UserInterfaceService {
     return 'PRN ' + this.formatCurrency(currency, amount)
   }
 
-  convertAndRoundUpAndFormatPRNToCurrency(currency: any, amount: any) {
-    return this.formatCurrency(currency, this.roundUpByMagnitude(this.convertPRNToCurrency(currency, amount)));
-  }
-
   formatSecondsToDhm2(seconds: any) {
     seconds = Number(seconds);
     const d = Math.floor(seconds / (3600 * 24));
@@ -310,6 +293,7 @@ export class UserInterfaceService {
   }
 
   showFullScreenImage(src: any) {
+    if (!src) return;
     const fullScreenImage = document.getElementById('fullScreenImage') as HTMLImageElement | null;
     if (!fullScreenImage) return;
     fullScreenImage.src = src;
@@ -335,40 +319,12 @@ export class UserInterfaceService {
     return [visibility, outlinedEyeStyle, fullEyeStyle, focus];
   }
 
-  /**
-   * Rounds a number UP based on its magnitude:
-   * < 100    → nearest 1
-   * < 1,000  → nearest 10
-   * < 10,000 → nearest 100
-   * < 100,000 → nearest 1,000
-   * etc.
-   */
-  roundUpByMagnitude(value: number): number {
-    if (value <= 0) return 0;
-
-    const absValue = Math.abs(value);
-
-    // Determine magnitude (10^(digits - 2))
-    const digits = Math.floor(Math.log10(absValue)) + 1;
-    const step = Math.pow(10, Math.max(0, digits - 2));
-
-    return Math.ceil(value / step) * step;
-  }
-
   handleChatImageError(event: Event, message: any) {
     const img = event.target as HTMLImageElement;
     // Add a class to visually mark it
     img.classList.add('image-fallback');
     // Fallback to Original URL
     if (message?.chatImageUrlOriginal) img.src = message.chatImageUrlOriginal
-  }
-
-  handleUserImageError(event: Event, message: any) {
-    const img = event.target as HTMLImageElement;
-    // Add a class to visually mark it
-    img.classList.add('image-fallback');
-    // Fallback to Original URL
-    if (message?.imageUrlOriginal) img.src = message.imageUrlOriginal
   }
 
 }

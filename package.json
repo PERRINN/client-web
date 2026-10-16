@@ -12,6 +12,8 @@
     "start:prod": "ng serve --configuration production",
     "build": "ng build --configuration production",
     "lint": "ng lint",
+    "test:avatars": "node --test scripts/user-avatar.test.mjs",
+    "test:participation": "node --test scripts/participation.test.mjs",
     "test:telemetry": "node --test scripts/telemetry/*.test.mjs",
     "audit:enterprise": "node scripts/enterprise-audit/audit.mjs",
     "audit:enterprise:test": "node --test scripts/enterprise-audit/*.test.mjs"

@@ -276,14 +276,6 @@ module.exports = {
         locking.amount=interest.amountBase*(Math.exp(interest.rateYear/365*interest.days)-1)/(interest.rateYear/365)
         locking.amountCummulate=(((userPreviousMessageData.locking||{}).amountCummulate)||0)+locking.amount
 
-      //*******MEMBERSHIP**********************
-        let membership={}
-        membership.amountRequiredBase=Number(((PERRINNAdminLastMessageData.membership||{}).amountRequired)||0)
-        membership.amountRequiredOffset=Math.max(0,membership.amountRequiredBase*(Math.exp(interest.rateYear/365*interest.days)-1))
-        membership.amountRequired=membership.amountRequiredBase+membership.amountRequiredOffset
-        membership.amountRequiredWithMargin=membership.amountRequired*0.98
-        membership.isMember=wallet.balance>=membership.amountRequiredWithMargin
-
       //*******MESSAGE WRITES**********************
         //message event
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{eventDateStart:messageData.eventDateStart||chatPreviousMessageData.eventDateStart||null},{create:true})
@@ -304,7 +296,6 @@ module.exports = {
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{wallet:wallet},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{emails:emails},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{fund:fund},{create:true})
-        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{membership:membership},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{currencyList:(messageData.currencyList||userPreviousMessageData.currencyList||PERRINNAdminLastMessageData.currencyList||{})},{create:true})
         //message verified
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{isBackendMessage:messageData.isBackendMessage===true},{create:true})
@@ -371,8 +362,7 @@ module.exports = {
         transactionOut:transactionOut,
         purchaseCOIN:purchaseCOIN,
         contract:contract,
-        interest:interest,
-        membership:membership
+        interest:interest
       }
 
     }

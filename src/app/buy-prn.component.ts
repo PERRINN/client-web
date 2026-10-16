@@ -36,8 +36,7 @@ export class BuyPrnComponent implements OnInit, OnDestroy {
   amountSharesPurchased = 0;
   amountCharge = 0;
   currencySelected = 'usd';
-  creditListPRN: number[] = [];
-  creditList: number[] = [];
+  creditList: number[] = [10, 25, 50, 100, 250];
   creditSelected = 0;
   processing = false;
   showPastFunds = false;
@@ -55,8 +54,6 @@ export class BuyPrnComponent implements OnInit, OnDestroy {
   private paymentTrackingVersion = 0;
   private paymentSyncInFlight = false;
   private hasUserManuallySelectedCurrency = false;
-  private lastCreditsBase = 0;
-  private lastSyncedCurrency = "";
   private previousMainContainerOverflow = "";
   private previousBodyOverflow = "";
 
@@ -336,13 +333,6 @@ export class BuyPrnComponent implements OnInit, OnDestroy {
   }
 
 
-  private buildCreditList(base?: number): number[] {
-    const amountRequired = Number((base ?? this.UI.PERRINNAdminLastMessageObj?.membership?.amountRequired) || 0);
-    if (!amountRequired || amountRequired <= 0) return [];
-    const amounts = [amountRequired, amountRequired * 2, amountRequired * 4, amountRequired * 10, amountRequired * 20];
-    return this.UI.isDev ? [1, ...amounts] : amounts;
-  }
-
   private syncCurrencyAndCredits(): void {
     const currencyList = this.UI.PERRINNAdminLastMessageObj?.currencyList || {};
     const preferredCurrency = this.UI.currentUserLastMessageObj?.userCurrency;
@@ -363,21 +353,6 @@ export class BuyPrnComponent implements OnInit, OnDestroy {
       if (fallbackCurrency) this.currencySelected = fallbackCurrency;
     }
 
-    const creditsBase = Number(this.UI.PERRINNAdminLastMessageObj?.membership?.amountRequired || 0);
-    if (!creditsBase || creditsBase <= 0) return;
-
-    if (this.lastCreditsBase !== creditsBase || !this.creditListPRN?.length) {
-      this.lastCreditsBase = creditsBase;
-      this.creditListPRN = this.buildCreditList(creditsBase);
-    }
-
-    if (!this.creditListPRN?.length || !this.currencySelected) return;
-
-    if (this.lastSyncedCurrency !== this.currencySelected || !this.creditList?.length) {
-      this.refreshCreditList();
-      this.lastSyncedCurrency = this.currencySelected;
-    }
-
     if (this.creditSelected == null || this.creditSelected >= this.creditList.length) {
       this.creditSelected = 0;
     }
@@ -389,34 +364,26 @@ export class BuyPrnComponent implements OnInit, OnDestroy {
     if (!currency) return;
     this.hasUserManuallySelectedCurrency = true;
     this.currencySelected = currency;
-    this.refreshCreditList();
     if (this.creditSelected == null) this.creditSelected = 0;
     this.refreshAmountCharge();
-  }
-
-  refreshCreditList(): void {
-    if (!this.creditListPRN?.length || !this.currencySelected) {
-      this.creditList = [];
-      return;
-    }
-    this.creditList = this.creditListPRN.map((creditPRN) =>
-      this.UI.roundUpByMagnitude(
-        this.UI.convertPRNToCurrency(this.currencySelected, creditPRN)
-      )
-    );
   }
 
   refreshAmountCharge(): void {
     if (this.creditSelected == null || this.currencySelected == null) return;
     const selectedCurrency = this.UI.PERRINNAdminLastMessageObj?.currencyList?.[this.currencySelected];
-    if (!selectedCurrency || !this.creditList?.length) return;
+    const rate = Number(selectedCurrency?.toCOIN);
+    if (!Number.isFinite(rate) || rate <= 0) {
+      this.amountCharge = 0;
+      this.amountSharesPurchased = 0;
+      return;
+    }
 
     this.amountCharge = Number(
       ((this.creditList[this.creditSelected] || 0) * 100).toFixed(0)
     );
     this.amountSharesPurchased = Number(
       (this.amountCharge / 100) *
-        selectedCurrency.toCOIN
+        rate
     );
   }
 
@@ -439,8 +406,13 @@ export class BuyPrnComponent implements OnInit, OnDestroy {
     this.router.navigate(["chat", this.UI.currentUser]);
   }
 
+  get canContribute(): boolean {
+    return !!this.UI.currentUser && this.amountCharge > 0 && Number.isFinite(this.amountSharesPurchased) && this.amountSharesPurchased > 0;
+  }
+
   async payWithRevolutLink(): Promise<void> {
-    if (this.isPaymentFlowLocked) return;
+    this.refreshAmountCharge();
+    if (this.isPaymentFlowLocked || !this.canContribute) return;
 
     const newWindow = window.open("", "_blank");
     this.processing = true;
