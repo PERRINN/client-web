@@ -119,11 +119,11 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
     };
     this.chartOptions = {
           series: [
-            { type: 'line', xKey: 'timestamp', yKey: 'balance', marker: { size: 0 }},
-            { type: 'line', xKey: 'timestamp', yKey: 'purchase', marker: { size: 0 } },
-            { type: 'line', xKey: 'timestamp', yKey: 'transaction', marker: { size: 0 } },
-            { type: 'line', xKey: 'timestamp', yKey: 'interest', marker: { size: 0 } },
-            { type: 'line', xKey: 'timestamp', yKey: 'contract', marker: { size: 0 } }
+            { type: 'line', xKey: 'timestamp', yKey: 'balance', yName: 'PRN balance', marker: { size: 0 }},
+            { type: 'line', xKey: 'timestamp', yKey: 'purchase', yName: 'Funding credits', marker: { size: 0 } },
+            { type: 'line', xKey: 'timestamp', yKey: 'transaction', yName: 'Transfers', marker: { size: 0 } },
+            { type: 'line', xKey: 'timestamp', yKey: 'interest', yName: 'Balance adjustments', marker: { size: 0 } },
+            { type: 'line', xKey: 'timestamp', yKey: 'contract', yName: 'Time credits', marker: { size: 0 } }
           ],
           theme: chartTheme,
           background: { fill: paletteSurface },
@@ -147,7 +147,7 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
       }
     this.forecastChartOptions = {
           series: [
-            { type: 'line', xKey: 'year', yKey: 'balance', marker: { size: 0 }, stroke: paletteAccent, strokeWidth: 2 }
+            { type: 'line', xKey: 'year', yKey: 'balance', yName: 'PRN balance', marker: { size: 0 }, stroke: paletteAccent, strokeWidth: 2 }
           ],
           theme: chartTheme,
           background: { fill: paletteSurface },

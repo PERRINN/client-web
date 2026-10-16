@@ -66,7 +66,7 @@
 
       <div class="island settingsSection">
         <div class="title">Short presentation</div>
-        <div class="settings-help-text">Your short presentation helps other members get to know you.</div>
+        <div class="settings-help-text">Your short presentation helps other contributors get to know you.</div>
         <div class="settings-help-text settings-help-margin-top">I am someone who is:</div>
         <input [(ngModel)]="userPresentation" placeholder="Your short presentation" maxlength="150">
         <button class="buttonPrimary settings-action-btn" (click)="updateUserPresentation()" [disabled]="!userPresentation || userPresentation == UI.currentUserLastMessageObj?.userPresentation">Update my presentation</button>
@@ -74,7 +74,7 @@
 
       <div class="island settingsSection">
         <div class="title">Public link</div>
-        <div class="settings-help-text settings-help-margin-all">Add view only public link so other members can view your documents, website, code and more.</div>
+        <div class="settings-help-text settings-help-margin-all">Add view only public link so other contributors can view your documents, website, code and more.</div>
         <input [(ngModel)]="publicLink" placeholder="Add a link">
         <button class="buttonPrimary settings-action-btn" (click)="updatePublicLink()" [disabled]="!publicLink || publicLink == UI.currentUserLastMessageObj?.publicLink">Update my link</button>
       </div>
@@ -108,7 +108,7 @@
 
       <div class="island settingsSection">
         <div class="title">Profile simulator (for UI dev)</div>
-        <button class="buttonPrimary settings-action-btn settings-btn-centered" (click)="UI.toggleprofileSimulatorNonMember()">Non member {{UI.profileSimulatorNonMember ? 'ON' : 'OFF'}} </button>
+        <button class="buttonPrimary settings-action-btn settings-btn-centered" (click)="UI.toggleprofileSimulatorNonMember()">Below participation threshold {{UI.profileSimulatorNonMember ? 'ON' : 'OFF'}} </button>
         <button class="buttonPrimary settings-action-btn settings-btn-centered" (click)="UI.toggleprofileSimulatorLoggedOut()">Logged-out {{UI.profileSimulatorLoggedOut ? 'ON' : 'OFF'}}</button>
       </div>
 

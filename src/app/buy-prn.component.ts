@@ -6,8 +6,6 @@ import { Router, ActivatedRoute } from "@angular/router";
 import { UserInterfaceService } from "./userInterface.service";
 import { AngularFirestore } from "@angular/fire/compat/firestore";
 import { AngularFireAuth } from "@angular/fire/compat/auth";
-import { environment } from "../environments/environment";
-import { AgChartOptions, AgChartTheme } from "ag-charts-community";
 import { firstValueFrom } from "rxjs";
 
 interface RevolutOrderResponse {
@@ -44,7 +42,6 @@ export class BuyPrnComponent implements OnInit, OnDestroy {
   processing = false;
   showPastFunds = false;
   currentFunds!: Observable<any[]>;
-  chartOptions!: AgChartOptions;
   paymentState: PaymentState = "idle";
   paymentStatusText = "";
   paymentOrderId: string | null = null;
@@ -83,7 +80,6 @@ export class BuyPrnComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.setupTransactionListener();
     this.setupCurrentFunds();
-    this.chartOptions = this.buildChartOptions();
     this.syncCurrencyAndCredits();
     interval(600)
       .pipe(takeUntil(this.destroy$))
@@ -273,7 +269,7 @@ export class BuyPrnComponent implements OnInit, OnDestroy {
           this.paymentStepMessageGenerated = true;
           this.setPaymentState(
             "crediting",
-            "PERRINN message generated. Crediting PRN wallet..."
+            "Contribution recorded. Updating PRN balance..."
           );
 
           setTimeout(() => {
@@ -281,7 +277,7 @@ export class BuyPrnComponent implements OnInit, OnDestroy {
             this.paymentStepCredited = true;
             this.setPaymentState(
               "completed",
-              "Payment successful. PRN tokens are now credited."
+              "Payment successful. PRN Credits are now recorded."
             );
             this.clearPendingPaymentLocalCache();
             this.paymentTrackingVersion++;
@@ -339,45 +335,6 @@ export class BuyPrnComponent implements OnInit, OnDestroy {
     );
   }
 
-
-  private buildChartOptions(): AgChartOptions {
-    // Canvas text does not inherit CSS, so use the same family as the document.
-    const fontFamily = getComputedStyle(document.documentElement).fontFamily;
-    const chartTheme: AgChartTheme = {
-      baseTheme: 'ag-default-dark',
-      overrides: { common: {
-        title: { fontFamily },
-        legend: { item: { label: { fontFamily } } },
-        axes: {
-          number: { label: { fontFamily }, title: { fontFamily } },
-          time: { label: { fontFamily }, title: { fontFamily } }
-        }
-      } }
-    };
-    const now = this.UI.nowSeconds * 1000;
-    const start = 1296578670000;
-    const yearMs = 365 * 24 * 3600000;
-    const scale = 0.1 / (365 * 24 * 3600);
-
-    const calcPrice = (time: number) =>
-      Math.exp(((time - start) / 1000) * scale);
-
-    return {
-      title: { text: "PRN growth" },
-      data: [
-        { year: start, price: 1 },
-        { year: now - 6 * yearMs, price: calcPrice(now - 6 * yearMs) },
-        { year: now, price: calcPrice(now) },
-        { year: now + 6 * yearMs, price: calcPrice(now + 6 * yearMs) },
-      ],
-      series: [{ type: "line", xKey: "year", yKey: "price" }],
-      theme: chartTheme,
-      axes: [
-        { type: "time", position: "bottom" },
-        { type: "number", position: "left", keys: ["price"] },
-      ],
-    };
-  }
 
   private buildCreditList(base?: number): number[] {
     const amountRequired = Number((base ?? this.UI.PERRINNAdminLastMessageObj?.membership?.amountRequired) || 0);

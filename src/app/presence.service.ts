@@ -120,7 +120,7 @@ export class PresenceService {
   private toVisitor(visitor: { id: string; updatedAt: number }, profile?: PresenceProfile): RecentVisitor {
     return {
       ...visitor,
-      name: profile?.name || 'Team member',
+      name: profile?.name || 'Contributor',
       imageUrl: profile?.imageUrlThumbUser || profile?.imageUrlMedium || profile?.imageUrlOriginal || ''
     };
   }

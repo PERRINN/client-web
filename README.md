@@ -1,13 +1,13 @@
 # PERRINN
 
-PERRINN is a member collaboration app for profiles and member discovery, conversations, account settings, PRN wallet and membership flows, and community information.
+PERRINN is a contributor collaboration app for profiles and contributor discovery, conversations, account settings, PRN contribution accounting and funding flows, and community information.
 
 ## What’s in the app
 
 - **Profiles and directory** for viewing members and finding people.
 - **Chat** for conversations and community activity.
 - **Account settings** for profile and account details.
-- **PRN and membership** pages for wallet-related information, membership, and payment flows.
+- **PRN Contribution Credits** pages for contribution recognition, balances, transfers, time credits, and project funding.
 - **Community information** and links to related resources.
 
 The main client routes are `/home`, `/profile/:id`, `/directory`, `/apps`, `/chat/:id`, `/settings`, `/login`, and `/buyPRN/:id`. The root route redirects to `/home`. Both desktop and mobile PERRINN brand controls open Home. The home dashboard preserves the home prototype’s shared-image mosaic with full-screen viewing, four upcoming events linking to conversations, and ten recently active users linking to profiles. Touch-device visitors outside standalone mode also see a subtle home-screen tip above the banner; dismissing it hides it for the current tab session. The PERRINN profile banner appears above the headline using the already-loaded profile image; unavailable or failed images are omitted. It adapts to available width without prototype navigation or manual resizing.
@@ -20,7 +20,7 @@ Home event countdowns show days from 24 hours, hours from three hours, and hours
 
 Home also shows a compact event notice above the banner from one hour before an event starts until its scheduled end. It displays the earliest-starting active event and the nearest upcoming event within that hour, with “Starts in …”, “Starting now” in the final minute, and “In progress” from the start. Each notice opens the existing event conversation; joining remains available there from five minutes before the start. Dates and times use the viewer’s local timezone. The notice has no dismissal and disappears when an event ends or its cancellation reaches the verified feed. Events without valid start/end times or a conversation link are omitted from the notice. A local clock refreshes timing while Home is visible and on tab return, without additional Firestore reads. Loading or unavailable event data does not show a notice; the existing events panel retains its loading/error/empty feedback.
 
-All pages, including prototypes, share a conversation sidebar with PERRINN, Directory, Discover and Apps navigation. The sidebar uses a scrollable, single-line conversation list with icons, truncated subjects, unread/flag dots, chat options (Add flag / Remove flag) and Load more. The main profile feed retains its existing presentation. The account area below it shows Login when signed out, or a flat clickable row with avatar, name, PRN balance and membership indicator that opens your profile and wallet. User profile headers show Buy PRN before the PRN balance; Settings remain accessible from your profile page. Below 900px, use the header menu button to open navigation; Escape or the backdrop dismisses it, and page navigation closes it automatically. Prototype pages retain their own preview controls within the shared shell. The main chat interface and existing route URLs are unchanged.
+All pages, including prototypes, share a conversation sidebar with PERRINN, Directory, Discover and Apps navigation. The sidebar uses a scrollable, single-line conversation list with icons, truncated subjects, unread/flag dots, chat options (Add flag / Remove flag) and Load more. The main profile feed retains its existing presentation. The account area below it shows Login when signed out, or a flat clickable row with avatar, name, PRN balance and participation-threshold indicator that opens your profile and wallet. User profile headers show Contribute funds before the PRN balance; Settings remain accessible from your profile page. Below 900px, use the header menu button to open navigation; Escape or the backdrop dismisses it, and page navigation closes it automatically. Prototype pages retain their own preview controls within the shared shell. The main chat interface and existing route URLs are unchanged.
 
 The `/apps` page replaces the Apps popup with a responsive grid linking to Google Drive (when the existing team public link is available), WhatsApp, YouTube, LinkedIn, GitHub and Prototyping. External links open in a new tab; Prototyping opens within the app. The page reads the existing team profile through `UserInterfaceService` and introduces no new persisted data.
 

@@ -40,7 +40,7 @@ export const initials = (name: string): string => name.trim().split(/\s+/).slice
 
 // Explicit presentation projection: never expose ledger/payment fields to the template.
 export function bubbleMessage(id: string, record: ChatRecord, userId: string | null): BubbleMessage {
-  const author = record.user === userId ? 'You' : record.name || 'Team member';
+  const author = record.user === userId ? 'You' : record.name || 'Contributor';
   const image = record.chatImageUrlMedium || record.chatImageUrlThumb || record.chatImageUrlOriginal || '';
   return {
     id, user: record.user || '', author, initials: initials(author), avatar: record.imageUrlThumbUser || '',
@@ -51,7 +51,7 @@ export function bubbleMessage(id: string, record: ChatRecord, userId: string | n
 
 export function chatMembers(record: ChatRecord, userId: string | null) {
   return [...new Set(record.recipientList || [])].filter(Boolean).map(id => {
-    const name = id === userId ? 'You' : record.recipients?.[id]?.name || 'Team member';
+    const name = id === userId ? 'You' : record.recipients?.[id]?.name || 'Contributor';
     return { id, name, initials: initials(name), avatar: record.recipients?.[id]?.imageUrlThumb || '' };
   });
 }

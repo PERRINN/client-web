@@ -2,12 +2,12 @@
   <div class="authCard">
     <div class="authHeader">
       <div class="authTitle">{{action === 'login' ? 'Welcome back' : 'Create your account'}}</div>
-      <div class="authSubtitle">{{action === 'login' ? 'Login to continue to PERRINN' : 'Join PERRINN as a new member'}}</div>
+      <div class="authSubtitle">{{action === 'login' ? 'Login to continue to PERRINN' : 'Join PERRINN as a new contributor'}}</div>
     </div>
 
     <div class="switchPill">
-      <button class="switchBtn" [class.active]="action==='login'" (click)="action='login';messageUser=''">Existing member</button>
-      <button class="switchBtn" [class.active]="action==='register'" (click)="action='register';messageUser=''">New member</button>
+      <button class="switchBtn" [class.active]="action==='login'" (click)="action='login';messageUser=''">Existing contributor</button>
+      <button class="switchBtn" [class.active]="action==='register'" (click)="action='register';messageUser=''">New contributor</button>
     </div>
 
     <form #f="ngForm" class="authForm">

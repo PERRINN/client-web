@@ -99,7 +99,7 @@ export class LoginComponent  {
             this.UI.createMessage({
               chain: authUser.uid,
               creatingUser: true,
-              text: 'Creating member ' + name,
+              text: 'Creating contributor ' + name,
               name: name,
               imageUrlThumbUser: imageUrlThumb,
               imageUrlMedium: imageUrlMedium,

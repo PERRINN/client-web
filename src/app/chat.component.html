@@ -129,7 +129,7 @@
         <div class="island chatTransferSection">
           <div class="chatTransferHero">
             <div class="chatTransferTitle">Send PRN</div>
-            <div class="chatTransferSubtitle">{{((UI.PERRINNAdminLastMessageObj?.currencyList||{})[UI.currentUserLastMessageObj?.userCurrency || 'usd']||{}).designation}} transfer to a chat member</div>
+            <div class="chatTransferSubtitle">{{((UI.PERRINNAdminLastMessageObj?.currencyList||{})[UI.currentUserLastMessageObj?.userCurrency || 'usd']||{}).designation}} transfer to a contributor</div>
           </div>
           <div class="chatTransferBody">
             <div class="chatTransferFieldGrid">
@@ -352,10 +352,10 @@
                       <span class="material-icons chat-msg-status-icon">check_circle</span>
                     }
                     @if (message.payload?.contract?.hoursValidated>0) {
-                      <span class="chat-msg-stat-text">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.contract?.amount)}} earned ({{UI.formatSecondsToDhm1(message.payload?.contract?.hoursValidated*3600)}}declared in {{UI.formatSecondsToDhm1(message.payload?.contract?.hoursAvailable*3600)}} window)</span>
+                      <span class="chat-msg-stat-text">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.contract?.amount)}} time credits ({{UI.formatSecondsToDhm1(message.payload?.contract?.hoursValidated*3600)}}declared in {{UI.formatSecondsToDhm1(message.payload?.contract?.hoursAvailable*3600)}} window)</span>
                     }
                     @if (message.payload?.purchaseCOIN?.amount>0) {
-                      <span class="chat-msg-stat-text">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.purchaseCOIN?.amount)}} purchased</span>
+                      <span class="chat-msg-stat-text">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.purchaseCOIN?.amount)}} funding credits</span>
                     }
                     @if (message.payload?.transactionIn?.amount>0) {
                       <span class="chat-msg-stat-text">+{{UI.convertAndFormatPRNToPRNCurrency(null,message.payload?.transactionIn?.amount)}} received</span>
@@ -396,7 +396,7 @@
                 </div>
                 <div class="galleryMeta" (click)="scrollToMessage(message.key)">
                   <div class="galleryTopRow">
-                    <span class="messageAuthor galleryAuthor">{{message.payload?.name || 'Member'}}</span>
+                    <span class="messageAuthor galleryAuthor">{{message.payload?.name || 'Contributor'}}</span>
                     <span class="galleryTime messageTiming">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload?.serverTimestamp?.seconds)))}}</span>
                   </div>
                   <div class="galleryCaption">{{message.payload?.text}}</div>
@@ -484,7 +484,7 @@
     <div class="cancelEventModalBackdrop" (click)="closeCancelEventModal()">
       <div class="cancelEventModal" (click)="$event.stopPropagation()">
         <div class="cancelEventModalTitle">Cancel event?</div>
-        <div class="cancelEventModalText">This will immediately end the current event for all chat members.</div>
+        <div class="cancelEventModalText">This will immediately end the current event for all chat participants.</div>
         <div class="cancelEventModalActions">
           <button class="buttonBlack cancelEventModalBtn" (click)="closeCancelEventModal()">Keep event</button>
           <button class="buttonRed cancelEventModalBtn" (click)="confirmCancelEvent()">Cancel event</button>
@@ -497,7 +497,7 @@
     <div class="cancelEventModalBackdrop" (click)="closeCancelFundModal()">
       <div class="cancelEventModal" (click)="$event.stopPropagation()">
         <div class="cancelEventModalTitle">Cancel fund?</div>
-        <div class="cancelEventModalText">This will immediately end the current fund for all chat members.</div>
+        <div class="cancelEventModalText">This will immediately end the current fund for all chat participants.</div>
         <div class="cancelEventModalActions">
           <button class="buttonBlack cancelEventModalBtn" (click)="closeCancelFundModal()">Keep fund</button>
           <button class="buttonRed cancelEventModalBtn" (click)="confirmCancelFund()">Cancel fund</button>

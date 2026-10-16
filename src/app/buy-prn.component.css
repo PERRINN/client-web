@@ -8,12 +8,12 @@
 :host .buy-center-content { padding: 12px; text-align: center; }
 :host .buy-text-normal { color: var(--color-text-secondary); font-size: 15px; line-height: 1.6; }
 :host .buy-text-muted { font-size: 14px; color: var(--color-text-muted); line-height: 1.6; }
-:host .membership-title { font-size: 19px; font-weight: 700; color: var(--color-text); margin-bottom: 16px; }
-:host .membership-amount { font-size: 25px; font-weight: 700; color: var(--color-text); margin-bottom: 14px; word-break: break-word; overflow-wrap: break-word; }
+:host .membership-title { font-size: 17px; font-weight: 700; color: var(--color-text); margin-bottom: 16px; }
+:host .membership-amount { font-size: 23px; font-weight: 700; color: var(--color-text); margin-bottom: 14px; word-break: break-word; overflow-wrap: break-word; }
 :host .membership-subtitle { font-size: 14px; line-height: 1.7; color: color-mix(in srgb, var(--color-text) 95%, transparent); display: block; }
 :host .membership-details-box { background-color: color-mix(in srgb, var(--color-text) 12%, transparent); padding: 12px; border-radius: 10px; margin: 12px 0; }
-:host .membership-details-list { font-size: 13px; line-height: 1.7; color: var(--color-text); display: block; text-align: left; }
-:host .membership-footer-text { font-size: 13px; line-height: 1.45; color: color-mix(in srgb, var(--color-text) 92%, transparent); margin-top: 10px; text-align: left; }
+:host .membership-details-list { font-size: 14px; line-height: 1.7; color: var(--color-text); display: block; text-align: left; }
+:host .membership-footer-text { font-size: 14px; line-height: 1.45; color: color-mix(in srgb, var(--color-text) 92%, transparent); margin-top: 10px; text-align: left; }
 :host .fund-meta-row { margin-top: 8px; font-size: 13px; color: var(--color-text-muted); display: flex; justify-content: space-between; align-items: center; }
 :host .fund-target-text { margin-top: 4px; font-size: 12px; color: var(--color-text-secondary); line-height: 1.35; }
 
@@ -30,21 +30,17 @@
 /* Information overlay and scroll containment */
 :host .info-popup-backdrop { position: fixed; inset: 0; background: color-mix(in srgb, var(--color-page) 72%, transparent); z-index: 1200; display: flex; align-items: flex-start; justify-content: center; padding: 12px; overflow-y: auto; touch-action: pan-y; }
 :host .info-popup-card { width: min(560px, 88vw); max-height: calc(100vh - 24px); overflow: auto; overscroll-behavior: contain; }
-:host .info-text-box { background: color-mix(in srgb, var(--color-selected) 5%, transparent); border: 1px solid color-mix(in srgb, var(--color-selected) 16%, transparent); border-radius: 10px; padding: 12px; margin-bottom: 8px; color: var(--color-text-secondary); line-height: 1.5; font-size: 14px; }
-:host .info-text-box-strong { background: color-mix(in srgb, var(--color-selected) 8%, transparent); border: 1px solid color-mix(in srgb, var(--color-selected) 20%, transparent); color: var(--color-text-secondary); font-weight: 600; }
-:host .info-highlight-box { margin-top: 10px; padding: 12px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--color-selected) 24%, transparent); background: var(--color-raised); color: var(--color-text); font-size: 14px; line-height: 1.5; font-weight: 700; text-align: center; }
-:host .info-stat-card { background-color: color-mix(in srgb, var(--color-selected) 8%, transparent); padding: 14px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--color-selected) 20%, transparent); }
+:host .info-text-box { background: color-mix(in srgb, var(--color-selected) 5%, transparent); border: none; border-radius: 10px; padding: 12px; margin-bottom: 8px; color: var(--color-text-secondary); line-height: 1.5; font-size: 14px; }
+:host .info-text-box-strong { background: color-mix(in srgb, var(--color-selected) 8%, transparent); border: none; color: var(--color-text-secondary); font-weight: 600; }
+:host .info-highlight-box { margin-top: 10px; padding: 12px; border-radius: 10px; border: none; background: var(--color-raised); color: var(--color-text); font-size: 14px; line-height: 1.5; font-weight: 700; text-align: center; }
+:host .info-stat-card { background-color: color-mix(in srgb, var(--color-selected) 8%, transparent); padding: 14px; border-radius: 10px; border: none; }
 :host .buy-mb-20 { margin-bottom: 20px; }
 :host .buy-mb-24 { margin-bottom: 24px; }
 :host .buy-mt-10 { margin-top: 10px; }
 :host .buy-p-0 { padding: 0; }
 :host .buy-text-center { text-align: center; }
 :host .buy-status-success { font-size: 15px; color: var(--color-success); font-weight: 600; }
-:host .info-popup-image { width: 120px; opacity: 0.95; }
 :host .info-grid-2cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-:host .info-chart-box { height: 200px; margin-top: 12px; }
-:host .info-footer { padding: 16px; text-align: center; margin-top: 16px; border-top: 1px solid color-mix(in srgb, var(--color-selected) 10%, transparent); }
-:host .info-footer-icon { font-size: 24px; color: var(--color-text-secondary); margin-bottom: 8px; display: block; }
 :host .info-close-footer { display: flex; justify-content: center; margin-top: 14px; }
 :host .buy-btn-fixed-150 { margin: 12px auto; width: 150px; }
 :host .buy-btn-fixed-200 { margin: 12px auto; width: 200px; }
@@ -73,10 +69,10 @@
 :host .info-header { display: flex; justify-content: flex-start; align-items: center; margin-bottom: 12px; }
 :host .info-intro { padding: 0 4px 6px 4px; text-align: left; }
 :host .info-overview { text-align: left; padding: 16px; }
-:host .info-stat-box { font-size: 12px; color: var(--color-text-muted); margin-bottom: 6px; font-weight: 500; }
+:host .info-stat-box { font-size: 14px; color: var(--color-text-muted); margin-bottom: 6px; font-weight: 500; }
 :host .info-stat-value-large { font-size: 19px; font-weight: 700; color: var(--color-text); }
 :host .info-growth-box { background-color: color-mix(in srgb, var(--color-selected) 5%, transparent); padding: 16px; text-align: center; border-radius: 10px; margin-top: 16px; }
-:host .info-growth-label { font-size: 13px; color: var(--color-text-muted); margin-bottom: 12px; font-weight: 500; }
+:host .info-growth-label { font-size: 14px; color: var(--color-text-muted); margin-bottom: 12px; font-weight: 500; }
 :host .info-growth-value { color: var(--color-text); font-weight: 600; }
 
 /* Page, funding cards and controls */
@@ -95,9 +91,9 @@
 /* Preserve the shared enabled-button hover after scoping raises specificity. */
 :host button.buttonSecondary:hover:not(:disabled) { background: var(--color-selected); border-color: var(--color-text-muted); }
 :host button.buttonToggle { display: block; }
-:host .info-popup-btn { margin-left: auto; padding: 6px 10px; font-size: 12px; font-weight: 600; opacity: 0.78; background: color-mix(in srgb, var(--color-surface) 45%, transparent); border-color: color-mix(in srgb, var(--color-border) 28%, transparent); color: var(--color-text-muted); }
+:host .info-popup-btn { margin-left: auto; padding: 6px 10px; font-size: 14px; font-weight: 600; opacity: 0.78; background: color-mix(in srgb, var(--color-surface) 45%, transparent); border-color: color-mix(in srgb, var(--color-border) 28%, transparent); color: var(--color-text-muted); }
 :host .buy-island { background: var(--color-surface); padding: 24px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--color-selected) 10%, transparent); }
-:host .membership-card { background: var(--color-surface); padding: 24px; border-radius: 12px; border: 1px solid var(--color-border); color: var(--color-text); }
+:host .membership-card { background: var(--color-surface); padding: 24px; border-radius: 12px; border: none; color: var(--color-text); }
 :host .payment-status-block { background: var(--color-surface); padding: 18px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--color-selected) 22%, transparent); margin-top: 16px; text-align: left; }
 :host .checkout-btn { width: 100%; margin: 24px 0 0 0; font-size: 15px; line-height: 1.6; padding: 14px 16px; font-weight: 700; }
 
@@ -108,4 +104,8 @@
 :host .summary-box { text-align: center; padding: 16px; background: var(--color-surface); border-radius: 10px; margin-top: 16px; border: 1px solid color-mix(in srgb, var(--color-selected) 20%, transparent); }
 @media (max-width:545px) {
   :host .currency-selector-list { flex-direction: column; }
+}
+
+@media (max-width:420px) {
+  :host .info-grid-2cols { grid-template-columns: 1fr; }
 }

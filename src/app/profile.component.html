@@ -33,22 +33,28 @@
                 }
               </div>
               <div class="profile-wallet-actions">
-                <button type="button" class="buttonPrimary" routerLink="/buyPRN/">Buy PRN</button>
+                <button type="button" class="buttonPrimary" routerLink="/buyPRN/">Contribute funds</button>
                 <span class="prof-balance-text">{{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance||0)}}</span>
               </div>
             </div>
             <div class="prof-stats-grid">
               <div class="profile-stat-box">
                 @if (focusUserLastMessageObj?.locking?.amountCummulate>1) {
-                  <span>PRN tokens locked for {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} days</span>
+                  <span>PRN holding duration: {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} days</span>
                 }
                 @if (focusUserLastMessageObj?.locking?.amountCummulate<=1) {
-                  <span>PRN tokens locked for {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} day</span>
+                  <span>PRN holding duration: {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} day</span>
                 }
               </div>
               <div class="profile-stat-box">
-                Earning {{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance*(math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)/365)-1))}} per day
+                Balance adjustment: {{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance*(math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)/365)-1))}} per day
               </div>
+              @if (focusUserLastMessageObj?.contract?.hoursTotal > 0) {
+                <div class="profile-stat-box">{{focusUserLastMessageObj?.contract?.hoursTotal | number:'1.0-1'}} hours credited</div>
+              }
+              @if (focusUserLastMessageObj?.purchaseCOIN?.amountCummulate > 0) {
+                <div class="profile-stat-box">Funding credits: {{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.purchaseCOIN?.amountCummulate)}}</div>
+              }
             </div>
             <div class="prof-pres-text">
               {{focusUserLastMessageObj?.userPresentation}}
@@ -89,7 +95,7 @@
             <button [attr.aria-pressed]="mode==='inbox'" [class.buttonPrimary]="mode==='inbox'" [class.buttonBlack]="mode!=='inbox'" class="modeSwitchBtn" (click)="mode='inbox';refreshMessages()">Inbox</button>
             <button [attr.aria-pressed]="mode==='history'" [class.buttonPrimary]="mode==='history'" [class.buttonBlack]="mode!=='history'" class="modeSwitchBtn" (click)="mode='history';refreshMessages();refreshChart()">History</button>
             <button [attr.aria-pressed]="mode==='chain'" [class.buttonPrimary]="mode==='chain'" [class.buttonBlack]="mode!=='chain'" class="modeSwitchBtn" (click)="mode='chain';refreshMessages()">Chain</button>
-            <button [attr.aria-pressed]="mode==='forecast'" [class.buttonPrimary]="mode==='forecast'" [class.buttonBlack]="mode!=='forecast'" class="modeSwitchBtn" (click)="mode='forecast';refreshMessages();refreshForecastChart()">Forecast</button>
+            <button [attr.aria-pressed]="mode==='forecast'" [class.buttonPrimary]="mode==='forecast'" [class.buttonBlack]="mode!=='forecast'" class="modeSwitchBtn" (click)="mode='forecast';refreshMessages();refreshForecastChart()">Balance illustration</button>
           </div>
         </div>
         <div class="prof-action-bar">
@@ -240,9 +246,9 @@
               }
               @if (!UI.isCurrentUserMember && !sidePanelScope) {
                 <div class="island nonMemberIsland profile-banner-item">
-                  <button class="buttonPrimary nonMemberIslandButton" (click)="router.navigate(['buyPRN'])">Buy PRN Tokens</button>
-                  <div class="nonMemberIslandFooter">Join the team today.</div>
-                  <div class="nonMemberIslandHelper">Interested to join but have some questions first? <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" rel="noopener noreferrer" class="buy-link-whatsapp">Join our WhatsApp community</a> and speak directly to Nico there.</div>
+                  <button class="buttonPrimary nonMemberIslandButton" (click)="router.navigate(['buyPRN'])">Contribute funds</button>
+                  <div class="nonMemberIslandFooter">Support PERRINN projects.</div>
+                  <div class="nonMemberIslandHelper">Questions about contributing? <a href="https://chat.whatsapp.com/CzUNIrzBBuiI6lOCnh9DRx" target="_blank" rel="noopener noreferrer" class="buy-link-whatsapp">Join our WhatsApp community</a> to speak with Nico.</div>
                 </div>
               }
             </div>
@@ -268,6 +274,7 @@
             <div class="prof-chart-box"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
           }
           @if (scope!=='all'&& mode==='forecast') {
+            <p class="profile-illustration-note">PRN balance illustration at the current adjustment rate; future rates may change. This is not an investment return.</p>
             <div class="prof-chart-box"><ag-charts-angular [options]="forecastChartOptions"></ag-charts-angular></div>
           }
           @if (mode!=='forecast' || scope==='all') {
@@ -331,10 +338,10 @@
                               <th class="th-messages">Messages</th>
                               <th class="th-balance">Balance</th>
                               <th class="th-change">Change</th>
-                              <th class="th-purchase">Purchase</th>
-                              <th class="th-transaction">Transaction</th>
-                              <th class="th-interest">Interest</th>
-                              <th class="th-contract">Contract</th>
+                              <th class="th-purchase">Funding credits</th>
+                              <th class="th-transaction">Transfers</th>
+                              <th class="th-interest">Adjustments</th>
+                              <th class="th-contract">Time credits</th>
                               <th class="th-message">Message</th>
                             </tr>
                           }
@@ -370,9 +377,9 @@
                         @if (first) {
                           <tr>
                             <th class="th-forecast-year">Year</th>
-                            <th class="th-forecast-growth">Growth</th>
+                            <th class="th-forecast-growth">Adjustment rate</th>
                             <th class="th-forecast-balance">Balance</th>
-                            <th class="th-forecast-multiple">Multiple</th>
+                            <th class="th-forecast-multiple">Balance factor</th>
                           </tr>
                         }
                         <tr class="tableRow no-interaction-row">

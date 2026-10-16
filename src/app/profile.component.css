@@ -80,7 +80,7 @@
 :host .buttonBlack:hover { background: var(--color-page); border-color: color-mix(in srgb, var(--color-selected) 40%, transparent); }
 :host .warning-island { background-color: var(--color-raised); color: var(--color-text); cursor: pointer; }
 :host .profile-header-img { object-fit: cover; width: 132px; height: 132px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--color-selected) 18%, transparent); cursor: pointer; flex-shrink: 0; }
-:host .profile-stat-box { background: color-mix(in srgb, var(--color-selected) 8%, transparent); border: 1px solid color-mix(in srgb, var(--color-selected) 15%, transparent); border-radius: 8px; padding: 8px; font-size: 13px; color: var(--color-text-secondary); line-height: 1.4; }
+:host .profile-stat-box { background: color-mix(in srgb, var(--color-selected) 8%, transparent); border: 1px solid color-mix(in srgb, var(--color-selected) 15%, transparent); border-radius: 8px; padding: 8px; font-size: 15px; color: var(--color-text-secondary); line-height: 1.45; overflow: visible; }
 :host .modeSwitchWrap { width: 100%; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; align-items: center; }
 :host .modeSwitchTrack { border: 1px solid color-mix(in srgb, var(--color-selected) 20%, transparent); max-width: 100%; box-sizing: border-box; border-radius: 14px; padding: 4px; display: inline-flex; background: var(--color-raised); gap: 4px; flex-wrap: wrap; }
 :host .modeSwitchBtn { min-width: 86px; padding: 7px 10px; text-align: center; line-height: 1.1; border-radius: 999px; border: none; }
@@ -172,3 +172,5 @@
     padding-bottom: 16px;
   }
 }
+
+:host .profile-illustration-note { color: var(--color-text-secondary); font-size: 15px; line-height: 1.45; overflow: visible; margin: 12px 0; }

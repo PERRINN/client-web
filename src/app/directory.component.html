@@ -7,11 +7,11 @@
         </div>
         <div class="dir-overview-grid">
           <div class="directory-stat-card">
-            <div class="dir-stat-label">Total Members</div>
+            <div class="dir-stat-label">Participation threshold reached</div>
             <div class="dir-stat-value-large">{{UI.PERRINNAdminLastMessageObj?.statistics?.membersCount}}</div>
           </div>
           <div class="directory-stat-card">
-            <div class="dir-stat-label">Total Supply</div>
+            <div class="dir-stat-label">Total PRN balance</div>
             <div class="dir-stat-value-medium">{{UI.convertAndFormatPRNToPRNCurrency(null,UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance)}}</div>
           </div>
         </div>
@@ -24,7 +24,7 @@
           <span class="material-icons-outlined dir-icon-20">search</span>
           <input [(ngModel)]="searchQuery"
             type="text"
-            placeholder="Search members by name..."
+            placeholder="Search contributors by name..."
             class="directory-search-input"
             (ngModelChange)="onSearchChange()">
             @if (searchQuery) {
@@ -39,7 +39,7 @@
       <div class="dir-mb-32">
         <div class="dir-flex-between-center">
           <div class="dir-text-muted-14">
-            {{(filteredMessages | async)?.length || 0}} member@if ((filteredMessages | async)?.length !== 1) {
+            {{(filteredMessages | async)?.length || 0}} contributor@if ((filteredMessages | async)?.length !== 1) {
             <span>s</span>
           }
         </div>
@@ -77,7 +77,7 @@
                       <div class="dir-extra-row">
                         @if (((message.values?.wallet?.balance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance))>0.001) {
                           <div class="dir-supply-share">
-                            {{((message.values?.wallet?.balance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance))|percent:'1.1-1'}} of supply
+                            {{((message.values?.wallet?.balance||0)/(UI.PERRINNAdminLastMessageObj?.statistics?.wallet?.balance))|percent:'1.1-1'}} of total PRN
                           </div>
                         }
                       </div>
@@ -113,7 +113,7 @@
                 <tr class="dir-table-thead-tr">
                   <th class="dir-table-th">Name</th>
                   <th class="dir-table-th dir-table-th-right">Balance</th>
-                  <th class="dir-table-th dir-table-th-right">Share</th>
+                  <th class="dir-table-th dir-table-th-right">PRN proportion</th>
                 </tr>
               </thead>
               <tbody>
