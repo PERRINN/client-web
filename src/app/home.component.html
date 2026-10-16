@@ -115,7 +115,7 @@
                   @if (visitor.imageUrl) { <img [src]="visitor.imageUrl" [alt]="''" class="avatar"> }
                   @else { <span class="avatar avatar-placeholder">{{ visitor.name.slice(0, 1).toUpperCase() }}</span> }
                   <span class="visitor-name">{{ visitor.name }}</span>
-                  <span class="visitor-time">{{ timeAgo(visitor.updatedAt) }}</span>
+                  <span class="visitor-time">{{ formatLastSeen(visitor.updatedAt, eventNow) }}</span>
                 </button>
               }
             </div>

@@ -68,7 +68,7 @@ button:focus-visible,.visitor-list:focus-visible{outline:2px solid var(--color-f
 .event-duration{font:inherit;color:inherit}
 .visitor-row{gap:9px;padding:11px 8px}
 .visitor-name{flex:1;min-width:0;color:var(--color-text);font-size:16px;white-space:normal;overflow-wrap:anywhere}
-.visitor-time{color:var(--color-text-muted);font-size:15px;white-space:nowrap}
+.visitor-time{flex:0 1 auto;max-width:50%;color:var(--color-text-muted);font-size:15px;white-space:normal;text-align:right}
 .avatar-placeholder{display:grid;place-items:center;background:var(--color-page);color:var(--color-text-secondary);font-size:15px}
 .empty-state{color:var(--color-text-muted)}
 .loader{width:13px;height:13px;border:2px solid var(--color-border);border-top-color:var(--color-accent);border-radius:50%}

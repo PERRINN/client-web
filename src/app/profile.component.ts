@@ -8,6 +8,7 @@ import { UserInterfaceService } from './userInterface.service'
 import { AngularFireAuth } from '@angular/fire/compat/auth'
 import { AgChartOptions, AgChartTheme } from 'ag-charts-community'
 import { PresenceService } from './presence.service'
+import { formatLastSeen } from './lastSeen'
 import { MessageActivityService } from './messageActivity.service'
 import { ReadCursorService, ReadCursorSession } from './readCursor.service'
 import { SidebarConversationsService } from './sidebarConversations.service'
@@ -451,8 +452,7 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
   formatFocusUserActivity():string{
     if(this.loadingUserActivity)return 'Loading'
     if(this.userActivityError)return 'Activity unavailable'
-    if(!this.focusUserLastActiveAt)return 'No activity recorded'
-    return 'Last active '+this.UI.formatSecondsToDhm1(this.math.max(0,this.UI.nowSeconds-this.focusUserLastActiveAt/1000))+' ago'
+    return formatLastSeen(this.focusUserLastActiveAt)
   }
 
   scrollMainToBottom() {
