@@ -37,7 +37,7 @@ export class AppComponent implements OnInit, OnDestroy {
   openSidebarChat(chain?: string): void {
     if (!chain) return;
     this.closeSidebar();
-    void this.router.navigate(sidebarChatCommands(this.router.url, chain));
+    void this.router.navigate(sidebarChatCommands(chain));
   }
 
   onConversationScroll(): void {

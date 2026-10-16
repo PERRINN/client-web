@@ -1,0 +1,7 @@
+@if (userId && chain) {
+  <button type="button" [class.flagged]="flagged" [attr.aria-pressed]="flagged" [disabled]="!ready || saving" (click)="toggle()" [attr.aria-label]="flagged ? 'Remove conversation flag' : 'Flag conversation'" [title]="flagged ? 'Remove flag' : 'Flag conversation'">
+    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14l-3 5 3 5H5Z" [attr.fill]="flagged ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M5 3v18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </button>
+  @if (unavailable) { <button type="button" class="retry" (click)="retry()">Retry flag</button> }
+  @if (error) { <p role="alert">{{ error }}</p> }
+}

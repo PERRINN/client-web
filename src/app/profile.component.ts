@@ -531,7 +531,7 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
 
   openListedChat(chain: string, messageKey?: string) {
     if (!chain) return;
-    const commands = this.sidePanelScope ? sidebarChatCommands(this.router.url, chain) : ['/chat', chain];
+    const commands = this.sidePanelScope ? sidebarChatCommands(chain) : ['/chat', chain];
     if (this.sidePanelScope) this.chatOpened.emit();
     if (messageKey) {
       this.router.navigate(commands, { queryParams: { scroll: messageKey } });

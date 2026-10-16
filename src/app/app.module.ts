@@ -1,7 +1,10 @@
-import { ChatEventSummaryComponent } from './prototypes/chat-event/chat-event-summary.component';
-import { ChatFundSummaryComponent } from './prototypes/chat-fund/chat-fund-summary.component';
-import { ChatFundEditorComponent } from './prototypes/chat-fund/chat-fund-editor.component';
-import { ChatEventEditorComponent } from './prototypes/chat-event/chat-event-editor.component';
+import { PrnSendManagerComponent } from './chat/prn-send-manager/prn-send-manager.component';
+import { ChatFlagComponent } from './chat/chat-flag/chat-flag.component';
+import { ChatMessageComponent } from './chat/chat-message/chat-message.component';
+import { ChatEventSummaryComponent } from './chat/chat-event/chat-event-summary.component';
+import { ChatFundSummaryComponent } from './chat/chat-fund/chat-fund-summary.component';
+import { ChatFundEditorComponent } from './chat/chat-fund/chat-fund-editor.component';
+import { ChatEventEditorComponent } from './chat/chat-event/chat-event-editor.component';
 import { RideHeightScatterComponent } from './telemetry/ride-height-scatter.component';
 import { TelemetryComponent } from './telemetry/telemetry.component';
 import { BrowserModule } from '@angular/platform-browser';
@@ -13,7 +16,6 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 import { AppsComponent } from './apps.component';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
-import { ChatComponent }  from './chat.component';
 import { LoginComponent }  from './login.component';
 import { ProfileComponent }  from './profile.component';
 import { SettingsComponent }  from './settings.component';
@@ -27,8 +29,8 @@ import { DeepTideComponent } from './prototypes/deep-tide/deep-tide.component';
 import { QuietPlumComponent } from './prototypes/quiet-plum/quiet-plum.component';
 import { ClayEmberComponent } from './prototypes/clay-ember/clay-ember.component';
 import { NightSignalComponent } from './prototypes/night-signal/night-signal.component';
-import { ChatBubblesComponent } from './prototypes/chat-bubbles/chat-bubbles.component';
-import { ChatComposerComponent } from './prototypes/chat-composer/chat-composer.component';
+import { ChatComponent } from './chat/chat.component';
+import { ChatComposerComponent } from './chat/chat-composer/chat-composer.component';
 import { AppMapComponent } from './prototypes/app-map/app-map.component';
 import { ImageMosaicComponent } from './prototypes/image-mosaic/image-mosaic.component';
 import { HomeComponent } from './home.component';
@@ -62,7 +64,6 @@ export const firebaseConfig = {
 @NgModule({ declarations: [
         AppComponent,
         AppsComponent,
-        ChatComponent,
         LoginComponent,
         ProfileComponent,
         SettingsComponent,
@@ -78,7 +79,10 @@ export const firebaseConfig = {
         ClayEmberComponent,
         NightSignalComponent,
         ChatComposerComponent,
-        ChatBubblesComponent,
+        ChatComponent,
+        PrnSendManagerComponent,
+        ChatFlagComponent,
+        ChatMessageComponent,
         ChatEventSummaryComponent,
         ChatEventEditorComponent,
         ChatFundSummaryComponent,

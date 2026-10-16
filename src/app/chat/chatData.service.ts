@@ -1,17 +1,17 @@
-import { chatEvent, ChatEvent, eventActionText, normalizeEvent } from '../chat-event/chatEvent';
-import { chatFund, ChatFund, FundCurrency, fundCurrency, fundFromDraft } from '../chat-fund/chatFund';
+import { chatEvent, ChatEvent, eventActionText, normalizeEvent } from './chat-event/chatEvent';
+import { chatFund, ChatFund, FundCurrency, fundCurrency, fundFromDraft } from './chat-fund/chatFund';
 import { EnvironmentInjector, Injectable, runInInjectionContext } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { combineLatest, firstValueFrom, of, Subject } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
-import { UserInterfaceService } from '../../userInterface.service';
-import { PrototypeChatDraft } from '../chat-composer/chat-composer.component';
-import { bubbleMessage, chatImageError, chatMembers, ChatRecord, ChatTimestamp, firstUnread, isAfterPosition, ReadPosition, timestampMillis } from './chatBubbleData';
+import { UserInterfaceService } from '../userInterface.service';
+import { ChatDraft } from './chat-composer/chat-composer.component';
+import { bubbleMessage, chatImageError, chatMembers, ChatRecord, ChatTimestamp, firstUnread, isAfterPosition, ReadPosition, timestampMillis } from './chatData';
 
 @Injectable({ providedIn: 'root' })
-export class ChatBubbleDataService {
+export class ChatDataService {
   private submittedMessages = new Subject<{ chain: string; userId: string; messageId: string }>();
   readonly submitted = this.submittedMessages.asObservable();
   constructor(
@@ -28,7 +28,11 @@ export class ChatBubbleDataService {
       ).snapshotChanges();
       return combineLatest([messages, cursor]).pipe(map(([rows, seen]) => {
         const latest = rows.find(row => row.payload.doc.data().lastMessage)?.payload.doc.data() || rows[0]?.payload.doc.data() || {};
-        const messages = [...rows].reverse().map(row => bubbleMessage(row.payload.doc.id, row.payload.doc.data(), user?.uid || null));
+        const records = new Map(rows.map(row => [row.payload.doc.id, row.payload.doc.data()]));
+        const messages = [...rows].reverse().map(row => {
+          const record = row.payload.doc.data();
+          return bubbleMessage(row.payload.doc.id, record, user?.uid || null, records.get(record.transactionIn?.message || ''));
+        });
         return {
           messages, event: chatEvent(latest), fund: chatFund(latest), title: latest.chatSubject || 'Conversation', members: chatMembers(latest, user?.uid || null),
           avatar: latest.chatProfileImageUrlThumb || latest.chatProfileImageUrlMedium || '',
@@ -36,6 +40,15 @@ export class ChatBubbleDataService {
         };
       }));
     }))));
+  }
+
+  get viewerName(): string {
+    const profile = this.UI.currentUserLastMessageObj;
+    return this.UI.currentUser && profile?.user === this.UI.currentUser ? profile.name || '' : '';
+  }
+
+  acknowledgeSubmission(chain: string, userId: string, messageId: string): void {
+    this.submittedMessages.next({ chain, userId, messageId });
   }
 
   async advanceReadCursor(chain: string, userId: string, candidate: ReadPosition): Promise<ReadPosition | null> {
@@ -53,7 +66,7 @@ export class ChatBubbleDataService {
     });
   }
 
-  async send(chain: string, draft: PrototypeChatDraft, onUploadProgress?: (percent: number | null) => void): Promise<void> {
+  async send(chain: string, draft: ChatDraft, onUploadProgress?: (percent: number | null) => void): Promise<void> {
     const userId = await this.requireSender();
     if (!chain || (!draft.text.trim() && !draft.image)) throw new Error('Write a message or choose an image.');
     if (draft.text.length > 500) throw new Error('Messages can contain up to 500 characters.');

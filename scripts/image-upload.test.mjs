@@ -13,7 +13,6 @@ function load(path, overrides = {}) {
 }
 const core = { Injectable: () => target => target, Component: () => target => target, ViewChild: () => () => {}, HostListener: () => () => {}, runInInjectionContext: (_, fn) => fn() };
 const uploads = load('../src/app/imageUpload.service.ts', { '@angular/core': core });
-const { ChatComponent } = load('../src/app/chat.component.ts', { '@angular/core': core, './imageUpload.service': uploads });
 const { SettingsComponent } = load('../src/app/settings.component.ts', { '@angular/core': core, './imageUpload.service': uploads });
 const zone = { run: fn => fn() };
 const input = () => ({ files: [{ name: 'Team photo.png', type: 'image/png', size: 100 }], value: 'selected' });
@@ -41,33 +40,6 @@ test('shared uploader releases progress listeners when upload or URL resolution 
     if (stage === 'upload') { percent.error(Error('offline')); fail(Error('offline')); }
     await rejection; assert.equal(percent.observed, false);
   }
-});
-function legacy(upload) {
-  const chat = Object.create(ChatComponent.prototype);
-  Object.assign(chat, { uploads: { upload }, zone, imageUpload: uploads.imageUploadState(), chatPictureUpload: uploads.imageUploadState(), imageTimestamp: null, imageDownloadUrl: null });
-  return chat;
-}
-test('legacy chat uploads preserve image paths, show local progress and prevent sending a partial attachment', async () => {
-  let finish; const paths = [];
-  const chat = legacy((path, file, report) => { paths.push(path); report(45); return new Promise(resolve => finish = resolve); });
-  const file = input(); const result = chat.onImageChange({ target: file });
-  assert.equal(chat.imageUpload.busy, true); assert.equal(chat.imageUpload.percent, 45);
-  assert.match(paths[0], /^images\/\d{13}-Team_photo.png$/);
-  chat.UI = { createMessage: () => assert.fail('Must wait for the attachment') }; chat.addMessage();
-  finish('url'); await result;
-  assert.equal(chat.imageDownloadUrl, 'url'); assert.match(chat.imageTimestamp, /^\d{13}$/); assert.equal(file.value, ''); assert.equal(chat.imageUpload.busy, false);
-});
-test('legacy chat picture uploads keep their save step and discard results from a previous chat', async () => {
-  const paths = [];
-  const chat = legacy(async path => { paths.push(path); return 'chat-photo'; });
-  await chat.onChatProfileImageChange({ target: input() });
-  assert.match(paths[0], /^images\/\d{13}Team photo.png$/);
-  assert.equal(chat.chatProfileImageDownloadUrl, 'chat-photo'); assert.equal(chat.chatPictureUpload.busy, false);
-  let finish; chat.uploads.upload = () => new Promise(resolve => finish = resolve);
-  const result = chat.onImageChange({ target: input() }); chat.imageUpload = uploads.imageUploadState(); finish('old-chat-url'); await result;
-  assert.equal(chat.imageDownloadUrl, null);
-  chat.uploads.upload = async () => { throw Error('offline'); };
-  await chat.onImageChange({ target: input() }); assert.equal(chat.imageUpload.busy, false); assert.match(chat.imageUpload.error, /couldn’t upload/);
 });
 function settings(upload, createMessage) {
   const UI = { currentUser: 'owner', currentUserLastMessageObj: { name: 'Nico' }, createMessage };

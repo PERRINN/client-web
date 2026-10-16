@@ -12,9 +12,9 @@ function load(path, overrides = {}) {
   new Function('exports', 'require', code)(exports, name => overrides[name] || require(name));
   return exports;
 }
-const funds = load('../src/app/prototypes/chat-fund/chatFund.ts');
+const funds = load('../src/app/chat/chat-fund/chatFund.ts');
 const core = { Injectable: () => target => target, Component: () => target => target, runInInjectionContext: (_, fn) => fn() };
-const { HomeFeedService } = load('../src/app/homeFeed.service.ts', { '@angular/core': core, './prototypes/chat-fund/chatFund': funds });
+const { HomeFeedService } = load('../src/app/homeFeed.service.ts', { '@angular/core': core, './chat/chat-fund/chatFund': funds });
 const record = (id, fund = {}) => ({ payload: { doc: { id, data: () => ({ chain: id, chatSubject: id, fund: { description: id, amountGBPTarget: 1000, amountGBPRaised: 123.4, daysLeft: 10, ...fund }, wallet: { balance: 999 } }) } } });
 function fixture(pages) {
   const queries = [];
@@ -51,7 +51,7 @@ test('Home excludes ended or invalid funds and terminates on an empty final page
   assert.deepEqual(await firstValueFrom(fixture([]).service.funds()), []);
 });
 const lastSeen = load('../src/app/lastSeen.ts');
-const { HomeComponent } = load('../src/app/home.component.ts', { '@angular/core': core, './prototypes/chat-fund/chatFund': funds, './lastSeen': lastSeen });
+const { HomeComponent } = load('../src/app/home.component.ts', { '@angular/core': core, './chat/chat-fund/chatFund': funds, './lastSeen': lastSeen });
 test('Home retains loaded funds on errors, retries, loads more and unsubscribes on leave', () => {
   const responses = [], limits = [], chats = [];
   const feed = { funds: limit => { limits.push(limit); const response = responses.shift(); return response || of([]); } };

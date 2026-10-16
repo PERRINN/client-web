@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { fromEvent, merge, Subscription, timer } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { HomeFeedService, HomeFund, HomeMessage } from './homeFeed.service';
-import { fundAmount, fundCurrency, fundProgress } from './prototypes/chat-fund/chatFund';
+import { fundAmount, fundCurrency, fundProgress } from './chat/chat-fund/chatFund';
 import { PresenceService, RecentVisitor } from './presence.service';
 import { MessageActivityService, MentionActivity } from './messageActivity.service';
 import { UserInterfaceService } from './userInterface.service';

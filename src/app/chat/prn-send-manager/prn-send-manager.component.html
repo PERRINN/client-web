@@ -1,0 +1,42 @@
+<section tabindex="-1" aria-labelledby="prn-send-title" (keydown.escape)="escape($event)">
+  <h3 id="prn-send-title">Send PRN</h3>
+  @if (signedIn) {
+    @if (editing && review) {
+      <div class="review" [attr.aria-busy]="busy" [attr.aria-describedby]="error ? 'prn-error' : null">
+        <h4 #reviewHeading tabindex="-1">Review transfer</h4>
+        <dl>
+          <div><dt>To</dt><dd>{{ review.recipientName }}</dd></div>
+          <div><dt>Amount</dt><dd>{{ review.currency | uppercase }} {{ review.amount | number:'1.2-2' }}</dd></div>
+          <div><dt>PRN</dt><dd>{{ review.prnAmount | number:'1.0-5' }}</dd></div>
+          <div><dt>Reference</dt><dd>{{ review.reference }}</dd></div>
+          @if (review.code) { <div><dt>Code</dt><dd>{{ review.code }}</dd></div> }
+        </dl>
+        @if (review.mode === 'pending') { <p>The transfer takes effect when activated. The balance is not reserved.</p> }
+        <div class="actions"><button type="button" (click)="back()" [disabled]="busy">Back</button><button class="primary" type="button" (click)="confirm()" [disabled]="busy">{{ busy ? 'Submitting' : review.mode === 'direct' ? 'Confirm send' : 'Create pending transfer' }}</button></div>
+      </div>
+    } @else if (editing) {
+      <form (ngSubmit)="prepare()" aria-label="Send PRN" [attr.aria-busy]="busy" [attr.aria-describedby]="error ? 'prn-error' : null">
+        <p>Available: {{ balanceLabel }}</p>
+        <label for="prn-mode">Transfer type</label>
+        <select id="prn-mode" name="mode" [(ngModel)]="draft.mode" [disabled]="busy"><option value="direct">Direct</option><option value="pending">Pending activation</option></select>
+        <label for="prn-amount">Amount ({{ context?.currency | uppercase }})</label>
+        <input #amountInput id="prn-amount" name="amount" type="number" inputmode="decimal" min="0.01" step="0.01" [(ngModel)]="draft.amount" [disabled]="busy" required>
+        @if (draft.mode === 'direct') {
+          <label for="prn-recipient">Recipient</label>
+          <select id="prn-recipient" name="recipient" [(ngModel)]="draft.recipient" [disabled]="busy" required>
+            <option value="" disabled>Choose participant</option>
+            @for (member of members; track member.id) { <option [value]="member.id" [disabled]="member.id === context?.userId && !draft.code.trim()">{{ member.name }}</option> }
+          </select>
+        }
+        <label for="prn-reference">Reference</label>
+        <input id="prn-reference" name="reference" [(ngModel)]="draft.reference" maxlength="500" [disabled]="busy" required>
+        <label for="prn-code">Code (optional)</label>
+        <input id="prn-code" name="code" [(ngModel)]="draft.code" maxlength="500" autocomplete="off" [disabled]="busy">
+        <div class="actions"><button type="button" (click)="cancel()" [disabled]="busy">Cancel</button><button class="primary" type="submit" [disabled]="busy">{{ busy ? 'Loading' : 'Review transfer' }}</button></div>
+      </form>
+    } @else { <button #openButton type="button" (click)="open()" [disabled]="!chain">Send PRN</button> }
+    @if (error) { <p id="prn-error" class="error" role="alert">{{ error }}</p> }
+    @if (notice) { <p role="status">{{ notice }}</p> }
+    @if (pendingMessageId) { <a [routerLink]="['/buyPRN', pendingMessageId]">Open activation page</a> }
+  } @else { <a routerLink="/login">Sign in to send PRN</a> }
+</section>

@@ -1,0 +1,29 @@
+              <article [attr.data-message-id]="message.id" [id]="'bubble-' + message.id" class="message-row" [class.own]="message.own" [class.continued]="continued" [class.mentioned]="mentioned" [attr.aria-label]="'Message from ' + message.author">
+                @if (!continued) { <app-user-avatar class="member-avatar" [name]="message.avatarName" [sources]="message.avatarSources" aria-hidden="true"></app-user-avatar> }
+                <div class="message-content">
+                  @if (mentioned) { <span class="mention-label">Mentions you</span> }
+                  @if (!continued) { <div class="message-meta"><strong>{{ message.author }}</strong><time [attr.datetime]="message.timestamp ? (message.timestamp | date:'yyyy-MM-ddTHH:mm:ssZZZZZ') : null">{{ message.timestamp ? (message.timestamp | date:'HH:mm') : 'Sending' }}@if (signedIn && message.own && message.verified) { <span class="verification-tick" role="img" aria-label="Verified by platform" title="Verified by platform">✓</span> }</time></div> }
+                  <div class="message-text">
+                    @if (!message.transfers?.length && message.text) { <p [innerHTML]="message.text | linky"></p> }
+                    @if (continued) { <time class="continuation-time" [attr.datetime]="message.timestamp ? (message.timestamp | date:'yyyy-MM-ddTHH:mm:ssZZZZZ') : null">{{ message.timestamp ? (message.timestamp | date:'HH:mm') : 'Sending' }}@if (signedIn && message.own && message.verified) { <span class="verification-tick" role="img" aria-label="Verified by platform" title="Verified by platform">✓</span> }</time> }
+                  </div>
+                  @for (transfer of message.transfers || []; track transfer.kind) {
+                    <section class="transfer-summary" [attr.aria-label]="transfer.title">
+                      <header><strong>{{ transfer.title }}</strong><span class="transfer-status">{{ transfer.status }}</span></header>
+                      <p class="transfer-amount">{{ transfer.amount | number:'1.0-5' }} PRN</p>
+                      <dl>
+                        @if (transfer.from) { <div><dt>From</dt><dd>{{ transfer.from }}</dd></div> }
+                        @if (transfer.to) { <div><dt>To</dt><dd>{{ transfer.to }}</dd></div> }
+                        @if (transfer.reference) { <div><dt>Reference</dt><dd>{{ transfer.reference }}</dd></div> }
+                        @if (transfer.code) { <div><dt>Code</dt><dd>{{ transfer.code }}</dd></div> }
+                      </dl>
+                      @if (transfer.activationId) { <a class="activation-link" [routerLink]="['/buyPRN', transfer.activationId]">Open activation</a> }
+                    </section>
+                  }
+                  @if (message.image) {
+                    <button type="button" class="image-button" (click)="imageOpened.emit(message)" [attr.aria-label]="'Open image: ' + message.imageName">
+                      <img [src]="message.image" [alt]="message.imageName || 'Shared image'" (load)="imageLoaded.emit()">
+                    </button>
+                  }
+                </div>
+              </article>

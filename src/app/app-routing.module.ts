@@ -2,7 +2,6 @@ import { TelemetryComponent } from './telemetry/telemetry.component';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { LoginComponent } from './login.component';
-import { ChatComponent } from './chat.component';
 import { ProfileComponent } from './profile.component';
 import { SettingsComponent } from './settings.component';
 import { TeamComponent } from './team.component';
@@ -16,7 +15,7 @@ import { QuietPlumComponent } from './prototypes/quiet-plum/quiet-plum.component
 import { ClayEmberComponent } from './prototypes/clay-ember/clay-ember.component';
 import { ColorPalettePreviewComponent } from './prototypes/color-palette-preview.component';
 import { NightSignalComponent } from './prototypes/night-signal/night-signal.component';
-import { ChatBubblesComponent } from './prototypes/chat-bubbles/chat-bubbles.component';
+import { ChatComponent } from './chat/chat.component';
 import { AppMapComponent } from './prototypes/app-map/app-map.component';
 import { ImageMosaicComponent } from './prototypes/image-mosaic/image-mosaic.component';
 import { HomeComponent } from './home.component';
@@ -33,8 +32,8 @@ const appRoutes: Routes = [
   { path: 'prototypes/staggered-collage', component: ImageMosaicComponent, data: { mosaicId: 'staggered-collage' } },
   { path: 'prototypes/data-model-map', component: AppMapComponent, data: { mapView: 'data' } },
   { path: 'prototypes/workflow-map', component: AppMapComponent, data: { mapView: 'flows' } },
-  { path: 'prototypes/chat-bubbles', component: ChatBubblesComponent },
-  { path: 'prototypes/chat-bubbles/:id', component: ChatBubblesComponent },
+  { path: 'prototypes/chat-bubbles/:id', redirectTo: 'chat/:id', pathMatch: 'full' },
+  { path: 'prototypes/chat-bubbles', redirectTo: 'chat', pathMatch: 'full' },
   { path: 'prototypes/clear-slate', component: ClearSlateComponent, data: { paletteId: 'clear-slate' } },
   { path: 'prototypes/warm-graphite', component: WarmGraphiteComponent, data: { paletteId: 'warm-graphite' } },
   { path: 'prototypes/deep-tide', component: DeepTideComponent, data: { paletteId: 'deep-tide' } },
@@ -51,6 +50,7 @@ const appRoutes: Routes = [
   { path: 'prototypes', component: PrototypeGalleryComponent },
   { path: 'home', component: HomeComponent },
   { path: 'chat/:id', component: ChatComponent },
+  { path: 'chat', component: ChatComponent },
   { path: 'profile/:id', component: ProfileComponent },
   { path: 'settings', component: SettingsComponent },
   { path: 'login', component: LoginComponent },

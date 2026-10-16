@@ -1,10 +1,10 @@
 import { Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 
-export interface PrototypeChatDraft { text: string; image: File | null; }
+export interface ChatDraft { text: string; image: File | null; }
 
 // Emits a draft without clearing it. The consumer clears only after a successful send.
 @Component({
-  selector: 'app-prototype-chat-composer',
+  selector: 'app-chat-composer',
   templateUrl: './chat-composer.component.html',
   styleUrls: ['./chat-composer.component.css'],
   standalone: false
@@ -13,7 +13,7 @@ export class ChatComposerComponent implements OnDestroy {
   @Input() disabled = false;
   @Input() sending = false;
   uploadProgress: number | null = null;
-  @Output() messageSent = new EventEmitter<PrototypeChatDraft>();
+  @Output() messageSent = new EventEmitter<ChatDraft>();
   @ViewChild('messageInput') messageInput?: ElementRef<HTMLTextAreaElement>;
   draft = '';
   imageUrl = '';

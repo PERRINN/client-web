@@ -3,7 +3,7 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import firebase from 'firebase/compat/app';
 import { Observable, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
-import { activeFund, chatFund, ChatFund } from './prototypes/chat-fund/chatFund';
+import { activeFund, chatFund, ChatFund } from './chat/chat-fund/chatFund';
 
 export interface HomeMessage {
   fund?: Partial<ChatFund>;

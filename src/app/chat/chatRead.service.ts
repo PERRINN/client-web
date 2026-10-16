@@ -1,19 +1,19 @@
 import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { BubbleMessage, firstUnread, isAfterPosition, ReadPosition } from './chatBubbleData';
-import { ChatBubbleDataService } from './chatBubbleData.service';
+import { ChatMessage, firstUnread, isAfterPosition, ReadPosition } from './chatData';
+import { ChatDataService } from './chatData.service';
 
 interface ReadContext {
-  messages: BubbleMessage[];
+  messages: ChatMessage[];
   userId: string | null;
   seen: ReadPosition | null;
   cursorUnavailable: boolean;
   hasMore?: boolean;
 }
 
-// One session per open Bubbles component. DOM observation stays out of data access.
+// One session per open chat component. DOM observation stays out of data access.
 @Injectable()
-export class ChatBubbleReadService implements OnDestroy {
+export class ChatReadService implements OnDestroy {
   error = '';
   paused = false;
   private chain = '';
@@ -31,7 +31,7 @@ export class ChatBubbleReadService implements OnDestroy {
   private submissions: Subscription;
   private refresh = () => this.scan();
 
-  constructor(private data: ChatBubbleDataService, private zone: NgZone) {
+  constructor(private data: ChatDataService, private zone: NgZone) {
     this.submissions = data.submitted.subscribe(message => {
       if (message.chain !== this.chain || message.userId !== this.context?.userId) return;
       this.acknowledged.add(message.messageId); this.scan();

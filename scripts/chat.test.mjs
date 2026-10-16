@@ -13,13 +13,14 @@ function load(path, overrides = {}) {
   new Function('exports', 'require', code)(exports, name => overrides[name] || require(name));
   return exports;
 }
-const funds = load('../src/app/prototypes/chat-fund/chatFund.ts');
-const events = load('../src/app/prototypes/chat-event/chatEvent.ts');
-const dates = load('../src/app/prototypes/chatDate.ts');
-const model = load('../src/app/prototypes/chat-bubbles/chatBubbleData.ts', { '../chatDate': dates });
+const funds = load('../src/app/chat/chat-fund/chatFund.ts');
+const events = load('../src/app/chat/chat-event/chatEvent.ts');
+const dates = load('../src/app/chat/chatDate.ts');
+const transfers = load('../src/app/chat/chatTransfer.ts');
+const model = load('../src/app/chat/chatData.ts', { './chatDate': dates, './chatTransfer': transfers });
 const core = { Injectable: () => target => target, runInInjectionContext: (_, fn) => fn() };
-const { ChatBubbleDataService } = load('../src/app/prototypes/chat-bubbles/chatBubbleData.service.ts', {
-  '@angular/core': core, './chatBubbleData': model, '../chat-event/chatEvent': events, '../chat-fund/chatFund': funds
+const { ChatDataService } = load('../src/app/chat/chatData.service.ts', {
+  '@angular/core': core, './chatData': model, './chat-event/chatEvent': events, './chat-fund/chatFund': funds
 });
 
 function fixture(uid = 'owner') {
@@ -50,7 +51,7 @@ function fixture(uid = 'owner') {
   };
   const storage = { ref: path => ({ put: async file => uploads.push({ path, file }), getDownloadURL: () => of('https://example.com/image.png') }) };
   const UI = { currentUser: uid, createMessage: async message => { writes.push(message); return { id: `created-${writes.length}` }; } };
-  return { service: new ChatBubbleDataService(afs, auth, storage, {}, UI), UI, auth, writes, uploads, queries, cursors, cursorWrites, cursorStore, transactionPaths };
+  return { service: new ChatDataService(afs, auth, storage, {}, UI), UI, auth, writes, uploads, queries, cursors, cursorWrites, cursorStore, transactionPaths, rows };
 }
 
 test('matches the bounded production chain query, reverses history and reads only the owner cursor', async () => {
@@ -110,7 +111,7 @@ test('a storage failure prevents message creation and leaves the draft available
 test('the composer retains text until the consumer confirms a successful send', () => {
   class Emitter { values = []; emit(value) { this.values.push(value); } }
   const decorator = () => () => {};
-  const { ChatComposerComponent } = load('../src/app/prototypes/chat-composer/chat-composer.component.ts', {
+  const { ChatComposerComponent } = load('../src/app/chat/chat-composer/chat-composer.component.ts', {
     '@angular/core': { Component: () => target => target, Input: decorator, Output: decorator, ViewChild: decorator, EventEmitter: Emitter }
   });
   const composer = new ChatComposerComponent();
@@ -122,32 +123,34 @@ test('the composer retains text until the consumer confirms a successful send', 
 
 const { sidebarChatCommands, activeChatChain } = load('../src/app/chatNavigation.ts');
 
-test('sidebar chat routing follows the active renderer and stays production elsewhere', () => {
-  for (const url of ['/prototypes/chat-bubbles', '/prototypes/chat-bubbles/old?scroll=message', '/prototypes/chat-bubbles?x=1']) {
-    assert.deepEqual(sidebarChatCommands(url, 'next'), ['/prototypes/chat-bubbles', 'next']);
-  }
-  for (const url of ['/home', '/chat/old', '/prototypes', '/prototypes/chat-bubbles-other']) {
-    assert.deepEqual(sidebarChatCommands(url, 'next'), ['/chat', 'next']);
-  }
+test('sidebar chat routing always uses the canonical production route', () => {
+  assert.deepEqual(sidebarChatCommands('next'), ['/chat', 'next']);
 });
 
-test('sidebar selection recognizes both chat routes without query or fragment suffixes', () => {
+test('sidebar selection recognizes production chat IDs without query or fragment suffixes', () => {
   assert.equal(activeChatChain('/chat/one?scroll=message'), 'one');
-  assert.equal(activeChatChain('/prototypes/chat-bubbles/two#message'), 'two');
-  assert.equal(activeChatChain('/prototypes/chat-bubbles/a%20b'), 'a b');
-  assert.equal(activeChatChain('/prototypes/chat-bubbles'), null);
+  assert.equal(activeChatChain('/chat/two#message'), 'two');
+  assert.equal(activeChatChain('/chat/a%20b'), 'a b');
+  assert.equal(activeChatChain('/chat'), null);
+  assert.equal(activeChatChain('/prototypes/chat-bubbles/two'), null);
   assert.equal(activeChatChain('/home'), null);
 });
 
-test('consecutive sender groups span pauses but reset at sender, date and unread boundaries', () => {
+test('sender groups stay within five minutes and reset at sender, date, unread and unresolved timestamps', () => {
   const base = { ...model.bubbleMessage('first', { user: 'one' }, null), timestamp: new Date(2026, 9, 16, 9).getTime() };
-  const next = { ...base, id: 'next', timestamp: new Date(2026, 9, 16, 14).getTime() };
+  const next = { ...base, id: 'next', timestamp: base.timestamp + 5 * 60 * 1000 };
   assert.equal(model.continuesMessageGroup(base, next, ''), true);
   assert.equal(model.continuesMessageGroup(undefined, next, ''), false);
   assert.equal(model.continuesMessageGroup(base, { ...next, user: 'two' }, ''), false);
   assert.equal(model.continuesMessageGroup(base, next, 'next'), false);
   assert.equal(model.continuesMessageGroup(base, { ...next, timestamp: new Date(2026, 9, 17, 9).getTime() }, ''), false);
   assert.equal(model.continuesMessageGroup({ ...base, user: '' }, { ...next, user: '' }, ''), false);
+  assert.equal(model.continuesMessageGroup(base, { ...next, timestamp: next.timestamp + 1 }, ''), false);
+  assert.equal(model.continuesMessageGroup(base, { ...next, timestamp: base.timestamp - 1 }, ''), false);
+  assert.equal(model.continuesMessageGroup({ ...base, timestamp: 0 }, { ...next, timestamp: 0 }, ''), false);
+  assert.equal(model.continuesMessageGroup(base, { ...next, timestamp: base.timestamp }, ''), true);
+  const late = { ...base, timestamp: new Date(2026, 9, 16, 23, 59).getTime() };
+  assert.equal(model.continuesMessageGroup(late, { ...next, timestamp: late.timestamp + 2 * 60 * 1000 }, ''), false);
 });
 
 test('subject changes use the existing command message without image fields', async () => {
@@ -187,16 +190,16 @@ test('detail updates validate before writes and reject an account change during 
 
 test('failed detail saves retain the subject and image draft for retry', async () => {
   const decorator = () => () => {};
-  const { ChatBubblesComponent } = load('../src/app/prototypes/chat-bubbles/chat-bubbles.component.ts', {
+  const { ChatComponent } = load('../src/app/chat/chat.component.ts', {
     '@angular/core': { Component: () => target => target, ViewChild: decorator },
-    './chatBubbleRead.service': { ChatBubbleReadService: class {} },
-    '../chat-event/chat-event-editor.component': { ChatEventEditorComponent: class {} },
-    '../chat-fund/chat-fund-editor.component': { ChatFundEditorComponent: class {} },
-    '../chat-composer/chat-composer.component': { ChatComposerComponent: class {} },
-    './chatBubbleData': model
+    './chatRead.service': { ChatReadService: class {} },
+    './chat-event/chat-event-editor.component': { ChatEventEditorComponent: class {} },
+    './chat-fund/chat-fund-editor.component': { ChatFundEditorComponent: class {} },
+    './chat-composer/chat-composer.component': { ChatComposerComponent: class {} },
+    './chatData': model
   });
   const route = { paramMap: of() };
-  const component = new ChatBubblesComponent(route, {}, { updateDetails: async () => { throw new Error('offline'); } }, {}, { run: fn => fn() });
+  const component = new ChatComponent(route, {}, { updateDetails: async () => { throw new Error('offline'); } }, {}, { run: fn => fn() });
   Object.assign(component, { chain: 'chat', signedIn: true, editingDetails: true, title: 'Design', originalSubject: 'Design', subjectDraft: 'Review', detailsImage: { name: 'Team.png' } });
   await component.saveDetails();
   assert.equal(component.editingDetails, true); assert.equal(component.subjectDraft, 'Review'); assert.ok(component.detailsImage);
@@ -206,15 +209,15 @@ test('failed detail saves retain the subject and image draft for retry', async (
 
 test('detail editor submits only changed fields, clears after success and cancels without writing', async () => {
   const decorator = () => () => {};
-  const { ChatBubblesComponent } = load('../src/app/prototypes/chat-bubbles/chat-bubbles.component.ts', {
+  const { ChatComponent } = load('../src/app/chat/chat.component.ts', {
     '@angular/core': { Component: () => target => target, ViewChild: decorator },
-    './chatBubbleRead.service': { ChatBubbleReadService: class {} },
-    '../chat-event/chat-event-editor.component': { ChatEventEditorComponent: class {} },
-    '../chat-fund/chat-fund-editor.component': { ChatFundEditorComponent: class {} },
-    '../chat-composer/chat-composer.component': { ChatComposerComponent: class {} }, './chatBubbleData': model
+    './chatRead.service': { ChatReadService: class {} },
+    './chat-event/chat-event-editor.component': { ChatEventEditorComponent: class {} },
+    './chat-fund/chat-fund-editor.component': { ChatFundEditorComponent: class {} },
+    './chat-composer/chat-composer.component': { ChatComposerComponent: class {} }, './chatData': model
   });
   const writes = [];
-  const component = new ChatBubblesComponent({ paramMap: of() }, {}, { updateDetails: async (...args) => writes.push(args) }, {}, { run: fn => fn() });
+  const component = new ChatComponent({ paramMap: of() }, {}, { updateDetails: async (...args) => writes.push(args) }, {}, { run: fn => fn() });
   const previousFrame = globalThis.requestAnimationFrame;
   globalThis.requestAnimationFrame = fn => { fn(); return 0; };
   try {
@@ -266,8 +269,8 @@ test('cursor read failures stay unavailable and verification requires the explic
   for (const verified of [undefined, false, 'true']) assert.equal(model.bubbleMessage('one', { verified }, 'owner').verified, false);
 });
 
-const { ChatBubbleReadService } = load('../src/app/prototypes/chat-bubbles/chatBubbleRead.service.ts', {
-  '@angular/core': core, './chatBubbleData': model, '../chat-event/chatEvent': events, '../chat-fund/chatFund': funds
+const { ChatReadService } = load('../src/app/chat/chatRead.service.ts', {
+  '@angular/core': core, './chatData': model, './chat-event/chatEvent': events, './chat-fund/chatFund': funds
 });
 function readView() {
   const oldDocument = globalThis.document, oldWindow = globalThis.window;
@@ -276,7 +279,7 @@ function readView() {
   globalThis.window = { removeEventListener() {} };
   const writes = [];
   const submitted = new Subject();
-  const service = new ChatBubbleReadService({ submitted, advanceReadCursor: async (chain, user, position) => { writes.push({ chain, user, position }); return position; } }, { run: fn => fn() });
+  const service = new ChatReadService({ submitted, advanceReadCursor: async (chain, user, position) => { writes.push({ chain, user, position }); return position; } }, { run: fn => fn() });
   const rows = [{ id: 'first', bottom: 30 }, { id: 'second', bottom: 150 }];
   service.list = { clientHeight: 100, closest: () => controls.inert ? {} : null, removeEventListener() {}, getBoundingClientRect: () => ({ top: 0, bottom: 100 }), querySelectorAll: () => rows.map(row => ({ dataset: { messageId: row.id }, getBoundingClientRect: () => ({ bottom: row.bottom, height: 30 }) })) };
   const messages = ['first', 'second'].map((id, index) => ({ ...model.bubbleMessage(id, { user: 'other' }, 'owner'), timestamp: (index + 1) * 10000 }));
@@ -409,8 +412,8 @@ test('event saves and cancellation use production fields without adding a new pe
 const propertyDecorator = () => () => {};
 class EventEmitterStub { values = []; emit(value) { this.values.push(value); } }
 const eventCore = { Component: () => target => target, Input: propertyDecorator, Output: propertyDecorator, ViewChild: propertyDecorator, EventEmitter: EventEmitterStub };
-const { ChatEventSummaryComponent } = load('../src/app/prototypes/chat-event/chat-event-summary.component.ts', { '@angular/core': eventCore, './chatEvent': events, '../chatDate': dates });
-const { ChatEventEditorComponent } = load('../src/app/prototypes/chat-event/chat-event-editor.component.ts', { '@angular/core': eventCore, './chatEvent': events, '../chatDate': dates });
+const { ChatEventSummaryComponent } = load('../src/app/chat/chat-event/chat-event-summary.component.ts', { '@angular/core': eventCore, './chatEvent': events, '../chatDate': dates });
+const { ChatEventEditorComponent } = load('../src/app/chat/chat-event/chat-event-editor.component.ts', { '@angular/core': eventCore, './chatEvent': events, '../chatDate': dates });
 
 test('header event summary expires at the end and offers Join only near a valid meeting', () => {
   const summary = new ChatEventSummaryComponent({ run: fn => fn() });
@@ -509,18 +512,18 @@ test('event dates share message date formatting and add Tomorrow and nearby futu
 });
 
 
-test('Bubbles opens with 30 messages and delays Latest until beyond a viewport without pulling readers down', () => {
-  const { ChatBubblesComponent } = load('../src/app/prototypes/chat-bubbles/chat-bubbles.component.ts', {
+test('Chat opens with 30 messages and delays Latest until beyond a viewport without pulling readers down', () => {
+  const { ChatComponent } = load('../src/app/chat/chat.component.ts', {
     '@angular/core': { Component: () => target => target, ViewChild: () => () => {} },
-    './chatBubbleRead.service': { ChatBubbleReadService: class {} },
-    '../chat-event/chat-event-editor.component': { ChatEventEditorComponent: class {} },
-    '../chat-fund/chat-fund-editor.component': { ChatFundEditorComponent: class {} },
-    '../chat-composer/chat-composer.component': { ChatComposerComponent: class {} }, './chatBubbleData': model
+    './chatRead.service': { ChatReadService: class {} },
+    './chat-event/chat-event-editor.component': { ChatEventEditorComponent: class {} },
+    './chat-fund/chat-fund-editor.component': { ChatFundEditorComponent: class {} },
+    './chat-composer/chat-composer.component': { ChatComposerComponent: class {} }, './chatData': model
   });
   const limits = [];
   const data = { watch: (chain, limit) => { limits.push(limit); return of(); } };
   const route = { paramMap: of({ get: () => 'chat' }), snapshot: { queryParamMap: { get: () => '' } } };
-  const component = new ChatBubblesComponent(route, {}, data, {}, { run: fn => fn() }, { reset() {} });
+  const component = new ChatComponent(route, {}, data, {}, { run: fn => fn() }, { reset() {} });
   try {
     assert.deepEqual(limits, [30]);
     const list = { scrollHeight: 3000, clientHeight: 600, scrollTop: 2250 };
@@ -533,7 +536,7 @@ test('Bubbles opens with 30 messages and delays Latest until beyond a viewport w
     list.scrollTop = 2499; component.onScroll(); assert.equal(component.showLatest, true);
     component.loadMore(); assert.deepEqual(limits, [30, 45]);
     route.snapshot.queryParamMap.get = () => 'message';
-    const linked = new ChatBubblesComponent(route, {}, data, {}, { run: fn => fn() }, { reset() {} });
+    const linked = new ChatComponent(route, {}, data, {}, { run: fn => fn() }, { reset() {} });
     assert.equal(limits.at(-1), 100); linked.ngOnDestroy();
   } finally { component.ngOnDestroy(); }
 });
@@ -692,10 +695,10 @@ test('user avatar projection retains stored names and photo alternatives when au
 });
 
 const fundCore = { Component: () => target => target, Input: () => () => {}, Output: () => () => {}, ViewChild: () => () => {}, EventEmitter: class { emit() {} } };
-const { ChatFundEditorComponent } = load('../src/app/prototypes/chat-fund/chat-fund-editor.component.ts', {
+const { ChatFundEditorComponent } = load('../src/app/chat/chat-fund/chat-fund-editor.component.ts', {
   '@angular/core': fundCore, './chatFund': funds
 });
-const { ChatFundSummaryComponent } = load('../src/app/prototypes/chat-fund/chat-fund-summary.component.ts', {
+const { ChatFundSummaryComponent } = load('../src/app/chat/chat-fund/chat-fund-summary.component.ts', {
   '@angular/core': fundCore, './chatFund': funds
 });
 const sampleFund = { description: 'Track testing', amountGBPTarget: 1000, amountGBPRaised: 125, daysLeft: 12.5 };
@@ -832,18 +835,18 @@ test('upload failures release progress listeners, preserve the draft and never c
   assert.deepEqual(textProgress, []); assert.deepEqual(text.uploads, []);
 });
 
-test('Bubbles clears upload feedback after a failed send and ignores progress for a different chat', async () => {
-  const { ChatBubblesComponent } = load('../src/app/prototypes/chat-bubbles/chat-bubbles.component.ts', {
+test('Chat clears upload feedback after a failed send and ignores progress for a different chat', async () => {
+  const { ChatComponent } = load('../src/app/chat/chat.component.ts', {
     '@angular/core': { Component: () => target => target, ViewChild: () => () => {} },
-    './chatBubbleRead.service': { ChatBubbleReadService: class {} },
-    '../chat-event/chat-event-editor.component': { ChatEventEditorComponent: class {} },
-    '../chat-fund/chat-fund-editor.component': { ChatFundEditorComponent: class {} },
-    '../chat-composer/chat-composer.component': { ChatComposerComponent: class {} }, './chatBubbleData': model
+    './chatRead.service': { ChatReadService: class {} },
+    './chat-event/chat-event-editor.component': { ChatEventEditorComponent: class {} },
+    './chat-fund/chat-fund-editor.component': { ChatFundEditorComponent: class {} },
+    './chat-composer/chat-composer.component': { ChatComposerComponent: class {} }, './chatData': model
   });
   const progress = [];
   let report, fail;
   const data = { send: (_, __, callback) => { report = callback; return new Promise((_, reject) => fail = reject); } };
-  const component = new ChatBubblesComponent({ paramMap: of() }, {}, data, {}, { run: fn => fn() });
+  const component = new ChatComponent({ paramMap: of() }, {}, data, {}, { run: fn => fn() });
   Object.assign(component, { chain: 'chat', signedIn: true, composer: { setUploadProgress: value => progress.push(value) } });
   const sending = component.send({ text: 'Image', image: {} });
   report(35); assert.deepEqual(progress, [35]); assert.equal(component.sending, true);
@@ -851,4 +854,109 @@ test('Bubbles clears upload feedback after a failed send and ignores progress fo
   component.chain = 'chat'; fail(Error('offline')); await sending;
   assert.equal(component.sending, false); assert.equal(progress.at(-1), null); assert.match(component.sendError, /couldn’t send/);
   component.ngOnDestroy();
+});
+
+test('transfer bubbles project clear parties, PRN amounts and references without exposing raw account data', () => {
+  const record = { user: 'sender', name: 'Nico', verified: true, chain: 'chat', text: 'Sending 11.9 PRN to You',
+    recipients: { receiver: { name: 'Alex' } }, transactionOut: { user: 'receiver', amount: 11.9, reference: 'Design work', code: 'PRN' },
+    wallet: { balance: 900 }, emails: { auth: 'private@example.test' } };
+  const message = model.bubbleMessage('out', record, 'sender');
+  assert.deepEqual(message.transfers, [{ kind: 'outgoing', title: 'PRN transfer', amount: 11.9, from: 'You', to: 'Alex', reference: 'Design work', code: 'PRN', status: 'Recorded', activationId: '' }]);
+  assert.equal(model.bubbleMessage('out', record, 'receiver').transfers[0].to, 'You');
+  assert.equal(model.bubbleMessage('out', record, null).transfers[0].from, 'Nico');
+  assert.equal(message.text, record.text); assert.equal('wallet' in message, false); assert.equal('emails' in message, false);
+  assert.equal(model.bubbleMessage('out', { ...record, verified: undefined }, 'sender').transfers[0].status, 'Processing');
+  assert.equal(model.bubbleMessage('out', { ...record, verified: false }, 'sender').transfers[0].status, 'Not verified');
+});
+
+test('receipts reuse only a matching loaded source and label automatic messages as transfer updates', () => {
+  const source = { user: 'sender', name: 'Nico', chain: 'chat', transactionOut: { user: 'receiver', amount: 11.9, reference: 'Design work', code: 'PERRINN' } };
+  const receipt = { user: 'receiver', name: 'Alex', chain: 'chat', verified: true, isBackendMessage: true,
+    text: 'PRN tokens received (Backend message)', transactionIn: { user: 'sender', message: 'out', amount: 11.9 } };
+  const message = model.bubbleMessage('receipt', receipt, 'receiver', source);
+  assert.equal(message.author, 'Transfer update'); assert.equal(message.own, true);
+  assert.deepEqual(message.transfers[0], { kind: 'incoming', title: 'PRN received', amount: 11.9, from: 'Nico', to: 'You', reference: 'Design work', code: 'PERRINN', status: 'Recorded', activationId: '' });
+  for (const wrong of [undefined, { ...source, chain: 'another' }, { ...source, user: 'another' }, { ...source, transactionOut: { ...source.transactionOut, amount: 12 } }]) {
+    const summary = model.bubbleMessage('receipt', receipt, null, wrong).transfers[0];
+    assert.equal(summary.reference, ''); assert.equal(summary.code, '');
+  }
+  assert.equal(model.bubbleMessage('receipt', { ...receipt, transactionIn: { ...receipt.transactionIn, name: 'Nico' } }, null).transfers[0].from, 'Nico');
+});
+
+test('pending transfer messages distinguish processing, activation and existing activation links', () => {
+  const record = { user: 'sender', name: 'Nico', transactionPending: { amount: 20, reference: 'Contribution', code: null } };
+  assert.equal(model.bubbleMessage('pending', record, null).transfers[0].status, 'Processing');
+  const ready = model.bubbleMessage('pending', { ...record, verified: true }, null).transfers[0];
+  assert.equal(ready.status, 'Awaiting activation'); assert.equal(ready.activationId, 'pending'); assert.equal(ready.to, '');
+  const activated = model.bubbleMessage('pending', { ...record, verified: true, transactionPending: { ...record.transactionPending, activated: true } }, null).transfers[0];
+  assert.equal(activated.status, 'Activated'); assert.equal(activated.activationId, '');
+});
+
+test('normal messages stay normal, invalid amounts are ignored and transfer records break sender grouping', () => {
+  const base = { user: 'sender', name: 'Nico', text: 'Normal note', serverTimestamp: 10000 };
+  for (const amount of [undefined, null, 0, -1, NaN, Infinity, '20']) {
+    assert.deepEqual(model.bubbleMessage('plain', { ...base, transactionOut: { amount } }, null).transfers, []);
+  }
+  const ordinary = model.bubbleMessage('plain', base, null);
+  const transfer = model.bubbleMessage('out', { ...base, transactionOut: { user: 'receiver', amount: 20 } }, null);
+  assert.equal(model.continuesMessageGroup(ordinary, transfer, ''), false);
+  assert.equal(model.continuesMessageGroup(transfer, ordinary, ''), false);
+  assert.equal(model.bubbleMessage('both', { ...base, verified: true, transactionOut: { amount: 20, user: 'sender' }, transactionIn: { amount: 20, user: 'sender' } }, 'sender').transfers.length, 2);
+});
+
+
+test('credit adjustments without a sender are not presented as a second incoming transfer', () => {
+  const message = model.bubbleMessage('credit', { user: 'owner', name: 'Nico', verified: true, transactionIn: { amount: 20 } }, 'owner');
+  assert.equal(message.transfers[0].title, 'PRN balance credit');
+  assert.equal(message.transfers[0].from, '');
+  assert.equal(message.transfers[0].to, 'You');
+});
+
+test('live history enriches receipt references from the loaded source without another query', async () => {
+  const f = fixture();
+  Object.assign(f.rows[0].payload.doc.data(), { transactionOut: { user: 'other', amount: 20, reference: 'Design' } });
+  f.rows.push({ payload: { doc: { id: 'receipt', data: () => ({ chain: 'chat', user: 'other', name: 'Maya', verified: true, transactionIn: { user: 'owner', message: 'latest', amount: 20 } }) } } });
+  const chat = await firstValueFrom(f.service.watch('chat', 30));
+  assert.equal(chat.messages.find(message => message.id === 'receipt').transfers[0].reference, 'Design');
+  assert.equal(f.queries.filter(query => query[0] === 'limit').length, 1);
+});
+
+
+test('production routes use the promoted component and old Bubbles URLs are redirects', () => {
+  const source = readFileSync(new URL('../src/app/app-routing.module.ts', import.meta.url), 'utf8');
+  const replacements = {};
+  for (const match of source.matchAll(/from '([^']+)'/g)) if (match[1].startsWith('.')) replacements[match[1]] = new Proxy({}, { get: () => class {} });
+  const ChatComponent = class {};
+  let routes;
+  replacements['./chat/chat.component'] = { ChatComponent };
+  replacements['@angular/core'] = { NgModule: () => target => target };
+  replacements['@angular/router'] = { RouterModule: { forRoot: value => { routes = value; return {}; } } };
+  load('../src/app/app-routing.module.ts', replacements);
+  for (const path of ['chat/:id', 'chat']) assert.equal(routes.find(route => route.path === path).component, ChatComponent);
+  for (const [path, target] of [['prototypes/chat-bubbles/:id', 'chat/:id'], ['prototypes/chat-bubbles', 'chat']]) {
+    const route = routes.find(route => route.path === path);
+    assert.equal(route.redirectTo, target); assert.equal(route.pathMatch, 'full'); assert.equal(route.component, undefined);
+  }
+});
+
+
+test('chat entry uses canonical navigation and preserves meaningful empty/error states', () => {
+  const { ChatComponent } = load('../src/app/chat/chat.component.ts', {
+    '@angular/core': { Component: () => target => target, ViewChild: () => () => {} },
+    './chatRead.service': { ChatReadService: class {} },
+    './chat-event/chat-event-editor.component': { ChatEventEditorComponent: class {} },
+    './chat-fund/chat-fund-editor.component': { ChatFundEditorComponent: class {} },
+    './chat-composer/chat-composer.component': { ChatComposerComponent: class {} }, './chatData': model
+  });
+  const zone = { run: fn => fn() }, reads = { reset() {} };
+  const route = id => ({ paramMap: of({ get: () => id }), snapshot: { queryParamMap: { get: () => '' } } });
+  for (const state of [{ status: 'ready', chain: 'latest' }, { status: 'ready', chain: '' }, { status: 'error', chain: '' }]) {
+    const calls = [];
+    const component = new ChatComponent(route(''), { navigate: (...args) => calls.push(args) }, {}, { latestHuman: of(state) }, zone, reads);
+    if (state.chain) assert.deepEqual(calls, [[['/chat', 'latest'], { replaceUrl: true }]]);
+    else assert.equal(component.state, state.status === 'error' ? 'error' : 'empty');
+    component.ngOnDestroy();
+  }
+  const broken = new ChatComponent(route('chat'), {}, { watch: () => throwError(() => Error('offline')) }, {}, zone, reads);
+  assert.equal(broken.state, 'error'); broken.ngOnDestroy();
 });

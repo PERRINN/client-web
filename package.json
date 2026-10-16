@@ -16,7 +16,8 @@
     "test:participation": "node --test scripts/participation.test.mjs",
     "test:telemetry": "node --test scripts/telemetry/*.test.mjs",
     "audit:enterprise": "node scripts/enterprise-audit/audit.mjs",
-    "audit:enterprise:test": "node --test scripts/enterprise-audit/*.test.mjs"
+    "audit:enterprise:test": "node --test scripts/enterprise-audit/*.test.mjs",
+    "test:chat": "node --test scripts/chat.test.mjs scripts/chat-actions.test.mjs"
   },
   "dependencies": {
     "@angular/animations": "21.2.24",

@@ -1,0 +1,43 @@
+.message-row { display: flex; align-items: flex-start; gap: 10px; margin: 0 auto; max-width: 850px; overflow: visible; }
+.member-avatar { display: grid; flex: 0 0 34px; width: 34px; height: 34px; place-items: center; border-radius: 50%; background: var(--color-raised); color: var(--color-text-secondary); font-size: 14px; }
+.message-content { min-width: 0; max-width: min(82%, 620px); padding: 8px 10px; border-radius: 4px 16px 16px; background: var(--color-surface); overflow: visible; }
+.message-meta { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; margin-bottom: 4px; }
+.message-meta strong { font-weight: 550; font-size: 14px; }
+.message-meta time { color: var(--color-text-muted); font-size: 13px; }
+.message-content p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.message-row.own { justify-content: flex-end; }
+.own .member-avatar { display: none; }
+.own .message-content { background: var(--color-raised); border-radius: 16px 4px 16px 16px; }
+.continued:not(.own)::before { content: ''; flex: 0 0 34px; }
+.continued .message-content { padding-block: 4px; border-radius: 4px 16px 16px 4px; }
+.own.continued .message-content { border-radius: 16px 4px 4px 16px; }
+:host(:not(.group-end)) .message-content { border-end-start-radius: 4px; }
+:host(.group-end) .continued:not(.own) .message-content { border-end-start-radius: 16px; }
+:host(:not(.group-end)) .own .message-content { border-end-start-radius: 16px; border-end-end-radius: 4px; }
+:host(.group-end) .own .message-content { border-end-end-radius: 16px; }
+.message-text { display: flex; align-items: flex-end; gap: 10px; }
+.message-text p { flex: 1 1 auto; min-width: 0; }
+.continuation-time { flex: 0 0 auto; margin-left: auto; color: var(--color-text-muted); font-size: 13px; }
+.verification-tick { display: inline-block; margin-left: 4px; color: var(--color-text-secondary); font-size: 16px; line-height: 1; }
+.image-button { display: block; max-width: 100%; padding: 0; margin-top: 10px; overflow: hidden; border-radius: 8px; background: var(--color-surface); }
+.image-button img { display: block; width: 100%; max-width: 400px; max-height: 240px; object-fit: contain; }
+:host { display: block; container-type: inline-size; padding-bottom: 4px; overflow: visible; color: var(--color-text); font-size: 14px; }
+:host(.group-end) { padding-bottom: 12px; }
+:host * { box-sizing: border-box; font-size: inherit; line-height: 1.45; transition: none; }
+p, span, strong, time { overflow: visible; }
+button { border: 0; cursor: pointer; }
+button:focus-visible, a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.mentioned .message-content { border-inline-start: 2px solid var(--color-accent); }
+.mention-label { display: block; margin-bottom: 4px; color: var(--color-accent); font-size: 13px; }
+@container (max-width: 700px) { .message-content { max-width: calc(100% - 44px); padding: 8px 10px; } .own .message-content { max-width: 92%; } }
+.transfer-summary { min-width: 0; overflow: visible; }
+.transfer-summary + .transfer-summary { margin-top: 12px; }
+.transfer-summary header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; overflow: visible; }
+.transfer-summary strong { font-weight: 550; }
+.transfer-status { color: var(--color-text-secondary); font-size: 13px; }
+.transfer-amount { margin-block: 6px; font-weight: 600; }
+.transfer-summary dl, .transfer-summary dl div, .transfer-summary dt, .transfer-summary dd { overflow: visible; }
+.transfer-summary dl div { display: grid; grid-template-columns: 68px minmax(0, 1fr); gap: 8px; margin-top: 4px; }
+.transfer-summary dt { color: var(--color-text-secondary); font-size: 13px; }
+.transfer-summary dd { min-width: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.activation-link { display: inline-flex; align-items: center; min-height: 44px; margin-top: 8px; color: var(--color-text); text-underline-offset: 3px; }

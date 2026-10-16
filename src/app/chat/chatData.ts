@@ -1,7 +1,9 @@
-import { EventRecord } from '../chat-event/chatEvent';
-import { ChatFund } from '../chat-fund/chatFund';
+import { EventRecord } from './chat-event/chatEvent';
+import { ChatFund } from './chat-fund/chatFund';
+import { TransferRecord, TransferSummary, transferSummaries } from './chatTransfer';
 export type ChatTimestamp = { seconds?: number; toMillis?: () => number } | number | null;
-export interface ChatRecord extends EventRecord {
+export interface ChatRecord extends EventRecord, TransferRecord {
+  isBackendMessage?: boolean;
   fund?: Partial<ChatFund>;
   chain?: string;
   user?: string;
@@ -22,7 +24,7 @@ export interface ChatRecord extends EventRecord {
   recipientList?: string[];
   recipients?: Record<string, { name?: string; imageUrlThumb?: string }>;
 }
-export interface BubbleMessage {
+export interface ChatMessage {
   id: string;
   user: string;
   author: string;
@@ -35,19 +37,21 @@ export interface BubbleMessage {
   image: string;
   originalImage: string;
   imageName: string;
+  transfers?: TransferSummary[];
 }
 export const timestampMillis = (value?: ChatTimestamp): number => {
   const timestamp = typeof value === 'number' ? value : value?.toMillis?.() || (value?.seconds || 0) * 1000;
   return Number.isFinite(timestamp) ? Math.floor(timestamp) : 0;
 };
 
-// Explicit presentation projection: never expose ledger/payment fields to the template.
-export function bubbleMessage(id: string, record: ChatRecord, userId: string | null): BubbleMessage {
-  const author = record.user === userId ? 'You' : record.name || 'Contributor';
+// Explicit presentation projection: raw account records stay out of the template.
+export function bubbleMessage(id: string, record: ChatRecord, userId: string | null, transferSource?: ChatRecord): ChatMessage {
+  const transfers = transferSummaries(id, record, userId, transferSource);
+  const author = record.isBackendMessage === true && transfers.length ? 'Transfer update' : record.user === userId ? 'You' : record.name || 'Contributor';
   const image = record.chatImageUrlMedium || record.chatImageUrlThumb || record.chatImageUrlOriginal || '';
   return {
     id, user: record.user || '', author, avatarName: record.name || 'Contributor', avatarSources: [record.imageUrlThumbUser, record.imageUrlMedium, record.imageUrlOriginal].filter((url): url is string => !!url),
-    text: record.text || '', timestamp: timestampMillis(record.serverTimestamp), own: !!userId && record.user === userId, verified: record.verified === true,
+    text: record.text || '', transfers, timestamp: timestampMillis(record.serverTimestamp), own: !!userId && record.user === userId, verified: record.verified === true,
     image, originalImage: record.chatImageUrlOriginal || image, imageName: image ? `Image from ${author}` : ''
   };
 }
@@ -59,16 +63,18 @@ export function chatMembers(record: ChatRecord, userId: string | null) {
   });
 }
 
-export function firstUnread(messages: BubbleMessage[], seen: number, messageId = ''): string {
+export function firstUnread(messages: ChatMessage[], seen: number, messageId = ''): string {
   return seen > 0 ? messages.find(message => isAfterPosition({ timestamp: message.timestamp, messageId: message.id }, { timestamp: seen, messageId }))?.id || '' : '';
 }
 
-export function continuesMessageGroup(previous: BubbleMessage | undefined, message: BubbleMessage, unreadId: string): boolean {
+export function continuesMessageGroup(previous: ChatMessage | undefined, message: ChatMessage, unreadId: string): boolean {
   return !!previous && !!message.user && previous.user === message.user && message.id !== unreadId
+    && !previous.transfers?.length && !message.transfers?.length
+    && previous.timestamp > 0 && message.timestamp >= previous.timestamp && message.timestamp - previous.timestamp <= 5 * 60 * 1000
     && new Date(previous.timestamp).toDateString() === new Date(message.timestamp).toDateString();
 }
 
-export { friendlyDateLabel as messageDateLabel } from '../chatDate';
+export { friendlyDateLabel as messageDateLabel } from './chatDate';
 
 export function chatImageError(image: File): string {
   if (!['image/png', 'image/jpeg', 'image/gif', 'image/webp'].includes(image.type)) return 'Choose a PNG, JPEG, GIF or WebP image.';

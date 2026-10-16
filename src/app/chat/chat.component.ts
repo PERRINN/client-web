@@ -1,30 +1,32 @@
-import { ChatEvent } from '../chat-event/chatEvent';
-import { ChatFund } from '../chat-fund/chatFund';
-import { ChatFundEditorComponent } from '../chat-fund/chat-fund-editor.component';
-import { ChatEventEditorComponent } from '../chat-event/chat-event-editor.component';
+import { ChatEvent } from './chat-event/chatEvent';
+import { ChatFund } from './chat-fund/chatFund';
+import { ChatFundEditorComponent } from './chat-fund/chat-fund-editor.component';
+import { ChatEventEditorComponent } from './chat-event/chat-event-editor.component';
 import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
-import { SidebarConversationsService } from '../../sidebarConversations.service';
-import { ChatComposerComponent, PrototypeChatDraft } from '../chat-composer/chat-composer.component';
-import { BubbleMessage, chatImageError, continuesMessageGroup, messageDateLabel } from './chatBubbleData';
-import { ChatBubbleReadService } from './chatBubbleRead.service';
-import { ChatBubbleDataService } from './chatBubbleData.service';
+import { SidebarConversationsService } from '../sidebarConversations.service';
+import { ChatComposerComponent, ChatDraft } from './chat-composer/chat-composer.component';
+import { ChatMessage, chatImageError, continuesMessageGroup, messageDateLabel } from './chatData';
+import { ChatReadService } from './chatRead.service';
+import { ChatDataService } from './chatData.service';
 
 @Component({
-  selector: 'app-chat-bubbles',
-  providers: [ChatBubbleReadService],
-  templateUrl: './chat-bubbles.component.html',
-  styleUrls: ['./chat-bubbles.component.css'],
+  selector: 'app-chat',
+  providers: [ChatReadService],
+  templateUrl: './chat.component.html',
+  styleUrls: ['./chat.component.css'],
   standalone: false
 })
-export class ChatBubblesComponent implements AfterViewInit, OnDestroy {
+export class ChatComponent implements AfterViewInit, OnDestroy {
   readonly dateLabel = messageDateLabel;
   event: ChatEvent | null = null;
   eventSaving = false;
   fund: ChatFund | null = null;
   fundSaving = false;
+  transferBusy = false;
+  get viewerName(): string { return this.signedIn ? this.data.viewerName : ''; }
   @ViewChild('fundEditor') fundEditor?: ChatFundEditorComponent;
   get fundCurrency() { return this.data.fundCurrency; }
   @ViewChild('eventEditor') eventEditor?: ChatEventEditorComponent;
@@ -60,7 +62,7 @@ export class ChatBubblesComponent implements AfterViewInit, OnDestroy {
   loadingMore = false;
   hasMore = false;
   unreadId = '';
-  messages: BubbleMessage[] = [];
+  messages: ChatMessage[] = [];
   members: { id: string; name: string; avatarName: string; avatar: string }[] = [];
   private limit = 30;
   private scrollTarget = '';
@@ -70,11 +72,11 @@ export class ChatBubblesComponent implements AfterViewInit, OnDestroy {
   private messageSubscription?: Subscription;
   private latestSubscription?: Subscription;
 
-  constructor(private route: ActivatedRoute, private router: Router, private data: ChatBubbleDataService, private sidebar: SidebarConversationsService, private zone: NgZone, public readonly reads: ChatBubbleReadService) {
+  constructor(private route: ActivatedRoute, private router: Router, private data: ChatDataService, private sidebar: SidebarConversationsService, private zone: NgZone, public readonly reads: ChatReadService) {
     this.subscriptions.add(route.paramMap.subscribe(params => {
       this.messageSubscription?.unsubscribe(); this.latestSubscription?.unsubscribe(); this.reads.reset();
       this.resetDetailsEditor(); this.savingDetails = false; this.detailsNotice = '';
-      this.event = null; this.eventSaving = false; this.fund = null; this.fundSaving = false;
+      this.event = null; this.eventSaving = false; this.fund = null; this.fundSaving = false; this.transferBusy = false;
       this.chain = params.get('id') || ''; this.messages = []; this.members = [];
       this.state = 'loading'; this.title = 'Conversation'; this.avatar = ''; this.unreadId = '';
       this.detailsOpen = false; this.awayFromLatest = false; this.sendError = ''; this.loadMoreError = '';
@@ -85,7 +87,7 @@ export class ChatBubblesComponent implements AfterViewInit, OnDestroy {
       else this.latestSubscription = this.sidebar.latestHuman.pipe(filter(value => value.status !== 'loading'), take(1)).subscribe(value => this.zone.run(() => {
         if (value.status === 'error') this.state = 'error';
         else if (!value.chain) this.state = 'empty';
-        else void this.router.navigate(['/prototypes/chat-bubbles', value.chain], { replaceUrl: true });
+        else void this.router.navigate(['/chat', value.chain], { replaceUrl: true });
       }));
     }));
   }
@@ -136,13 +138,13 @@ export class ChatBubblesComponent implements AfterViewInit, OnDestroy {
     else this.subscriptions.add(this.sidebar.human(1).pipe(take(1)).subscribe({
       next: rows => this.zone.run(() => {
         const chain = rows[0]?.payload.doc.data().chain;
-        if (chain) void this.router.navigate(['/prototypes/chat-bubbles', chain], { replaceUrl: true });
+        if (chain) void this.router.navigate(['/chat', chain], { replaceUrl: true });
         else this.state = 'empty';
       }), error: () => this.zone.run(() => this.state = 'error')
     }));
   }
 
-  async send(draft: PrototypeChatDraft): Promise<void> {
+  async send(draft: ChatDraft): Promise<void> {
     if (this.sending || !this.signedIn || !this.chain) return;
     const chain = this.chain;
     this.sending = true; this.sendError = '';
@@ -267,7 +269,7 @@ export class ChatBubblesComponent implements AfterViewInit, OnDestroy {
   }
 
   closeDetails(): void {
-    if (this.savingDetails || this.eventSaving || this.fundSaving) return;
+    if (this.savingDetails || this.eventSaving || this.fundSaving || this.transferBusy) return;
     this.resetDetailsEditor(); this.detailsNotice = '';
     this.detailsOpen = false; this.reads.paused = false; this.reads.scan();
     requestAnimationFrame(() => this.detailsTrigger?.nativeElement.focus());
@@ -280,7 +282,7 @@ export class ChatBubblesComponent implements AfterViewInit, OnDestroy {
 
   hideAvatar(event: Event): void { (event.target as HTMLImageElement).hidden = true; }
 
-  openImage(message: BubbleMessage): void {
+  openImage(message: ChatMessage): void {
     this.activeImage = message.originalImage; this.activeImageName = message.imageName;
     this.imageError = false; this.imageDialog?.nativeElement.showModal();
   }

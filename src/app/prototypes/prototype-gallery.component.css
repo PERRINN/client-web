@@ -57,10 +57,3 @@ h1 { margin-bottom: 6px; font-size: 25px; font-weight: 600; }
 .card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .card-heading h3 { margin-bottom: 0; font-size: 15px; font-weight: 600; }
 @media (max-width: 600px) { .prototype-gallery { padding: 18px 14px; } .gallery-header { align-items: flex-start; flex-direction: column; gap: 10px; } }
-
-.chat-page-preview { display: flex; flex-direction: column; gap: 4px; width: 80%; height: 80px; padding: 6px 10px; border-radius: 6px; background: var(--color-page); }
-.mini-chat-heading { width: 50%; height: 5px; margin-bottom: 2px; background: var(--color-text-secondary); border-radius: 2px; }
-.mini-message { width: 64%; height: 12px; border-radius: 2px 6px 6px; background: var(--color-surface); }
-.mini-message.own { align-self: flex-end; width: 53%; background: var(--color-raised); }
-.mini-unread { height: 1px; background: var(--color-selected); }
-.mini-composer { height: 10px; margin-top: auto; border-radius: 8px; background: var(--color-raised); }

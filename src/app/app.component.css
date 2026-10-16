@@ -6,9 +6,6 @@
   height: auto;
   overflow-y: auto;
 }
-:host #main_container:has(chat) {
-  overflow-y: hidden;
-}
 /* Shell owns the viewport; main_container owns page scrolling. */
 :host {
   display: block;
@@ -57,7 +54,6 @@
 :host .sidebarShell .navRight > button { margin: 0; }
 :host .sidebarShell #main_container { min-width: 0; width: 100%; height: 100%; padding: 16px; border-radius: 0; }
 :host .sidebarShell .contentWrap { width: 100%; max-width: 980px; min-height: 100%; margin: 0 auto; }
-:host .sidebarShell .contentWrap:has(chat) { max-width: none; }
 :host .sidebarShell .contentCard { border-radius: var(--radius-lg); overflow: hidden; min-height: 100%; border: 0; background: transparent; }
 :host .mobileShellHeader, :host .shellBackdrop { display: none; }
 :host .sidebarShell button { transition: none; }
@@ -111,7 +107,7 @@
 /* Let Live Link session navigation reach the top edge of its scroll viewport. */
 :host .sidebarShell #main_container:has(app-telemetry) { padding-top: 0; }
 
-/* Bubbles uses the shell's available chat viewport, without gallery framing. */
-:host .sidebarShell #main_container:has(app-chat-bubbles) { overflow-y: hidden; }
-:host .sidebarShell .contentWrap:has(app-chat-bubbles) { max-width: none; height: 100%; min-height: 0; }
-:host .sidebarShell .contentCard:has(app-chat-bubbles) { height: 100%; min-height: 0; }
+/* Chat owns scrolling inside the shell's available viewport. */
+:host .sidebarShell #main_container:has(app-chat) { overflow-y: hidden; }
+:host .sidebarShell .contentWrap:has(app-chat) { max-width: none; height: 100%; min-height: 0; }
+:host .sidebarShell .contentCard:has(app-chat) { height: 100%; min-height: 0; }

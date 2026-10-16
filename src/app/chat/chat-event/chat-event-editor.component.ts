@@ -1,6 +1,6 @@
 import { friendlyDateLabel } from '../chatDate';
 import { Component, ElementRef, EventEmitter, Input, NgZone, OnChanges, OnDestroy, Output, ViewChild } from '@angular/core';
-import { ChatBubbleDataService } from '../chat-bubbles/chatBubbleData.service';
+import { ChatDataService } from '../chatData.service';
 import { ChatEvent, EventDraft, eventDraft, eventDurationLabel, eventFromDraft, eventLocationUrl } from './chatEvent';
 
 @Component({
@@ -31,7 +31,7 @@ export class ChatEventEditorComponent implements OnChanges, OnDestroy {
   private currentChain = '';
   private generation = 0;
 
-  constructor(private data: ChatBubbleDataService, private zone: NgZone) {}
+  constructor(private data: ChatDataService, private zone: NgZone) {}
   get changed(): boolean { return !this.active || JSON.stringify(this.draft) !== this.initialDraft; }
   get active(): boolean { return !!this.event && this.event.end > Date.now(); }
   get timezoneLabel(): string {

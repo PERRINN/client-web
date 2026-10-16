@@ -29,7 +29,6 @@ export class PrototypeGalleryComponent {
       description: 'Follow message, image upload and PRN purchase flows across client and server.',
       route: '/prototypes/workflow-map'
     },
-    { name: 'chat-bubbles', category: 'chat', type: 'Chat', description: 'Live Firestore messages, images and chat details with production sending.', route: '/prototypes/chat-bubbles' },
     { name: 'editorial-mosaic', category: 'mosaics', type: 'Editorial mosaic', description: 'One broad lead image anchors a compact supporting grid.', route: '/prototypes/editorial-mosaic' },
     { name: 'balanced-grid', category: 'mosaics', type: 'Balanced grid', description: 'A regular image grid adapts its column count to the available width.', route: '/prototypes/balanced-grid' },
     { name: 'masonry-flow', category: 'mosaics', type: 'Masonry flow', description: 'Images keep varied heights in a responsive column flow.', route: '/prototypes/masonry-flow' },
@@ -82,7 +81,6 @@ export class PrototypeGalleryComponent {
 
   readonly categories = [
     { id: 'architecture', title: 'Architecture maps', prototypes: this.prototypes.filter(item => item.category === 'architecture') },
-    { id: 'chat', title: 'Chat', prototypes: this.prototypes.filter(item => item.category === 'chat') },
     { id: 'mosaics', title: 'Mosaics', prototypes: this.prototypes.filter(item => item.category === 'mosaics') },
     { id: 'colours', title: 'Colour palettes', prototypes: this.prototypes.filter(item => item.category === 'colours') }
   ];

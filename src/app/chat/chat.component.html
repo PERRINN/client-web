@@ -1,14 +1,15 @@
 <main class="chat-page">
   <div class="chat-viewport">
-    <section class="chat-frame" [class.details-open]="detailsOpen" aria-label="Chat preview">
+    <section class="chat-frame" [class.details-open]="detailsOpen" aria-label="Conversation">
       <div class="conversation">
         <header class="chat-header">
           <h1 class="chat-heading">
-            <button #detailsTrigger type="button" class="chat-identity-button" (click)="toggleDetails()" [disabled]="state === 'loading' || !chain || savingDetails || eventSaving || fundSaving" [attr.aria-expanded]="detailsOpen" aria-controls="chat-details" [attr.aria-label]="'Chat details: ' + title">
+            <button #detailsTrigger type="button" class="chat-identity-button" (click)="toggleDetails()" [disabled]="state === 'loading' || !chain || savingDetails || eventSaving || fundSaving || transferBusy" [attr.aria-expanded]="detailsOpen" aria-controls="chat-details" [attr.aria-label]="'Chat details: ' + title">
               <span class="chat-avatar" aria-hidden="true">{{ title.slice(0, 2) }}@if (avatar) { <img [src]="avatar" alt="" (error)="hideAvatar($event)"> }</span>
               <span class="chat-title"><span class="chat-subject">{{ title }}</span>@if (members.length) { <span class="chat-participants">{{ members.length }} participants</span> }</span>
             </button>
           </h1>
+          <app-chat-flag [chain]="chain" />
           <app-chat-event-summary [event]="event" (openEvent)="openEventDetails()" />
           <app-chat-fund-summary [fund]="fund" [currency]="fundCurrency" (openFund)="openFundDetails()" />
         </header>
@@ -27,26 +28,12 @@
               @let continued = isContinued($index);
               @if ($index === 0 || (messages[$index - 1].timestamp | date:'yyyy-MM-dd') !== (message.timestamp | date:'yyyy-MM-dd')) { <p class="date-divider"><time [attr.datetime]="message.timestamp ? (message.timestamp | date:'yyyy-MM-dd') : null" [attr.title]="message.timestamp ? (message.timestamp | date:'fullDate') : null">{{ dateLabel(message.timestamp) }}</time></p> }
               @if (message.id === unreadId) { <div class="unread-divider" role="separator" aria-label="New messages"><span>New messages</span></div> }
-              <article [attr.data-message-id]="message.id" [id]="'bubble-' + message.id" class="message-row" [class.own]="message.own" [class.continued]="continued" [attr.aria-label]="'Message from ' + message.author">
-                @if (!continued) { <app-user-avatar class="member-avatar" [name]="message.avatarName" [sources]="message.avatarSources" aria-hidden="true"></app-user-avatar> }
-                <div class="message-content">
-                  @if (!continued) { <div class="message-meta"><strong>{{ message.author }}</strong><time [attr.datetime]="message.timestamp ? (message.timestamp | date:'yyyy-MM-ddTHH:mm:ssZZZZZ') : null">{{ message.timestamp ? (message.timestamp | date:'HH:mm') : 'Sending' }}@if (signedIn && message.own && message.verified) { <span class="verification-tick" role="img" aria-label="Verified by platform" title="Verified by platform">✓</span> }</time></div> }
-                  <div class="message-text">
-                    @if (message.text) { <p [innerHTML]="message.text | linky"></p> }
-                    @if (continued) { <time class="continuation-time" [attr.datetime]="message.timestamp ? (message.timestamp | date:'yyyy-MM-ddTHH:mm:ssZZZZZ') : null">{{ message.timestamp ? (message.timestamp | date:'HH:mm') : 'Sending' }}@if (signedIn && message.own && message.verified) { <span class="verification-tick" role="img" aria-label="Verified by platform" title="Verified by platform">✓</span> }</time> }
-                  </div>
-                  @if (message.image) {
-                    <button type="button" class="image-button" (click)="openImage(message)" [attr.aria-label]="'Open image: ' + message.imageName">
-                      <img [src]="message.image" [alt]="message.imageName || 'Shared image'" (load)="onImageLoad()">
-                    </button>
-                  }
-                </div>
-              </article>
+              <app-chat-message [message]="message" [continued]="continued" [groupEnd]="$last || !isContinued($index + 1)" [signedIn]="signedIn" [viewerName]="viewerName" (imageOpened)="openImage($event)" (imageLoaded)="onImageLoad()" />
             }
           }
         </div>
         @if (showLatest && state === 'ready') { <button class="latest-button" type="button" (click)="jumpToLatest()">Latest messages ↓</button> }
-        <div class="composer-area"><app-prototype-chat-composer [disabled]="!signedIn || sending || !chain || state === 'loading' || state === 'error'" [sending]="sending" (messageSent)="send($event)" /></div>
+        <div class="composer-area"><app-chat-composer [disabled]="!signedIn || sending || !chain || state === 'loading' || state === 'error'" [sending]="sending" (messageSent)="send($event)" /></div>
         @if (reads.error) { <div class="read-error" role="alert"><span>{{ reads.error }}</span><button type="button" (click)="reads.retry(); retry()">Try again</button></div> }
         @if (sendError) { <p class="inline-error" role="alert">{{ sendError }}</p> }
         @if (!signedIn && chain && state !== 'loading' && state !== 'error') { <p class="composer-status"><a routerLink="/login">Sign in to send</a></p> }
@@ -54,7 +41,7 @@
       </div>
       @if (detailsOpen) {
         <aside id="chat-details" class="chat-details" tabindex="-1" aria-labelledby="details-title" (keydown.escape)="onDetailsEscape($event)">
-          <header><h2 id="details-title">Chat details</h2><button #detailsClose type="button" (click)="closeDetails()" [disabled]="savingDetails || eventSaving || fundSaving" aria-label="Close chat details">×</button></header>
+          <header><h2 id="details-title">Chat details</h2><button #detailsClose type="button" (click)="closeDetails()" [disabled]="savingDetails || eventSaving || fundSaving || transferBusy" aria-label="Close chat details">×</button></header>
           <div class="details-body">
             <div class="chat-identity">
               <span class="details-avatar" aria-hidden="true">{{ (editingDetails ? subjectDraft : title).slice(0, 2) }}@if (imagePreview || avatar) { <img [src]="imagePreview || avatar" alt="" (error)="hideAvatar($event)"> }</span>
@@ -76,8 +63,9 @@
             @if (detailsNotice) { <p class="details-notice" role="status">{{ detailsNotice }}</p> }
             <app-chat-event-editor #eventEditor [chain]="chain" [event]="event" [signedIn]="signedIn" (busyChange)="eventSaving = $event" />
             <app-chat-fund-editor #fundEditor [chain]="chain" [fund]="fund" [signedIn]="signedIn" (busyChange)="fundSaving = $event" />
+            <app-prn-send-manager [chain]="chain" [signedIn]="signedIn" [members]="members" (busyChange)="transferBusy = $event" />
             <h3>Participants <span>{{ members.length }}</span></h3>
-            <ul>@for (member of members; track member.id) { <li><app-user-avatar class="member-avatar" [name]="member.avatarName" [sources]="member.avatar" aria-hidden="true"></app-user-avatar><div><strong>{{ member.name }}</strong></div></li> }</ul>
+            <ul>@for (member of members; track member.id) { <li><a class="participant-link" [routerLink]="['/profile', member.id]" [attr.aria-label]="'View profile: ' + member.avatarName"><app-user-avatar class="member-avatar" [name]="member.avatarName" [sources]="member.avatar" aria-hidden="true"></app-user-avatar><span>{{ member.name }}</span></a></li> }</ul>
             <h3>Shared images</h3>
             <div class="shared-images">
               @for (message of messages; track message.id) {
