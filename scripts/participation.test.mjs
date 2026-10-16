@@ -227,6 +227,38 @@ test('team pages beyond 200 with a cursor and retries failures without losing lo
   assert.equal(team.hasMore, false);
   assert.equal((await firstValueFrom(team.people$)).length, 201);
   assert.deepEqual(cursors, ['199', '199']);
+  assert.deepEqual(Array.from(await firstValueFrom(team.people$), person => person.key), records.map(doc => doc.id));
+});
+
+test('team shows loading immediately, prevents concurrent reads and stops after an empty final page', async () => {
+  const { Subject } = require('rxjs');
+  const pending = new Subject();
+  const docs = Array.from({ length: 200 }, (_, id) => ({ id: String(id), data: () => ({ user: String(id), wallet: { balance: 1 } }) }));
+  let reads = 0;
+  const afs = { collection: (_, build) => {
+    const query = {
+      where: () => query, orderBy: () => query,
+      startAfter: cursor => { assert.equal(cursor, docs[199]); return query; },
+      limit: value => { assert.equal(value, 200); return query; }
+    };
+    build(query);
+    return { get: () => ++reads === 1 ? pending : of({ docs: [], size: 0 }) };
+  } };
+  const team = new TeamService(afs, null);
+  const firstPage = team.loadMore();
+  assert.equal(team.loading, true);
+  assert.equal((await firstValueFrom(team.people$)).length, 0);
+  await team.loadMore();
+  assert.equal(reads, 1);
+  pending.next({ docs, size: docs.length });
+  await firstPage;
+  assert.equal(team.loading, false);
+  assert.equal(team.hasMore, true);
+  await team.loadMore();
+  assert.equal(team.hasMore, false);
+  assert.equal((await firstValueFrom(team.people$)).length, 200);
+  await team.loadMore();
+  assert.equal(reads, 2);
 });
 
 test('team search matches names and bios, trims whitespace, and handles absent profile data', () => {
