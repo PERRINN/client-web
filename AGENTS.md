@@ -24,6 +24,8 @@ PERRINN is an open, contribution-oriented team. Do not introduce membership stat
 
 ## Working in this repository
 
+- Think strategically when coding: consider how each change supports the product's long-term direction and the health of the codebase, as well as solving the immediate problem. Treat code quality and sustainable maintenance as requirements for every change.
+- Before choosing an implementation, consider its effect on clarity, cohesion, coupling, testability, security, performance, and future changes. Prefer the simplest durable solution that fits the current architecture; avoid shortcuts that create hidden maintenance costs and speculative abstractions for unproven future needs. Explain material trade-offs and raise broader improvements separately when they exceed the agreed scope.
 - Modernise the app incrementally, one component or cohesive workflow at a time. Before changing a component, inspect its current implementation, callers, dependencies, routes, and relevant data or security boundaries. Keep unrelated components out of scope.
 - Define clear inputs, outputs, and service contracts for new or rebuilt components. Avoid coupling a replacement to another component's private implementation details; preserve existing integration behavior unless the task explicitly changes it.
 - Before UI work, read and follow [ui-spec.md](ui-spec.md), the authority for visual and interaction rules, including prototypes and legacy CSS handling. Inspect the relevant templates and matching rules in `src/styles.css`. Keep unrelated screens out of scope. If a global rule blocks the requested UI, identify its impact and propose the smallest focused global CSS change for review before editing it.
