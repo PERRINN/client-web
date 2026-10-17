@@ -151,3 +151,19 @@ test('posting time uses message metadata rather than upload time and follows the
   assert.equal(viewer.current.postedAt, 2000);
   await viewer.move(-1); assert.equal(viewer.current.postedAt, 1000); assert.equal(calls.length, 0);
 });
+
+test('closing the dialog restores connected opener focus without moving the chat scroll position', () => {
+  const calls = [];
+  const component = new ImageViewerComponent({ opened: false }, {});
+  component.dialog = { nativeElement: { open: false } };
+  component.opener = { isConnected: true, focus: options => calls.push(options) };
+  component.closed();
+  assert.deepEqual(calls, [{ preventScroll: true }]);
+  component.opener.isConnected = false;
+  component.closed();
+  assert.equal(calls.length, 1);
+  component.dialog.nativeElement.open = true;
+  component.opener.isConnected = true;
+  component.closed();
+  assert.equal(calls.length, 1);
+});

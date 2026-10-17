@@ -473,3 +473,10 @@ app-root .chatSubjectTwoLines {
     display: none;
   }
 }
+
+/* Programmatic dialog focus can inherit a keyboard ring after a touch.
+   Keep focus/scroll access intact, and let keyboard navigation restore rings.
+   The override must win over scoped component and browser outline rules. */
+app-root[data-input-modality="pointer"] :focus:not(input):not(textarea):not(select):not([contenteditable]:not([contenteditable="false"])) {
+  outline: none !important;
+}

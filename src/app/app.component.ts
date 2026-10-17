@@ -17,9 +17,22 @@ import { of } from 'rxjs';
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css'],
-    standalone: false
+    standalone: false,
+    host: { '[attr.data-input-modality]': 'inputModality' }
 })
 export class AppComponent implements OnInit, OnDestroy {
+  inputModality: 'pointer' | 'keyboard' = 'pointer';
+
+  @HostListener('document:pointerdown')
+  onPointerInput(): void { this.inputModality = 'pointer'; }
+
+  @HostListener('document:keydown', ['$event'])
+  onKeyboardInput(event: KeyboardEvent): void {
+    if (['Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown', 'Enter', ' ', 'Escape'].includes(event.key)) {
+      this.inputModality = 'keyboard';
+    }
+  }
+
   readonly activitySummary: Observable<ActivitySummary>;
   readonly automaticConversations: Observable<{ status: 'loading' | 'ready' | 'unavailable'; chats: SidebarConversation[] }>;
   automaticScrollbarVisible = false;

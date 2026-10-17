@@ -36,7 +36,7 @@ export class ImageViewerComponent implements AfterViewInit, OnDestroy {
     if (this.dialog.nativeElement.open) return;
     if (this.viewer.opened) this.viewer.close();
     this.src = ''; this.touch = undefined;
-    if (this.opener?.isConnected) this.opener.focus();
+    if (this.opener?.isConnected) this.opener.focus({ preventScroll: true });
   }
   keydown(event: KeyboardEvent): void {
     if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
