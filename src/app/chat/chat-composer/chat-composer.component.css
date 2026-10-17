@@ -12,7 +12,9 @@
 .attach-button > span::before, .attach-button > span::after { position: absolute; top: 50%; left: 50%; content: ''; border-radius: 1px; background: currentColor; transform: translate(-50%, -50%); }
 .attach-button > span::before { width: 18px; height: 2px; }
 .attach-button > span::after { width: 2px; height: 18px; }
-.attach-button:hover { background: var(--color-surface); }
+@media (hover: hover) and (pointer: fine) {
+  .attach-button:hover { background: var(--color-surface); }
+}
 .composer textarea { box-sizing: border-box; flex: 1; min-width: 0; height: 42px; min-height: 42px; max-height: 160px; overflow-y: hidden; padding: 9px 2px; border: 0; outline: 0; resize: none; background: transparent; color: var(--color-text); font: inherit; font-size: 14px; line-height: 21px; }
 .composer textarea::placeholder { color: var(--color-text-muted); }
 .send-button { margin: 0; background: var(--color-accent); color: var(--color-accent-ink); font-size: 23px; font-weight: 700; }

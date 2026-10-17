@@ -124,7 +124,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 
 ## Interaction
 
-- Keep hover changes subtle and neutral, such as a small surface change. For controls that already have borders, a subtle border change is also appropriate. Use a subtle neutral focus outline for keyboard users.
+- Keep hover changes subtle and neutral, such as a small surface change. For controls that already have borders, a subtle border change is also appropriate. Use a subtle neutral focus outline for keyboard users. Scope hover effects to `@media (hover: hover) and (pointer: fine)` so touch taps do not leave controls highlighted. The shell suppresses the native mobile tap overlay through inherited `-webkit-tap-highlight-color: transparent`; preserve text selection, input focus and visible keyboard focus indicators.
 - Show disabled controls with lower contrast and prevent interaction. Keep their labels legible.
 - Keep layouts stable while loading. When showing a loading label, use “Loading”; the surrounding UI supplies context. Where useful, include a small spinner or progress indicator.
 - Avoid animations and transitions. Do not animate routine navigation, hover, panel changes or feedback.

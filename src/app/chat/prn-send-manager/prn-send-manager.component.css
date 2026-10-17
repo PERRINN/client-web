@@ -8,8 +8,10 @@ form { display: flex; flex-direction: column; gap: 8px; }
 label { margin-top: 4px; font-size: 13px; }
 input, select { width: 100%; min-width: 0; min-height: 44px; margin: 0; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-raised); color: var(--color-text); color-scheme: dark; text-align: left; }
 button { min-height: 44px; margin: 0; padding: 8px 12px; border: 0; border-radius: 8px; background: var(--color-raised); color: var(--color-text-secondary); cursor: pointer; }
-button:hover { background: var(--color-selected); }
-.primary, .primary:hover { background: var(--color-accent); color: var(--color-accent-ink); }
+@media (hover: hover) and (pointer: fine) {
+  button:not(.primary):hover { background: var(--color-selected); }
+}
+.primary { background: var(--color-accent); color: var(--color-accent-ink); }
 .actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 button:disabled, input:disabled, select:disabled { opacity: .5; cursor: default; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, h4:focus { outline: 2px solid var(--color-focus); outline-offset: -2px; }
