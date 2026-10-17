@@ -111,3 +111,9 @@
 :host .sidebarShell #main_container:has(app-chat) { overflow-y: hidden; }
 :host .sidebarShell .contentWrap:has(app-chat) { max-width: none; height: 100%; min-height: 0; }
 :host .sidebarShell .contentCard:has(app-chat) { height: 100%; min-height: 0; }
+
+/* A radio session may keep listening briefly while another page is open. */
+:host .contentWrap:has(.radioReturn) { overflow: visible; }
+:host .radioReturn { position: sticky; top: 0; z-index: 5; display: flex; justify-content: flex-end; padding: 4px 0; margin-bottom: 8px; background: var(--color-page); }
+:host .radioReturn a { display: inline-flex; align-items: center; min-height: 44px; margin: 0; padding: 8px 12px; border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text); font-size: 14px; text-decoration: none; }
+:host .radioReturn a:hover { background: var(--color-raised); }

@@ -28,6 +28,7 @@ export class RadioAudioService {
   private muted = false;
   private activeToken?: string;
   private microphoneVersion = 0;
+  private microphoneRequest?: Promise<void>;
   private stopTimer?: ReturnType<typeof setTimeout>;
   private iceServers: RTCIceServer[] = [{ urls: 'stun:stun.l.google.com:19302' }];
   onSignal: (seat: string, signal: RadioSignal) => Promise<void> = async () => {};
@@ -52,17 +53,41 @@ export class RadioAudioService {
     this.onChange();
   }
 
-  async enableMicrophone() {
-    await this.resume();
-    if (this.microphoneReady) return;
+  enableMicrophone() {
+    if (this.microphoneRequest) return this.microphoneRequest;
+    if (this.microphoneReady) return this.resume();
+    if (!this.microphoneRequest) {
+      const request = this.captureMicrophone();
+      this.microphoneRequest = request;
+      void request.finally(() => { if (this.microphoneRequest === request) this.microphoneRequest = undefined; }).catch(() => {});
+    }
+    return this.microphoneRequest;
+  }
+
+  private async captureMicrophone() {
     const version = this.microphoneVersion;
+    const resumed = this.resume();
+    void resumed.catch(() => {});
     const context = this.context;
+    const cancelled = () => version !== this.microphoneVersion || context !== this.context || context.state === 'closed';
+    // Request directly in the button gesture, before awaiting audio startup.
     const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
-    if (version !== this.microphoneVersion || context !== this.context || context.state === 'closed') {
+    if (cancelled()) {
       stream.getTracks().forEach(track => track.stop());
       throw new Error('Microphone request cancelled.');
     }
+    // Own the stream while audio resumes so expiry/sign-out can stop it even
+    // when the browser keeps its audio context suspended.
     this.mic = stream;
+    try { await resumed; } catch (error) {
+      stream.getTracks().forEach(track => track.stop());
+      if (this.mic === stream) this.mic = undefined;
+      throw error;
+    }
+    if (cancelled()) {
+      stream.getTracks().forEach(track => track.stop());
+      throw new Error('Microphone request cancelled.');
+    }
     this.micSource = this.context.createMediaStreamSource(stream);
     this.micGate = this.context.createGain();
     this.micGate.gain.value = 0;
@@ -77,6 +102,7 @@ export class RadioAudioService {
 
   disableMicrophone() {
     ++this.microphoneVersion;
+    this.microphoneRequest = undefined;
     this.stop();
     this.mic?.getTracks().forEach(track => { track.onended = null; track.stop(); });
     this.micSource?.disconnect(); this.micGate?.disconnect(); this.delay?.disconnect();

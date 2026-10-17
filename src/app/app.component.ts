@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, HostListener, ViewChild, ElementRef } from '@angular/core';
+import { RadioLifecycleService } from './prototypes/team-radio/radioLifecycle.service';
+import { Component, OnInit, OnDestroy, HostListener, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { activeChatChain, sidebarChatCommands } from './chatNavigation';
 import { Router, NavigationEnd } from '@angular/router';
 import { UserInterfaceService } from './userInterface.service';
@@ -31,6 +32,7 @@ export class AppComponent implements OnInit, OnDestroy {
   @ViewChild('sidebarNavigation') sidebarNavigation?: ElementRef<HTMLElement>;
   private navigationSubscription: Subscription;
   private presenceSubscription?: Subscription;
+  private radioSubscription: Subscription;
 
   get activeSidebarChatId(): string | null { return activeChatChain(this.router.url); }
 
@@ -85,6 +87,7 @@ export class AppComponent implements OnInit, OnDestroy {
     clearTimeout(this.automaticScrollbarTimer);
     this.navigationSubscription.unsubscribe();
     this.presenceSubscription?.unsubscribe();
+    this.radioSubscription.unsubscribe();
   }
 
   private cleanupLegacyLocalStorage(): void {
@@ -105,8 +108,11 @@ export class AppComponent implements OnInit, OnDestroy {
     private updates: SwUpdate,
     private presence: PresenceService,
     activity: MessageActivityService,
-    conversations: SidebarConversationsService
+    conversations: SidebarConversationsService,
+    public radioLifecycle: RadioLifecycleService,
+    changeDetector: ChangeDetectorRef
   ) {
+    this.radioSubscription = radioLifecycle.changed.subscribe(() => changeDetector.markForCheck());
     this.activitySummary = activity.summary();
     this.automaticConversations = conversations.automatic().pipe(
       map(chats => ({ status: 'ready' as const, chats })),

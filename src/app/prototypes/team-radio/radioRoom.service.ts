@@ -9,12 +9,17 @@ import { firstValueFrom, Subject, Subscription } from 'rxjs';
 import { RadioAudioService, RadioSignal } from './radioAudio.service';
 import { activeFloor, connectionFor, RadioRoom, RECONNECT_GRACE_MS, ROOM_PATH, seatFor, speakerFor } from './radioState';
 
+export interface RadioReturnSession { uid: string; seat: string; session: string; until: number }
+
 @Injectable()
 export class RadioRoomService implements OnDestroy {
   readonly changed = new Subject<void>();
   room: RadioRoom = {};
   user?: firebase.User;
   loading = true;
+  authResolved = false;
+  private rosterLoaded = new Set<string>();
+  private pageActive = true;
   connected = false;
   joined = false;
   error = '';
@@ -48,19 +53,20 @@ export class RadioRoomService implements OnDestroy {
   get speakerCount() { return Object.keys(this.room.speakers || {}).length; }
   get transmitting() { return !!this.speakingToken && this.floor?.token === this.speakingToken; }
   get reconnecting() { return this.joined && this.disconnectDeadline > 0; }
-  get audioReady() { return !this.reconnecting && this.activePresence && this.connected && this.audio.canTransmit; }
+  get returnUntil() { return this.reconnecting ? this.disconnectDeadline - this.offset : Date.now() + RECONNECT_GRACE_MS; }
+  get audioReady() { return this.pageActive && !this.reconnecting && this.activePresence && this.connected && this.audio.canTransmit; }
 
   constructor(private auth: AngularFireAuth, database: AngularFireDatabase, public audio: RadioAudioService, private zone: NgZone, private profiles: UserInterfaceService, private firestore: AngularFirestore, private injector: EnvironmentInjector) {
     this.root = database.database.ref(ROOM_PATH);
     this.audio.onSignal = async (seat, signal) => {
       if (this.connected && this.activePresence && signal.fromSession === this.session) await this.root.child(`signals/${seat}/${this.seat}`).set(signal);
     };
-    this.audio.onError = message => this.zone.run(() => { if (!this.reconnecting) this.error = message; });
+    this.audio.onError = message => this.zone.run(() => { if (!this.reconnecting) this.error = message; this.changed.next(); });
     this.audio.onEnded = () => this.zone.run(() => { void this.releaseTalk(); });
-    this.audio.onChange = () => this.zone.run(() => this.refreshPresence());
+    this.audio.onChange = () => this.zone.run(() => { this.refreshPresence(); this.changed.next(); });
     this.authSubscription = this.auth.authState.subscribe(user => {
       this.stopSession(); this.unlisten(); this.room = {}; this.seat = undefined; this.error = '';
-      this.user = user || undefined; this.loading = !!user;
+      this.user = user || undefined; this.loading = !!user; this.authResolved = true; this.rosterLoaded.clear();
       if (!user) return;
       this.watch(database.database.ref('.info/serverTimeOffset'), value => this.offset = Number(value) || 0);
       this.watch(database.database.ref('.info/connected'), value => {
@@ -69,7 +75,8 @@ export class RadioRoomService implements OnDestroy {
       for (const [name, limit] of [['seats', 10], ['speakers', 3], ['presence', 10]] as const) {
         this.watch(this.root.child(name).limitToFirst(limit), value => {
           this.room = { ...this.room, [name]: value || {} };
-          if (name === 'seats') { this.loading = false; this.seat = seatFor(this.room, user.uid); }
+          if (name === 'seats') this.seat = seatFor(this.room, user.uid);
+          this.rosterLoaded.add(name); this.loading = this.rosterLoaded.size < 3;
           this.sync();
         });
       }
@@ -84,7 +91,9 @@ export class RadioRoomService implements OnDestroy {
     const generation = ++this.generation;
     const uid = this.user.uid;
     this.error = '';
-    await this.audio.resume();
+    // Autoplay may wait for a gesture indefinitely. It must not block claiming
+    // a listener place; the page exposes Enable sound when playback is blocked.
+    void this.audio.resume().catch(() => this.changed.next());
     await this.reclaimStale();
     const name = await this.resolveName(this.user);
     if (generation !== this.generation || this.destroyed || this.user?.uid !== uid) return;
@@ -94,6 +103,7 @@ export class RadioRoomService implements OnDestroy {
       if (this.room.seats?.[seat] && this.room.seats[seat].uid !== uid) continue;
       this.seat = seat;
       this.cleanup = this.releasePatch(seat, session);
+      const cleanup = this.cleanup;
       const claim: Record<string, unknown> = { [`seats/${seat}`]: { uid, name }, [`presence/${seat}`]: this.presenceData() };
       for (const [slot, speaker] of Object.entries(this.room.speakers || {})) if (speaker.uid === uid) claim[`speakers/${slot}`] = null;
       try {
@@ -105,20 +115,49 @@ export class RadioRoomService implements OnDestroy {
         if (this.permissionDenied(error)) continue;
         throw error;
       }
-      if (generation !== this.generation || this.destroyed) return;
+      if (generation !== this.generation || this.destroyed) { await this.root.update(cleanup).catch(() => {}); return; }
       this.joined = true;
       this.presenceRef = this.root.child(`presence/${seat}`);
       try {
         await this.armCleanup();
         if (generation !== this.generation || this.destroyed) return;
         this.activePresence = true; this.lastPresence = '';
-        this.mailbox?.();
-        this.mailbox = this.watch(this.root.child(`signals/${seat}`).limitToFirst(10), value => { this.signals = value || {}; this.sync(); }, false);
+        this.listenSignals(seat);
         this.sync(); return;
       } catch (error) { if (generation === this.generation) this.stopSession(); throw error; }
     }
     this.session = ''; this.audio.close();
     throw new Error('Room full. All 10 places are taken.');
+  }
+
+  setPageActive(active: boolean) {
+    if (active === this.pageActive) return;
+    this.pageActive = active;
+    if (!active) void this.releaseTalk();
+  }
+
+  suspendPage() {
+    if (this.joined && !this.reconnecting) this.pauseSession();
+    this.changed.next();
+  }
+
+  resumePage() { if (this.joined && this.reconnecting && this.connected) void this.restoreSession(); }
+
+  async recover(saved: RadioReturnSession) {
+    if (this.joined || !this.connected || this.loading || this.user?.uid !== saved.uid || saved.until <= Date.now()) return;
+    if (seatFor(this.room, saved.uid) !== saved.seat || this.room.presence?.[saved.seat]?.session !== saved.session) return;
+    ++this.generation;
+    this.seat = saved.seat; this.session = saved.session; this.joined = true;
+    this.cleanup = this.releasePatch(saved.seat, saved.session, this.speakingPlace);
+    this.presenceRef = this.root.child(`presence/${saved.seat}`);
+    this.disconnectDeadline = saved.until + this.offset; this.activePresence = false;
+    this.listenSignals(saved.seat);
+    await this.restoreSession();
+  }
+
+  private listenSignals(seat: string) {
+    this.mailbox?.();
+    this.mailbox = this.watch(this.root.child(`signals/${seat}`).limitToFirst(10), value => { this.signals = value || {}; this.sync(); }, false);
   }
 
   async reconnect() { this.stopSession(); await this.join(); }
@@ -154,7 +193,7 @@ export class RadioRoomService implements OnDestroy {
   exit() { this.stopSession(); this.changed.next(); }
 
   async talk() {
-    if (this.held || this.releasing) return;
+    if (!this.pageActive || this.held || this.releasing) return;
     this.held = true;
     const press = ++this.press;
     this.error = '';
@@ -173,6 +212,7 @@ export class RadioRoomService implements OnDestroy {
       const floor = result.snapshot.val();
       this.speakingToken = token;
       this.audio.transmit(floor, floor.expiresAt - Date.now() - this.offset);
+      this.changed.next();
     } catch (error) { await this.clearFloor(token).catch(() => {}); this.showError(error); }
   }
 
@@ -182,6 +222,7 @@ export class RadioRoomService implements OnDestroy {
     const token = this.speakingToken;
     const uid = this.user?.uid;
     this.speakingToken = undefined;
+    this.changed.next();
     if (!token || this.releasing) return;
     this.releasing = true;
     try {
@@ -317,7 +358,7 @@ export class RadioRoomService implements OnDestroy {
         return { ...this.presenceData(), session, ready: false };
       }, undefined, false);
       if (!result.committed) {
-        if (generation === this.generation && this.connected) { this.stopSession(); this.error = 'Radio session ended. Join again.'; }
+        if (generation === this.generation && this.connected) { this.stopSession(); this.error = 'Radio session ended.'; }
         return;
       }
       cleanup = this.releasePatch(seat, session, this.speakingPlace);
@@ -328,6 +369,7 @@ export class RadioRoomService implements OnDestroy {
       if (generation !== this.generation || !this.joined || !this.connected) return;
       if (Date.now() + this.offset >= this.disconnectDeadline) { this.stopSession(); return; }
       this.disconnectDeadline = 0; this.activePresence = true; this.error = '';
+      this.changed.next();
       await this.audio.resume();
       this.sync();
     } catch (error) {
@@ -372,7 +414,7 @@ export class RadioRoomService implements OnDestroy {
     ++this.generation; this.disconnectDeadline = 0;
     const cleanup = this.cleanup; this.cleanup = undefined;
     if (cleanup) void this.root.update(cleanup).catch(() => { /* Server disconnect or stale-place recovery is the fallback. */ });
-    void this.releaseTalk(); this.joined = false; this.activePresence = false;
+    this.joined = false; this.activePresence = false; void this.releaseTalk();
     this.mailbox?.(); this.mailbox = undefined; this.signals = {};
     this.presenceRef = undefined;
     this.audio.close(); this.session = '';

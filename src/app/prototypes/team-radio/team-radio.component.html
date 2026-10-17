@@ -10,7 +10,8 @@
       @if (!radio.joined || (radio.error && radio.connected) || !radio.connected || radio.reconnecting) {
         <div class="actions">
           @if (!radio.joined) {
-            <button class="primary" [disabled]="busy || !radio.connected || radio.reconnecting || (radio.seat === undefined && radio.seats.length >= 10)" (click)="run(radio.join.bind(radio))">{{ radio.seat === undefined && radio.seats.length >= 10 ? 'Room full' : 'Join' }}</button>
+            @if (radio.connected && !radio.error) { <span role="status">{{ radio.seat === undefined && radio.seats.length >= 10 ? 'Room full' : 'Connecting' }}</span> }
+            @if (radio.connected && radio.error) { <button [disabled]="busy" (click)="run(radio.reconnect.bind(radio))">Retry</button> }
           }
           @if (radio.joined && radio.error && radio.connected && !radio.reconnecting) {
             <button [disabled]="busy" (click)="run(radio.reconnect.bind(radio))">Reconnect</button>
@@ -54,6 +55,5 @@
         </div>
       }
     </section>
-    @if (radio.joined && radio.speakingPlace !== undefined) { <p class="key-note">Hold Space to open mic.</p> }
   }
 </main>

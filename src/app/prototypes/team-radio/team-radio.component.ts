@@ -1,21 +1,24 @@
 import { ChangeDetectorRef, Component, HostListener, OnDestroy } from '@angular/core';
 import { RadioAvatarsService } from './radioAvatars.service';
 import { RadioRoomService } from './radioRoom.service';
-import { RadioAudioService } from './radioAudio.service';
+import { RadioLifecycleService } from './radioLifecycle.service';
 import { Subscription } from 'rxjs';
 import { acceptsTalkKey } from './radioState';
 
 @Component({
   selector: 'app-team-radio', standalone: false,
   templateUrl: './team-radio.component.html', styleUrls: ['./team-radio.component.css'],
-  providers: [RadioRoomService, RadioAudioService, RadioAvatarsService]
+  providers: [RadioAvatarsService]
 })
 export class TeamRadioComponent implements OnDestroy {
+  radio: RadioRoomService;
   busy = false;
   private pointer?: number;
   private destroyed = false;
   private changes: Subscription;
-  constructor(public radio: RadioRoomService, private changeDetector: ChangeDetectorRef, public avatars: RadioAvatarsService) {
+  constructor(private lifecycle: RadioLifecycleService, private changeDetector: ChangeDetectorRef, public avatars: RadioAvatarsService) {
+    const radio = this.radio = lifecycle.enterPage();
+    avatars.sync(radio.seats.map(person => person.uid), radio.user?.uid);
     this.changes = radio.changed.subscribe(() => {
       avatars.sync(radio.seats.map(person => person.uid), radio.user?.uid);
       changeDetector.markForCheck();
@@ -51,9 +54,7 @@ export class TeamRadioComponent implements OnDestroy {
   keyUp(event: KeyboardEvent) { if (event.code === 'Space') { event.preventDefault(); void this.radio.releaseTalk(); } }
   @HostListener('window:blur')
   blur() { this.pointer = undefined; void this.radio.releaseTalk(); }
-  @HostListener('window:pagehide')
-  pageHide() { this.pointer = undefined; this.radio.exit(); }
   @HostListener('document:visibilitychange')
   visibility() { if (document.hidden) this.blur(); }
-  ngOnDestroy() { this.destroyed = true; this.changes.unsubscribe(); void this.radio.releaseTalk(); }
+  ngOnDestroy() { this.destroyed = true; this.changes.unsubscribe(); this.lifecycle.leavePage(); }
 }
