@@ -4,6 +4,7 @@
     <header class="mobileShellHeader">
       <button #menuToggle type="button" (click)="openSidebar()" aria-label="Open navigation" aria-controls="shell-navigation" [attr.aria-expanded]="sidebarOpen"><span class="hamburgerIcon" aria-hidden="true"><span></span><span></span><span></span></span></button>
       <a class="mobile-brand" routerLink="/home">PERRINN<ng-container [ngTemplateOutlet]="activityDots"></ng-container></a>
+      <ng-container [ngTemplateOutlet]="radioReturn"></ng-container>
     </header>
     @if (sidebarOpen) {
       <button class="shellBackdrop" type="button" aria-label="Close navigation" (click)="closeSidebar()"></button>
@@ -23,10 +24,13 @@
         <span class="material-icons-outlined">info</span>
         <span>Discover</span>
       </button>
-      <button class="iconBtn" routerLink="/apps" routerLinkActive="activeNav" [attr.aria-current]="router.url === '/apps' ? 'page' : null" aria-label="Open apps">
-        <span class="material-icons-outlined">apps</span>
-        <span>Apps</span>
-      </button>
+      <div class="shellAppActions">
+        <button class="iconBtn" routerLink="/apps" routerLinkActive="activeNav" [attr.aria-current]="router.url === '/apps' ? 'page' : null" aria-label="Open apps">
+          <span class="material-icons-outlined">apps</span>
+          <span>Apps</span>
+        </button>
+        <ng-container [ngTemplateOutlet]="radioReturn"></ng-container>
+      </div>
     </nav>
     <div class="conversationSpace">
       <section class="sideProfile" aria-label="Conversations" [class.is-scrolling]="conversationScrollbarVisible" (scroll)="onConversationScroll()">
@@ -69,9 +73,6 @@
 
   <div id='main_container' [attr.inert]="mobileLayout && sidebarOpen ? '' : null">
     <div id='secondary_container' class="contentWrap">
-      @if (radioLifecycle.returnLabel; as radioLabel) {
-        <div class="radioReturn"><a routerLink="/prototypes/team-radio" [attr.aria-label]="'Return to radio, ' + radioLabel.slice(8) + ' remaining'">{{ radioLabel }}</a></div>
-      }
       <div class="contentCard">
         <router-outlet></router-outlet>
       </div>
@@ -79,6 +80,12 @@
   </div>
 
 </div>
+
+<ng-template #radioReturn>
+  @if (radioLifecycle.returnLabel; as radioLabel) {
+    <a class="radioReturn" routerLink="/prototypes/team-radio" [attr.aria-label]="'Return to radio, ' + radioLabel.slice(8) + ' remaining'">{{ radioLabel }}</a>
+  }
+</ng-template>
 
 <ng-template #activityDots>
   @if (activitySummary | async; as activity) {
