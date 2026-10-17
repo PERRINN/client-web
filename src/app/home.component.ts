@@ -128,7 +128,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   openImage(message: HomeMessage): void {
-    this.UI.showFullScreenImage(message.chatImageUrlOriginal || this.imageUrl(message), { chain: message.chain, id: message.id, name: 'Shared image' });
+    this.UI.showFullScreenImage(message.chatImageUrlOriginal || this.imageUrl(message), { chain: message.chain, id: message.id, name: 'Shared image', subject: message.chatSubject });
   }
 
   openChat(chain?: string): void {

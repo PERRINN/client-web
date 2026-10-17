@@ -288,7 +288,7 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
   hideAvatar(event: Event): void { (event.target as HTMLImageElement).hidden = true; }
 
   openImage(message: ChatMessage): void {
-    const image = (item: ChatMessage) => ({ src: item.originalImage, name: item.imageName, id: item.id, chain: this.chain, imageTimestamp: item.imageTimestamp });
+    const image = (item: ChatMessage) => ({ src: item.originalImage, name: item.imageName, id: item.id, chain: this.chain, imageTimestamp: item.imageTimestamp, subject: this.title });
     this.imageViewer.open(image(message), this.messages.filter(item => !!item.originalImage).map(image));
   }
 

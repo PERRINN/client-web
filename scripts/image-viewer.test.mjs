@@ -30,7 +30,7 @@ function fixture(pages = []) {
 }
 test('image projection uses available stored URLs and excludes non-images', () => {
   assert.equal(recordImage('none', { chain: 'thread' }), null);
-  assert.deepEqual(recordImage('legacy', { chain: 'thread', chatImageUrlThumb: 'thumb' }), { id: 'legacy', chain: 'thread', src: 'thumb', name: 'Shared image', imageTimestamp: undefined });
+  assert.deepEqual(recordImage('legacy', { chain: 'thread', chatImageUrlThumb: 'thumb' }), { id: 'legacy', chain: 'thread', src: 'thumb', name: 'Shared image', imageTimestamp: undefined, subject: undefined });
 });
 test('older and newer pages preserve chronological order, selected image, thread scope and endpoints', async () => {
   const { viewer, calls } = fixture([[doc('older2'), doc('older1')], [doc('newer1'), doc('newer2')]]);
@@ -118,4 +118,12 @@ test('cached chat images follow upload timestamp and ID order even when message 
   assert.deepEqual(viewer.images.map(image => image.id), ['a', 'b', 'c']);
   assert.equal(viewer.current.id, 'b');
   await viewer.move(1); assert.equal(viewer.current.id, 'c'); assert.equal(calls.length, 0);
+});
+test('thread subjects come from existing metadata and remain stable across image pages', async () => {
+  assert.equal(recordImage('image', { chatImageUrlOriginal: 'url', chatSubject: 'Design' }).subject, 'Design');
+  const { viewer, calls } = fixture([[doc('older')]]);
+  viewer.open({ src: 'selected', id: 'selected', chain: 'thread', subject: 'Current design' });
+  assert.equal(calls.length, 0);
+  await viewer.move(-1); assert.equal(viewer.current.subject, 'Current design');
+  await viewer.move(1); assert.equal(viewer.current.subject, 'Current design');
 });

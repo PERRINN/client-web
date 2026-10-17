@@ -547,9 +547,9 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
     return (start - 300000) <= now && end > now
   }
 
-  openCarouselImage(message: { chain?: string; chatImageUrlOriginal?: string; chatImageUrlMedium?: string; chatImageUrlThumb?: string }, id: string) {
+  openCarouselImage(message: { chatSubject?: string; chain?: string; chatImageUrlOriginal?: string; chatImageUrlMedium?: string; chatImageUrlThumb?: string }, id: string) {
     const src = message.chatImageUrlOriginal || message.chatImageUrlMedium || message.chatImageUrlThumb;
-    if (src) this.UI.showFullScreenImage(src, { chain: message.chain, id, name: 'Shared image' });
+    if (src) this.UI.showFullScreenImage(src, { chain: message.chain, id, name: 'Shared image', subject: message.chatSubject });
   }
 
   loadMore() {

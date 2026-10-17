@@ -8,7 +8,7 @@
     @if (imageError) { <div class="image-status"><p role="alert">This image couldn’t load.</p><button type="button" (click)="retryImage()">Retry</button></div> }
   </div>
   <footer>
-    @if (viewer.current?.chain) { <button type="button" (click)="goToThread()">Go to chat thread</button> }
+    @if (viewer.current?.chain) { <button type="button" class="thread-link" (click)="goToThread()" [attr.aria-label]="'Open chat: ' + (viewer.current.subject || 'Conversation')">{{ viewer.current.subject || 'Conversation' }}</button> }
     @if (viewer.current?.chain && viewer.current?.id) {
       <div class="navigation" aria-label="Thread images">
         <button type="button" aria-label="Previous image" [disabled]="viewer.loading || !viewer.canMove(-1)" (click)="viewer.move(-1)">←</button>

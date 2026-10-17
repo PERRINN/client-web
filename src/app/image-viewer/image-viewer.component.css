@@ -19,3 +19,5 @@ footer { flex-wrap: wrap; margin-top: 12px; }
 .navigation { margin-left: auto; }
 .page-error { flex-wrap: wrap; color: var(--color-danger-text); }
 @media (max-width: 500px) { dialog { padding: 12px; } img { max-height: 62dvh; } }
+
+.thread-link { min-width: 0; max-width: 100%; flex-shrink: 1; overflow-wrap: anywhere; white-space: normal; text-align: left; }

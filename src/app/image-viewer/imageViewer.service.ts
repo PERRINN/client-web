@@ -3,14 +3,14 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Subject } from 'rxjs';
 import firebase from 'firebase/compat/app';
 
-export interface ViewerImage { src: string; name?: string; chain?: string; id?: string; imageTimestamp?: string; }
-interface ImageRecord { chatImageTimestamp?: string; chain?: string; name?: string; chatImageUrlOriginal?: string; chatImageUrlMedium?: string; chatImageUrlThumb?: string; }
+export interface ViewerImage { src: string; name?: string; chain?: string; id?: string; imageTimestamp?: string; subject?: string; }
+interface ImageRecord { chatSubject?: string; chatImageTimestamp?: string; chain?: string; name?: string; chatImageUrlOriginal?: string; chatImageUrlMedium?: string; chatImageUrlThumb?: string; }
 type Cursor = firebase.firestore.DocumentSnapshot<ImageRecord>;
 type Direction = -1 | 1;
 
 export function recordImage(id: string, record: ImageRecord): ViewerImage | null {
   const src = record.chatImageUrlOriginal || record.chatImageUrlMedium || record.chatImageUrlThumb;
-  return src ? { id, chain: record.chain, src, name: record.name ? `Image from ${record.name}` : 'Shared image', imageTimestamp: record.chatImageTimestamp } : null;
+  return src ? { id, chain: record.chain, src, name: record.name ? `Image from ${record.name}` : 'Shared image', imageTimestamp: record.chatImageTimestamp, subject: record.chatSubject } : null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -69,6 +69,7 @@ export class ImageViewerService {
       if (page.size < 25) this.ended[direction] = true;
       if (page.size) this.cursors[direction] = page.docs[page.size - 1];
       if (images.length) {
+        for (const image of images) image.subject = selected.subject || image.subject;
         if (direction < 0) { this.images.unshift(...images.reverse()); this.index = images.length - 1; }
         else { this.index = this.images.length; this.images.push(...images); }
       }
