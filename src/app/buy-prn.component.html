@@ -155,10 +155,10 @@
         </div>
       }
 
-      @if (UI.currentUser && !processing && creditSelected!=undefined && currencySelected!=undefined) {
+      @if (UI.currentUser && creditSelected!=undefined && currencySelected!=undefined) {
         <button class="buttonPrimary checkout-btn"
           (click)="payWithRevolutLink()"
-          [disabled]="isPaymentFlowLocked || !canContribute">
+          [disabled]="processing || isPaymentFlowLocked || !canContribute">
           <span class="material-symbols-outlined buy-btn-icon">arrow_forward</span>
           Proceed to Checkout
         </button>

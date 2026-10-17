@@ -1,7 +1,12 @@
 @if (userId && chain) {
-  <button type="button" [class.flagged]="flagged" [attr.aria-pressed]="flagged" [disabled]="!ready || saving" (click)="toggle()" [attr.aria-label]="flagged ? 'Remove conversation flag' : 'Flag conversation'" [title]="flagged ? 'Remove flag' : 'Flag conversation'">
-    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14l-3 5 3 5H5Z" [attr.fill]="flagged ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M5 3v18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  <button type="button" [class.flagged]="flagged && !unavailable" [attr.aria-pressed]="unavailable ? null : flagged" [disabled]="(!ready && !unavailable) || saving" (click)="unavailable ? retry() : toggle()" [attr.aria-label]="unavailable ? 'Retry flag' : flagged ? 'Remove conversation flag' : 'Flag conversation'" [title]="unavailable ? 'Retry flag' : flagged ? 'Remove flag' : 'Flag conversation'">
+    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+      @if (unavailable) {
+        <path d="M20 4v6h-6M19.5 10a7.5 7.5 0 1 0-1.2 7.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      } @else {
+        <path d="M5 3h14l-3 5 3 5H5Z" [attr.fill]="flagged ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M5 3v18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      }
+    </svg>
   </button>
-  @if (unavailable) { <button type="button" class="retry" (click)="retry()">Retry flag</button> }
   @if (error) { <p role="alert">{{ error }}</p> }
 }
