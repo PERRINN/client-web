@@ -17,7 +17,6 @@ export class RadioRoomService implements OnDestroy {
   loading = true;
   connected = false;
   joined = false;
-  muted = false;
   error = '';
   seat?: string;
   session = '';
@@ -28,6 +27,9 @@ export class RadioRoomService implements OnDestroy {
   private listeners: (() => void)[] = [];
   private mailbox?: () => void;
   private signals: Record<string, RadioSignal> = {};
+  private generation = 0;
+  private cleanup?: Record<string, unknown>;
+  private reclaiming = false;
   private presenceRef?: firebase.database.Reference;
   private tickTimer: ReturnType<typeof setInterval>;
   private heartbeatTimer: ReturnType<typeof setInterval>;
@@ -58,8 +60,7 @@ export class RadioRoomService implements OnDestroy {
       this.watch(database.database.ref('.info/serverTimeOffset'), value => this.offset = Number(value) || 0);
       this.watch(database.database.ref('.info/connected'), value => {
         this.connected = value === true;
-        if (!this.connected) { this.activePresence = false; void this.releaseTalk(); }
-        else if (this.joined) void this.registerPresence().catch(error => this.showError(error));
+        if (!this.connected) this.stopSession();
       });
       for (const [name, limit] of [['seats', 10], ['speakers', 3], ['presence', 10]] as const) {
         this.watch(this.root.child(name).limitToFirst(limit), value => {
@@ -71,71 +72,82 @@ export class RadioRoomService implements OnDestroy {
       this.watch(this.root.child('floor'), value => { this.room = { ...this.room, floor: value || undefined }; this.sync(); });
     });
     this.tickTimer = setInterval(() => this.zone.run(() => { this.clock = Date.now() + this.offset; this.sync(); }), 250);
-    this.heartbeatTimer = setInterval(() => this.refreshPresence(true), 5000);
+    this.heartbeatTimer = setInterval(() => { this.refreshPresence(true); void this.reclaimStale(); }, 5000);
   }
 
   async join() {
     if (!this.user || !this.connected) throw new Error('Sign in and connect before joining.');
+    const generation = ++this.generation;
+    const uid = this.user.uid;
     this.error = '';
     await this.audio.resume();
-    const uid = this.user.uid;
-    if (this.seat === undefined) {
-      const name = await this.resolveName(this.user);
-      if (this.destroyed || this.user?.uid !== uid) return;
-      for (let index = 0; index < 10; index++) {
-        const ref = this.root.child(`seats/${index}`);
-        const result = await ref.transaction(current => current === null ? { uid, name } : undefined, undefined, false);
-        if (result.committed) { this.seat = String(index); break; }
+    await this.reclaimStale();
+    const name = await this.resolveName(this.user);
+    if (generation !== this.generation || this.destroyed || this.user?.uid !== uid) return;
+    const session = crypto.randomUUID(); this.session = session;
+    for (let index = 0; index < 10; index++) {
+      const seat = String(index);
+      if (this.room.seats?.[seat] && this.room.seats[seat].uid !== uid) continue;
+      this.seat = seat;
+      this.cleanup = this.releasePatch(seat, session);
+      const claim: Record<string, unknown> = { [`seats/${seat}`]: { uid, name }, [`presence/${seat}`]: this.presenceData() };
+      for (const [slot, speaker] of Object.entries(this.room.speakers || {})) if (speaker.uid === uid) claim[`speakers/${slot}`] = null;
+      try {
+        // Rules atomically enforce first-come ownership, uniqueness and initial presence.
+        await this.root.update(claim);
+      } catch (error) {
+        if (generation !== this.generation) return;
+        this.cleanup = undefined; this.seat = undefined;
+        if (this.permissionDenied(error)) continue;
+        throw error;
       }
-      if (this.seat === undefined) throw new Error('Room full. All 10 places are reserved.');
+      if (generation !== this.generation || this.destroyed) return;
+      this.joined = true;
+      this.presenceRef = this.root.child(`presence/${seat}`);
+      try {
+        await this.armCleanup();
+        if (generation !== this.generation || this.destroyed) return;
+        this.activePresence = true; this.lastPresence = '';
+        this.mailbox?.();
+        this.mailbox = this.watch(this.root.child(`signals/${seat}`).limitToFirst(10), value => { this.signals = value || {}; this.sync(); }, false);
+        this.sync(); return;
+      } catch (error) { if (generation === this.generation) this.stopSession(); throw error; }
     }
-    if (this.destroyed || this.user?.uid !== uid) return;
-    this.joined = true;
-    await this.registerPresence();
+    this.session = ''; this.audio.close();
+    throw new Error('Room full. All 10 places are taken.');
   }
 
-  async reconnect() {
-    this.stopSession();
-    await this.join();
-  }
+  async reconnect() { this.stopSession(); await this.join(); }
 
   async enableTalking() {
     if (!this.joined || !this.activePresence) throw new Error('Join the radio first.');
     const uid = this.user.uid;
     const session = this.session;
+    const seat = this.seat;
+    let claimed = false;
     try {
       await this.audio.enableMicrophone();
-      if (this.destroyed || !this.joined || this.session !== session || this.user?.uid !== uid) { this.audio.disableMicrophone(); return; }
+      if (this.destroyed || !this.joined || this.session !== session || this.user?.uid !== uid) return;
       if (this.speakingPlace !== undefined) return;
+      await this.reclaimStale();
+      if (this.destroyed || !this.joined || this.session !== session) return;
       for (let index = 0; index < 3; index++) {
-        const result = await this.root.child(`speakers/${index}`).transaction(current => current === null ? { uid, seat: this.seat } : undefined, undefined, false);
-        if (result.committed) return;
+        const result = await this.root.child(`speakers/${index}`).transaction(current => current === null ? { uid, seat } : undefined, undefined, false);
+        if (result.committed) {
+          // Include the new role in both normal-exit and server disconnect cleanup.
+          const cleanup = this.releasePatch(seat, session, String(index));
+          if (session !== this.session || !this.joined) {
+            await this.root.update(cleanup).catch(() => {}); return;
+          }
+          claimed = true; this.cleanup = cleanup;
+          await this.armCleanup(); return;
+        }
       }
       throw new Error('All 3 speaking places are taken.');
-    } catch (error) { this.audio.disableMicrophone(); throw error; }
+    } catch (error) { if (session === this.session) { if (claimed) this.stopSession(); else this.audio.disableMicrophone(); } throw error; }
   }
 
-  async disableTalking() {
-    await this.releaseTalk();
-    this.audio.disableMicrophone();
-    const place = this.speakingPlace;
-    if (place !== undefined) await this.root.child(`speakers/${place}`).remove();
-  }
-
-  async leave() {
-    if (this.seat === undefined || !this.connected) throw new Error('Reconnect to release your place.');
-    await this.disableTalking();
-    const seat = this.seat;
-    await this.root.child(`presence/${seat}`).remove();
-    // Fixed mailboxes contain at most ten bounded SDP records. Remove both directions.
-    const updates: Record<string, null> = { [`signals/${seat}`]: null };
-    for (let index = 0; index < 10; index++) if (String(index) !== seat) updates[`signals/${index}/${seat}`] = null;
-    await this.root.update(updates);
-    await this.root.child(`seats/${seat}`).remove();
-    this.stopSession(); this.seat = undefined;
-  }
-
-  toggleMute() { this.muted = !this.muted; this.sync(); this.refreshPresence(); }
+  exit() { this.stopSession(); this.changed.next(); }
 
   async talk() {
     if (this.held || this.releasing) return;
@@ -180,7 +192,7 @@ export class RadioRoomService implements OnDestroy {
     if (!connection) return 'Offline';
     if (this.floor?.seat === seat) return 'Talking';
     if (!connection.ready) return 'Connecting';
-    return connection.muted ? 'Muted' : 'Listening';
+    return 'Listening';
   }
   isSpeaker(uid: string) { return speakerFor(this.room, uid) !== undefined; }
   showError(error: unknown) {
@@ -213,24 +225,52 @@ export class RadioRoomService implements OnDestroy {
   private async clearFloor(token: string) {
     await this.root.child('floor').transaction(current => current?.token === token ? null : undefined, undefined, false);
   }
-  private async registerPresence() {
-    if (!this.joined || this.seat === undefined || !this.connected || this.destroyed) return;
-    await this.removePresence();
-    const session = crypto.randomUUID(); this.session = session;
-    const ref = this.root.child(`presence/${this.seat}`);
-    this.presenceRef = ref;
-    // Confirm ownership first: the disconnect write is checked both now and at execution.
-    await ref.set(this.presenceData());
-    await ref.onDisconnect().set({ ...this.presenceData(), session, online: false, ready: false });
-    if (this.destroyed || !this.joined || this.session !== session) { await ref.onDisconnect().cancel(); return; }
-    // Replacing only this account's connection makes its newest tab the active radio.
-    this.activePresence = true; this.lastPresence = '';
-    this.mailbox?.();
-    this.mailbox = this.watch(this.root.child(`signals/${this.seat}`).limitToFirst(10), value => { this.signals = value || {}; this.sync(); }, false);
-    this.sync();
+  private releasePatch(seat: string, session: string, speakingPlace?: string): Record<string, unknown> {
+    const patch: Record<string, unknown> = {
+      [`seats/${seat}`]: null,
+      // A session-bound tombstone makes the entire atomic cleanup fail for an older tab.
+      [`presence/${seat}`]: { session, online: false, at: firebase.database.ServerValue.TIMESTAMP, muted: false, ready: false },
+      [`signals/${seat}`]: null
+    };
+    if (speakingPlace !== undefined) patch[`speakers/${speakingPlace}`] = null;
+    for (let index = 0; index < 10; index++) if (String(index) !== seat) patch[`signals/${index}/${seat}`] = null;
+    return patch;
+  }
+  private async armCleanup() {
+    const generation = this.generation; const presence = this.presenceRef;
+    const offline = this.cleanup?.[`presence/${this.seat}`];
+    if (!presence || !offline) return;
+    await presence.onDisconnect().cancel();
+    // Firebase checks disconnect updates per path; cross-path seat/role cleanup is
+    // a normal atomic write. Abrupt loss marks this session offline for recovery.
+    if (generation === this.generation) await presence.onDisconnect().set(offline);
+  }
+
+  private permissionDenied(error: unknown) { return /permission.denied/i.test((error as { code?: string })?.code || ''); }
+
+  private async reclaimStale() {
+    if (!this.user || !this.connected || this.reclaiming || this.destroyed) return;
+    this.reclaiming = true;
+    try {
+      const cutoff = Date.now() + this.offset - 20000;
+      for (const [seat, person] of Object.entries(this.room.seats || {})) {
+        if (person.uid === this.user.uid) continue;
+        const presence = this.room.presence?.[seat];
+        if (presence && presence.at > cutoff) continue;
+        const patch: Record<string, null> = { [`seats/${seat}`]: null };
+        for (const [slot, speaker] of Object.entries(this.room.speakers || {})) if (speaker.uid === person.uid) patch[`speakers/${slot}`] = null;
+        try { await this.root.update(patch); }
+        catch (error) { if (!this.permissionDenied(error)) this.showError(error); }
+      }
+      for (const [slot, speaker] of Object.entries(this.room.speakers || {})) {
+        if (speaker.uid === this.user.uid || this.room.seats?.[speaker.seat]?.uid === speaker.uid) continue;
+        await this.root.child(`speakers/${slot}`).transaction(current => current?.uid === speaker.uid && current?.seat === speaker.seat ? null : undefined, undefined, false)
+          .catch(error => { if (!this.permissionDenied(error)) this.showError(error); });
+      }
+    } finally { this.reclaiming = false; }
   }
   private presenceData() {
-    return { session: this.session, online: true, at: firebase.database.ServerValue.TIMESTAMP, muted: this.muted, ready: this.audio.ready && this.audio.connectedCount === this.audio.peerCount };
+    return { session: this.session, online: true, at: firebase.database.ServerValue.TIMESTAMP, muted: false, ready: this.audio.ready && this.audio.connectedCount === this.audio.peerCount };
   }
   private refreshPresence(force = false) {
     if (!this.joined || !this.connected || !this.activePresence || !this.presenceRef) return;
@@ -244,10 +284,14 @@ export class RadioRoomService implements OnDestroy {
   private sync() {
     if (this.destroyed) return;
     this.clock = Date.now() + this.offset;
+    if (this.joined && this.activePresence && this.seat === undefined) this.stopSession();
     if (this.joined && this.seat !== undefined && this.activePresence) {
       const connection = connectionFor(this.room, this.seat, this.clock);
-      if (connection && connection[0] !== this.session) {
-        this.stopSession(); this.error = 'Radio opened in another tab. Reconnect to use this tab.'; return;
+      if (!connection || connection[0] !== this.session) {
+        const replaced = connection && connection[0] !== this.session;
+        this.stopSession();
+        if (replaced) this.error = 'Radio opened in another tab.';
+        return;
       }
       const peers = this.seats.flatMap(seat => {
         const connection = connectionFor(this.room, seat.id, this.clock);
@@ -256,12 +300,8 @@ export class RadioRoomService implements OnDestroy {
       this.audio.reconcile(this.seat, this.session, this.speakingPlace !== undefined, peers);
       for (const [seat, signal] of Object.entries(this.signals)) this.audio.receive(seat, signal);
     }
-    this.audio.setFloor(this.connected && this.joined ? this.floor : undefined, this.muted);
+    this.audio.setFloor(this.connected && this.joined ? this.floor : undefined, false);
     this.changed.next();
-  }
-  private async removePresence() {
-    const ref = this.presenceRef; const session = this.session; this.presenceRef = undefined;
-    if (ref) await ref.transaction(current => current?.session === session ? null : undefined, undefined, false);
   }
   private watch(query: firebase.database.Query, callback: (value: any) => void, track = true) {
     const handler = query.on('value', snapshot => this.zone.run(() => { if (!this.destroyed) callback(snapshot.val()); }), error => this.zone.run(() => { this.loading = false; this.showError(error); }));
@@ -271,9 +311,12 @@ export class RadioRoomService implements OnDestroy {
   }
   private unlisten() { this.listeners.splice(0).forEach(unsubscribe => unsubscribe()); this.connected = false; }
   private stopSession() {
+    ++this.generation;
+    const cleanup = this.cleanup; this.cleanup = undefined;
+    if (cleanup) void this.root.update(cleanup).catch(() => { /* Server disconnect or stale-place recovery is the fallback. */ });
     void this.releaseTalk(); this.joined = false; this.activePresence = false;
     this.mailbox?.(); this.mailbox = undefined; this.signals = {};
-    void this.removePresence().catch(() => {});
+    this.presenceRef = undefined;
     this.audio.close(); this.session = '';
   }
 }

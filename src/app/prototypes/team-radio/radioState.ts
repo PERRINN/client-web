@@ -28,8 +28,8 @@ export function activeFloor(room: RadioRoom, now: number): RadioFloor | undefine
   const connection = connectionFor(room, floor.seat, now);
   return connection?.[0] === floor.session ? floor : undefined;
 }
-export function acceptsTalkKey(event: KeyboardEvent, code: string) {
+export function acceptsTalkKey(event: KeyboardEvent) {
   const target = event.target as HTMLElement;
-  return event.code === code && !event.repeat && !event.ctrlKey && !event.altKey && !event.metaKey
+  return event.code === 'Space' && !event.repeat && !event.ctrlKey && !event.altKey && !event.metaKey
     && !target?.closest?.('input, textarea, select, button, a, [contenteditable="true"]');
 }

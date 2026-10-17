@@ -7,30 +7,30 @@
     <p role="status">Loading</p>
   } @else {
     <section class="controls" aria-label="Radio controls">
-      <div class="actions">
-        @if (!radio.joined) {
-          <button class="primary" [disabled]="busy || !radio.connected || (radio.seat === undefined && radio.seats.length >= 10)" (click)="run(radio.join.bind(radio))">{{ radio.seat !== undefined ? 'Reconnect' : radio.seats.length >= 10 ? 'Room full' : 'Join' }}</button>
-          @if (radio.seat !== undefined) { <button [disabled]="busy || !radio.connected" (click)="run(radio.leave.bind(radio))">Release place</button> }
-        } @else {
-          <button [disabled]="busy || !radio.connected" (click)="run(radio.leave.bind(radio))">Leave</button>
-          <button [attr.aria-pressed]="radio.muted" (click)="radio.toggleMute()">{{ radio.muted ? 'Unmute' : 'Mute' }}</button>
-          <button [disabled]="busy || !radio.connected" (click)="run(radio.reconnect.bind(radio))">Reconnect</button>
-        }
-        @if (!radio.connected) { <span role="status">Offline</span> }
-      </div>
-      @if (radio.joined) {
+      @if (!radio.joined || (radio.error && radio.connected) || !radio.connected) {
         <div class="actions">
-          @if (radio.speakingPlace === undefined) {
-            <button [disabled]="busy || !radio.connected || radio.speakerCount >= 3" (click)="run(radio.enableTalking.bind(radio))">{{ radio.speakerCount >= 3 ? '3 speaking places taken' : 'Enable talking' }}</button>
-          } @else {
-            <button [disabled]="busy || !radio.connected" (click)="run(radio.disableTalking.bind(radio))">Disable talking</button>
-            @if (!radio.audio.microphoneReady) {
-              <button [disabled]="busy || !radio.connected" (click)="run(radio.enableTalking.bind(radio))">Enable microphone</button>
-            }
-            <button [attr.aria-label]="'Push-to-talk key: ' + keyLabel" [attr.aria-pressed]="choosingKey" (click)="choosingKey = !choosingKey">{{ choosingKey ? 'Press a key…' : 'Key: ' + keyLabel }}</button>
+          @if (!radio.joined) {
+            <button class="primary" [disabled]="busy || !radio.connected || (radio.seat === undefined && radio.seats.length >= 10)" (click)="run(radio.join.bind(radio))">{{ radio.seat === undefined && radio.seats.length >= 10 ? 'Room full' : 'Join' }}</button>
           }
-          @if (radio.audio.needsSound) { <button (click)="run(radio.audio.resume.bind(radio.audio))">Enable sound</button> }
+          @if (radio.joined && radio.error && radio.connected) {
+            <button [disabled]="busy" (click)="run(radio.reconnect.bind(radio))">Reconnect</button>
+          }
+          @if (!radio.connected) { <span role="status">Offline</span> }
         </div>
+      }
+      @if (radio.joined) {
+        @if (radio.speakingPlace === undefined || !radio.audio.microphoneReady || radio.audio.needsSound) {
+          <div class="actions">
+            @if (radio.speakingPlace === undefined) {
+              <button [disabled]="busy || !radio.connected || radio.speakerCount >= 3" (click)="run(radio.enableTalking.bind(radio))">{{ radio.speakerCount >= 3 ? '3 speaking places taken' : 'Enable talking' }}</button>
+            } @else {
+              @if (!radio.audio.microphoneReady) {
+                <button [disabled]="busy || !radio.connected" (click)="run(radio.enableTalking.bind(radio))">Enable microphone</button>
+              }
+            }
+            @if (radio.audio.needsSound) { <button (click)="run(radio.audio.resume.bind(radio.audio))">Enable sound</button> }
+          </div>
+        }
         @if (radio.speakingPlace !== undefined) {
           <button class="talk primary" [class.transmitting]="radio.transmitting" [disabled]="busy || !radio.connected || !radio.audioReady"
             aria-label="Hold to talk" [attr.aria-pressed]="radio.transmitting"
@@ -47,11 +47,12 @@
       @if (!radio.seats.length) { <p>No participants</p> }
       @for (person of radio.seats; track person.id) {
         <div class="person">
-          <app-user-avatar [name]="person.name"></app-user-avatar>
+          <app-user-avatar [name]="person.name" [sources]="avatars.sources(person.uid)"></app-user-avatar>
           <div class="identity"><a [routerLink]="['/profile', person.uid]">{{ person.name }}{{ person.uid === radio.user.uid ? ' (you)' : '' }}</a><small>{{ radio.isSpeaker(person.uid) ? 'Speaker' : 'Listener' }}</small></div>
           <span class="status" [class.talking]="radio.status(person.id) === 'Talking'">{{ radio.status(person.id) }}</span>
         </div>
       }
     </section>
+    @if (radio.joined && radio.speakingPlace !== undefined) { <p class="key-note">Hold Space to open mic.</p> }
   }
 </main>

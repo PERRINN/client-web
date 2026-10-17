@@ -33,7 +33,7 @@ function room() {
     floor: { uid: 'a', seat: '0', session: 'aSession', token: 'one', startedAt: now, expiresAt: now + 30000 }
   };
 }
-test('reservations survive offline status, while audio ownership requires a live speaker session', () => {
+test('cached offline places never authorize audio while awaiting cleanup', () => {
   const data = room();
   assert.equal(state.activeFloor(data, now)?.token, 'one');
   assert.equal(state.activeFloor(data, now + 30001), undefined);
@@ -53,11 +53,11 @@ test('stale heartbeat, removed role, wrong account and oversized lease cannot au
   ];
   for (const mutate of variants) { const data = room(); mutate(data); assert.equal(state.activeFloor(data, now), undefined); }
 });
-test('configured key ignores repeats, modifier shortcuts and text/control interaction', () => {
-  const key = { code: 'KeyR', repeat: false, target: { closest: () => null } };
-  assert.equal(state.acceptsTalkKey(key, 'KeyR'), true);
-  for (const update of [{ repeat: true }, { ctrlKey: true }, { altKey: true }, { metaKey: true }, { code: 'Space' }, { target: { closest: () => ({}) } }]) {
-    assert.equal(state.acceptsTalkKey({ ...key, ...update }, 'KeyR'), false);
+test('Space ignores repeats, modifier shortcuts and text/control interaction', () => {
+  const key = { code: 'Space', repeat: false, target: { closest: () => null } };
+  assert.equal(state.acceptsTalkKey(key), true);
+  for (const update of [{ repeat: true }, { ctrlKey: true }, { altKey: true }, { metaKey: true }, { code: 'KeyR' }, { target: { closest: () => ({}) } }]) {
+    assert.equal(state.acceptsTalkKey({ ...key, ...update }), false);
   }
 });
 function service(data = room()) {
@@ -65,9 +65,12 @@ function service(data = room()) {
   let storedFloor = data.floor;
   let delayed;
   let transmitted = 0;
+  const writes = []; const disconnects = [];
   const ref = {
     child: () => ref, limitToFirst: () => ref,
     on: () => () => {}, off() {}, remove: async () => {},
+    update: async patch => { writes.push(patch); },
+    onDisconnect: () => ({ cancel: async () => {}, set: async value => { disconnects.push(value); } }),
     transaction: async update => {
       if (delayed) await delayed;
       const next = update(storedFloor);
@@ -81,7 +84,7 @@ function service(data = room()) {
   const radio = new RadioRoomService({ authState }, { database: { ref: () => ref } }, audio, { run: fn => fn() });
   radio.room = data; radio.user = { uid: 'b' }; radio.seat = '1'; radio.session = 'bSession';
   radio.connected = true; radio.joined = true; radio.activePresence = true; radio.clock = now;
-  return { radio, authState, get storedFloor() { return storedFloor; }, get transmitted() { return transmitted; },
+  return { radio, authState, writes, disconnects, ref, get storedFloor() { return storedFloor; }, get transmitted() { return transmitted; },
     setFloor(value) { storedFloor = value; radio.room.floor = value; }, delay(value) { delayed = value; } };
 }
 test('a busy press cannot turn into a queued transmission; release and fresh press are required', async () => {
@@ -220,4 +223,77 @@ test('answering peers negotiate sending as well as receiving before a listener b
   audio.receive('0', { fromSession: 'remote', toSession: 'local', offerId: 'offer', type: 'offer', sdp: 'sdp' });
   await peer.queue;
   assert.equal(transceiver.direction, 'sendrecv'); assert.equal(track.kind, 'audio'); assert.equal(published, true);
+});
+
+test('radio avatars reuse the real current profile, bound other lookups and release subscriptions', () => {
+  const photos = load('../src/app/userAvatar.ts');
+  const { RadioAvatarsService } = load('../src/app/prototypes/team-radio/radioAvatars.service.ts', {
+    '@angular/core': core, '../../userAvatar': photos
+  });
+  const subjects = new Map(); const queries = [];
+  const firestore = { collection(name, build) {
+    let uid;
+    const query = { where(field, op, value) { if (field === 'user') uid = value; return this; }, orderBy() { return this; }, limit(value) { assert.equal(value, 1); return this; } };
+    build(query); queries.push(uid); assert.equal(name, 'PERRINNMessages');
+    const subject = new Subject(); subjects.set(uid, subject); return { valueChanges: () => subject };
+  } };
+  const profiles = { currentUserLastMessageObj: { user: 'a', imageUrlThumbUser: 'own-photo' } };
+  const avatars = new RadioAvatarsService(firestore, profiles, {});
+  avatars.sync(['a', 'b'], 'a');
+  assert.deepEqual(queries, ['b']); assert.deepEqual(avatars.sources('a'), ['own-photo']);
+  subjects.get('b').next([{ imageUrlThumbUser: '1709995468152-placeholder', imageUrlMedium: 'medium', imageUrlOriginal: 'original' }]);
+  assert.deepEqual(avatars.sources('b'), ['medium', 'original']);
+  const stable = avatars.sources('b'); avatars.sync(['a', 'b'], 'a');
+  assert.equal(avatars.sources('b'), stable); assert.deepEqual(queries, ['b']);
+  avatars.sync(['a'], 'a'); assert.equal(subjects.get('b').observers.length, 0); assert.deepEqual(avatars.sources('b'), []);
+  profiles.currentUserLastMessageObj = { user: 'other', imageUrlThumbUser: 'wrong-photo' };
+  avatars.sync(['a'], 'a'); assert.deepEqual(queries, ['b', 'a']);
+  avatars.ngOnDestroy(); assert.equal(subjects.get('a').observers.length, 0);
+});
+
+test('exit stops media immediately and releases listener, speaker and signaling with a session guard', async () => {
+  const fixture = service(); const { radio } = fixture; let closed = 0;
+  radio.audio.close = () => closed++;
+  radio.cleanup = radio.releasePatch('1', 'bSession', '1');
+  try {
+    radio.exit();
+    assert.equal(radio.joined, false); assert.equal(radio.session, ''); assert.equal(closed, 1);
+    const patch = fixture.writes[0];
+    assert.equal(patch['seats/1'], null); assert.equal(patch['speakers/1'], null);
+    assert.equal(patch['presence/1'].session, 'bSession'); assert.equal(patch['presence/1'].online, false);
+    assert.equal(patch['signals/1'], null); assert.equal(patch['signals/9/1'], null);
+    assert.equal('floor' in patch, false, 'disconnect must not clear another sender floor');
+    radio.exit(); assert.equal(fixture.writes.length, 1);
+  } finally { radio.ngOnDestroy(); }
+});
+test('disconnect fallback registers only the session tombstone, not unsafe partial place deletes', async () => {
+  const fixture = service(); const { radio } = fixture;
+  radio.presenceRef = fixture.ref; radio.cleanup = radio.releasePatch('1', 'bSession', '1');
+  try {
+    await radio.armCleanup();
+    assert.equal(fixture.disconnects.length, 1);
+    assert.equal(fixture.disconnects[0].session, 'bSession'); assert.equal(fixture.disconnects[0].online, false);
+  } finally { radio.ngOnDestroy(); }
+});
+test('stale recovery skips own cached places and attempts only stale remote places', async () => {
+  const fixture = service(); const { radio } = fixture;
+  radio.room.presence[0].at = Date.now() - 21000;
+  radio.room.presence[1].at = Date.now() - 21000;
+  try {
+    await radio.reclaimStale();
+    assert.equal(fixture.writes.length, 1);
+    assert.deepEqual(fixture.writes[0], { 'seats/0': null, 'speakers/0': null });
+  } finally { radio.ngOnDestroy(); }
+});
+
+test('an old enable-talking request cannot disable the microphone of a newer session', async () => {
+  const fixture = service(); const { radio } = fixture; let finish; let disabled = 0;
+  radio.audio.enableMicrophone = () => new Promise(resolve => { finish = resolve; });
+  radio.audio.disableMicrophone = () => { disabled++; };
+  try {
+    const pending = radio.enableTalking();
+    radio.exit(); radio.session = 'new-session'; radio.joined = true;
+    finish(); await pending;
+    assert.equal(disabled, 0);
+  } finally { radio.ngOnDestroy(); }
 });
