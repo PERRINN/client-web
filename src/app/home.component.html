@@ -133,7 +133,6 @@
                 <button class="visitor-row" type="button" (click)="openProfile(visitor.id)">
                   <app-user-avatar [name]="visitor.name" [sources]="visitor.imageUrls" class="avatar" aria-hidden="true"></app-user-avatar>
                   <span class="visitor-name">{{ visitor.name }}</span>
-                  <span class="visitor-time">{{ formatLastSeen(visitor.updatedAt, eventNow) }}</span>
                 </button>
               }
             </div>

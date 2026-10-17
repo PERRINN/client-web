@@ -8,7 +8,6 @@ import { fundAmount, fundCurrency, fundProgress } from './chat/chat-fund/chatFun
 import { PresenceService, RecentVisitor } from './presence.service';
 import { MessageActivityService, MentionActivity } from './messageActivity.service';
 import { UserInterfaceService } from './userInterface.service';
-import { formatLastSeen } from './lastSeen';
 
 @Component({
   selector: 'app-home',
@@ -36,7 +35,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   failedBannerUrl = '';
   homeScreenHintDismissed = false;
   eventNow = Date.now();
-  readonly formatLastSeen = formatLastSeen;
   private subscriptions = new Subscription();
 
   constructor(
