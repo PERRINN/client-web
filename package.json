@@ -12,6 +12,7 @@
     "start:prod": "ng serve --configuration production",
     "build": "ng build --configuration production",
     "lint": "ng lint",
+    "test:rear-wing": "node --test scripts/rear-wing.test.mjs",
     "test:avatars": "node --test scripts/user-avatar.test.mjs",
     "test:participation": "node --test scripts/participation.test.mjs",
     "test:telemetry": "node --test scripts/telemetry/*.test.mjs",

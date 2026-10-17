@@ -57,3 +57,9 @@ h1 { margin-bottom: 6px; font-size: 25px; font-weight: 600; }
 .card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .card-heading h3 { margin-bottom: 0; font-size: 15px; font-weight: 600; }
 @media (max-width: 600px) { .prototype-gallery { padding: 18px 14px; } .gallery-header { align-items: flex-start; flex-direction: column; gap: 10px; } }
+
+.wing-preview { width:90%; height:82px; }
+.wing-surface { fill:var(--color-selected); stroke:var(--color-text-secondary); }
+.wing-flap { fill:var(--color-accent); }
+.wing-pillar, .wing-edge { fill:var(--color-raised); stroke:var(--color-text-secondary); }
+.wing-lines { fill:none; stroke:var(--color-accent); stroke-width:2; }

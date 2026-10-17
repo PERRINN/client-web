@@ -19,6 +19,15 @@
         <a class="prototype-card" [routerLink]="prototype.route">
           <div class="preview-stage" aria-hidden="true">
             @switch (prototype.name) {
+              @case ('rear-wing-pilot') {
+                <svg class="wing-preview" viewBox="0 0 240 88" focusable="false">
+                  <path class="wing-surface" d="M25 23 Q120 10 215 23 L207 36 Q120 28 33 36 Z" />
+                  <path class="wing-flap" d="M31 15 Q120 4 209 15 L207 21 Q120 12 33 21 Z" />
+                  <path class="wing-pillar" d="M75 34 L85 34 L91 72 L76 72 Z M155 34 L165 34 L164 72 L149 72 Z" />
+                  <path class="wing-edge" d="M24 12 L28 12 L33 42 L25 42 Z M212 12 L216 12 L215 42 L207 42 Z" />
+                  <path class="wing-lines" d="M80 37 L84 66 M160 37 L156 66" />
+                </svg>
+              }
               @case ('app-wiring') {
                 <div class="architecture-preview"><i></i><b></b><i></i><b></b><i></i></div>
               }

@@ -1,0 +1,54 @@
+<main class="pilot">
+  <a class="back" routerLink="/prototypes">← Prototyping</a>
+  <header>
+    <p class="kicker">PERRINN · NativeCAD pilot</p>
+    <h1>{{ brief.title }}</h1>
+    <p class="recipient">{{ brief.recipient }} · 17 October 2026</p>
+    <figure class="assembly-preview">
+      <a [href]="brief.cad.url" target="_blank" rel="noopener noreferrer" aria-label="Open the rear-wing assembly in Onshape">
+        <img src="assets/rear-wing-pilot/rear-wing-assembly.jpg" width="1040" height="890" alt="Rendered 424 rear-wing concept with main plane, flap, two support pillars, end plates and paired pneumatic DRS actuators" fetchpriority="high">
+      </a>
+      <figcaption>Concept assembly · DRS closed · Onshape</figcaption>
+    </figure>
+    <p class="objective">{{ brief.objective }}</p>
+    <div class="actions"><button type="button" class="primary" (click)="download('markdown')">Download brief</button><button type="button" (click)="download('json')">Download JSON</button></div>
+    @if (error) { <p class="error" role="alert">{{ error }}</p> }
+  </header>
+  <section class="targets" aria-label="Design targets">
+    <dl><div><dt>Complete assembly</dt><dd>{{ brief.targets.completeAssemblyMassKg }} kg target · lower preferred</dd></div><div><dt>Wing-tip deflection · provisional</dt><dd>{{ brief.loads.tipDeflection.minMm }}–{{ brief.loads.tipDeflection.maxMm }} mm at working loads</dd></div><div><dt>Production quantity</dt><dd>{{ brief.targets.productionQuantity }} assembly · tooling cost separate</dd></div></dl>
+  </section>
+  <section class="panel cad" aria-labelledby="cad-heading">
+    <h2 id="cad-heading">CAD baseline</h2>
+    <a class="cad-link" [href]="brief.cad.url" target="_blank" rel="noopener noreferrer">{{ brief.cad.document }} · {{ brief.cad.assembly }} ↗</a>
+    <p>{{ brief.cad.access }}</p><p class="secondary">{{ brief.cad.export }}</p>
+  </section>
+  <div class="engineering-grid">
+    @for (section of brief.sections.slice(0, 2); track section.id) {
+      <section class="panel" [attr.aria-labelledby]="section.id + '-heading'"><h2 [id]="section.id + '-heading'">{{ section.title }}</h2>
+        <dl class="requirements">@for (item of section.items; track item.id) { <div><dt>{{ item.label }}</dt><dd>{{ item.detail }}</dd></div> }</dl>
+      </section>
+    }
+  </div>
+  <section class="panel" aria-labelledby="loads-heading">
+    <h2 id="loads-heading">Loads & stiffness</h2><p>{{ brief.loads.condition }}</p>
+    <div class="table-scroll"><table><caption>Combined main-plane and flap loads</caption><thead><tr><th scope="col">Load</th><th scope="col">Working</th><th scope="col">Strength sizing · ×{{ brief.loads.strengthSafetyFactor }}</th></tr></thead><tbody>
+      <tr><th scope="row">Vertical</th><td>{{ brief.loads.working.verticalKn }} kN</td><td>{{ strength.verticalKn }} kN</td></tr>
+      <tr><th scope="row">Drag</th><td>{{ brief.loads.working.dragKn }} kN</td><td>{{ strength.dragKn }} kN</td></tr>
+    </tbody></table></div>
+    <p>{{ brief.loads.application }}</p><p>{{ brief.loads.coordinates }}</p><p>{{ brief.loads.priority }}</p>
+  </section>
+  <section class="panel" aria-labelledby="drs-heading">
+    <h2 id="drs-heading">Pneumatic DRS</h2><p>{{ brief.drs.selection }}</p>
+    <dl class="sizing"><div><dt>Nominal pressure · provisional</dt><dd>{{ brief.drs.nominalPressureBar }} bar</dd></div><div><dt>Pressure permitted if needed</dt><dd>Up to {{ brief.drs.maxPressureBar }} bar</dd></div><div><dt>Piston diameter · provisional</dt><dd>{{ brief.drs.pistonDiameterMm.min }}–{{ brief.drs.pistonDiameterMm.max }} mm per actuator</dd></div><div><dt>Stroke · provisional</dt><dd>Approximately {{ brief.drs.strokeMm }} mm</dd></div></dl>
+    <dl class="requirements">@for (item of brief.sections[2].items; track item.id) { <div><dt>{{ item.label }}@if (item.status) { <span class="status"> · {{ item.status }}</span> }</dt><dd>{{ item.detail }}</dd></div> }</dl>
+  </section>
+  <section class="panel deliverables" aria-labelledby="deliverables-heading">
+    <h2 id="deliverables-heading">{{ brief.sections[3].title }}</h2>
+    <ol>@for (item of brief.sections[3].items; track item.id) { <li><h3>{{ item.label }}</h3><p>{{ item.detail }}</p></li> }</ol>
+  </section>
+  <section class="panel" aria-labelledby="decisions-heading"><h2 id="decisions-heading">{{ brief.sections[4].title }}</h2>
+    <dl class="requirements decisions">@for (item of brief.sections[4].items; track item.id) { <div><dt>{{ item.label }}<span class="status"> · {{ item.status }}</span></dt><dd>{{ item.detail }}</dd></div> }</dl>
+    <p class="release">{{ brief.releaseNote }}</p>
+  </section>
+  <section class="panel" aria-labelledby="reuse-heading"><h2 id="reuse-heading">Reuse & public demonstration</h2><p>{{ brief.cad.reuse }}</p><p class="secondary">{{ brief.cad.publication }}</p></section>
+</main>
