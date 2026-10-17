@@ -36,13 +36,11 @@ button:focus-visible,.visitor-list:focus-visible{outline:2px solid var(--color-f
 .section-kicker{margin:0 0 3px;color:var(--color-text-muted);font-size:14px;font-weight:650;letter-spacing:.1em}
 .side-panels{display:grid;gap:16px}
 /* Shared-image mosaic. */
-.image-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:clamp(72px,10cqi,128px);grid-auto-flow:dense;gap:5px;overflow:visible;background:var(--color-page)}
-.image-tile{position:relative;min-width:0;min-height:0;overflow:hidden;border-radius:0;background:var(--color-raised)}
+.image-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;overflow:visible;background:transparent}
+.image-tile{position:relative;min-width:0;min-height:0;aspect-ratio:4/3;overflow:hidden;border-radius:6px;background:transparent}
 .image-open{display:grid;width:100%;height:100%;place-items:center;padding:0;border:0;background:transparent;cursor:zoom-in}
 .image-open:focus-visible{outline:2px solid var(--color-accent);outline-offset:-2px}
-.tile-image{display:block;width:100%;height:100%;object-fit:contain}
-.layout-editorial-mosaic .image-tile:nth-child(8n+1){grid-column:span 2;grid-row:span 2}
-.layout-editorial-mosaic .image-tile:nth-child(8n+2){grid-column:span 2}
+.tile-image{display:block;width:100%;height:100%;border-radius:6px;object-fit:cover}
 .avatar{width:30px;height:30px;flex:0 0 30px;border-radius:50%;object-fit:cover;background:var(--color-raised)}
 .image-state{display:flex;min-height:270px;flex-direction:column;align-items:center;justify-content:center;gap:9px;border-radius:10px;background:var(--color-page);color:var(--color-text-secondary);font-size:15px;text-align:center}
 .image-state strong{color:var(--color-text);font-size:16px;font-weight:550}
@@ -86,7 +84,7 @@ button:focus-visible,.visitor-list:focus-visible{outline:2px solid var(--color-f
 /* Panels follow available page width; image tiles follow their panel width. */
 @container home (max-width:500px){.page-header{align-items:flex-start;margin-bottom:17px}}
 @container mosaic (max-width:760px){.image-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@container mosaic (max-width:500px){.image-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:clamp(84px,26cqi,140px)}}
+@container mosaic (max-width:500px){.image-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:660px){.home-page{padding:18px 14px 28px}}
 @media(max-width:390px){.side-panels{gap:11px}}
 @container home (max-width:760px){

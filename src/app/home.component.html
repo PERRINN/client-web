@@ -59,7 +59,7 @@
         } @else if (imageError) {
           <div class="image-state" role="alert"><span>Images are unavailable right now.</span></div>
         } @else if (imageTiles.length) {
-          <div class="image-grid layout-editorial-mosaic" [attr.data-count]="imageTiles.length">
+          <div class="image-grid" [attr.data-count]="imageTiles.length">
             @for (image of imageTiles; track image.id) {
               <article class="image-tile">
                 <button class="image-open" type="button" (click)="openImage(image)" aria-label="View full-size image">
