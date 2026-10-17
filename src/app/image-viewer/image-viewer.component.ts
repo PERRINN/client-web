@@ -1,3 +1,4 @@
+import { imageAge } from './imageTime';
 import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
 import { NavigationStart, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -6,6 +7,8 @@ import { ImageViewerService } from './imageViewer.service';
 @Component({ selector: 'app-image-viewer', standalone: false, templateUrl: './image-viewer.component.html', styleUrls: ['./image-viewer.component.css'] })
 export class ImageViewerComponent implements AfterViewInit, OnDestroy {
   @ViewChild('dialog') dialog!: ElementRef<HTMLDialogElement>;
+  postedAgo = '';
+  postedDate = '';
   imageLoading = true;
   imageError = false;
   private src = '';
@@ -21,6 +24,9 @@ export class ImageViewerComponent implements AfterViewInit, OnDestroy {
   private sync(): void {
     const dialog = this.dialog.nativeElement;
     if (this.viewer.opened) {
+      const postedAt = this.viewer.current?.postedAt || 0;
+      this.postedAgo = imageAge(postedAt);
+      this.postedDate = this.postedAgo ? new Date(postedAt).toISOString() : '';
       if (this.src !== this.viewer.current?.src) { this.src = this.viewer.current?.src || ''; this.imageLoading = true; this.imageError = false; }
       if (!dialog.open) { this.opener = document.activeElement as HTMLElement; dialog.showModal(); }
     } else if (dialog.open) dialog.close();

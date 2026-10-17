@@ -10,8 +10,9 @@ function load(path, imports) {
   new Function('exports', 'require', code)(exports, name => { if (!(name in imports)) throw Error(name); return imports[name]; });
   return exports;
 }
+const imageTime = load('../src/app/image-viewer/imageTime.ts', {});
 const { ImageViewerService, recordImage } = load('../src/app/image-viewer/imageViewer.service.ts', {
-  '@angular/core': { Injectable: () => target => target }, rxjs: { Subject }
+  '@angular/core': { Injectable: () => target => target }, rxjs: { Subject }, './imageTime': imageTime
 });
 const doc = (id, image = true, chain = 'thread') => ({ id, exists: true, data: () => ({ chain, ...(image ? { chatImageUrlOriginal: id } : {}) }), get: () => '123' });
 function fixture(pages = []) {
@@ -30,7 +31,7 @@ function fixture(pages = []) {
 }
 test('image projection uses available stored URLs and excludes non-images', () => {
   assert.equal(recordImage('none', { chain: 'thread' }), null);
-  assert.deepEqual(recordImage('legacy', { chain: 'thread', chatImageUrlThumb: 'thumb' }), { id: 'legacy', chain: 'thread', src: 'thumb', name: 'Shared image', imageTimestamp: undefined, subject: undefined });
+  assert.deepEqual(recordImage('legacy', { chain: 'thread', chatImageUrlThumb: 'thumb' }), { id: 'legacy', chain: 'thread', src: 'thumb', name: 'Shared image', imageTimestamp: undefined, subject: undefined, postedAt: 0 });
 });
 test('older and newer pages preserve chronological order, selected image, thread scope and endpoints', async () => {
   const { viewer, calls } = fixture([[doc('older2'), doc('older1')], [doc('newer1'), doc('newer2')]]);
@@ -78,7 +79,7 @@ test('late responses cannot populate a different thread or a closed dialog', asy
 });
 const { ImageViewerComponent } = load('../src/app/image-viewer/image-viewer.component.ts', {
   '@angular/core': { Component: () => target => target, ViewChild: () => () => {} },
-  '@angular/router': { NavigationStart: class {} }, rxjs: { Subscription: class { unsubscribe() {} } }
+  '@angular/router': { NavigationStart: class {} }, './imageTime': imageTime, rxjs: { Subscription: class { unsubscribe() {} } }
 });
 test('arrows, horizontal swipes and thread action preserve current association', () => {
   const moves = [], routes = [];
@@ -126,4 +127,27 @@ test('thread subjects come from existing metadata and remain stable across image
   assert.equal(calls.length, 0);
   await viewer.move(-1); assert.equal(viewer.current.subject, 'Current design');
   await viewer.move(1); assert.equal(viewer.current.subject, 'Current design');
+});
+test('relative posting time stays short and handles missing, invalid and future timestamps', () => {
+  const now = Date.UTC(2026, 9, 17, 16);
+  for (const value of [0, NaN, Infinity, -1, now + 120000]) assert.equal(imageTime.imageAge(value, now), '');
+  assert.equal(imageTime.imageAge(now - 15000, now), 'Just now');
+  assert.equal(imageTime.imageAge(now + 15000, now), 'Just now');
+  for (const [seconds, label] of [[60, '1 minute ago'], [7200, '2 hours ago'], [86400, '1 day ago'], [1209600, '2 weeks ago'], [5184000, '2 months ago'], [63072000, '2 years ago']]) {
+    assert.equal(imageTime.imageAge(now - seconds * 1000, now), label);
+  }
+});
+test('posting time uses message metadata rather than upload time and follows the selected image', async () => {
+  assert.equal(imageTime.imagePostedMillis({ seconds: 123 }), 123000);
+  assert.equal(imageTime.imagePostedMillis({ toMillis: () => 456000 }), 456000);
+  assert.equal(imageTime.imagePostedMillis(null), 0);
+  const projected = recordImage('one', { chatImageUrlOriginal: 'url', chatImageTimestamp: '999', serverTimestamp: { seconds: 123 }, name: 'Nico' });
+  assert.equal(projected.postedAt, 123000); assert.equal(projected.name, 'Image from Nico');
+  const { viewer, calls } = fixture();
+  viewer.open({ src: 'b', id: 'b', chain: 'thread' }, [
+    { src: 'a', id: 'a', chain: 'thread', imageTimestamp: '1', postedAt: 1000 },
+    { src: 'b', id: 'b', chain: 'thread', imageTimestamp: '2', postedAt: 2000 }
+  ]);
+  assert.equal(viewer.current.postedAt, 2000);
+  await viewer.move(-1); assert.equal(viewer.current.postedAt, 1000); assert.equal(calls.length, 0);
 });

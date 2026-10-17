@@ -1,3 +1,4 @@
+import { recordImage, ImageRecord } from './image-viewer/imageViewer.service'
 import { Component, EventEmitter, Input, Output, NgZone, ChangeDetectorRef, DoCheck, OnInit, OnDestroy, EnvironmentInjector, runInInjectionContext } from '@angular/core'
 import { Subscription } from 'rxjs'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
@@ -547,9 +548,9 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
     return (start - 300000) <= now && end > now
   }
 
-  openCarouselImage(message: { chatSubject?: string; chain?: string; chatImageUrlOriginal?: string; chatImageUrlMedium?: string; chatImageUrlThumb?: string }, id: string) {
-    const src = message.chatImageUrlOriginal || message.chatImageUrlMedium || message.chatImageUrlThumb;
-    if (src) this.UI.showFullScreenImage(src, { chain: message.chain, id, name: 'Shared image', subject: message.chatSubject });
+  openCarouselImage(message: ImageRecord, id: string) {
+    const image = recordImage(id, message);
+    if (image) this.UI.showFullScreenImage(image.src, image);
   }
 
   loadMore() {

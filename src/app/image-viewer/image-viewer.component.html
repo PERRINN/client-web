@@ -1,5 +1,5 @@
 <dialog #dialog tabindex="-1" aria-label="Image preview" (close)="closed()" (cancel)="viewer.close()" (keydown)="keydown($event)">
-  <header><span>{{ viewer.current?.name || 'Image' }}</span><button type="button" (click)="viewer.close()" aria-label="Close image preview">×</button></header>
+  <header><span>{{ viewer.current?.name || 'Image' }}@if (postedAgo) { <time [attr.datetime]="postedDate"> · {{ postedAgo }}</time> }</span><button type="button" (click)="viewer.close()" aria-label="Close image preview">×</button></header>
   <div class="image-stage" (touchstart)="touchStart($event)" (touchend)="touchEnd($event)" (touchcancel)="touch = undefined">
     @if (viewer.current && !imageError) {
       <img [src]="viewer.current.src" [alt]="viewer.current.name || 'Image'" [class.loading]="imageLoading" (load)="imageLoading = false" (error)="imageLoading = false; imageError = true">

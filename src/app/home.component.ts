@@ -1,3 +1,4 @@
+import { recordImage } from './image-viewer/imageViewer.service';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { fromEvent, merge, Subscription, timer } from 'rxjs';
@@ -128,7 +129,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   openImage(message: HomeMessage): void {
-    this.UI.showFullScreenImage(message.chatImageUrlOriginal || this.imageUrl(message), { chain: message.chain, id: message.id, name: 'Shared image', subject: message.chatSubject });
+    const image = recordImage(message.id, message);
+    if (image) this.UI.showFullScreenImage(image.src, image);
   }
 
   openChat(chain?: string): void {

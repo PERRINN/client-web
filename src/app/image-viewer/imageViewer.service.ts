@@ -1,16 +1,17 @@
+import { imagePostedMillis, ImageTimestamp } from './imageTime';
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Subject } from 'rxjs';
 import firebase from 'firebase/compat/app';
 
-export interface ViewerImage { src: string; name?: string; chain?: string; id?: string; imageTimestamp?: string; subject?: string; }
-interface ImageRecord { chatSubject?: string; chatImageTimestamp?: string; chain?: string; name?: string; chatImageUrlOriginal?: string; chatImageUrlMedium?: string; chatImageUrlThumb?: string; }
+export interface ViewerImage { src: string; name?: string; chain?: string; id?: string; imageTimestamp?: string; subject?: string; postedAt?: number; }
+export interface ImageRecord { serverTimestamp?: ImageTimestamp; chatSubject?: string; chatImageTimestamp?: string; chain?: string; name?: string; chatImageUrlOriginal?: string; chatImageUrlMedium?: string; chatImageUrlThumb?: string; }
 type Cursor = firebase.firestore.DocumentSnapshot<ImageRecord>;
 type Direction = -1 | 1;
 
 export function recordImage(id: string, record: ImageRecord): ViewerImage | null {
   const src = record.chatImageUrlOriginal || record.chatImageUrlMedium || record.chatImageUrlThumb;
-  return src ? { id, chain: record.chain, src, name: record.name ? `Image from ${record.name}` : 'Shared image', imageTimestamp: record.chatImageTimestamp, subject: record.chatSubject } : null;
+  return src ? { id, chain: record.chain, src, name: record.name ? `Image from ${record.name}` : 'Shared image', imageTimestamp: record.chatImageTimestamp, subject: record.chatSubject, postedAt: imagePostedMillis(record.serverTimestamp) } : null;
 }
 
 @Injectable({ providedIn: 'root' })

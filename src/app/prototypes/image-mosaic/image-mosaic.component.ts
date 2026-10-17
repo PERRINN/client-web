@@ -1,3 +1,4 @@
+import { recordImage } from '../../image-viewer/imageViewer.service';
 import { ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -138,7 +139,8 @@ export class ImageMosaicComponent implements OnInit, OnDestroy {
   }
 
   openImage(message: HomeMessage) {
-    this.UI.showFullScreenImage(message.chatImageUrlOriginal || this.imageUrl(message), { chain: message.chain, id: message.id, name: 'Shared image', subject: message.chatSubject });
+    const image = recordImage(message.id, message);
+    if (image) this.UI.showFullScreenImage(image.src, image);
   }
 
 }

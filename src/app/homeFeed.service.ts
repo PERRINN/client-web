@@ -1,3 +1,4 @@
+import type { ImageTimestamp } from './image-viewer/imageTime';
 import { EnvironmentInjector, Injectable, runInInjectionContext } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import firebase from 'firebase/compat/app';
@@ -6,6 +7,8 @@ import { map, switchMap } from 'rxjs/operators';
 import { activeFund, chatFund, ChatFund } from './chat/chat-fund/chatFund';
 
 export interface HomeMessage {
+  name?: string;
+  serverTimestamp?: ImageTimestamp;
   fund?: Partial<ChatFund>;
   id: string;
   text?: string;
