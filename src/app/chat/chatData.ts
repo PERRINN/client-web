@@ -19,6 +19,7 @@ export interface ChatRecord extends EventRecord, TransferRecord, TimeCreditRecor
   imageUrlThumbUser?: string;
   imageUrlMedium?: string;
   imageUrlOriginal?: string;
+  chatImageTimestamp?: string;
   chatImageUrlMedium?: string;
   chatImageUrlThumb?: string;
   chatImageUrlOriginal?: string;
@@ -38,6 +39,7 @@ export interface ChatMessage {
   image: string;
   originalImage: string;
   imageName: string;
+  imageTimestamp?: string;
   transfers?: TransferSummary[];
   timeCredits?: TimeCredits | null;
 }
@@ -54,7 +56,7 @@ export function bubbleMessage(id: string, record: ChatRecord, userId: string | n
   return {
     id, user: record.user || '', author, avatarName: record.name || 'Contributor', avatarSources: [record.imageUrlThumbUser, record.imageUrlMedium, record.imageUrlOriginal].filter((url): url is string => !!url),
     text: record.text || '', transfers, timeCredits: timeCredits(record), timestamp: timestampMillis(record.serverTimestamp), own: !!userId && record.user === userId, verified: record.verified === true,
-    image, originalImage: record.chatImageUrlOriginal || image, imageName: image ? `Image from ${author}` : ''
+    image, originalImage: record.chatImageUrlOriginal || image, imageName: image ? `Image from ${author}` : '', imageTimestamp: record.chatImageTimestamp
   };
 }
 

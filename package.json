@@ -18,6 +18,7 @@
     "test:telemetry": "node --test scripts/telemetry/*.test.mjs",
     "audit:enterprise": "node scripts/enterprise-audit/audit.mjs",
     "audit:enterprise:test": "node --test scripts/enterprise-audit/*.test.mjs",
+    "test:image-viewer": "node --test scripts/image-viewer.test.mjs",
     "test:chat": "node --test scripts/chat.test.mjs scripts/chat-actions.test.mjs",
     "test:radio": "node --test scripts/team-radio.test.mjs",
     "test:radio:rules": "node --test scripts/team-radio-rules.test.mjs"

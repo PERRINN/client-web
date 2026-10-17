@@ -46,12 +46,6 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline: 2px s
 .state-panel { display: grid; justify-items: center; gap: 16px; padding: 48px 12px; font-size: 13px; }
 .skeleton { height: 72px; width: 80%; margin-top: 20px; border-radius: 12px; background: var(--color-surface); }
 .skeleton.short { width: 55%; margin-left: auto; }
-.image-dialog { position: fixed; inset: 0; width: min(900px, calc(100vw - 24px)); max-height: 90dvh; margin: auto; padding: 16px; border: 0; border-radius: 12px; background: var(--color-surface); color: var(--color-text); overflow-y: auto; font-size: 14px; }
-.image-dialog::backdrop { background: color-mix(in srgb, var(--color-page) 90%, transparent); }
-.image-dialog-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 12px; }
-.image-dialog-header span { overflow-wrap: anywhere; min-width: 0; }
-.image-dialog-header button { flex-shrink: 0; font-size: 24px; }
-.image-dialog > img { display: block; width: 100%; max-height: 70dvh; object-fit: contain; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 @container (max-width: 700px) {
   .chat-frame.details-open { grid-template-columns: minmax(0, 1fr); }

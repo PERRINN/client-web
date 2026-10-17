@@ -77,9 +77,4 @@
       }
     </section>
   </div>
-  <dialog #imageDialog (close)="reads.scan()" class="image-dialog" aria-label="Image preview">
-    <div class="image-dialog-header"><span>{{ activeImageName }}</span><button type="button" (click)="imageDialog.close()" aria-label="Close image preview">×</button></div>
-    @if (activeImage) { <img [src]="activeImage" [alt]="activeImageName" [hidden]="imageError" (error)="imageError = true"> }
-    @if (imageError) { <p role="alert">This image couldn’t load.</p> }
-  </dialog>
 </main>

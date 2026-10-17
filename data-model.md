@@ -167,6 +167,7 @@ Verify deployed rules and query behavior after each authorized release. Plan for
 - `PresenceService` starts in the app shell and follows real Firebase Auth (not prototype login overrides). It writes on authenticated app opening and when visible, with a five-minute per-tab throttle; visibility and reconnect events can also trigger an update after that interval. Hidden/offline tabs skip new updates. Logout stops future updates and retains the last timestamp. This is approximate recent activity, not online/offline status or an audit of explicit sign-ins; a write already queued during a connection loss may complete later.
 - Profile activity reads `userPresence/{userId}` directly, with loading, unavailable and no-record states. It does not fall back to chat cursors. Home and profiles share `formatLastSeen`: “Seen today”, “Seen this week”, “Seen this month”, then “Seen longer ago”, in that order. Boundaries use the viewer's local calendar, with weeks starting Monday; a week spanning a month/year boundary takes precedence over the month bucket. Missing/invalid timestamps show “No activity recorded”; future timestamps are treated as today for clock skew. Existing client clocks refresh labels without polling Firestore.
 - Presence records contain only `lastActiveAt`; UID comes from the document ID. Reads are public under the existing broad read grant. Rules allow only owner creates/updates with the server request timestamp and no extra fields; client deletes are denied. No Functions or message schema changes are needed. Deploy the new Firestore rules before releasing the client. No backfill is performed: users appear on their next authenticated visit. The simple presence ordering uses the default single-field index.
+- `ImageViewerService` reuses loaded Chat images sorted by `chatImageTimestamp` and document ID. At a carousel edge it queries only the selected thread’s image records: `chain == thread`, `chatImageTimestamp > ''`, ordered by `chatImageTimestamp` descending for older images or ascending for newer images, with full document snapshot cursors and `limit(25)`. Each navigation action fetches at most one page; it never scans ordinary message history or automatically walks further pages. The nonempty-string filter follows existing timestamp-prefixed upload IDs and excludes ordinary messages with absent/null image timestamps. Images missing that metadata remain viewable when clicked, but cannot be discovered through this query; no backfill is performed. One anchor document read starts each direction, and fetched image metadata remains cached until close. The existing descending image index supports older pages; the new ascending `chain`/`chatImageTimestamp`/`__name__` index must be deployed and ready before releasing newer-image paging. No persistent writes or authorization changes are introduced. Navigation/close invalidates in-flight results. Thread links use known record context; profile/account images have no inferred thread. Deleted/missing anchors retain the selected image and offer retry. Invalid image records are filtered locally; if an entire full page has no usable URLs, the next navigation action continues from its cursor rather than fetching more automatically.
 - There is no single typed schema for `PERRINNMessages`; the client uses `any` in several places and Functions mutate records after creation. Search exact field names across `src/app`, `functions`, and the rules before changing message fields.
 - `PERRINNTeams/{userId}/payments/{orderId}` is written from multiple server-side paths. Preserve idempotency flags and status transition handling when editing payment processing.
 
@@ -197,13 +198,15 @@ The PERRINN desktop/mobile navigation shows only the highest-priority unread dot
 
 The 2026-10-13 audit exported all 65 live composite indexes from `perrinn-d5fc1` (default database), inspected the client and Functions at commit `f21536e`, and checked 23 distinct query shapes across 40 source call sites with Firestore Query Explain. All 23 planned successfully and returned zero documents. The user confirmed that there are no older clients and authorized cleaning up unused indexes.
 
-[firestore.indexes.json](firestore.indexes.json) now declares the **18 retained composite indexes**. The **47 removed definitions** comprise 45 that contain fields absent from current query filters/orderings and two alternatives not selected by the planner. The authorized cleanup was deployed to production on 2026-10-13: all 47 obsolete indexes were deleted, a fresh live export exactly matched the 18 retained definitions, and all 23 query shapes planned successfully again after deletion. Rules, stored records, field overrides, and Functions implementation are unchanged.
+The 2026-10-13 baseline retained **18 composite indexes** in [firestore.indexes.json](firestore.indexes.json). The **47 removed definitions** comprise 45 that contain fields absent from current query filters/orderings and two alternatives not selected by the planner. The authorized cleanup was deployed to production on 2026-10-13: all 47 obsolete indexes were deleted, a fresh live export exactly matched the 18 retained definitions, and all 23 query shapes planned successfully again after deletion. Rules, stored records, field overrides, and Functions implementation are unchanged.
 
 The full original export is preserved in [audits/firestore-indexes-2026-10-13.json](audits/firestore-indexes-2026-10-13.json), including density and document-name ordering. The [query inventory and planner responses](audits/firestore-query-plans-2026-10-13.json) retain reproducible evidence without user data. Audit IDs below refer to the original export's order; they are not Firestore resource IDs.
 
 The audit used planning-only `documents:runQuery` requests with `explainOptions.analyze: false`, synthetic identifiers, and the source queries' filter operators and ordering. Limits were set to one for planning; source limits and cursors do not change the index shape. These requests do not execute the query or retrieve its documents. See [Firebase Query Explain](https://firebase.google.com/docs/firestore/query-explain). This verifies index coverage, not rules authorization or end-to-end UI behavior. It covers queries in this repository; external tools are outside the source audit.
 
 Firestore combines I35 + I42 for Q11 and I53 + I55 for Q16. Both members of each pair are retained. Single-field indexes also satisfy five shapes and remain under Firestore's default automatic indexing.
+
+The image viewer change on 2026-10-17 adds a nineteenth definition: `chain ASC, chatImageTimestamp ASC, __name__ ASC` for Q24. The viewer uses image-only queries with a nonempty string timestamp filter and 25-record pages. The predeployment live export contained 18 indexes; comparison with the 19 repository definitions identified only this addition and no deletions. No index deletion is proposed.
 
 ### Current query coverage
 
@@ -212,7 +215,7 @@ Filters below show operators; parameter values remain in the evidence JSON. All 
 | Query | Filters | Ordering | Selected composite indexes | Source call sites |
 | --- | --- | --- | --- | --- |
 | Q01 | `chain ==`, `lastMessage ==` | None | Automatic single-field | [functions/utils/verifyMessage.js:116](functions/utils/verifyMessage.js) |
-| Q02 (retired) | `chain ==` | `chatImageTimestamp` DESC | I01 | Legacy chat gallery removed during promotion; no current query |
+| Q02 | `chain ==`, `chatImageTimestamp > ''` | `chatImageTimestamp` DESC | I01 | [imageViewer.service.ts](src/app/image-viewer/imageViewer.service.ts); 25-record pages |
 | Q03 | `chain ==` | `serverTimestamp` DESC | I02 | [chatData.service.ts](src/app/chat/chatData.service.ts), [prnTransfer.service.ts](src/app/chat/prn-send-manager/prnTransfer.service.ts) |
 | Q04 | `chatImageTimestamp ==` | None | Automatic single-field | [functions/storageOnFinalise.f.js:18](functions/storageOnFinalise.f.js) |
 | Q05 | `chatProfileImageTimestamp ==` | None | Automatic single-field | [functions/storageOnFinalise.f.js:19](functions/storageOnFinalise.f.js) |
@@ -233,6 +236,7 @@ Filters below show operators; parameter values remain in the evidence JSON. All 
 | Q20 | `userChain.nextMessage ==`, `verified ==`, `wallet.balance >` | `wallet.balance` DESC | I59 | [src/app/team.service.ts](src/app/team.service.ts) |
 | Q21 | `userImageTimestamp ==` | None | Automatic single-field | [functions/storageOnFinalise.f.js:17](functions/storageOnFinalise.f.js) |
 | Q22 | `verified ==` | `chatImageTimestamp` DESC | I62 | [src/app/homeFeed.service.ts:30](src/app/homeFeed.service.ts)<br>[src/app/profile.component.ts:247](src/app/profile.component.ts) |
+| Q24 | `chain ==`, `chatImageTimestamp > ''` | `chatImageTimestamp` ASC | New ascending image index | [imageViewer.service.ts](src/app/image-viewer/imageViewer.service.ts) |
 | Q23 | None | `lastActiveAt` DESC | Automatic single-field | [src/app/presence.service.ts:78](src/app/presence.service.ts) |
 
 ### Original index inventory and cleanup decisions
@@ -241,7 +245,7 @@ All indexes have collection scope. Fields appear in index order; implicit `__nam
 
 | Audit ID | Collection | Indexed fields | Decision and evidence |
 | --- | --- | --- | --- |
-| I01 | `PERRINNMessages` | `chain` ASC, `chatImageTimestamp` DESC | Retained pending index audit: Q02 retired with legacy chat; no deletion in this change |
+| I01 | `PERRINNMessages` | `chain` ASC, `chatImageTimestamp` DESC | Keep: image viewer Q02 |
 | I02 | `PERRINNMessages` | `chain` ASC, `serverTimestamp` DESC | Keep: selected by Q03 |
 | I03 | `PERRINNMessages` | `channel` ASC, `lastMessage` ASC, `verified` ASC, `eventDate` ASC | Remove: no current query uses `channel`, `eventDate` |
 | I04 | `PERRINNMessages` | `channel` ASC, `lastMessage` ASC, `verified` ASC, `serverTimestamp` DESC | Remove: no current query uses `channel` |

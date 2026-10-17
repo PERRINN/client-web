@@ -1,3 +1,4 @@
+import { ImageViewerService, ViewerImage } from './image-viewer/imageViewer.service'
 import { Injectable, isDevMode, EnvironmentInjector, runInInjectionContext } from '@angular/core'
 import { AngularFireAuth } from '@angular/fire/compat/auth'
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
@@ -32,7 +33,8 @@ export class UserInterfaceService {
     private afAuth: AngularFireAuth,
     public router:Router,
     public afs: AngularFirestore,
-    private injector: EnvironmentInjector
+    private injector: EnvironmentInjector,
+    private imageViewer: ImageViewerService
   ) {
 
     this.profileUserId='ubiLUzQOd0ZIAEDYsOltrUMUdim2'
@@ -292,12 +294,8 @@ export class UserInterfaceService {
     window.open(url, '_blank');
   }
 
-  showFullScreenImage(src: any) {
-    if (!src) return;
-    const fullScreenImage = document.getElementById('fullScreenImage') as HTMLImageElement | null;
-    if (!fullScreenImage) return;
-    fullScreenImage.src = src;
-    fullScreenImage.style.visibility = 'visible';
+  showFullScreenImage(src: string, context: Omit<ViewerImage, 'src'> = {}) {
+    if (src) this.imageViewer.open({ src, ...context });
   }
 
   fieldShowHide(effect: string) {

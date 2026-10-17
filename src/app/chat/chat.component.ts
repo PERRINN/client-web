@@ -1,3 +1,4 @@
+import { ImageViewerService } from '../image-viewer/imageViewer.service';
 import { ChatEvent } from './chat-event/chatEvent';
 import { ChatFund } from './chat-fund/chatFund';
 import { ChatFundEditorComponent } from './chat-fund/chat-fund-editor.component';
@@ -36,7 +37,6 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
   @ViewChild('messageList') messageList?: ElementRef<HTMLElement>;
   @ViewChild('detailsClose') detailsClose?: ElementRef<HTMLButtonElement>;
   @ViewChild('detailsTrigger') detailsTrigger?: ElementRef<HTMLButtonElement>;
-  @ViewChild('imageDialog') imageDialog?: ElementRef<HTMLDialogElement>;
   @ViewChild(ChatComposerComponent) composer?: ChatComposerComponent;
   editingDetails = false;
   savingDetails = false;
@@ -53,9 +53,6 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
   detailsOpen = false;
   awayFromLatest = false;
   showLatest = false;
-  activeImage = '';
-  activeImageName = '';
-  imageError = false;
   sentCount = 0;
   signedIn = false;
   sending = false;
@@ -74,7 +71,7 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
   private messageSubscription?: Subscription;
   private latestSubscription?: Subscription;
 
-  constructor(private route: ActivatedRoute, private router: Router, private data: ChatDataService, private sidebar: SidebarConversationsService, private zone: NgZone, public readonly reads: ChatReadService) {
+  constructor(private route: ActivatedRoute, private router: Router, private data: ChatDataService, private sidebar: SidebarConversationsService, private zone: NgZone, public readonly reads: ChatReadService, private imageViewer: ImageViewerService) {
     this.subscriptions.add(route.paramMap.subscribe(params => {
       this.messageSubscription?.unsubscribe(); this.latestSubscription?.unsubscribe(); this.reads.reset();
       this.resetDetailsEditor(); this.savingDetails = false; this.detailsNotice = '';
@@ -291,8 +288,8 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
   hideAvatar(event: Event): void { (event.target as HTMLImageElement).hidden = true; }
 
   openImage(message: ChatMessage): void {
-    this.activeImage = message.originalImage; this.activeImageName = message.imageName;
-    this.imageError = false; this.imageDialog?.nativeElement.showModal();
+    const image = (item: ChatMessage) => ({ src: item.originalImage, name: item.imageName, id: item.id, chain: this.chain, imageTimestamp: item.imageTimestamp });
+    this.imageViewer.open(image(message), this.messages.filter(item => !!item.originalImage).map(image));
   }
 
   ngOnDestroy(): void {

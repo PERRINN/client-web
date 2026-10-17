@@ -138,7 +138,7 @@ export class ImageMosaicComponent implements OnInit, OnDestroy {
   }
 
   openImage(message: HomeMessage) {
-    this.UI.showFullScreenImage(message.chatImageUrlOriginal || this.imageUrl(message));
+    this.UI.showFullScreenImage(message.chatImageUrlOriginal || this.imageUrl(message), { chain: message.chain, id: message.id, name: 'Shared image' });
   }
 
 }

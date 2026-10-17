@@ -254,9 +254,9 @@
               @for (message of latestImages|async; track message; let first = $first; let last = $last) {
                 <li class="carouselItem guardedChatItem">
                   @if (scope==='all'||mode==='inbox') {
-                    <div class="carouselImageWrap" (click)="openCarouselImage(message.payload.doc.data()?.chatImageUrlOriginal)">
+                    <button type="button" class="carouselImageWrap" aria-label="View full-size image" (click)="openCarouselImage(message.payload.doc.data(), message.payload.doc.id)">
                       <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload.doc.data())" class="carouselImage">
-                    </div>
+                    </button>
                   }
                   <button class="carouselMeta" (click)="openListedChat(message.payload.doc.data()?.chain, message.payload.doc.id)">
                     <span class="messageTiming">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</span>

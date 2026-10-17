@@ -43,6 +43,25 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
+          "fieldPath": "chain",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "chatImageTimestamp",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "PERRINNMessages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
           "fieldPath": "fund.active",
           "order": "ASCENDING"
         },

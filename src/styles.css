@@ -266,17 +266,6 @@ th {
 .inputfile + label {
     cursor: pointer;
 }
-.fullScreenImage {
-  z-index: 99999999999;
-  width: 100%;
-  height: 100vh;
-  position: fixed;
-  top: 0;
-  left: 0;
-  background-color:var(--color-page);
-  object-fit:contain;
-  cursor: pointer;
-}
 .imageWithZoom {
   cursor: pointer;
 }

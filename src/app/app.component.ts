@@ -147,15 +147,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.presenceSubscription = this.presence.trackActivity();
-    const fullScreenImage = document.getElementById('fullScreenImage');
-    if (fullScreenImage) fullScreenImage.style.visibility = 'hidden';
-  }
-
-  hideFullScreenImage() {
-    const fullScreenImage = document.getElementById('fullScreenImage') as HTMLImageElement | null;
-    if (!fullScreenImage) return;
-    fullScreenImage.style.visibility = 'hidden';
-    fullScreenImage.src = '';
   }
 
   openDiscover() {

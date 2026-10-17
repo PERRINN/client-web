@@ -1,3 +1,4 @@
+import { ImageViewerComponent } from './image-viewer/image-viewer.component';
 import { TeamRadioComponent } from './prototypes/team-radio/team-radio.component';
 import { RearWingPilotComponent } from './prototypes/rear-wing-pilot/rear-wing-pilot.component';
 import { PrnSendManagerComponent } from './chat/prn-send-manager/prn-send-manager.component';
@@ -67,6 +68,7 @@ export const firebaseConfig = {
         RearWingPilotComponent,
         TeamRadioComponent,
         AppComponent,
+        ImageViewerComponent,
         AppsComponent,
         LoginComponent,
         ProfileComponent,

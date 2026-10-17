@@ -95,7 +95,7 @@
 /* Image carousel */
 :host .imageCarousel { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 10px; padding: 4px 2px 8px 2px; margin-top: 10px; margin-bottom: 14px; scroll-snap-type: none; }
 :host .imageCarousel .carouselItem { flex: 0 0 25%; min-width: 200px; background: color-mix(in srgb, var(--color-raised) 96%, transparent); border: none; border-radius: 14px; overflow: hidden; margin-bottom: 0; scroll-snap-align: none; display: flex; flex-direction: column; }
-:host .carouselImageWrap { cursor: pointer; background: color-mix(in srgb, var(--color-page) 72%, transparent); display: flex; align-items: center; justify-content: center; min-height: 112px; }
+:host .carouselImageWrap { width: 100%; padding: 0; border: 0; cursor: pointer; background: color-mix(in srgb, var(--color-page) 72%, transparent); display: flex; align-items: center; justify-content: center; min-height: 112px; }
 :host .carouselImage { width: 100%; height: 112px; object-fit: contain; display: block; }
 :host .carouselMeta { border: none; background: color-mix(in srgb, var(--color-raised) 96%, transparent); padding: 8px 10px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
 :host .messageImageBadge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; margin-right: 6px; border-radius: 6px; color: var(--color-text-secondary); vertical-align: text-bottom; }
