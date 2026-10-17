@@ -1,3 +1,4 @@
+import { TeamRadioComponent } from './prototypes/team-radio/team-radio.component';
 import { RearWingPilotComponent } from './prototypes/rear-wing-pilot/rear-wing-pilot.component';
 import { PrnSendManagerComponent } from './chat/prn-send-manager/prn-send-manager.component';
 import { ChatFlagComponent } from './chat/chat-flag/chat-flag.component';
@@ -64,6 +65,7 @@ export const firebaseConfig = {
 
 @NgModule({ declarations: [
         RearWingPilotComponent,
+        TeamRadioComponent,
         AppComponent,
         AppsComponent,
         LoginComponent,

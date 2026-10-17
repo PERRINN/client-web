@@ -1,3 +1,4 @@
+import { TeamRadioComponent } from './prototypes/team-radio/team-radio.component';
 import { RearWingPilotComponent } from './prototypes/rear-wing-pilot/rear-wing-pilot.component';
 import { TelemetryComponent } from './telemetry/telemetry.component';
 import { NgModule } from '@angular/core';
@@ -22,6 +23,7 @@ import { ImageMosaicComponent } from './prototypes/image-mosaic/image-mosaic.com
 import { HomeComponent } from './home.component';
 
 const appRoutes: Routes = [
+  { path: 'prototypes/team-radio', component: TeamRadioComponent },
   { path: 'prototypes/rear-wing-pilot', component: RearWingPilotComponent },
   { path: '424-telemetry', component: TelemetryComponent },
   { path: 'prototypes/unity-live-link', redirectTo: '424-telemetry', pathMatch: 'full' },

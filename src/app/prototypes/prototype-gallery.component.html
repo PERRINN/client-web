@@ -19,6 +19,14 @@
         <a class="prototype-card" [routerLink]="prototype.route">
           <div class="preview-stage" aria-hidden="true">
             @switch (prototype.name) {
+              @case ('team-radio') {
+                <svg class="radio-preview" viewBox="0 0 240 88" focusable="false">
+                  <rect x="17" y="14" width="206" height="60" rx="8" fill="var(--color-page)" />
+                  <g fill="var(--color-raised)"><circle cx="40" cy="31" r="7"/><circle cx="40" cy="49" r="7"/><circle cx="40" cy="65" r="5"/><rect x="55" y="27" width="58" height="6" rx="3"/><rect x="55" y="46" width="43" height="6" rx="3"/><rect x="55" y="62" width="51" height="5" rx="2"/></g>
+                  <rect x="137" y="25" width="68" height="39" rx="8" fill="var(--color-accent)"/>
+                  <path d="M160 41v7m7-13v19m8-24v29m8-24v19" stroke="var(--color-accent-ink)" stroke-width="3"/>
+                </svg>
+              }
               @case ('rear-wing-pilot') {
                 <svg class="wing-preview" viewBox="0 0 240 88" focusable="false">
                   <path class="wing-surface" d="M25 23 Q120 10 215 23 L207 36 Q120 28 33 36 Z" />
