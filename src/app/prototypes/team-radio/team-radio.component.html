@@ -7,38 +7,39 @@
     <p role="status">Loading</p>
   } @else {
     <section class="controls" aria-label="Radio controls">
-      @if (!radio.joined || (radio.error && radio.connected) || !radio.connected) {
+      @if (!radio.joined || (radio.error && radio.connected) || !radio.connected || radio.reconnecting) {
         <div class="actions">
           @if (!radio.joined) {
-            <button class="primary" [disabled]="busy || !radio.connected || (radio.seat === undefined && radio.seats.length >= 10)" (click)="run(radio.join.bind(radio))">{{ radio.seat === undefined && radio.seats.length >= 10 ? 'Room full' : 'Join' }}</button>
+            <button class="primary" [disabled]="busy || !radio.connected || radio.reconnecting || (radio.seat === undefined && radio.seats.length >= 10)" (click)="run(radio.join.bind(radio))">{{ radio.seat === undefined && radio.seats.length >= 10 ? 'Room full' : 'Join' }}</button>
           }
-          @if (radio.joined && radio.error && radio.connected) {
+          @if (radio.joined && radio.error && radio.connected && !radio.reconnecting) {
             <button [disabled]="busy" (click)="run(radio.reconnect.bind(radio))">Reconnect</button>
           }
-          @if (!radio.connected) { <span role="status">Offline</span> }
+          @if (radio.reconnecting) { <span role="status">Reconnecting</span> }
+          @else if (!radio.connected) { <span role="status">Offline</span> }
         </div>
       }
       @if (radio.joined) {
         @if (radio.speakingPlace === undefined || !radio.audio.microphoneReady || radio.audio.needsSound) {
           <div class="actions">
             @if (radio.speakingPlace === undefined) {
-              <button [disabled]="busy || !radio.connected || radio.speakerCount >= 3" (click)="run(radio.enableTalking.bind(radio))">{{ radio.speakerCount >= 3 ? '3 speaking places taken' : 'Enable talking' }}</button>
+              <button [disabled]="busy || !radio.connected || radio.reconnecting || radio.speakerCount >= 3" (click)="run(radio.enableTalking.bind(radio))">{{ radio.speakerCount >= 3 ? '3 speaking places taken' : 'Enable talking' }}</button>
             } @else {
               @if (!radio.audio.microphoneReady) {
-                <button [disabled]="busy || !radio.connected" (click)="run(radio.enableTalking.bind(radio))">Enable microphone</button>
+                <button [disabled]="busy || !radio.connected || radio.reconnecting" (click)="run(radio.enableTalking.bind(radio))">Enable microphone</button>
               }
             }
-            @if (radio.audio.needsSound) { <button (click)="run(radio.audio.resume.bind(radio.audio))">Enable sound</button> }
+            @if (!radio.reconnecting && radio.audio.needsSound) { <button (click)="run(radio.audio.resume.bind(radio.audio))">Enable sound</button> }
           </div>
         }
         @if (radio.speakingPlace !== undefined) {
-          <button class="talk primary" [class.transmitting]="radio.transmitting" [disabled]="busy || !radio.connected || !radio.audioReady"
+          <button class="talk primary" [class.transmitting]="radio.transmitting" [disabled]="busy || !radio.connected || radio.reconnecting || !radio.audioReady"
             aria-label="Hold to talk" [attr.aria-pressed]="radio.transmitting"
             (pointerdown)="pointerDown($event)" (pointerup)="pointerUp($event)" (pointercancel)="pointerUp($event)" (lostpointercapture)="pointerUp($event)"
             (keydown.space)="$event.preventDefault(); !$event.repeat && radio.talk()" (keyup.space)="$event.preventDefault(); radio.releaseTalk()"
             (keydown.enter)="$event.preventDefault(); !$event.repeat && radio.talk()" (keyup.enter)="$event.preventDefault(); radio.releaseTalk()"
             (contextmenu)="$event.preventDefault()">{{ talkLabel }}</button>
-          @if (radio.connected && radio.audio.microphoneReady && !radio.audioReady) { <p role="status">Connecting audio</p> }
+          @if (radio.connected && !radio.reconnecting && radio.audio.microphoneReady && !radio.audioReady) { <p role="status">Connecting audio</p> }
         }
       }
     </section>

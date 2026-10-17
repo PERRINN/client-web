@@ -7,7 +7,7 @@ import firebase from 'firebase/compat/app';
 import 'firebase/compat/database';
 import { firstValueFrom, Subject, Subscription } from 'rxjs';
 import { RadioAudioService, RadioSignal } from './radioAudio.service';
-import { activeFloor, connectionFor, RadioRoom, ROOM_PATH, seatFor, speakerFor } from './radioState';
+import { activeFloor, connectionFor, RadioRoom, RECONNECT_GRACE_MS, ROOM_PATH, seatFor, speakerFor } from './radioState';
 
 @Injectable()
 export class RadioRoomService implements OnDestroy {
@@ -30,6 +30,8 @@ export class RadioRoomService implements OnDestroy {
   private generation = 0;
   private cleanup?: Record<string, unknown>;
   private reclaiming = false;
+  private disconnectDeadline = 0;
+  private restoring?: number;
   private presenceRef?: firebase.database.Reference;
   private tickTimer: ReturnType<typeof setInterval>;
   private heartbeatTimer: ReturnType<typeof setInterval>;
@@ -45,12 +47,15 @@ export class RadioRoomService implements OnDestroy {
   get seats() { return Object.entries(this.room.seats || {}).map(([id, value]) => ({ id, ...value })); }
   get speakerCount() { return Object.keys(this.room.speakers || {}).length; }
   get transmitting() { return !!this.speakingToken && this.floor?.token === this.speakingToken; }
-  get audioReady() { return this.activePresence && this.connected && this.audio.canTransmit; }
+  get reconnecting() { return this.joined && this.disconnectDeadline > 0; }
+  get audioReady() { return !this.reconnecting && this.activePresence && this.connected && this.audio.canTransmit; }
 
   constructor(private auth: AngularFireAuth, database: AngularFireDatabase, public audio: RadioAudioService, private zone: NgZone, private profiles: UserInterfaceService, private firestore: AngularFirestore, private injector: EnvironmentInjector) {
     this.root = database.database.ref(ROOM_PATH);
-    this.audio.onSignal = async (seat, signal) => { await this.root.child(`signals/${seat}/${this.seat}`).set(signal); };
-    this.audio.onError = message => this.zone.run(() => this.error = message);
+    this.audio.onSignal = async (seat, signal) => {
+      if (this.connected && this.activePresence && signal.fromSession === this.session) await this.root.child(`signals/${seat}/${this.seat}`).set(signal);
+    };
+    this.audio.onError = message => this.zone.run(() => { if (!this.reconnecting) this.error = message; });
     this.audio.onEnded = () => this.zone.run(() => { void this.releaseTalk(); });
     this.audio.onChange = () => this.zone.run(() => this.refreshPresence());
     this.authSubscription = this.auth.authState.subscribe(user => {
@@ -59,8 +64,7 @@ export class RadioRoomService implements OnDestroy {
       if (!user) return;
       this.watch(database.database.ref('.info/serverTimeOffset'), value => this.offset = Number(value) || 0);
       this.watch(database.database.ref('.info/connected'), value => {
-        this.connected = value === true;
-        if (!this.connected) this.stopSession();
+        this.connectionChanged(value === true);
       });
       for (const [name, limit] of [['seats', 10], ['speakers', 3], ['presence', 10]] as const) {
         this.watch(this.root.child(name).limitToFirst(limit), value => {
@@ -127,14 +131,14 @@ export class RadioRoomService implements OnDestroy {
     let claimed = false;
     try {
       await this.audio.enableMicrophone();
-      if (this.destroyed || !this.joined || this.session !== session || this.user?.uid !== uid) return;
+      if (this.destroyed || !this.joined || !this.activePresence || this.session !== session || this.user?.uid !== uid) return;
       if (this.speakingPlace !== undefined) return;
       await this.reclaimStale();
-      if (this.destroyed || !this.joined || this.session !== session) return;
+      if (this.destroyed || !this.joined || !this.activePresence || this.session !== session) return;
       for (let index = 0; index < 3; index++) {
-        const result = await this.root.child(`speakers/${index}`).transaction(current => current === null ? { uid, seat } : undefined, undefined, false);
+        const result = await this.root.child(`speakers/${index}`).transaction(current => this.activePresence && this.session === session && current === null ? { uid, seat } : undefined, undefined, false);
         if (result.committed) {
-          // Include the new role in both normal-exit and server disconnect cleanup.
+          // Include the new role in normal-exit cleanup; abrupt loss uses grace recovery.
           const cleanup = this.releasePatch(seat, session, String(index));
           if (session !== this.session || !this.joined) {
             await this.root.update(cleanup).catch(() => {}); return;
@@ -158,6 +162,7 @@ export class RadioRoomService implements OnDestroy {
     const token = crypto.randomUUID();
     try {
       const result = await this.root.child('floor').transaction(current => {
+        if (press !== this.press || !this.held || !this.audioReady) return;
         const room = { ...this.room, floor: current };
         if (activeFloor(room, Date.now() + this.offset)) return;
         const now = Date.now() + this.offset;
@@ -189,7 +194,7 @@ export class RadioRoomService implements OnDestroy {
 
   status(seat: string) {
     const connection = connectionFor(this.room, seat, this.clock)?.[1];
-    if (!connection) return 'Offline';
+    if ((seat === this.seat && this.reconnecting) || !connection) return 'Reconnecting';
     if (this.floor?.seat === seat) return 'Talking';
     if (!connection.ready) return 'Connecting';
     return 'Listening';
@@ -252,7 +257,7 @@ export class RadioRoomService implements OnDestroy {
     if (!this.user || !this.connected || this.reclaiming || this.destroyed) return;
     this.reclaiming = true;
     try {
-      const cutoff = Date.now() + this.offset - 20000;
+      const cutoff = Date.now() + this.offset - RECONNECT_GRACE_MS;
       for (const [seat, person] of Object.entries(this.room.seats || {})) {
         if (person.uid === this.user.uid) continue;
         const presence = this.room.presence?.[seat];
@@ -281,15 +286,68 @@ export class RadioRoomService implements OnDestroy {
     void this.presenceRef.transaction(current => current?.session === data.session ? data : undefined, undefined, false)
       .catch(error => this.zone.run(() => this.showError(error)));
   }
+  private connectionChanged(connected: boolean) {
+    this.connected = connected;
+    if (!connected && this.joined && !this.reconnecting) this.pauseSession();
+    if (connected && this.reconnecting) void this.restoreSession();
+    this.sync();
+  }
+  private pauseSession() {
+    this.disconnectDeadline = Date.now() + this.offset + RECONNECT_GRACE_MS;
+    this.activePresence = false;
+    void this.releaseTalk();
+    this.audio.setFloor(undefined, false);
+    // Keep the permitted microphone/context, but remove every network audio path.
+    this.audio.reconcile(this.seat, this.session, false, []);
+    this.signals = {}; this.error = '';
+  }
+  private async restoreSession() {
+    if (this.restoring === this.generation || !this.reconnecting || !this.connected) return;
+    if (Date.now() + this.offset >= this.disconnectDeadline) { this.stopSession(); return; }
+    this.restoring = this.generation;
+    const generation = this.generation; const oldSession = this.session; const seat = this.seat;
+    const session = crypto.randomUUID(); const presence = this.presenceRef;
+    let cleanup: Record<string, unknown>;
+    try {
+      // The server confirms the old session still owns this place. Rotating the
+      // audio session prevents an old floor or delayed SDP from becoming live again.
+      const result = await presence.transaction(current => {
+        if (generation !== this.generation || !this.connected || Date.now() + this.offset >= this.disconnectDeadline) return;
+        if (current?.session !== oldSession || current.at <= Date.now() + this.offset - RECONNECT_GRACE_MS) return;
+        return { ...this.presenceData(), session, ready: false };
+      }, undefined, false);
+      if (!result.committed) {
+        if (generation === this.generation && this.connected) { this.stopSession(); this.error = 'Radio session ended. Join again.'; }
+        return;
+      }
+      cleanup = this.releasePatch(seat, session, this.speakingPlace);
+      if (generation !== this.generation || !this.joined) { await this.root.update(cleanup).catch(() => {}); return; }
+      this.session = session; this.cleanup = cleanup; this.lastPresence = '';
+      // Register a new disconnect hook for every restored Firebase connection.
+      await this.armCleanup();
+      if (generation !== this.generation || !this.joined || !this.connected) return;
+      if (Date.now() + this.offset >= this.disconnectDeadline) { this.stopSession(); return; }
+      this.disconnectDeadline = 0; this.activePresence = true; this.error = '';
+      await this.audio.resume();
+      this.sync();
+    } catch (error) {
+      if (generation === this.generation && this.joined && this.connected) { this.stopSession(); this.showError(error); }
+    } finally {
+      if (this.restoring === generation) this.restoring = undefined;
+      if (generation === this.generation && this.reconnecting && this.connected && this.joined) void this.restoreSession();
+    }
+  }
   private sync() {
     if (this.destroyed) return;
     this.clock = Date.now() + this.offset;
+    if (this.reconnecting && this.clock >= this.disconnectDeadline) this.stopSession();
     if (this.joined && this.activePresence && this.seat === undefined) this.stopSession();
     if (this.joined && this.seat !== undefined && this.activePresence) {
       const connection = connectionFor(this.room, this.seat, this.clock);
       if (!connection || connection[0] !== this.session) {
         const replaced = connection && connection[0] !== this.session;
-        this.stopSession();
+        if (replaced || this.room.seats?.[this.seat]?.uid !== this.user?.uid) this.stopSession();
+        else { this.pauseSession(); if (this.connected) void this.restoreSession(); }
         if (replaced) this.error = 'Radio opened in another tab.';
         return;
       }
@@ -300,7 +358,7 @@ export class RadioRoomService implements OnDestroy {
       this.audio.reconcile(this.seat, this.session, this.speakingPlace !== undefined, peers);
       for (const [seat, signal] of Object.entries(this.signals)) this.audio.receive(seat, signal);
     }
-    this.audio.setFloor(this.connected && this.joined ? this.floor : undefined, false);
+    this.audio.setFloor(this.connected && this.joined && !this.reconnecting ? this.floor : undefined, false);
     this.changed.next();
   }
   private watch(query: firebase.database.Query, callback: (value: any) => void, track = true) {
@@ -311,7 +369,7 @@ export class RadioRoomService implements OnDestroy {
   }
   private unlisten() { this.listeners.splice(0).forEach(unsubscribe => unsubscribe()); this.connected = false; }
   private stopSession() {
-    ++this.generation;
+    ++this.generation; this.disconnectDeadline = 0;
     const cleanup = this.cleanup; this.cleanup = undefined;
     if (cleanup) void this.root.update(cleanup).catch(() => { /* Server disconnect or stale-place recovery is the fallback. */ });
     void this.releaseTalk(); this.joined = false; this.activePresence = false;

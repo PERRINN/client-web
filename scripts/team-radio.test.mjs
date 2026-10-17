@@ -277,8 +277,8 @@ test('disconnect fallback registers only the session tombstone, not unsafe parti
 });
 test('stale recovery skips own cached places and attempts only stale remote places', async () => {
   const fixture = service(); const { radio } = fixture;
-  radio.room.presence[0].at = Date.now() - 21000;
-  radio.room.presence[1].at = Date.now() - 21000;
+  radio.room.presence[0].at = Date.now() - 180001;
+  radio.room.presence[1].at = Date.now() - 180001;
   try {
     await radio.reclaimStale();
     assert.equal(fixture.writes.length, 1);
@@ -295,5 +295,90 @@ test('an old enable-talking request cannot disable the microphone of a newer ses
     radio.exit(); radio.session = 'new-session'; radio.joined = true;
     finish(); await pending;
     assert.equal(disabled, 0);
+  } finally { radio.ngOnDestroy(); }
+});
+
+test('network loss preserves both places without queuing deletion, stops transmission and resets held input', async () => {
+  const fixture = service(); const { radio } = fixture; const paths = [];
+  radio.cleanup = radio.releasePatch('1', 'bSession', '1'); radio.held = true;
+  radio.audio.reconcile = (...args) => paths.push(args);
+  try {
+    radio.connectionChanged(false);
+    assert.equal(radio.joined, true); assert.equal(radio.reconnecting, true);
+    assert.equal(radio.session, 'bSession'); assert.equal(radio.speakingPlace, '1');
+    assert.equal(radio.audioReady, false); assert.equal(radio.held, false);
+    assert.equal(fixture.writes.length, 0);
+    assert.deepEqual(paths[0], ['1', 'bSession', false, []]);
+    assert.equal(radio.status('1'), 'Reconnecting');
+    const deadline = radio.disconnectDeadline;
+    radio.connectionChanged(false);
+    assert.equal(radio.disconnectDeadline, deadline, 'repeated disconnect callbacks never extend grace');
+  } finally { radio.ngOnDestroy(); }
+});
+test('automatic recovery retains speaking permission, rotates session and never resumes a held transmission', async () => {
+  const fixture = service(); const { radio } = fixture;
+  radio.audio.resume = async () => {};
+  let current = radio.room.presence[1];
+  radio.presenceRef = {
+    transaction: async update => { const next = update(current); if (!next) return { committed: false }; current = next; radio.room.presence[1] = { ...next, at: Date.now() }; return { committed: true }; },
+    onDisconnect: fixture.ref.onDisconnect
+  };
+  try {
+    radio.held = true; radio.connectionChanged(false); radio.connected = true;
+    await radio.restoreSession();
+    assert.equal(radio.joined, true); assert.equal(radio.reconnecting, false); assert.equal(radio.activePresence, true);
+    assert.notEqual(radio.session, 'bSession'); assert.equal(radio.speakingPlace, '1');
+    assert.equal(fixture.disconnects[0].session, radio.session);
+    assert.equal(radio.held, false); assert.equal(fixture.transmitted, 0);
+    assert.equal(fixture.writes.length, 0, 'no place deletion during successful recovery');
+  } finally { radio.ngOnDestroy(); }
+});
+test('three-minute expiry ends the session and prepares normal guarded cleanup', () => {
+  const fixture = service(); const { radio } = fixture;
+  radio.cleanup = radio.releasePatch('1', 'bSession', '1');
+  try {
+    radio.connectionChanged(false);
+    assert.ok(radio.disconnectDeadline >= Date.now() + 179000);
+    radio.disconnectDeadline = Date.now() - 1;
+    radio.sync();
+    assert.equal(radio.joined, false); assert.equal(radio.reconnecting, false);
+    assert.equal(fixture.writes[0]['seats/1'], null); assert.equal(fixture.writes[0]['speakers/1'], null);
+  } finally { radio.ngOnDestroy(); }
+});
+test('a reclaimed or superseded session cannot automatically rejoin or steal a speaking place', async () => {
+  const fixture = service(); const { radio } = fixture;
+  radio.presenceRef = { transaction: async update => ({ committed: update({ session: 'new-tab', at: Date.now() }) !== undefined }) };
+  try {
+    radio.connectionChanged(false); radio.connected = true;
+    await radio.restoreSession();
+    assert.equal(radio.joined, false); assert.equal(radio.session, '');
+    assert.equal(radio.error, 'Radio session ended. Join again.');
+    assert.equal(fixture.writes.length, 0);
+  } finally { radio.ngOnDestroy(); }
+});
+test('places remain reserved throughout grace while stale presence still invalidates audio after 20 seconds', async () => {
+  const fixture = service(); const { radio } = fixture;
+  try {
+    radio.room.presence[0].at = Date.now() - 120000;
+    await radio.reclaimStale();
+    assert.equal(fixture.writes.length, 0);
+    assert.equal(state.activeFloor(radio.room, Date.now()), undefined);
+    assert.equal(state.RECONNECT_GRACE_MS, 180000); assert.equal(state.PRESENCE_TIMEOUT_MS, 20000);
+  } finally { radio.ngOnDestroy(); }
+});
+
+test('leaving during recovery cleans a late renewed session without restoring audio', async () => {
+  const fixture = service(); const { radio } = fixture; let finish;
+  radio.cleanup = radio.releasePatch('1', 'bSession', '1');
+  radio.presenceRef = { transaction: () => new Promise(resolve => { finish = resolve; }) };
+  try {
+    radio.connectionChanged(false); radio.connected = true;
+    const pending = radio.restoreSession(); radio.exit();
+    finish({ committed: true }); await pending;
+    assert.equal(radio.joined, false);
+    assert.equal(fixture.writes.length, 2);
+    assert.equal(fixture.writes[1]['speakers/1'], null);
+    assert.notEqual(fixture.writes[1]['presence/1'].session, 'bSession');
+    assert.equal(fixture.transmitted, 0);
   } finally { radio.ngOnDestroy(); }
 });

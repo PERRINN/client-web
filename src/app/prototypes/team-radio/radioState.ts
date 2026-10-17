@@ -11,6 +11,7 @@ export interface RadioRoom {
 export const ROOM_PATH = 'teamRadio/team';
 export const MAX_TRANSMISSION_MS = 30_000;
 export const PRESENCE_TIMEOUT_MS = 20_000;
+export const RECONNECT_GRACE_MS = 180_000;
 export function seatFor(room: RadioRoom, uid: string): string | undefined {
   return Object.keys(room.seats || {}).find(key => room.seats[key].uid === uid);
 }

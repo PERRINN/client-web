@@ -89,11 +89,11 @@ test('atomic exit frees both places and invalidates transmission', async () => {
 });
 test('only stale places can be reclaimed by another signed-in user, including their speaking place', async () => {
   await patch({ 'seats/0': null, 'speakers/0': null }, 'user9', 401);
-  await request(path('presence/0/at'), 'PUT', Date.now() - 21000, 'owner');
+  await request(path('presence/0/at'), 'PUT', Date.now() - 181000, 'owner');
   await patch({ 'seats/0': null }, 'user9', 401);
   await patch({ 'seats/0': null, 'speakers/0': null }, 'user9');
   assert.equal((await request(path('seats/1'), 'GET', undefined, 'user9')).data.uid, 'user1');
-  await request(path('presence/1/at'), 'PUT', Date.now() - 21000, 'owner');
+  await request(path('presence/1/at'), 'PUT', Date.now() - 181000, 'owner');
   await allow('presence/1', connection('session1'), 'user1');
   await patch({ 'seats/1': null, 'speakers/1': null }, 'user9', 401);
 });
@@ -157,7 +157,7 @@ test('Firebase disconnect marks only its session offline; stale recovery frees b
     }
     assert.equal(offline, true, 'server marked the disconnected session offline');
     await patch({ 'seats/0': null, 'speakers/0': null }, 'user1', 401);
-    await request(path('presence/0/at'), 'PUT', Date.now() - 21000, 'owner');
+    await request(path('presence/0/at'), 'PUT', Date.now() - 181000, 'owner');
     await patch({ 'seats/0': null, 'speakers/0': null }, 'user1');
     assert.equal((await request(path('seats/0'), 'GET', undefined, 'user1')).data, null);
     assert.equal((await request(path('speakers/0'), 'GET', undefined, 'user1')).data, null);
@@ -178,4 +178,23 @@ test('a registered old disconnect cannot mark a newer session offline', { timeou
     assert.equal(current.session, 'replacement'); assert.equal(current.online, true);
     assert.equal((await request(path('seats/0'), 'GET', undefined, 'user1')).data.uid, 'user0');
   } finally { await app.delete(); }
+});
+
+test('three-minute place grace is independent of the short transmission timeout', async () => {
+  await request(path('presence/0/at'), 'PUT', Date.now() - 120000, 'owner');
+  await patch({ 'seats/0': null, 'speakers/0': null }, 'user9', 401);
+  await deny('speakers/0', null, 'user9');
+  await deny('floor', floor(0), 'user0');
+  await request(path('floor'), 'PUT', floor(0), 'owner');
+  await allow('floor', floor(1), 'user1');
+  await allow('presence/0', connection('recovered-session'), 'user0');
+  await patch({ 'seats/0': null, 'speakers/0': null }, 'user9', 401);
+  assert.equal((await request(path('speakers/0'), 'GET', undefined, 'user0')).data.uid, 'user0');
+});
+
+test('recovery rotates the audio session so the old floor cannot revive', async () => {
+  await allow('floor', floor(0), 'user0');
+  await allow('presence/0', connection('new-audio-session'), 'user0');
+  await allow('floor', floor(1), 'user1');
+  await deny('floor', floor(0), 'user0');
 });
