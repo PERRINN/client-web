@@ -118,6 +118,9 @@ test('ordinary signed-in client selects events and loads only the session sample
     await events.loadDayNames(['2026-06-14', '2026-06-15']);
     assert.equal(events.dayNamesError, ''); assert.match(events.dayLabel('2026-06-14'), /emulator-dyno/);
     assert.equal(events.dayLabel('2026-06-15'), '2026-06-15 · No event');
+    events.setRecordedDay('2026-06-16'); await until(() => events.dayContext('2026-06-16').complete);
+    assert.equal(events.dayContext('2026-06-16').events.length, 0);
+    events.setRecordedDay('');
     events.selectEvent('emulator-dyno'); await until(() => events.eventReady && events.sessions.length === 2);
     events.selectSession('emulator-run-1'); await until(() => events.sessionReady);
     const reader = new recordings.RecordingReader(client.collection(ROOT + '/days'), events.selectedSession.segments);

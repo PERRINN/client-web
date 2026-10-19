@@ -18,7 +18,11 @@
           <button type="button" class="view-button" aria-label="Lap list" title="Lap list" [attr.aria-pressed]="activeView === 'laps'" aria-controls="telemetry-lap-list" (click)="selectView('laps')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12M3 6h1M3 12h1M3 18h1" /></svg></button>
         </div>
       </div>
-      <span class="day">{{ dateLabel }} · UK time</span>
+      <span class="day" [title]="header.date + ' · UK time'">{{ header.date }} · UK time</span>
+    </div>
+    <div class="status" role="status" aria-label="Loaded recording">
+      <span class="recording-scope" [title]="header.scope + (header.state ? ' · ' + header.state : '')">{{ header.scope }}{{ header.state ? ' · ' + header.state : '' }}</span>
+      <span class="recording-range" [title]="header.range">{{ header.range }}</span>
     </div>
     @if (editing && activeView !== 'laps') {
       <section id="view-editor" class="view-editor" aria-label="Edit shared telemetry view">
@@ -60,10 +64,6 @@
     @if (historyOpen) {
       <app-greenpower-event-selector [locked]="eventEdit.locked" (daySelect)="selectDay($event); historyOpen = false; historyButton.focus()" />
     }
-    <div class="status" role="status">
-      <span>{{ status }}</span>
-      <span>{{ telemetry.live ? 'Last received' : 'Last sample' }} {{ telemetry.latest ? time(sampleTime(telemetry.latest)) : '—' }}</span>
-    </div>
     @if (telemetry.error) {
       <div class="error" role="alert">{{ telemetry.error }} <button type="button" (click)="retryRecording()">Retry</button></div>
     }

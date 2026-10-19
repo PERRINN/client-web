@@ -1,0 +1,59 @@
+{
+  "checkedAt": "2026-10-19T18:54:56.469604+00:00",
+  "status": "validated_for_hosting",
+  "baseCommit": "833d367d63563864405d3da568caa736c6a0b19f",
+  "deploymentScope": [
+    "hosting"
+  ],
+  "validation": {
+    "unitPassed": 133,
+    "emulatorPassed": 18,
+    "build": "passed",
+    "buildHash": "98cbaa5232069239",
+    "lintErrors": 0,
+    "existingLintWarnings": 64,
+    "browserWidths": [
+      1440,
+      390,
+      320
+    ],
+    "browserArtifacts": "/var/folders/6j/540yrv1536x9pc7qv833941h0000gn/T/greenpower-ui-hZhgAu",
+    "browserResult": "passed",
+    "browserErrors": [],
+    "screenshotsVisuallyInspected": true
+  },
+  "indexes": {
+    "checkedAt": "2026-10-19T18:54:16.850Z",
+    "project": "perrinn-d5fc1",
+    "repositoryIndexes": 23,
+    "liveIndexes": 23,
+    "repositoryOnly": [],
+    "liveOnly": [],
+    "notReady": [],
+    "historicalEventGroups": "applied_separately",
+    "sessionBoundaries": "pending_review",
+    "indexChanges": false
+  },
+  "scope": [
+    "Recorded-day event names as page/browser title",
+    "Session name, UK date and actual loaded range independent of zoom",
+    "Loading, partial, review, empty, unavailable and account/mode changes",
+    "One existing bounded 60-result query per uncached directly opened day; latest-day queue only"
+  ],
+  "productionDataWrites": 0,
+  "schemaRulesFunctionsChanges": false,
+  "sessionBoundaries": "pending_review",
+  "batteryTestAssignments": "pending_review",
+  "excludedWork": [
+    "Historical event-only operator and audit files",
+    "Year filter and hidden review-status UI edits"
+  ],
+  "sourceSha256": {
+    "src/app/greenpower-telemetry/greenpower-telemetry.component.ts": "3e82c6fd57c5ade3512f3feb19143278621186caaf77347826bb0efbe89035b5",
+    "src/app/greenpower-telemetry/greenpower-telemetry.component.html": "9724f099653df65dc7771b2b1c19e1544f2a39a70cbe5805cdf6b7b484e54878",
+    "src/app/greenpower-telemetry/greenpower-telemetry.component.css": "0a1c1d9d4984c7a067e55713bcbb0d9324d3c27248fdb69c08321782b6356a21",
+    "src/app/greenpower-telemetry/greenpowerEvents.service.ts": "b6dc34d0d118113cbc4b4f0e0096f25fea693568bcd414d54aa4113acded3d9b",
+    "src/app/greenpower-telemetry/greenpowerEvents.ts": "43289bde9cf3e16a0ba86463bb02cae982e27c0bf97ac2c077a049fb3fc16351",
+    "src/app/greenpower-telemetry/greenpowerContext.ts": "d1f383de49d9009976c5b907a812f6610766f12799ffc5478857edc157572547"
+  }
+}

@@ -117,6 +117,33 @@ test('recorded-day name errors preserve date choices, retry explicitly, update e
   h.service.ngOnDestroy();
 });
 
+test('a directly opened day reuses names or makes one bounded lookup; repeated updates never retry errors', async () => {
+  const h = client(new Map([[ROOT + '/events/e', savedEvent('Direct day event')]]));
+  h.service.setRecordedDay('2026-06-14'); await flush();
+  assert.equal(h.calls.length, 1); assert.equal(h.service.dayContext('2026-06-14').events[0].name, 'Direct day event');
+  h.service.setRecordedDay('2026-06-14'); await flush(); assert.equal(h.calls.length, 1);
+  h.fail(true); h.service.setRecordedDay('2026-06-15'); await flush();
+  assert.equal(h.service.dayContext('2026-06-15').failed, true);
+  h.service.setRecordedDay('2026-06-15'); await flush(); assert.equal(h.calls.length, 2);
+  h.fail(false); await h.service.loadDayNames(['2026-06-16']);
+  assert.equal(h.service.dayContext('2026-06-15').failed, true, 'another page cannot clear this day’s failure');
+  const reads = h.calls.length; h.service.ngOnDestroy();
+  h.service.setRecordedDay('2026-06-17'); await h.service.loadDayNames(['2026-06-17']);
+  assert.equal(h.calls.length, reads, 'destroyed contexts cannot start reads');
+});
+
+test('only the latest direct day waits for an in-flight page; switching to live cancels queued lookup', async () => {
+  const h = client(); let release;
+  h.delay(() => new Promise(resolve => release = resolve)); const page = h.service.loadDayNames(['2026-06-14']);
+  h.service.setRecordedDay('2026-06-15'); h.service.setRecordedDay('2026-06-16');
+  release({ docs: [], size: 0 }); await page; await flush();
+  assert.equal(h.calls.length, 2); assert.deepEqual(h.calls[1].filters[0][2], ['2026-06-16']);
+  h.delay(() => new Promise(resolve => release = resolve)); const nextPage = h.service.loadDayNames(['2026-06-17']);
+  h.service.setRecordedDay('2026-06-18'); h.service.setRecordedDay('');
+  release({ docs: [], size: 0 }); await nextPage; await flush(); assert.equal(h.calls.length, 3);
+  h.service.ngOnDestroy();
+});
+
 test('selected listeners ignore cache/stale revisions and only changed ranges request a new recording', async () => {
   const rec = recording(), e = { ...savedEvent('e'), sessionCount: 2 };
   const h = client(new Map([[ROOT + '/events/e', e], ...['a', 'b'].map((id, index) => [ROOT + '/sessions/' + id, { ...session('e', [rec.segment(index * 2, index * 2 + 1)]), id, revision: 1, updatedBy: 'admin' }])]));

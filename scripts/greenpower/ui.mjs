@@ -119,6 +119,8 @@ window.telemetryHarness = {
     fixture.componentInstance.events.historySource='days';service.changed.next();fixture.detectChanges();
   },
   dayNamesRetry(){dayNameFailure=false;dayNameDelay=0;},
+  headerState(){const events=fixture.componentInstance.events;return {...fixture.componentInstance.header,documentTitle:document.title,namesLoading:events.dayNamesLoading,moreNames:events.moreDayNames(service.dates),namesError:events.dayNamesError};},
+  recordingStatus(partial){service.more=partial;service.changed.next();fixture.detectChanges();},
   metadataSaved(){return structuredClone(metadataCalls);},
   imported(value) {
     viewReset();
@@ -241,6 +243,19 @@ const server = createServer(async (req, res) => {
 });
 await new Promise(done => server.listen(0, '127.0.0.1', done));
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
+async function finishDayNames(page) {
+  // The currently opened day may have used the first bounded query before the picker opened.
+  // Explicitly finish at most two remaining name pages in this three-date fixture.
+  for(let action=0;action<2;action++) {
+    await page.waitForFunction(()=>!window.telemetryHarness.headerState().namesLoading);
+    const state=await page.evaluate(()=>window.telemetryHarness.headerState());
+    if(!state.moreNames)return;
+    const more=page.getByRole('button',{name:state.namesError?'Retry names':'More names',exact:true});
+    await more.waitFor({state:'visible'});
+    await more.click();
+  }
+  await page.waitForFunction(()=>!window.telemetryHarness.headerState().namesLoading);
+}
 async function verifyVoltage(page,name) {
     await page.evaluate(() => window.telemetryHarness.voltages());
     const voltage = page.locator('section.chart[aria-label="Voltage left / right over time"]');
@@ -373,7 +388,7 @@ try {
     assert.equal(await historyButton.getAttribute('aria-expanded'),'false');
     assert.equal(await historyButton.evaluate(el=>document.activeElement===el),true);
     assert.equal(await page.getByRole('button',{name:'Earlier dates',exact:true}).count(),0);
-    assert.match(await page.locator('.status').innerText(), /History/);
+    assert.match(await page.locator('.status').innerText(), /Whole recorded day/);
     await historyButton.click();
     await page.getByLabel('Recorded day').waitFor();
     assert.equal(await page.getByLabel('Recorded day').inputValue(),'2026-10-18');
@@ -690,7 +705,7 @@ try {
       await page.evaluate(value=>window.telemetryHarness.imported(value),imported);
       await page.locator('h1').scrollIntoViewIfNeeded();
       assert.equal(await page.getByLabel('Recorded day').inputValue(),imported.day);
-      assert.match(await page.locator('.status').innerText(),/History[\s\S]*Last sample 14:54:09/);
+      assert.match(await page.locator('.status').innerText(),/Whole recorded day[\s\S]*Loaded[\s\S]*14:54:09/);
       assert.ok(await page.locator('app-greenpower-chart').count()>0);
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
       const state=await page.evaluate(()=>window.telemetryHarness.snapshot());
@@ -853,6 +868,7 @@ try {
     await page.getByRole('button',{name:'Load history',exact:true}).click();
     const daySelect=page.locator('#history-date'),dayBox=await daySelect.boundingBox();
     const pickerHeight=(await page.locator('#history-picker').boundingBox()).height;
+    await finishDayNames(page);
     await page.waitForFunction(()=>document.querySelector('#history-date')?.textContent.includes('2026-10-17 · No event'));
     assert.deepEqual(await daySelect.locator('option').allTextContents(),['Select date','2026-10-18 · Goodwood finals','2026-10-17 · No event','2026-06-14 · Second dyno event / Workshop dyno']);
     assert.equal((await daySelect.boundingBox()).height,dayBox.height,'name loading preserves select height');
@@ -861,6 +877,15 @@ try {
     await page.screenshot({path:output+'/'+name+'-recorded-day-names.png'});
     await daySelect.selectOption('2026-10-18');await page.locator('#history-picker').waitFor({state:'hidden'});
     assert.equal(await page.evaluate(()=>window.telemetryHarness.snapshot().day),'2026-10-18','labels retain recorded-day selection');
+    await page.waitForFunction(()=>document.querySelector('h1')?.textContent==='Goodwood finals');
+    const context=await page.evaluate(()=>window.telemetryHarness.headerState());
+    assert.equal(context.documentTitle,'Goodwood finals · PERRINN');assert.equal(context.scope,'Whole recorded day');assert.match(context.range,/Loaded/);
+    const headerBox=await page.locator('.controls').boundingBox(),contextBox=await page.locator('.status').boundingBox();
+    await page.evaluate(()=>{const s=window.telemetryHarness.snapshot();window.telemetryHarness.zoom(s.start+30000,s.end-30000);});
+    assert.deepEqual(await page.evaluate(()=>window.telemetryHarness.headerState()),context,'plot zoom preserves loaded-day identity and range');
+    assert.deepEqual(await page.locator('.controls').boundingBox(),headerBox,'zoom preserves header controls');
+    assert.deepEqual(await page.locator('.status').boundingBox(),contextBox,'zoom preserves recording context');
+    await page.screenshot({path:output+'/'+name+'-recorded-day-header.png'});
     await page.evaluate(()=>window.telemetryHarness.dayNamesSeed(true));
     await page.getByRole('button',{name:'Load history',exact:true}).click();
     await page.getByText('Could not load event names.',{exact:true}).waitFor();
@@ -868,6 +893,7 @@ try {
     const errorHeight=(await page.locator('#history-picker').boundingBox()).height;
     await page.screenshot({path:output+'/'+name+'-recorded-day-names-error.png'});
     await page.evaluate(()=>window.telemetryHarness.dayNamesRetry());await page.getByRole('button',{name:'Retry names',exact:true}).click();
+    await finishDayNames(page);
     await page.waitForFunction(()=>document.querySelector('#history-date')?.textContent.includes('2026-10-17 · No event'));
     assert.equal((await page.locator('#history-picker').boundingBox()).height,errorHeight,'retry control removal preserves layout');
     await page.getByRole('button',{name:'Load history',exact:true}).click();
@@ -875,12 +901,27 @@ try {
     await page.getByRole('button',{name:'Load history',exact:true}).click();
     await page.getByRole('button',{name:'Events',exact:true}).click();
     await page.getByLabel('Event',{exact:true}).selectOption('demo-event');
+    await page.waitForFunction(()=>window.telemetryHarness.headerState().scope==='No session selected');
+    await page.locator('.recording-range').filter({hasText:'No recording loaded'}).waitFor();
+    assert.equal(await page.locator('.recording-range').innerText(),'No recording loaded');
     await page.getByLabel('Session',{exact:true}).selectOption('demo-session-0');
     await page.waitForFunction(()=>document.querySelector('h1')?.textContent==='Workshop dyno');
+    await page.locator('.recording-scope').filter({hasText:'Session · Dyno run 1'}).waitFor();
+    assert.match(await page.locator('.recording-scope').innerText(),/Session · Dyno run 1/);
+    assert.match(await page.locator('.recording-range').innerText(),/Loaded/);
+    await page.screenshot({path:output+'/'+name+'-session-header.png'});
+    const sessionHeaderBox=await page.locator('.status').boundingBox();
+    await page.evaluate(()=>window.telemetryHarness.recordingStatus(true));
+    assert.match(await page.locator('.recording-scope').innerText(),/Partial recording/);
+    assert.deepEqual(await page.locator('.status').boundingBox(),sessionHeaderBox,'partial/review status preserves header geometry');
+    await page.screenshot({path:output+'/'+name+'-partial-session-header.png'});
+    await page.evaluate(()=>window.telemetryHarness.recordingStatus(false));
     assert.equal(await page.getByRole('button',{name:'Edit view',exact:true}).count(),0,'viewer has no editor');
     await page.evaluate(()=>{const s=window.telemetryHarness.snapshot();window.telemetryHarness.zoom(s.start+30000,s.end-30000);});
     await page.getByLabel('Session',{exact:true}).selectOption('demo-session-1');
     await page.waitForFunction(()=>!window.telemetryHarness.snapshot().zoomed);
+    await page.locator('.recording-scope').filter({hasText:'Session · Dyno run 2'}).waitFor();
+    assert.match(await page.locator('.recording-scope').innerText(),/Session · Dyno run 2/);
     const controlY=(await page.locator('.controls').boundingBox()).y;
     const controlContentY=controlY+await page.locator('#main_container').evaluate(el=>el.scrollTop);
     await page.evaluate(()=>window.telemetryHarness.metadataName('A long dyno event name that remains on one stable heading line at mobile widths'));
@@ -962,6 +1003,16 @@ try {
     await page.evaluate(()=>{window.telemetryHarness.metadataFailure('');window.telemetryHarness.role(false);});
     assert.equal(await page.locator('app-greenpower-event-editor').count(),0,'revocation removes editor');
     assert.equal((await page.locator('.controls').boundingBox()).y+await page.locator('#main_container').evaluate(el=>el.scrollTop),controlContentY);
+    await page.evaluate(()=>window.telemetryHarness.state('signed-out'));
+    await page.getByText('Sign in to view telemetry',{exact:true}).waitFor();
+    assert.equal(await page.locator('h1').innerText(),'424 Greenpower Telemetry');
+    assert.equal((await page.evaluate(()=>window.telemetryHarness.headerState())).documentTitle,'424 Greenpower Telemetry · PERRINN');
+    assert.equal(await page.locator('.status').count(),0,'sign-out removes private recording context');
+    await page.evaluate(()=>window.telemetryHarness.state('live'));
+    await page.getByRole('button',{name:'Live',exact:true}).click();
+    await page.waitForFunction(()=>document.querySelector('h1')?.textContent==='424 Greenpower Telemetry' && window.telemetryHarness.headerState().scope==='Live');
+    assert.equal(await page.locator('h1').innerText(),'424 Greenpower Telemetry');
+    assert.match(await page.locator('.recording-range').innerText(),/Last received/);
   }
   await page.evaluate(() => window.telemetryHarness.gallery());
   const tile = page.locator('a.prototype-card').filter({ hasText: 'greenpower-telemetry' });

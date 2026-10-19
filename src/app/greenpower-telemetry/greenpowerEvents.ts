@@ -32,6 +32,8 @@ export interface SessionData extends Metadata { eventId: string; runNumber?: num
 export interface SavedMetadata { id: string; revision: number; updatedBy: string; }
 export interface TelemetryEvent extends EventData, SavedMetadata { sessionCount: number; locationKey?: string; }
 export interface TelemetrySession extends SessionData, SavedMetadata {}
+export type DayEventSummary = Pick<TelemetryEvent, 'id' | 'name' | 'date' | 'state' | 'revision'>;
+export interface RecordedDayContext { events: DayEventSummary[]; complete: boolean; loading: boolean; failed: boolean; }
 export interface EventFilters { type: string; location: string; from: string; to: string; }
 export interface MetadataChange<T> { id: string; expectedRevision: number; data?: T; }
 export interface EventEditRequest { requestId: string; action: 'edit' | 'reassign' | 'split' | 'merge'; events: MetadataChange<EventData>[]; sessions: MetadataChange<SessionData>[]; }
