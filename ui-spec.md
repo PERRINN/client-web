@@ -69,7 +69,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 ## Typography
 
 - Use the shared `--font-family-ui` token in `src/styles.css`: `'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif`. The document sets this family and the shared `--font-weight-body` token (medium 500); the universal reset inherits both so routed components, sidebar lists, forms and nested text use the same family. Component rules should reference the token rather than repeat the stack. Exclude Material Icons and Material Symbols from local text-family resets so their glyph fonts remain intact. Canvas charts must read the document font family for their titles, axes and legends because canvas text does not inherit CSS.
-- Use the approved Home typography scale for all new and rebuilt UI, including prototypes:
+- Use the default typography scale below for all new and rebuilt UI, including prototypes. The explicitly scoped Home, Chat, telemetry chart and compact sidebar sizes below take precedence within their respective areas; use the default scale elsewhere:
 
   | Text role | Font size |
   | --- | --- |
@@ -81,16 +81,16 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 
 - Production chat uses an approved compact chat scale: 18px chat title, 16px section headings, 14px messages/names/body text and 13px supporting text. Its event and fund summaries and details follow the same scale. Text-entry fields use 14px on desktop and retain 16px at mobile widths to avoid focus zoom; icon and touch-target sizes remain independent. This exception is scoped to Chat and its composer, message, flag, PRN manager, event and fund components.
 
-- Production text sizes were increased by 1px for readability; compact sidebar labels use 14px. Keep icon dimensions independent of text sizes.
-- Home uses a compact scale on desktop and mobile: 20px page headline, 16px section headings, 14px names and list titles, and 13px supporting text, controls and states. Recently active profile buttons show only 24px avatars and 14px names.
+- Compact sidebar labels use 14px. Keep icon dimensions independent of text sizes.
+- Home uses an approved compact exception on desktop and mobile: 20px page headline, 16px section headings, 14px names and list titles, and 13px supporting text, controls and states. Recently active profile buttons show only 24px avatars and 14px names.
 - Keep these sizes on mobile. Resolve limited space through wrapping, layout and spacing rather than shrinking text. Do not use 9–12px text for ordinary labels or information users need to read.
-- All telemetry chart text uses 13px on desktop and mobile: channel names, current/cursor/lap values, X/Y ticks and axis controls, group labels, track-map states, and correlation plot titles, readings and canvas axes.
+- Telemetry charts use an approved 13px exception on desktop and mobile for all chart text: channel names, current/cursor/lap values, X/Y ticks and axis controls, group labels, track-map states, and correlation plot titles, readings and canvas axes.
 - Use the shared `--font-weight-body` token (medium 500) for body text, metadata, navigation and form controls, weight around 550 for row titles, and semibold around 600 for headings and emphasized labels. Set emphasis in scoped component styles; let nested text inherit the intended weight instead of resetting every descendant. Component-wide descendant rules must not override their own heading and emphasis weights; the global reset already supplies weight inheritance.
 - Use proportional line heights: about 1.45 for body text and metadata, and 1.35 for headings. Let rows grow when names or titles wrap; avoid fixed heights that clip larger text. Keep compact numeric date blocks legible with enough space for both lines.
 - Keep headings quietly distinct from body text through modest size and weight changes, not display styling.
 - Use the same typeface for text and numbers. Emphasize important values through size and weight, not a separate monospace face.
 - Keep text within the same line consistent in font size, weight, family, and style, including inline dates, durations, units, and metadata. Do not vary typography within a line for routine emphasis. Set nested inline elements to inherit these properties explicitly when legacy global styles override inheritance.
-- Maintain readable contrast and concise labels. Use this approved scale as the reference, not older compact prototypes or legacy typography overrides. Apply it incrementally to the requested screen; do not restyle unrelated legacy pages.
+- Maintain readable contrast and concise labels. Use the default scale and its explicitly scoped exceptions as the reference, not older compact prototypes or legacy typography overrides. Apply it incrementally to the requested screen; do not restyle unrelated legacy pages.
 
 ## Layout & spacing
 
