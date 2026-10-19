@@ -8,7 +8,7 @@
     <div class="controls">
       <div class="actions">
         <button type="button" [class.primary]="telemetry.live" [attr.aria-pressed]="telemetry.live" (click)="live()">Live</button>
-        <button type="button" class="compact-action" aria-label="Load history" title="Load history" [attr.aria-expanded]="historyOpen" aria-controls="history-picker" (click)="history()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7M12 7v5l3 2" /></svg><span>Load history</span></button>
+        <button #historyButton type="button" class="compact-action" aria-label="Load history" title="Load history" [attr.aria-expanded]="historyOpen" aria-controls="history-picker" (click)="history()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7M12 7v5l3 2" /></svg><span>Load history</span></button>
         @if (view.canEdit) {
           <button type="button" class="compact-action" title="Edit view" aria-label="Edit view" [attr.aria-expanded]="view.editing" aria-controls="view-editor" [disabled]="view.saving" (click)="view.editing ? view.cancel() : view.edit(channels)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-1 5 5-1L21 7l-4-4ZM14 6l4 4" /></svg><span>Edit</span></button>
         }
@@ -52,7 +52,7 @@
       <section id="history-picker" class="history-picker" aria-label="History dates">
         @if (telemetry.dates.length) {
           <label for="history-date">Recorded day</label>
-          <select id="history-date" #date [value]="telemetry.live ? '' : telemetry.day" (change)="telemetry.select(date.value)">
+          <select id="history-date" #date [value]="telemetry.live ? '' : telemetry.day" (change)="historyOpen = false; historyButton.focus(); telemetry.select(date.value)">
             <option value="" disabled>Select date</option>
             @for (day of telemetry.dates; track day) { <option [value]="day">{{ day }}</option> }
           </select>

@@ -125,7 +125,9 @@ window.telemetryHarness = {
       return value+(channel.unit?' '+channel.unit:'');
     });
   },
+  earlierDates() { service.moreDates=true;fixture.detectChanges(); },
   state(name) {
+    service.moreDates=false;
     fixture.componentInstance.selectView('data');
     service.access = name === 'signed-out' ? 'signed-out' : 'signed-in';
     service.error = name === 'error' ? 'Could not load telemetry. Check your connection and try again.' : '';
@@ -267,8 +269,20 @@ try {
     assert.match(await page.locator('.status').innerText(), /Stale/);
     assert.equal((await page.locator('h1').boundingBox()).y, before.y);
     await page.getByRole('button', { name: 'Load history', exact: true }).click();
+    await page.evaluate(()=>window.telemetryHarness.earlierDates());
+    assert.equal(await page.getByRole('button',{name:'Earlier dates',exact:true}).isVisible(),true);
     await page.getByLabel('Recorded day').selectOption('2026-10-18');
+    await page.locator('#history-picker').waitFor({state:'hidden'});
+    const historyButton=page.getByRole('button',{name:'Load history',exact:true});
+    assert.equal(await historyButton.getAttribute('aria-expanded'),'false');
+    assert.equal(await historyButton.evaluate(el=>document.activeElement===el),true);
+    assert.equal(await page.getByRole('button',{name:'Earlier dates',exact:true}).count(),0);
     assert.match(await page.locator('.status').innerText(), /History/);
+    await historyButton.click();
+    await page.getByLabel('Recorded day').waitFor();
+    assert.equal(await page.getByLabel('Recorded day').inputValue(),'2026-10-18');
+    await historyButton.click();
+    await page.locator('#history-picker').waitFor({state:'hidden'});
     await page.screenshot({ path: `${output}/${name}-history.png` });
     const tickBoxes = await page.locator('.times').first().evaluate(el => [...el.children].map(t => ({width:t.getBoundingClientRect().width, text:t.textContent})));
     assert.ok(tickBoxes.every(t => t.width >= 45), name + ' axis label clipping: ' + JSON.stringify(tickBoxes));
