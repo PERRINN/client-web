@@ -1,0 +1,26 @@
+{
+  "checkedAt": "2026-10-19T16:22:59.628Z",
+  "project": "perrinn-d5fc1",
+  "mode": "predeploy",
+  "commit": "82e6c89f10d9edb1a299c7ffc54a66ddc5e366dc",
+  "deploymentScope": [
+    "hosting",
+    "firestore:rules"
+  ],
+  "liveRulesMatchBaseline": true,
+  "liveRulesMatchRepository": false,
+  "liveRulesSha256": "99db2c24ec24e89120de741ee297a14037af7aa5348e665fc5ae13a5356b6aef",
+  "indexes": {
+    "repositoryIndexes": 19,
+    "liveIndexes": 19,
+    "repositoryOnly": [],
+    "liveOnly": [],
+    "notReady": 0
+  },
+  "indexChanges": false,
+  "trackArrayIndexEnabled": true,
+  "fieldOverridesMatch": true,
+  "productionWrites": 0,
+  "telemetryRecordsRead": 0,
+  "issue95": "Already closed as completed; real OMNI workshop verification confirmed on 19 October 2026"
+}

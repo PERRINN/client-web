@@ -19,7 +19,7 @@
       <section id="view-editor" class="view-editor" aria-label="Edit shared telemetry view">
         <div class="editor-actions">
           <h2>Shared view</h2>
-          <button type="button" class="primary" [disabled]="view.saving || drag.pending" (click)="view.save()">{{ view.saving ? 'Saving' : 'Save' }}</button>
+          <button type="button" class="primary" [disabled]="view.saving || drag.pending || lapConfig.saving || lapConfig.creating || !lapConfig.selectionReady || !lapConfig.ready || lapConfig.searching" (click)="saveView()">{{ view.saving ? 'Saving' : 'Save' }}</button>
           <button type="button" [disabled]="view.saving" (click)="view.cancel()">Cancel</button>
         </div>
         <div class="editor-tabs" role="group" aria-label="View section">
@@ -76,16 +76,19 @@
     @else if (telemetry.more) {
       <div class="continuation"><span>More data is available for this day.</span><button type="button" (click)="telemetry.loadMore()">Load remaining data</button></div>
     } @else if (!telemetry.channels.length && !telemetry.error) { <p class="state">No telemetry recorded for this day.</p> }
-    <div class="track-selection" aria-label="Track selection">
-      <label for="telemetry-track">Track</label>
-      <select id="telemetry-track" [value]="lapConfig.selectedId" [disabled]="lapConfig.saving || lapConfig.searching" (change)="selectTrack($any($event.target).value); $any($event.target).value = lapConfig.selectedId">
-        <option value="" disabled>{{ lapConfig.searching ? 'Finding track…' : lapConfig.creating ? 'New track' : lapConfig.candidates.length ? 'Choose track' : 'No matching track' }}</option>
-        @for (track of lapConfig.candidates; track track.id) { <option [value]="track.id">{{ track.name }}</option> }
-        @if (lapConfig.hasMore) { <option value="more">More tracks…</option> }
-      </select>
-      @if (view.editing && lapConfig.canEdit) { <button type="button" [disabled]="lapConfig.saving || lapConfig.searching" (click)="lapConfig.newTrack()">New track</button> }
-    </div>
-    @if (lapConfig.mismatch) { <p class="error" role="alert">GPS extends outside the selected track. Choose the correct track to analyse this dataset.</p> }
+    @if (view.editing && view.canEdit) {
+      <div class="track-selection" aria-label="Track selection">
+        <label for="telemetry-track">Track</label>
+        <select id="telemetry-track" [value]="lapConfig.draftTrackId ?? ''" [disabled]="lapConfig.saving || lapConfig.searching" (change)="selectTrack($any($event.target).value); $any($event.target).value = lapConfig.draftTrackId ?? ''">
+          <option value="">{{ lapConfig.searching ? 'Finding track…' : lapConfig.creating ? 'New track' : 'Automatic' }}</option>
+          @for (track of lapConfig.candidates; track track.id) { <option [value]="track.id">{{ track.name }}</option> }
+          @if (lapConfig.hasMore) { <option value="more">More tracks…</option> }
+        </select>
+        @if (view.editing && lapConfig.canEdit) { <button type="button" [disabled]="lapConfig.saving || lapConfig.searching" (click)="lapConfig.newTrack()">New track</button> }
+      </div>
+    }
+    @if (lapConfig.mismatch) { <p class="error" role="alert">{{ view.canEdit ? 'GPS extends outside the selected track. Choose the correct track to analyse this dataset.' : 'GPS extends outside the matched track. Lap analysis is unavailable.' }}</p> }
+    @if (!view.canEdit && lapConfig.ready && !lapConfig.selectedId && lapConfig.candidates.length) { <p class="state">No automatic track match.</p> }
     <app-greenpower-map [fixes]="lapConfig.fixes" [line]="lapConfig.line" [name]="lapConfig.name" [mismatch]="lapConfig.mismatch" [editing]="view.editing && lapConfig.canEdit" [saving]="lapConfig.saving" [ready]="lapConfig.ready" [revision]="lapConfig.revision" [context]="telemetry.day + telemetry.live + telemetry.access + lapConfig.selectedId + lapConfig.creating" [cursor]="cursor" [end]="telemetry.end" (cursorChange)="cursor = $event" (lineChange)="saveFinish($event)" />
     @if (lapConfig.error) { <div class="error" role="alert">{{ lapConfig.error }} @if (!lapConfig.ready) { <button type="button" (click)="lapConfig.retry()">Retry tracks</button> }</div> }
     <div class="charts">

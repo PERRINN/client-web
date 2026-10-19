@@ -1,14 +1,17 @@
 :host { display: block; margin-top: 12px; min-width: 0; }
 section { background: var(--color-surface); padding: 12px; }
-h2 { font-size: 17px; font-weight: 600; line-height: 1.35; overflow: visible; margin-bottom: 8px; }
+h2 { font-size: 17px; font-weight: 600; line-height: 1.35; overflow: visible; margin-bottom: 4px; }
 p, td, th, button { font: inherit; font-size: 15px; line-height: 1.45; }
 p { color: var(--color-text-secondary); margin: 8px 0; }
 .table-scroll { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; }
-th, td { text-align: right; padding: 6px 10px; white-space: nowrap; }
-th { font-weight: 600; }
-th:first-child { text-align: left; }
+th, td { text-align: right; padding: 2px 8px; white-space: nowrap; }
+/* Keep semantic table cells despite the legacy global floated-header rule. */
+th { display: table-cell; float: none; height: auto; font-weight: 600; }
+th:first-child { text-align: center; }
 thead th { color: var(--color-text-secondary); }
-button { color: var(--color-text); background: var(--color-raised); border: 1px solid transparent; border-radius: 6px; padding: 6px 12px; min-height: 44px; }
+button { color: var(--color-text); background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 2px 6px; min-height: 28px; min-width: 28px; }
 button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 button:disabled { opacity: .5; }
+
+@media (hover: hover) and (pointer: fine) { button:hover { background: var(--color-raised); } }

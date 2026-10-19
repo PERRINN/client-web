@@ -89,8 +89,7 @@ export function gpsAnalysis(fixes: GpsFix[], line: FinishLine | null | undefined
     if (active) {
       active.end = time; active.complete = true;
       active.current = timeAverage(current, active.time, time);
-      const average = timeAverage(speed, active.time, time);
-      active.speed = average === undefined ? undefined : average * 3.6;
+      active.speed = timeAverage(speed, active.time, time);
     }
     active = { time, end, lap: ++count, alternate: !!((count - 1) % 2), complete: false };
     laps.push(active);

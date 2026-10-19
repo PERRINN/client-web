@@ -46,13 +46,16 @@ const permissionState=new BehaviorSubject({uid:'viewer',isAdmin:false,ready:true
 const permissions={state:permissionState,get current(){return permissionState.value;}};
 let config; let saveError=false; const configListeners=[];
 const notify=()=>configListeners.filter(l=>l.active).forEach(l=>l.next({exists:!!config,data:()=>config,metadata:{fromCache:false,hasPendingWrites:false}}));
-const ref={firestore:{async runTransaction(callback){if(saveError)throw new Error('synthetic save failure');await callback({get:async()=>({data:()=>config}),set:(_,value)=>{config=value;}});notify();}},
+const datasetRecords=new Map(),datasetListeners=[];
+const notifyDatasets=()=>datasetListeners.filter(l=>l.active).forEach(l=>{const record=datasetRecords.get(l.path);l.next({exists:!!record,data:()=>record,metadata:{fromCache:false,hasPendingWrites:false}});});
+const datasetRef=path=>({path,onSnapshot(options,next,error){const l={path,next,error,active:true};datasetListeners.push(l);queueMicrotask(()=>{if(l.active)notifyDatasets();});return()=>l.active=false;}});
+const ref={firestore:{doc:datasetRef,async runTransaction(callback){if(saveError)throw new Error('synthetic save failure');const staged=[];await callback({get:async target=>({data:()=>target?.path?datasetRecords.get(target.path):config}),set:(target,value)=>staged.push([target,value])});for(const [target,value] of staged){if(target?.path)datasetRecords.set(target.path,value);else config=value;}notify();notifyDatasets();}},
  onSnapshot(options,next,error){const l={next,error,active:true};configListeners.push(l);queueMicrotask(()=>{if(l.active)notify();});return()=>l.active=false;}};
 let lapRecord; const lapListeners=[];const trackRecords=new Map();
 const notifyLaps=()=>lapListeners.filter(l=>l.active).forEach(l=>{const record=trackRecords.get(l.id);l.next({exists:!!record,data:()=>record,metadata:{fromCache:false,hasPendingWrites:false}});});
 const trackRef=(id='created-track')=>({id,firestore:{async runTransaction(callback){if(saveError)throw new Error('synthetic save failure');await callback({get:async(ref)=>({data:()=>trackRecords.get(ref.id)}),set:(ref,value)=>{trackRecords.set(ref.id,value);lapRecord=value;}});notifyLaps();}},
  onSnapshot(options,next,error){const l={id,next,error,active:true};lapListeners.push(l);queueMicrotask(()=>{if(l.active)notifyLaps();});return()=>l.active=false;}});
-const mockFirestore={firestore:{doc:()=>ref,collection:()=>({doc:trackRef,where:(field,op,cell)=>({limit:n=>({after:'',startAfter(doc){this.after=doc.id;return this;},async get(){let docs=Array.from(trackRecords,([id,record])=>({id,data:()=>record})).filter(doc=>doc.data().cells.includes(cell));if(this.after)docs=docs.slice(docs.findIndex(doc=>doc.id===this.after)+1);docs=docs.slice(0,n);return {docs,size:docs.length};}})})})}};
+const mockFirestore={firestore:{doc:path=>path.endsWith('/config/track')?datasetRef(path):ref,collection:()=>({doc:trackRef,where:(field,op,cell)=>({limit:n=>({after:'',startAfter(doc){this.after=doc.id;return this;},async get(){let docs=Array.from(trackRecords,([id,record])=>({id,data:()=>record})).filter(doc=>doc.data().cells.includes(cell));if(this.after)docs=docs.slice(docs.findIndex(doc=>doc.id===this.after)+1);docs=docs.slice(0,n);return {docs,size:docs.length};}})})})}};
 TestBed.configureTestingModule({providers:[{provide:PermissionsService,useValue:permissions},{provide:AngularFirestore,useValue:mockFirestore}],imports:[CommonModule, RouterModule.forRoot([])], declarations:[GreenpowerTelemetryComponent,GreenpowerChartComponent,GreenpowerMapComponent,GreenpowerLapListComponent,PrototypeGalleryComponent]});
 const fixture = TestBed.createComponent(GreenpowerTelemetryComponent);
 document.querySelector('.contentCard').append(fixture.nativeElement); fixture.autoDetectChanges();
@@ -71,7 +74,7 @@ window.telemetryHarness = {
   saveError(value){saveError=value;},
   saved(){return config;},
   async laps(){
-    config={scalars:Object.fromEntries(fixture.componentInstance.channels.map(c=>[c.id,true])),charts:Object.fromEntries(service.channels.filter(c=>c.points.length).map(c=>[c.id,true])),scalarOrder:fixture.componentInstance.channels.map(c=>c.id),chartOrder:service.channels.filter(c=>c.points.length).map(c=>c.id),revision:1,updatedBy:'viewer'};notify();
+    config={scalars:Object.fromEntries(fixture.componentInstance.channels.map(c=>[c.id,true])),charts:Object.fromEntries(service.channels.filter(c=>c.points.length).map(c=>[c.id,true])),scalarOrder:fixture.componentInstance.channels.map(c=>c.id),chartOrder:service.channels.filter(c=>c.points.length).map(c=>c.id),revision:(config?.revision??0)+1,updatedBy:'viewer'};notify();
     const metre=180/(Math.PI*6371000), lonScale=metre/Math.cos(52*Math.PI/180);
     const lat=[],lon=[];
     for(let i=-2;i<300;i++){
@@ -82,15 +85,29 @@ window.telemetryHarness = {
     service.channels=service.channels.map(c=>c.id==='["Lat"]:°'?{...c,points:lat}:c.id==='["Lon"]:°'?{...c,points:lon}:c);
     lapRecord={name:'Test circuit',line:{a:{lat:52,lon:-1-10*lonScale},b:{lat:52,lon:-1+10*lonScale},direction:1},revision:1,updatedBy:'viewer'};
     lapRecord={...lapRecord,...trackCoverage(lat.map((p,i)=>({time:p.time,lat:p.value,lon:lon[i].value})),lapRecord.line)};
-    trackRecords.clear();trackRecords.set('circuit',lapRecord);
+    datasetRecords.clear();notifyDatasets();trackRecords.clear();trackRecords.set('circuit',lapRecord);
     fixture.componentInstance.lapConfig.select('reset-fixture');
-    service.changed.next();await Promise.resolve();await Promise.resolve();await Promise.resolve();fixture.detectChanges();
+    service.changed.next();for(let i=0;i<8;i++)await Promise.resolve();fixture.detectChanges();
   },
   lapConfig(value){lapRecord=value;if(value)trackRecords.set('circuit',value);else trackRecords.clear();notifyLaps();fixture.detectChanges();},
   savedLap(){return lapRecord;},
   clearTracks(){trackRecords.clear();fixture.componentInstance.lapConfig.select('reset');service.changed.next();fixture.detectChanges();},
-  anotherDataset(){service.day='2026-10-17';service.changed.next();fixture.detectChanges();},
+  anotherDataset(){service.day=service.day==='2026-10-17'?'2026-10-18':'2026-10-17';service.changed.next();fixture.detectChanges();},
   lapAnalysis(){return fixture.componentInstance.lapConfig.analysis;},
+  selectedTrack(){const c=fixture.componentInstance.lapConfig;return c.ready?c.selectedId:'';},
+  async ambiguousTracks(){
+    const original=trackRecords.get('circuit');trackRecords.set('alternative',{...original,name:'Alternative circuit'});
+    datasetRecords.clear();fixture.componentInstance.lapConfig.select('reset-ambiguity');service.changed.next();
+    for(let i=0;i<8;i++)await Promise.resolve();fixture.detectChanges();
+  },
+
+  datasetChoice(){return datasetRecords.get('GreenpowerTelemetry/424/days/'+service.day+'/config/track');},
+  historySameDataset(){service.live=false;service.changed.next();fixture.detectChanges();},
+  manyLaps(){
+    const c=fixture.componentInstance.lapConfig;
+    c.analysis={...c.analysis,laps:Array.from({length:125},(_,i)=>({time:service.start+i*180000,end:service.start+(i+1)*180000,lap:i+1,alternate:!!(i%2),complete:true,current:25+i/10,speed:30+i/10}))};
+    c.changed.next();fixture.detectChanges();
+  },
 
   longList(){const source=service.channels.find(c=>c.points.length);service.channels=Array.from({length:20},(_,i)=>({...source,id:'synthetic-channel-'+i,label:'Channel '+String(i).padStart(2,'0')}));service.changed.next();fixture.detectChanges();},
   snapshot() { const c=fixture.componentInstance; return {start:c.start,end:c.end,cursor:c.cursor,zoomed:!!c.window}; },
@@ -174,23 +191,22 @@ try {
     assert.ok(await page.locator('.trace').first().getAttribute('d'));
     const current=page.locator('app-greenpower-chart').filter({has:page.locator('.current-legend')});
     assert.equal(await current.count(),1,name+' only current gets the overlay');
-    assert.ok(await current.locator('.average-trace').getAttribute('d'));
+    assert.equal(await current.locator('.average-trace, .average-readout, .average-key').count(),0);
     assert.equal(await current.locator('.limit-label').innerText(),'24 A');
-    assert.match(await current.locator('svg').getAttribute('aria-label'),/150-reading average and 24 amp limit/);
+    assert.match(await current.locator('svg').getAttribute('aria-label'),/chart with 24 amp limit/);
     const currentBox=await current.boundingBox();
     const nextChart=page.locator('app-greenpower-chart').nth(1);
     const nextY=(await nextChart.boundingBox()).y;
     for(const [count,value] of [[149,24],[150,24],[160,20],[160,28]]) {
       await page.evaluate(({count,value})=>window.telemetryHarness.current(Array(count).fill(value)),{count,value});
       await page.mouse.move(0,0);
-      assert.equal(await current.locator('.average-readout').innerText(),count < 150 ? 'Avg · —' : 'Avg · '+value.toFixed(1)+' A');
+      assert.equal(await current.locator('.average-trace, .average-readout, .average-key').count(),0);
       assert.doesNotMatch(await current.innerText(),/Over limit|Under limit|At limit/);
-      assert.equal((await current.boundingBox()).height,currentBox.height,name+' average states preserve chart height');
-      assert.equal((await nextChart.boundingBox()).y,nextY,name+' average states preserve following chart');
-      if(count===149)assert.equal(await current.locator('.average-trace').getAttribute('d'),'');
+      assert.equal((await current.boundingBox()).height,currentBox.height,name+' current updates preserve chart height');
+      assert.equal((await nextChart.boundingBox()).y,nextY,name+' current updates preserve following chart');
     }
     await current.scrollIntoViewIfNeeded();
-    await page.screenshot({path:output+'/'+name+'-current-average.png'});
+    await page.screenshot({path:output+'/'+name+'-current-limit.png'});
     await page.evaluate(()=>window.telemetryHarness.state('live'));
     await page.locator('app-greenpower-chart').first().scrollIntoViewIfNeeded();
     const latestScalars=await page.locator('.reading strong').allTextContents();
@@ -536,7 +552,7 @@ try {
       const state=await page.evaluate(()=>window.telemetryHarness.snapshot());
       assert.equal(state.start,1792307294230);assert.equal(state.end,1792331649948);
       const speed=page.locator('.reading').filter({hasText:'Vehicle speed'});
-      if(await speed.count())assert.match(await speed.innerText(),/m\/s/);
+      if(await speed.count())assert.match(await speed.innerText(),/mph/);
       await page.screenshot({path:output+'/'+name+'-goodwood.png'});
     }
   }
@@ -546,10 +562,36 @@ try {
     await page.evaluate(()=>{window.telemetryHarness.state('live');window.telemetryHarness.laps();window.telemetryHarness.role(true);});
     const map=page.locator('app-greenpower-map');
     const list=page.locator('app-greenpower-lap-list');
+    assert.equal(await list.getByRole('columnheader').last().innerText(),'Avg speed · mph');
+    const speed=page.locator('.reading').filter({hasText:'Vehicle speed'});
+    if(await speed.count())assert.match(await speed.innerText(),/mph/);
+    const speedChart=page.locator('app-greenpower-chart').filter({hasText:'Vehicle speed'});
+    if(await speedChart.count())assert.match(await speedChart.locator('h2').innerText(),/mph/);
     await map.scrollIntoViewIfNeeded();
     assert.equal(await map.locator('.finish').count(),1);
     assert.equal(await map.locator('.car').count(),1);
     assert.ok(await list.locator('tbody tr').count()>=4);
+    const columns=await list.locator('table').evaluate(table=>{
+      const headers=Array.from(table.querySelectorAll('thead th'));
+      const row=Array.from(table.querySelector('tbody tr').children);
+      return headers.map((header,index)=>{
+        const h=header.getBoundingClientRect(),cell=row[index].getBoundingClientRect();
+        return {headerLeft:h.left,headerRight:h.right,cellLeft:cell.left,cellRight:cell.right};
+      });
+    });
+    assert.equal(columns.length,4);
+    assert.ok(columns.every(c=>Math.abs(c.headerLeft-c.cellLeft)<1&&Math.abs(c.headerRight-c.cellRight)<1),'lap table header and body columns align at '+width+'px: '+JSON.stringify(columns));
+    const lapButton=await list.locator('tbody tr').first().getByRole('button').boundingBox();
+    const lapCell=await list.locator('tbody tr th').first().boundingBox();
+    assert.ok(lapButton.y>=lapCell.y&&lapButton.y+lapButton.height<=lapCell.y+lapCell.height,'lap zoom button fits its row');
+    await list.scrollIntoViewIfNeeded();await page.screenshot({path:output+'/lap-list-'+width+'.png'});
+    const tableScroll=list.locator('.table-scroll');
+    await tableScroll.evaluate(element=>element.scrollLeft=element.scrollWidth);
+    const lastHeader=await list.locator('thead th').last().boundingBox();
+    const scrollBounds=await tableScroll.boundingBox();
+    assert.ok(lastHeader.x+lastHeader.width<=scrollBounds.x+scrollBounds.width+1,'last lap column remains reachable');
+    await tableScroll.evaluate(element=>element.scrollLeft=0);
+
     assert.ok((await list.boundingBox()).y>(await page.locator('.charts').boundingBox()).y);
     await page.mouse.move(0,0);await map.locator('svg').focus();await page.keyboard.press('ArrowLeft');
     await page.waitForFunction(()=>document.querySelector('app-greenpower-map').innerText.includes('Cursor position'));
@@ -586,8 +628,53 @@ try {
     await page.waitForFunction(()=>window.telemetryHarness.savedLap().name==='Reusable circuit');
     await page.getByRole('button',{name:'Cancel',exact:true}).click();
     await page.evaluate(()=>window.telemetryHarness.anotherDataset());
-    await page.waitForFunction(()=>document.querySelector('#telemetry-track').value==='created-track');
+    await page.waitForFunction(()=>window.telemetryHarness.selectedTrack()==='created-track');
+    await page.waitForFunction(()=>document.querySelector('app-greenpower-map').innerText.includes('Reusable circuit'));
     assert.match(await map.innerText(),/Reusable circuit/);
+    await page.evaluate(()=>window.telemetryHarness.manyLaps());
+    assert.equal(await list.locator('tbody tr').count(),125,'all loaded laps render without pagination');
+    assert.equal(await list.getByRole('button',{name:'More laps',exact:true}).count(),0);
+    const rowHeight=await list.locator('tbody tr').first().evaluate(row=>row.getBoundingClientRect().height);
+    assert.ok(rowHeight<=34,'lap rows remain compact at '+width+'px: '+rowHeight);
+    await list.scrollIntoViewIfNeeded();await page.screenshot({path:output+'/compact-laps-'+width+'.png'});
+    await page.evaluate(()=>window.telemetryHarness.role(false));
+    assert.equal(await page.getByLabel('Track',{exact:true}).count(),0,'ordinary viewers have no track selector');
+    assert.equal(await page.getByRole('button',{name:'New track',exact:true}).count(),0);
+    assert.match(await map.innerText(),/Reusable circuit/,'automatic track remains visible without manual controls');
+    assert.equal(await list.locator('tbody tr').count(),125);
+    await page.evaluate(()=>window.telemetryHarness.role(true));
+    assert.equal(await page.getByLabel('Track',{exact:true}).count(),0,'admin has no track selector outside Edit');
+    await page.getByRole('button',{name:'Edit view',exact:true}).click();
+    await page.getByLabel('Track',{exact:true}).waitFor();
+    assert.equal(await page.getByLabel('Track',{exact:true}).count(),1,'admin sees track selection in Edit');
+    await page.getByRole('button',{name:'Cancel',exact:true}).click();
+    await page.getByLabel('Track',{exact:true}).waitFor({state:'hidden'});
+    assert.equal(await page.getByLabel('Track',{exact:true}).count(),0,'Cancel hides track selection');
+    await page.evaluate(async()=>{await window.telemetryHarness.laps();await window.telemetryHarness.ambiguousTracks();});
+    await page.getByRole('button',{name:'Edit view',exact:true}).click();
+    const selector=page.getByLabel('Track',{exact:true});
+    await selector.selectOption('alternative');
+    await page.getByRole('button',{name:'Cancel',exact:true}).click();
+    assert.equal(await page.evaluate(()=>window.telemetryHarness.datasetChoice()??null),null,'Cancel never publishes a choice');
+    await page.getByRole('button',{name:'Edit view',exact:true}).click();
+    await selector.selectOption('alternative');
+    await page.waitForFunction(()=>window.telemetryHarness.selectedTrack()==='alternative');
+    await page.getByRole('button',{name:'Save',exact:true}).click();
+    await page.locator('#view-editor').waitFor({state:'hidden'});
+    assert.equal((await page.evaluate(()=>window.telemetryHarness.datasetChoice())).trackId,'alternative');
+    assert.equal(await selector.count(),0,'Save hides track selection');
+    await page.evaluate(()=>{window.telemetryHarness.role(false);window.telemetryHarness.historySameDataset();});
+    await page.waitForFunction(()=>window.telemetryHarness.selectedTrack()==='alternative');
+    await page.waitForFunction(()=>document.querySelector('app-greenpower-map').innerText.includes('Alternative circuit'));
+    assert.equal(await selector.count(),0,'viewer follows saved choice without a selector');
+    await page.evaluate(()=>window.telemetryHarness.role(true));
+    await page.getByRole('button',{name:'Edit view',exact:true}).click();
+    await selector.selectOption('');
+    await page.getByRole('button',{name:'Save',exact:true}).click();
+    await page.locator('#view-editor').waitFor({state:'hidden'});
+    assert.equal((await page.evaluate(()=>window.telemetryHarness.datasetChoice())).trackId,null,'Automatic clears the shared override');
+
+
   }
   await page.evaluate(() => window.telemetryHarness.gallery());
   const tile = page.locator('a.prototype-card').filter({ hasText: 'greenpower-telemetry' });

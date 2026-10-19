@@ -13,8 +13,6 @@ export class GreenpowerLapListComponent {
   @Input() loading = false;
   @Input() partial = false;
   @Output() lapSelect = new EventEmitter<ChartWindow>();
-  limit = 50;
-  get visible() { return this.laps.slice(0, this.limit); }
   duration(lap: GpsLap) {
     if (!lap.complete) return 'Incomplete';
     const ms = Math.round(lap.end - lap.time), minutes = Math.floor(ms / 60000);

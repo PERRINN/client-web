@@ -27,33 +27,23 @@ function fixture() {
   const pointer=(x,type='touch') => ({pointerId:1,pointerType:type,button:0,isPrimary:true,clientX:x,clientY:0,currentTarget:svg,timeStamp:Date.now()});
   return {component,pointer};
 }
-test('current average readout follows cursor and live data without recalculating on zoom', () => {
+test('current chart updates measured values and keeps its limit through zoom and channel changes', () => {
   const {component:c} = fixture();
-  c.channel = {id:'["A"]:A',label:'Current',unit:'A',value:'24',points:Array.from({length:160},(_,time)=>({time,value:24}))};
-  c.start = 0; c.end = 159;
+  c.channel = {id:'["A"]:A',label:'Current',unit:'A',value:'20',points:[{time:0,value:100},{time:150,value:20},{time:159,value:20}]};
+  c.start = 150; c.end = 159;
   c.ngOnChanges({channel:{}});
-  assert.equal(c.averageLabel, '24.0 A');
-  const cached = c.average;
-  c.start = 150;
-  c.ngOnChanges({start:{}});
-  assert.equal(c.average, cached, 'zoom reuses the full channel average');
-  assert.equal(c.averageLabel, '24.0 A');
-  c.start = 0; c.cursor = 148;
-  assert.equal(c.averageLabel, '—');
-  c.cursor = 149;
-  assert.equal(c.averageLabel, '24.0 A');
-  c.cursor = undefined;
-  for (const value of [20, 28]) {
-    c.channel = {...c.channel,points:c.channel.points.map(p=>({...p,value}))};
-    c.ngOnChanges({channel:{}});
-    assert.equal(c.averageLabel, value.toFixed(1) + ' A');
-    assert.ok(c.limitY >= 10 && c.limitY <= 110);
-  }
+  assert.equal(c.hasCurrentLimit, true);
+  assert.equal(c.model.trace.max, 20);
+  assert.ok(c.model.axis.max >= 24 && c.model.axis.max < 100);
+  c.cursor = 159;
+  assert.match(c.cursorLabel, /20.* A/);
+  c.channel = {...c.channel,points:c.channel.points.map(p=>({...p,value:28}))};
+  c.ngOnChanges({channel:{}});
+  assert.equal(c.model.trace.max, 28);
+  assert.ok(c.limitY >= 10 && c.limitY <= 110);
   c.channel = {...c.channel,id:'["Vt"]:V'};
   c.ngOnChanges({channel:{}});
-  // A changed channel identity with reused point storage must remove the overlay too.
-  assert.equal(c.hasCurrentAverage, false);
-  assert.deepEqual(c.average, []);
+  assert.equal(c.hasCurrentLimit, false);
   c.ngOnDestroy();
 });
 test('zoom stays locked through a held drag and live updates for touch and mouse', async () => {

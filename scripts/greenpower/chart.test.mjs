@@ -6,6 +6,17 @@ const history = load('../../src/app/telemetry/sessionHistory.ts', { './verticalA
 const chart = load('../../src/app/greenpower-telemetry/greenpowerChart.ts', {
   './greenpowerData': data, '../telemetry/verticalAxis': vertical, '../telemetry/sessionHistory': history
 });
+test('speed axes, cursor and latest scalar share mph values', () => {
+  const samples = [0, 10].map((Spd, receivedAt) => ({ source: '424-phone', receivedAt, raw: JSON.stringify({ Spd }) }));
+  const channel = data.channelsFor(samples, samples[1])[0];
+  const model = chart.plotFor(channel.points, 0, 1, 300);
+  assert.equal(channel.unit, 'mph');
+  assert.equal(model.trace.max, 10 / 0.44704);
+  assert.ok(model.axis.max >= model.trace.max && model.axis.min <= 0);
+  assert.equal(chart.nearestPoint(channel.points, 1, 0, 1).value, model.trace.max);
+  assert.equal(chart.scalarValue(channel, 1, 0, 1), '22.369363');
+  assert.equal(chart.scalarValue(channel, undefined, 0, 1), '22.369363');
+});
 test('visible window controls extrema and rounded axes without off-window spikes', () => {
   const points = [{time:0,value:1000},{time:1,value:24.1},{time:2,value:24.8},{time:3,value:-1000}];
   const {axis,trace}=chart.plotFor(points,1,2,300);
@@ -61,41 +72,16 @@ test('scalars follow the nearest visible cursor sample and restore latest values
   assert.equal(chart.scalarValue(channel, undefined, 0, 6), '100');
 });
 
-test('150-reading trailing average waits for a full window and drops the oldest reading', () => {
-  const points = Array.from({length: 151}, (_, time) => ({time, value: time + 1}));
-  const original = structuredClone(points);
-  assert.deepEqual(chart.trailingAverage(points.slice(0, 149)), []);
-  const average = chart.trailingAverage(points);
-  assert.equal(average.length, 2);
-  assert.equal(average[0].time, 149);
-  assert.ok(Math.abs(average[0].value - 75.5) < 1e-9);
-  assert.ok(Math.abs(average[1].value - 76.5) < 1e-9);
-  assert.deepEqual(points, original, 'recorded readings are untouched');
-  assert.deepEqual(chart.trailingAverage([]), []);
-  assert.throws(() => chart.trailingAverage(points, 0));
-});
-
-test('average counts readings rather than elapsed time, including zero and negative current', () => {
-  const points = [{time: 0, value: -3}, {time: 1, value: 0}, {time: 900000, value: 9}];
-  assert.deepEqual(chart.trailingAverage(points, 3), [{time: 900000, value: 2}]);
-  assert.deepEqual(chart.trailingAverage(points, 1), points);
+test('current chart fits measured readings and the 24 A limit', () => {
   assert.equal(chart.isCurrentChannel({id: '["A"]:A'}), true);
   assert.equal(chart.isCurrentChannel({id: '["AH"]:Ah'}), false);
   assert.equal(chart.isCurrentChannel({id: '["A"]:mA'}), false);
-});
-
-test('zoom keeps full preceding average history and fits both traces plus the 24 A limit', () => {
   const points = Array.from({length: 160}, (_, time) => ({time, value: time < 149 ? 100 : 10}));
-  const average = chart.trailingAverage(points);
-  const model = chart.plotFor(points, 150, 159, 300, average, chart.CURRENT_LIMIT_AMPS);
+  const model = chart.plotFor(points, 150, 159, 300, chart.CURRENT_LIMIT_AMPS);
   assert.equal(model.trace.min, 10);
-  assert.ok(model.axis.max >= average[1].value);
-  assert.ok(model.axis.min <= 24 && model.axis.max >= 24);
-  assert.ok(model.averageTrace.path);
-  assert.doesNotMatch(model.averageTrace.path, /NaN|Infinity/);
-  const low = chart.plotFor([{time: 0, value: 1}], 0, 0, 200, [], 24);
-  assert.ok(low.axis.max >= 24 && low.axis.min <= 1);
-  assert.ok(chart.chartY(24, low.axis) >= 10 && chart.chartY(24, low.axis) <= 110);
-  const high = chart.plotFor([{time: 0, value: 40}], 0, 0, 200, [], 24);
+  assert.equal(model.trace.max, 10);
+  assert.ok(model.axis.min <= 10 && model.axis.max >= 24 && model.axis.max < 100);
+  const high = chart.plotFor([{time: 0, value: 40}], 0, 0, 200, 24);
   assert.ok(high.axis.min <= 24 && high.axis.max >= 40);
+  assert.ok(chart.chartY(24, high.axis) >= 10 && chart.chartY(24, high.axis) <= 110);
 });

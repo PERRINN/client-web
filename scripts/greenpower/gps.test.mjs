@@ -21,14 +21,14 @@ test('GPS coordinates require matching timestamps, valid fixes and final duplica
 });
 test('finite directed crossings interpolate time, start lap 1 and complete only full laps', () => {
   const fixes = race();
-  const channels = [channel('["A"]:A', fixes.map(f=>[f.time,12])),channel('["Spd"]:m/s',fixes.map(f=>[f.time,10]))];
+  const channels = [channel('["A"]:A', fixes.map(f=>[f.time,12])),...data.channelsFor(fixes.map(f => ({ source: '424-phone', receivedAt: f.time, raw: '{"Spd":10}' })))];
   const result = gps.gpsAnalysis(fixes,line,channels,44000);
   assert.equal(result.laps.length,3);
   assert.deepEqual(result.laps.map(l=>l.complete),[true,true,false]);
   assert.ok(Math.abs(result.laps[0].time-2000)<.01);
   assert.ok(Math.abs(result.laps[0].end-22000)<.01);
   assert.ok(Math.abs(result.laps[0].current-12)<1e-8);
-  assert.ok(Math.abs(result.laps[0].speed-36)<1e-8);
+  assert.ok(Math.abs(result.laps[0].speed-10/0.44704)<1e-8);
   assert.equal(result.channel.value,'3');
   assert.equal(result.channel.id,'computed:gps-lap');
   assert.deepEqual(gps.gpsAnalysis(fixes,null,channels,44000).laps,[]);

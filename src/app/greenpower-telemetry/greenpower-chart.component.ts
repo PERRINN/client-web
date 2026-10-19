@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, NgZone, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { GreenpowerChannel, londonTime, pointIndex } from './greenpowerData';
-import { ChartPoint, ChartWindow, chartY, clockTicks, CURRENT_AVERAGE_PERIODS, CURRENT_LIMIT_AMPS, formatAxisValue, formatTelemetryValue, isCurrentChannel, nearestPoint, plotFor, trailingAverage } from './greenpowerChart';
+import { ChartWindow, chartY, clockTicks, CURRENT_LIMIT_AMPS, formatAxisValue, formatTelemetryValue, isCurrentChannel, nearestPoint, plotFor } from './greenpowerChart';
 import { ChartDoubleTap } from '../telemetry/chartDoubleTap';
 import { lapAt, LapInterval, visibleLaps } from './greenpowerLaps';
 
@@ -22,17 +22,9 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   model = plotFor([], 0, 0, 300);
   ticks = clockTicks(0, 0, 300);
   lapBands = visibleLaps([], 0, 0, 300);
-  average: ChartPoint[] = [];
-  readonly averagePeriods = CURRENT_AVERAGE_PERIODS;
   readonly currentLimit = CURRENT_LIMIT_AMPS;
-  get hasCurrentAverage() { return isCurrentChannel(this.channel); }
+  get hasCurrentLimit() { return isCurrentChannel(this.channel); }
   get limitY() { return chartY(this.currentLimit, this.model.axis); }
-  get averageReading() {
-    const point = this.cursor === undefined
-      ? this.channel.points[pointIndex(this.channel.points, this.end, true) - 1] : this.reading;
-    return point && point.time >= this.start ? nearestPoint(this.average, point.time, point.time, point.time) : undefined;
-  }
-  get averageLabel() { return this.averageReading ? this.averageReading.value.toFixed(1) + ' A' : '—'; }
   get cursorLap() { return this.cursor === undefined ? undefined : lapAt(this.laps, this.cursor); }
   formatAxis = formatAxisValue;
   time = londonTime;
@@ -89,17 +81,10 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
     this.plot!.nativeElement.addEventListener('touchmove', this.touchMove, { passive: false });
   }
   private render() {
-    if (this.averageSource !== this.channel.points || this.averageChannelId !== this.channel.id) {
-      this.averageSource = this.channel.points;
-      this.averageChannelId = this.channel.id;
-      this.average = this.hasCurrentAverage ? trailingAverage(this.channel.points) : [];
-    }
-    this.model = plotFor(this.channel.points, this.start, this.end, this.width, this.average, this.hasCurrentAverage ? this.currentLimit : undefined);
+    this.model = plotFor(this.channel.points, this.start, this.end, this.width, this.hasCurrentLimit ? this.currentLimit : undefined);
     this.ticks = clockTicks(this.start, this.end, this.width);
     this.lapBands = visibleLaps(this.laps, this.start, this.end, this.width);
   }
-  private averageSource?: ChartPoint[];
-  private averageChannelId?: string;
   private fraction(event: PointerEvent) {
     const box = this.plot!.nativeElement.getBoundingClientRect();
     return Math.max(0, Math.min(1, (event.clientX - box.left) / (box.width || 1)));

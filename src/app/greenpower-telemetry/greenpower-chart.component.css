@@ -25,12 +25,9 @@ svg:focus-visible { outline: 1px solid var(--color-text-secondary); outline-offs
 .lap-labels button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
 @media (hover: hover) and (pointer: fine) { .lap-labels button:hover { background: var(--color-selected); } }
 .current-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-bottom: 6px; }
-.current-legend span, .average-readout span { font-size: 13px; line-height: 1.45; }
+.current-legend span { font-size: 13px; line-height: 1.45; }
 .current-legend span { display: inline-flex; align-items: center; gap: 5px; }
 .current-legend span::before { content: ''; width: 14px; border-top: 2px solid var(--color-data-comparison); }
-.current-legend .average-key::before { border-color: var(--color-accent); }
 .current-legend .limit-key::before { border-top: 1px dashed var(--color-text-secondary); }
-.average-readout { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 8px; min-height: 19px; margin-bottom: 4px; color: var(--color-text-secondary); align-content: start; font-variant-numeric: tabular-nums; }
-.average-trace { stroke: var(--color-accent); stroke-width: 2; fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; pointer-events: none; }
 .current-limit { stroke: var(--color-text-secondary); stroke-dasharray: 5 4; stroke-width: 1; fill: none; vector-effect: non-scaling-stroke; pointer-events: none; }
 .scale .limit-label { color: var(--color-text); background: var(--color-raised); padding: 0 4px; border-radius: 2px; }

@@ -1,0 +1,464 @@
+{
+  "indexes": [
+    {
+      "name": "projects/perrinn-d5fc1/databases/(default)/collectionGroups/PERRINNMessages/indexes/CICAgNjpgYIK",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "chain",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "serverTimestamp",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "state": "READY",
+      "density": "SPARSE_ALL"
+    },
+    {
+      "name": "projects/perrinn-d5fc1/databases/(default)/collectionGroups/PERRINNMessages/indexes/CICAgPig2YMK",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "user",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "serverTimestamp",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "state": "READY",
+      "density": "SPARSE_ALL"
+    },
+    {
+      "name": "projects/perrinn-d5fc1/databases/(default)/collectionGroups/PERRINNMessages/indexes/CICAgJjUgIcK",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "recipientList",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "fund.active",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lastMessage",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "verified",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "fund.daysLeft",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ],
+      "state": "READY",
+      "density": "SPARSE_ALL"
+    },
+    {
+      "name": "projects/perrinn-d5fc1/databases/(default)/collectionGroups/PERRINNMessages/indexes/CICAgNj4yIcK",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "fund.active",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lastMessage",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "verified",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "fund.daysLeft",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ],
+      "state": "READY",
+      "density": "SPARSE_ALL"
+    },
+    {
+      "name": "projects/perrinn-d5fc1/databases/(default)/collectionGroups/PERRINNMessages/indexes/CICAgPj-z4oK",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "user",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "userChain.nextMessage",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "verified",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "serverTimestamp",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "state": "READY",
+      "density": "SPARSE_ALL"
+    },
+    {
+      "name": "projects/perrinn-d5fc1/databases/(default)/collectionGroups/PERRINNMessages/indexes/CICAgNjp84oK",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "user",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "userChain.newMonth",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "serverTimestamp",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "state": "READY",
+      "density": "SPARSE_ALL"
+    },
+    {
+      "name": "projects/perrinn-d5fc1/databases/(default)/collectionGroups/PERRINNMessages/indexes/CICAgNi4o4sK",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "user",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "verified",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "serverTimestamp",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "state": "READY",
+      "density": "SPARSE_ALL"
+    },
+    {
+      "name": "projects/perrinn-d5fc1/databases/(default)/collectionGroups/PERRINNMessages/indexes/CICAgNiZ1o4K",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "chain",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "chatImageTimestamp",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ],
+      "state": "READY",
+      "density": "SPARSE_ALL"
+    },
+    {
+      "name": "projects/perrinn-d5fc1/databases/(default)/collectionGroups/PERRINNMessages/indexes/CICAgNirtJAK",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "chain",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "chatImageTimestamp",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "state": "READY",
+      "density": "SPARSE_ALL"
+    },
+    {
+      "name": "projects/perrinn-d5fc1/databases/(default)/collectionGroups/PERRINNMessages/indexes/CICAgITsmpEK",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "recipientList",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "lastMessage",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "verified",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "eventDateEnd",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ],
+      "state": "READY",
+      "density": "SPARSE_ALL"
+    },
+    {
+      "name": "projects/perrinn-d5fc1/databases/(default)/collectionGroups/PERRINNMessages/indexes/CICAgLjRnZMK",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "userChain.nextMessage",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "verified",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "wallet.balance",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "state": "READY",
+      "density": "SPARSE_ALL"
+    },
+    {
+      "name": "projects/perrinn-d5fc1/databases/(default)/collectionGroups/PERRINNMessages/indexes/CICAgJjFqZMK",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "recipientList",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "lastMessage",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "serverTimestamp",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "state": "READY",
+      "density": "SPARSE_ALL"
+    },
+    {
+      "name": "projects/perrinn-d5fc1/databases/(default)/collectionGroups/PERRINNMessages/indexes/CICAgITOu5MK",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "lastMessage",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "verified",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "fund.daysLeft",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "state": "READY",
+      "density": "SPARSE_ALL"
+    },
+    {
+      "name": "projects/perrinn-d5fc1/databases/(default)/collectionGroups/PERRINNMessages/indexes/CICAgPj-05MK",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "lastMessage",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "verified",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "serverTimestamp",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "state": "READY",
+      "density": "SPARSE_ALL"
+    },
+    {
+      "name": "projects/perrinn-d5fc1/databases/(default)/collectionGroups/PERRINNMessages/indexes/CICAgOi3pZQK",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "recipientList",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "verified",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "chatImageTimestamp",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "state": "READY",
+      "density": "SPARSE_ALL"
+    },
+    {
+      "name": "projects/perrinn-d5fc1/databases/(default)/collectionGroups/PERRINNMessages/indexes/CICAgNja_ZUK",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "lastMessage",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "verified",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "eventDateEnd",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ],
+      "state": "READY",
+      "density": "SPARSE_ALL"
+    },
+    {
+      "name": "projects/perrinn-d5fc1/databases/(default)/collectionGroups/PERRINNMessages/indexes/CICAgNj43JYK",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "verified",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "chatImageTimestamp",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "state": "READY",
+      "density": "SPARSE_ALL"
+    },
+    {
+      "name": "projects/perrinn-d5fc1/databases/(default)/collectionGroups/PERRINNMessages/indexes/CICAgNjpr5sK",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "userChain.nextMessage",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "verified",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "nameLowerCase",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ],
+      "state": "READY",
+      "density": "SPARSE_ALL"
+    },
+    {
+      "name": "projects/perrinn-d5fc1/databases/(default)/collectionGroups/PERRINNMessages/indexes/CICAgOi3z5wK",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "lastMessage",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "verified",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "isBackendMessage",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "serverTimestamp",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "state": "READY",
+      "density": "SPARSE_ALL"
+    }
+  ]
+}

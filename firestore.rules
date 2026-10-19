@@ -59,6 +59,19 @@ service cloud.firestore {
       allow create: if isPerrinnAdmin() && validTrack() && request.resource.data.revision == 1;
       allow update: if isPerrinnAdmin() && validTrack() && request.resource.data.revision == resource.data.revision + 1;
     }
+    match /GreenpowerTelemetry/424/days/{day}/config/track {
+      function validDatasetTrack(data) {
+        return day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+          && data.keys().hasAll(['trackId', 'revision', 'updatedBy', 'updatedAt'])
+          && data.keys().hasOnly(['trackId', 'revision', 'updatedBy', 'updatedAt'])
+          && (data.trackId == null || (data.trackId is string && data.trackId.size() > 0 && data.trackId.size() <= 128
+            && data.trackId.matches('^[^/]+$') && exists(/databases/$(database)/documents/GreenpowerTelemetry/424/tracks/$(data.trackId))))
+          && data.revision is int && data.revision > 0
+          && data.updatedBy == request.auth.uid && data.updatedAt == request.time;
+      }
+      allow create: if isPerrinnAdmin() && validDatasetTrack(request.resource.data) && request.resource.data.revision == 1;
+      allow update: if isPerrinnAdmin() && validDatasetTrack(request.resource.data) && request.resource.data.revision == resource.data.revision + 1;
+    }
     match /{collection}/{document=**} {
       allow read: if collection != 'GreenpowerTelemetry';
     }

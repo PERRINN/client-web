@@ -6,15 +6,14 @@
   @if (configured && laps.length) {
     <div class="table-scroll">
       <table>
-        <thead><tr><th scope="col">Lap</th><th scope="col">Time</th><th scope="col">Avg current · A</th><th scope="col">Avg speed · km/h</th></tr></thead>
+        <thead><tr><th scope="col">Lap</th><th scope="col">Time</th><th scope="col">Avg current · A</th><th scope="col">Avg speed · mph</th></tr></thead>
         <tbody>
-          @for (lap of visible; track lap.time) {
+          @for (lap of laps; track lap.time) {
             <tr><th scope="row"><button type="button" [attr.aria-label]="'Zoom all graphs to GPS lap ' + lap.lap" [disabled]="lap.end <= lap.time" (click)="lapSelect.emit({start: lap.time, end: lap.end})">{{ lap.lap }}</button></th><td>{{ duration(lap) }}</td><td>{{ reading(lap.current) }}</td><td>{{ reading(lap.speed) }}</td></tr>
           }
         </tbody>
       </table>
     </div>
-    @if (limit < laps.length) { <button type="button" (click)="limit = limit + 50">More laps</button> }
   }
   @if (partial) { <p>Lap analysis covers loaded data.</p> }
 </section>

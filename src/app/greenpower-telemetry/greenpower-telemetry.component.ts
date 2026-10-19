@@ -68,6 +68,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     if (!this.view.editing) this.orderNotice = '';
     this.selectedCount = Object.keys(this.view.draft[this.editorKind]).length;
     this.lapConfig.select(this.telemetry.day + ':' + this.telemetry.live);
+    this.lapConfig.syncEditing(this.view.editing);
     this.lapConfig.update(this.telemetry.channels, this.telemetry.end);
     this.channels = [...this.telemetry.channels, this.lapConfig.analysis.channel];
     this.scalars = this.view.scalars(this.channels);
@@ -75,6 +76,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     this.laps = this.lapConfig.analysis.laps;
     this.available = this.view.editing ? this.view.available(this.channels, this.editorKind) : [];
   }
+  saveView() { void this.view.save(this.lapConfig.selectionWrite()); }
   selectTrack(id: string) {
     if (id === 'more') this.lapConfig.loadMore();
     else this.lapConfig.choose(id);

@@ -161,7 +161,7 @@ test('shared view is signed-in readable and only exact admin claims can save val
 test('real admin saves are synchronized to another signed-in viewer without changing telemetry', async () => {
   const viewHelpers=load('../../src/app/greenpower-telemetry/greenpowerView.ts',{'./greenpowerData':data});
   const {GreenpowerViewService}=load('../../src/app/greenpower-telemetry/greenpowerView.service.ts',{
-    '@angular/core':{Injectable:()=>target=>target},'firebase/compat/app':{default:firebase},'firebase/compat/firestore':{},rxjs:{Subject},'./greenpowerView':viewHelpers
+    '@angular/core':{Injectable:()=>target=>target},'firebase/compat/app':{default:firebase},'firebase/compat/firestore':{},rxjs:{Subject},'./greenpowerView':viewHelpers,'./greenpowerDatasetTrack':load('../../src/app/greenpower-telemetry/greenpowerDatasetTrack.ts')
   });
   const apps=[],services=[],clients=[];
   function connect(uid,isAdmin) {
@@ -257,4 +257,69 @@ test('reusable tracks enforce admin ownership, bounded coverage, exact shape and
     assert.equal((await save('admin',{perrinnAdmin:true},1,{},target)).status,403);
   }
   await db.doc(path).delete();
+});
+
+test('shared dataset selections are signed-in readable and accept only validated revisioned admin writes',async()=>{
+  const path='GreenpowerTelemetry/424/days/2026-10-16/config/track',trackPath='GreenpowerTelemetry/424/tracks/selection-rule-fixture';
+  await db.doc(path).delete();await db.doc(trackPath).set({name:'Synthetic rule fixture'});
+  async function save(uid,claims,revision=1,extra={},target=path){
+    const fields={trackId:{stringValue:'selection-rule-fixture'},revision:{integerValue:String(revision)},updatedBy:{stringValue:uid||'admin'},...extra};
+    return fetch(`http://${host}/v1/projects/${projectId}/databases/(default)/documents:commit`,{method:'POST',headers:{'Content-Type':'application/json',...(uid?{Authorization:`Bearer ${token(uid,claims)}`}:{})},body:JSON.stringify({writes:[{update:{name:`projects/${projectId}/databases/(default)/documents/${target}`,fields},updateTransforms:[{fieldPath:'updatedAt',setToServerValue:'REQUEST_TIME'}]}]})});
+  }
+  for(const [uid,claims] of [[undefined,{}],['alice',{}],['admin',{perrinnAdmin:'true'}]])assert.equal((await save(uid,claims)).status,403);
+  assert.equal((await save('admin',{perrinnAdmin:true})).status,200);
+  assert.equal((await request(path)).status,403);
+  for(const uid of ['alice','bob'])assert.equal((await request(path,uid)).status,200);
+  assert.equal((await save('admin',{perrinnAdmin:true})).status,403);
+  for(const extra of [{trackId:{stringValue:'missing'}},{trackId:{stringValue:'bad/path'}},{trackId:{integerValue:'2'}},{updatedBy:{stringValue:'someone-else'}},{extra:{booleanValue:true}},{revision:{doubleValue:2.5}}]){
+    assert.equal((await save('admin',{perrinnAdmin:true},2,extra)).status,403);
+  }
+  assert.equal((await save('admin',{perrinnAdmin:true},2,{trackId:{nullValue:null}})).status,200);
+  assert.equal((await request(path,'admin','DELETE',undefined,{perrinnAdmin:true})).status,403);
+  assert.equal((await save('admin',{perrinnAdmin:true},1,{},'GreenpowerTelemetry/424/days/invalid/config/track')).status,403);
+  await db.doc(path).delete();await db.doc(trackPath).delete();
+});
+
+test('Edit Save atomically publishes the dataset choice to another real signed-in viewer; Automatic clears it',async()=>{
+  const gps=load('../../src/app/greenpower-telemetry/greenpowerGps.ts',{'./greenpowerData':data});
+  const tracks=load('../../src/app/greenpower-telemetry/greenpowerTracks.ts',{'./greenpowerGps':gps});
+  const datasetTrack=load('../../src/app/greenpower-telemetry/greenpowerDatasetTrack.ts');
+  const viewHelpers=load('../../src/app/greenpower-telemetry/greenpowerView.ts',{'./greenpowerData':data});
+  const imports={'@angular/core':{Injectable:()=>target=>target},'firebase/compat/app':{default:firebase},'firebase/compat/firestore':{},rxjs:{Subject},'./greenpowerGps':gps,'./greenpowerTracks':tracks,'./greenpowerDatasetTrack':datasetTrack,'./greenpowerView':viewHelpers};
+  const {GreenpowerLapService}=load('../../src/app/greenpower-telemetry/greenpowerLap.service.ts',imports);
+  const {GreenpowerViewService}=load('../../src/app/greenpower-telemetry/greenpowerView.service.ts',imports);
+  const channels=data.channelsFor(Array.from({length:10},(_,i)=>({id:String(i),receivedAt:i*3000,source:'demo',raw:JSON.stringify({Lat:50+i*.00001,Lon:0,A:25,Spd:10})})));
+  const line={a:{lat:50,lon:-.0001},b:{lat:50,lon:.0001},direction:1};
+  const definition={name:'Synthetic shared track',line,...tracks.trackCoverage(gps.gpsFixes(channels),line),revision:1,updatedBy:'admin'};
+  const day='2026-10-15',selection=db.doc(datasetTrack.datasetTrackPath(day)),viewRef=db.doc(viewHelpers.VIEW_PATH);
+  const trackRefs=['shared-a','shared-b'].map(id=>db.doc(tracks.TRACKS_PATH+'/'+id));
+  await selection.delete();await viewRef.delete();await Promise.all(trackRefs.map(ref=>ref.set(definition)));
+  const apps=[],clients=[],services=[];
+  const until=(service,predicate)=>new Promise((resolve,reject)=>{if(predicate())return resolve();const timer=setTimeout(()=>{sub.unsubscribe();reject(Error('Shared dataset state timed out'));},10000);const sub=service.changed.subscribe(()=>{if(predicate()){clearTimeout(timer);sub.unsubscribe();resolve();}});});
+  function connect(uid,isAdmin){
+    const app=firebase.initializeApp({projectId,apiKey:'demo-key'},`dataset-${uid}-${process.pid}`);apps.push(app);
+    const client=app.firestore();clients.push(client);const [hostname,port]=host.split(':');client.useEmulator(hostname,Number(port),{mockUserToken:{sub:uid,user_id:uid,...(isAdmin?{perrinnAdmin:true}:{})}});
+    const state=new BehaviorSubject({uid,isAdmin,ready:true}),permissions={state,get current(){return state.value;}};
+    const laps=new GreenpowerLapService(permissions,{firestore:client});services.push(laps);
+    laps.changed.subscribe(()=>laps.update(channels,27000));laps.select(day+':true');laps.update(channels,27000);
+    return {laps,permissions,client};
+  }
+  try{
+    const editor=connect('dataset-editor',true),viewer=connect('dataset-viewer',false);
+    const view=new GreenpowerViewService(editor.permissions,{firestore:editor.client});services.push(view);
+    await Promise.all([until(view,()=>view.ready),until(editor.laps,()=>editor.laps.ready&&!editor.laps.searching&&editor.laps.candidates.length===2),until(viewer.laps,()=>viewer.laps.ready&&!viewer.laps.searching&&viewer.laps.candidates.length===2)]);
+    editor.laps.syncEditing(true);editor.laps.choose('shared-b');await until(editor.laps,()=>editor.laps.ready);
+    assert.equal(viewer.laps.selectedId,'','draft choice remains local');
+    view.edit(channels);await view.save(editor.laps.selectionWrite());editor.laps.syncEditing(false);assert.equal(view.error,'');
+    await until(viewer.laps,()=>viewer.laps.selectedId==='shared-b'&&viewer.laps.ready);
+    assert.equal((await selection.get()).data().trackId,'shared-b');assert.equal((await viewRef.get()).data().revision,1);
+    viewer.laps.select(day+':false');await until(viewer.laps,()=>viewer.laps.selectedId==='shared-b'&&viewer.laps.ready);
+    editor.laps.syncEditing(true);editor.laps.choose('');await until(editor.laps,()=>!editor.laps.searching);
+    view.edit(channels);await view.save(editor.laps.selectionWrite());editor.laps.syncEditing(false);assert.equal(view.error,'');
+    await until(viewer.laps,()=>viewer.laps.selectedId===''&&viewer.laps.selectionReady);
+    assert.equal((await selection.get()).data().trackId,null);assert.equal((await selection.get()).data().revision,2);
+  }finally{
+    services.forEach(service=>service.ngOnDestroy());await Promise.all(clients.map(client=>client.terminate()));await Promise.all(apps.map(app=>app.delete()));
+    await selection.delete();await viewRef.delete();await Promise.all(trackRefs.map(ref=>ref.delete()));
+  }
 });

@@ -5,6 +5,7 @@ import 'firebase/compat/firestore';
 import { Subject, Subscription } from 'rxjs';
 import { PermissionsService } from '../permissions.service';
 import { GreenpowerChannel } from './greenpowerData';
+import { DatasetTrack, DatasetTrackWrite, datasetTrackPath, validDatasetTrack } from './greenpowerDatasetTrack';
 import { FinishLine, gpsAnalysis, gpsFixes, validLine } from './greenpowerGps';
 import { contains, lookupAnchor, matchesTrack, mergedCoverage, MAX_TRACK_PAGES, trackCell, TrackChoice, trackCoverage, TrackDefinition, TRACK_PAGE_SIZE, TRACKS_PATH, validTrack } from './greenpowerTracks';
 
@@ -20,6 +21,16 @@ export class GreenpowerLapService implements OnDestroy {
   selectedId = '';
   creating = false;
   mismatch = false;
+  selectionReady = false;
+  draftTrackId: string | null = null;
+  private editing = false;
+  private baseSelectionRevision = 0;
+  private selection?: DatasetTrack;
+  private selectionOff?: () => void;
+  private datasetGeneration = 0;
+  private selectionGeneration = 0;
+  private automaticId = '';
+  private readonly firestore: firebase.firestore.Firestore;
   private dataset = '';
   private account = '';
   private generation = 0;
@@ -39,17 +50,19 @@ export class GreenpowerLapService implements OnDestroy {
   fixes = gpsFixes([]);
   analysis = gpsAnalysis([], undefined, [], 0);
   constructor(public permissions: PermissionsService, firestore: AngularFirestore) {
-    this.tracks = firestore.firestore.collection(TRACKS_PATH);
+    this.firestore = firestore.firestore;
+    this.tracks = this.firestore.collection(TRACKS_PATH);
     this.subscription = permissions.state.subscribe(state => {
       const account = state.ready ? state.uid : '';
       if (account !== this.account) { this.account = account; this.reset(); }
       this.changed.next();
     });
   }
-  get line() { return this.ready ? this.saved?.line ?? null : null; }
+  get line() { return this.ready && this.selectionReady ? this.saved?.line ?? null : null; }
   get name() { return this.saved?.name ?? ''; }
   get revision() { return this.saved?.revision ?? 0; }
-  get canEdit() { return this.ready && this.permissions.current.isAdmin && this.account === this.permissions.current.uid; }
+  get canSelect() { return this.selectionReady && this.permissions.current.isAdmin && this.account === this.permissions.current.uid; }
+  get canEdit() { return this.ready && this.canSelect; }
   get hasMore() { return this.more && this.pages < MAX_TRACK_PAGES; }
   select(dataset: string) {
     if (this.dataset === dataset) return;
@@ -57,16 +70,63 @@ export class GreenpowerLapService implements OnDestroy {
   }
   private reset() {
     this.off?.(); this.off = undefined; this.generation++;
+    this.selectionOff?.(); this.selectionOff = undefined; this.datasetGeneration++;
+    this.selection = undefined; this.selectionReady = false; this.editing = false; this.draftTrackId = null; this.automaticId = '';
     this.saved = undefined; this.ready = false; this.searching = false; this.error = '';
     this.selectedId = ''; this.creating = this.mismatch = false;
     this.candidates = []; this.lookedUp = false; this.more = false; this.pages = 0; this.cursor = undefined; this.cell = ''; this.newId = '';
     this.source = undefined; this.fixes = []; this.analysis = gpsAnalysis([], undefined, [], 0);
+    this.listenSelection();
+  }
+  private listenSelection() {
+    this.selectionOff?.(); this.selectionOff = undefined;
+    const day = this.dataset.slice(0, 10), generation = this.datasetGeneration, listener = ++this.selectionGeneration;
+    if (!this.account || !/^\d{4}-\d{2}-\d{2}$/.test(day)) return;
+    this.selectionOff = this.firestore.doc(datasetTrackPath(day)).onSnapshot({ includeMetadataChanges: true }, snapshot => {
+      if (generation !== this.datasetGeneration || listener !== this.selectionGeneration || snapshot.metadata.fromCache || snapshot.metadata.hasPendingWrites) return;
+      const value = snapshot.data();
+      if (validDatasetTrack(value) && this.selection && value.revision < this.selection.revision) return;
+      if (snapshot.exists && !validDatasetTrack(value)) { this.selectionReady = this.ready = false; this.error = 'Dataset track settings are invalid.'; }
+      else {
+        this.selection = value as DatasetTrack | undefined; this.selectionReady = true; this.error = '';
+        if (!this.editing) this.applySelection();
+      }
+      this.changed.next();
+    }, () => {
+      if (generation !== this.datasetGeneration || listener !== this.selectionGeneration) return;
+      this.selectionReady = this.ready = false; this.error = 'Could not load dataset track settings.'; this.changed.next();
+    });
+  }
+  syncEditing(editing: boolean) {
+    editing = editing && this.selectionReady && this.permissions.current.isAdmin;
+    if (editing === this.editing) return;
+    this.editing = editing;
+    if (editing) { this.draftTrackId = this.selection?.trackId ?? null; this.baseSelectionRevision = this.selection?.revision ?? 0; }
+    else { this.creating = false; this.newId = ''; this.applySelection(); }
+  }
+  selectionWrite(): DatasetTrackWrite | undefined {
+    if (!this.editing || !this.canSelect || this.draftTrackId === (this.selection?.trackId ?? null)) return undefined;
+    const generation = this.datasetGeneration, trackId = this.draftTrackId, revision = this.baseSelectionRevision;
+    return { day: this.dataset.slice(0, 10), trackId, revision,
+      current: () => generation === this.datasetGeneration && this.editing && this.canSelect,
+      acknowledged: () => {
+        if (generation !== this.datasetGeneration) return;
+        this.selection = { trackId, revision: revision + 1, updatedBy: this.account };
+        this.baseSelectionRevision = revision + 1; this.applySelection(); this.changed.next();
+      } };
+  }
+  private applySelection() {
+    if (!this.selectionReady) { this.ready = false; return; }
+    const id = (this.editing ? this.draftTrackId : this.selection?.trackId) ?? this.automaticId;
+    if (id) { this.activate(id); return; }
+    if (this.selectedId || this.off) { this.off?.(); this.off = undefined; this.generation++; }
+    this.selectedId = ''; this.saved = undefined; this.ready = this.selectionReady;
   }
   update(channels: GreenpowerChannel[], end: number) {
     if (!this.account) { this.source = undefined; this.fixes = []; this.analysis = gpsAnalysis([], undefined, [], 0); return; }
     const changed = this.source !== channels;
     if (changed) this.fixes = gpsFixes(channels);
-    if (this.account && !this.lookedUp && !this.searching && this.dataset) {
+    if (this.account && this.selectionReady && !(this.editing ? this.draftTrackId : this.selection?.trackId) && !this.lookedUp && !this.searching && this.dataset) {
       const anchor = lookupAnchor(this.fixes);
       if (anchor) { this.cell = trackCell(anchor); this.lookedUp = true; void this.lookup(); }
     }
@@ -97,7 +157,8 @@ export class GreenpowerLapService implements OnDestroy {
       // A full result page may hide another match, so it can never authorize auto-selection.
       if (!append && !this.more) {
         const matches = choices.filter(track => matchesTrack(track, this.fixes));
-        if (matches.length === 1) { this.searching = false; this.choose(matches[0].id); }
+        this.automaticId = matches.length === 1 ? matches[0].id : '';
+        if (!this.selection?.trackId && (!this.editing || !this.draftTrackId) && !this.creating) { this.searching = false; this.applySelection(); }
       }
     } catch {
       if (generation === this.generation) { this.ready = false; this.error = 'Could not find nearby tracks. Try again.'; }
@@ -105,17 +166,23 @@ export class GreenpowerLapService implements OnDestroy {
       if (generation === this.generation) { this.searching = false; this.changed.next(); }
     }
   }
-  loadMore() { if (this.hasMore && !this.searching) void this.lookup(true); }
+  loadMore() { if (this.editing && this.canEdit && this.hasMore && !this.searching) void this.lookup(true); }
   retry() {
+    if (!this.selectionReady) { this.listenSelection(); return; }
     if (this.selectedId) this.listen();
     else if (this.lookedUp) { this.pages = 0; this.cursor = undefined; void this.lookup(); }
   }
   choose(id: string) {
-    if (this.saving || !this.candidates.some(track => track.id === id) || !this.account) return;
-    this.selectedId = id; this.creating = false; this.newId = ''; this.listen(); this.changed.next();
+    if (!this.editing || !this.canSelect || this.saving || id && !this.candidates.some(track => track.id === id)) return;
+    this.draftTrackId = id || null; this.creating = false; this.newId = ''; this.applySelection(); this.changed.next();
+  }
+  private activate(id: string) {
+    if (this.selectedId === id && this.off) { this.ready = !!this.saved && this.selectionReady; return; }
+    if (this.searching) this.lookedUp = false;
+    this.searching = false; this.selectedId = id; this.creating = false; this.newId = ''; this.listen();
   }
   newTrack() {
-    if (!this.canEdit || this.saving || this.searching || !lookupAnchor(this.fixes)) return;
+    if (!this.editing || !this.canEdit || this.saving || this.searching || !lookupAnchor(this.fixes)) return;
     this.off?.(); this.off = undefined; this.saved = undefined; this.selectedId = '';
     this.generation++; this.creating = true; this.newId = this.tracks.doc().id; this.ready = true; this.error = ''; this.changed.next();
   }
@@ -133,12 +200,12 @@ export class GreenpowerLapService implements OnDestroy {
       if (generation !== this.generation || snapshot.metadata.fromCache || snapshot.metadata.hasPendingWrites) return;
       const value = snapshot.data();
       if (validTrack(value) && this.saved && value.revision < this.saved.revision) return;
-      if (!snapshot.exists || !validTrack(value)) { this.ready = false; this.error = 'Track settings are unavailable.'; }
+      if (!snapshot.exists || !validTrack(value)) { this.saved = undefined; this.ready = false; this.error = 'Track settings are unavailable.'; }
       else { this.saved = value; this.remember(this.selectedId, value); this.ready = true; this.error = ''; }
       this.changed.next();
     }, () => {
       if (generation !== this.generation) return;
-      this.ready = false; this.error = 'Could not load track settings.'; this.changed.next();
+      this.off = undefined; this.saved = undefined; this.ready = false; this.error = 'Could not load track settings.'; this.changed.next();
     });
   }
   async save(line: FinishLine | null, revision: number, name: string) {
@@ -169,6 +236,7 @@ export class GreenpowerLapService implements OnDestroy {
       });
       if (generation !== this.generation) return false;
       this.selectedId = id; this.creating = false; this.newId = '';
+      if (this.editing) this.draftTrackId = id;
       if (!this.saved || this.saved.revision < track.revision) this.saved = track;
       this.remember(id, track);
       if (!this.off) {
@@ -182,5 +250,5 @@ export class GreenpowerLapService implements OnDestroy {
       return false;
     } finally { this.saving = false; this.changed.next(); }
   }
-  ngOnDestroy() { this.generation++; this.off?.(); this.subscription.unsubscribe(); this.changed.complete(); }
+  ngOnDestroy() { this.generation++; this.datasetGeneration++; this.off?.(); this.selectionOff?.(); this.subscription.unsubscribe(); this.changed.complete(); }
 }

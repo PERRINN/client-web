@@ -3,12 +3,13 @@ import { test } from 'node:test';
 import { BehaviorSubject, Subject, combineLatest } from 'rxjs';
 import { data, load, sample } from './load.mjs';
 import { setAdminRole } from '../admin/set-admin-role.mjs';
+const datasetTrack=load('../../src/app/greenpower-telemetry/greenpowerDatasetTrack.ts');
 const angular = { Injectable: () => target => target, runInInjectionContext: (_, callback) => callback() };
 const view = load('../../src/app/greenpower-telemetry/greenpowerView.ts', { './greenpowerData': data });
 const { PermissionsService } = load('../../src/app/permissions.service.ts', { '@angular/core': angular, rxjs: { BehaviorSubject, combineLatest } });
 const { GreenpowerViewService } = load('../../src/app/greenpower-telemetry/greenpowerView.service.ts', {
   '@angular/core': angular, rxjs: { Subject }, 'firebase/compat/app': { default: { firestore: { FieldValue: {serverTimestamp:()=> 'server-time'} } } },
-  'firebase/compat/firestore': {}, './greenpowerView': view
+  'firebase/compat/firestore': {}, './greenpowerView': view, './greenpowerDatasetTrack': datasetTrack
 });
 const channels = data.channelsFor([sample(0), sample(1)]);
 const saved = { ...view.selectionFor(channels), revision: 1, updatedBy: 'admin' };
@@ -49,12 +50,13 @@ test('selection validates channel bounds, keeps scalar/chart choices independent
 function harness() {
   const state=new BehaviorSubject({uid:'',isAdmin:false,ready:true});
   const permissions={state,get current(){return state.value;}};
-  let record, attempts=0, blocked, writes=0;
+  let record, trackRecord, attempts=0, blocked, writes=0;
   const listeners=[];
-  const ref={firestore:{async runTransaction(callback,options){assert.equal(options,undefined);attempts++;await callback({get:async()=>{if(blocked) await blocked;return {data:()=>record};},set:(_,value)=>{record=value;writes++;}});}},
+  const ref={firestore:{async runTransaction(callback,options){assert.equal(options,undefined);attempts++;await callback({get:async target=>{if(blocked) await blocked;return {data:()=>target?.path?trackRecord:record};},set:(target,value)=>{if(target?.path)trackRecord=value;else record=value;writes++;}});}},
     onSnapshot(options,next,error){assert.equal(options.includeMetadataChanges,true);const l={next,error,active:true};listeners.push(l);return()=>l.active=false;}};
+  ref.firestore.doc=path=>({path});
   const service=new GreenpowerViewService(permissions,{firestore:{doc:path=>{assert.equal(path,view.VIEW_PATH);return ref;}}});
-  return {service,state,listeners,get record(){return record;},set record(value){record=value;},get writes(){return writes;},get attempts(){return attempts;},block(value){blocked=value;},
+  return {service,state,listeners,get trackRecord(){return trackRecord;},set trackRecord(value){trackRecord=value;},get record(){return record;},set record(value){record=value;},get writes(){return writes;},get attempts(){return attempts;},block(value){blocked=value;},
     signIn(admin=true,uid='admin'){state.next({uid,isAdmin:admin,ready:true});},
     emit(value,metadata={fromCache:false,hasPendingWrites:false}){record=value;listeners.at(-1).next({metadata,exists:!!value,data:()=>value});}};
 }
@@ -174,4 +176,32 @@ test('drag sorting moves directly to a target and restores only a valid selected
   h.service.restoreOrder('scalars',original);assert.deepEqual(h.service.draft.scalarOrder,original);
   h.service.reorder('scalars',original[0],-1);h.service.reorder('scalars',original[0],NaN);assert.deepEqual(h.service.draft.scalarOrder,original);
   h.service.ngOnDestroy();
+});
+
+test('view and dataset choice commit together and acknowledge before closing Edit',async()=>{
+  const h=harness();h.signIn();h.emit(saved);h.service.edit(channels);let acknowledged=false;
+  const change={day:'2026-10-19',trackId:'circuit',revision:0,current:()=>true,acknowledged:()=>{assert.equal(h.service.editing,true);acknowledged=true;}};
+  await h.service.save(change);assert.equal(h.writes,2);assert.equal(acknowledged,true);assert.equal(h.record.revision,2);
+  assert.deepEqual(h.trackRecord,{trackId:'circuit',revision:1,updatedBy:'admin',updatedAt:'server-time'});assert.equal(h.service.editing,false);h.service.ngOnDestroy();
+});
+test('stale dataset revisions, invalid IDs and changed contexts cannot partially save the view',async()=>{
+  const h=harness();h.signIn();h.emit(saved);h.service.edit(channels);h.trackRecord={trackId:'another',revision:2};
+  const change={day:'2026-10-19',trackId:'circuit',revision:0,current:()=>true,acknowledged:()=>assert.fail('must not acknowledge')};
+  await h.service.save(change);assert.equal(h.writes,0);assert.equal(h.service.editing,true);assert.match(h.service.error,/changed elsewhere/);
+  await h.service.save({...change,trackId:'bad/path'});assert.equal(h.writes,0);
+  await h.service.save({...change,current:()=>false});assert.equal(h.writes,0);h.service.ngOnDestroy();
+});
+
+test('a dataset switch after commit cannot acknowledge or close the new editor context',async()=>{
+  const h=harness();h.signIn();h.emit(saved);h.service.edit(channels);let current=true,acknowledged=false;
+  const run=h.service.ref.firestore.runTransaction.bind(h.service.ref.firestore);
+  h.service.ref.firestore.runTransaction=async callback=>{await run(callback);current=false;};
+  await h.service.save({day:'2026-10-19',trackId:'circuit',revision:0,current:()=>current,acknowledged:()=>acknowledged=true});
+  assert.equal(h.writes,2);assert.equal(acknowledged,false);assert.equal(h.service.editing,true);h.service.ngOnDestroy();
+});
+test('combined view/track Save retries are bounded to six client document reads',async()=>{
+  const h=harness();h.signIn();h.emit(saved);h.service.edit(channels);let reads=0;
+  h.service.ref.firestore.runTransaction=async callback=>{for(let i=0;i<5;i++)await callback({get:async target=>{reads++;return {data:()=>target?.path?undefined:saved};},set(){}});};
+  await h.service.save({day:'2026-10-19',trackId:null,revision:0,current:()=>true,acknowledged:()=>assert.fail('failed save acknowledged')});
+  assert.equal(reads,6);assert.equal(h.service.editing,true);h.service.ngOnDestroy();
 });

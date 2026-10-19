@@ -3,6 +3,7 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
 import { Subject, Subscription } from 'rxjs';
+import { DatasetTrackWrite, datasetTrackPath, validTrackId } from './greenpowerDatasetTrack';
 import { PermissionsService } from '../permissions.service';
 import { GreenpowerChannel } from './greenpowerData';
 import { copySelection, editorChannels, orderField, orderFor, ViewKind, GreenpowerView, selectedChannels, selectionFor, validSelection, validView, VIEW_PATH, ViewSelection } from './greenpowerView';
@@ -90,8 +91,9 @@ export class GreenpowerViewService implements OnDestroy {
     this.draft = selection; this.changed.next();
   }
   cancel() { this.editing = false; this.draft = { scalars: {}, charts: {} }; this.changed.next(); }
-  async save() {
+  async save(track?: DatasetTrackWrite) {
     if (!this.canEdit || !this.editing || this.saving) return;
+    if (track && (!/^\d{4}-\d{2}-\d{2}$/.test(track.day) || !validTrackId(track.trackId) || !track.current())) return;
     if (!validSelection(this.draft)) { this.error = 'Choose up to 512 channels per view with a valid order.'; this.changed.next(); return; }
     const generation = this.generation, uid = this.account, revision = this.baseRevision;
     const selection = copySelection(this.draft);
@@ -101,19 +103,25 @@ export class GreenpowerViewService implements OnDestroy {
       await this.ref.firestore.runTransaction(async transaction => {
         if (++attempts > 3) throw new Error('retry-limit');
         if (generation !== this.generation || !this.canEdit) throw new Error('access');
+        if (track && !track.current()) throw new Error('access');
         const current = await transaction.get(this.ref);
+        const trackRef = track ? this.ref.firestore.doc(datasetTrackPath(track.day)) : undefined;
+        const previousTrack = trackRef ? await transaction.get(trackRef) : undefined;
         if (generation !== this.generation || !this.canEdit) throw new Error('access');
+        if (track && (!track.current() || (previousTrack?.data()?.['revision'] || 0) !== track.revision)) throw new Error('conflict');
         if ((current.data()?.['revision'] || 0) !== revision) throw new Error('conflict');
         transaction.set(this.ref, { ...selection, revision: revision + 1, updatedBy: uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+        if (trackRef && track) transaction.set(trackRef, { trackId: track.trackId, revision: track.revision + 1, updatedBy: uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
       });
-      if (generation === this.generation) {
+      if (generation === this.generation && (!track || track.current())) {
         // The commit acknowledgement is authoritative even if our listener is still catching up.
         if (!this.saved || this.saved.revision < revision + 1) this.saved = { ...selection, revision: revision + 1, updatedBy: uid };
+        track?.acknowledged();
         this.cancel();
       }
     } catch (error) {
       if (generation === this.generation) this.error = error instanceof Error && error.message === 'conflict'
-        ? 'View changed elsewhere. Cancel and reopen the editor.' : 'Could not save view. Try again.';
+        ? 'View or track selection changed elsewhere. Cancel and reopen the editor.' : 'Could not save view. Try again.';
     } finally {
       this.saving = false; this.changed.next();
     }

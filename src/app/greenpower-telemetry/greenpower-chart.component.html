@@ -1,32 +1,28 @@
 <section class="chart" [attr.aria-label]="channel.label + ' over time'">
   <h2>{{ channel.label }}{{ channel.unit ? ' · ' + channel.unit : '' }}</h2>
-  @if (hasCurrentAverage) {
+  @if (hasCurrentLimit) {
     <div class="current-legend" aria-label="Current chart legend">
-      <span class="raw-key">Current</span><span class="average-key">{{ averagePeriods }}-period avg</span><span class="limit-key">{{ currentLimit }} A limit</span>
-    </div>
-    <div class="average-readout">
-      <span>Avg · {{ averageLabel }}</span>
+      <span class="raw-key">Current</span><span class="limit-key">{{ currentLimit }} A limit</span>
     </div>
   }
   <div class="readout"><span>{{ cursorLap !== undefined ? 'Lap ' + cursorLap + ' · ' : '' }}{{ reading ? time(reading!.time) : 'Cursor —' }}</span><span>{{ cursor === undefined ? '—' : cursorLabel }}</span></div>
   <div class="plot">
     <div class="scale">
       @for (tick of model.axis.ticks; track tick.y) {
-        @if (!hasCurrentAverage || tick.y < limitY - 14 || tick.y > limitY + 14) { <span [style.top.%]="tick.y / 120 * 100">{{ formatAxis(tick.value, model.axis.step) }}</span> }
+        @if (!hasCurrentLimit || tick.y < limitY - 14 || tick.y > limitY + 14) { <span [style.top.%]="tick.y / 120 * 100">{{ formatAxis(tick.value, model.axis.step) }}</span> }
       }
-      @if (hasCurrentAverage) { <span class="limit-label" [style.top.%]="limitY / 120 * 100">{{ currentLimit }} A</span> }
+      @if (hasCurrentLimit) { <span class="limit-label" [style.top.%]="limitY / 120 * 100">{{ currentLimit }} A</span> }
     </div>
     <svg #plot viewBox="0 0 800 120" preserveAspectRatio="none" role="group" tabindex="0"
-      [attr.aria-label]="channel.label + (hasCurrentAverage ? ' chart with trailing ' + averagePeriods + '-reading average and ' + currentLimit + ' amp limit. ' : ' chart. ') + 'Drag to zoom; hold to inspect on touch; double click or press Home to reset. Arrow keys step through data points.'"
+      [attr.aria-label]="channel.label + (hasCurrentLimit ? ' chart with ' + currentLimit + ' amp limit. ' : ' chart. ') + 'Drag to zoom; hold to inspect on touch; double click or press Home to reset. Arrow keys step through data points.'"
       (pointerdown)="down($event)" (pointermove)="move($event)" (pointerup)="up($event)" (pointercancel)="cancel($event)"
       (lostpointercapture)="cancel($event)" (pointerleave)="leave()" (dblclick)="reset()" (keydown)="key($event)" (blur)="cancel(); leave()" (contextmenu)="$event.preventDefault()">
       @for (lap of lapBands; track lap.time) {
         <rect class="lap-band" [class.alternate]="lap.alternate" [attr.x]="lap.x * 8" y="0" [attr.width]="lap.width * 8" height="120"><title>Lap {{ lap.lap }} · {{ time(lap.time) }}–{{ time(lap.end) }}</title></rect>
       }
       @for (tick of model.axis.ticks; track tick.y) { <path class="grid" [attr.d]="'M0 ' + tick.y + 'H800'" /> }
-      @if (hasCurrentAverage) { <path class="current-limit" [attr.d]="'M0 ' + limitY + 'H800'" /> }
+      @if (hasCurrentLimit) { <path class="current-limit" [attr.d]="'M0 ' + limitY + 'H800'" /> }
       <path class="trace" transform="matrix(1.0204081633 0 0 1 -8.1632653061 0)" [attr.d]="model.trace.path" />
-      @if (hasCurrentAverage) { <path class="average-trace" transform="matrix(1.0204081633 0 0 1 -8.1632653061 0)" [attr.d]="model.averageTrace.path" /> }
       @if (band; as selection) { <rect class="selection" [attr.x]="selection.x" y="0" [attr.width]="selection.width" height="120" /> }
       @if (cursorPosition !== undefined) {
         <path class="cursor" [attr.d]="'M' + cursorPosition + ' 0V120'" />

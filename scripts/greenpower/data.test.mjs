@@ -3,6 +3,39 @@ import { test } from 'node:test';
 import { performance } from 'node:perf_hooks';
 import { data, sample } from './load.mjs';
 
+test('live and historical speed projections use mph without changing raw values or saved IDs', () => {
+  for (const [source, raw] of [['424-phone', '{"Spd":10,"RPM":1000}'], ['echook-history', '{"speed":10,"rpm":1000}']]) {
+    const first = { ...sample(0), source, raw };
+    const latest = { ...first, receivedAt: first.receivedAt + 3000 };
+    const channels = data.channelsFor([first], latest);
+    const speed = channels.find(c => c.label === 'Vehicle speed');
+    assert.equal(speed.id, '["Spd"]:m/s');
+    assert.equal(speed.unit, 'mph');
+    assert.equal(speed.value, '22.369363');
+    assert.equal(speed.points[0].value, 10 / 0.44704);
+    assert.deepEqual(data.channelDetails(speed.id), { label: 'Vehicle speed', unit: 'mph' });
+    assert.equal(channels.find(c => c.label === 'Motor speed').unit, 'rpm');
+    const merged = data.mergeChannels([channels], latest);
+    assert.deepEqual(merged.find(c => c.id === speed.id), speed, 'merging and live refresh do not convert twice');
+    assert.equal(first.raw, raw);
+    data.updateValues(channels, { ...latest, raw: source === '424-phone' ? '{"Spd":0}' : '{"speed":0}' });
+    assert.equal(speed.value, '0');
+  }
+});
+test('explicit speed units convert values while missing and unrelated readings stay intact', () => {
+  for (const [unit, value] of [['m/s', 0.44704], ['km/h', 1.609344], ['kph', 1.609344], ['mph', 1]]) {
+    const raw = JSON.stringify({ Spd: { value, unit }, missing: { value: null, unit }, A: 12 });
+    const channels = data.channelsFor([{ ...sample(0), raw }]);
+    const speed = channels.find(c => c.label === 'Vehicle speed');
+    assert.equal(speed.unit, 'mph');
+    assert.equal(speed.value, '1');
+    assert.ok(Math.abs(speed.points[0].value - 1) < 1e-12);
+    assert.equal(data.channelDetails(speed.id).unit, 'mph');
+    assert.equal(channels.find(c => c.label === 'missing').value, '—');
+    assert.equal(channels.find(c => c.label === 'missing').points.length, 0);
+    assert.equal(channels.find(c => c.label === 'Current').value, '12');
+  }
+});
 test('dynamic numeric and other fields appear; explicit units and unusual keys remain distinct', () => {
   const fields = data.fields('{"Spd":10,"custom":{"value":2,"unit":"mm","quality":"good"},"a/b":3,"a":{"b":4},"array":[1,2],"status":"running"}');
   assert.equal(fields.find(f => f.label === 'Vehicle speed').unit, 'm/s');
