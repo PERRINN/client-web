@@ -1,0 +1,55 @@
+{
+  "checkedAt": "2026-10-19T19:25:16.817Z",
+  "function": {
+    "name": "projects/perrinn-d5fc1/locations/us-central1/functions/greenpowerEventEdit",
+    "state": "ACTIVE",
+    "updateTime": "2026-10-19T19:23:02.389199645Z",
+    "runtime": "nodejs20",
+    "build": "projects/44958643568/locations/us-central1/builds/02e3135e-6f9e-4f9c-9770-7a96526361bc"
+  },
+  "anonymousCallable": {
+    "status": 401,
+    "error": "UNAUTHENTICATED"
+  },
+  "queryPlans": [
+    {
+      "name": "year_days",
+      "analyze": false,
+      "indexesUsed": [
+        {
+          "query_scope": "Collection",
+          "properties": "(date DESC, __name__ DESC)"
+        }
+      ]
+    },
+    {
+      "name": "historical_names",
+      "analyze": false,
+      "indexesUsed": [
+        {
+          "query_scope": "Collection",
+          "properties": "(date DESC, __name__ DESC)"
+        },
+        {
+          "properties": "(date DESC, __name__ DESC)",
+          "query_scope": "Collection"
+        }
+      ]
+    },
+    {
+      "name": "typed_sessions",
+      "analyze": false,
+      "indexesUsed": [
+        {
+          "query_scope": "Collection",
+          "properties": "(eventId ASC, type ASC, firstAt ASC, __name__ ASC)"
+        }
+      ]
+    }
+  ],
+  "productionMetadataWrites": 0,
+  "queryPlansExecuted": false,
+  "bulkMigrationApplied": false,
+  "sessionBoundaries": "pending_review",
+  "batteryAssignments": "pending_review"
+}
