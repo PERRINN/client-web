@@ -1,0 +1,64 @@
+{
+  "issue": 96,
+  "event": "Goodwood Motor Circuit (GB)",
+  "date": "2026-10-18",
+  "project": "perrinn-d5fc1",
+  "destination": "GreenpowerTelemetry/424/days/2026-10-18",
+  "importCheckpoint": "GreenpowerTelemetry/424/imports/echook-69e36aa623ee354582952a26-2026-10-18",
+  "sourceSha256": "c338bce2e0a0f8c16284f99218ea02c3b221e5731f5965f06da91c7daf07e028",
+  "count": 3252,
+  "uniqueSampleIds": 3252,
+  "chunks": 102,
+  "committedDocumentWrites": 306,
+  "originalRecordTextVerified": true,
+  "sourceTimestampStringsPreserved": true,
+  "eventAtMatchesEverySourceTimestamp": true,
+  "firstAt": 1792307294230,
+  "lastAt": 1792331649948,
+  "importReceivedAt": 1792415979433,
+  "resume": {
+    "reason": "Operator token expired after 100 committed chunks; existing session renewed in memory",
+    "existing": 3200,
+    "added": 52
+  },
+  "rerun": {
+    "added": 0,
+    "existing": 3252,
+    "writes": 0,
+    "unchangedDocuments": 104,
+    "documentVersionSha256Before": "e832c1d1e7847f9b2f186a0199a2205d70c35ae16b65a1163feeb5473b064f7e",
+    "documentVersionSha256After": "e832c1d1e7847f9b2f186a0199a2205d70c35ae16b65a1163feeb5473b064f7e"
+  },
+  "historyVerification": {
+    "productionDateQuery": "orderBy(date, desc), limit(30)",
+    "dayListed": true,
+    "localUiUsesImportedFirebaseRecordsAndCurrentSharedView": true,
+    "widths": [
+      1440,
+      390,
+      320
+    ],
+    "firstLondon": "08:08:14.230 BST",
+    "lastLondon": "14:54:09.948 BST",
+    "screenshotsVisuallyInspected": true,
+    "clientDeployed": false
+  },
+  "validation": {
+    "greenpowerUnitTests": 54,
+    "emulatorTests": 9,
+    "productionBuild": "passed",
+    "lint": {
+      "errors": 0,
+      "warnings": 64
+    },
+    "gitDiffCheck": "passed"
+  },
+  "otherDaysImported": false,
+  "functionsRulesIndexesOrStorageChanged": false,
+  "verifiedAt": "2026-10-19T13:22:51.396Z",
+  "limitations": [
+    "Client reader/date-query changes remain local and require an authorized release for the deployed history page.",
+    "Importer refuses existing live/unrelated days; general live/history identity matching is not established.",
+    "No other 2026 days imported; issue 96 remains incomplete."
+  ]
+}

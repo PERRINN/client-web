@@ -1,5 +1,5 @@
 // Render the real Angular templates/styles with isolated synthetic services.
-// No Firebase initialization, account access or production network requests.
+// Optional imported-record fixture; no Firebase initialization or network requests.
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
@@ -30,6 +30,7 @@ import { GreenpowerViewService } from '${folder}/greenpowerView.service';
 import { GreenpowerTelemetryComponent } from '${folder}/greenpower-telemetry.component';
 import { GreenpowerChartComponent } from '${folder}/greenpower-chart.component';
 import { GreenpowerTelemetryService } from '${folder}/greenpowerTelemetry.service';
+import { channelsFor, sampleTime } from '${folder}/greenpowerData';
 import { PrototypeGalleryComponent } from '${root}/src/app/prototypes/prototype-gallery.component';
 GreenpowerTelemetryComponent.ctorParameters = () => [{type: GreenpowerTelemetryService}, {type: ChangeDetectorRef}, {type: Title}, {type: GreenpowerViewService}];
 GreenpowerViewService.ctorParameters = () => [{type: PermissionsService}, {type: AngularFirestore}];
@@ -47,6 +48,14 @@ const fixture = TestBed.createComponent(GreenpowerTelemetryComponent);
 document.querySelector('.contentCard').append(fixture.nativeElement); fixture.autoDetectChanges();
 const service = fixture.componentInstance.telemetry;
 window.telemetryHarness = {
+  imported(value) {
+    viewReset();
+    const samples=value.chunks.flatMap(chunk=>chunk.samples);
+    service.day=value.day;service.live=false;service.dates=[value.day];service.latest=value.metadata.latest;
+    service.channels=channelsFor(samples,service.latest);service.start=Math.min(...samples.map(sampleTime));service.end=Math.max(...samples.map(sampleTime));
+    service.loading=false;service.more=false;service.error='';service.access='signed-in';
+    fixture.componentInstance.historyOpen=true;config=value.view;notify();service.changed.next();fixture.detectChanges();
+  },
   role(admin){permissionState.next({uid:'viewer',isAdmin:admin,ready:true});fixture.detectChanges();},
   config(value){config=value;notify();fixture.detectChanges();},
   saveError(value){saveError=value;},
@@ -65,6 +74,7 @@ window.telemetryHarness = {
   },
   gallery() { fixture.destroy(); const gallery = TestBed.createComponent(PrototypeGalleryComponent); document.querySelector('.contentCard').append(gallery.nativeElement); gallery.detectChanges(); }
 };
+function viewReset(){fixture.componentInstance.view.cancel();permissionState.next({uid:'imported-viewer',isAdmin:false,ready:true});}
 `);
 const stub = `
 import { Injectable } from '@angular/core';
@@ -399,6 +409,23 @@ try {
   assert.ok((await mobileDrag.locator('.channel-option .channel-label').allTextContents()).indexOf(edgeLabel)>3,'edge drag can move beyond initially visible rows');
   await mobileDrag.getByRole('button',{name:'Cancel',exact:true}).click();
   await mobileDrag.close();
+  if (process.env.GREENPOWER_HISTORY_FIXTURE) {
+    const imported = JSON.parse(await readFile(process.env.GREENPOWER_HISTORY_FIXTURE, 'utf8'));
+    for (const [name,width,height] of [['desktop',1440,1000],['mobile',390,844],['small-mobile',320,740]]) {
+      await page.setViewportSize({width,height});
+      await page.evaluate(value=>window.telemetryHarness.imported(value),imported);
+      await page.locator('h1').scrollIntoViewIfNeeded();
+      assert.equal(await page.getByLabel('Recorded day').inputValue(),imported.day);
+      assert.match(await page.locator('.status').innerText(),/History[\s\S]*Last sample 14:54:09/);
+      assert.ok(await page.locator('app-greenpower-chart').count()>0);
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+      const state=await page.evaluate(()=>window.telemetryHarness.snapshot());
+      assert.equal(state.start,1792307294230);assert.equal(state.end,1792331649948);
+      const speed=page.locator('.reading').filter({hasText:'Vehicle speed'});
+      if(await speed.count())assert.match(await speed.innerText(),/m\/s/);
+      await page.screenshot({path:output+'/'+name+'-goodwood.png'});
+    }
+  }
   await page.evaluate(() => window.telemetryHarness.gallery());
   const tile = page.locator('a.prototype-card').filter({ hasText: 'greenpower-telemetry' });
   assert.equal(await tile.count(), 0);

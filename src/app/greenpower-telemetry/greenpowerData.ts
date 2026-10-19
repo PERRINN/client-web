@@ -1,4 +1,4 @@
-export interface GreenpowerSample { id: string; receivedAt: number; source: string; raw: string; }
+export interface GreenpowerSample { id: string; receivedAt: number; eventAt?: number; source: string; raw: string; }
 export interface GreenpowerChunk { samples: GreenpowerSample[]; bytes: number; }
 export interface GreenpowerDay { date: string; activeChunk: number; count: number; latest: GreenpowerSample; }
 export interface GreenpowerChannel { id: string; label: string; unit: string; value: string; points: { time: number; value: number }[]; }
@@ -15,6 +15,7 @@ export function londonDay(time = Date.now()) {
   return `${parts['year']}-${parts['month']}-${parts['day']}`;
 }
 export function londonTime(time: number) { return timeFormat.format(time); }
+export function sampleTime(sample: GreenpowerSample) { return sample.eventAt ?? sample.receivedAt; }
 function displayValue(value: unknown): string {
   if (value === null) return '—';
   if (typeof value === 'number') return value && (Math.abs(value) >= 1e9 || Math.abs(value) < 1e-6)
@@ -30,7 +31,12 @@ const known: Record<string, [string, string]> = {
   Tmp1: ['Temperature 1', '°C'], Tmp2: ['Temperature 2', '°C'], AH: ['Amp hours used', 'Ah'],
   Lap: ['Lap', ''], Gear: ['Gear', ''], Brk: ['Brake', ''], Lon: ['Longitude', '°'], Lat: ['Latitude', '°']
 };
-export function fields(raw: string) {
+const historicalAliases: Record<string, string> = {
+  voltage: 'Vt', voltageLower: 'V1', current: 'A', rpm: 'RPM', speed: 'Spd',
+  throttle: 'Thrtl', temp1: 'Tmp1', temp2: 'Tmp2', ampH: 'AH', currLap: 'Lap',
+  gear: 'Gear', lon: 'Lon', lat: 'Lat'
+};
+export function fields(raw: string, historical = false) {
   const result: { id: string; label: string; unit: string; value: unknown }[] = [];
   function visit(value: unknown, path: string[], depth: number) {
     if (depth > 8 || result.length >= 512) return;
@@ -45,6 +51,11 @@ export function fields(raw: string) {
     } else add(value, path);
   }
   function add(value: unknown, path: string[], unit?: string) {
+    // Identity and source time remain intact in raw, rather than becoming sensor plots.
+    if (historical && path.length === 1) {
+      if (['id', 'carId', 'updated'].includes(path[0])) return;
+      path = [Object.hasOwn(historicalAliases, path[0]) ? historicalAliases[path[0]] : path[0]];
+    }
     const native = path.length === 1 ? known[path[0]] : undefined;
     result.push({ id: JSON.stringify(path), label: native?.[0] || path.join(' / '), unit: unit ?? native?.[1] ?? '', value });
   }
@@ -55,12 +66,12 @@ export function channelsFor(samples: GreenpowerSample[], latest?: GreenpowerSamp
   const channels = new Map<string, GreenpowerChannel>();
   const readings = new Map<string, unknown>();
   const append = (sample: GreenpowerSample, plot: boolean) => {
-    for (const field of fields(sample.raw)) {
+    for (const field of fields(sample.raw, sample.source === 'echook-history')) {
       const key = `${field.id}:${field.unit}`;
       let channel = channels.get(key);
       if (!channel) { channel = { id: key, label: field.label, unit: field.unit, value: '—', points: [] }; channels.set(key, channel); }
       readings.set(key, field.value);
-      if (plot && typeof field.value === 'number' && Number.isFinite(field.value)) channel.points.push({ time: sample.receivedAt, value: field.value });
+      if (plot && typeof field.value === 'number' && Number.isFinite(field.value)) channel.points.push({ time: sampleTime(sample), value: field.value });
     }
   };
   samples.forEach(sample => append(sample, true));
@@ -114,7 +125,7 @@ export function chartTrace(points: { time: number; value: number }[], start: num
   return { path, min, max };
 }
 
-/** Binary search on receipt-time ordered channel samples. */
+/** Binary search on time-ordered channel samples. */
 export function pointIndex(points: { time: number }[], time: number, after = false) {
   let low = 0, high = points.length;
   while (low < high) {

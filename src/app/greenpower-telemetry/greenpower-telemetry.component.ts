@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, ViewChild } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { Subscription } from 'rxjs';
-import { GreenpowerChannel, londonDay, londonTime } from './greenpowerData';
+import { GreenpowerChannel, londonDay, londonTime, sampleTime } from './greenpowerData';
 import { ChartWindow } from './greenpowerChart';
 import { ChannelDrag } from './channelDrag';
 import { orderFor, ViewKind } from './greenpowerView';
@@ -32,6 +32,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   zoom(window?: ChartWindow) { this.window = window; this.cursor = undefined; }
   now = Date.now();
   time = londonTime;
+  sampleTime = sampleTime;
   private readonly previousTitle: string;
   private readonly changes: Subscription;
   private readonly clock: ReturnType<typeof setInterval>;

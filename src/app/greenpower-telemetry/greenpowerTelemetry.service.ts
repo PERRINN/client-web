@@ -4,7 +4,7 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
 import { Subject, Subscription } from 'rxjs';
-import { channelsFor, GreenpowerChannel, GreenpowerChunk, GreenpowerDay, GreenpowerSample, londonDay, MAX_CHUNK_WIRE_BYTES, MAX_LOAD_BYTES, MAX_PAGES, mergeChannels, PAGE_SIZE, updateValues } from './greenpowerData';
+import { channelsFor, GreenpowerChannel, GreenpowerChunk, GreenpowerDay, GreenpowerSample, londonDay, MAX_CHUNK_WIRE_BYTES, MAX_LOAD_BYTES, MAX_PAGES, mergeChannels, PAGE_SIZE, sampleTime, updateValues } from './greenpowerData';
 
 @Injectable()
 export class GreenpowerTelemetryService implements OnDestroy {
@@ -138,7 +138,7 @@ export class GreenpowerTelemetryService implements OnDestroy {
     const generation = this.datesGeneration;
     this.loadingDates = true; this.datesError = ''; this.changed.next();
     try {
-      let query = this.root.orderBy(firebase.firestore.FieldPath.documentId(), 'desc').limit(30);
+      let query = this.root.orderBy('date', 'desc').limit(30);
       if (this.datesCursor) query = query.startAfter(this.datesCursor);
       const snapshot = await query.get({ source: 'server' });
       if (generation !== this.datesGeneration || this.destroyed) return;
@@ -156,12 +156,12 @@ export class GreenpowerTelemetryService implements OnDestroy {
   private fail(generation: number) { if (this.valid(generation)) { this.connected = false; this.error = 'Could not load telemetry. Check your connection and try again.'; this.changed.next(); } }
   private setChunk(id: string, chunk: GreenpowerChunk) {
     this.chunks.set(id, chunk);
-    this.projections.set(id, channelsFor([...chunk.samples].sort((a, b) => a.receivedAt - b.receivedAt || a.id.localeCompare(b.id))));
+    this.projections.set(id, channelsFor([...chunk.samples].sort((a, b) => sampleTime(a) - sampleTime(b) || a.id.localeCompare(b.id))));
   }
   private rebuild() {
     let start = Infinity, end = -Infinity;
-    for (const chunk of this.chunks.values()) for (const sample of chunk.samples) { start = Math.min(start, sample.receivedAt); end = Math.max(end, sample.receivedAt); }
-    this.start = Number.isFinite(start) ? start : this.latest?.receivedAt || Date.now();
+    for (const chunk of this.chunks.values()) for (const sample of chunk.samples) { start = Math.min(start, sampleTime(sample)); end = Math.max(end, sampleTime(sample)); }
+    this.start = Number.isFinite(start) ? start : this.latest ? sampleTime(this.latest) : Date.now();
     this.end = Number.isFinite(end) ? end : this.start;
     this.channels = mergeChannels(Array.from(this.projections.values()), this.latest);
     this.changed.next();

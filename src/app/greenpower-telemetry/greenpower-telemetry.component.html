@@ -60,7 +60,7 @@
     }
     <div class="status" role="status">
       <span>{{ status }}</span>
-      <span>Last received {{ telemetry.latest ? time(telemetry.latest.receivedAt) : '—' }}</span>
+      <span>{{ telemetry.live ? 'Last received' : 'Last sample' }} {{ telemetry.latest ? time(sampleTime(telemetry.latest)) : '—' }}</span>
     </div>
     @if (telemetry.error) {
       <div class="error" role="alert">{{ telemetry.error }} <button type="button" (click)="telemetry.select(telemetry.day, telemetry.live)">Retry</button></div>

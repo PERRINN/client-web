@@ -15,7 +15,7 @@ function harness() {
   function ref(path, options = {}) {
     return { path,
       collection: name => ref(`${path}/${name}`), doc: id => ref(`${path}/${id}`),
-      orderBy: (_, direction) => ref(path, { ...options, direction }), limit: limit => ref(path, { ...options, limit }),
+      orderBy: (field, direction) => ref(path, { ...options, field, direction }), limit: limit => ref(path, { ...options, limit }),
       startAt: cursor => ref(path, { ...options, cursor: typeof cursor === 'string' ? cursor : cursor.id, inclusive: true }),
       startAfter: cursor => ref(path, { ...options, cursor: typeof cursor === 'string' ? cursor : cursor.id, inclusive: false }),
       async get(source) {
@@ -95,7 +95,7 @@ test('available dates load 30 at a time and each action makes one query', async 
   const h = harness(); h.authState.next({ uid: 'first' }); await settle();
   for (let i = 1; i <= 31; i++) h.seed(`2026-08-${String(i).padStart(2, '0')}`, 0);
   h.calls.length = 0; await h.service.loadDates();
-  assert.equal(h.calls.length, 1); assert.equal(h.service.dates.length, 30); assert.equal(h.service.moreDates, true);
+  assert.equal(h.calls.length, 1); assert.equal(h.calls[0].field, 'date'); assert.equal(h.service.dates.length, 30); assert.equal(h.service.moreDates, true);
   await h.service.loadDates(); assert.equal(h.calls.length, 2); assert.equal(h.service.dates.length, 31); assert.equal(h.service.moreDates, false);
   h.service.ngOnDestroy();
 });
