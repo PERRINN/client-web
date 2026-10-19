@@ -1,0 +1,78 @@
+{
+  "checkedAt": "2026-10-19T18:56:10.126Z",
+  "project": "perrinn-d5fc1",
+  "status": "deployed_verified",
+  "commit": "c8d1d58",
+  "deploymentScope": [
+    "hosting"
+  ],
+  "url": "https://perrinn.com/424-greenpower-telemetry",
+  "pageStatus": 200,
+  "mainBundle": "main.4cb9c447cbf8cf7a.js",
+  "bundleStatus": 200,
+  "bundleSha256": "36712e9b121060911257d3a856027654e38374baceeb5afd85265510122ce3cc",
+  "bundleMatchesIsolatedBuild": true,
+  "hostingRelease": "sites/perrinn-d5fc1/releases/1792436156042000",
+  "hostingVersion": "sites/perrinn-d5fc1/versions/37abcbf2bff7b1fe",
+  "liveMetadata": {
+    "queries": 1,
+    "resultLimit": 60,
+    "documentsReturned": 2,
+    "projection": [
+      "name",
+      "date",
+      "state"
+    ],
+    "labels": [
+      "2026-10-18 · Goodwood finals",
+      "2026-06-14 · Full dyno · 2026-06-14",
+      "2026-04-18 · No event"
+    ],
+    "credential": "trusted operator OAuth; not an end-user browser token"
+  },
+  "anonymousEventReadStatus": 403,
+  "signedOutMobileBrowser": {
+    "width": 390,
+    "signInRequired": true,
+    "pageErrors": []
+  },
+  "validation": {
+    "unitPassed": 133,
+    "emulatorPassed": 18,
+    "build": "passed",
+    "buildHash": "98cbaa5232069239",
+    "lintErrors": 0,
+    "existingLintWarnings": 64,
+    "browserWidths": [
+      1440,
+      390,
+      320
+    ],
+    "browserArtifacts": "/var/folders/6j/540yrv1536x9pc7qv833941h0000gn/T/greenpower-ui-hZhgAu",
+    "browserResult": "passed",
+    "browserErrors": [],
+    "screenshotsVisuallyInspected": true
+  },
+  "indexes": {
+    "checkedAt": "2026-10-19T18:54:16.850Z",
+    "project": "perrinn-d5fc1",
+    "repositoryIndexes": 23,
+    "liveIndexes": 23,
+    "repositoryOnly": [],
+    "liveOnly": [],
+    "notReady": [],
+    "historicalEventGroups": "applied_separately",
+    "sessionBoundaries": "pending_review",
+    "indexChanges": false
+  },
+  "productionMetadataWrites": 0,
+  "rawTelemetryReads": 0,
+  "rawTelemetryWrites": 0,
+  "sessionBoundaries": "pending_review",
+  "batteryTestAssignments": "pending_review",
+  "issue97": "open: historical session assignments remain pending review",
+  "limitations": [
+    "Hosted signed-in UI was not exercised; real signed-in reads and labels are covered by the local emulator and template harness",
+    "Live metadata read uses operator IAM and does not independently prove end-user rules"
+  ]
+}
