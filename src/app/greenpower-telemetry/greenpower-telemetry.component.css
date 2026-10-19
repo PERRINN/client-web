@@ -33,7 +33,7 @@ select { border-color: var(--color-border); }
 .editor-actions { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .editor-actions h2 { flex: 1; font-size: 16px; line-height: 1.35; font-weight: 600; overflow: visible; }
 .channel-options { max-height: min(50dvh, 480px); overflow-y: auto; }
-.channel-option { display: grid; grid-template-columns: 24px minmax(0, 1fr) 44px 44px; align-items: center; gap: 8px; min-height: 44px; }
+.channel-option { display: grid; grid-template-columns: 24px minmax(0, 1fr) 44px; align-items: center; gap: 8px; min-height: 44px; }
 .channel-option span { font-size: 13px; line-height: 1.45; }
 .channel-label { overflow-wrap: anywhere; }
 .channel-option input { width: 20px; height: 20px; justify-self: center; accent-color: var(--color-accent); }
@@ -42,6 +42,10 @@ select { border-color: var(--color-border); }
 
 .editor-tabs { display: flex; gap: 8px; margin-bottom: 8px; }
 .editor-tabs button[aria-pressed="true"] { background: var(--color-selected); }
-.move-channel { padding: 0; width: 44px; height: 44px; }
-.move-channel:disabled { cursor: default; }
+.drag-handle { padding: 0; width: 44px; height: 44px; cursor: grab; touch-action: none; user-select: none; -webkit-touch-callout: none; }
+.drag-handle:active { cursor: grabbing; }
+.drag-handle:disabled { cursor: default; touch-action: pan-y; }
+.channel-option.dragging { background: var(--color-selected); }
+.channel-option.dragging .channel-label { opacity: .5; }
+.drag-preview { position: fixed; z-index: 100; min-height: 44px; display: flex; align-items: center; padding: 8px 12px; background: var(--color-raised); font-size: 13px; line-height: 1.45; pointer-events: none; overflow-wrap: anywhere; }
 .order-notice { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); white-space: nowrap; }

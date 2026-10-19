@@ -1,9 +1,10 @@
-import { ChangeDetectorRef, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, ViewChild } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { Subscription } from 'rxjs';
 import { GreenpowerChannel, londonDay, londonTime } from './greenpowerData';
 import { ChartWindow } from './greenpowerChart';
-import { ViewKind } from './greenpowerView';
+import { ChannelDrag } from './channelDrag';
+import { orderFor, ViewKind } from './greenpowerView';
 import { GreenpowerViewService } from './greenpowerView.service';
 import { GreenpowerTelemetryService } from './greenpowerTelemetry.service';
 
@@ -20,6 +21,8 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   editorKind: ViewKind = 'scalars';
   selectedCount = 0;
   orderNotice = '';
+  readonly drag: ChannelDrag;
+  private dragKind: ViewKind = 'scalars';
   @ViewChild('channelOptions') private channelOptions?: ElementRef<HTMLElement>;
   window?: ChartWindow;
   cursor?: number;
@@ -33,6 +36,12 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   private readonly changes: Subscription;
   private readonly clock: ReturnType<typeof setInterval>;
   constructor(public telemetry: GreenpowerTelemetryService, change: ChangeDetectorRef, private title: Title, public view: GreenpowerViewService) {
+    this.drag = new ChannelDrag({
+      valid: () => view.editing && view.canEdit && !view.saving && this.editorKind === this.dragKind,
+      reorder: (id, index) => view.reorder(this.dragKind, id, index),
+      restore: order => view.restoreOrder(this.dragKind, order),
+      changed: () => change.markForCheck(), announce: message => this.orderNotice = message
+    });
     this.context = telemetry.day + ':' + telemetry.live + ':' + telemetry.access;
     this.previousTitle = title.getTitle(); title.setTitle('424 Greenpower Telemetry · PERRINN');
     this.changes = telemetry.changed.subscribe(() => {
@@ -45,6 +54,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     this.clock = setInterval(() => { this.now = Date.now(); telemetry.tick(); change.markForCheck(); }, 1000);
   }
   private refreshView() {
+    if ((!this.view.editing || !this.view.canEdit || this.view.saving) && this.drag.pending) this.drag.cancel();
     if (!this.view.editing) this.orderNotice = '';
     this.selectedCount = Object.keys(this.view.draft[this.editorKind]).length;
     this.scalars = this.view.scalars(this.telemetry.channels);
@@ -52,6 +62,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     this.available = this.view.editing ? this.view.available(this.telemetry.channels, this.editorKind) : [];
   }
   selectEditor(kind: ViewKind) {
+    this.drag.cancel();
     this.editorKind = kind; this.orderNotice = ''; this.refreshView();
     if (this.channelOptions) this.channelOptions.nativeElement.scrollTop = 0;
   }
@@ -59,6 +70,21 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     this.view.move(this.editorKind, channel.id, direction);
     this.orderNotice = channel.label + ', position ' + (this.available.findIndex(c => c.id === channel.id) + 1) + ' of ' + this.selectedCount;
   }
+  startDrag(event: PointerEvent, channel: GreenpowerChannel, list: HTMLElement) {
+    this.dragKind = this.editorKind;
+    this.drag.start(event, list, channel.id, channel.label + (channel.unit ? ' · ' + channel.unit : ''), orderFor(this.view.draft, this.editorKind));
+  }
+  handleKey(event: KeyboardEvent, channel: GreenpowerChannel) {
+    if (event.key === 'Escape') { event.preventDefault(); this.drag.cancel(); }
+    else if (!this.drag.pending && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+      event.preventDefault(); this.moveChannel(channel, event.key === 'ArrowUp' ? -1 : 1);
+    }
+  }
+  @HostListener('window:keydown.escape', ['$event']) escapeDrag(event: KeyboardEvent) {
+    if (this.drag.pending) { event.preventDefault(); this.drag.cancel(); }
+  }
+  @HostListener('window:blur') cancelDrag() { this.drag.cancel(); }
+  @HostListener('document:visibilitychange') visibilityChanged() { if (document.hidden) this.drag.cancel(); }
   get status() {
     const data = this.telemetry;
     if (!data.live) return 'History · UK time';
@@ -72,5 +98,5 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     if (this.historyOpen && !this.telemetry.dates.length) await this.telemetry.loadDates();
   }
   live() { this.historyOpen = false; void this.telemetry.select(londonDay(), true); }
-  ngOnDestroy() { clearInterval(this.clock); this.changes.unsubscribe(); this.title.setTitle(this.previousTitle); }
+  ngOnDestroy() { this.changes.unsubscribe(); this.drag.cancel(); clearInterval(this.clock); this.title.setTitle(this.previousTitle); }
 }

@@ -164,3 +164,14 @@ test('immediately reopening after a committed save uses its revision without wai
   h.service.edit(channels);await h.service.save();assert.equal(h.record.revision,3);assert.equal(h.service.error,'');
   h.service.ngOnDestroy();
 });
+
+test('drag sorting moves directly to a target and restores only a valid selected-channel order', () => {
+  const h=harness();h.signIn();h.emit(saved);h.service.edit(channels);
+  const original=h.service.draft.scalarOrder.slice(),charts=h.service.draft.chartOrder.slice();
+  h.service.reorder('scalars',original[0],original.length-1);
+  assert.equal(h.service.draft.scalarOrder.at(-1),original[0]);assert.deepEqual(h.service.draft.chartOrder,charts);
+  h.service.restoreOrder('scalars',['unknown']);assert.equal(h.service.draft.scalarOrder.at(-1),original[0]);
+  h.service.restoreOrder('scalars',original);assert.deepEqual(h.service.draft.scalarOrder,original);
+  h.service.reorder('scalars',original[0],-1);h.service.reorder('scalars',original[0],NaN);assert.deepEqual(h.service.draft.scalarOrder,original);
+  h.service.ngOnDestroy();
+});

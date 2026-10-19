@@ -74,11 +74,20 @@ export class GreenpowerViewService implements OnDestroy {
     this.draft = { ...this.draft, [kind]: map, [orderField(kind)]: order }; this.changed.next();
   }
   move(kind: ViewKind, id: string, direction: -1 | 1) {
+    this.reorder(kind, id, orderFor(this.draft, kind).indexOf(id) + direction);
+  }
+  reorder(kind: ViewKind, id: string, target: number) {
     if (!this.editing || this.saving || !this.canEdit) return;
-    const order = orderFor(this.draft, kind), index = order.indexOf(id), target = index + direction;
-    if (index < 0 || target < 0 || target >= order.length) return;
-    [order[index], order[target]] = [order[target], order[index]];
+    const order = orderFor(this.draft, kind), index = order.indexOf(id);
+    if (index < 0 || !Number.isInteger(target) || target < 0 || target >= order.length || target === index) return;
+    order.splice(index, 1); order.splice(target, 0, id);
     this.draft = { ...this.draft, [orderField(kind)]: order }; this.changed.next();
+  }
+  restoreOrder(kind: ViewKind, order: string[]) {
+    if (!this.editing || this.saving || !this.canEdit) return;
+    const selection = { ...this.draft, [orderField(kind)]: order.slice() };
+    if (!validSelection(selection)) return;
+    this.draft = selection; this.changed.next();
   }
   cancel() { this.editing = false; this.draft = { scalars: {}, charts: {} }; this.changed.next(); }
   async save() {

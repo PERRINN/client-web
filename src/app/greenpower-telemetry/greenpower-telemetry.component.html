@@ -19,7 +19,7 @@
       <section id="view-editor" class="view-editor" aria-label="Edit shared telemetry view">
         <div class="editor-actions">
           <h2>Shared view</h2>
-          <button type="button" class="primary" [disabled]="view.saving" (click)="view.save()">{{ view.saving ? 'Saving' : 'Save' }}</button>
+          <button type="button" class="primary" [disabled]="view.saving || drag.pending" (click)="view.save()">{{ view.saving ? 'Saving' : 'Save' }}</button>
           <button type="button" [disabled]="view.saving" (click)="view.cancel()">Cancel</button>
         </div>
         <div class="editor-tabs" role="group" aria-label="View section">
@@ -27,13 +27,15 @@
           <button type="button" [attr.aria-pressed]="editorKind === 'charts'" (click)="selectEditor('charts')">Charts</button>
         </div>
         <span class="order-notice" aria-live="polite">{{ orderNotice }}</span>
-        <div #channelOptions class="channel-options" role="group" [attr.aria-label]="editorKind === 'scalars' ? 'Scalar visibility and order' : 'Chart visibility and order'">
+        @if (drag.preview; as preview) {
+          <div class="drag-preview" aria-hidden="true" [style.top.px]="preview.top" [style.left.px]="preview.left" [style.width.px]="preview.width">{{ preview.label }}</div>
+        }
+        <div #channelOptions class="channel-options" (pointermove)="drag.move($event)" (pointerup)="drag.finish($event)" (pointercancel)="drag.cancel($event)" (lostpointercapture)="drag.cancel($event)" role="group" [attr.aria-label]="editorKind === 'scalars' ? 'Scalar visibility and order' : 'Chart visibility and order'">
           @for (channel of available; track channel.id; let index = $index) {
-            <div class="channel-option" [attr.data-channel]="channel.id">
+            <div class="channel-option" [class.dragging]="drag.channel === channel.id" [attr.data-channel]="channel.id">
               <input type="checkbox" [attr.aria-label]="channel.label + (editorKind === 'scalars' ? ' scalar' : ' chart')" [checked]="!!view.draft[editorKind][channel.id]" [disabled]="view.saving" (change)="view.toggle(editorKind, channel.id, $any($event.target).checked)">
               <span class="channel-label">{{ channel.label }}{{ channel.unit ? ' · ' + channel.unit : '' }}</span>
-              <button type="button" class="move-channel" [attr.aria-label]="'Move ' + channel.label + (editorKind === 'scalars' ? ' scalar' : ' chart') + ' up'" [disabled]="view.saving || index === 0 || index >= selectedCount" (click)="moveChannel(channel, -1)">↑</button>
-              <button type="button" class="move-channel" [attr.aria-label]="'Move ' + channel.label + (editorKind === 'scalars' ? ' scalar' : ' chart') + ' down'" [disabled]="view.saving || index >= selectedCount - 1" (click)="moveChannel(channel, 1)">↓</button>
+              <button type="button" class="drag-handle" [attr.aria-label]="'Reorder ' + channel.label + (editorKind === 'scalars' ? ' scalar' : ' chart')" aria-description="Drag to reorder. Use Up and Down arrow keys, or Escape to cancel a drag." [disabled]="view.saving || index >= selectedCount" (pointerdown)="startDrag($event, channel, channelOptions)" (keydown)="handleKey($event, channel)" (contextmenu)="$event.preventDefault()"><span aria-hidden="true">⠿</span></button>
             </div>
           } @empty { <p class="state">No channels in loaded telemetry.</p> }
         </div>

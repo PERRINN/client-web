@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-10-19T13:03:03.958Z",
+  "projectId": "perrinn-d5fc1",
+  "liveRulesMatchBaseline": true,
+  "baselineCommit": "f4eea7f192115be5fe14bc9fcbdea5fc1c6b2dd5",
+  "liveRulesSha256": "da0240e50754103e464783bdb2bc0adc295d1c394ceb46b49d4112c7f3feffc3",
+  "adminClaimVerified": true,
+  "config": {
+    "exists": true,
+    "revision": "4"
+  },
+  "deploymentScope": [
+    "hosting"
+  ],
+  "telemetryRecordsRead": 0
+}

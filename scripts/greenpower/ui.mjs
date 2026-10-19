@@ -51,6 +51,7 @@ window.telemetryHarness = {
   config(value){config=value;notify();fixture.detectChanges();},
   saveError(value){saveError=value;},
   saved(){return config;},
+  longList(){const source=service.channels.find(c=>c.points.length);service.channels=Array.from({length:20},(_,i)=>({...source,id:'synthetic-channel-'+i,label:'Channel '+String(i).padStart(2,'0')}));service.changed.next();fixture.detectChanges();},
   snapshot() { const c=fixture.componentInstance; return {start:c.start,end:c.end,cursor:c.cursor,zoomed:!!c.window}; },
   state(name) {
     service.access = name === 'signed-out' ? 'signed-out' : 'signed-in';
@@ -284,11 +285,9 @@ try {
       await page.getByRole('button',{name:kind==='scalar'?'Scalars':'Charts',exact:true}).click();
       await page.getByRole('group',{name:kind==='scalar'?'Scalar visibility and order':'Chart visibility and order',exact:true}).waitFor();
       const label=(await page.locator('.channel-option .channel-label').first().innerText()).split(' · ')[0];
-      const up=page.getByRole('button',{name:'Move '+label+' '+kind+' up',exact:true});
-      const down=page.getByRole('button',{name:'Move '+label+' '+kind+' down',exact:true});
-      assert.equal(await up.isDisabled(),true);
-      await down.press('Enter');
-      assert.equal(await down.evaluate(el=>document.activeElement===el),true,'keyboard focus survives row reorder');
+      const handle=page.getByRole('button',{name:'Reorder '+label+' '+kind,exact:true});
+      await handle.press('ArrowDown');
+      assert.equal(await handle.evaluate(el=>document.activeElement===el),true,'keyboard focus survives row reorder');
     };
     await reorder('scalar');await reorder('chart');
     assert.deepEqual(await page.locator('.reading > span').allTextContents(),scalarBefore,'draft scalar order stays private');
@@ -308,6 +307,87 @@ try {
     await page.locator('#view-editor').waitFor({state:'hidden'});
     await page.evaluate(()=>window.telemetryHarness.config(undefined));
   }
+  await page.setViewportSize({width:1440,height:1000});
+  await page.evaluate(()=>{window.telemetryHarness.config(undefined);window.telemetryHarness.state('live');window.telemetryHarness.role(true);});
+  await page.getByRole('button',{name:'Edit view'}).click();
+  await page.getByRole('button',{name:'Scalars',exact:true}).click();
+  const scalarGroup=page.getByRole('group',{name:'Scalar visibility and order',exact:true});
+  await scalarGroup.waitFor();
+  const rowLabels=()=>page.locator('.channel-option .channel-label').allTextContents();
+  const beforeDrag=await rowLabels();
+  const source=await page.locator('.drag-handle').first().boundingBox();
+  const target=await page.locator('.channel-option').nth(2).boundingBox();
+  const scalarValuesBefore=await page.locator('.reading > span').allTextContents();
+  await page.mouse.move(source.x+22,source.y+22);await page.mouse.down();
+  await page.mouse.move(source.x+22,target.y+target.height*.8,{steps:8});
+  await page.locator('.drag-preview').waitFor();
+  await page.mouse.up();
+  await page.locator('.drag-preview').waitFor({state:'hidden'});
+  const afterDrag=await rowLabels();assert.deepEqual(afterDrag.slice(0,3),[beforeDrag[1],beforeDrag[2],beforeDrag[0]]);
+  assert.deepEqual(await page.locator('.reading > span').allTextContents(),scalarValuesBefore);
+  const movedHandle=page.getByRole('button',{name:'Reorder '+beforeDrag[0].split(' · ')[0]+' scalar',exact:true});
+  const cancelBox=await movedHandle.boundingBox(),firstBox=await page.locator('.channel-option').first().boundingBox();
+  await page.mouse.move(cancelBox.x+22,cancelBox.y+22);await page.mouse.down();await page.mouse.move(cancelBox.x+22,firstBox.y+4,{steps:8});
+  await page.keyboard.press('Escape');
+  await page.locator('.drag-preview').waitFor({state:'hidden'});
+  await page.mouse.up();
+  assert.deepEqual(await rowLabels(),afterDrag,'Escape restores the pre-drag draft order');
+  await page.getByRole('button',{name:'Cancel',exact:true}).click();
+  assert.deepEqual(await page.locator('.reading > span').allTextContents(),scalarValuesBefore);
+
+  const mobileDrag=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  await mobileDrag.goto(`http://127.0.0.1:${server.address().port}`);
+  await mobileDrag.waitForFunction(()=>!!window.telemetryHarness);
+  await mobileDrag.evaluate(()=>window.telemetryHarness.role(true));
+  await mobileDrag.getByRole('button',{name:'Edit view'}).click();
+  const mobileCdp=await mobileDrag.context().newCDPSession(mobileDrag);
+  const touchMove=async(type,x,y)=>mobileCdp.send('Input.dispatchTouchEvent',{type,touchPoints:type==='touchEnd'||type==='touchCancel'?[]:[{x,y}]});
+  for(const section of ['Scalars','Charts']) {
+    await mobileDrag.getByRole('button',{name:section,exact:true}).click();
+    await mobileDrag.getByRole('group',{name:section==='Scalars'?'Scalar visibility and order':'Chart visibility and order',exact:true}).waitFor();
+    const labelsBefore=await mobileDrag.locator('.channel-option .channel-label').allTextContents();
+    const hb=await mobileDrag.locator('.drag-handle').first().boundingBox(),rb=await mobileDrag.locator('.channel-option').nth(2).boundingBox();
+    const scrollBefore=await mobileDrag.locator('#main_container').evaluate(el=>el.scrollTop);
+    await touchMove('touchStart',hb.x+22,hb.y+22);
+    for(let i=1;i<=6;i++){await touchMove('touchMove',hb.x+22,hb.y+22+(rb.y+rb.height*.8-hb.y-22)*i/6);await mobileDrag.waitForTimeout(20);}
+    await mobileDrag.locator('.drag-preview').waitFor();await touchMove('touchEnd');
+    await mobileDrag.locator('.drag-preview').waitFor({state:'hidden'});
+    assert.deepEqual((await mobileDrag.locator('.channel-option .channel-label').allTextContents()).slice(0,3),[labelsBefore[1],labelsBefore[2],labelsBefore[0]],'touch handle sorts '+section);
+    assert.equal(await mobileDrag.locator('#main_container').evaluate(el=>el.scrollTop),scrollBefore,'touch drag does not scroll the page');
+    const cancelHandle=await mobileDrag.locator('.drag-handle').first().boundingBox();
+    const currentOrder=await mobileDrag.locator('.channel-option .channel-label').allTextContents();
+    await touchMove('touchStart',cancelHandle.x+22,cancelHandle.y+22);await touchMove('touchMove',cancelHandle.x+22,cancelHandle.y+100);await touchMove('touchCancel');
+    await mobileDrag.locator('.drag-preview').waitFor({state:'hidden'});
+    assert.deepEqual(await mobileDrag.locator('.channel-option .channel-label').allTextContents(),currentOrder,'touch cancellation restores draft');
+  }
+  await mobileDrag.screenshot({path:`${output}/mobile-drag-editor.png`});
+  await mobileDrag.getByRole('button',{name:'Save',exact:true}).click();await mobileDrag.locator('#view-editor').waitFor({state:'hidden'});
+  const savedDrag=await mobileDrag.evaluate(()=>window.telemetryHarness.saved());
+  assert.equal(savedDrag.scalarOrder.length,8);assert.equal(savedDrag.chartOrder.length,7);
+  await mobileDrag.evaluate(()=>{window.telemetryHarness.config(undefined);window.telemetryHarness.longList();});
+  await mobileDrag.getByRole('button',{name:'Edit view'}).click();await mobileDrag.getByRole('button',{name:'Scalars',exact:true}).click();
+  const options=mobileDrag.locator('.channel-options');
+  const optionsBox=await options.boundingBox();
+  const listScrollBefore=await options.evaluate(el=>el.scrollTop);
+  const sx=optionsBox.x+70,sy=optionsBox.y+optionsBox.height-35;
+  await touchMove('touchStart',sx,sy);
+  for(let offset=20;offset<=140;offset+=20){await touchMove('touchMove',sx,sy-offset);await mobileDrag.waitForTimeout(25);}
+  await touchMove('touchEnd');await mobileDrag.waitForTimeout(80);
+  assert.ok(await options.evaluate(el=>el.scrollTop)>listScrollBefore,'swiping row labels scrolls the editor normally');
+  await mobileDrag.getByRole('button',{name:'Scalars',exact:true}).tap();
+  await mobileDrag.waitForFunction(()=>document.querySelector('.channel-options').scrollTop===0);
+  const edgeLabel=await mobileDrag.locator('.channel-option .channel-label').first().innerText();
+  const edgeHandle=await mobileDrag.locator('.drag-handle').first().boundingBox();
+  const edgeBox=await options.boundingBox();
+  await touchMove('touchStart',edgeHandle.x+22,edgeHandle.y+22);
+  await touchMove('touchMove',edgeHandle.x+22,edgeBox.y+edgeBox.height-8);
+  await mobileDrag.locator('.drag-preview').waitFor();
+  await mobileDrag.waitForTimeout(450);
+  assert.ok(await options.evaluate(el=>el.scrollTop)>30,'holding a dragged handle near the edge scrolls the list');
+  await touchMove('touchEnd');await mobileDrag.locator('.drag-preview').waitFor({state:'hidden'});
+  assert.ok((await mobileDrag.locator('.channel-option .channel-label').allTextContents()).indexOf(edgeLabel)>3,'edge drag can move beyond initially visible rows');
+  await mobileDrag.getByRole('button',{name:'Cancel',exact:true}).click();
+  await mobileDrag.close();
   await page.evaluate(() => window.telemetryHarness.gallery());
   const tile = page.locator('a.prototype-card').filter({ hasText: 'greenpower-telemetry' });
   assert.equal(await tile.count(), 0);
