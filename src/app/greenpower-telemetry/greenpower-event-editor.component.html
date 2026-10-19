@@ -26,10 +26,10 @@
           <label for="session-recording-day">Recorded day</label>
           <select id="session-recording-day" [ngModel]="canCapture ? telemetry.day : ''" [ngModelOptions]="{standalone:true}" [disabled]="edit.locked || telemetry.loading || telemetry.loadingDates" (ngModelChange)="daySelect.emit($event)">
             <option value="" disabled>Select recorded day</option>
-            @if (canCapture && !telemetry.dates.includes(telemetry.day)) { <option [value]="telemetry.day">{{ telemetry.day }}</option> }
-            @for (day of telemetry.dates; track day) { <option [value]="day">{{ day }}</option> }
+            @for (day of days; track day) { <option [value]="day">{{ events.dayLabel(day) }}</option> }
           </select>
           @if (telemetry.moreDates || telemetry.datesError) { <button type="button" [disabled]="edit.locked || telemetry.loadingDates" (click)="telemetry.loadDates()">{{ telemetry.datesError ? 'Retry dates' : 'Earlier dates' }}</button> }
+          <div class="day-feedback" aria-live="polite">@if (events.dayNamesLoading) { <span>Loading</span> } @else if (events.dayNamesError) { <span class="error" role="alert">{{ events.dayNamesError }}</span> } @if (events.moreDayNames(days)) { <button type="button" [disabled]="edit.locked || events.dayNamesLoading" (click)="events.loadDayNames(days, true)">{{ events.dayNamesError ? 'Retry names' : 'More names' }}</button> }</div>
           @if (!edit.draft.segments?.length) { <p>Choose a recorded day and zoom.</p> }
           <ul>@for (segment of edit.draft.segments || []; track $index) { <li><span>{{ time(segment.firstAt) }} – {{ time(segment.lastAt) }}</span><button type="button" [disabled]="edit.locked" [attr.aria-label]="'Remove range ' + ($index + 1)" (click)="edit.removeRange($index)">Remove</button></li> }</ul>
           <div class="actions">

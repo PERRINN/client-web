@@ -25,3 +25,6 @@ li span, .review p { overflow-wrap: anywhere; font-size: 15px; }
 @media (max-width: 520px) { li { align-items: flex-start; } }
 
 button, input, select, textarea { transition: none; }
+:host .day-feedback { min-height: 44px; display: flex; align-items: center; gap: 8px; }
+:host .day-feedback span { min-width: 0; }
+:host .day-feedback button { flex-shrink: 0; }

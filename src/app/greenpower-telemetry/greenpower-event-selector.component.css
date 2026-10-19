@@ -11,6 +11,8 @@ button[aria-pressed="true"] { background: var(--color-selected); }
 button:disabled, input:disabled, select:disabled { opacity: .6; }
 button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .feedback { min-height: 44px; display: flex; align-items: center; gap: 8px; color: var(--color-text-secondary); }
+.feedback span { min-width: 0; }
+.feedback button { flex-shrink: 0; }
 .error { color: var(--color-danger-text); overflow-wrap: anywhere; }
 @media (max-width: 700px) { .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 360px) { .filters { grid-template-columns: minmax(0, 1fr); } }

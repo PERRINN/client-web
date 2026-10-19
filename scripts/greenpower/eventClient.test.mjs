@@ -35,7 +35,7 @@ function client(records = new Map()) {
         if (fail) throw new Error('synthetic read failure');
         const field = (record, key) => key === '__name__' ? record.id : record.data()?.[key];
         const docs = [...records.keys()].filter(key => key.startsWith(path + '/') && !key.slice(path.length + 1).includes('/')).map(key => snapshot(key))
-          .filter(doc => spec.filters.every(([key, op, value]) => op === '==' ? field(doc, key) === value : op === '>=' ? field(doc, key) >= value : field(doc, key) <= value))
+          .filter(doc => spec.filters.every(([key, op, value]) => op === 'in' ? value.includes(field(doc, key)) : op === '==' ? field(doc, key) === value : op === '>=' ? field(doc, key) >= value : field(doc, key) <= value))
           .sort((a, b) => { for (const [key, direction] of spec.order) { const x = field(a, key), y = field(b, key); if (x !== y) return (x < y ? -1 : 1) * (direction === 'desc' ? -1 : 1); } return 0; });
         let start = spec.after ? docs.findIndex(doc => doc.id === spec.after) + 1 : 0;
         const selected = docs.slice(start).filter(doc => (!spec.first || doc.id >= spec.first) && (!spec.end || doc.id <= spec.end)).slice(0, spec.limit);
@@ -67,6 +67,54 @@ test('metadata pages are explicit, server-only, filtered and limited; sign-out c
   release({ docs: [], size: 0 }); await loading;
   assert.deepEqual(h.service.events, []); assert.equal(h.service.loadingEvents, false);
   const count = h.calls.length; await h.service.loadEvents(); assert.equal(h.calls.length, count); h.service.ngOnDestroy();
+});
+
+test('recorded-day names query only listed dates, independently of filtered event pages, and reuse loaded names', async () => {
+  const h = client();
+  for (const [id, day] of [['Goodwood finals', '2026-10-18'], ['Morning test', '2026-06-14'], ['Afternoon test', '2026-06-14'], ['Unrelated event', '2026-10-19']]) {
+    h.records.set(ROOT + '/events/' + id.replaceAll(' ', '-'), savedEvent(id, day));
+  }
+  await h.service.loadEvents(true, { type: 'race', location: '', from: '', to: '' });
+  h.calls.length = 0;
+  const days = ['2026-10-18', '2026-06-14', '2026-05-01'];
+  await h.service.loadDayNames(days);
+  assert.equal(h.calls.length, 1); assert.equal(h.calls[0].limit, 60);
+  assert.deepEqual(h.calls[0].filters, [['date', 'in', days]]);
+  assert.equal(h.service.dayLabel(days[0]), '2026-10-18 · Goodwood finals');
+  assert.equal(h.service.dayLabel(days[1]), '2026-06-14 · Afternoon test / Morning test');
+  assert.equal(h.service.dayLabel(days[2]), '2026-05-01 · No event');
+  await h.service.loadDayNames(days); assert.equal(h.calls.length, 1);
+  assert.equal(h.service.moreDayNames(days), false); h.service.ngOnDestroy();
+});
+
+test('crowded recorded dates stop at 60 names and require explicit continuation; additional dates stay available', async () => {
+  const h = client(), days = Array.from({ length: 31 }, (_, i) => '2026-06-' + String(i + 1).padStart(2, '0')).filter(day => day !== '2026-06-31');
+  days.push('2026-07-01');
+  for (let i = 0; i < 61; i++) h.records.set(ROOT + '/events/event-' + i, savedEvent('Run ' + i, days[0]));
+  await h.service.loadDayNames(days);
+  assert.equal(h.calls.length, 1); assert.equal(h.calls[0].filters[0][2].length, 30);
+  assert.ok(h.service.dayLabel(days[0]).endsWith(' / …')); assert.equal(h.service.moreDayNames(days), true);
+  await h.service.loadDayNames(days, true); assert.equal(h.calls.length, 2); assert.ok(!h.service.dayLabel(days[0]).endsWith(' / …'));
+  assert.equal(h.service.dayLabel(days.at(-1)), '2026-07-01 · Events not loaded');
+  await h.service.loadDayNames(days, true); assert.equal(h.calls.length, 3);
+  assert.equal(h.service.dayLabel(days.at(-1)), '2026-07-01 · No event'); assert.equal(h.service.moreDayNames(days), false);
+  h.service.ngOnDestroy();
+});
+
+test('recorded-day name errors preserve date choices, retry explicitly, update edits and clear stale account data', async () => {
+  const h = client(new Map([[ROOT + '/events/e', savedEvent('Original')]])), days = ['2026-06-14'];
+  h.fail(true); await h.service.loadDayNames(days);
+  assert.match(h.service.dayLabel(days[0]), /Events unavailable/); assert.match(h.service.dayNamesError, /Could not/);
+  h.fail(false); await h.service.loadDayNames(days, true);
+  h.service.acknowledge(request('rename', [eventChange('e', 1, { ...event('Renamed'), date: '2026-06-14' })]), { events: [{ id: 'e', revision: 2 }], sessions: [] }, []);
+  assert.equal(h.service.dayLabel(days[0]), '2026-06-14 · Renamed');
+  const next = ['2026-06-15']; let release;
+  h.delay(() => new Promise(resolve => release = resolve)); const loading = h.service.loadDayNames(next);
+  h.state.next({ uid: 'other-viewer', ready: true, isAdmin: false });
+  release({ docs: [{ id: 'old-account', data: () => savedEvent('Private old event', next[0]) }], size: 1 }); await loading;
+  assert.equal(h.service.dayLabel(days[0]), '2026-06-14 · Events not loaded');
+  assert.equal(h.service.dayLabel(next[0]), '2026-06-15 · Events not loaded'); assert.equal(h.service.dayNamesLoading, false);
+  h.service.ngOnDestroy();
 });
 
 test('selected listeners ignore cache/stale revisions and only changed ranges request a new recording', async () => {

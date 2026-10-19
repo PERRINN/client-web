@@ -32,8 +32,8 @@
     @if (events.error) { <p class="error" role="alert">{{ events.error }}</p><button type="button" [disabled]="locked" (click)="events.selectEvent(events.eventId)">Reload event</button> }
   } @else {
     <label for="history-date">Recorded day · UK</label>
-    <select id="history-date" [ngModel]="telemetry.live ? '' : telemetry.day" [ngModelOptions]="{standalone:true}" [disabled]="locked" (ngModelChange)="daySelect.emit($event)"><option value="" disabled>Select date</option>@for (day of telemetry.dates; track day) { <option [value]="day">{{ day }}</option> }</select>
-    <div class="feedback" aria-live="polite">@if (telemetry.loadingDates) { <span>Loading</span> } @else if (telemetry.datesError) { <span class="error" role="alert">{{ telemetry.datesError }}</span><button type="button" (click)="telemetry.loadDates()">Retry dates</button> } @else if (!telemetry.dates.length) { <span>No recorded days.</span> }</div>
+    <select id="history-date" [ngModel]="telemetry.live ? '' : telemetry.day" [ngModelOptions]="{standalone:true}" [disabled]="locked" (ngModelChange)="daySelect.emit($event)"><option value="" disabled>Select date</option>@for (day of telemetry.dates; track day) { <option [value]="day">{{ events.dayLabel(day) }}</option> }</select>
+    <div class="feedback" aria-live="polite">@if (telemetry.loadingDates || events.dayNamesLoading) { <span>Loading</span> } @else if (telemetry.datesError) { <span class="error" role="alert">{{ telemetry.datesError }}</span><button type="button" (click)="telemetry.loadDates()">Retry dates</button> } @else if (events.dayNamesError) { <span class="error" role="alert">{{ events.dayNamesError }}</span> } @else if (!telemetry.dates.length) { <span>No recorded days.</span> } @if (events.moreDayNames(telemetry.dates)) { <button type="button" [disabled]="locked || events.dayNamesLoading" (click)="events.loadDayNames(telemetry.dates, true)">{{ events.dayNamesError ? 'Retry names' : 'More names' }}</button> }</div>
     @if (telemetry.moreDates) { <button type="button" [disabled]="locked || telemetry.loadingDates" (click)="telemetry.loadDates()">Earlier dates</button> }
   }
 </section>

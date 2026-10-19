@@ -12,13 +12,21 @@ export class GreenpowerEventEditorComponent implements OnDestroy {
   @Output() daySelect = new EventEmitter<string>();
   @ViewChild('confirmSave') set confirmSave(button: ElementRef<HTMLButtonElement> | undefined) { button?.nativeElement.focus(); }
   private readonly changes: Subscription;
+  private recordedDates = '';
   private readonly format = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', dateStyle: 'medium', timeStyle: 'medium' });
   constructor(public edit: GreenpowerEventEditService, public events: GreenpowerEventsService, public telemetry: GreenpowerTelemetryService, change: ChangeDetectorRef) {
-    this.changes = edit.changed.subscribe(() => change.markForCheck());
+    const loadNames = () => {
+      const dates = edit.mode === 'session' ? this.days.join(',') : '';
+      if (dates !== this.recordedDates) { this.recordedDates = dates; if (dates) void events.loadDayNames(this.days); }
+    };
+    this.changes = edit.changed.subscribe(() => { loadNames(); change.markForCheck(); });
     this.changes.add(events.changed.subscribe(() => change.markForCheck()));
+    this.changes.add(telemetry.changed.subscribe(() => { loadNames(); change.markForCheck(); }));
+    loadNames();
   }
   get window() { return this.range || { start: this.telemetry.start, end: this.telemetry.end }; }
   get canCapture() { return !this.telemetry.live && !this.telemetry.loading && !this.telemetry.more && !!this.telemetry.channels.length && !this.telemetry.error; }
+  get days() { return this.canCapture && !this.telemetry.dates.includes(this.telemetry.day) ? [this.telemetry.day, ...this.telemetry.dates] : this.telemetry.dates; }
   get targets() {
     const source = this.edit.sourceEvent;
     return [...(source && !this.events.events.some(event => event.id === source.id) ? [source] : []), ...this.events.events].filter(event => event.state === 'active');

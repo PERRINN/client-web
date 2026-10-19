@@ -1,0 +1,264 @@
+{
+  "checkedAt": "2026-10-19T17:31:56.459Z",
+  "project": "perrinn-d5fc1",
+  "planningOnly": true,
+  "executedQueries": 0,
+  "documentsReturned": 0,
+  "productionWrites": 0,
+  "structuredQuery": {
+    "from": [
+      {
+        "collectionId": "events"
+      }
+    ],
+    "where": {
+      "fieldFilter": {
+        "field": {
+          "fieldPath": "date"
+        },
+        "op": "IN",
+        "value": {
+          "arrayValue": {
+            "values": [
+              {
+                "stringValue": "2026-06-01"
+              },
+              {
+                "stringValue": "2026-06-02"
+              },
+              {
+                "stringValue": "2026-06-03"
+              },
+              {
+                "stringValue": "2026-06-04"
+              },
+              {
+                "stringValue": "2026-06-05"
+              },
+              {
+                "stringValue": "2026-06-06"
+              },
+              {
+                "stringValue": "2026-06-07"
+              },
+              {
+                "stringValue": "2026-06-08"
+              },
+              {
+                "stringValue": "2026-06-09"
+              },
+              {
+                "stringValue": "2026-06-10"
+              },
+              {
+                "stringValue": "2026-06-11"
+              },
+              {
+                "stringValue": "2026-06-12"
+              },
+              {
+                "stringValue": "2026-06-13"
+              },
+              {
+                "stringValue": "2026-06-14"
+              },
+              {
+                "stringValue": "2026-06-15"
+              },
+              {
+                "stringValue": "2026-06-16"
+              },
+              {
+                "stringValue": "2026-06-17"
+              },
+              {
+                "stringValue": "2026-06-18"
+              },
+              {
+                "stringValue": "2026-06-19"
+              },
+              {
+                "stringValue": "2026-06-20"
+              },
+              {
+                "stringValue": "2026-06-21"
+              },
+              {
+                "stringValue": "2026-06-22"
+              },
+              {
+                "stringValue": "2026-06-23"
+              },
+              {
+                "stringValue": "2026-06-24"
+              },
+              {
+                "stringValue": "2026-06-25"
+              },
+              {
+                "stringValue": "2026-06-26"
+              },
+              {
+                "stringValue": "2026-06-27"
+              },
+              {
+                "stringValue": "2026-06-28"
+              },
+              {
+                "stringValue": "2026-06-29"
+              },
+              {
+                "stringValue": "2026-06-30"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "orderBy": [
+      {
+        "field": {
+          "fieldPath": "date"
+        },
+        "direction": "DESCENDING"
+      },
+      {
+        "field": {
+          "fieldPath": "__name__"
+        },
+        "direction": "DESCENDING"
+      }
+    ],
+    "limit": 60
+  },
+  "result": [
+    {
+      "explainMetrics": {
+        "planSummary": {
+          "indexesUsed": [
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "query_scope": "Collection",
+              "properties": "(date DESC, __name__ DESC)"
+            },
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "query_scope": "Collection",
+              "properties": "(date DESC, __name__ DESC)"
+            },
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "query_scope": "Collection",
+              "properties": "(date DESC, __name__ DESC)"
+            },
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "query_scope": "Collection",
+              "properties": "(date DESC, __name__ DESC)"
+            },
+            {
+              "query_scope": "Collection",
+              "properties": "(date DESC, __name__ DESC)"
+            },
+            {
+              "query_scope": "Collection",
+              "properties": "(date DESC, __name__ DESC)"
+            },
+            {
+              "query_scope": "Collection",
+              "properties": "(date DESC, __name__ DESC)"
+            },
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "properties": "(date DESC, __name__ DESC)",
+              "query_scope": "Collection"
+            },
+            {
+              "query_scope": "Collection",
+              "properties": "(date DESC, __name__ DESC)"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

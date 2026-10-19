@@ -68,15 +68,16 @@ const trackRef=(id='created-track')=>({id,firestore:{async runTransaction(callba
  onSnapshot(options,next,error){const l={id,next,error,active:true};lapListeners.push(l);queueMicrotask(()=>{if(l.active)notifyLaps();});return()=>l.active=false;}});
 
 const metadataRecords=new Map(),metadataListeners=[],metadataCalls=[];
-let metadataError='';
+let metadataError='',dayNameFailure=false,dayNameDelay=0,dayNameAccount=0;
 const metadataPath=path=>['GreenpowerTelemetry/424/events','GreenpowerTelemetry/424/sessions'].some(prefix=>path===prefix||path.startsWith(prefix+'/'));
 const metadataSnapshot=path=>({id:path.split('/').at(-1),exists:metadataRecords.has(path),data:()=>structuredClone(metadataRecords.get(path)),metadata:{fromCache:false,hasPendingWrites:false}});
 const metadataNotify=()=>metadataListeners.filter(l=>l.active).forEach(l=>l.next(metadataSnapshot(l.path)));
 const metadataRef=path=>({path,async get(){return metadataSnapshot(path);},onSnapshot(options,next,error){const listener={path,next,error,active:true};metadataListeners.push(listener);queueMicrotask(()=>{if(listener.active)next(metadataSnapshot(path));});return()=>listener.active=false;}});
 function metadataQuery(path,spec={filters:[],order:[]}){
  return {where:(key,op,value)=>metadataQuery(path,{...spec,filters:[...spec.filters,[key,op,value]]}),orderBy:(key,direction='asc')=>metadataQuery(path,{...spec,order:[...spec.order,[typeof key==='string'?key:'__name__',direction]]}),limit:limit=>metadataQuery(path,{...spec,limit}),startAfter:cursor=>metadataQuery(path,{...spec,after:cursor.id}),async get(){
+ if(spec.filters.some(([,op])=>op==='in')){if(dayNameDelay)await new Promise(resolve=>setTimeout(resolve,dayNameDelay));if(dayNameFailure)throw new Error('synthetic name query failure');}
  const field=(doc,key)=>key==='__name__'?doc.id:doc.data()?.[key];
- const rows=Array.from(metadataRecords.keys()).filter(key=>key.startsWith(path+'/')&&!key.slice(path.length+1).includes('/')).map(metadataSnapshot).filter(doc=>spec.filters.every(([key,op,value])=>op==='=='?field(doc,key)===value:op==='>='?field(doc,key)>=value:field(doc,key)<=value)).sort((a,b)=>{for(const[key,direction]of spec.order){const x=field(a,key),y=field(b,key);if(x!==y)return(x<y?-1:1)*(direction==='desc'?-1:1);}return 0;});
+ const rows=Array.from(metadataRecords.keys()).filter(key=>key.startsWith(path+'/')&&!key.slice(path.length+1).includes('/')).map(metadataSnapshot).filter(doc=>spec.filters.every(([key,op,value])=>op==='in'?value.includes(field(doc,key)):op==='=='?field(doc,key)===value:op==='>='?field(doc,key)>=value:field(doc,key)<=value)).sort((a,b)=>{for(const[key,direction]of spec.order){const x=field(a,key),y=field(b,key);if(x!==y)return(x<y?-1:1)*(direction==='desc'?-1:1);}return 0;});
  const start=spec.after?rows.findIndex(doc=>doc.id===spec.after)+1:0,docs=rows.slice(start,start+spec.limit);return{docs,size:docs.length};}};
 }
 const metadataFunctions={httpsCallable:()=>input=>defer(async()=>{
@@ -110,6 +111,14 @@ window.telemetryHarness = {
   },
   metadataName(name){const path='GreenpowerTelemetry/424/events/demo-event';const old=metadataRecords.get(path);metadataRecords.set(path,{...old,name,revision:old.revision+1});metadataNotify();fixture.detectChanges();},
   metadataFailure(code){metadataError=code;},
+  async dayNamesSeed(fail=false){
+    await window.telemetryHarness.metadataSeed();dayNameFailure=fail;dayNameDelay=500;
+    service.dates=['2026-10-18','2026-10-17','2026-06-14'];
+    metadataRecords.set('GreenpowerTelemetry/424/events/goodwood',{...metadataRecords.get('GreenpowerTelemetry/424/events/demo-event'),name:'Goodwood finals',date:'2026-10-18'});
+    permissionState.next({ready:true,uid:'day-names-'+ ++dayNameAccount,isAdmin:false});
+    fixture.componentInstance.events.historySource='days';service.changed.next();fixture.detectChanges();
+  },
+  dayNamesRetry(){dayNameFailure=false;dayNameDelay=0;},
   metadataSaved(){return structuredClone(metadataCalls);},
   imported(value) {
     viewReset();
@@ -160,7 +169,7 @@ window.telemetryHarness = {
   },
 
   longList(){const source=service.channels.find(c=>c.points.length);service.channels=Array.from({length:20},(_,i)=>({...source,id:'synthetic-channel-'+i,label:'Channel '+String(i).padStart(2,'0')}));service.changed.next();fixture.detectChanges();},
-  snapshot() { const c=fixture.componentInstance; return {start:c.start,end:c.end,cursor:c.cursor,zoomed:!!c.window,activeView:c.activeView}; },
+  snapshot() { const c=fixture.componentInstance; return {day:service.day,start:c.start,end:c.end,cursor:c.cursor,zoomed:!!c.window,activeView:c.activeView}; },
   current(values) {
     fixture.componentInstance.zoom();
     service.channels=service.channels.map(c=>c.id==='["A"]:A'?{...c,points:values.map((value,i)=>({time:service.start+i*3000,value}))}:c);
@@ -840,6 +849,28 @@ try {
   }
   for (const [name,width,height] of [['desktop',1440,1000],['mobile',390,844],['small-mobile',320,740]]) {
     await page.setViewportSize({width,height});
+    await page.evaluate(()=>window.telemetryHarness.dayNamesSeed());
+    await page.getByRole('button',{name:'Load history',exact:true}).click();
+    const daySelect=page.locator('#history-date'),dayBox=await daySelect.boundingBox();
+    const pickerHeight=(await page.locator('#history-picker').boundingBox()).height;
+    await page.waitForFunction(()=>document.querySelector('#history-date')?.textContent.includes('2026-10-17 · No event'));
+    assert.deepEqual(await daySelect.locator('option').allTextContents(),['Select date','2026-10-18 · Goodwood finals','2026-10-17 · No event','2026-06-14 · Second dyno event / Workshop dyno']);
+    assert.equal((await daySelect.boundingBox()).height,dayBox.height,'name loading preserves select height');
+    assert.equal((await page.locator('#history-picker').boundingBox()).height,pickerHeight,'name loading preserves picker height');
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'recorded-day labels fit '+name);
+    await page.screenshot({path:output+'/'+name+'-recorded-day-names.png'});
+    await daySelect.selectOption('2026-10-18');await page.locator('#history-picker').waitFor({state:'hidden'});
+    assert.equal(await page.evaluate(()=>window.telemetryHarness.snapshot().day),'2026-10-18','labels retain recorded-day selection');
+    await page.evaluate(()=>window.telemetryHarness.dayNamesSeed(true));
+    await page.getByRole('button',{name:'Load history',exact:true}).click();
+    await page.getByText('Could not load event names.',{exact:true}).waitFor();
+    assert.equal(await daySelect.isEnabled(),true,'name failures leave dates selectable');
+    const errorHeight=(await page.locator('#history-picker').boundingBox()).height;
+    await page.screenshot({path:output+'/'+name+'-recorded-day-names-error.png'});
+    await page.evaluate(()=>window.telemetryHarness.dayNamesRetry());await page.getByRole('button',{name:'Retry names',exact:true}).click();
+    await page.waitForFunction(()=>document.querySelector('#history-date')?.textContent.includes('2026-10-17 · No event'));
+    assert.equal((await page.locator('#history-picker').boundingBox()).height,errorHeight,'retry control removal preserves layout');
+    await page.getByRole('button',{name:'Load history',exact:true}).click();
     await page.evaluate(async()=>{await window.telemetryHarness.metadataSeed();window.telemetryHarness.role(false);});
     await page.getByRole('button',{name:'Load history',exact:true}).click();
     await page.getByRole('button',{name:'Events',exact:true}).click();

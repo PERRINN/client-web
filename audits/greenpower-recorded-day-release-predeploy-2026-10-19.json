@@ -1,0 +1,51 @@
+{
+  "checkedAt": "2026-10-19T17:58:45.024667+00:00",
+  "status": "validated_not_deployed",
+  "project": "perrinn-d5fc1",
+  "baseCommit": "fe1c5761ae038e089d50a1f03197159f9fd4a017",
+  "deploymentScope": [
+    "hosting"
+  ],
+  "validation": {
+    "unitPassed": 126,
+    "emulatorPassed": 18,
+    "lintErrors": 0,
+    "existingLintWarnings": 64,
+    "buildHash": "67448bfb98c60daa",
+    "browserWidths": [
+      1440,
+      390,
+      320
+    ],
+    "browserErrors": [],
+    "browserArtifacts": "/var/folders/6j/540yrv1536x9pc7qv833941h0000gn/T/greenpower-ui-kfYSJg",
+    "fullBrowserRegression": true
+  },
+  "indexes": {
+    "live": 23,
+    "repository": 23,
+    "allReady": true,
+    "additions": 0,
+    "deletions": 0,
+    "comparison": "greenpower-recorded-day-release-indexes-2026-10-19.json"
+  },
+  "isolation": {
+    "directory": "/private/tmp/greenpower-day-label-release-jbxpjoeq",
+    "allOtherTrackedFilesMatchBase": true,
+    "preservedCommittedVoltageWork": true,
+    "priorUncommittedBackfillOperatorExcluded": true,
+    "buildInputs": "Existing ignored public client environment files copied; six prototype directories use checkout casing for compilation"
+  },
+  "productionWrites": 0,
+  "sessionBoundaries": "pending_review",
+  "batteryTestAssignments": "pending_review",
+  "sourceSha256": {
+    "src/app/greenpower-telemetry/greenpowerEvents.service.ts": "f7ac9e2d84cd02532992430035616012ba4155e9169007da142ecfe02b29e15b",
+    "src/app/greenpower-telemetry/greenpower-event-selector.component.ts": "154cdd2ab425c68b85d7ff58626bf12326050ba64c48dace9ca833e5c6eddddb",
+    "src/app/greenpower-telemetry/greenpower-event-selector.component.html": "d547b6242bc191e73c4b21e7228fd479b040ded9e1028eca580d106ea1af9e2c",
+    "src/app/greenpower-telemetry/greenpower-event-selector.component.css": "d2a5ccc16c5a39a16b449c2382db32b3d0f85ad757fc31078b006b7f205f5028",
+    "src/app/greenpower-telemetry/greenpower-event-editor.component.ts": "8b7c4fbe8338d6d8332c831f9a19cacd0d36442f6274a2eabeb07f4269ad5e72",
+    "src/app/greenpower-telemetry/greenpower-event-editor.component.html": "0ec3357e0f87c02c11d1e9741c9c8af7ebe31e0bc5da5b4a8137b6690e47955d",
+    "src/app/greenpower-telemetry/greenpower-event-editor.component.css": "c4077608021d8b9051221920228dabdf54e9531044c36afefa336f1f175a3b19"
+  }
+}

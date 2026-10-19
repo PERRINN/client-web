@@ -28,6 +28,10 @@ export class GreenpowerEventsService implements OnDestroy {
   error = '';
   filters: EventFilters = { type: '', location: '', from: '', to: '' };
   historySource: 'events' | 'days' = 'events';
+  dayNamesLoading = false;
+  dayNamesError = '';
+  private dayEvents = new Map<string, Pick<TelemetryEvent, 'id' | 'name' | 'date' | 'state' | 'revision'>[]>();
+  private dayPages: { dates: string[]; more: boolean; cursor?: firebase.firestore.QueryDocumentSnapshot }[] = [];
   private account = '';
   private generation = 0;
   private selection = 0;
@@ -50,6 +54,7 @@ export class GreenpowerEventsService implements OnDestroy {
         this.account = uid; this.generation++; this.listGeneration++;
         this.clear(); this.events = []; this.loadedEvents = this.moreEvents = this.loadingEvents = false; this.eventCursor = undefined; this.listError = '';
         this.filters = { type: '', location: '', from: '', to: '' }; this.historySource = 'events';
+        this.dayEvents.clear(); this.dayPages = []; this.dayNamesLoading = false; this.dayNamesError = '';
         if (hadSelection) this.recordingChanged.next(undefined);
       }
       this.changed.next();
@@ -57,6 +62,48 @@ export class GreenpowerEventsService implements OnDestroy {
   }
   get canEdit() { return !!this.account && this.permissions.current.isAdmin && this.permissions.current.uid === this.account; }
   private valid(generation: number) { return !this.destroyed && !!this.account && generation === this.generation; }
+  dayLabel(day: string) {
+    const page = this.dayPages.find(value => value.dates.includes(day)), events = this.dayEvents.get(day);
+    const names = events?.map(event => event.name + (event.state === 'superseded' ? ' (superseded)' : '')).join(' / ');
+    return day + ' · ' + (names ? names + (page?.more ? ' / …' : '')
+      : !page || page.more ? this.dayNamesError ? 'Events unavailable' : this.dayNamesLoading ? 'Loading events…' : 'Events not loaded' : 'No event');
+  }
+  moreDayNames(days: string[]) {
+    return days.some(day => !this.dayEvents.has(day)) || this.dayPages.some(page => page.more && page.dates.some(day => days.includes(day)));
+  }
+  async loadDayNames(days: string[], more = false) {
+    if (!this.account || this.dayNamesLoading) return;
+    let page = more ? this.dayPages.find(value => value.more && value.dates.some(day => days.includes(day))) : undefined;
+    if (!page) {
+      const dates = [...new Set(days.filter(day => validDate(day) && !this.dayEvents.has(day)))].slice(0, 30);
+      if (!dates.length) return;
+      page = { dates, more: true }; this.dayPages.push(page);
+      dates.forEach(day => this.dayEvents.set(day, []));
+    }
+    const generation = this.generation;
+    this.dayNamesLoading = true; this.dayNamesError = ''; this.changed.next();
+    try {
+      let query = this.db.collection(EVENT_ROOT + '/events').where('date', 'in', page.dates)
+        .orderBy('date', 'desc').orderBy(firebase.firestore.FieldPath.documentId(), 'desc').limit(60);
+      if (page.cursor) query = query.startAfter(page.cursor);
+      const snapshot = await query.get({ source: 'server' });
+      if (!this.valid(generation)) return;
+      const events = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+      if (!events.every(event => validEvent(event) && page!.dates.includes(event.date))) throw new Error('Invalid event metadata.');
+      (events as TelemetryEvent[]).forEach(event => this.cacheDayEvent(event));
+      page.cursor = snapshot.docs.at(-1) || page.cursor; page.more = snapshot.size === 60;
+    } catch { if (this.valid(generation)) this.dayNamesError = 'Could not load event names.'; }
+    finally { if (this.valid(generation)) { this.dayNamesLoading = false; this.changed.next(); } }
+  }
+  private cacheDayEvent(event: Pick<TelemetryEvent, 'id' | 'name' | 'date' | 'state' | 'revision'>) {
+    for (const [day, events] of this.dayEvents) {
+      const previous = events.find(value => value.id === event.id);
+      if (previous && previous.revision > event.revision) return;
+      this.dayEvents.set(day, events.filter(value => value.id !== event.id));
+    }
+    const events = this.dayEvents.get(event.date);
+    if (events) { events.push(event); events.sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id)); }
+  }
   async eventReference(id: string): Promise<TelemetryEvent> {
     if (!this.account || !validId(id)) throw new Error('Event link is invalid.');
     const known = this.events.find(event => event.id === id);
@@ -89,6 +136,7 @@ export class GreenpowerEventsService implements OnDestroy {
       const events = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
       if (!events.every(validEvent)) throw new Error('Event metadata is invalid.');
       this.events.push(...events.filter(event => !this.events.some(loaded => loaded.id === event.id)));
+      events.forEach(event => this.cacheDayEvent(event));
       this.eventCursor = snapshot.docs.at(-1) || this.eventCursor; this.moreEvents = snapshot.size === EVENT_PAGE_SIZE; this.loadedEvents = true;
     } catch (error) {
       if (this.valid(generation) && list === this.listGeneration) this.listError = error instanceof Error && ['Choose a valid date range.', 'Event metadata is invalid.'].includes(error.message) ? error.message : 'Could not load events. Try again.';
@@ -114,6 +162,7 @@ export class GreenpowerEventsService implements OnDestroy {
       } else {
         const first = !this.eventReady;
         this.selectedEvent = event; this.eventReady = true; this.error = '';
+        this.cacheDayEvent(event);
         this.events = this.events.map(item => item.id === id ? event : item);
         if (first) void this.loadSessions(true);
       }
@@ -165,6 +214,10 @@ export class GreenpowerEventsService implements OnDestroy {
   acknowledge(request: EventEditRequest, result: EventEditResult, before: TelemetrySession[]) {
     // A commit acknowledgement may arrive before the selected document listeners.
     const event = this.selectedEvent, session = this.selectedSession;
+    for (const change of request.events) {
+      const revision = result.events.find(value => value.id === change.id)?.revision;
+      if (change.data && revision) this.cacheDayEvent({ ...change.data, id: change.id, revision });
+    }
     if (event) {
       const change = request.events.find(item => item.id === event.id), revision = result.events.find(item => item.id === event.id)?.revision;
       if (change && revision && event.revision < revision) {
@@ -186,5 +239,8 @@ export class GreenpowerEventsService implements OnDestroy {
     }
     this.changed.next();
   }
-  ngOnDestroy() { this.destroyed = true; this.generation++; this.clear(); this.subscription.unsubscribe(); this.changed.complete(); this.recordingChanged.complete(); }
+  ngOnDestroy() {
+    this.destroyed = true; this.generation++; this.clear(); this.dayEvents.clear(); this.dayPages = [];
+    this.subscription.unsubscribe(); this.changed.complete(); this.recordingChanged.complete();
+  }
 }
