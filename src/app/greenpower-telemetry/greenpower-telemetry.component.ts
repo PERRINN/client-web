@@ -21,6 +21,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   @ViewChild(GreenpowerMapComponent) private map?: GreenpowerMapComponent;
   channels: GreenpowerChannel[] = [];
   historyOpen = false;
+  activeView: 'data' | 'track' | 'laps' = 'data';
   scalars: GreenpowerChannel[] = [];
   charts: GreenpowerChannel[] = [];
   laps: LapInterval[] = [];
@@ -37,6 +38,8 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   private context = '';
   get start() { return this.window?.start ?? this.telemetry.start; }
   get end() { return this.window?.end ?? this.telemetry.end; }
+  selectView(view: 'data' | 'track' | 'laps') { this.drag.cancel(); this.activeView = view; }
+  selectLap(window: ChartWindow) { this.zoom(window); this.selectView('data'); }
   zoom(window?: ChartWindow) { this.window = window; this.cursor = undefined; }
   now = Date.now();
   time = londonTime;

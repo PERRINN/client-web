@@ -8,10 +8,15 @@
     <div class="controls">
       <div class="actions">
         <button type="button" [class.primary]="telemetry.live" [attr.aria-pressed]="telemetry.live" (click)="live()">Live</button>
-        <button type="button" [attr.aria-expanded]="historyOpen" aria-controls="history-picker" (click)="history()">Load history</button>
+        <button type="button" class="compact-action" aria-label="Load history" title="Load history" [attr.aria-expanded]="historyOpen" aria-controls="history-picker" (click)="history()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7M12 7v5l3 2" /></svg><span>Load history</span></button>
         @if (view.canEdit) {
-          <button type="button" aria-label="Edit view" [attr.aria-expanded]="view.editing" aria-controls="view-editor" [disabled]="view.saving" (click)="view.editing ? view.cancel() : view.edit(channels)">Edit</button>
+          <button type="button" class="compact-action" title="Edit view" aria-label="Edit view" [attr.aria-expanded]="view.editing" aria-controls="view-editor" [disabled]="view.saving" (click)="view.editing ? view.cancel() : view.edit(channels)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-1 5 5-1L21 7l-4-4ZM14 6l4 4" /></svg><span>Edit</span></button>
         }
+        <div class="view-navigation" role="group" aria-label="Telemetry views">
+          <button type="button" class="view-button" aria-label="Data" title="Data" [attr.aria-pressed]="activeView === 'data'" aria-controls="telemetry-data" (click)="selectView('data')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18M6 15l4-5 4 3 6-8" /></svg></button>
+          <button type="button" class="view-button" aria-label="Track map" title="Track map" [attr.aria-pressed]="activeView === 'track'" aria-controls="telemetry-track-map" (click)="selectView('track')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2ZM9 3v16M15 5v16" /></svg></button>
+          <button type="button" class="view-button" aria-label="Lap list" title="Lap list" [attr.aria-pressed]="activeView === 'laps'" aria-controls="telemetry-lap-list" (click)="selectView('laps')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12M3 6h1M3 12h1M3 18h1" /></svg></button>
+        </div>
       </div>
       <span class="day">{{ telemetry.day }} · UK time</span>
     </div>
@@ -65,37 +70,45 @@
     @if (telemetry.error) {
       <div class="error" role="alert">{{ telemetry.error }} <button type="button" (click)="telemetry.select(telemetry.day, telemetry.live)">Retry</button></div>
     }
-    @if (scalars.length) {
-      <section class="values" [attr.aria-label]="cursor === undefined ? 'Latest values' : 'Cursor values'">
-        @for (channel of scalars; track channel.id) {
-          <div class="reading"><span>{{ channel.label }}</span><strong>{{ scalarValue(channel, cursor, start, end) }}{{ channel.unit ? ' ' + channel.unit : '' }}</strong></div>
-        }
-      </section>
-    }
     @if (telemetry.loading) { <p class="state" role="status">Loading {{ telemetry.day }}…</p> }
     @else if (telemetry.more) {
       <div class="continuation"><span>More data is available for this day.</span><button type="button" (click)="telemetry.loadMore()">Load remaining data</button></div>
     } @else if (!telemetry.channels.length && !telemetry.error) { <p class="state">No telemetry recorded for this day.</p> }
-    @if (view.editing && view.canEdit) {
-      <div class="track-selection" aria-label="Track selection">
-        <label for="telemetry-track">Track</label>
-        <select id="telemetry-track" [value]="lapConfig.draftTrackId ?? ''" [disabled]="lapConfig.saving || lapConfig.searching" (change)="selectTrack($any($event.target).value); $any($event.target).value = lapConfig.draftTrackId ?? ''">
-          <option value="">{{ lapConfig.searching ? 'Finding track…' : lapConfig.creating ? 'New track' : 'Automatic' }}</option>
-          @for (track of lapConfig.candidates; track track.id) { <option [value]="track.id">{{ track.name }}</option> }
-          @if (lapConfig.hasMore) { <option value="more">More tracks…</option> }
-        </select>
-        @if (view.editing && lapConfig.canEdit) { <button type="button" [disabled]="lapConfig.saving || lapConfig.searching" (click)="lapConfig.newTrack()">New track</button> }
-      </div>
-    }
-    @if (lapConfig.mismatch) { <p class="error" role="alert">{{ view.canEdit ? 'GPS extends outside the selected track. Choose the correct track to analyse this dataset.' : 'GPS extends outside the matched track. Lap analysis is unavailable.' }}</p> }
-    @if (!view.canEdit && lapConfig.ready && !lapConfig.selectedId && lapConfig.candidates.length) { <p class="state">No automatic track match.</p> }
-    <app-greenpower-map [fixes]="lapConfig.fixes" [line]="lapConfig.line" [name]="lapConfig.name" [mismatch]="lapConfig.mismatch" [editing]="view.editing && lapConfig.canEdit" [saving]="lapConfig.saving" [ready]="lapConfig.ready" [revision]="lapConfig.revision" [context]="telemetry.day + telemetry.live + telemetry.access + lapConfig.selectedId + lapConfig.creating" [cursor]="cursor" [end]="telemetry.end" (cursorChange)="cursor = $event" (lineChange)="saveFinish($event)" />
-    @if (lapConfig.error) { <div class="error" role="alert">{{ lapConfig.error }} @if (!lapConfig.ready) { <button type="button" (click)="lapConfig.retry()">Retry tracks</button> }</div> }
-    <div class="charts">
-      @for (channel of charts; track channel.id) {
-        @if (channel.points.length) { <app-greenpower-chart [channel]="channel" [laps]="laps" [start]="start" [end]="end" [cursor]="cursor" [context]="telemetry.day + telemetry.live" (windowChange)="zoom($event)" (cursorChange)="cursor = $event" /> }
+    <div id="telemetry-track-map" class="view-panel" [hidden]="activeView !== 'track'" role="region" aria-label="Track map view">
+      @if (view.editing && view.canEdit) {
+        <div class="track-selection" aria-label="Track selection">
+          <label for="telemetry-track">Track</label>
+          <select id="telemetry-track" [value]="lapConfig.draftTrackId ?? ''" [disabled]="lapConfig.saving || lapConfig.searching" (change)="selectTrack($any($event.target).value); $any($event.target).value = lapConfig.draftTrackId ?? ''">
+            <option value="">{{ lapConfig.searching ? 'Finding track…' : lapConfig.creating ? 'New track' : 'Automatic' }}</option>
+            @for (track of lapConfig.candidates; track track.id) { <option [value]="track.id">{{ track.name }}</option> }
+            @if (lapConfig.hasMore) { <option value="more">More tracks…</option> }
+          </select>
+          @if (view.editing && lapConfig.canEdit) { <button type="button" [disabled]="lapConfig.saving || lapConfig.searching" (click)="lapConfig.newTrack()">New track</button> }
+        </div>
+      }
+      @if (lapConfig.mismatch) { <p class="error" role="alert">{{ view.canEdit ? 'GPS extends outside the selected track. Choose the correct track to analyse this dataset.' : 'GPS extends outside the matched track. Lap analysis is unavailable.' }}</p> }
+      @if (!view.canEdit && lapConfig.ready && !lapConfig.selectedId && lapConfig.candidates.length) { <p class="state">No automatic track match.</p> }
+      <app-greenpower-map [fixes]="lapConfig.fixes" [line]="lapConfig.line" [name]="lapConfig.name" [mismatch]="lapConfig.mismatch" [editing]="view.editing && lapConfig.canEdit" [saving]="lapConfig.saving" [ready]="lapConfig.ready" [revision]="lapConfig.revision" [context]="telemetry.day + telemetry.live + telemetry.access + lapConfig.selectedId + lapConfig.creating" [cursor]="cursor" [end]="telemetry.end" (cursorChange)="cursor = $event" (lineChange)="saveFinish($event)" />
+      @if (lapConfig.error) { <div class="error" role="alert">{{ lapConfig.error }} @if (!lapConfig.ready) { <button type="button" (click)="lapConfig.retry()">Retry tracks</button> }</div> }
+    </div>
+    <div id="telemetry-data" class="view-panel" [hidden]="activeView !== 'data'" role="region" aria-label="Data view">
+      @if (activeView === 'data') {
+        @if (scalars.length) {
+          <section class="values" [attr.aria-label]="cursor === undefined ? 'Latest values' : 'Cursor values'">
+            @for (channel of scalars; track channel.id) {
+              <div class="reading"><span>{{ channel.label }}</span><strong>{{ scalarValue(channel, cursor, start, end) }}{{ channel.unit ? ' ' + channel.unit : '' }}</strong></div>
+            }
+          </section>
+        }
+        <div class="charts">
+          @for (channel of charts; track channel.id) {
+            @if (channel.points.length) { <app-greenpower-chart [channel]="channel" [laps]="laps" [start]="start" [end]="end" [cursor]="cursor" [context]="telemetry.day + telemetry.live" (windowChange)="zoom($event)" (cursorChange)="cursor = $event" /> }
+          }
+        </div>
       }
     </div>
-    <app-greenpower-lap-list [laps]="lapConfig.analysis.laps" [configured]="!!lapConfig.line" [loading]="telemetry.loading || lapConfig.searching || (!lapConfig.ready && !!lapConfig.selectedId)" [partial]="telemetry.more" (lapSelect)="zoom($event)" />
+    <div id="telemetry-lap-list" class="view-panel" [hidden]="activeView !== 'laps'" role="region" aria-label="Lap list view">
+      <app-greenpower-lap-list [laps]="lapConfig.analysis.laps" [configured]="!!lapConfig.line" [loading]="telemetry.loading || lapConfig.searching || (!lapConfig.ready && !!lapConfig.selectedId)" [partial]="telemetry.more" (lapSelect)="selectLap($event)" />
+    </div>
   }
 </main>

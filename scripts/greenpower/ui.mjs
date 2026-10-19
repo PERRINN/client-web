@@ -110,7 +110,7 @@ window.telemetryHarness = {
   },
 
   longList(){const source=service.channels.find(c=>c.points.length);service.channels=Array.from({length:20},(_,i)=>({...source,id:'synthetic-channel-'+i,label:'Channel '+String(i).padStart(2,'0')}));service.changed.next();fixture.detectChanges();},
-  snapshot() { const c=fixture.componentInstance; return {start:c.start,end:c.end,cursor:c.cursor,zoomed:!!c.window}; },
+  snapshot() { const c=fixture.componentInstance; return {start:c.start,end:c.end,cursor:c.cursor,zoomed:!!c.window,activeView:c.activeView}; },
   current(values) {
     fixture.componentInstance.zoom();
     service.channels=service.channels.map(c=>c.id==='["A"]:A'?{...c,points:values.map((value,i)=>({time:service.start+i*3000,value}))}:c);
@@ -126,6 +126,7 @@ window.telemetryHarness = {
     });
   },
   state(name) {
+    fixture.componentInstance.selectView('data');
     service.access = name === 'signed-out' ? 'signed-out' : 'signed-in';
     service.error = name === 'error' ? 'Could not load telemetry. Check your connection and try again.' : '';
     service.loading = name === 'loading'; service.more = name === 'more';
@@ -185,6 +186,20 @@ try {
   for (const [name, width, height] of [['desktop', 1440, 1000], ['mobile', 390, 844], ['small-mobile', 320, 740]]) {
     await page.setViewportSize({ width, height });
     await page.evaluate(() => window.telemetryHarness.state('live'));
+    const navigation=page.getByRole('group',{name:'Telemetry views',exact:true});
+    assert.equal(await navigation.getByRole('button').count(),3);
+    assert.equal(await navigation.getByRole('button',{name:'Data',exact:true}).getAttribute('aria-pressed'),'true');
+    const controlsBox=await page.locator('.controls').boundingBox();
+    for(const [label,panel] of [['Track map','telemetry-track-map'],['Lap list','telemetry-lap-list'],['Data','telemetry-data']]) {
+      await navigation.getByRole('button',{name:label,exact:true}).click();
+      await page.locator('#'+panel).waitFor({state:'visible'});
+      assert.equal(await page.locator('#'+panel).isVisible(),true);
+      assert.equal(await page.locator('.view-panel:visible').count(),1);
+      assert.equal((await page.locator('.controls').boundingBox()).height,controlsBox.height);
+    }
+    const actionBoxes=await page.locator('.actions button').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,height:r.height};}));
+    assert.ok(actionBoxes.every(b=>Math.abs(b.y-actionBoxes[0].y)<1&&b.height>=44),'actions remain in one row');
+    assert.ok(actionBoxes.every(b=>b.x>=0&&b.right<=width),'all actions fit viewport');
     assert.equal(await page.locator('app-greenpower-chart').count(), 7);
     assert.equal(await page.locator('.reading').count(), 9);
     assert.equal(await page.locator('a[href="/prototypes"]').count(), 0);
@@ -386,6 +401,8 @@ try {
     const statusBox=await page.locator('.status').boundingBox();
     assert.equal(await page.getByRole('button',{name:'Edit view'}).count(),0);
     await page.evaluate(()=>window.telemetryHarness.role(true));
+    const bounds=await page.locator('.actions button').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {x:r.x,right:r.right,y:r.y};}));
+    assert.ok(bounds.every(b=>b.x>=0&&b.right<=width&&Math.abs(b.y-bounds[0].y)<1),'all six admin actions fit one row');
     assert.equal((await page.locator('h1').boundingBox()).y,titleBox.y,'admin button preserves heading');
     assert.equal((await page.locator('.status').boundingBox()).y,statusBox.y,'admin button preserves control row height');
     await page.getByRole('button',{name:'Edit view'}).click();
@@ -562,15 +579,17 @@ try {
     await page.evaluate(()=>{window.telemetryHarness.state('live');window.telemetryHarness.laps();window.telemetryHarness.role(true);});
     const map=page.locator('app-greenpower-map');
     const list=page.locator('app-greenpower-lap-list');
-    assert.equal(await list.getByRole('columnheader').last().innerText(),'Avg speed · mph');
     const speed=page.locator('.reading').filter({hasText:'Vehicle speed'});
     if(await speed.count())assert.match(await speed.innerText(),/mph/);
     const speedChart=page.locator('app-greenpower-chart').filter({hasText:'Vehicle speed'});
     if(await speedChart.count())assert.match(await speedChart.locator('h2').innerText(),/mph/);
+    await page.getByRole('button',{name:'Track map',exact:true}).click();
     await map.scrollIntoViewIfNeeded();
     assert.equal(await map.locator('.finish').count(),1);
     assert.equal(await map.locator('.car').count(),1);
     assert.ok(await list.locator('tbody tr').count()>=4);
+    await page.getByRole('button',{name:'Lap list',exact:true}).click();
+    assert.equal(await list.getByRole('columnheader').last().innerText(),'Avg speed · mph');
     const columns=await list.locator('table').evaluate(table=>{
       const headers=Array.from(table.querySelectorAll('thead th'));
       const row=Array.from(table.querySelector('tbody tr').children);
@@ -592,14 +611,31 @@ try {
     assert.ok(lastHeader.x+lastHeader.width<=scrollBounds.x+scrollBounds.width+1,'last lap column remains reachable');
     await tableScroll.evaluate(element=>element.scrollLeft=0);
 
-    assert.ok((await list.boundingBox()).y>(await page.locator('.charts').boundingBox()).y);
+    await page.getByRole('button',{name:'Track map',exact:true}).click();
     await page.mouse.move(0,0);await map.locator('svg').focus();await page.keyboard.press('ArrowLeft');
     await page.waitForFunction(()=>document.querySelector('app-greenpower-map').innerText.includes('Cursor position'));
     assert.match(await map.innerText(),/Cursor position/);
+    const inspection=await page.evaluate(()=>window.telemetryHarness.snapshot());
+    await page.getByRole('button',{name:'Data',exact:true}).click();
+    await page.locator('#telemetry-data').waitFor({state:'visible'});
+    assert.equal((await page.evaluate(()=>window.telemetryHarness.snapshot())).cursor,inspection.cursor);
+    await page.getByRole('button',{name:'Track map',exact:true}).focus();
+    await page.keyboard.press('Enter');
+    await page.locator('#telemetry-track-map').waitFor({state:'visible'});
+    assert.equal((await page.evaluate(()=>window.telemetryHarness.snapshot())).cursor,inspection.cursor);
     const before=await map.boundingBox();await map.getByRole('button',{name:'Latest',exact:true}).click();
     assert.equal((await map.boundingBox()).height,before.height,'cursor reset preserves map geometry');
     await page.getByRole('button',{name:'Edit view',exact:true}).click();
+    const originalDirection=await map.locator('.direction').getAttribute('d');
     await map.getByRole('button',{name:'Reverse direction'}).click();
+    await page.waitForFunction(before=>document.querySelector('app-greenpower-map .direction').getAttribute('d')!==before,originalDirection);
+    const direction=await map.locator('.direction').getAttribute('d');
+    await page.getByRole('button',{name:'Lap list',exact:true}).click();
+    await page.locator('#telemetry-lap-list').waitFor({state:'visible'});
+    await page.getByRole('button',{name:'Track map',exact:true}).click();
+    await page.locator('#telemetry-track-map').waitFor({state:'visible'});
+    assert.equal(await map.locator('.direction').getAttribute('d'),direction,'view switching preserves unsaved finish-line direction');
+    assert.equal(await map.getByRole('button',{name:'Save track',exact:true}).isEnabled(),true);
     await map.getByRole('button',{name:'Save track',exact:true}).click();
     await page.waitForFunction(()=>window.telemetryHarness.savedLap().revision===2);
     await page.waitForFunction(()=>Array.from(document.querySelectorAll('app-greenpower-map button')).find(b=>b.textContent.trim()==='Save track')?.disabled);
@@ -613,7 +649,10 @@ try {
     await page.waitForFunction(()=>window.telemetryHarness.savedLap().line===null);
     await page.getByRole('button',{name:'Cancel',exact:true}).click();
     await page.evaluate(()=>window.telemetryHarness.laps());
+    await page.getByRole('button',{name:'Lap list',exact:true}).click();
     await list.getByRole('button',{name:'Zoom all graphs to GPS lap 2',exact:true}).click();
+    assert.equal((await page.evaluate(()=>window.telemetryHarness.snapshot())).activeView,'data');
+    await page.getByRole('button',{name:'Track map',exact:true}).click();
     assert.equal((await page.evaluate(()=>window.telemetryHarness.snapshot())).zoomed,true);
     await map.scrollIntoViewIfNeeded();await page.screenshot({path:output+'/gps-map-'+width+'.png'});
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
@@ -634,9 +673,12 @@ try {
     await page.evaluate(()=>window.telemetryHarness.manyLaps());
     assert.equal(await list.locator('tbody tr').count(),125,'all loaded laps render without pagination');
     assert.equal(await list.getByRole('button',{name:'More laps',exact:true}).count(),0);
+    await page.getByRole('button',{name:'Lap list',exact:true}).click();
     const rowHeight=await list.locator('tbody tr').first().evaluate(row=>row.getBoundingClientRect().height);
     assert.ok(rowHeight<=34,'lap rows remain compact at '+width+'px: '+rowHeight);
+    await page.getByRole('button',{name:'Lap list',exact:true}).click();
     await list.scrollIntoViewIfNeeded();await page.screenshot({path:output+'/compact-laps-'+width+'.png'});
+    await page.getByRole('button',{name:'Track map',exact:true}).click();
     await page.evaluate(()=>window.telemetryHarness.role(false));
     assert.equal(await page.getByLabel('Track',{exact:true}).count(),0,'ordinary viewers have no track selector');
     assert.equal(await page.getByRole('button',{name:'New track',exact:true}).count(),0);
