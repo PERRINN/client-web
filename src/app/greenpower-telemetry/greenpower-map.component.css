@@ -1,0 +1,28 @@
+:host { display: block; min-width: 0; margin-bottom: 12px; }
+section { padding: 12px; background: var(--color-surface); }
+.heading, .map-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.heading { justify-content: space-between; }
+h2 { font-size: 17px; line-height: 1.35; overflow: visible; font-weight: 600; }
+span, p, text { font-size: 13px; line-height: 1.45; color: var(--color-text-secondary); }
+svg { display: block; height: 320px; width: 100%; background: var(--color-raised); margin: 8px 0; touch-action: pan-y; }
+path, line { fill: none; vector-effect: non-scaling-stroke; pointer-events: none; }
+.track { stroke: var(--color-text-secondary); stroke-width: 1.5; }
+.finish, .direction { stroke: var(--color-accent); stroke-width: 2; }
+.car { fill: var(--color-data-comparison); stroke: var(--color-page); stroke-width: 2; }
+.endpoint { fill: var(--color-accent); }
+.crosshair { stroke: var(--color-text); stroke-width: 1; }
+.map-area { position: relative; }
+.empty { position: absolute; inset: 45% 0 auto; text-align: center; pointer-events: none; }
+button { font: inherit; font-size: 13px; line-height: 1.45; padding: 8px 10px; min-height: 44px; border: 1px solid transparent; border-radius: 6px; background: var(--color-raised); color: var(--color-text); }
+button:disabled { opacity: .5; }
+button:focus-visible, svg:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.primary { background: var(--color-accent); color: var(--color-accent-ink); }
+.notice { position: absolute; top: 8px; left: 8px; margin: 0; padding: 4px 8px; background: var(--color-surface); pointer-events: none; }
+@media (max-width: 520px) { svg { height: 280px; } }
+
+.track-name { display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.45; }
+input { font: inherit; color: var(--color-text); background: var(--color-raised); border: 1px solid var(--color-border); border-radius: 6px; padding: 8px; min-height: 44px; width: 180px; }
+input:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+@media (max-width: 520px) { input { font-size: 16px; width: 150px; } }
+
+.area-notice { margin: 4px 0; }

@@ -23,6 +23,42 @@ service cloud.firestore {
       allow create: if isPerrinnAdmin() && validView() && request.resource.data.revision == 1;
       allow update: if isPerrinnAdmin() && validView() && request.resource.data.revision == resource.data.revision + 1;
     }
+    match /GreenpowerTelemetry/424/tracks/{trackId} {
+      function validGpsPoint(point) {
+        return point is map && point.keys().hasAll(['lat', 'lon']) && point.keys().hasOnly(['lat', 'lon'])
+          && point.lat is number && point.lat >= -85 && point.lat <= 85
+          && point.lon is number && point.lon >= -180 && point.lon <= 180;
+      }
+      function inside(point, bounds) {
+        return point.lat >= bounds.south && point.lat <= bounds.north && point.lon >= bounds.west && point.lon <= bounds.east;
+      }
+      function validFinish(line, bounds) {
+        return line == null || (line is map && line.keys().hasAll(['a', 'b', 'direction'])
+          && line.keys().hasOnly(['a', 'b', 'direction'])
+          && validGpsPoint(line.a) && validGpsPoint(line.b) && line.a != line.b
+          && inside(line.a, bounds) && inside(line.b, bounds)
+          && line.direction is int && line.direction in [-1, 1]);
+      }
+      function validBounds(bounds) {
+        return bounds is map && bounds.keys().hasAll(['south', 'north', 'west', 'east'])
+          && bounds.keys().hasOnly(['south', 'north', 'west', 'east'])
+          && bounds.south is number && bounds.north is number && bounds.west is number && bounds.east is number
+          && bounds.south >= -85 && bounds.north <= 85 && bounds.south < bounds.north
+          && bounds.west >= -180 && bounds.east <= 180 && bounds.west < bounds.east;
+      }
+      function validTrack() {
+        return request.resource.data.keys().hasAll(['name', 'line', 'bounds', 'cells', 'revision', 'updatedBy', 'updatedAt'])
+          && request.resource.data.keys().hasOnly(['name', 'line', 'bounds', 'cells', 'revision', 'updatedBy', 'updatedAt'])
+          && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 60
+          && validBounds(request.resource.data.bounds) && validFinish(request.resource.data.line, request.resource.data.bounds)
+          && request.resource.data.cells is list && request.resource.data.cells.size() > 0 && request.resource.data.cells.size() <= 64
+          && request.resource.data.cells.toSet().size() == request.resource.data.cells.size()
+          && request.resource.data.revision is int && request.resource.data.revision > 0
+          && request.resource.data.updatedBy == request.auth.uid && request.resource.data.updatedAt == request.time;
+      }
+      allow create: if isPerrinnAdmin() && validTrack() && request.resource.data.revision == 1;
+      allow update: if isPerrinnAdmin() && validTrack() && request.resource.data.revision == resource.data.revision + 1;
+    }
     match /{collection}/{document=**} {
       allow read: if collection != 'GreenpowerTelemetry';
     }

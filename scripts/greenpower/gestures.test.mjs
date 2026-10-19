@@ -131,6 +131,20 @@ test('hover snaps line and marker to original samples, including synchronized cu
   c.ngOnDestroy();
 });
 
+test('lap activation selects the full recorded interval and clears cursor and pending gestures', () => {
+  const {component:c,pointer:p}=fixture();
+  try {
+    c.start=200;c.end=800;
+    c.down(p(20));c.move(p(80));
+    c.zoomLap({time:100,end:900,lap:3,alternate:false});
+    assert.equal(c.band,undefined);
+    assert.equal(c.cursorChange.values.at(-1),undefined);
+    assert.deepEqual(c.windowChange.values,[{start:100,end:900}]);
+    c.zoomLap({time:900,end:900,lap:4,alternate:true});
+    assert.equal(c.windowChange.values.length,1);
+  } finally {c.ngOnDestroy();}
+});
+
 test('keyboard visits distinct sample timestamps across irregular gaps and stops at window edges', () => {
   const {component:c}=fixture();
   c.channel.points=[{time:0,value:1},{time:10,value:2},{time:10,value:3},{time:900,value:4},{time:1000,value:5}];

@@ -1,21 +1,6 @@
 import { pointIndex } from './greenpowerData';
 
 export interface LapInterval { time: number; end: number; lap: number; alternate: boolean; }
-export function lapIntervals(points: { time: number; value: number }[], end: number): LapInterval[] {
-  const laps: LapInterval[] = [];
-  for (const point of points) {
-    if (!Number.isSafeInteger(point.value) || point.value < 0) continue;
-    const previous = laps.at(-1);
-    if (previous?.lap === point.value) continue;
-    // Several records may share a timestamp; the final recorded value wins.
-    if (previous?.time === point.time) laps.pop();
-    const last = laps.at(-1);
-    if (last) last.end = point.time;
-    if (last?.lap === point.value) { last.end = end; continue; }
-    laps.push({ time: point.time, end, lap: point.value, alternate: !!(laps.length % 2) });
-  }
-  return laps;
-}
 export function lapAt(laps: LapInterval[], time: number) {
   const lap = laps[pointIndex(laps, time, true) - 1];
   return lap && time <= lap.end ? lap.lap : undefined;

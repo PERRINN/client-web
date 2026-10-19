@@ -21,8 +21,9 @@ svg:focus-visible { outline: 1px solid var(--color-text-secondary); outline-offs
 .lap-band.alternate { fill: var(--color-raised); fill-opacity: .6; }
 .lap-labels { position: absolute; top: 0; left: 73px; right: 0; height: 19px; pointer-events: none; }
 .lap-labels > span { position: absolute; text-align: center; white-space: nowrap; }
-.lap-labels span { font-size: 13px; line-height: 19px; color: var(--color-text-secondary); }
-.lap-labels > span > span { padding: 0 4px; background: var(--color-surface); border-radius: 2px; }
+.lap-labels button { font: inherit; font-size: 13px; line-height: 19px; color: var(--color-text-secondary); min-height: 24px; padding: 0 4px; border: 0; background: var(--color-surface); border-radius: 2px; cursor: pointer; pointer-events: auto; }
+.lap-labels button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+@media (hover: hover) and (pointer: fine) { .lap-labels button:hover { background: var(--color-selected); } }
 .current-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-bottom: 6px; }
 .current-legend span, .average-readout span { font-size: 13px; line-height: 1.45; }
 .current-legend span { display: inline-flex; align-items: center; gap: 5px; }

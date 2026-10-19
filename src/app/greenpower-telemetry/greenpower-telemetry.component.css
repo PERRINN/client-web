@@ -49,3 +49,7 @@ select { border-color: var(--color-border); }
 .channel-option.dragging .channel-label { opacity: .5; }
 .drag-preview { position: fixed; z-index: 100; min-height: 44px; display: flex; align-items: center; padding: 8px 12px; background: var(--color-raised); font-size: 13px; line-height: 1.45; pointer-events: none; overflow-wrap: anywhere; }
 .order-notice { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); white-space: nowrap; }
+
+.track-selection { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.track-selection label { font-size: 15px; line-height: 1.45; }
+.track-selection select { flex: 1; min-width: 120px; max-width: 320px; }

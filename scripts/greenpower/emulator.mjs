@@ -215,3 +215,46 @@ test('existing presence ownership and timestamp-only writes remain unchanged', a
   assert.equal((await presence('alice',{unexpected:{booleanValue:true}})).status,403);
   await db.doc('userPresence/alice').delete();
 });
+
+test('reusable tracks enforce admin ownership, bounded coverage, exact shape and sequential revisions', async () => {
+  const path='GreenpowerTelemetry/424/tracks/test-circuit';
+  await db.doc(path).delete();
+  const value = item => item === null ? {nullValue:null} : typeof item==='number' ? (Number.isInteger(item)?{integerValue:String(item)}:{doubleValue:item})
+    : typeof item==='string' ? {stringValue:item} : Array.isArray(item) ? {arrayValue:{values:item.map(value)}} : {mapValue:{fields:Object.fromEntries(Object.entries(item).map(([key,child])=>[key,value(child)]))}};
+  const line={a:{lat:50,lon:-1.0001},b:{lat:50,lon:-.9999},direction:1};
+  const bounds={south:49.99,north:50.01,west:-1.01,east:-.99};
+  const cells=['999:-21','999:-20','1000:-21','1000:-20'];
+  async function save(uid,claims,revision=1,extra={},target=path) {
+    const fields={name:value('Test circuit'),line:value(line),bounds:value(bounds),cells:value(cells),revision:{integerValue:String(revision)},updatedBy:{stringValue:uid||'admin'},...extra};
+    return fetch(`http://${host}/v1/projects/${projectId}/databases/(default)/documents:commit`,{
+      method:'POST',headers:{'Content-Type':'application/json',...(uid?{Authorization:`Bearer ${token(uid,claims)}`}:{})},
+      body:JSON.stringify({writes:[{update:{name:`projects/${projectId}/databases/(default)/documents/${target}`,fields},updateTransforms:[{fieldPath:'updatedAt',setToServerValue:'REQUEST_TIME'}]}]})
+    });
+  }
+  for(const [uid,claims] of [[undefined,{}],['alice',{}],['admin',{perrinnAdmin:'true'}]]) assert.equal((await save(uid,claims)).status,403);
+  assert.equal((await save('admin',{perrinnAdmin:true})).status,200);
+  assert.equal((await request(path)).status,403);
+  for(const uid of ['alice','bob']) assert.equal((await request(path,uid)).status,200);
+  assert.equal((await save('admin',{perrinnAdmin:true})).status,403);
+  for(const extra of [
+    {line:value({...line,a:{lat:91,lon:0}})}, {line:value({...line,direction:0})},
+    {line:value({...line,b:line.a})}, {line:value({...line,extra:1})},
+    {updatedBy:value('someone-else')}, {extra:value('unexpected')}, {revision:value(2.5)},
+    {bounds:value({...bounds,south:51})}, {cells:value([])}, {cells:value(Array.from({length:65},(_,i)=>String(i)))},
+    {cells:value(['same','same'])}, {name:value('')}, {name:value('x'.repeat(61))},
+    {line:value({...line,a:{lat:51,lon:0}})}
+  ]) assert.equal((await save('admin',{perrinnAdmin:true},2,extra)).status,403);
+  const query={structuredQuery:{from:[{collectionId:'tracks'}],where:{fieldFilter:{field:{fieldPath:'cells'},op:'ARRAY_CONTAINS',value:value('1000:-20')}},limit:6}};
+  for(const uid of [undefined,'alice','bob']) {
+    const response=await fetch(`http://${host}/v1/projects/${projectId}/databases/(default)/documents/GreenpowerTelemetry/424:runQuery`,{
+      method:'POST',headers:{'Content-Type':'application/json',...(uid?{Authorization:`Bearer ${token(uid)}`}:{})},body:JSON.stringify(query)});
+    assert.equal(response.status,uid?200:403);
+    if(uid) assert.equal((await response.json()).filter(item=>item.document).length,1);
+  }
+  assert.equal((await save('admin',{perrinnAdmin:true},2,{line:value(null)})).status,200);
+  assert.equal((await request(path,'admin','DELETE',undefined,{perrinnAdmin:true})).status,403);
+  for(const target of ['GreenpowerTelemetry/424/days/2026-10-17','GreenpowerTelemetry/424/days/2026-10-17/config/laps','GreenpowerTelemetry/other/tracks/test-circuit']) {
+    assert.equal((await save('admin',{perrinnAdmin:true},1,{},target)).status,403);
+  }
+  await db.doc(path).delete();
+});

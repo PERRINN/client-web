@@ -1,5 +1,7 @@
 import { ImageViewerComponent } from './image-viewer/image-viewer.component';
 import { GreenpowerTelemetryComponent } from './greenpower-telemetry/greenpower-telemetry.component';
+import { GreenpowerMapComponent } from './greenpower-telemetry/greenpower-map.component';
+import { GreenpowerLapListComponent } from './greenpower-telemetry/greenpower-lap-list.component';
 import { GreenpowerChartComponent } from './greenpower-telemetry/greenpower-chart.component';
 import { TeamRadioComponent } from './prototypes/team-radio/team-radio.component';
 import { RearWingPilotComponent } from './prototypes/rear-wing-pilot/rear-wing-pilot.component';
@@ -69,6 +71,8 @@ export const firebaseConfig = {
 @NgModule({ declarations: [
         GreenpowerTelemetryComponent,
         GreenpowerChartComponent,
+        GreenpowerMapComponent,
+        GreenpowerLapListComponent,
         RearWingPilotComponent,
         TeamRadioComponent,
         AppComponent,

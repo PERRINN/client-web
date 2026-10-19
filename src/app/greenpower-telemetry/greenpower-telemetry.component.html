@@ -10,7 +10,7 @@
         <button type="button" [class.primary]="telemetry.live" [attr.aria-pressed]="telemetry.live" (click)="live()">Live</button>
         <button type="button" [attr.aria-expanded]="historyOpen" aria-controls="history-picker" (click)="history()">Load history</button>
         @if (view.canEdit) {
-          <button type="button" aria-label="Edit view" [attr.aria-expanded]="view.editing" aria-controls="view-editor" [disabled]="view.saving" (click)="view.editing ? view.cancel() : view.edit(telemetry.channels)">Edit</button>
+          <button type="button" aria-label="Edit view" [attr.aria-expanded]="view.editing" aria-controls="view-editor" [disabled]="view.saving" (click)="view.editing ? view.cancel() : view.edit(channels)">Edit</button>
         }
       </div>
       <span class="day">{{ telemetry.day }} · UK time</span>
@@ -76,10 +76,23 @@
     @else if (telemetry.more) {
       <div class="continuation"><span>More data is available for this day.</span><button type="button" (click)="telemetry.loadMore()">Load remaining data</button></div>
     } @else if (!telemetry.channels.length && !telemetry.error) { <p class="state">No telemetry recorded for this day.</p> }
+    <div class="track-selection" aria-label="Track selection">
+      <label for="telemetry-track">Track</label>
+      <select id="telemetry-track" [value]="lapConfig.selectedId" [disabled]="lapConfig.saving || lapConfig.searching" (change)="selectTrack($any($event.target).value); $any($event.target).value = lapConfig.selectedId">
+        <option value="" disabled>{{ lapConfig.searching ? 'Finding track…' : lapConfig.creating ? 'New track' : lapConfig.candidates.length ? 'Choose track' : 'No matching track' }}</option>
+        @for (track of lapConfig.candidates; track track.id) { <option [value]="track.id">{{ track.name }}</option> }
+        @if (lapConfig.hasMore) { <option value="more">More tracks…</option> }
+      </select>
+      @if (view.editing && lapConfig.canEdit) { <button type="button" [disabled]="lapConfig.saving || lapConfig.searching" (click)="lapConfig.newTrack()">New track</button> }
+    </div>
+    @if (lapConfig.mismatch) { <p class="error" role="alert">GPS extends outside the selected track. Choose the correct track to analyse this dataset.</p> }
+    <app-greenpower-map [fixes]="lapConfig.fixes" [line]="lapConfig.line" [name]="lapConfig.name" [mismatch]="lapConfig.mismatch" [editing]="view.editing && lapConfig.canEdit" [saving]="lapConfig.saving" [ready]="lapConfig.ready" [revision]="lapConfig.revision" [context]="telemetry.day + telemetry.live + telemetry.access + lapConfig.selectedId + lapConfig.creating" [cursor]="cursor" [end]="telemetry.end" (cursorChange)="cursor = $event" (lineChange)="saveFinish($event)" />
+    @if (lapConfig.error) { <div class="error" role="alert">{{ lapConfig.error }} @if (!lapConfig.ready) { <button type="button" (click)="lapConfig.retry()">Retry tracks</button> }</div> }
     <div class="charts">
       @for (channel of charts; track channel.id) {
         @if (channel.points.length) { <app-greenpower-chart [channel]="channel" [laps]="laps" [start]="start" [end]="end" [cursor]="cursor" [context]="telemetry.day + telemetry.live" (windowChange)="zoom($event)" (cursorChange)="cursor = $event" /> }
       }
     </div>
+    <app-greenpower-lap-list [laps]="lapConfig.analysis.laps" [configured]="!!lapConfig.line" [loading]="telemetry.loading || lapConfig.searching || (!lapConfig.ready && !!lapConfig.selectedId)" [partial]="telemetry.more" (lapSelect)="zoom($event)" />
   }
 </main>

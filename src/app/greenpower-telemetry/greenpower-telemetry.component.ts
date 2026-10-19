@@ -3,7 +3,10 @@ import { Title } from '@angular/platform-browser';
 import { Subscription } from 'rxjs';
 import { GreenpowerChannel, londonDay, londonTime, sampleTime } from './greenpowerData';
 import { ChartWindow, scalarValue } from './greenpowerChart';
-import { lapIntervals, LapInterval } from './greenpowerLaps';
+import { LapInterval } from './greenpowerLaps';
+import { GreenpowerLapService } from './greenpowerLap.service';
+import { FinishLine } from './greenpowerGps';
+import { GreenpowerMapComponent } from './greenpower-map.component';
 import { ChannelDrag } from './channelDrag';
 import { orderFor, ViewKind } from './greenpowerView';
 import { GreenpowerViewService } from './greenpowerView.service';
@@ -12,9 +15,11 @@ import { GreenpowerTelemetryService } from './greenpowerTelemetry.service';
 @Component({
   selector: 'app-greenpower-telemetry', standalone: false,
   templateUrl: './greenpower-telemetry.component.html', styleUrls: ['./greenpower-telemetry.component.css'],
-  providers: [GreenpowerTelemetryService, GreenpowerViewService]
+  providers: [GreenpowerTelemetryService, GreenpowerViewService, GreenpowerLapService]
 })
 export class GreenpowerTelemetryComponent implements OnDestroy {
+  @ViewChild(GreenpowerMapComponent) private map?: GreenpowerMapComponent;
+  channels: GreenpowerChannel[] = [];
   historyOpen = false;
   scalars: GreenpowerChannel[] = [];
   charts: GreenpowerChannel[] = [];
@@ -39,7 +44,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   private readonly previousTitle: string;
   private readonly changes: Subscription;
   private readonly clock: ReturnType<typeof setInterval>;
-  constructor(public telemetry: GreenpowerTelemetryService, change: ChangeDetectorRef, private title: Title, public view: GreenpowerViewService) {
+  constructor(public telemetry: GreenpowerTelemetryService, change: ChangeDetectorRef, private title: Title, public view: GreenpowerViewService, public lapConfig: GreenpowerLapService) {
     this.drag = new ChannelDrag({
       valid: () => view.editing && view.canEdit && !view.saving && this.editorKind === this.dragKind,
       reorder: (id, index) => view.reorder(this.dragKind, id, index),
@@ -54,6 +59,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
       this.refreshView(); change.markForCheck();
     });
     this.changes.add(view.changed.subscribe(() => { this.refreshView(); change.markForCheck(); }));
+    this.changes.add(lapConfig.changed.subscribe(() => { this.refreshView(); change.markForCheck(); }));
     this.refreshView();
     this.clock = setInterval(() => { this.now = Date.now(); telemetry.tick(); change.markForCheck(); }, 1000);
   }
@@ -61,10 +67,20 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     if ((!this.view.editing || !this.view.canEdit || this.view.saving) && this.drag.pending) this.drag.cancel();
     if (!this.view.editing) this.orderNotice = '';
     this.selectedCount = Object.keys(this.view.draft[this.editorKind]).length;
-    this.scalars = this.view.scalars(this.telemetry.channels);
-    this.charts = this.view.charts(this.telemetry.channels);
-    this.laps = lapIntervals(this.telemetry.channels.find(channel => channel.id === '["Lap"]:')?.points ?? [], this.telemetry.end);
-    this.available = this.view.editing ? this.view.available(this.telemetry.channels, this.editorKind) : [];
+    this.lapConfig.select(this.telemetry.day + ':' + this.telemetry.live);
+    this.lapConfig.update(this.telemetry.channels, this.telemetry.end);
+    this.channels = [...this.telemetry.channels, this.lapConfig.analysis.channel];
+    this.scalars = this.view.scalars(this.channels);
+    this.charts = this.view.charts(this.channels);
+    this.laps = this.lapConfig.analysis.laps;
+    this.available = this.view.editing ? this.view.available(this.channels, this.editorKind) : [];
+  }
+  selectTrack(id: string) {
+    if (id === 'more') this.lapConfig.loadMore();
+    else this.lapConfig.choose(id);
+  }
+  async saveFinish(value: { line: FinishLine | null; revision: number; name: string }) {
+    if (await this.lapConfig.save(value.line, value.revision, value.name)) this.map?.confirmSaved(value.line, this.lapConfig.revision, this.lapConfig.name);
   }
   selectEditor(kind: ViewKind) {
     this.drag.cancel();

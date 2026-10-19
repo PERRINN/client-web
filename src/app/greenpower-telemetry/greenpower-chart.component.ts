@@ -68,6 +68,12 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
     const d = this.drag;
     return d?.mode === 'zoom' ? { x: Math.min(d.anchor, d.position) * 800, width: Math.abs(d.anchor - d.position) * 800 } : undefined;
   }
+  zoomLap(lap: LapInterval) {
+    if (lap.end <= lap.time) return;
+    this.cancel(); this.taps.cancel();
+    this.cursorChange.emit(undefined);
+    this.windowChange.emit({ start: lap.time, end: lap.end });
+  }
   ngOnChanges(changes: SimpleChanges) {
     if (changes['context']) this.cancel();
     if (changes['channel'] || changes['start'] || changes['end'] || changes['laps']) {

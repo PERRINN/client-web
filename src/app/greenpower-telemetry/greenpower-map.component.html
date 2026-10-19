@@ -1,0 +1,31 @@
+<section aria-label="GPS track map">
+  <div class="heading"><h2>Track</h2><span>{{ cursor === undefined ? 'Latest position' : 'Cursor position' }}</span></div>
+  <div class="map-area">
+    <svg #map viewBox="0 0 500 500" role="application" tabindex="0" aria-label="GPS track. Left and right arrows inspect positions. In Set line, use arrow keys and Enter to place each endpoint; Escape cancels." (click)="click($event, map)" (keydown)="key($event)">
+      <path class="track" [attr.d]="projection.path" />
+      @if (endpoints; as p) {
+        <line class="finish" [attr.x1]="p.a.x" [attr.y1]="p.a.y" [attr.x2]="p.b.x" [attr.y2]="p.b.y" />
+        <path class="direction" [attr.d]="directionPath" />
+
+      }
+      @if (car; as p) { <circle class="car" [attr.cx]="p.x" [attr.cy]="p.y" r="5"><title>Car position</title></circle> }
+      @if (first; as p) { <circle class="endpoint" [attr.cx]="projection.project(p).x" [attr.cy]="projection.project(p).y" r="4" /> }
+      @if (placing) { <path class="crosshair" [attr.d]="'M' + (keyboard.x - 8) + ',' + keyboard.y + 'h16 M' + keyboard.x + ',' + (keyboard.y - 8) + 'v16'" /> }
+    </svg>
+    @if (!fixes.length) { <span class="empty">No GPS data</span> }
+    @if (placing || dirty && draft && !valid) { <p class="notice" aria-live="polite">{{ placing ? (first ? 'Choose the second endpoint.' : 'Choose the first endpoint.') : 'Enter a track name and a line between 2 and 500 m.' }}</p> }
+  </div>
+  @if (editing && mismatch) { <p class="area-notice">Saving updates the track area from loaded GPS.</p> }
+  <div class="map-controls">
+    @if (editing) {
+      <label class="track-name">Track name<input type="text" maxlength="60" [value]="draftName" [disabled]="saving" (input)="draftName = $any($event.target).value; dirty = true"></label>
+      <button type="button" [disabled]="saving || !ready || !fixes.length" (click)="place()">Set line</button>
+      <button type="button" [disabled]="saving || !draft" (click)="reverse()">Reverse direction</button>
+      <button type="button" [disabled]="saving || !draft" (click)="clear()">Remove line</button>
+      <button type="button" class="primary" [disabled]="saving || !dirty || !valid || placing" (click)="save()">{{ saving ? 'Saving' : 'Save track' }}</button>
+    } @else {
+      <span>{{ line ? name + ' · Start/finish' : ready ? 'Start/finish not set' : 'Waiting for track…' }}</span>
+      <button type="button" [disabled]="cursor === undefined" (click)="cursorChange.emit(undefined)">Latest</button>
+    }
+  </div>
+</section>

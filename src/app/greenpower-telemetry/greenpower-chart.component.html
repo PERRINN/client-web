@@ -33,9 +33,9 @@
         <ellipse class="cursor-point" [attr.cx]="cursorPosition" [attr.cy]="markerY" [attr.rx]="markerRadiusX" ry="3.2" />
       }
     </svg>
-    <div class="lap-labels" aria-hidden="true">
+    <div class="lap-labels">
       @for (lap of lapBands; track lap.time) {
-        @if (lap.label) { <span [style.left.%]="lap.x" [style.width.%]="lap.width"><span>{{ lap.label }}</span></span> }
+        @if (lap.label) { <span [style.left.%]="lap.x" [style.width.%]="lap.width"><button type="button" [attr.aria-label]="'Zoom all graphs to ' + lap.label.toLowerCase()" (click)="zoomLap(lap)">{{ lap.label }}</button></span> }
       }
     </div>
   </div>

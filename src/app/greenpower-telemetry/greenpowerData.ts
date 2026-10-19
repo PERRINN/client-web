@@ -29,7 +29,7 @@ const known: Record<string, [string, string]> = {
   Vt: ['Total voltage', 'V'], V1: ['Lower battery voltage', 'V'], A: ['Current', 'A'],
   RPM: ['Motor speed', 'rpm'], Spd: ['Vehicle speed', 'm/s'], Thrtl: ['Throttle', '%'],
   Tmp1: ['Temperature 1', '°C'], Tmp2: ['Temperature 2', '°C'], AH: ['Amp hours used', 'Ah'],
-  Lap: ['Lap', ''], Gear: ['Gear', ''], Brk: ['Brake', ''], Lon: ['Longitude', '°'], Lat: ['Latitude', '°']
+  Lap: ['Telemetry lap', ''], Gear: ['Gear', ''], Brk: ['Brake', ''], Lon: ['Longitude', '°'], Lat: ['Latitude', '°']
 };
 const historicalAliases: Record<string, string> = {
   voltage: 'Vt', voltageLower: 'V1', current: 'A', rpm: 'RPM', speed: 'Spd',
@@ -138,6 +138,7 @@ export function pointIndex(points: { time: number }[], time: number, after = fal
 
 /** Recover a saved selection's label even when this day has no matching samples. */
 export function channelDetails(id: string): { label: string; unit: string } {
+  if (id === 'computed:gps-lap') return { label: 'GPS lap', unit: '' };
   for (let at = id.indexOf(']:'); at >= 0; at = id.indexOf(']:', at + 2)) {
     try {
       const path: unknown = JSON.parse(id.slice(0, at + 1));

@@ -1,0 +1,55 @@
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isPerrinnAdmin() {
+      return request.auth != null && request.auth.token.perrinnAdmin == true;
+    }
+    match /GreenpowerTelemetry/424/config/view {
+      function validChannels(channels) {
+        return channels is map && channels.size() <= 512 && channels.values().hasOnly([true]);
+      }
+      function validOrder(order, channels) {
+        return order is list && order.size() == channels.size()
+          && order.toSet() == channels.keys().toSet();
+      }
+      function validView() {
+        return request.resource.data.keys().hasAll(['scalars', 'charts', 'revision', 'updatedBy', 'updatedAt'])
+          && request.resource.data.keys().hasOnly(['scalars', 'charts', 'scalarOrder', 'chartOrder', 'revision', 'updatedBy', 'updatedAt'])
+          && validChannels(request.resource.data.scalars) && validChannels(request.resource.data.charts)
+          && (!request.resource.data.keys().hasAny(['scalarOrder']) || validOrder(request.resource.data.scalarOrder, request.resource.data.scalars))
+          && (!request.resource.data.keys().hasAny(['chartOrder']) || validOrder(request.resource.data.chartOrder, request.resource.data.charts))
+          && request.resource.data.revision is int && request.resource.data.revision > 0
+          && request.resource.data.updatedBy == request.auth.uid && request.resource.data.updatedAt == request.time;
+      }
+      allow create: if isPerrinnAdmin() && validView() && request.resource.data.revision == 1;
+      allow update: if isPerrinnAdmin() && validView() && request.resource.data.revision == resource.data.revision + 1;
+    }
+    match /{collection}/{document=**} {
+      allow read: if collection != 'GreenpowerTelemetry';
+    }
+    match /GreenpowerTelemetry/{document=**} {
+      allow read: if request.auth != null;
+    }
+    match /userPresence/{userId} {
+      // Activity is public. Only the owner can write a server-time-only record.
+      allow create, update: if request.auth != null
+                            && request.auth.uid == userId
+                            && request.resource.data.keys().hasOnly(['lastActiveAt'])
+                            && request.resource.data.lastActiveAt == request.time;
+    }
+    match /lastSeen/{userId} {
+      allow read, write: if request.auth.uid == userId;
+      match /chats/{chatId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+      match /payments/{payment} {
+      	allow create,read: if team == request.auth.uid;
+      }
+    }
+    match /PERRINNMessages/{message} {
+      allow create: if request.resource.data.user==request.auth.uid
+                    && request.resource.data.serverTimestamp==request.time
+                    && request.resource.data.text.size()<=500;
+    }
+  }
+}
+
