@@ -1,0 +1,53 @@
+{
+  "commit": "fb7dc69",
+  "endpoint": "https://us-central1-perrinn-d5fc1.cloudfunctions.net/greenpowerTelemetry/",
+  "day": "2026-10-19",
+  "calls": [
+    {
+      "method": "POST",
+      "status": 204,
+      "requestMs": 6520
+    },
+    {
+      "method": "GET",
+      "status": 204,
+      "requestMs": 376
+    },
+    {
+      "method": "POST",
+      "status": 204,
+      "requestMs": 332
+    }
+  ],
+  "storedSampleCount": 3,
+  "latestSampleVerified": true,
+  "invalidPayloadStatus": 400,
+  "unauthenticatedUploadStatus": 401,
+  "anonymousReadStatuses": [
+    403,
+    403,
+    403
+  ],
+  "retainedSyntheticSamples": 3,
+  "project": "perrinn-d5fc1",
+  "region": "us-central1",
+  "service": "greenpowertelemetry",
+  "invokerIamDisabled": true,
+  "runtimeConfigurationUnchanged": true,
+  "storedPayloadsVerified": 3,
+  "uniqueSampleIds": 3,
+  "wrongPasswordStatus": 401,
+  "wrongPasswordWrites": 0,
+  "realOmniPhoneVerified": false,
+  "date": "2026-10-19",
+  "scope": "Only the Cloud Run Invoker IAM check on greenpowertelemetry in perrinn-d5fc1/us-central1 was changed; runtime configuration and other services were unchanged.",
+  "testRequestBudget": {
+    "acceptedUploads": 3,
+    "invalidPayloadUploads": 1,
+    "missingCredentialUploads": 1,
+    "wrongPasswordUploads": 1,
+    "automaticRetries": 0,
+    "anonymousReadChecks": 3
+  },
+  "issue95": "Open pending real OMNI phone/workshop verification."
+}
