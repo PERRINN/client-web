@@ -1,0 +1,107 @@
+{
+  "checkedAt": "2026-10-19T17:08:00.532Z",
+  "project": "perrinn-d5fc1",
+  "repositoryIndexes": 23,
+  "liveIndexes": 19,
+  "repositoryOnly": [
+    {
+      "collectionGroup": "events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "type",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "date",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "locationKey",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "date",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "type",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "locationKey",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "date",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "sessions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "eventId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "firstAt",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    }
+  ],
+  "liveOnly": [],
+  "notReady": [],
+  "historicalMapping": "pending_review",
+  "historicalBackfillApplied": false,
+  "releaseValidation": {
+    "unitPassed": 119,
+    "emulatorPassed": 18,
+    "buildHash": "7854754e49654c71",
+    "lintErrors": 0,
+    "existingLintWarnings": 64,
+    "browserWidths": [
+      1440,
+      390,
+      320
+    ],
+    "browserErrors": [],
+    "browserArtifacts": "/var/folders/6j/540yrv1536x9pc7qv833941h0000gn/T/greenpower-ui-dpi5X3",
+    "rulesChanged": false
+  }
+}

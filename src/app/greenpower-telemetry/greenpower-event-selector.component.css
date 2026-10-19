@@ -1,0 +1,18 @@
+:host { display: block; font-size: 15px; line-height: 1.45; }
+:host * { overflow: visible; line-height: inherit; font-size: inherit; }
+section { background: var(--color-surface); padding: 14px; margin: 12px 0; }
+.tabs { display: flex; gap: 8px; margin-bottom: 10px; }
+.filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; gap: 8px; align-items: end; margin-bottom: 12px; }
+label { display: block; color: var(--color-text-secondary); font-size: 14px; }
+input, select, button { padding: 8px; min-height: 44px; min-width: 0; margin: 0; font: inherit; font-size: 16px; background: var(--color-raised); color: var(--color-text); border: 1px solid var(--color-border); border-radius: 6px; }
+input, select { display: block; width: 100%; text-align: left; color-scheme: dark; }
+button { border-color: transparent; }
+button[aria-pressed="true"] { background: var(--color-selected); }
+button:disabled, input:disabled, select:disabled { opacity: .6; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.feedback { min-height: 44px; display: flex; align-items: center; gap: 8px; color: var(--color-text-secondary); }
+.error { color: var(--color-danger-text); overflow-wrap: anywhere; }
+@media (max-width: 700px) { .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 360px) { .filters { grid-template-columns: minmax(0, 1fr); } }
+
+button, input, select, textarea { transition: none; }

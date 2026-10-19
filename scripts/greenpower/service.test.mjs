@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { Subject } from 'rxjs';
-import { data, load, sample } from './load.mjs';
+import { data, load, sample, recordings } from './load.mjs';
+import { recording } from './eventFixtures.mjs';
 const { GreenpowerTelemetryService } = load('../../src/app/greenpower-telemetry/greenpowerTelemetry.service.ts', {
   '@angular/core': { Injectable: () => target => target, runInInjectionContext: (_, callback) => callback() },
   'firebase/compat/app': { default: { firestore: { FieldPath: { documentId: () => '__name__' } } } },
-  'firebase/compat/firestore': {}, rxjs: { Subject }, './greenpowerData': data
+  'firebase/compat/firestore': {}, rxjs: { Subject }, './greenpowerData': data, './greenpowerRecording': recordings
 });
 
 function harness() {
@@ -18,6 +19,7 @@ function harness() {
       orderBy: (field, direction) => ref(path, { ...options, field, direction }), limit: limit => ref(path, { ...options, limit }),
       startAt: cursor => ref(path, { ...options, cursor: typeof cursor === 'string' ? cursor : cursor.id, inclusive: true }),
       startAfter: cursor => ref(path, { ...options, cursor: typeof cursor === 'string' ? cursor : cursor.id, inclusive: false }),
+      endAt: end => ref(path, { ...options, end }),
       async get(source) {
         assert.equal(source.source, 'server');
         calls.push({ path, ...options });
@@ -27,6 +29,7 @@ function harness() {
         let entries = [...records].filter(([key]) => key.startsWith(`${path}/`) && key.slice(path.length + 1).indexOf('/') < 0).sort(([a], [b]) => a.localeCompare(b));
         if (options.direction === 'desc') entries.reverse();
         entries = entries.filter(([key]) => !options.cursor || (options.direction === 'desc' ? key.split('/').at(-1) < options.cursor : options.inclusive ? key.split('/').at(-1) >= options.cursor : key.split('/').at(-1) > options.cursor));
+        if (options.end) entries = entries.filter(([key]) => key.split('/').at(-1) <= options.end);
         return snapshot(entries.slice(0, options.limit).map(([key, value]) => ({ id: key.split('/').at(-1), data: () => value })));
       },
       onSnapshot(optionsOrNext, nextOrError, error) {
@@ -45,6 +48,21 @@ function harness() {
   return { service, authState, records, calls, listeners, root, seed, snapshot, get offCount() { return offCount; }, delay: callback => { delayed = callback; } };
 }
 const settle = async () => { for (let i = 0; i < 5; i++) await new Promise(resolve => setImmediate(resolve)); };
+
+test('clearing a selector preserves matching authorized chunks but an account change always rereads', async () => {
+  const h = harness(), fixture = recording('2026-06-14', '424-phone');
+  fixture.records.forEach(([path, value]) => h.records.set(path, value));
+  h.records.get(h.root + '/2026-06-14').latest = fixture.samples.at(-1);
+  h.authState.next({ uid: 'first' }); await settle(); await h.service.select('2026-06-14');
+  const reads = h.calls.length;
+  h.service.clearRecording('2026-06-14', 'event:manual'); assert.deepEqual(h.service.channels, []);
+  await h.service.selectRecording('run-1', [fixture.segment(0, 1)]);
+  assert.equal(h.service.error, ''); assert.equal(h.calls.length, reads); assert.equal(h.service.latest.id, fixture.samples[1].id);
+  h.authState.next({ uid: 'second' }); await settle(); const newAccountReads = h.calls.length;
+  await h.service.selectRecording('run-1', [fixture.segment(0, 1)]);
+  assert.equal(h.service.error, ''); assert.ok(h.calls.length > newAccountReads, 'old-account chunks were released');
+  h.service.ngOnDestroy();
+});
 
 test('signed-out state performs no reads; sign-in starts today; logout clears data and listeners', async () => {
   const h = harness(); h.authState.next(null); await settle();

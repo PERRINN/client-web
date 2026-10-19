@@ -7,7 +7,7 @@ import { BehaviorSubject, Subject } from 'rxjs';
 import { createServer } from 'node:http';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { data, load } from './load.mjs';
+import { data, load, recordings } from './load.mjs';
 const host = process.env.FIRESTORE_EMULATOR_HOST;
 assert.match(host || '', /^(127\.0\.0\.1|localhost):\d+$/, 'A local Firestore emulator is required; production is never allowed.');
 const projectId = 'demo-greenpower';
@@ -62,7 +62,7 @@ test('existing public collection and nested document reads remain available', as
 test('real client listeners recover every sample after a network interruption and clear on logout', async () => {
   const { GreenpowerTelemetryService } = load('../../src/app/greenpower-telemetry/greenpowerTelemetry.service.ts', {
     '@angular/core': { Injectable: () => target => target, runInInjectionContext: (_, callback) => callback() },
-    'firebase/compat/app': { default: firebase }, 'firebase/compat/firestore': {}, rxjs: { Subject }, './greenpowerData': data
+    'firebase/compat/app': { default: firebase }, 'firebase/compat/firestore': {}, rxjs: { Subject }, './greenpowerData': data, './greenpowerRecording': recordings
   });
   const clientApp = firebase.initializeApp({ projectId, apiKey: 'demo-key' }, `greenpower-client-${process.pid}`);
   const client = clientApp.firestore(), [hostname, port] = host.split(':');

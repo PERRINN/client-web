@@ -22,9 +22,16 @@ import { TestBed } from '@angular/core/testing';
 import { BrowserDynamicTestingModule, platformBrowserDynamicTesting } from '@angular/platform-browser-dynamic/testing';
 import { Title } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { RouterModule } from '@angular/router';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, defer } from 'rxjs';
+import { GreenpowerEventsService } from '${folder}/greenpowerEvents.service';
+import { GreenpowerEventEditService } from '${folder}/greenpowerEventEdit.service';
+import { GreenpowerEventSelectorComponent } from '${folder}/greenpower-event-selector.component';
+import { GreenpowerEventEditorComponent } from '${folder}/greenpower-event-editor.component';
+import { GreenpowerMetadataFieldsComponent } from '${folder}/greenpower-metadata-fields.component';
 import { PermissionsService } from '${root}/src/app/permissions.service';
 import { GreenpowerViewService } from '${folder}/greenpowerView.service';
 import { GreenpowerLapService } from '${folder}/greenpowerLap.service';
@@ -36,7 +43,11 @@ import { GreenpowerTelemetryService } from '${folder}/greenpowerTelemetry.servic
 import { channelsFor, sampleTime } from '${folder}/greenpowerData';
 import { trackCoverage } from '${folder}/greenpowerTracks';
 import { PrototypeGalleryComponent } from '${root}/src/app/prototypes/prototype-gallery.component';
-GreenpowerTelemetryComponent.ctorParameters = () => [{type: GreenpowerTelemetryService}, {type: ChangeDetectorRef}, {type: Title}, {type: GreenpowerViewService}, {type: GreenpowerLapService}];
+GreenpowerTelemetryComponent.ctorParameters = () => [{type: GreenpowerTelemetryService}, {type: ChangeDetectorRef}, {type: Title}, {type: GreenpowerViewService}, {type: GreenpowerLapService}, {type: GreenpowerEventsService}, {type: GreenpowerEventEditService}];
+GreenpowerEventsService.ctorParameters = () => [{type: PermissionsService}, {type: AngularFirestore}];
+GreenpowerEventEditService.ctorParameters = () => [{type: GreenpowerEventsService}, {type: GreenpowerTelemetryService}, {type: AngularFireFunctions}];
+GreenpowerEventSelectorComponent.ctorParameters = () => [{type: GreenpowerEventsService}, {type: GreenpowerTelemetryService}, {type: ChangeDetectorRef}];
+GreenpowerEventEditorComponent.ctorParameters = () => [{type: GreenpowerEventEditService}, {type: GreenpowerEventsService}, {type: GreenpowerTelemetryService}, {type: ChangeDetectorRef}];
 GreenpowerMapComponent.ctorParameters = () => [{type: ChangeDetectorRef}];
 GreenpowerLapService.ctorParameters = () => [{type: PermissionsService}, {type: AngularFirestore}];
 GreenpowerViewService.ctorParameters = () => [{type: PermissionsService}, {type: AngularFirestore}];
@@ -55,19 +66,54 @@ let lapRecord; const lapListeners=[];const trackRecords=new Map();
 const notifyLaps=()=>lapListeners.filter(l=>l.active).forEach(l=>{const record=trackRecords.get(l.id);l.next({exists:!!record,data:()=>record,metadata:{fromCache:false,hasPendingWrites:false}});});
 const trackRef=(id='created-track')=>({id,firestore:{async runTransaction(callback){if(saveError)throw new Error('synthetic save failure');await callback({get:async(ref)=>({data:()=>trackRecords.get(ref.id)}),set:(ref,value)=>{trackRecords.set(ref.id,value);lapRecord=value;}});notifyLaps();}},
  onSnapshot(options,next,error){const l={id,next,error,active:true};lapListeners.push(l);queueMicrotask(()=>{if(l.active)notifyLaps();});return()=>l.active=false;}});
-const mockFirestore={firestore:{doc:path=>path.endsWith('/config/track')?datasetRef(path):ref,collection:()=>({doc:trackRef,where:(field,op,cell)=>({limit:n=>({after:'',startAfter(doc){this.after=doc.id;return this;},async get(){let docs=Array.from(trackRecords,([id,record])=>({id,data:()=>record})).filter(doc=>doc.data().cells.includes(cell));if(this.after)docs=docs.slice(docs.findIndex(doc=>doc.id===this.after)+1);docs=docs.slice(0,n);return {docs,size:docs.length};}})})})}};
-TestBed.configureTestingModule({providers:[{provide:PermissionsService,useValue:permissions},{provide:AngularFirestore,useValue:mockFirestore}],imports:[CommonModule, RouterModule.forRoot([])], declarations:[GreenpowerTelemetryComponent,GreenpowerChartComponent,GreenpowerMapComponent,GreenpowerLapListComponent,PrototypeGalleryComponent]});
+
+const metadataRecords=new Map(),metadataListeners=[],metadataCalls=[];
+let metadataError='';
+const metadataPath=path=>['GreenpowerTelemetry/424/events','GreenpowerTelemetry/424/sessions'].some(prefix=>path===prefix||path.startsWith(prefix+'/'));
+const metadataSnapshot=path=>({id:path.split('/').at(-1),exists:metadataRecords.has(path),data:()=>structuredClone(metadataRecords.get(path)),metadata:{fromCache:false,hasPendingWrites:false}});
+const metadataNotify=()=>metadataListeners.filter(l=>l.active).forEach(l=>l.next(metadataSnapshot(l.path)));
+const metadataRef=path=>({path,async get(){return metadataSnapshot(path);},onSnapshot(options,next,error){const listener={path,next,error,active:true};metadataListeners.push(listener);queueMicrotask(()=>{if(listener.active)next(metadataSnapshot(path));});return()=>listener.active=false;}});
+function metadataQuery(path,spec={filters:[],order:[]}){
+ return {where:(key,op,value)=>metadataQuery(path,{...spec,filters:[...spec.filters,[key,op,value]]}),orderBy:(key,direction='asc')=>metadataQuery(path,{...spec,order:[...spec.order,[typeof key==='string'?key:'__name__',direction]]}),limit:limit=>metadataQuery(path,{...spec,limit}),startAfter:cursor=>metadataQuery(path,{...spec,after:cursor.id}),async get(){
+ const field=(doc,key)=>key==='__name__'?doc.id:doc.data()?.[key];
+ const rows=Array.from(metadataRecords.keys()).filter(key=>key.startsWith(path+'/')&&!key.slice(path.length+1).includes('/')).map(metadataSnapshot).filter(doc=>spec.filters.every(([key,op,value])=>op==='=='?field(doc,key)===value:op==='>='?field(doc,key)>=value:field(doc,key)<=value)).sort((a,b)=>{for(const[key,direction]of spec.order){const x=field(a,key),y=field(b,key);if(x!==y)return(x<y?-1:1)*(direction==='desc'?-1:1);}return 0;});
+ const start=spec.after?rows.findIndex(doc=>doc.id===spec.after)+1:0,docs=rows.slice(start,start+spec.limit);return{docs,size:docs.length};}};
+}
+const metadataFunctions={httpsCallable:()=>input=>defer(async()=>{
+ metadataCalls.push(structuredClone(input));if(metadataError)throw{code:metadataError};
+ for(const kind of ['events','sessions'])for(const change of input[kind]){const old=metadataRecords.get('GreenpowerTelemetry/424/'+kind+'/'+change.id);if((old?.revision||0)!==change.expectedRevision)throw{code:'functions/failed-precondition'};}
+ const counts=new Map(input.events.map(change=>[change.id,metadataRecords.get('GreenpowerTelemetry/424/events/'+change.id)?.sessionCount||0]));
+ for(const change of input.sessions){const old=metadataRecords.get('GreenpowerTelemetry/424/sessions/'+change.id);if(old?.eventId!==change.data.eventId){if(old)counts.set(old.eventId,counts.get(old.eventId)-1);counts.set(change.data.eventId,counts.get(change.data.eventId)+1);}}
+ const result={changeId:input.requestId,events:[],sessions:[]};
+ for(const kind of ['events','sessions'])for(const change of input[kind]){const path='GreenpowerTelemetry/424/'+kind+'/'+change.id;metadataRecords.set(path,{...(change.data||metadataRecords.get(path)),...(kind==='events'?{sessionCount:counts.get(change.id)}:{}),revision:change.expectedRevision+1,updatedBy:'viewer'});result[kind].push({id:change.id,revision:change.expectedRevision+1});}
+ metadataNotify();return result;
+})};
+
+const mockFirestore={firestore:{doc:path=>metadataPath(path)?metadataRef(path):path.endsWith('/config/track')?datasetRef(path):ref,collection:(path)=>metadataPath(path)?metadataQuery(path):({doc:trackRef,where:(field,op,cell)=>({limit:n=>({after:'',startAfter(doc){this.after=doc.id;return this;},async get(){let docs=Array.from(trackRecords,([id,record])=>({id,data:()=>record})).filter(doc=>doc.data().cells.includes(cell));if(this.after)docs=docs.slice(docs.findIndex(doc=>doc.id===this.after)+1);docs=docs.slice(0,n);return {docs,size:docs.length};}})})})}};
+TestBed.configureTestingModule({providers:[{provide:PermissionsService,useValue:permissions},{provide:AngularFirestore,useValue:mockFirestore},{provide:AngularFireFunctions,useValue:metadataFunctions}],imports:[CommonModule, FormsModule, RouterModule.forRoot([])], declarations:[GreenpowerTelemetryComponent,GreenpowerChartComponent,GreenpowerMapComponent,GreenpowerLapListComponent,PrototypeGalleryComponent,GreenpowerEventSelectorComponent,GreenpowerEventEditorComponent,GreenpowerMetadataFieldsComponent]});
 const fixture = TestBed.createComponent(GreenpowerTelemetryComponent);
 document.querySelector('.contentCard').append(fixture.nativeElement); fixture.autoDetectChanges();
 const service = fixture.componentInstance.telemetry;
 window.telemetryHarness = {
+  async metadataSeed() {
+    fixture.componentInstance.selectView('data');
+    fixture.componentInstance.eventEdit.cancel();fixture.componentInstance.view.cancel();fixture.componentInstance.metadataEditing=false;fixture.componentInstance.editorPanel='view';fixture.componentInstance.historyOpen=false;fixture.componentInstance.events.clear();
+    service.live=false;await service.select('2026-06-14');
+    const base={type:'full_dyno',date:'2026-06-14',timeZone:'Europe/London',state:'active',metadataStatus:'review_needed',revision:1,updatedBy:'viewer',sessionCount:2,location:'Workshop',locationKey:'workshop'};
+    metadataRecords.clear();metadataRecords.set('GreenpowerTelemetry/424/events/demo-event',{...base,name:'Workshop dyno'});metadataRecords.set('GreenpowerTelemetry/424/events/target-event',{...base,name:'Second dyno event',sessionCount:0});
+    for(let i=0;i<2;i++){const first=Date.parse('2026-06-14T08:00:00Z')+i*3600000,last=first+1800000;metadataRecords.set('GreenpowerTelemetry/424/sessions/demo-session-'+i,{name:'Dyno run '+(i+1),eventId:'demo-event',runNumber:i+1,metadataStatus:'review_needed',revision:1,updatedBy:'viewer',firstAt:first,lastAt:last,segments:[{day:'2026-06-14',source:'424-phone',firstChunk:'0000000000',lastChunk:'0000000000',firstIndex:0,lastIndex:1,firstSampleId:'start',lastSampleId:'end',firstAt:first,lastAt:last}]});}
+    metadataError='';metadataCalls.length=0;fixture.componentInstance.events.loadedEvents=false;await fixture.componentInstance.events.loadEvents(true);metadataNotify();fixture.detectChanges();
+  },
+  metadataName(name){const path='GreenpowerTelemetry/424/events/demo-event';const old=metadataRecords.get(path);metadataRecords.set(path,{...old,name,revision:old.revision+1});metadataNotify();fixture.detectChanges();},
+  metadataFailure(code){metadataError=code;},
+  metadataSaved(){return structuredClone(metadataCalls);},
   imported(value) {
     viewReset();
     const samples=value.chunks.flatMap(chunk=>chunk.samples);
     service.day=value.day;service.live=false;service.dates=[value.day];service.latest=value.metadata.latest;
     service.channels=channelsFor(samples,service.latest);service.start=Math.min(...samples.map(sampleTime));service.end=Math.max(...samples.map(sampleTime));
     service.loading=false;service.more=false;service.error='';service.access='signed-in';
-    fixture.componentInstance.historyOpen=true;config=value.view;notify();service.changed.next();fixture.detectChanges();
+    fixture.componentInstance.historyOpen=true;fixture.componentInstance.events.historySource='days';config=value.view;notify();service.changed.next();fixture.detectChanges();
   },
   role(admin){permissionState.next({uid:'viewer',isAdmin:admin,ready:true});fixture.detectChanges();},
   config(value){config=value;notify();fixture.detectChanges();},
@@ -148,10 +194,13 @@ import { Subject } from 'rxjs';
 import { channelsFor, londonDay } from '${folder}/greenpowerData';
 @Injectable()
 export class GreenpowerTelemetryService {
- changed=new Subject(); access='signed-in'; live=true; day=londonDay(); connected=true; loading=false; loadingDates=false; error=''; datesError=''; more=false; moreDates=false; dates=[]; channels=[]; latest; start=0; end=0;
+ recordingKey=''; changed=new Subject(); access='signed-in'; live=true; day=londonDay(); connected=true; loading=false; loadingDates=false; error=''; datesError=''; more=false; moreDates=false; dates=[]; channels=[]; latest; start=0; end=0;
  constructor(){this.seed(Date.now());}
  seed(now){ const samples=Array.from({length:300},(_,i)=>({id:String(i),receivedAt:now-(299-i)*3000,source:'synthetic',raw:JSON.stringify({Vt:24+Math.sin(i/10),A:30+Math.cos(i/20)*5,Spd:10+Math.sin(i/20),Tmp1:30+i/1000,Lat:52,Lon:-1,custom:{value:i%10,unit:'widgets'},status:'running'})})); this.latest=samples.at(-1);this.start=samples[0].receivedAt;this.end=now;this.channels=channelsFor(samples,this.latest); }
- async select(day,live=false){this.day=day;this.live=live;this.seed(live?Date.now():Date.parse(day+'T15:00:00Z'));this.changed.next();}
+ clearRecording(day=this.day,key=''){this.day=day;this.live=false;this.recordingKey=key;this.channels=[];this.latest=undefined;this.changed.next();}
+ async selectRecording(id,segments){this.recordingKey=id;this.day=segments[0].day;this.live=false;this.seed(segments.at(-1).lastAt);this.changed.next();}
+ range(start,end){return [{day:this.day,source:'424-phone',firstChunk:'0000000000',lastChunk:'0000000000',firstIndex:0,lastIndex:1,firstSampleId:'start',lastSampleId:'end',firstAt:Math.round(start),lastAt:Math.round(end)}];}
+ async select(day,live=false){this.recordingKey='';this.day=day;this.live=live;this.seed(live?Date.now():Date.parse(day+'T15:00:00Z'));this.changed.next();}
  async loadDates(){this.dates=['2026-10-18','2026-10-17'];this.changed.next();}
  async loadMore(){this.more=false;this.changed.next();}
  tick(){}
@@ -181,9 +230,10 @@ await new Promise(done => server.listen(0, '127.0.0.1', done));
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 try {
   const page = await browser.newPage();
-  const errors = []; page.on('pageerror', error => errors.push(error.message));
+  const errors = []; page.on('pageerror', error => {errors.push(error.message);console.error('UI page error: '+error.message);});
   await page.goto(`http://127.0.0.1:${server.address().port}`);
   await page.waitForFunction(() => !!window.telemetryHarness);
+  if (!process.env.GREENPOWER_EVENTS_ONLY) {
   if (!process.env.GREENPOWER_GPS_ONLY) {
   for (const [name, width, height] of [['desktop', 1440, 1000], ['mobile', 390, 844], ['small-mobile', 320, 740]]) {
     await page.setViewportSize({ width, height });
@@ -269,6 +319,7 @@ try {
     assert.match(await page.locator('.status').innerText(), /Stale/);
     assert.equal((await page.locator('h1').boundingBox()).y, before.y);
     await page.getByRole('button', { name: 'Load history', exact: true }).click();
+    await page.getByRole('button',{name:'Recorded days',exact:true}).click();
     await page.evaluate(()=>window.telemetryHarness.earlierDates());
     assert.equal(await page.getByRole('button',{name:'Earlier dates',exact:true}).isVisible(),true);
     await page.getByLabel('Recorded day').selectOption('2026-10-18');
@@ -403,6 +454,7 @@ try {
   await touch.screenshot({path:`${output}/mobile-interactions.png`});
   // Changing the selected day clears both the viewport and cursor.
   await page.getByRole('button',{name:'Load history',exact:true}).click();
+  await page.getByRole('button',{name:'Recorded days',exact:true}).click();
   await page.getByLabel('Recorded day').selectOption('2026-10-18');
   assert.equal((await page.evaluate(()=>window.telemetryHarness.snapshot())).zoomed,false);
   assert.equal((await page.evaluate(()=>window.telemetryHarness.snapshot())).cursor,undefined);
@@ -424,6 +476,22 @@ try {
     const voltageScalar=page.getByRole('checkbox',{name:'Total voltage scalar',exact:true});
     const currentChart=page.getByRole('checkbox',{name:'Current chart',exact:true});
     await voltageScalar.uncheck();
+    const actionHeight=(await page.locator('.controls').boundingBox()).height;
+    await page.getByRole('button',{name:'Track map',exact:true}).click();
+    await page.getByLabel('Track',{exact:true}).waitFor();
+    assert.equal(await page.getByRole('checkbox').count(),0,'track editing hides channel selections');
+    assert.equal(await page.getByRole('button',{name:'Scalars',exact:true}).count(),0);
+    assert.equal(await page.getByRole('button',{name:'Event',exact:true}).count(),0);
+    assert.equal(await page.getByRole('button',{name:'Set line',exact:true}).isVisible(),true);
+    await page.screenshot({path:output+'/'+name+'-track-editor.png'});
+    await page.getByRole('button',{name:'Lap list',exact:true}).click();
+    await page.locator('#view-editor').waitFor({state:'hidden'});
+    assert.equal(await page.getByRole('button',{name:'Edit view',exact:true}).isDisabled(),true);
+    assert.equal((await page.locator('.controls').boundingBox()).height,actionHeight,'view changes keep action row height');
+    await page.getByRole('button',{name:'Data',exact:true}).click();
+    await voltageScalar.waitFor();
+    assert.equal(await voltageScalar.isChecked(),false,'view changes preserve channel draft');
+    assert.equal(await page.getByRole('button',{name:'Set line',exact:true}).count(),0,'Data hides map editing');
     await page.getByRole('button',{name:'Charts',exact:true}).click();
     assert.equal(await page.getByRole('checkbox',{name:'status chart',exact:true}).count(),0);
     await currentChart.uncheck();
@@ -731,6 +799,102 @@ try {
     assert.equal((await page.evaluate(()=>window.telemetryHarness.datasetChoice())).trackId,null,'Automatic clears the shared override');
 
 
+  }
+
+  }
+  for (const [name,width,height] of [['desktop',1440,1000],['mobile',390,844],['small-mobile',320,740]]) {
+    await page.setViewportSize({width,height});
+    await page.evaluate(async()=>{await window.telemetryHarness.metadataSeed();window.telemetryHarness.role(false);});
+    await page.getByRole('button',{name:'Load history',exact:true}).click();
+    await page.getByRole('button',{name:'Events',exact:true}).click();
+    await page.getByLabel('Event',{exact:true}).selectOption('demo-event');
+    await page.getByLabel('Session',{exact:true}).selectOption('demo-session-0');
+    await page.waitForFunction(()=>document.querySelector('h1')?.textContent==='Workshop dyno');
+    assert.equal(await page.getByRole('button',{name:'Edit view',exact:true}).count(),0,'viewer has no editor');
+    await page.evaluate(()=>{const s=window.telemetryHarness.snapshot();window.telemetryHarness.zoom(s.start+30000,s.end-30000);});
+    await page.getByLabel('Session',{exact:true}).selectOption('demo-session-1');
+    await page.waitForFunction(()=>!window.telemetryHarness.snapshot().zoomed);
+    const controlY=(await page.locator('.controls').boundingBox()).y;
+    const controlContentY=controlY+await page.locator('#main_container').evaluate(el=>el.scrollTop);
+    await page.evaluate(()=>window.telemetryHarness.metadataName('A long dyno event name that remains on one stable heading line at mobile widths'));
+    assert.equal((await page.locator('.controls').boundingBox()).y,controlY,'event title changes preserve controls');
+    assert.equal(await page.getByRole('button',{name:'Edit view',exact:true}).count(),0);
+    await page.evaluate(()=>window.telemetryHarness.role(true));
+    await page.getByRole('button',{name:'Edit view',exact:true}).click();
+    await page.getByRole('button',{name:'Event',exact:true}).click();
+    await page.getByRole('button',{name:'Edit event',exact:true}).click();
+    assert.equal(await page.getByLabel('Type',{exact:true}).last().inputValue(),'full_dyno','saved type is reflected by the native select');
+    await page.getByLabel('Name',{exact:true}).fill('Edited dyno event');
+    await page.getByLabel('Notes',{exact:true}).fill('Reviewed manual metadata');
+    await page.getByRole('button',{name:'Track map',exact:true}).click();
+    await page.getByLabel('Track',{exact:true}).waitFor();
+    assert.equal(await page.getByLabel('Notes',{exact:true}).count(),0,'track view hides metadata editor');
+    assert.equal(await page.getByRole('button',{name:'Set line',exact:true}).isVisible(),true,'track tools remain available after Event tab');
+    await page.getByRole('button',{name:'Lap list',exact:true}).click();
+    await page.locator('#view-editor').waitFor({state:'hidden'});
+    await page.getByRole('button',{name:'Data',exact:true}).click();
+    await page.getByLabel('Notes',{exact:true}).waitFor();
+    assert.equal(await page.getByLabel('Name',{exact:true}).inputValue(),'Edited dyno event');
+    assert.equal(await page.getByLabel('Notes',{exact:true}).inputValue(),'Reviewed manual metadata');
+    await page.getByRole('button',{name:'Review',exact:true}).click();
+    await page.getByRole('button',{name:'Confirm save',exact:true}).click();
+    await page.waitForFunction(()=>document.querySelector('h1')?.textContent==='Edited dyno event');
+    await page.getByRole('button',{name:'Add session',exact:true}).click();
+    await page.getByLabel('Name',{exact:true}).fill('Reviewed zoom run');
+    await page.getByRole('button',{name:'Review',exact:true}).click();
+    await page.locator('[aria-label="Review metadata changes"]').waitFor({state:'visible'});
+    await page.getByRole('button',{name:'Confirm save',exact:true}).click();
+    await page.waitForFunction(()=>window.telemetryHarness.metadataSaved().length===2);
+    const saved=await page.evaluate(()=>window.telemetryHarness.metadataSaved());
+    assert.equal(saved[1].sessions.length,1);assert.equal(saved[1].sessions[0].data.name,'Reviewed zoom run');
+    assert.equal(saved[1].sessions[0].data.metadataStatus,'review_needed','a manual session does not approve historical mappings');
+    await page.getByRole('button',{name:'Edit event',exact:true}).click();
+    await page.getByLabel('Name',{exact:true}).fill('Keep this failed draft');
+    await page.evaluate(()=>window.telemetryHarness.metadataFailure('functions/failed-precondition'));
+    await page.getByRole('button',{name:'Review',exact:true}).click();
+    await page.getByRole('button',{name:'Confirm save',exact:true}).click();
+    await page.getByText('Metadata changed elsewhere. Cancel and reopen the editor.',{exact:true}).waitFor();
+    assert.equal(await page.getByLabel('Name',{exact:true}).inputValue(),'Keep this failed draft');
+    const fieldBoxes=await page.locator('app-greenpower-event-editor input, app-greenpower-event-editor select, app-greenpower-event-editor textarea').evaluateAll(nodes=>nodes.filter(n=>n.getBoundingClientRect().width).map(n=>{const r=n.getBoundingClientRect();return {left:r.left,right:r.right};}));
+    assert.ok(fieldBoxes.every(box=>box.left>=0&&box.right<=width),name+' metadata fields fit viewport');
+    await page.locator('app-greenpower-event-editor').scrollIntoViewIfNeeded();
+    await page.screenshot({path:output+'/'+name+'-event-editor.png'});
+    await page.getByRole('button',{name:'Cancel',exact:true}).click();
+    await page.evaluate(()=>window.telemetryHarness.metadataFailure(''));
+    await page.getByLabel('Event',{exact:true}).selectOption('target-event');
+    await page.getByRole('button',{name:'Add session',exact:true}).click();
+    await page.getByLabel('Name',{exact:true}).fill('First reviewed session');
+    await page.getByLabel('Recorded day',{exact:true}).selectOption('2026-10-18');
+    await page.getByRole('button',{name:'Use current zoom',exact:true}).click();
+    assert.equal(await page.getByLabel('Name',{exact:true}).inputValue(),'First reviewed session','loading a day retains the first-session draft');
+    await page.getByRole('button',{name:'Review',exact:true}).click();
+    await page.getByRole('button',{name:'Confirm save',exact:true}).click();
+    await page.getByRole('button',{name:'New event',exact:true}).waitFor();
+    const firstSession=(await page.evaluate(()=>window.telemetryHarness.metadataSaved())).at(-1).sessions[0];
+    assert.equal(firstSession.data.eventId,'target-event');assert.equal(firstSession.data.segments[0].day,'2026-10-18');
+    await page.getByLabel('Event',{exact:true}).selectOption('demo-event');
+    await page.getByRole('button',{name:'Merge sessions',exact:true}).click();
+    await page.getByLabel('Merge into',{exact:true}).selectOption('target-event');
+    await page.getByRole('group',{name:'Sessions to merge',exact:true}).getByRole('checkbox').first().check();
+    await page.getByRole('button',{name:'Review',exact:true}).click();
+    assert.match(await page.getByRole('region',{name:'Review metadata changes',exact:true}).innerText(),/remain in the source event/);
+    await page.getByRole('button',{name:'Confirm save',exact:true}).click();
+    await page.getByRole('button',{name:'Merge sessions',exact:true}).click();
+    await page.getByLabel('Merge into',{exact:true}).selectOption('target-event');
+    const remaining=page.getByRole('group',{name:'Sessions to merge',exact:true}).getByRole('checkbox');
+    for(const checkbox of await remaining.all())await checkbox.check();
+    await page.getByRole('button',{name:'Review',exact:true}).click();
+    assert.match(await page.getByRole('region',{name:'Review metadata changes',exact:true}).innerText(),/source event will be marked superseded/);
+    await page.getByRole('button',{name:'Confirm save',exact:true}).click();
+    await page.getByRole('button',{name:'Edit event',exact:true}).click();
+    await page.getByRole('button',{name:'Reopen event',exact:true}).waitFor();
+    await page.getByLabel('Notes',{exact:true}).fill('Reviewed superseded event');
+    await page.getByRole('button',{name:'Review',exact:true}).click();
+    await page.getByRole('button',{name:'Confirm save',exact:true}).click();
+    await page.getByRole('button',{name:'New event',exact:true}).waitFor();
+    await page.evaluate(()=>{window.telemetryHarness.metadataFailure('');window.telemetryHarness.role(false);});
+    assert.equal(await page.locator('app-greenpower-event-editor').count(),0,'revocation removes editor');
+    assert.equal((await page.locator('.controls').boundingBox()).y+await page.locator('#main_container').evaluate(el=>el.scrollTop),controlContentY);
   }
   await page.evaluate(() => window.telemetryHarness.gallery());
   const tile = page.locator('a.prototype-card').filter({ hasText: 'greenpower-telemetry' });

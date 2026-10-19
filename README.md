@@ -196,7 +196,7 @@ Each opened dataset first follows its shared track-choice settings. Without a sa
 
 Track edits recompute the GPS lap channel (`computed:gps-lap`), chart bands and lap list for all datasets using that definition. Existing shared channel selections remain in force; use Edit to select the GPS lap scalar/chart if it is hidden. Release the client and approved Firestore rules together before using track editing; no Functions deployment or data migration is required. Technical quality guards and read budgets are documented in [data-model.md → Greenpower telemetry](data-model.md#greenpower-telemetry).
 
-Admins can select **Edit** beside Live/Load history, switch between **Scalars** and **Charts**, choose visible channels and drag selected channels by their handles to order each section independently on desktop or mobile, then Save or Cancel. Charts offer numeric channels from the loaded day; selections missing from that day remain removable. Swiping outside a drag handle scrolls normally; holding a handle near the list edge scrolls it during a drag. Keyboard users can focus a handle and use Up/Down; Escape cancels an in-progress drag. Pointer cancellation, leaving the page or switching editor sections restores the pre-drag draft order. Newly selected channels are appended to their section. Existing configurations without ordering fields retain their previous display order. Draft visibility and ordering changes stay local until Save, and saved choices apply to every signed-in viewer across Live and history. New channels stay available in the editor until explicitly selected after the first save. Before any configuration exists, all loaded channels remain visible. Hiding a channel never deletes stored uploads. Concurrent edits are checked by revision; a stale editor must be cancelled and reopened. Deploy Hosting and the admin-only Firestore write rules together to enable hosted editing.
+Admin edit controls follow the active view: Data contains channel/event controls; Track map contains track selection and start/finish tools. Lap list has no editable settings and its Edit button is disabled. Switching views retains drafts. Admins can select **Edit** beside Live/Load history in Data, switch between **Scalars** and **Charts**, choose visible channels and drag selected channels by their handles to order each section independently on desktop or mobile, then Save or Cancel. Charts offer numeric channels from the loaded day; selections missing from that day remain removable. Swiping outside a drag handle scrolls normally; holding a handle near the list edge scrolls it during a drag. Keyboard users can focus a handle and use Up/Down; Escape cancels an in-progress drag. Pointer cancellation, leaving the page or switching editor sections restores the pre-drag draft order. Newly selected channels are appended to their section. Existing configurations without ordering fields retain their previous display order. Draft visibility and ordering changes stay local until Save, and saved choices apply to every signed-in viewer across Live and history. New channels stay available in the editor until explicitly selected after the first save. Before any configuration exists, all loaded channels remain visible. Hiding a channel never deletes stored uploads. Concurrent edits are checked by revision; a stale editor must be cancelled and reopened. Deploy Hosting and the admin-only Firestore write rules together to enable hosted editing.
 
 Chart cursors snap to the nearest original sample in the visible window on hover or touch hold, with a circular point marker and matching sample time/value. Left/Right arrow keys step through sample timestamps; synchronized charts select their own nearest visible sample.
 
@@ -261,6 +261,46 @@ Writes are three documents per chunk (chunk + day + checkpoint), at most three t
 `npm run test:greenpower` covers source parsing/checksums, pagination, retry budgets, interruption/resume, destination conflicts, stored-record verification and deduplication. `npm run test:greenpower:emulator` additionally checks real atomic transactions, unchanged document versions on rerun, and the signed-in history reader. The repository's Firebase CLI and Java 21 are required. Date discovery orders by the existing indexed `date` field and is checked against both the emulator and bounded production reads. `GREENPOWER_HISTORY_FIXTURE=/absolute/path/fixture.json node scripts/greenpower/ui.mjs` adds desktop/mobile checks using exported imported records and the shared-view configuration, without browser Firebase access.
 
 
+
+### Greenpower event metadata backend
+
+Issue #97 implements admin event/session metadata edits through the callable `greenpowerEventEdit`, exported from `functions/main.js`, and a selector/editor on `/424-greenpower-telemetry`. This work has not been deployed. The reviewed historical backfill remains pending. See [data-model.md → Greenpower event metadata](data-model.md#greenpower-event-metadata) for exact fields, units, authorization, query/load budgets and rollback behavior.
+
+Open Load history → Events, filter by type/date/exact location, then choose an event and session. More events/sessions load only on request. Recorded days keeps existing unassigned recordings accessible. The selected event name becomes the page title. Live, Data, Track map and Lap list keep their existing behavior; session changes reset dataset-specific chart/cursor/lap state while view switching preserves it.
+
+Admins use Edit → Event for New/Edit event, Add/Edit session, reassignment, Move to new event (split), or Merge sessions. To add a run, load a recorded day, zoom the charts, choose Add session and select the intended event in the draft. An event without recordings can also open an empty session draft; its Recorded day control loads data explicitly, then Use current zoom captures the reviewed range. Review the event and actual UK time range before confirming. Additional loaded day ranges can be appended to a draft; overlapping or unordered ranges are refused. Optional engineering values carry explicit units, and existing source provenance is retained. Metadata saves and shared view/track saves remain separate. Merge review shows how many sessions remain; larger merges continue through explicit actions. No spreadsheet candidate is approved or applied automatically.
+
+Release requires the approved callable and the four new composite indexes before relying on the selector/editor in Hosting. Perform the documented live index comparison without deleting unrelated definitions. Existing signed-in telemetry rules already protect metadata reads and deny direct client writes; the new UI uses `PermissionsService` for controls and the callable for protected writes. A missing callable/index produces a visible error and retains the draft; implementation does not deploy or modify production data.
+
+An authenticated Firebase Functions client calls `httpsCallable('greenpowerEventEdit')` with a stable request ID and complete metadata changes. For example, a **new manually reviewed event without sessions** uses this request shape (the example is not an instruction to write production data):
+
+```json
+{
+  "requestId": "reviewed-create-unique-id",
+  "action": "edit",
+  "events": [{
+    "id": "stable-event-id",
+    "expectedRevision": 0,
+    "data": {
+      "name": "Full dyno",
+      "type": "full_dyno",
+      "date": "2026-06-14",
+      "timeZone": "Europe/London",
+      "state": "active",
+      "metadataStatus": "review_needed"
+    }
+  }],
+  "sessions": []
+}
+```
+
+Use the current positive `expectedRevision` for an edit; never submit server-owned counts, actors or timestamps. Every changed session needs exact reviewed sample locators and its affected event revisions. An existing event entry may omit `data` to retain its metadata during a session edit. Retry an uncertain response with the **same request ID and identical payload**. A `failed-precondition` conflict requires reloading/reviewing current metadata and a new request ID; `already-exists` means that key was used with different content. Split/merge operations work in explicit bounded batches. Historical mapping remains [pending Nico's review](audits/greenpower-event-review-2026-10-19.md); no spreadsheet rows are applied automatically.
+
+Run `npm run test:greenpower` for schema/callable unit coverage. With Java 21 and the repository Firebase CLI available, run `node_modules/.bin/firebase emulators:exec --only firestore --project demo-greenpower 'npm run test:greenpower:emulator'`. The emulator tests refuse non-local Firestore hosts and use synthetic demo data. They exercise real metadata transactions, audit timestamps, concurrent idempotency/revision conflicts and existing authenticated/unauthenticated/cross-user rules. The callable handler is invoked through its Functions SDK `.run` entry point; HTTPS token verification/transport and a deployed endpoint are not covered by these local checks. The Functions package defines no separate lint/test command; new backend tests run through the root Greenpower scripts.
+
+The same unit command covers selector pagination, cancelled/stale responses, recording budgets, cache reuse/account clearing and editor workflows. `scripts/greenpower/ui.mjs` renders the real Angular templates with synthetic services at desktop, 390px and 320px; set `PLAYWRIGHT_MODULE` to an available Playwright module when it is not installed locally. `GREENPOWER_EVENTS_ONLY=1` runs its focused event/editor checks. This harness makes no production Firebase calls. Production readiness still requires the live index audit and a deployed callable smoke test.
+
+Rollback is additive: disable the callable independently or roll back its export. Existing raw ingestion/readers remain compatible. Restore metadata only through an explicitly reviewed compensating edit with current revisions; preserve the prior audit and raw data. No branch, commit, push, deployment or historical metadata write is part of this backend implementation.
 
 ### Team Radio prototype
 

@@ -6,7 +6,7 @@ import { runImport } from './historyImport.mjs';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
 import { Subject } from 'rxjs';
-import { data, load } from './load.mjs';
+import { data, load, recordings } from './load.mjs';
 const host = process.env.FIRESTORE_EMULATOR_HOST;
 assert.match(host || '', /^(127\.0\.0\.1|localhost):\d+$/, 'Local Firestore emulator required');
 const require = createRequire(import.meta.url), admin = require('firebase-admin');
@@ -44,7 +44,7 @@ test('real transactions resume atomically; full rerun validates raw data without
   client.useEmulator('127.0.0.1', Number(host.split(':')[1]), { mockUserToken: { sub: 'history-viewer', user_id: 'history-viewer' } });
   const { GreenpowerTelemetryService } = load('../../src/app/greenpower-telemetry/greenpowerTelemetry.service.ts', {
     '@angular/core': { Injectable: () => target => target, runInInjectionContext: (_, callback) => callback() },
-    'firebase/compat/app': { default: firebase }, 'firebase/compat/firestore': {}, rxjs: { Subject }, './greenpowerData': data
+    'firebase/compat/app': { default: firebase }, 'firebase/compat/firestore': {}, rxjs: { Subject }, './greenpowerData': data, './greenpowerRecording': recordings
   });
   const authState = new Subject(), reader = new GreenpowerTelemetryService({ authState }, { firestore: client }, {});
   try {

@@ -1,6 +1,6 @@
 :host { display: block; color: var(--color-text); font-family: var(--font-family-ui); }
 .telemetry-page { padding: 20px; max-width: 1500px; margin: 0 auto; }
-h1 { font-size: 23px; line-height: 1.35; overflow: visible; font-weight: 600; margin: 0 0 16px; }
+h1 { font-size: 23px; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; margin: 0 0 16px; }
 .state, .error, .day, .status span, .history-picker label, .continuation span { font-size: 15px; line-height: 1.45; }
 .controls, .actions, .status, .history-picker, .continuation { display: flex; align-items: center; gap: 10px; }
 .actions { flex-shrink: 0; }
@@ -43,6 +43,7 @@ select { border-color: var(--color-border); }
 .channel-option input:disabled { opacity: .5; }
 
 .editor-tabs { display: flex; gap: 8px; margin-bottom: 8px; }
+.editor-tabs button { margin: 0; }
 .editor-tabs button[aria-pressed="true"] { background: var(--color-selected); }
 .drag-handle { padding: 0; width: 44px; height: 44px; cursor: grab; touch-action: none; user-select: none; -webkit-touch-callout: none; }
 .drag-handle:active { cursor: grabbing; }

@@ -5,6 +5,8 @@ import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
 import { Subject, Subscription } from 'rxjs';
 import { channelsFor, GreenpowerChannel, GreenpowerChunk, GreenpowerDay, GreenpowerSample, londonDay, MAX_CHUNK_WIRE_BYTES, MAX_LOAD_BYTES, MAX_PAGES, mergeChannels, PAGE_SIZE, sampleTime, updateValues } from './greenpowerData';
+import { RecordingSegment } from './greenpowerEvents';
+import { LocatedSample, recordingRange, RecordingReader } from './greenpowerRecording';
 
 @Injectable()
 export class GreenpowerTelemetryService implements OnDestroy {
@@ -24,6 +26,9 @@ export class GreenpowerTelemetryService implements OnDestroy {
   connected = false;
   start = 0;
   end = 0;
+  recordingKey = '';
+  private recording?: RecordingReader;
+  private recordingCache = new Map<string, GreenpowerChunk>();
   private chunks = new Map<string, GreenpowerChunk>();
   private projections = new Map<string, GreenpowerChannel[]>();
   private generation = 0;
@@ -53,6 +58,31 @@ export class GreenpowerTelemetryService implements OnDestroy {
   private stop() {
     this.generation++; this.metadataOff?.(); this.tailOff?.();
     this.metadataOff = this.tailOff = undefined; this.connected = false; this.loading = false;
+    this.recording = undefined; this.recordingKey = '';
+    this.recordingCache.clear();
+  }
+  clearRecording(day = this.day, key = '') {
+    const cached = this.cachedRecording();
+    this.stop(); this.day = day; this.live = false; this.recordingKey = key;
+    this.recordingCache = cached;
+    this.chunks.clear(); this.projections.clear(); this.channels = []; this.latest = undefined; this.more = false; this.error = '';
+    this.changed.next();
+  }
+  async selectRecording(id: string, segments: RecordingSegment[]) {
+    if (this.access !== 'signed-in') return;
+    const cached = this.cachedRecording();
+    this.clearRecording(segments[0]?.day, id);
+    try { this.recording = new RecordingReader(this.root, JSON.parse(JSON.stringify(segments)), cached); this.recordingCache.clear(); await this.loadMore(); }
+    catch { this.error = 'Could not load this recording.'; this.changed.next(); }
+  }
+  private cachedRecording() {
+    return new Map(this.recording?.cachedChunks() || (this.chunks.size ? Array.from(this.chunks, ([chunk, value]) => [`${this.day}/${chunk}`, value] as const) : this.recordingCache));
+  }
+  range(start: number, end: number): RecordingSegment[] {
+    if (this.live || this.loading || this.more || this.error) throw new Error('Load the complete recorded range before adding a session.');
+    const entries: LocatedSample[] = this.recording?.entries || Array.from(this.chunks).sort(([a], [b]) => a.localeCompare(b))
+      .flatMap(([chunk, value]) => value.samples.map((sample, index) => ({ day: this.day, chunk, index, sample, lastInChunk: index === value.samples.length - 1 })));
+    return recordingRange(entries, start, end);
   }
   async select(day: string, live = false) {
     if (this.access !== 'signed-in' || !/^\d{4}-\d{2}-\d{2}$/.test(day)) return;
@@ -81,6 +111,7 @@ export class GreenpowerTelemetryService implements OnDestroy {
   }
   async loadMore() {
     if (this.access !== 'signed-in' || this.loading) return;
+    if (this.recording) { await this.loadRecording(); return; }
     this.tailOff?.(); this.tailOff = undefined;
     const generation = this.generation;
     this.loading = true; this.error = ''; this.more = false; this.changed.next();
@@ -108,6 +139,19 @@ export class GreenpowerTelemetryService implements OnDestroy {
       this.rebuild();
       if (this.live && !this.more) this.listenTail(generation);
     } catch { this.fail(generation); this.more = true; }
+    finally { if (this.valid(generation)) { this.loading = false; this.changed.next(); } }
+  }
+  private async loadRecording() {
+    const generation = this.generation, reader = this.recording!;
+    this.loading = true; this.error = ''; this.changed.next();
+    try {
+      await reader.load(() => this.valid(generation));
+      if (!this.valid(generation)) return;
+      const samples = reader.entries.map(entry => entry.sample).sort((a, b) => sampleTime(a) - sampleTime(b) || a.id.localeCompare(b.id));
+      this.latest = samples.at(-1); this.channels = channelsFor(samples, this.latest);
+      this.start = samples.length ? sampleTime(samples[0]) : 0; this.end = this.latest ? sampleTime(this.latest) : 0;
+      this.more = reader.more;
+    } catch { if (this.valid(generation)) { this.error = 'Could not load this recording. Retry or choose another session.'; this.more = true; } }
     finally { if (this.valid(generation)) { this.loading = false; this.changed.next(); } }
   }
   private listenTail(generation: number) {

@@ -3,6 +3,9 @@ import { GreenpowerTelemetryComponent } from './greenpower-telemetry/greenpower-
 import { GreenpowerMapComponent } from './greenpower-telemetry/greenpower-map.component';
 import { GreenpowerLapListComponent } from './greenpower-telemetry/greenpower-lap-list.component';
 import { GreenpowerChartComponent } from './greenpower-telemetry/greenpower-chart.component';
+import { GreenpowerEventSelectorComponent } from './greenpower-telemetry/greenpower-event-selector.component';
+import { GreenpowerEventEditorComponent } from './greenpower-telemetry/greenpower-event-editor.component';
+import { GreenpowerMetadataFieldsComponent } from './greenpower-telemetry/greenpower-metadata-fields.component';
 import { TeamRadioComponent } from './prototypes/team-radio/team-radio.component';
 import { RearWingPilotComponent } from './prototypes/rear-wing-pilot/rear-wing-pilot.component';
 import { PrnSendManagerComponent } from './chat/prn-send-manager/prn-send-manager.component';
@@ -71,6 +74,9 @@ export const firebaseConfig = {
 @NgModule({ declarations: [
         GreenpowerTelemetryComponent,
         GreenpowerChartComponent,
+        GreenpowerEventSelectorComponent,
+        GreenpowerEventEditorComponent,
+        GreenpowerMetadataFieldsComponent,
         GreenpowerMapComponent,
         GreenpowerLapListComponent,
         RearWingPilotComponent,

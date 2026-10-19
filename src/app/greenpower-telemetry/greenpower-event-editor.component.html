@@ -1,0 +1,68 @@
+<section aria-label="Event metadata editor">
+  @if (!edit.mode) {
+    <div class="actions">
+      <button type="button" [disabled]="!events.canEdit" (click)="edit.event(true)">New event</button>
+      <button type="button" [disabled]="!events.canEdit || !events.eventReady" (click)="edit.event()">Edit event</button>
+      <button type="button" [disabled]="!events.canEdit || !canCapture && (!events.eventReady || events.selectedEvent?.state !== 'active')" (click)="edit.session(true, window)">Add session</button>
+      <button type="button" [disabled]="!events.canEdit || !events.sessionReady" (click)="edit.session()">Edit session</button>
+      <button type="button" [disabled]="!events.canEdit || !events.selectedEvent?.sessionCount || !events.sessions.length" (click)="edit.merge()">Merge sessions</button>
+    </div>
+  } @else {
+    <div class="heading"><h3>{{ edit.mode === 'merge' ? 'Merge sessions' : edit.mode === 'session' ? (edit.isNew ? 'New session' : 'Edit session') : (edit.isNew ? 'New event' : 'Edit event') }}</h3></div>
+    @if (!edit.reviewing) {
+      @if (edit.mode === 'event') {
+        @if (edit.draft.state === 'superseded') { <p>Superseded</p><button type="button" (click)="reopen()">Reopen event</button> }
+        <app-greenpower-metadata-fields [data]="edit.draft" [disabled]="edit.locked" />
+      } @else {
+        <label for="session-event">{{ edit.mode === 'merge' ? 'Merge into' : 'Event' }}</label>
+        <select id="session-event" [ngModel]="edit.targetEventId" [ngModelOptions]="{standalone:true}" [disabled]="edit.locked || !!edit.splitDraft" (ngModelChange)="edit.targetEventId = $event">
+          <option value="" disabled>Choose event</option>
+          @for (event of targets; track event.id) { <option [value]="event.id" [disabled]="edit.mode === 'merge' && event.id === edit.sourceEvent?.id">{{ event.name }} · {{ event.date }}</option> }
+        </select>
+        @if (events.moreEvents) { <button type="button" [disabled]="edit.locked || events.loadingEvents" (click)="events.loadEvents()">More events</button> }
+        @if (edit.mode === 'session') {
+          <app-greenpower-metadata-fields [data]="edit.draft" [session]="true" [disabled]="edit.locked" />
+          <h4>Recording · UK time</h4>
+          <label for="session-recording-day">Recorded day</label>
+          <select id="session-recording-day" [ngModel]="canCapture ? telemetry.day : ''" [ngModelOptions]="{standalone:true}" [disabled]="edit.locked || telemetry.loading || telemetry.loadingDates" (ngModelChange)="daySelect.emit($event)">
+            <option value="" disabled>Select recorded day</option>
+            @if (canCapture && !telemetry.dates.includes(telemetry.day)) { <option [value]="telemetry.day">{{ telemetry.day }}</option> }
+            @for (day of telemetry.dates; track day) { <option [value]="day">{{ day }}</option> }
+          </select>
+          @if (telemetry.moreDates || telemetry.datesError) { <button type="button" [disabled]="edit.locked || telemetry.loadingDates" (click)="telemetry.loadDates()">{{ telemetry.datesError ? 'Retry dates' : 'Earlier dates' }}</button> }
+          @if (!edit.draft.segments?.length) { <p>Choose a recorded day and zoom.</p> }
+          <ul>@for (segment of edit.draft.segments || []; track $index) { <li><span>{{ time(segment.firstAt) }} – {{ time(segment.lastAt) }}</span><button type="button" [disabled]="edit.locked" [attr.aria-label]="'Remove range ' + ($index + 1)" (click)="edit.removeRange($index)">Remove</button></li> }</ul>
+          <div class="actions">
+            <button type="button" [disabled]="edit.locked || !canCapture" (click)="edit.replaceRange(window)">Use current zoom</button>
+            <button type="button" [disabled]="edit.locked || !canCapture" (click)="edit.addRange(window)">Add current zoom</button>
+            @if (!edit.isNew) { <button type="button" [disabled]="edit.locked" [attr.aria-pressed]="!!edit.splitDraft" (click)="edit.split()">Move to new event</button> }
+          </div>
+          @if (edit.splitDraft) { <h4>New event</h4><app-greenpower-metadata-fields [data]="edit.splitDraft" [disabled]="edit.locked" /> }
+        } @else {
+          <h4>Sessions · {{ edit.selected.size }}/20</h4>
+          <div class="session-options" role="group" aria-label="Sessions to merge">
+            @for (session of events.sessions; track session.id) { <label class="session-option"><input type="checkbox" [checked]="edit.selected.has(session.id)" [disabled]="edit.locked || edit.selected.size >= 20 && !edit.selected.has(session.id)" (change)="edit.toggle(session, $any($event.target).checked)"><span>{{ session.name }}</span></label> }
+          </div>
+          @if (events.moreSessions) { <button type="button" [disabled]="events.loadingSessions || edit.locked" (click)="events.loadSessions()">More sessions</button> }
+          @if (events.sessionError) { <p class="error">{{ events.sessionError }}</p> }
+        }
+      }
+    } @else {
+      <div class="review" role="region" aria-label="Review metadata changes">
+        <p>{{ edit.mode === 'merge' ? edit.sourceName + ' → ' + edit.target?.name : edit.draft.name }}</p>
+        @if (edit.mode === 'event') { <p>{{ edit.draft.date }}{{ edit.draft.localTime ? ' · ' + edit.draft.localTime : '' }} · UK time</p> }
+        @if (edit.mode === 'session') {
+          <p>Event · {{ edit.splitDraft?.name || edit.target?.name }}</p>
+          @for (segment of edit.draft.segments || []; track $index) { <p>{{ time(segment.firstAt) }} – {{ time(segment.lastAt) }} · UK</p> }
+        }
+        @if (edit.mode === 'merge') { <p>Move {{ edit.selected.size }} sessions. {{ edit.remaining ? edit.remaining + ' remain in the source event.' : 'The source event will be marked superseded.' }}</p> }
+      </div>
+    }
+    <div class="actions footer">
+      @if (edit.reviewing) { <button #confirmSave type="button" class="primary" [disabled]="edit.saving || !events.canEdit" (click)="edit.save()">{{ edit.saving ? 'Saving' : edit.uncertain ? 'Retry save' : 'Confirm save' }}</button><button type="button" [disabled]="edit.locked" (click)="edit.back()">Back</button> }
+      @else { <button type="button" class="primary" [disabled]="edit.locked || edit.loadingReferences || !events.canEdit" (click)="edit.review()">{{ edit.loadingReferences ? 'Loading' : 'Review' }}</button> }
+      <button type="button" [disabled]="edit.locked" (click)="edit.cancel()">Cancel</button>
+    </div>
+  }
+  <div class="feedback" aria-live="polite">@if (edit.error) { <p class="error" role="alert">{{ edit.error }}</p> } @else if (edit.notice) { <p>{{ edit.notice }}</p> }</div>
+</section>

@@ -1,0 +1,120 @@
+{
+  "issue": 97,
+  "verifiedAt": "2026-10-19T17:01:47.413Z",
+  "status": "implemented_not_deployed",
+  "historicalMapping": "pending_review",
+  "historicalBackfillApplied": false,
+  "productionWrites": 0,
+  "commitsCreated": 0,
+  "deploymentPerformed": false,
+  "scope": [
+    "Event/session selector with type/date/exact-location filters and Recorded days fallback",
+    "Admin Event tab, metadata fields and explicit reviewed zoom-range capture",
+    "First session for an empty event, multi-day ranges, reassign/split and bounded partial/full merge",
+    "Previously approved callable/schema retained; no Functions or security-rule implementation changes in this client phase"
+  ],
+  "validation": {
+    "unit": {
+      "command": "npm run test:greenpower",
+      "passed": 119,
+      "failed": 0,
+      "log": "/private/tmp/greenpower-events-delivery-unit.log"
+    },
+    "emulator": {
+      "command": "npm run test:greenpower:emulator",
+      "passed": 18,
+      "failed": 0,
+      "project": "demo-greenpower",
+      "localOnly": true,
+      "log": "/private/tmp/greenpower-events-ui-emulator.log",
+      "rulesSnapshotSha256": "d54bbd18e75233207f8e6a8e278b27b1e5a8b48d4fe1101472e406c5daa30be2",
+      "repositoryRulesSha256": "d54bbd18e75233207f8e6a8e278b27b1e5a8b48d4fe1101472e406c5daa30be2"
+    },
+    "browser": {
+      "fullRegressionLog": "/private/tmp/greenpower-events-ui-full.log",
+      "focusedLog": "/private/tmp/greenpower-events-ui-final.log",
+      "widths": [
+        1440,
+        390,
+        320
+      ],
+      "pageErrors": [],
+      "fullArtifacts": "/var/folders/6j/540yrv1536x9pc7qv833941h0000gn/T/greenpower-ui-RaqpYy",
+      "focusedArtifacts": "/var/folders/6j/540yrv1536x9pc7qv833941h0000gn/T/greenpower-ui-J4hOQx",
+      "coverage": [
+        "Existing chart/cursor/zoom, map/lap, view/track editor and Recorded days regressions",
+        "Native field values and labels, long-title control stability, role-restricted controls",
+        "Metadata and session saves, retained conflict drafts, first session from an empty event",
+        "Partial/full merge reviews and superseded-event metadata edits"
+      ],
+      "screenshotsVisuallyInspectedAt": [
+        1440,
+        390,
+        320
+      ]
+    },
+    "build": {
+      "command": "npm run build",
+      "passed": true,
+      "hash": "7854754e49654c71",
+      "log": "/private/tmp/greenpower-events-delivery-build.log",
+      "warnings": [
+        "Existing unused environment.dev.ts compilation warning"
+      ]
+    },
+    "lint": {
+      "command": "npm run lint",
+      "errors": 0,
+      "existingWarnings": 64,
+      "log": "/private/tmp/greenpower-events-delivery-lint.log"
+    },
+    "diffCheck": "passed"
+  },
+  "bounds": {
+    "eventOrSessionPage": 30,
+    "automaticListPagination": false,
+    "firstHistoryOpenMetadataDocuments": 60,
+    "selectedMetadataListeners": 2,
+    "optionalSuccessorDocumentReads": 3,
+    "successorReadConcurrency": 3,
+    "recordingSegmentsPerLoad": 20,
+    "recordingPageIterationsPerAction": 50,
+    "recordingChunkLimitPerQuery": 100,
+    "recordingSerializedChunkWorkBytesPerAction": 67108864,
+    "continuation": "Explicit user action; memory/processing can grow with retained data",
+    "cache": "One authorized dataset, reused for matching ranges and cleared on account/day change or destruction",
+    "backend": "Previously approved maximum 315 attempted document reads and 26 committed writes per callable request"
+  },
+  "indexes": {
+    "repositoryBaseline": 19,
+    "repositoryAfter": 23,
+    "additions": 4,
+    "deletions": 0,
+    "fieldOverridesUnchanged": true,
+    "liveComparisonPerformed": false,
+    "deployed": false
+  },
+  "limitations": [
+    "Historical source mappings remain unapproved and unapplied; no operator backfill CLI was added",
+    "The browser harness uses synthetic services; the emulator exercises the real handler and signed-in client reads, not a deployed HTTPS endpoint",
+    "The Firestore emulator does not prove production composite-index readiness; compare live/repository indexes before deployment",
+    "No real mobile device or independent screen-reader audit",
+    "Request retry state is in memory for the open editor, not durable across reload/navigation"
+  ],
+  "sourceSha256": {
+    "src/app/greenpower-telemetry/greenpowerEvents.ts": "d7a200a3a1a3eab42a096aa5633684774e640ebcd37cf716bda47f0208fb839e",
+    "src/app/greenpower-telemetry/greenpowerEvents.service.ts": "83b82356992e52b803d7ed5f0b0088a3d7cdc6298a4d87f9e0a6b8e35e53dd5b",
+    "src/app/greenpower-telemetry/greenpowerEventEdit.service.ts": "0e1b4a37279eb69fd195b3099fbb329c0cf3cab9bbd63de9ccdaec6090971445",
+    "src/app/greenpower-telemetry/greenpowerRecording.ts": "cc35d0118f1cea2deb398e931574bf7dca6d713e7331bf73be8469f2d3447b0c",
+    "src/app/greenpower-telemetry/greenpowerTelemetry.service.ts": "0fa9e08bf024175013220708204fdab4a9d1333a0209fc5caadf08175bb20421",
+    "src/app/greenpower-telemetry/greenpower-telemetry.component.ts": "331b56108cff46086487b75051f5a9ee05883d9879be6d01efde298625aaa63f",
+    "src/app/greenpower-telemetry/greenpower-telemetry.component.html": "df5ffb1cf7eb1bc8e0d6b29d66b5c44d87f6aa7db450ef25ba269217a5545455",
+    "src/app/greenpower-telemetry/greenpower-event-selector.component.ts": "e4dc5b2dd2b222952d16af760fe893ee583ce1ba335332ace2e4471e0de1aef2",
+    "src/app/greenpower-telemetry/greenpower-event-selector.component.html": "867f222bef89ea101db4ea6c36529fe36d614694f8bdbf4e1928d00adcbf93ba",
+    "src/app/greenpower-telemetry/greenpower-event-editor.component.ts": "db15ac1dc713884b4ea76e3d142925579cd2aef16880697d52041e1cdd6c7bae",
+    "src/app/greenpower-telemetry/greenpower-event-editor.component.html": "f6607912f85e760e2d13a2ea89527d38408d74f6067dd5f121b06be36aa6e2d8",
+    "src/app/greenpower-telemetry/greenpower-metadata-fields.component.ts": "b163c193f95bc483041f286d70ef78c3e3153c638625d6fb0377ba4679b99c5b",
+    "src/app/greenpower-telemetry/greenpower-metadata-fields.component.html": "9517eb098b1c1c4dde68da790d027f3781d4d3d4b4e33c453d8b2560f163f81b",
+    "firestore.indexes.json": "b9e751e2cd24e78dd52df64ac8f346b2df93dfcdf01e2b37c2f217e30b42eac6"
+  }
+}

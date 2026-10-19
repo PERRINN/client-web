@@ -1,0 +1,3910 @@
+{
+  "issue": 97,
+  "generatedAt": "2026-10-19T16:09:44.104Z",
+  "readOnly": true,
+  "source": "https://docs.google.com/spreadsheets/d/1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0/edit?usp=drivesdk",
+  "sourceCapture": "2026-10-19T16:08:14.751Z",
+  "timeZone": "Europe/London",
+  "decision": "Numbered dyno runs remain separate sessions within a named event. Proposed same-day groups require review; date alone is not event identity.",
+  "verification": {
+    "completedImports": 73,
+    "records": 331097,
+    "localSnapshotChecksumsMatchLiveCheckpoints": true,
+    "countsAndFirstLastTimestampsMatch": true,
+    "rawFirestoreChunksReread": false,
+    "proofLimit": "This verifies original source snapshots against current completed import provenance and day counts. It does not reverify every current stored sample; prior import audits performed that check.",
+    "firestoreReadDocuments": 147,
+    "sourceDownloads": 0,
+    "cloudWrites": 0
+  },
+  "diagnosticPolicy": {
+    "gapMs": 600000,
+    "meaning": "Observed timestamp blocks separated by >10-minute gaps. These are diagnostic evidence, not inferred sessions, run assignments or event boundaries."
+  },
+  "summary": {
+    "eventRows": 9,
+    "fullDynoRuns": 22,
+    "batteryDynoTests": 22,
+    "reviewNeeded": 49,
+    "unmatched": 4,
+    "datesWithCandidates": 36,
+    "importedDatesWithoutSpreadsheetCandidate": 37
+  },
+  "candidates": [
+    {
+      "sourceKey": "events:2026-05-06:Mallory park race",
+      "sheet": "events",
+      "sheetId": 2133803028,
+      "row": 3,
+      "name": "Mallory park race",
+      "type": "race",
+      "date": "2026-05-06",
+      "driver": "Zack",
+      "result": "P2",
+      "sourceEngineering": {
+        "Ambient": "12",
+        "Temp": "30",
+        "Ratio": "2.67",
+        "carMass": "66.2",
+        "driverMass": "68"
+      },
+      "issues": [
+        "Day-level timestamp overlap does not establish session boundaries.",
+        "Ambient/Temp/mass columns have no explicit units; Temp sensor meaning is unspecified."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 1673,
+        "firstUk": "06/05/2026, 08:02:55",
+        "lastUk": "06/05/2026, 16:03:05",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-05-06",
+        "diagnosticBlockCount": 2
+      }
+    },
+    {
+      "sourceKey": "events:2026-05-24:Goodwood race",
+      "sheet": "events",
+      "sheetId": 2133803028,
+      "row": 4,
+      "name": "Goodwood race",
+      "type": "race",
+      "date": "2026-05-24",
+      "driver": "Laura",
+      "result": "DNF",
+      "sourceEngineering": {
+        "Ambient": "27",
+        "Temp": "45",
+        "Ratio": "2.40",
+        "carMass": "66.5",
+        "driverMass": "69"
+      },
+      "issues": [
+        "Day-level timestamp overlap does not establish session boundaries.",
+        "Ambient/Temp/mass columns have no explicit units; Temp sensor meaning is unspecified."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 8077,
+        "firstUk": "24/05/2026, 07:52:53",
+        "lastUk": "24/05/2026, 15:03:01",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-05-24",
+        "diagnosticBlockCount": 2
+      }
+    },
+    {
+      "sourceKey": "events:2026-05-27:Castle Combe test",
+      "sheet": "events",
+      "sheetId": 2133803028,
+      "row": 5,
+      "name": "Castle Combe test",
+      "type": "track_test",
+      "date": "2026-05-27",
+      "driver": null,
+      "result": null,
+      "sourceEngineering": {
+        "Ambient": "28",
+        "Temp": "63",
+        "Ratio": "2.40",
+        "carMass": "66.5",
+        "driverMass": null
+      },
+      "issues": [
+        "Day-level timestamp overlap does not establish session boundaries.",
+        "Ambient/Temp/mass columns have no explicit units; Temp sensor meaning is unspecified."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 3454,
+        "firstUk": "27/05/2026, 17:10:29",
+        "lastUk": "27/05/2026, 20:03:18",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-05-27",
+        "diagnosticBlockCount": 1
+      }
+    },
+    {
+      "sourceKey": "events:2026-05-31:Castle Combe race",
+      "sheet": "events",
+      "sheetId": 2133803028,
+      "row": 6,
+      "name": "Castle Combe race",
+      "type": "race",
+      "date": "2026-05-31",
+      "driver": "Zack",
+      "result": "P3",
+      "sourceEngineering": {
+        "Ambient": "19",
+        "Temp": "42",
+        "Ratio": "2.40",
+        "carMass": "66.6",
+        "driverMass": "68"
+      },
+      "issues": [
+        "Day-level timestamp overlap does not establish session boundaries.",
+        "Ambient/Temp/mass columns have no explicit units; Temp sensor meaning is unspecified."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 7902,
+        "firstUk": "31/05/2026, 09:02:19",
+        "lastUk": "31/05/2026, 16:15:42",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-05-31",
+        "diagnosticBlockCount": 2
+      }
+    },
+    {
+      "sourceKey": "events:2026-06-07:Bedford race",
+      "sheet": "events",
+      "sheetId": 2133803028,
+      "row": 7,
+      "name": "Bedford race",
+      "type": "race",
+      "date": "2026-06-07",
+      "driver": "Zack",
+      "result": "P1",
+      "sourceEngineering": {
+        "Ambient": "19",
+        "Temp": "36",
+        "Ratio": "2.53",
+        "carMass": "66.6",
+        "driverMass": "68"
+      },
+      "issues": [
+        "Day-level timestamp overlap does not establish session boundaries.",
+        "Ambient/Temp/mass columns have no explicit units; Temp sensor meaning is unspecified."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 7048,
+        "firstUk": "07/06/2026, 07:36:27",
+        "lastUk": "07/06/2026, 15:25:20",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-07",
+        "diagnosticBlockCount": 2
+      }
+    },
+    {
+      "sourceKey": "events:2026-08-14:Castle Combe test",
+      "sheet": "events",
+      "sheetId": 2133803028,
+      "row": 8,
+      "name": "Castle Combe test",
+      "type": "track_test",
+      "date": "2026-08-14",
+      "driver": null,
+      "result": null,
+      "sourceEngineering": {
+        "Ambient": "27",
+        "Temp": "55",
+        "Ratio": "2.53",
+        "carMass": "67.0",
+        "driverMass": null
+      },
+      "issues": [
+        "Day-level timestamp overlap does not establish session boundaries.",
+        "Ambient/Temp/mass columns have no explicit units; Temp sensor meaning is unspecified."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 3753,
+        "firstUk": "14/08/2026, 17:12:42",
+        "lastUk": "14/08/2026, 20:20:43",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-08-14",
+        "diagnosticBlockCount": 1
+      }
+    },
+    {
+      "sourceKey": "events:2026-09-12:Dunsfold race",
+      "sheet": "events",
+      "sheetId": 2133803028,
+      "row": 9,
+      "name": "Dunsfold race",
+      "type": "race",
+      "date": "2026-09-12",
+      "driver": "Zack",
+      "result": "P2",
+      "sourceEngineering": {
+        "Ambient": "21",
+        "Temp": "?",
+        "Ratio": "2.67",
+        "carMass": "67.0",
+        "driverMass": "68"
+      },
+      "issues": [
+        "Day-level timestamp overlap does not establish session boundaries.",
+        "Ambient/Temp/mass columns have no explicit units; Temp sensor meaning is unspecified."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 4733,
+        "firstUk": "12/09/2026, 07:29:08",
+        "lastUk": "12/09/2026, 13:39:09",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-09-12",
+        "diagnosticBlockCount": 2
+      }
+    },
+    {
+      "sourceKey": "events:2026-09-24:Mallory park race",
+      "sheet": "events",
+      "sheetId": 2133803028,
+      "row": 10,
+      "name": "Mallory park race",
+      "type": "race",
+      "date": "2026-09-24",
+      "driver": "Laura",
+      "result": "P4",
+      "sourceEngineering": {
+        "Ambient": "19",
+        "Temp": "40",
+        "Ratio": "2.53",
+        "carMass": "67.3",
+        "driverMass": "69"
+      },
+      "issues": [
+        "Day-level timestamp overlap does not establish session boundaries.",
+        "Ambient/Temp/mass columns have no explicit units; Temp sensor meaning is unspecified."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 6428,
+        "firstUk": "24/09/2026, 08:22:15",
+        "lastUk": "24/09/2026, 16:06:51",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-09-24",
+        "diagnosticBlockCount": 2
+      }
+    },
+    {
+      "sourceKey": "events:2026-10-18:Goodwood finals",
+      "sheet": "events",
+      "sheetId": 2133803028,
+      "row": 11,
+      "name": "Goodwood finals",
+      "type": "race",
+      "date": "2026-10-18",
+      "driver": "Zack",
+      "result": "P5",
+      "sourceEngineering": {
+        "Ambient": "14",
+        "Temp": "43",
+        "Ratio": "2.53",
+        "carMass": "67.0",
+        "driverMass": "68"
+      },
+      "issues": [
+        "Day-level timestamp overlap does not establish session boundaries.",
+        "Ambient/Temp/mass columns have no explicit units; Temp sensor meaning is unspecified."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 3252,
+        "firstUk": "18/10/2026, 08:08:14",
+        "lastUk": "18/10/2026, 14:54:09",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-10-18",
+        "diagnosticBlockCount": 3
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:1",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 2,
+      "runNumber": 1,
+      "name": "Full dyno run 1",
+      "type": "full_dyno",
+      "date": "2026-06-14",
+      "documentedStartUk": "09:30",
+      "description": "baseline",
+      "batteryIds": [
+        "3",
+        "4"
+      ],
+      "motorId": "2",
+      "generatorId": "1",
+      "sourceEngineering": {
+        "gear": "22",
+        "wheel": "20",
+        "ratio": "0.909",
+        "Ah": "21.8",
+        "Watt": "484.2",
+        "RPM": "1961"
+      },
+      "proposedGroupKey": "full-dyno:2026-06-14",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 5365,
+        "firstUk": "14/06/2026, 09:34:59",
+        "lastUk": "14/06/2026, 18:08:27",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-14",
+        "diagnosticBlockCount": 2
+      },
+      "documentedStartEpochMs": 1781425800000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "14/06/2026, 09:34:59",
+        "lastUk": "14/06/2026, 11:46:20",
+        "firstAt": 1781426099221,
+        "lastAt": 1781433980232,
+        "offsetMinutesFromDocumentedStart": 4.99,
+        "count": 2629
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:2",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 3,
+      "runNumber": 2,
+      "name": "Full dyno run 2",
+      "type": "full_dyno",
+      "date": "2026-06-14",
+      "documentedStartUk": "16:00",
+      "description": "battery swap and fan OFF",
+      "batteryIds": [
+        "1",
+        "2"
+      ],
+      "motorId": "2",
+      "generatorId": "1",
+      "sourceEngineering": {
+        "gear": "22",
+        "wheel": "20",
+        "ratio": "0.909",
+        "Ah": "DNF",
+        "Watt": "DNF",
+        "RPM": "DNF"
+      },
+      "proposedGroupKey": "full-dyno:2026-06-14",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 5365,
+        "firstUk": "14/06/2026, 09:34:59",
+        "lastUk": "14/06/2026, 18:08:27",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-14",
+        "diagnosticBlockCount": 2
+      },
+      "documentedStartEpochMs": 1781449200000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "14/06/2026, 15:51:04",
+        "lastUk": "14/06/2026, 18:08:27",
+        "firstAt": 1781448664509,
+        "lastAt": 1781456907184,
+        "offsetMinutesFromDocumentedStart": -8.92,
+        "count": 2736
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:3",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 4,
+      "runNumber": 3,
+      "name": "Full dyno run 3",
+      "type": "full_dyno",
+      "date": "2026-06-15",
+      "documentedStartUk": "09:30",
+      "description": "battery swap and fan OFF / ON",
+      "batteryIds": [
+        "1",
+        "2"
+      ],
+      "motorId": "2",
+      "generatorId": "1",
+      "sourceEngineering": {
+        "gear": "22",
+        "wheel": "20",
+        "ratio": "0.909",
+        "Ah": "21.7",
+        "Watt": "484.4",
+        "RPM": "1964"
+      },
+      "proposedGroupKey": "full-dyno:2026-06-15",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 4900,
+        "firstUk": "15/06/2026, 09:30:48",
+        "lastUk": "15/06/2026, 18:59:46",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-15",
+        "diagnosticBlockCount": 2
+      },
+      "documentedStartEpochMs": 1781512200000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "15/06/2026, 09:30:48",
+        "lastUk": "15/06/2026, 11:43:45",
+        "firstAt": 1781512248858,
+        "lastAt": 1781520225941,
+        "offsetMinutesFromDocumentedStart": 0.81,
+        "count": 2660
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:4",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 5,
+      "runNumber": 4,
+      "name": "Full dyno run 4",
+      "type": "full_dyno",
+      "date": "2026-06-16",
+      "documentedStartUk": "09:00",
+      "description": "battery swap",
+      "batteryIds": [
+        "1",
+        "2"
+      ],
+      "motorId": "2",
+      "generatorId": "1",
+      "sourceEngineering": {
+        "gear": "22",
+        "wheel": "20",
+        "ratio": "0.909",
+        "Ah": "21.5",
+        "Watt": "480.5",
+        "RPM": "1964"
+      },
+      "proposedGroupKey": "full-dyno:2026-06-16",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 5744,
+        "firstUk": "16/06/2026, 09:08:53",
+        "lastUk": "16/06/2026, 16:28:35",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-16",
+        "diagnosticBlockCount": 2
+      },
+      "documentedStartEpochMs": 1781596800000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "16/06/2026, 09:08:53",
+        "lastUk": "16/06/2026, 11:34:59",
+        "firstAt": 1781597333450,
+        "lastAt": 1781606099011,
+        "offsetMinutesFromDocumentedStart": 8.89,
+        "count": 2922
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:5",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 6,
+      "runNumber": 5,
+      "name": "Full dyno run 5",
+      "type": "full_dyno",
+      "date": "2026-06-16",
+      "documentedStartUk": "14:00",
+      "description": "VMax motor",
+      "batteryIds": [
+        "3",
+        "4"
+      ],
+      "motorId": "VMax",
+      "generatorId": "1",
+      "sourceEngineering": {
+        "gear": "22",
+        "wheel": "20",
+        "ratio": "0.909",
+        "Ah": "DNF",
+        "Watt": "DNF",
+        "RPM": "DNF"
+      },
+      "proposedGroupKey": "full-dyno:2026-06-16",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 5744,
+        "firstUk": "16/06/2026, 09:08:53",
+        "lastUk": "16/06/2026, 16:28:35",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-16",
+        "diagnosticBlockCount": 2
+      },
+      "documentedStartEpochMs": 1781614800000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "16/06/2026, 14:07:29",
+        "lastUk": "16/06/2026, 16:28:35",
+        "firstAt": 1781615249987,
+        "lastAt": 1781623715756,
+        "offsetMinutesFromDocumentedStart": 7.5,
+        "count": 2822
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:6",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 7,
+      "runNumber": 6,
+      "name": "Full dyno run 6",
+      "type": "full_dyno",
+      "date": "2026-06-17",
+      "documentedStartUk": "09:00",
+      "description": "VMax motor 91% throttle",
+      "batteryIds": [
+        "3",
+        "4"
+      ],
+      "motorId": "VMax",
+      "generatorId": "1",
+      "sourceEngineering": {
+        "gear": "22",
+        "wheel": "20",
+        "ratio": "0.909",
+        "Ah": "22.1",
+        "Watt": "492.0",
+        "RPM": "1941"
+      },
+      "proposedGroupKey": "full-dyno:2026-06-17",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 6529,
+        "firstUk": "17/06/2026, 08:55:42",
+        "lastUk": "17/06/2026, 18:29:45",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-17",
+        "diagnosticBlockCount": 2
+      },
+      "documentedStartEpochMs": 1781683200000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "17/06/2026, 08:55:42",
+        "lastUk": "17/06/2026, 12:03:17",
+        "firstAt": 1781682942936,
+        "lastAt": 1781694197857,
+        "offsetMinutesFromDocumentedStart": -4.28,
+        "count": 3753
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:7",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 8,
+      "runNumber": 7,
+      "name": "Full dyno run 7",
+      "type": "full_dyno",
+      "date": "2026-06-17",
+      "documentedStartUk": "16:00",
+      "description": "battery swap and VMax motor short gear",
+      "batteryIds": [
+        "1",
+        "2"
+      ],
+      "motorId": "VMax",
+      "generatorId": "1",
+      "sourceEngineering": {
+        "gear": "16",
+        "wheel": "16",
+        "ratio": "1.000",
+        "Ah": "21.3",
+        "Watt": "476.8",
+        "RPM": "1939"
+      },
+      "proposedGroupKey": "full-dyno:2026-06-17",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 6529,
+        "firstUk": "17/06/2026, 08:55:42",
+        "lastUk": "17/06/2026, 18:29:45",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-17",
+        "diagnosticBlockCount": 2
+      },
+      "documentedStartEpochMs": 1781708400000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "17/06/2026, 16:11:03",
+        "lastUk": "17/06/2026, 18:29:45",
+        "firstAt": 1781709063300,
+        "lastAt": 1781717385296,
+        "offsetMinutesFromDocumentedStart": 11.05,
+        "count": 2776
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:8",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 10,
+      "runNumber": 8,
+      "name": "Full dyno run 8",
+      "type": "full_dyno",
+      "date": "2026-06-18",
+      "documentedStartUk": "10:30",
+      "description": "battery swap and motor 2",
+      "batteryIds": [
+        "1",
+        "2"
+      ],
+      "motorId": "2",
+      "generatorId": "VMax",
+      "sourceEngineering": {
+        "gear": "22",
+        "wheel": "19",
+        "ratio": "0.864",
+        "Ah": "20.2",
+        "Watt": "451.8",
+        "RPM": "2067"
+      },
+      "proposedGroupKey": "full-dyno:2026-06-18",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 7606,
+        "firstUk": "18/06/2026, 09:43:10",
+        "lastUk": "18/06/2026, 17:33:09",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-18",
+        "diagnosticBlockCount": 2
+      },
+      "documentedStartEpochMs": 1781775000000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "18/06/2026, 09:43:10",
+        "lastUk": "18/06/2026, 13:09:33",
+        "firstAt": 1781772190992,
+        "lastAt": 1781784573519,
+        "offsetMinutesFromDocumentedStart": -46.82,
+        "count": 4129
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:9",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 11,
+      "runNumber": 9,
+      "name": "Full dyno run 9",
+      "type": "full_dyno",
+      "date": "2026-06-19",
+      "documentedStartUk": "08:30",
+      "description": "battery swap and motor 1",
+      "batteryIds": [
+        "1",
+        "2"
+      ],
+      "motorId": "1",
+      "generatorId": "VMax",
+      "sourceEngineering": {
+        "gear": "22",
+        "wheel": "19",
+        "ratio": "0.864",
+        "Ah": "20.8",
+        "Watt": "466.2",
+        "RPM": "2129"
+      },
+      "proposedGroupKey": "full-dyno:2026-06-19",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 10013,
+        "firstUk": "19/06/2026, 08:19:45",
+        "lastUk": "19/06/2026, 20:46:37",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-19",
+        "diagnosticBlockCount": 3
+      },
+      "documentedStartEpochMs": 1781854200000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "19/06/2026, 08:19:45",
+        "lastUk": "19/06/2026, 10:17:09",
+        "firstAt": 1781853585140,
+        "lastAt": 1781860629122,
+        "offsetMinutesFromDocumentedStart": -10.25,
+        "count": 2349
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:10",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 13,
+      "runNumber": 10,
+      "name": "Full dyno run 10",
+      "type": "full_dyno",
+      "date": "2026-06-20",
+      "documentedStartUk": "10:00",
+      "description": "battery swap and motor 1",
+      "batteryIds": [
+        "1",
+        "2"
+      ],
+      "motorId": "1",
+      "generatorId": "VMax",
+      "sourceEngineering": {
+        "gear": "22",
+        "wheel": "19",
+        "ratio": "0.864",
+        "Ah": "20.9",
+        "Watt": "483.2",
+        "RPM": "2198"
+      },
+      "proposedGroupKey": "full-dyno:2026-06-20",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 8956,
+        "firstUk": "20/06/2026, 10:02:07",
+        "lastUk": "20/06/2026, 20:46:38",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-20",
+        "diagnosticBlockCount": 3
+      },
+      "documentedStartEpochMs": 1781946000000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "20/06/2026, 10:02:07",
+        "lastUk": "20/06/2026, 12:27:04",
+        "firstAt": 1781946127312,
+        "lastAt": 1781954824400,
+        "offsetMinutesFromDocumentedStart": 2.12,
+        "count": 2901
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:11",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 14,
+      "runNumber": 11,
+      "name": "Full dyno run 11",
+      "type": "full_dyno",
+      "date": "2026-06-21",
+      "documentedStartUk": "09:30",
+      "description": "motor 1 short gear",
+      "batteryIds": [
+        "3",
+        "4"
+      ],
+      "motorId": "1",
+      "generatorId": "VMax",
+      "sourceEngineering": {
+        "gear": "21",
+        "wheel": "19",
+        "ratio": "0.905",
+        "Ah": "19.8",
+        "Watt": "459.0",
+        "RPM": "2133"
+      },
+      "proposedGroupKey": "full-dyno:2026-06-21",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 5043,
+        "firstUk": "21/06/2026, 09:31:35",
+        "lastUk": "21/06/2026, 19:53:40",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-21",
+        "diagnosticBlockCount": 2
+      },
+      "documentedStartEpochMs": 1782030600000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "21/06/2026, 09:31:35",
+        "lastUk": "21/06/2026, 10:43:01",
+        "firstAt": 1782030695800,
+        "lastAt": 1782034981888,
+        "offsetMinutesFromDocumentedStart": 1.6,
+        "count": 1433
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:12",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 15,
+      "runNumber": 12,
+      "name": "Full dyno run 12",
+      "type": "full_dyno",
+      "date": "2026-06-22",
+      "documentedStartUk": "07:00",
+      "description": "motor 2",
+      "batteryIds": [
+        "3",
+        "4"
+      ],
+      "motorId": "2",
+      "generatorId": "VMax",
+      "sourceEngineering": {
+        "gear": "22",
+        "wheel": "19",
+        "ratio": "0.864",
+        "Ah": "20.5",
+        "Watt": "475.5",
+        "RPM": "2171"
+      },
+      "proposedGroupKey": "full-dyno:2026-06-22",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 5249,
+        "firstUk": "22/06/2026, 06:20:10",
+        "lastUk": "22/06/2026, 19:20:37",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-22",
+        "diagnosticBlockCount": 2
+      },
+      "documentedStartEpochMs": 1782108000000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "22/06/2026, 06:20:10",
+        "lastUk": "22/06/2026, 08:43:58",
+        "firstAt": 1782105610275,
+        "lastAt": 1782114238287,
+        "offsetMinutesFromDocumentedStart": -39.83,
+        "count": 2877
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:13",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 16,
+      "runNumber": 13,
+      "name": "Full dyno run 13",
+      "type": "full_dyno",
+      "date": "2026-06-23",
+      "documentedStartUk": "09:00",
+      "description": "battery swap and motor 2",
+      "batteryIds": [
+        "1",
+        "2"
+      ],
+      "motorId": "2",
+      "generatorId": "VMax",
+      "sourceEngineering": {
+        "gear": "22",
+        "wheel": "19",
+        "ratio": "0.864",
+        "Ah": "20.3",
+        "Watt": "473.2",
+        "RPM": "2181"
+      },
+      "proposedGroupKey": "full-dyno:2026-06-23",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 6338,
+        "firstUk": "23/06/2026, 08:44:53",
+        "lastUk": "23/06/2026, 14:59:19",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-23",
+        "diagnosticBlockCount": 2
+      },
+      "documentedStartEpochMs": 1782201600000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "23/06/2026, 08:44:53",
+        "lastUk": "23/06/2026, 10:58:51",
+        "firstAt": 1782200693162,
+        "lastAt": 1782208731531,
+        "offsetMinutesFromDocumentedStart": -15.11,
+        "count": 2681
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:14",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 17,
+      "runNumber": 14,
+      "name": "Full dyno run 14",
+      "type": "full_dyno",
+      "date": "2026-06-24",
+      "documentedStartUk": "07:00",
+      "description": "battery swap and motor 1",
+      "batteryIds": [
+        "1",
+        "2"
+      ],
+      "motorId": "1",
+      "generatorId": "VMax",
+      "sourceEngineering": {
+        "gear": "22",
+        "wheel": "19",
+        "ratio": "0.864",
+        "Ah": "20.9",
+        "Watt": "485.2",
+        "RPM": "2227"
+      },
+      "proposedGroupKey": "full-dyno:2026-06-24",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 6419,
+        "firstUk": "24/06/2026, 06:59:50",
+        "lastUk": "24/06/2026, 13:31:47",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-24",
+        "diagnosticBlockCount": 2
+      },
+      "documentedStartEpochMs": 1782280800000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "24/06/2026, 06:59:50",
+        "lastUk": "24/06/2026, 09:15:50",
+        "firstAt": 1782280790434,
+        "lastAt": 1782288950422,
+        "offsetMinutesFromDocumentedStart": -0.16,
+        "count": 2720
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:15",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 18,
+      "runNumber": 15,
+      "name": "Full dyno run 15",
+      "type": "full_dyno",
+      "date": "2026-06-25",
+      "documentedStartUk": "07:00",
+      "description": "battery swap and motor 1 short gear",
+      "batteryIds": [
+        "1",
+        "2"
+      ],
+      "motorId": "1",
+      "generatorId": "VMax",
+      "sourceEngineering": {
+        "gear": "21",
+        "wheel": "19",
+        "ratio": "0.905",
+        "Ah": "19.6",
+        "Watt": "457.8",
+        "RPM": "2150"
+      },
+      "proposedGroupKey": "full-dyno:2026-06-25",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 9966,
+        "firstUk": "25/06/2026, 06:59:51",
+        "lastUk": "25/06/2026, 18:08:39",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-25",
+        "diagnosticBlockCount": 3
+      },
+      "documentedStartEpochMs": 1782367200000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "25/06/2026, 06:59:51",
+        "lastUk": "25/06/2026, 09:12:19",
+        "firstAt": 1782367191295,
+        "lastAt": 1782375139807,
+        "offsetMinutesFromDocumentedStart": -0.15,
+        "count": 2650
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:16",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 19,
+      "runNumber": 16,
+      "name": "Full dyno run 16",
+      "type": "full_dyno",
+      "date": "2026-06-26",
+      "documentedStartUk": "07:00",
+      "description": "battery swap and motor 2",
+      "batteryIds": [
+        "1",
+        "2"
+      ],
+      "motorId": "2",
+      "generatorId": "VMax",
+      "sourceEngineering": {
+        "gear": "22",
+        "wheel": "19",
+        "ratio": "0.864",
+        "Ah": "20.2",
+        "Watt": "471.2",
+        "RPM": "2190"
+      },
+      "proposedGroupKey": "full-dyno:2026-06-26",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 2598,
+        "firstUk": "26/06/2026, 06:59:53",
+        "lastUk": "26/06/2026, 09:09:41",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-26",
+        "diagnosticBlockCount": 1
+      },
+      "documentedStartEpochMs": 1782453600000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "26/06/2026, 06:59:53",
+        "lastUk": "26/06/2026, 09:09:41",
+        "firstAt": 1782453593969,
+        "lastAt": 1782461381936,
+        "offsetMinutesFromDocumentedStart": -0.1,
+        "count": 2598
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:17",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 21,
+      "runNumber": 17,
+      "name": "Full dyno run 17",
+      "type": "full_dyno",
+      "date": "2026-06-30",
+      "documentedStartUk": "09:30",
+      "description": "baseline",
+      "batteryIds": [
+        "3",
+        "4"
+      ],
+      "motorId": "2",
+      "generatorId": "1",
+      "sourceEngineering": {
+        "gear": "22",
+        "wheel": "20",
+        "ratio": "0.909",
+        "Ah": "21.1",
+        "Watt": "484.9",
+        "RPM": "2039"
+      },
+      "proposedGroupKey": "full-dyno:2026-06-30",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 6893,
+        "firstUk": "30/06/2026, 09:30:17",
+        "lastUk": "30/06/2026, 19:15:09",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-30",
+        "diagnosticBlockCount": 2
+      },
+      "documentedStartEpochMs": 1782808200000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "30/06/2026, 09:30:17",
+        "lastUk": "30/06/2026, 12:08:39",
+        "firstAt": 1782808217560,
+        "lastAt": 1782817719822,
+        "offsetMinutesFromDocumentedStart": 0.29,
+        "count": 3167
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:18",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 22,
+      "runNumber": 18,
+      "name": "Full dyno run 18",
+      "type": "full_dyno",
+      "date": "2026-07-01",
+      "documentedStartUk": "09:00",
+      "description": "motor 2 reverse",
+      "batteryIds": [
+        "3",
+        "4"
+      ],
+      "motorId": "2",
+      "generatorId": "1",
+      "sourceEngineering": {
+        "gear": "22",
+        "wheel": "20",
+        "ratio": "0.909",
+        "Ah": "21.5",
+        "Watt": "493.2",
+        "RPM": "2017"
+      },
+      "proposedGroupKey": "full-dyno:2026-07-01",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 5972,
+        "firstUk": "01/07/2026, 08:59:42",
+        "lastUk": "01/07/2026, 18:32:24",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-01",
+        "diagnosticBlockCount": 2
+      },
+      "documentedStartEpochMs": 1782892800000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "01/07/2026, 08:59:42",
+        "lastUk": "01/07/2026, 10:53:18",
+        "firstAt": 1782892782341,
+        "lastAt": 1782899598337,
+        "offsetMinutesFromDocumentedStart": -0.29,
+        "count": 2273
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:19",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 24,
+      "runNumber": 19,
+      "name": "Full dyno run 19",
+      "type": "full_dyno",
+      "date": "2026-07-02",
+      "documentedStartUk": "09:00",
+      "description": "baseline",
+      "batteryIds": [
+        "3",
+        "4"
+      ],
+      "motorId": "1",
+      "generatorId": "2",
+      "sourceEngineering": {
+        "gear": "22",
+        "wheel": "21",
+        "ratio": "0.955",
+        "Ah": "21.3",
+        "Watt": "489.8",
+        "RPM": "1976"
+      },
+      "proposedGroupKey": "full-dyno:2026-07-02",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 6027,
+        "firstUk": "02/07/2026, 09:01:47",
+        "lastUk": "02/07/2026, 18:23:48",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-02",
+        "diagnosticBlockCount": 2
+      },
+      "documentedStartEpochMs": 1782979200000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "02/07/2026, 09:01:47",
+        "lastUk": "02/07/2026, 10:56:07",
+        "firstAt": 1782979307599,
+        "lastAt": 1782986167116,
+        "offsetMinutesFromDocumentedStart": 1.79,
+        "count": 2288
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:20",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 25,
+      "runNumber": 20,
+      "name": "Full dyno run 20",
+      "type": "full_dyno",
+      "date": "2026-07-03",
+      "documentedStartUk": "09:00",
+      "description": "motor 1 reverse",
+      "batteryIds": [
+        "3",
+        "4"
+      ],
+      "motorId": "1",
+      "generatorId": "2",
+      "sourceEngineering": {
+        "gear": "22",
+        "wheel": "21",
+        "ratio": "0.955",
+        "Ah": "21.6",
+        "Watt": "495.2",
+        "RPM": "2004"
+      },
+      "proposedGroupKey": "full-dyno:2026-07-03",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 2896,
+        "firstUk": "03/07/2026, 08:54:20",
+        "lastUk": "03/07/2026, 11:19:05",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-03",
+        "diagnosticBlockCount": 1
+      },
+      "documentedStartEpochMs": 1783065600000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "03/07/2026, 08:54:20",
+        "lastUk": "03/07/2026, 11:19:05",
+        "firstAt": 1783065260486,
+        "lastAt": 1783073945682,
+        "offsetMinutesFromDocumentedStart": -5.66,
+        "count": 2896
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:21",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 26,
+      "runNumber": 21,
+      "name": "Full dyno run 21",
+      "type": "full_dyno",
+      "date": "2026-07-06",
+      "documentedStartUk": "10:00",
+      "description": "battery swap and motor 1 reverse",
+      "batteryIds": [
+        "1",
+        "2"
+      ],
+      "motorId": "1",
+      "generatorId": "2",
+      "sourceEngineering": {
+        "gear": "22",
+        "wheel": "21",
+        "ratio": "0.955",
+        "Ah": "21.7",
+        "Watt": "497.3",
+        "RPM": "2027"
+      },
+      "proposedGroupKey": "full-dyno:2026-07-06",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 6966,
+        "firstUk": "06/07/2026, 09:44:41",
+        "lastUk": "06/07/2026, 17:57:38",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-06",
+        "diagnosticBlockCount": 2
+      },
+      "documentedStartEpochMs": 1783328400000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "06/07/2026, 09:44:41",
+        "lastUk": "06/07/2026, 12:30:44",
+        "firstAt": 1783327481008,
+        "lastAt": 1783337444022,
+        "offsetMinutesFromDocumentedStart": -15.32,
+        "count": 3321
+      }
+    },
+    {
+      "sourceKey": "full-dyno-run:22",
+      "sheet": "dyno logs",
+      "sheetId": 1362403411,
+      "row": 27,
+      "runNumber": 22,
+      "name": "Full dyno run 22",
+      "type": "full_dyno",
+      "date": "2026-07-07",
+      "documentedStartUk": "10:00",
+      "description": "battery swap",
+      "batteryIds": [
+        "1",
+        "2"
+      ],
+      "motorId": "1",
+      "generatorId": "2",
+      "sourceEngineering": {
+        "gear": "22",
+        "wheel": "21",
+        "ratio": "0.955",
+        "Ah": "21.3",
+        "Watt": "489.7",
+        "RPM": "1977"
+      },
+      "proposedGroupKey": "full-dyno:2026-07-07",
+      "issues": [
+        "Documented time is not verified actual start; run end is undocumented.",
+        "Source Watt heading does not establish W versus Wh. DNF remains a source outcome."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 10004,
+        "firstUk": "07/07/2026, 09:44:53",
+        "lastUk": "07/07/2026, 21:17:17",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-07",
+        "diagnosticBlockCount": 2
+      },
+      "documentedStartEpochMs": 1783414800000,
+      "nearestDiagnosticBlock": {
+        "firstUk": "07/07/2026, 09:44:53",
+        "lastUk": "07/07/2026, 12:06:29",
+        "firstAt": 1783413893953,
+        "lastAt": 1783422389941,
+        "offsetMinutesFromDocumentedStart": -15.1,
+        "count": 2833
+      }
+    },
+    {
+      "sourceKey": "battery-dyno-test:1",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 2,
+      "runNumber": 1,
+      "name": "Battery dyno test 1",
+      "type": "battery_dyno",
+      "date": "2026-07-13",
+      "batteryLabel": "1 (1&2)",
+      "energyWh": 250,
+      "sourceEnergy": "250",
+      "proposedGroupKey": "battery-dyno:2026-07-13",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 4525,
+        "firstUk": "13/07/2026, 11:11:31",
+        "lastUk": "13/07/2026, 14:57:55",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-13",
+        "diagnosticBlockCount": 1
+      }
+    },
+    {
+      "sourceKey": "battery-dyno-test:2",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 3,
+      "runNumber": 2,
+      "name": "Battery dyno test 2",
+      "type": "battery_dyno",
+      "date": "2026-07-13",
+      "batteryLabel": "2 (1&2)",
+      "energyWh": 251,
+      "sourceEnergy": "251",
+      "proposedGroupKey": "battery-dyno:2026-07-13",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 4525,
+        "firstUk": "13/07/2026, 11:11:31",
+        "lastUk": "13/07/2026, 14:57:55",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-13",
+        "diagnosticBlockCount": 1
+      }
+    },
+    {
+      "sourceKey": "battery-dyno-test:3",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 4,
+      "runNumber": 3,
+      "name": "Battery dyno test 3",
+      "type": "battery_dyno",
+      "date": "2026-07-13",
+      "batteryLabel": "3 (3&4)",
+      "energyWh": 275,
+      "sourceEnergy": "275",
+      "proposedGroupKey": "battery-dyno:2026-07-13",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 4525,
+        "firstUk": "13/07/2026, 11:11:31",
+        "lastUk": "13/07/2026, 14:57:55",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-13",
+        "diagnosticBlockCount": 1
+      }
+    },
+    {
+      "sourceKey": "battery-dyno-test:4",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 5,
+      "runNumber": 4,
+      "name": "Battery dyno test 4",
+      "type": "battery_dyno",
+      "date": "2026-07-13",
+      "batteryLabel": "4 (3&4)",
+      "energyWh": 274,
+      "sourceEnergy": "274",
+      "proposedGroupKey": "battery-dyno:2026-07-13",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 4525,
+        "firstUk": "13/07/2026, 11:11:31",
+        "lastUk": "13/07/2026, 14:57:55",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-13",
+        "diagnosticBlockCount": 1
+      }
+    },
+    {
+      "sourceKey": "battery-dyno-test:5",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 6,
+      "runNumber": 5,
+      "name": "Battery dyno test 5",
+      "type": "battery_dyno",
+      "date": "2026-07-14",
+      "batteryLabel": "3 (3&4 9H)",
+      "energyWh": 272,
+      "sourceEnergy": "272",
+      "proposedGroupKey": "battery-dyno:2026-07-14",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 2509,
+        "firstUk": "14/07/2026, 17:35:53",
+        "lastUk": "14/07/2026, 19:41:15",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-14",
+        "diagnosticBlockCount": 1
+      }
+    },
+    {
+      "sourceKey": "battery-dyno-test:6",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 7,
+      "runNumber": 6,
+      "name": "Battery dyno test 6",
+      "type": "battery_dyno",
+      "date": "2026-07-14",
+      "batteryLabel": "4 (3&4 9H)",
+      "energyWh": 270,
+      "sourceEnergy": "270",
+      "proposedGroupKey": "battery-dyno:2026-07-14",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 2509,
+        "firstUk": "14/07/2026, 17:35:53",
+        "lastUk": "14/07/2026, 19:41:15",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-14",
+        "diagnosticBlockCount": 1
+      }
+    },
+    {
+      "sourceKey": "battery-dyno-test:7",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 8,
+      "runNumber": 7,
+      "name": "Battery dyno test 7",
+      "type": "battery_dyno",
+      "date": "2026-07-21",
+      "batteryLabel": "5 (5&6)",
+      "energyWh": 269,
+      "sourceEnergy": "269",
+      "proposedGroupKey": "battery-dyno:2026-07-21",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 2773,
+        "firstUk": "21/07/2026, 08:40:34",
+        "lastUk": "21/07/2026, 10:59:08",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-21",
+        "diagnosticBlockCount": 1
+      }
+    },
+    {
+      "sourceKey": "battery-dyno-test:8",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 9,
+      "runNumber": 8,
+      "name": "Battery dyno test 8",
+      "type": "battery_dyno",
+      "date": "2026-07-21",
+      "batteryLabel": "6 (5&6)",
+      "energyWh": 266,
+      "sourceEnergy": "266",
+      "proposedGroupKey": "battery-dyno:2026-07-21",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 2773,
+        "firstUk": "21/07/2026, 08:40:34",
+        "lastUk": "21/07/2026, 10:59:08",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-21",
+        "diagnosticBlockCount": 1
+      }
+    },
+    {
+      "sourceKey": "battery-dyno-test:9",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 10,
+      "runNumber": 9,
+      "name": "Battery dyno test 9",
+      "type": "battery_dyno",
+      "date": "2026-07-22",
+      "batteryLabel": "5 (5&6)",
+      "energyWh": 273,
+      "sourceEnergy": "273",
+      "proposedGroupKey": "battery-dyno:2026-07-22",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 7017,
+        "firstUk": "22/07/2026, 10:20:49",
+        "lastUk": "22/07/2026, 16:14:27",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-22",
+        "diagnosticBlockCount": 1
+      }
+    },
+    {
+      "sourceKey": "battery-dyno-test:10",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 11,
+      "runNumber": 10,
+      "name": "Battery dyno test 10",
+      "type": "battery_dyno",
+      "date": "2026-07-22",
+      "batteryLabel": "6 (5&6)",
+      "energyWh": 269,
+      "sourceEnergy": "269",
+      "proposedGroupKey": "battery-dyno:2026-07-22",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 7017,
+        "firstUk": "22/07/2026, 10:20:49",
+        "lastUk": "22/07/2026, 16:14:27",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-22",
+        "diagnosticBlockCount": 1
+      }
+    },
+    {
+      "sourceKey": "battery-dyno-test:11",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 12,
+      "runNumber": 11,
+      "name": "Battery dyno test 11",
+      "type": "battery_dyno",
+      "date": "2026-07-23",
+      "batteryLabel": "3 (3&5)",
+      "energyWh": 274,
+      "sourceEnergy": "274",
+      "proposedGroupKey": "battery-dyno:2026-07-23",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 3533,
+        "firstUk": "23/07/2026, 10:30:07",
+        "lastUk": "23/07/2026, 13:26:43",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-23",
+        "diagnosticBlockCount": 1
+      }
+    },
+    {
+      "sourceKey": "battery-dyno-test:12",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 13,
+      "runNumber": 12,
+      "name": "Battery dyno test 12",
+      "type": "battery_dyno",
+      "date": "2026-07-23",
+      "batteryLabel": "5 (3&5)",
+      "energyWh": 280,
+      "sourceEnergy": "280",
+      "proposedGroupKey": "battery-dyno:2026-07-23",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 3533,
+        "firstUk": "23/07/2026, 10:30:07",
+        "lastUk": "23/07/2026, 13:26:43",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-23",
+        "diagnosticBlockCount": 1
+      }
+    },
+    {
+      "sourceKey": "battery-dyno-test:13",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 14,
+      "runNumber": 13,
+      "name": "Battery dyno test 13",
+      "type": "battery_dyno",
+      "date": "2026-07-24",
+      "batteryLabel": "4 (4&6)",
+      "energyWh": 268,
+      "sourceEnergy": "268",
+      "proposedGroupKey": "battery-dyno:2026-07-24",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 3229,
+        "firstUk": "24/07/2026, 12:48:32",
+        "lastUk": "24/07/2026, 15:30:12",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-24",
+        "diagnosticBlockCount": 1
+      }
+    },
+    {
+      "sourceKey": "battery-dyno-test:14",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 15,
+      "runNumber": 14,
+      "name": "Battery dyno test 14",
+      "type": "battery_dyno",
+      "date": "2026-07-24",
+      "batteryLabel": "6 (4&6)",
+      "energyWh": 271,
+      "sourceEnergy": "271",
+      "proposedGroupKey": "battery-dyno:2026-07-24",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 3229,
+        "firstUk": "24/07/2026, 12:48:32",
+        "lastUk": "24/07/2026, 15:30:12",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-24",
+        "diagnosticBlockCount": 1
+      }
+    },
+    {
+      "sourceKey": "battery-dyno-test:15",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 16,
+      "runNumber": 15,
+      "name": "Battery dyno test 15",
+      "type": "battery_dyno",
+      "date": "2026-09-19",
+      "batteryLabel": "1 (1&2) cold",
+      "energyWh": 219,
+      "sourceEnergy": "219",
+      "proposedGroupKey": "battery-dyno:2026-09-19",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 2933,
+        "firstUk": "19/09/2026, 11:32:08",
+        "lastUk": "19/09/2026, 13:58:45",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-09-19",
+        "diagnosticBlockCount": 1
+      }
+    },
+    {
+      "sourceKey": "battery-dyno-test:16",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 17,
+      "runNumber": 16,
+      "name": "Battery dyno test 16",
+      "type": "battery_dyno",
+      "date": "2026-09-19",
+      "batteryLabel": "2 (1&2) cold",
+      "energyWh": 224,
+      "sourceEnergy": "224",
+      "proposedGroupKey": "battery-dyno:2026-09-19",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 2933,
+        "firstUk": "19/09/2026, 11:32:08",
+        "lastUk": "19/09/2026, 13:58:45",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-09-19",
+        "diagnosticBlockCount": 1
+      }
+    },
+    {
+      "sourceKey": "battery-dyno-test:17",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 18,
+      "runNumber": 17,
+      "name": "Battery dyno test 17",
+      "type": "battery_dyno",
+      "date": "2026-09-20",
+      "batteryLabel": "1 (1&2)",
+      "energyWh": 265,
+      "sourceEnergy": "265",
+      "proposedGroupKey": "battery-dyno:2026-09-20",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 4656,
+        "firstUk": "20/09/2026, 13:04:26",
+        "lastUk": "20/09/2026, 20:09:08",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-09-20",
+        "diagnosticBlockCount": 2
+      }
+    },
+    {
+      "sourceKey": "battery-dyno-test:18",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 19,
+      "runNumber": 18,
+      "name": "Battery dyno test 18",
+      "type": "battery_dyno",
+      "date": "2026-09-20",
+      "batteryLabel": "2 (1&2)",
+      "energyWh": 268,
+      "sourceEnergy": "268",
+      "proposedGroupKey": "battery-dyno:2026-09-20",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone."
+      ],
+      "metadataStatus": "review_needed",
+      "telemetryEvidence": {
+        "count": 4656,
+        "firstUk": "20/09/2026, 13:04:26",
+        "lastUk": "20/09/2026, 20:09:08",
+        "checkpointId": "echook-69e36aa623ee354582952a26-2026-09-20",
+        "diagnosticBlockCount": 2
+      }
+    },
+    {
+      "sourceKey": "battery-dyno-test:19",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 20,
+      "runNumber": 19,
+      "name": "Battery dyno test 19",
+      "type": "battery_dyno",
+      "date": "2026-10-20",
+      "batteryLabel": "3 (3&5)",
+      "energyWh": null,
+      "sourceEnergy": "#DIV/0!",
+      "proposedGroupKey": "battery-dyno:2026-10-20",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone.",
+        "Source energy is a formula error; no numeric energy inferred.",
+        "Future-dated as of audit; retain as unmatched candidate."
+      ],
+      "metadataStatus": "unmatched",
+      "telemetryEvidence": null
+    },
+    {
+      "sourceKey": "battery-dyno-test:20",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 21,
+      "runNumber": 20,
+      "name": "Battery dyno test 20",
+      "type": "battery_dyno",
+      "date": "2026-10-20",
+      "batteryLabel": "5 (3&5)",
+      "energyWh": null,
+      "sourceEnergy": "#DIV/0!",
+      "proposedGroupKey": "battery-dyno:2026-10-20",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone.",
+        "Source energy is a formula error; no numeric energy inferred.",
+        "Future-dated as of audit; retain as unmatched candidate."
+      ],
+      "metadataStatus": "unmatched",
+      "telemetryEvidence": null
+    },
+    {
+      "sourceKey": "battery-dyno-test:21",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 22,
+      "runNumber": 21,
+      "name": "Battery dyno test 21",
+      "type": "battery_dyno",
+      "date": "2026-10-21",
+      "batteryLabel": "4 (4&6)",
+      "energyWh": null,
+      "sourceEnergy": "#DIV/0!",
+      "proposedGroupKey": "battery-dyno:2026-10-21",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone.",
+        "Source energy is a formula error; no numeric energy inferred.",
+        "Future-dated as of audit; retain as unmatched candidate."
+      ],
+      "metadataStatus": "unmatched",
+      "telemetryEvidence": null
+    },
+    {
+      "sourceKey": "battery-dyno-test:22",
+      "sheet": "battery dyno tests",
+      "sheetId": 1199941008,
+      "row": 23,
+      "runNumber": 22,
+      "name": "Battery dyno test 22",
+      "type": "battery_dyno",
+      "date": "2026-10-21",
+      "batteryLabel": "6 (4&6)",
+      "energyWh": null,
+      "sourceEnergy": "#DIV/0!",
+      "proposedGroupKey": "battery-dyno:2026-10-21",
+      "issues": [
+        "No documented start/end times; do not assign samples by date alone.",
+        "Source energy is a formula error; no numeric energy inferred.",
+        "Future-dated as of audit; retain as unmatched candidate."
+      ],
+      "metadataStatus": "unmatched",
+      "telemetryEvidence": null
+    }
+  ],
+  "recordings": [
+    {
+      "date": "2026-04-18",
+      "count": 1268,
+      "sourceSha256": "c585e4862aeaf4841961f01371a546ff19dbf850ae552cb7009160ed9d55302f",
+      "firstAt": 1776511685000,
+      "lastAt": 1776535495000,
+      "firstUk": "18/04/2026, 12:28:05",
+      "lastUk": "18/04/2026, 19:04:55",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-04-18",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1776511685000,
+          "lastAt": 1776512835000,
+          "firstUk": "18/04/2026, 12:28:05",
+          "lastUk": "18/04/2026, 12:47:15",
+          "count": 99,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7647853",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7647965"
+        },
+        {
+          "firstAt": 1776515125000,
+          "lastAt": 1776517995000,
+          "firstUk": "18/04/2026, 13:25:25",
+          "lastUk": "18/04/2026, 14:13:15",
+          "count": 232,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7647966",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7648197"
+        },
+        {
+          "firstAt": 1776526025000,
+          "lastAt": 1776535495000,
+          "firstUk": "18/04/2026, 16:27:05",
+          "lastUk": "18/04/2026, 19:04:55",
+          "count": 937,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7648198",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7649134"
+        }
+      ]
+    },
+    {
+      "date": "2026-04-29",
+      "count": 705,
+      "sourceSha256": "be3665e12777ebbfbcabac76aa5a48e2f3967a450def25a16131bf7777157860",
+      "firstAt": 1777483985000,
+      "lastAt": 1777491055000,
+      "firstUk": "29/04/2026, 18:33:05",
+      "lastUk": "29/04/2026, 20:30:55",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-04-29",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1777483985000,
+          "lastAt": 1777491055000,
+          "firstUk": "29/04/2026, 18:33:05",
+          "lastUk": "29/04/2026, 20:30:55",
+          "count": 705,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7649135",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7649839"
+        }
+      ]
+    },
+    {
+      "date": "2026-04-30",
+      "count": 1017,
+      "sourceSha256": "53a63a89347e6f0d05070260a64dac4f5555e7bb0f033e9659562400f950b086",
+      "firstAt": 1777547485000,
+      "lastAt": 1777558725000,
+      "firstUk": "30/04/2026, 12:11:25",
+      "lastUk": "30/04/2026, 15:18:45",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-04-30",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1777547485000,
+          "lastAt": 1777558725000,
+          "firstUk": "30/04/2026, 12:11:25",
+          "lastUk": "30/04/2026, 15:18:45",
+          "count": 1017,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7649840",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7650964"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-01",
+      "count": 656,
+      "sourceSha256": "8b5e09ffa2e1af0fa8b4321cf6dbfd0e5596d67e189acdb0aaf71f1ca929feb9",
+      "firstAt": 1777630245000,
+      "lastAt": 1777662105000,
+      "firstUk": "01/05/2026, 11:10:45",
+      "lastUk": "01/05/2026, 20:01:45",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-05-01",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1777630245000,
+          "lastAt": 1777630495000,
+          "firstUk": "01/05/2026, 11:10:45",
+          "lastUk": "01/05/2026, 11:14:55",
+          "count": 26,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7650965",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7650990"
+        },
+        {
+          "firstAt": 1777632555000,
+          "lastAt": 1777632645000,
+          "firstUk": "01/05/2026, 11:49:15",
+          "lastUk": "01/05/2026, 11:50:45",
+          "count": 10,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7651196",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7651205"
+        },
+        {
+          "firstAt": 1777651385000,
+          "lastAt": 1777652355000,
+          "firstUk": "01/05/2026, 17:03:05",
+          "lastUk": "01/05/2026, 17:19:15",
+          "count": 65,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7651753",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7651850"
+        },
+        {
+          "firstAt": 1777653835000,
+          "lastAt": 1777662105000,
+          "firstUk": "01/05/2026, 17:43:55",
+          "lastUk": "01/05/2026, 20:01:45",
+          "count": 555,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7651852",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7652679"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-02",
+      "count": 666,
+      "sourceSha256": "ad9fcdc932d9c173898662b0597e1bcca57adbb46931af7c568c558fdd8f16e2",
+      "firstAt": 1777743465000,
+      "lastAt": 1777754345000,
+      "firstUk": "02/05/2026, 18:37:45",
+      "lastUk": "02/05/2026, 21:39:05",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-05-02",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1777743465000,
+          "lastAt": 1777743695000,
+          "firstUk": "02/05/2026, 18:37:45",
+          "lastUk": "02/05/2026, 18:41:35",
+          "count": 24,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7652680",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7652703"
+        },
+        {
+          "firstAt": 1777744995000,
+          "lastAt": 1777754345000,
+          "firstUk": "02/05/2026, 19:03:15",
+          "lastUk": "02/05/2026, 21:39:05",
+          "count": 642,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7652833",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7653768"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-03",
+      "count": 2319,
+      "sourceSha256": "101399c7f61f62dbe8af8407f49733271ba3864261b7aea9e2b436942faba9fa",
+      "firstAt": 1777801095000,
+      "lastAt": 1777832505000,
+      "firstUk": "03/05/2026, 10:38:15",
+      "lastUk": "03/05/2026, 19:21:45",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-05-03",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1777801095000,
+          "lastAt": 1777832505000,
+          "firstUk": "03/05/2026, 10:38:15",
+          "lastUk": "03/05/2026, 19:21:45",
+          "count": 2319,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7653769",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7656859"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-04",
+      "count": 2231,
+      "sourceSha256": "c2cf4e1aeeb72e1a38882c16cf94387f55ae7d35074ee6610047fd028d85881b",
+      "firstAt": 1777882725000,
+      "lastAt": 1777909715000,
+      "firstUk": "04/05/2026, 09:18:45",
+      "lastUk": "04/05/2026, 16:48:35",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-05-04",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1777882725000,
+          "lastAt": 1777893975000,
+          "firstUk": "04/05/2026, 09:18:45",
+          "lastUk": "04/05/2026, 12:26:15",
+          "count": 1126,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7656860",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7657985"
+        },
+        {
+          "firstAt": 1777898055000,
+          "lastAt": 1777909715000,
+          "firstUk": "04/05/2026, 13:34:15",
+          "lastUk": "04/05/2026, 16:48:35",
+          "count": 1105,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7657986",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7659152"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-06",
+      "count": 1673,
+      "sourceSha256": "897d66a3cff147a6e3d2ab64b8860b0ac7d3344f04a1a39e2d2c0744f2b3d1fa",
+      "firstAt": 1778050975000,
+      "lastAt": 1778079785000,
+      "firstUk": "06/05/2026, 08:02:55",
+      "lastUk": "06/05/2026, 16:03:05",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-05-06",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1778050975000,
+          "lastAt": 1778062025000,
+          "firstUk": "06/05/2026, 08:02:55",
+          "lastUk": "06/05/2026, 11:07:05",
+          "count": 859,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7659153",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7660257"
+        },
+        {
+          "firstAt": 1778069055000,
+          "lastAt": 1778079785000,
+          "firstUk": "06/05/2026, 13:04:15",
+          "lastUk": "06/05/2026, 16:03:05",
+          "count": 814,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7660258",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7661311"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-08",
+      "count": 2333,
+      "sourceSha256": "dc312df5a7d0a0e2c529546f94be5bf4c2da192260e098cafce1c8c9c31c6dcb",
+      "firstAt": 1778233325000,
+      "lastAt": 1778273985000,
+      "firstUk": "08/05/2026, 10:42:05",
+      "lastUk": "08/05/2026, 21:59:45",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-05-08",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1778233325000,
+          "lastAt": 1778244895000,
+          "firstUk": "08/05/2026, 10:42:05",
+          "lastUk": "08/05/2026, 13:54:55",
+          "count": 1158,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7661314",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7662471"
+        },
+        {
+          "firstAt": 1778262245000,
+          "lastAt": 1778273985000,
+          "firstUk": "08/05/2026, 18:44:05",
+          "lastUk": "08/05/2026, 21:59:45",
+          "count": 1175,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7662472",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7663646"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-10",
+      "count": 11,
+      "sourceSha256": "b3f29902b709ef9517de5b4c4403e14d3abaebf45e1c2e9a512e68c2faf3a9a6",
+      "firstAt": 1778408978743,
+      "lastAt": 1778409010208,
+      "firstUk": "10/05/2026, 11:29:38",
+      "lastUk": "10/05/2026, 11:30:10",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-05-10",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1778408978743,
+          "lastAt": 1778409010208,
+          "firstUk": "10/05/2026, 11:29:38",
+          "lastUk": "10/05/2026, 11:30:10",
+          "count": 11,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:4769787",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:4769808"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-11",
+      "count": 1315,
+      "sourceSha256": "b444936e1647cbfe5d8813445b870dd32d3b776db5bfd950647b281e011ffb4f",
+      "firstAt": 1778493334740,
+      "lastAt": 1778523633013,
+      "firstUk": "11/05/2026, 10:55:34",
+      "lastUk": "11/05/2026, 19:20:33",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-05-11",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1778493334740,
+          "lastAt": 1778493793237,
+          "firstUk": "11/05/2026, 10:55:34",
+          "lastUk": "11/05/2026, 11:03:13",
+          "count": 138,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:4859407",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:4859557"
+        },
+        {
+          "firstAt": 1778499601141,
+          "lastAt": 1778501252589,
+          "firstUk": "11/05/2026, 12:40:01",
+          "lastUk": "11/05/2026, 13:07:32",
+          "count": 515,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:4861493",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:4862044"
+        },
+        {
+          "firstAt": 1778521618413,
+          "lastAt": 1778523633013,
+          "firstUk": "11/05/2026, 18:46:58",
+          "lastUk": "11/05/2026, 19:20:33",
+          "count": 662,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:4866069",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:4866740"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-15",
+      "count": 6261,
+      "sourceSha256": "19815ced49d2a2bc90064e03bd501bebde4041413d6017dae8bd26dfbe13dc9c",
+      "firstAt": 1778850932316,
+      "lastAt": 1778873989594,
+      "firstUk": "15/05/2026, 14:15:32",
+      "lastUk": "15/05/2026, 20:39:49",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-05-15",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1778850932316,
+          "lastAt": 1778858893970,
+          "firstUk": "15/05/2026, 14:15:32",
+          "lastUk": "15/05/2026, 16:28:13",
+          "count": 2564,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:5737313",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:5740373"
+        },
+        {
+          "firstAt": 1778862371939,
+          "lastAt": 1778873989594,
+          "firstUk": "15/05/2026, 17:26:11",
+          "lastUk": "15/05/2026, 20:39:49",
+          "count": 3697,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:5740374",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:5744743"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-17",
+      "count": 4197,
+      "sourceSha256": "8d73baf0d368237a3bded2b89d0af16426d4ed3356a2973a027ba40fa3ae1132",
+      "firstAt": 1779026157774,
+      "lastAt": 1779041441525,
+      "firstUk": "17/05/2026, 14:55:57",
+      "lastUk": "17/05/2026, 19:10:41",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-05-17",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1779026157774,
+          "lastAt": 1779036770414,
+          "firstUk": "17/05/2026, 14:55:57",
+          "lastUk": "17/05/2026, 17:52:50",
+          "count": 3351,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:6527680",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:6541171"
+        },
+        {
+          "firstAt": 1779037668916,
+          "lastAt": 1779040724442,
+          "firstUk": "17/05/2026, 18:07:48",
+          "lastUk": "17/05/2026, 18:58:44",
+          "count": 845,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:6542276",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:6545692"
+        },
+        {
+          "firstAt": 1779041441525,
+          "lastAt": 1779041441525,
+          "firstUk": "17/05/2026, 19:10:41",
+          "lastUk": "17/05/2026, 19:10:41",
+          "count": 1,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:6546409",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:6546409"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-18",
+      "count": 3730,
+      "sourceSha256": "7da30643bb3abdaf9701233b4483f4b6c9e473722ce4e26895cd15e9ed82fce4",
+      "firstAt": 1779097736172,
+      "lastAt": 1779108938420,
+      "firstUk": "18/05/2026, 10:48:56",
+      "lastUk": "18/05/2026, 13:55:38",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-05-18",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1779097736172,
+          "lastAt": 1779108938420,
+          "firstUk": "18/05/2026, 10:48:56",
+          "lastUk": "18/05/2026, 13:55:38",
+          "count": 3730,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:6919312",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:6925107"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-24",
+      "count": 8077,
+      "sourceSha256": "509f8fefab099412a2bc897795bec641e19298789d1aa2628f47c0e9011a0235",
+      "firstAt": 1779605573865,
+      "lastAt": 1779631381769,
+      "firstUk": "24/05/2026, 07:52:53",
+      "lastUk": "24/05/2026, 15:03:01",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-05-24",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1779605573865,
+          "lastAt": 1779617235613,
+          "firstUk": "24/05/2026, 07:52:53",
+          "lastUk": "24/05/2026, 11:07:15",
+          "count": 3886,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7704307",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7755510"
+        },
+        {
+          "firstAt": 1779618813128,
+          "lastAt": 1779631381769,
+          "firstUk": "24/05/2026, 11:33:33",
+          "lastUk": "24/05/2026, 15:03:01",
+          "count": 4191,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7762426",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7814201"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-26",
+      "count": 2621,
+      "sourceSha256": "ce89c1bcc22072ed3115d2a314e089df8623ea08fd1adf4ab581913d45a0306a",
+      "firstAt": 1779800598475,
+      "lastAt": 1779808459958,
+      "firstUk": "26/05/2026, 14:03:18",
+      "lastUk": "26/05/2026, 16:14:19",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-05-26",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1779800598475,
+          "lastAt": 1779808459958,
+          "firstUk": "26/05/2026, 14:03:18",
+          "lastUk": "26/05/2026, 16:14:19",
+          "count": 2621,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7852871",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7856416"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-27",
+      "count": 3454,
+      "sourceSha256": "48476f49da0e3f9042c6c5c1ad10096c2f6a14db6925127a41d88d7944f5c788",
+      "firstAt": 1779898229261,
+      "lastAt": 1779908598316,
+      "firstUk": "27/05/2026, 17:10:29",
+      "lastUk": "27/05/2026, 20:03:18",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-05-27",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1779898229261,
+          "lastAt": 1779908598316,
+          "firstUk": "27/05/2026, 17:10:29",
+          "lastUk": "27/05/2026, 20:03:18",
+          "count": 3454,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7856697",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7865543"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-31",
+      "count": 7902,
+      "sourceSha256": "d30562d162c8c0039174122029a0989734fd98e0d04715e95ddd2c3bab56d974",
+      "firstAt": 1780214539064,
+      "lastAt": 1780240542675,
+      "firstUk": "31/05/2026, 09:02:19",
+      "lastUk": "31/05/2026, 16:15:42",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-05-31",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1780214539064,
+          "lastAt": 1780226009654,
+          "firstUk": "31/05/2026, 09:02:19",
+          "lastUk": "31/05/2026, 12:13:29",
+          "count": 3787,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7932607",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7957608"
+        },
+        {
+          "firstAt": 1780228199153,
+          "lastAt": 1780240542675,
+          "firstUk": "31/05/2026, 12:49:59",
+          "lastUk": "31/05/2026, 16:15:42",
+          "count": 4115,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:7961820",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:7986586"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-04",
+      "count": 3651,
+      "sourceSha256": "b5d42728edbe73dc0ed8ed56c27afb134f10121f759d68544be57d078a0b3f2f",
+      "firstAt": 1780595170288,
+      "lastAt": 1780606116451,
+      "firstUk": "04/06/2026, 18:46:10",
+      "lastUk": "04/06/2026, 21:48:36",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-04",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1780595170288,
+          "lastAt": 1780606116451,
+          "firstUk": "04/06/2026, 18:46:10",
+          "lastUk": "04/06/2026, 21:48:36",
+          "count": 3651,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8122041",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8128961"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-07",
+      "count": 7048,
+      "sourceSha256": "80aea6afd9f167af53f206360cbaaeed062dae444c36f9ffa41b79657cb430f7",
+      "firstAt": 1780814187075,
+      "lastAt": 1780842320376,
+      "firstUk": "07/06/2026, 07:36:27",
+      "lastUk": "07/06/2026, 15:25:20",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-07",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1780814187075,
+          "lastAt": 1780826453021,
+          "firstUk": "07/06/2026, 07:36:27",
+          "lastUk": "07/06/2026, 11:00:53",
+          "count": 4087,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8155566",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8168747"
+        },
+        {
+          "firstAt": 1780833480866,
+          "lastAt": 1780842320376,
+          "firstUk": "07/06/2026, 12:58:00",
+          "lastUk": "07/06/2026, 15:25:20",
+          "count": 2961,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8178596",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8193121"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-11",
+      "count": 6473,
+      "sourceSha256": "fe1f41db343c0076d6f9964c55be46608bf484479679d1e3600e48f753c56a2e",
+      "firstAt": 1781186574348,
+      "lastAt": 1781210808545,
+      "firstUk": "11/06/2026, 15:02:54",
+      "lastUk": "11/06/2026, 21:46:48",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-11",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1781186574348,
+          "lastAt": 1781197103627,
+          "firstUk": "11/06/2026, 15:02:54",
+          "lastUk": "11/06/2026, 17:58:23",
+          "count": 3506,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8237328",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8240833"
+        },
+        {
+          "firstAt": 1781201902240,
+          "lastAt": 1781210808545,
+          "firstUk": "11/06/2026, 19:18:22",
+          "lastUk": "11/06/2026, 21:46:48",
+          "count": 2967,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8240834",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8243800"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-12",
+      "count": 7655,
+      "sourceSha256": "c832fc07277367b63158c2b4da02eff336c5d672e24a5ddb5f99b4983962e391",
+      "firstAt": 1781257855882,
+      "lastAt": 1781291462874,
+      "firstUk": "12/06/2026, 10:50:55",
+      "lastUk": "12/06/2026, 20:11:02",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-12",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1781257855882,
+          "lastAt": 1781264765565,
+          "firstUk": "12/06/2026, 10:50:55",
+          "lastUk": "12/06/2026, 12:46:05",
+          "count": 2292,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8243983",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8246274"
+        },
+        {
+          "firstAt": 1781270448021,
+          "lastAt": 1781276821295,
+          "firstUk": "12/06/2026, 14:20:48",
+          "lastUk": "12/06/2026, 16:07:01",
+          "count": 2089,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8246275",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8248363"
+        },
+        {
+          "firstAt": 1781281606607,
+          "lastAt": 1781291462874,
+          "firstUk": "12/06/2026, 17:26:46",
+          "lastUk": "12/06/2026, 20:11:02",
+          "count": 3274,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8248364",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8251680"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-13",
+      "count": 6856,
+      "sourceSha256": "28a2ce107c1a77d55075e821c7d233948d78aa4647e5370e862d1dfa26152f79",
+      "firstAt": 1781353507395,
+      "lastAt": 1781380511469,
+      "firstUk": "13/06/2026, 13:25:07",
+      "lastUk": "13/06/2026, 20:55:11",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-13",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1781353507395,
+          "lastAt": 1781363311834,
+          "firstUk": "13/06/2026, 13:25:07",
+          "lastUk": "13/06/2026, 16:08:31",
+          "count": 3270,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8251681",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8254950"
+        },
+        {
+          "firstAt": 1781369756293,
+          "lastAt": 1781380511469,
+          "firstUk": "13/06/2026, 17:55:56",
+          "lastUk": "13/06/2026, 20:55:11",
+          "count": 3586,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8254951",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8258536"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-14",
+      "count": 5365,
+      "sourceSha256": "23fbdd95fe628ea586ef9b18c1bde70db3f92b9574344bac87c6e062a7aaceed",
+      "firstAt": 1781426099221,
+      "lastAt": 1781456907184,
+      "firstUk": "14/06/2026, 09:34:59",
+      "lastUk": "14/06/2026, 18:08:27",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-14",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1781426099221,
+          "lastAt": 1781433980232,
+          "firstUk": "14/06/2026, 09:34:59",
+          "lastUk": "14/06/2026, 11:46:20",
+          "count": 2629,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8258537",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8261165"
+        },
+        {
+          "firstAt": 1781448664509,
+          "lastAt": 1781456907184,
+          "firstUk": "14/06/2026, 15:51:04",
+          "lastUk": "14/06/2026, 18:08:27",
+          "count": 2736,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8261166",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8265836"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-15",
+      "count": 4900,
+      "sourceSha256": "5651aaea9ba4ffc2e220157bd44abbe64a5a3a7315b43f2302430d87f0b46f79",
+      "firstAt": 1781512248858,
+      "lastAt": 1781546386555,
+      "firstUk": "15/06/2026, 09:30:48",
+      "lastUk": "15/06/2026, 18:59:46",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-15",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1781512248858,
+          "lastAt": 1781520225941,
+          "firstUk": "15/06/2026, 09:30:48",
+          "lastUk": "15/06/2026, 11:43:45",
+          "count": 2660,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8284283",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8289602"
+        },
+        {
+          "firstAt": 1781539656831,
+          "lastAt": 1781546386555,
+          "firstUk": "15/06/2026, 17:07:36",
+          "lastUk": "15/06/2026, 18:59:46",
+          "count": 2240,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8296080",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8300562"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-16",
+      "count": 5744,
+      "sourceSha256": "f9734736d3b28ccd9d19cd509e7c56b827f9a4e051fe5c353382bdd247fcf291",
+      "firstAt": 1781597333450,
+      "lastAt": 1781623715756,
+      "firstUk": "16/06/2026, 09:08:53",
+      "lastUk": "16/06/2026, 16:28:35",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-16",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1781597333450,
+          "lastAt": 1781606099011,
+          "firstUk": "16/06/2026, 09:08:53",
+          "lastUk": "16/06/2026, 11:34:59",
+          "count": 2922,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8301494",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8307004"
+        },
+        {
+          "firstAt": 1781615249987,
+          "lastAt": 1781623715756,
+          "firstUk": "16/06/2026, 14:07:29",
+          "lastUk": "16/06/2026, 16:28:35",
+          "count": 2822,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8313043",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8315944"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-17",
+      "count": 6529,
+      "sourceSha256": "8e93e8fb96ca550de2d46031efe60b3d62895e2fec5d20131e4bdfbdd276bb02",
+      "firstAt": 1781682942936,
+      "lastAt": 1781717385296,
+      "firstUk": "17/06/2026, 08:55:42",
+      "lastUk": "17/06/2026, 18:29:45",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-17",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1781682942936,
+          "lastAt": 1781694197857,
+          "firstUk": "17/06/2026, 08:55:42",
+          "lastUk": "17/06/2026, 12:03:17",
+          "count": 3753,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8334036",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8347921"
+        },
+        {
+          "firstAt": 1781709063300,
+          "lastAt": 1781717385296,
+          "firstUk": "17/06/2026, 16:11:03",
+          "lastUk": "17/06/2026, 18:29:45",
+          "count": 2776,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8362348",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8370676"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-18",
+      "count": 7606,
+      "sourceSha256": "82ef57f947cfeab1c0e5595d5ff56fac7ecbe1bbc17579054cf870bbd98ce533",
+      "firstAt": 1781772190992,
+      "lastAt": 1781800389037,
+      "firstUk": "18/06/2026, 09:43:10",
+      "lastUk": "18/06/2026, 17:33:09",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-18",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1781772190992,
+          "lastAt": 1781784573519,
+          "firstUk": "18/06/2026, 09:43:10",
+          "lastUk": "18/06/2026, 13:09:33",
+          "count": 4129,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8406432",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8421117"
+        },
+        {
+          "firstAt": 1781789962512,
+          "lastAt": 1781800389037,
+          "firstUk": "18/06/2026, 14:39:22",
+          "lastUk": "18/06/2026, 17:33:09",
+          "count": 3477,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8424924",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8436359"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-19",
+      "count": 10013,
+      "sourceSha256": "da0dcf2c1d9bb900f253af84c30bbf5367ea92600130825c00602d7beb271189",
+      "firstAt": 1781853585140,
+      "lastAt": 1781898397102,
+      "firstUk": "19/06/2026, 08:19:45",
+      "lastUk": "19/06/2026, 20:46:37",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-19",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1781853585140,
+          "lastAt": 1781860629122,
+          "firstUk": "19/06/2026, 08:19:45",
+          "lastUk": "19/06/2026, 10:17:09",
+          "count": 2349,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8454089",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8458964"
+        },
+        {
+          "firstAt": 1781867329251,
+          "lastAt": 1781875525737,
+          "firstUk": "19/06/2026, 12:08:49",
+          "lastUk": "19/06/2026, 14:25:25",
+          "count": 2715,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8461197",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8466648"
+        },
+        {
+          "firstAt": 1781883030038,
+          "lastAt": 1781898397102,
+          "firstUk": "19/06/2026, 16:30:30",
+          "lastUk": "19/06/2026, 20:46:37",
+          "count": 4949,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8469153",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8480081"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-20",
+      "count": 8956,
+      "sourceSha256": "cb90a61fcbeda25290793420405d5b98acb519440deda75f2ee8929e3f53f141",
+      "firstAt": 1781946127312,
+      "lastAt": 1781984798601,
+      "firstUk": "20/06/2026, 10:02:07",
+      "lastUk": "20/06/2026, 20:46:38",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-20",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1781946127312,
+          "lastAt": 1781954824400,
+          "firstUk": "20/06/2026, 10:02:07",
+          "lastUk": "20/06/2026, 12:27:04",
+          "count": 2901,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8483580",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8486480"
+        },
+        {
+          "firstAt": 1781964805700,
+          "lastAt": 1781972459770,
+          "firstUk": "20/06/2026, 15:13:25",
+          "lastUk": "20/06/2026, 17:20:59",
+          "count": 2547,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8488981",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8494687"
+        },
+        {
+          "firstAt": 1781974279005,
+          "lastAt": 1781984798601,
+          "firstUk": "20/06/2026, 17:51:19",
+          "lastUk": "20/06/2026, 20:46:38",
+          "count": 3508,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8495291",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8502291"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-21",
+      "count": 5043,
+      "sourceSha256": "17f0038fdf4959a582a042abcc84e46b93e010212b8136cd16d65cb5b49b84bb",
+      "firstAt": 1782030695800,
+      "lastAt": 1782068020824,
+      "firstUk": "21/06/2026, 09:31:35",
+      "lastUk": "21/06/2026, 19:53:40",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-21",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1782030695800,
+          "lastAt": 1782034981888,
+          "firstUk": "21/06/2026, 09:31:35",
+          "lastUk": "21/06/2026, 10:43:01",
+          "count": 1433,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8517599",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8520465"
+        },
+        {
+          "firstAt": 1782057196814,
+          "lastAt": 1782068020824,
+          "firstUk": "21/06/2026, 16:53:16",
+          "lastUk": "21/06/2026, 19:53:40",
+          "count": 3610,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8530318",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8537534"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-22",
+      "count": 5249,
+      "sourceSha256": "f54802670a3f36ea9cc2c752be582784d403c86931ce688651c560da2127f21b",
+      "firstAt": 1782105610275,
+      "lastAt": 1782152437910,
+      "firstUk": "22/06/2026, 06:20:10",
+      "lastUk": "22/06/2026, 19:20:37",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-22",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1782105610275,
+          "lastAt": 1782114238287,
+          "firstUk": "22/06/2026, 06:20:10",
+          "lastUk": "22/06/2026, 08:43:58",
+          "count": 2877,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8550111",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8555874"
+        },
+        {
+          "firstAt": 1782145315885,
+          "lastAt": 1782152437910,
+          "firstUk": "22/06/2026, 17:21:55",
+          "lastUk": "22/06/2026, 19:20:37",
+          "count": 2372,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8567179",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8571934"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-23",
+      "count": 6338,
+      "sourceSha256": "af9a8185c2989c1cafe0805de04eb7ecbbeca59cc6395075e978d74b68080f0c",
+      "firstAt": 1782200693162,
+      "lastAt": 1782223159356,
+      "firstUk": "23/06/2026, 08:44:53",
+      "lastUk": "23/06/2026, 14:59:19",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-23",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1782200693162,
+          "lastAt": 1782208731531,
+          "firstUk": "23/06/2026, 08:44:53",
+          "lastUk": "23/06/2026, 10:58:51",
+          "count": 2681,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8588073",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8595132"
+        },
+        {
+          "firstAt": 1782212194175,
+          "lastAt": 1782223159356,
+          "firstUk": "23/06/2026, 11:56:34",
+          "lastUk": "23/06/2026, 14:59:19",
+          "count": 3657,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8595893",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8599549"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-24",
+      "count": 6419,
+      "sourceSha256": "21894a2dc39ebb5baa2c81066ca76f1cc36930adcd16aacd6b9d52f201f6437e",
+      "firstAt": 1782280790434,
+      "lastAt": 1782304307918,
+      "firstUk": "24/06/2026, 06:59:50",
+      "lastUk": "24/06/2026, 13:31:47",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-24",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1782280790434,
+          "lastAt": 1782288950422,
+          "firstUk": "24/06/2026, 06:59:50",
+          "lastUk": "24/06/2026, 09:15:50",
+          "count": 2720,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8599550",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8603999"
+        },
+        {
+          "firstAt": 1782293207591,
+          "lastAt": 1782304307918,
+          "firstUk": "24/06/2026, 10:26:47",
+          "lastUk": "24/06/2026, 13:31:47",
+          "count": 3699,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8605375",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8609367"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-25",
+      "count": 9966,
+      "sourceSha256": "742ea06dd38f43cc6e97e8b695a4b5519af3a101dc24d2d39d6aac2ea1a3b00e",
+      "firstAt": 1782367191295,
+      "lastAt": 1782407319159,
+      "firstUk": "25/06/2026, 06:59:51",
+      "lastUk": "25/06/2026, 18:08:39",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-25",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1782367191295,
+          "lastAt": 1782375139807,
+          "firstUk": "25/06/2026, 06:59:51",
+          "lastUk": "25/06/2026, 09:12:19",
+          "count": 2650,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8609368",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8614284"
+        },
+        {
+          "firstAt": 1782378814614,
+          "lastAt": 1782389974641,
+          "firstUk": "25/06/2026, 10:13:34",
+          "lastUk": "25/06/2026, 13:19:34",
+          "count": 3722,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8618389",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8635559"
+        },
+        {
+          "firstAt": 1782396544658,
+          "lastAt": 1782407319159,
+          "firstUk": "25/06/2026, 15:09:04",
+          "lastUk": "25/06/2026, 18:08:39",
+          "count": 3594,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8644563",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8663553"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-26",
+      "count": 2598,
+      "sourceSha256": "e187d4a35642667c3d59003850ceef799413cdf024ddd81af62fe2f07d4d6670",
+      "firstAt": 1782453593969,
+      "lastAt": 1782461381936,
+      "firstUk": "26/06/2026, 06:59:53",
+      "lastUk": "26/06/2026, 09:09:41",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-26",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1782453593969,
+          "lastAt": 1782461381936,
+          "firstUk": "26/06/2026, 06:59:53",
+          "lastUk": "26/06/2026, 09:09:41",
+          "count": 2598,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8681118",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8685580"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-29",
+      "count": 10676,
+      "sourceSha256": "73f8991df623d6f2de00c4804a7d806c724aba458209fc6527068ff794aa7cac",
+      "firstAt": 1782724094929,
+      "lastAt": 1782768589889,
+      "firstUk": "29/06/2026, 10:08:14",
+      "lastUk": "29/06/2026, 22:29:49",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-29",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1782724094929,
+          "lastAt": 1782734954951,
+          "firstUk": "29/06/2026, 10:08:14",
+          "lastUk": "29/06/2026, 13:09:14",
+          "count": 3620,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8721215",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8724834"
+        },
+        {
+          "firstAt": 1782744803010,
+          "lastAt": 1782754913530,
+          "firstUk": "29/06/2026, 15:53:23",
+          "lastUk": "29/06/2026, 18:41:53",
+          "count": 3370,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8724951",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8730576"
+        },
+        {
+          "firstAt": 1782757546850,
+          "lastAt": 1782768589889,
+          "firstUk": "29/06/2026, 19:25:46",
+          "lastUk": "29/06/2026, 22:29:49",
+          "count": 3686,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8731474",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8737268"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-30",
+      "count": 6893,
+      "sourceSha256": "f5eefa7c784bb099c6f7fb5967dfd6482ca3da10fdbab682e1c6fdfece03574d",
+      "firstAt": 1782808217560,
+      "lastAt": 1782843309794,
+      "firstUk": "30/06/2026, 09:30:17",
+      "lastUk": "30/06/2026, 19:15:09",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-06-30",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1782808217560,
+          "lastAt": 1782817719822,
+          "firstUk": "30/06/2026, 09:30:17",
+          "lastUk": "30/06/2026, 12:08:39",
+          "count": 3167,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8737269",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8740579"
+        },
+        {
+          "firstAt": 1782832126301,
+          "lastAt": 1782843309794,
+          "firstUk": "30/06/2026, 16:08:46",
+          "lastUk": "30/06/2026, 19:15:09",
+          "count": 3726,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8740772",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8744497"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-01",
+      "count": 5972,
+      "sourceSha256": "cf6a57d4a5d4b77a79456b585f309012d4009a36757a5dfc545f8c8a6e4c419a",
+      "firstAt": 1782892782341,
+      "lastAt": 1782927144161,
+      "firstUk": "01/07/2026, 08:59:42",
+      "lastUk": "01/07/2026, 18:32:24",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-01",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1782892782341,
+          "lastAt": 1782899598337,
+          "firstUk": "01/07/2026, 08:59:42",
+          "lastUk": "01/07/2026, 10:53:18",
+          "count": 2273,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8744498",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8746770"
+        },
+        {
+          "firstAt": 1782916051428,
+          "lastAt": 1782927144161,
+          "firstUk": "01/07/2026, 15:27:31",
+          "lastUk": "01/07/2026, 18:32:24",
+          "count": 3699,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8746771",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8750469"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-02",
+      "count": 6027,
+      "sourceSha256": "0629c5711154b9c76d42063eab898b372d27f71f1c55edf41fe90df3fb9b1de2",
+      "firstAt": 1782979307599,
+      "lastAt": 1783013028154,
+      "firstUk": "02/07/2026, 09:01:47",
+      "lastUk": "02/07/2026, 18:23:48",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-02",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1782979307599,
+          "lastAt": 1782986167116,
+          "firstUk": "02/07/2026, 09:01:47",
+          "lastUk": "02/07/2026, 10:56:07",
+          "count": 2288,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8750470",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8752757"
+        },
+        {
+          "firstAt": 1783001812679,
+          "lastAt": 1783013028154,
+          "firstUk": "02/07/2026, 15:16:52",
+          "lastUk": "02/07/2026, 18:23:48",
+          "count": 3739,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8753734",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8761910"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-03",
+      "count": 2896,
+      "sourceSha256": "3a22add168a4a7de7df55475454160592d80452959c050ebc6846a02faed78ee",
+      "firstAt": 1783065260486,
+      "lastAt": 1783073945682,
+      "firstUk": "03/07/2026, 08:54:20",
+      "lastUk": "03/07/2026, 11:19:05",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-03",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1783065260486,
+          "lastAt": 1783073945682,
+          "firstUk": "03/07/2026, 08:54:20",
+          "lastUk": "03/07/2026, 11:19:05",
+          "count": 2896,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8761933",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8766015"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-04",
+      "count": 3612,
+      "sourceSha256": "a5dcce5f44fae3617b2e5b557b2a5d6588717419e02e0d40696ad06c6510d315",
+      "firstAt": 1783172200210,
+      "lastAt": 1783183031730,
+      "firstUk": "04/07/2026, 14:36:40",
+      "lastUk": "04/07/2026, 17:37:11",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-04",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1783172200210,
+          "lastAt": 1783183031730,
+          "firstUk": "04/07/2026, 14:36:40",
+          "lastUk": "04/07/2026, 17:37:11",
+          "count": 3612,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8766016",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8769627"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-06",
+      "count": 6966,
+      "sourceSha256": "f2e0355695bdbc7be6da0f5488ddf5cee5199368b04eb59cff7cb65b40f81470",
+      "firstAt": 1783327481008,
+      "lastAt": 1783357058885,
+      "firstUk": "06/07/2026, 09:44:41",
+      "lastUk": "06/07/2026, 17:57:38",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-06",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1783327481008,
+          "lastAt": 1783337444022,
+          "firstUk": "06/07/2026, 09:44:41",
+          "lastUk": "06/07/2026, 12:30:44",
+          "count": 3321,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8769628",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8772948"
+        },
+        {
+          "firstAt": 1783346124228,
+          "lastAt": 1783357058885,
+          "firstUk": "06/07/2026, 14:55:24",
+          "lastUk": "06/07/2026, 17:57:38",
+          "count": 3645,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8772949",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8777465"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-07",
+      "count": 10004,
+      "sourceSha256": "7e082de0bb1a394907de65274d1014abcf5741f9419faf817ede88c614e948ef",
+      "firstAt": 1783413893953,
+      "lastAt": 1783455437128,
+      "firstUk": "07/07/2026, 09:44:53",
+      "lastUk": "07/07/2026, 21:17:17",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-07",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1783413893953,
+          "lastAt": 1783422389941,
+          "firstUk": "07/07/2026, 09:44:53",
+          "lastUk": "07/07/2026, 12:06:29",
+          "count": 2833,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8777466",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8780298"
+        },
+        {
+          "firstAt": 1783433519033,
+          "lastAt": 1783455437128,
+          "firstUk": "07/07/2026, 15:11:59",
+          "lastUk": "07/07/2026, 21:17:17",
+          "count": 7171,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8780299",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8787469"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-11",
+      "count": 3665,
+      "sourceSha256": "2602477708d2d221112fa3885ba3edf8de9a84e006bcd2630bb28e4dacf16d16",
+      "firstAt": 1783789917630,
+      "lastAt": 1783800908036,
+      "firstUk": "11/07/2026, 18:11:57",
+      "lastUk": "11/07/2026, 21:15:08",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-11",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1783789917630,
+          "lastAt": 1783800908036,
+          "firstUk": "11/07/2026, 18:11:57",
+          "lastUk": "11/07/2026, 21:15:08",
+          "count": 3665,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8799653",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8803317"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-12",
+      "count": 4389,
+      "sourceSha256": "41fb02312bfda21270091db671d07e9b3e7f7d7b2c38e3727b70d90983a67c2f",
+      "firstAt": 1783844207048,
+      "lastAt": 1783857383455,
+      "firstUk": "12/07/2026, 09:16:47",
+      "lastUk": "12/07/2026, 12:56:23",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-12",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1783844207048,
+          "lastAt": 1783857383455,
+          "firstUk": "12/07/2026, 09:16:47",
+          "lastUk": "12/07/2026, 12:56:23",
+          "count": 4389,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8803318",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8809947"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-13",
+      "count": 4525,
+      "sourceSha256": "080626b002d2dbd61fb57be4eaba1ca30384b4b6ead2fe62a0bbbe1f8f0c3403",
+      "firstAt": 1783937491243,
+      "lastAt": 1783951075651,
+      "firstUk": "13/07/2026, 11:11:31",
+      "lastUk": "13/07/2026, 14:57:55",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-13",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1783937491243,
+          "lastAt": 1783951075651,
+          "firstUk": "13/07/2026, 11:11:31",
+          "lastUk": "13/07/2026, 14:57:55",
+          "count": 4525,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8809948",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8814472"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-14",
+      "count": 2509,
+      "sourceSha256": "5127dc8d8861d2b4a894b0c0ae0f74e41ebdf5ac1339ca434ac07ea4036fe8a1",
+      "firstAt": 1784046953216,
+      "lastAt": 1784054475725,
+      "firstUk": "14/07/2026, 17:35:53",
+      "lastUk": "14/07/2026, 19:41:15",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-14",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1784046953216,
+          "lastAt": 1784054475725,
+          "firstUk": "14/07/2026, 17:35:53",
+          "lastUk": "14/07/2026, 19:41:15",
+          "count": 2509,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8815827",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8818335"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-18",
+      "count": 2628,
+      "sourceSha256": "1e9f12f0784186bae1562d81bdf63e0a611446b407a1e1d584bb3786f499c79f",
+      "firstAt": 1784366795581,
+      "lastAt": 1784374707306,
+      "firstUk": "18/07/2026, 10:26:35",
+      "lastUk": "18/07/2026, 12:38:27",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-18",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1784366795581,
+          "lastAt": 1784374707306,
+          "firstUk": "18/07/2026, 10:26:35",
+          "lastUk": "18/07/2026, 12:38:27",
+          "count": 2628,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8826612",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8829239"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-20",
+      "count": 2859,
+      "sourceSha256": "a689550658b68b3ad6b1bb8d93173828e7390bde38e8d7227660406853df318a",
+      "firstAt": 1784538463444,
+      "lastAt": 1784547037474,
+      "firstUk": "20/07/2026, 10:07:43",
+      "lastUk": "20/07/2026, 12:30:37",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-20",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1784538463444,
+          "lastAt": 1784547037474,
+          "firstUk": "20/07/2026, 10:07:43",
+          "lastUk": "20/07/2026, 12:30:37",
+          "count": 2859,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8829240",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8832098"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-21",
+      "count": 2773,
+      "sourceSha256": "9dcc78adc4ba2ef8deb2be8472158574db825b97a4c47755a2fb0cf20d641873",
+      "firstAt": 1784619634100,
+      "lastAt": 1784627948649,
+      "firstUk": "21/07/2026, 08:40:34",
+      "lastUk": "21/07/2026, 10:59:08",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-21",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1784619634100,
+          "lastAt": 1784627948649,
+          "firstUk": "21/07/2026, 08:40:34",
+          "lastUk": "21/07/2026, 10:59:08",
+          "count": 2773,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8832127",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8834899"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-22",
+      "count": 7017,
+      "sourceSha256": "dc7a7dba2d7f7ed59adb99957ca7c0d0a0f33d0353927e3eb6465e11d242980c",
+      "firstAt": 1784712049507,
+      "lastAt": 1784733267426,
+      "firstUk": "22/07/2026, 10:20:49",
+      "lastUk": "22/07/2026, 16:14:27",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-22",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1784712049507,
+          "lastAt": 1784733267426,
+          "firstUk": "22/07/2026, 10:20:49",
+          "lastUk": "22/07/2026, 16:14:27",
+          "count": 7017,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8834900",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8841916"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-23",
+      "count": 3533,
+      "sourceSha256": "4175cb5a16094de4e0fc39a46dfa738892bee5e170f988e2000afe9a95936806",
+      "firstAt": 1784799007101,
+      "lastAt": 1784809603109,
+      "firstUk": "23/07/2026, 10:30:07",
+      "lastUk": "23/07/2026, 13:26:43",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-23",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1784799007101,
+          "lastAt": 1784809603109,
+          "firstUk": "23/07/2026, 10:30:07",
+          "lastUk": "23/07/2026, 13:26:43",
+          "count": 3533,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8841917",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8845546"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-24",
+      "count": 3229,
+      "sourceSha256": "6b6c2f2cf7c766a33553fc90158fd444b37f03befe9dddf059b68c9a3845f062",
+      "firstAt": 1784893712724,
+      "lastAt": 1784903412503,
+      "firstUk": "24/07/2026, 12:48:32",
+      "lastUk": "24/07/2026, 15:30:12",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-07-24",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1784893712724,
+          "lastAt": 1784903412503,
+          "firstUk": "24/07/2026, 12:48:32",
+          "lastUk": "24/07/2026, 15:30:12",
+          "count": 3229,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8850804",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8854032"
+        }
+      ]
+    },
+    {
+      "date": "2026-08-09",
+      "count": 3158,
+      "sourceSha256": "4c3c1b583e6205ed6942516c0b91358532d6e8a5721909d606caf505efccf466",
+      "firstAt": 1786293197734,
+      "lastAt": 1786302755003,
+      "firstUk": "09/08/2026, 17:33:17",
+      "lastUk": "09/08/2026, 20:12:35",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-08-09",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1786293197734,
+          "lastAt": 1786302755003,
+          "firstUk": "09/08/2026, 17:33:17",
+          "lastUk": "09/08/2026, 20:12:35",
+          "count": 3158,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8864018",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8867175"
+        }
+      ]
+    },
+    {
+      "date": "2026-08-14",
+      "count": 3753,
+      "sourceSha256": "a7b7165cae2fcdb3fef218325f789ea286a014955baf1b9cd1e6f21d12a9da64",
+      "firstAt": 1786723962871,
+      "lastAt": 1786735243534,
+      "firstUk": "14/08/2026, 17:12:42",
+      "lastUk": "14/08/2026, 20:20:43",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-08-14",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1786723962871,
+          "lastAt": 1786735243534,
+          "firstUk": "14/08/2026, 17:12:42",
+          "lastUk": "14/08/2026, 20:20:43",
+          "count": 3753,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8873828",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8879849"
+        }
+      ]
+    },
+    {
+      "date": "2026-08-15",
+      "count": 3676,
+      "sourceSha256": "5a7e05f46006af225edb54175bf3b54d68ea04ebea6700a6ce2a2b4884e181a1",
+      "firstAt": 1786794379856,
+      "lastAt": 1786805401854,
+      "firstUk": "15/08/2026, 12:46:19",
+      "lastUk": "15/08/2026, 15:50:01",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-08-15",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1786794379856,
+          "lastAt": 1786805401854,
+          "firstUk": "15/08/2026, 12:46:19",
+          "lastUk": "15/08/2026, 15:50:01",
+          "count": 3676,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8880077",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8883752"
+        }
+      ]
+    },
+    {
+      "date": "2026-08-17",
+      "count": 3704,
+      "sourceSha256": "aa99a5b6fa0dd271a97fed48898fcb9966303c72e89feea942f44b88ffb681aa",
+      "firstAt": 1786959591933,
+      "lastAt": 1786970703882,
+      "firstUk": "17/08/2026, 10:39:51",
+      "lastUk": "17/08/2026, 13:45:03",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-08-17",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1786959591933,
+          "lastAt": 1786970703882,
+          "firstUk": "17/08/2026, 10:39:51",
+          "lastUk": "17/08/2026, 13:45:03",
+          "count": 3704,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8884467",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8888170"
+        }
+      ]
+    },
+    {
+      "date": "2026-08-19",
+      "count": 150,
+      "sourceSha256": "333498a85d4d7952895e881a715d44547c6ff4d377f24e0022b2295c69d10007",
+      "firstAt": 1787154595213,
+      "lastAt": 1787155109829,
+      "firstUk": "19/08/2026, 16:49:55",
+      "lastUk": "19/08/2026, 16:58:29",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-08-19",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1787154595213,
+          "lastAt": 1787155109829,
+          "firstUk": "19/08/2026, 16:49:55",
+          "lastUk": "19/08/2026, 16:58:29",
+          "count": 150,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8888840",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8888989"
+        }
+      ]
+    },
+    {
+      "date": "2026-08-22",
+      "count": 3693,
+      "sourceSha256": "b8ae3880116f59d447d33e72f62f9ab022cb5700acb22b2c949a9d6a055fbbf4",
+      "firstAt": 1787397701922,
+      "lastAt": 1787408806932,
+      "firstUk": "22/08/2026, 12:21:41",
+      "lastUk": "22/08/2026, 15:26:46",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-08-22",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1787397701922,
+          "lastAt": 1787408806932,
+          "firstUk": "22/08/2026, 12:21:41",
+          "lastUk": "22/08/2026, 15:26:46",
+          "count": 3693,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8892680",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8896372"
+        }
+      ]
+    },
+    {
+      "date": "2026-08-24",
+      "count": 2552,
+      "sourceSha256": "420a08cd80ae6c630d4a896b69fe845ee899d7e6de201af14acb4b18a2fef1d8",
+      "firstAt": 1787594516696,
+      "lastAt": 1787602186885,
+      "firstUk": "24/08/2026, 19:01:56",
+      "lastUk": "24/08/2026, 21:09:46",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-08-24",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1787594516696,
+          "lastAt": 1787602186885,
+          "firstUk": "24/08/2026, 19:01:56",
+          "lastUk": "24/08/2026, 21:09:46",
+          "count": 2552,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8897971",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8900522"
+        }
+      ]
+    },
+    {
+      "date": "2026-09-10",
+      "count": 3647,
+      "sourceSha256": "5d0dae7d941532b438e3211d930803456c33fafa78d30dcc2236d0f9a10979e7",
+      "firstAt": 1789046751218,
+      "lastAt": 1789057699352,
+      "firstUk": "10/09/2026, 14:25:51",
+      "lastUk": "10/09/2026, 17:28:19",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-09-10",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1789046751218,
+          "lastAt": 1789057699352,
+          "firstUk": "10/09/2026, 14:25:51",
+          "lastUk": "10/09/2026, 17:28:19",
+          "count": 3647,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8971334",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8976141"
+        }
+      ]
+    },
+    {
+      "date": "2026-09-12",
+      "count": 4733,
+      "sourceSha256": "3ff5abec0c1d7ac96d3b84b1e0612eee3fd5f9dbb16d84b679ad01a5bf26624c",
+      "firstAt": 1789194548124,
+      "lastAt": 1789216749264,
+      "firstUk": "12/09/2026, 07:29:08",
+      "lastUk": "12/09/2026, 13:39:09",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-09-12",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1789194548124,
+          "lastAt": 1789207442392,
+          "firstUk": "12/09/2026, 07:29:08",
+          "lastUk": "12/09/2026, 11:04:02",
+          "count": 4256,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:8978610",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:8992660"
+        },
+        {
+          "firstAt": 1789215321274,
+          "lastAt": 1789216749264,
+          "firstUk": "12/09/2026, 13:15:21",
+          "lastUk": "12/09/2026, 13:39:09",
+          "count": 477,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:9000300",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:9001731"
+        }
+      ]
+    },
+    {
+      "date": "2026-09-17",
+      "count": 4413,
+      "sourceSha256": "b3cc7d34bf2b814c1276497acdb7799a5fd7e8782a736495b9b47896a2d9301d",
+      "firstAt": 1789656365270,
+      "lastAt": 1789669599752,
+      "firstUk": "17/09/2026, 15:46:05",
+      "lastUk": "17/09/2026, 19:26:39",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-09-17",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1789656365270,
+          "lastAt": 1789669599752,
+          "firstUk": "17/09/2026, 15:46:05",
+          "lastUk": "17/09/2026, 19:26:39",
+          "count": 4413,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:9149096",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:9157944"
+        }
+      ]
+    },
+    {
+      "date": "2026-09-18",
+      "count": 8879,
+      "sourceSha256": "3befcd6c83fd92223fe9ec8ccdb9032da5c1799b698e7ba7f425b6b55daba3a1",
+      "firstAt": 1789732151275,
+      "lastAt": 1789759628028,
+      "firstUk": "18/09/2026, 12:49:11",
+      "lastUk": "18/09/2026, 20:27:08",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-09-18",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1789732151275,
+          "lastAt": 1789745307752,
+          "firstUk": "18/09/2026, 12:49:11",
+          "lastUk": "18/09/2026, 16:28:27",
+          "count": 4387,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:9158056",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:9162442"
+        },
+        {
+          "firstAt": 1789746151757,
+          "lastAt": 1789759628028,
+          "firstUk": "18/09/2026, 16:42:31",
+          "lastUk": "18/09/2026, 20:27:08",
+          "count": 4492,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:9162443",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:9166934"
+        }
+      ]
+    },
+    {
+      "date": "2026-09-19",
+      "count": 2933,
+      "sourceSha256": "cec4e9fbd40fa3d94cbd80875b89733804d9327114fde8257a13135108aa8f15",
+      "firstAt": 1789813928955,
+      "lastAt": 1789822725038,
+      "firstUk": "19/09/2026, 11:32:08",
+      "lastUk": "19/09/2026, 13:58:45",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-09-19",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1789813928955,
+          "lastAt": 1789822725038,
+          "firstUk": "19/09/2026, 11:32:08",
+          "lastUk": "19/09/2026, 13:58:45",
+          "count": 2933,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:9166936",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:9170185"
+        }
+      ]
+    },
+    {
+      "date": "2026-09-20",
+      "count": 4656,
+      "sourceSha256": "6cfd0f1916d52190ebc623871477c41fc9dd34986246e0f9761f2196552da99e",
+      "firstAt": 1789905866673,
+      "lastAt": 1789931348917,
+      "firstUk": "20/09/2026, 13:04:26",
+      "lastUk": "20/09/2026, 20:09:08",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-09-20",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1789905866673,
+          "lastAt": 1789913968202,
+          "firstUk": "20/09/2026, 13:04:26",
+          "lastUk": "20/09/2026, 15:19:28",
+          "count": 2699,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:9185777",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:9197477"
+        },
+        {
+          "firstAt": 1789925474121,
+          "lastAt": 1789931348917,
+          "firstUk": "20/09/2026, 18:31:14",
+          "lastUk": "20/09/2026, 20:09:08",
+          "count": 1957,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:9206610",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:9210482"
+        }
+      ]
+    },
+    {
+      "date": "2026-09-24",
+      "count": 6428,
+      "sourceSha256": "6121b3c86d32b77865e72be089166009fbb906e211e9baa73b6a9aba0f0b0b02",
+      "firstAt": 1790234535315,
+      "lastAt": 1790262411845,
+      "firstUk": "24/09/2026, 08:22:15",
+      "lastUk": "24/09/2026, 16:06:51",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-09-24",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1790234535315,
+          "lastAt": 1790242821297,
+          "firstUk": "24/09/2026, 08:22:15",
+          "lastUk": "24/09/2026, 10:40:21",
+          "count": 2763,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:9241490",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:9251609"
+        },
+        {
+          "firstAt": 1790251421270,
+          "lastAt": 1790262411845,
+          "firstUk": "24/09/2026, 13:03:41",
+          "lastUk": "24/09/2026, 16:06:51",
+          "count": 3665,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:9258052",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:9265759"
+        }
+      ]
+    },
+    {
+      "date": "2026-09-25",
+      "count": 3602,
+      "sourceSha256": "f02051ddb4a20a9732bb3cdbe881c2cafb002966af41412da127a64bcc3c52ac",
+      "firstAt": 1790332580415,
+      "lastAt": 1790343395789,
+      "firstUk": "25/09/2026, 11:36:20",
+      "lastUk": "25/09/2026, 14:36:35",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-09-25",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1790332580415,
+          "lastAt": 1790343395789,
+          "firstUk": "25/09/2026, 11:36:20",
+          "lastUk": "25/09/2026, 14:36:35",
+          "count": 3602,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:9280697",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:9284298"
+        }
+      ]
+    },
+    {
+      "date": "2026-09-27",
+      "count": 3636,
+      "sourceSha256": "621a551f0585803aa394a684892f9fe5689415740ce4ae62c5ee80affc0d985e",
+      "firstAt": 1790520049024,
+      "lastAt": 1790530954026,
+      "firstUk": "27/09/2026, 15:40:49",
+      "lastUk": "27/09/2026, 18:42:34",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-09-27",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1790520049024,
+          "lastAt": 1790530954026,
+          "firstUk": "27/09/2026, 15:40:49",
+          "lastUk": "27/09/2026, 18:42:34",
+          "count": 3636,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:9291031",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:9298143"
+        }
+      ]
+    },
+    {
+      "date": "2026-09-28",
+      "count": 3629,
+      "sourceSha256": "7222011ec68c3f0b86605f6dc576cb8d5763e05f4c913f25d42d774d13c501b0",
+      "firstAt": 1790622717697,
+      "lastAt": 1790633603205,
+      "firstUk": "28/09/2026, 20:11:57",
+      "lastUk": "28/09/2026, 23:13:23",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-09-28",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1790622717697,
+          "lastAt": 1790633603205,
+          "firstUk": "28/09/2026, 20:11:57",
+          "lastUk": "28/09/2026, 23:13:23",
+          "count": 3629,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:9311198",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:9318349"
+        }
+      ]
+    },
+    {
+      "date": "2026-09-29",
+      "count": 3585,
+      "sourceSha256": "37ac23f11a93e4686114544fbf17fbcd064c48788dc987c0e244154f338278ab",
+      "firstAt": 1790691933042,
+      "lastAt": 1790702697744,
+      "firstUk": "29/09/2026, 15:25:33",
+      "lastUk": "29/09/2026, 18:24:57",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-09-29",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1790691933042,
+          "lastAt": 1790702697744,
+          "firstUk": "29/09/2026, 15:25:33",
+          "lastUk": "29/09/2026, 18:24:57",
+          "count": 3585,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:9318648",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:9323331"
+        }
+      ]
+    },
+    {
+      "date": "2026-10-18",
+      "count": 3252,
+      "sourceSha256": "c338bce2e0a0f8c16284f99218ea02c3b221e5731f5965f06da91c7daf07e028",
+      "firstAt": 1792307294230,
+      "lastAt": 1792331649948,
+      "firstUk": "18/10/2026, 08:08:14",
+      "lastUk": "18/10/2026, 14:54:09",
+      "checkpointId": "echook-69e36aa623ee354582952a26-2026-10-18",
+      "diagnosticBlocks": [
+        {
+          "firstAt": 1792307294230,
+          "lastAt": 1792323199310,
+          "firstUk": "18/10/2026, 08:08:14",
+          "lastUk": "18/10/2026, 12:33:19",
+          "count": 2502,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:9425947",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:9469033"
+        },
+        {
+          "firstAt": 1792324286549,
+          "lastAt": 1792324291799,
+          "firstUk": "18/10/2026, 12:51:26",
+          "lastUk": "18/10/2026, 12:51:31",
+          "count": 3,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:9469367",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:9469376"
+        },
+        {
+          "firstAt": 1792325440659,
+          "lastAt": 1792331649948,
+          "firstUk": "18/10/2026, 13:10:40",
+          "lastUk": "18/10/2026, 14:54:09",
+          "count": 747,
+          "firstSampleId": "echook:69e36aa623ee354582952a26:9469406",
+          "lastSampleId": "echook:69e36aa623ee354582952a26:9480165"
+        }
+      ]
+    }
+  ],
+  "importedDatesWithoutSpreadsheetCandidate": [
+    "2026-04-18",
+    "2026-04-29",
+    "2026-04-30",
+    "2026-05-01",
+    "2026-05-02",
+    "2026-05-03",
+    "2026-05-04",
+    "2026-05-08",
+    "2026-05-10",
+    "2026-05-11",
+    "2026-05-15",
+    "2026-05-17",
+    "2026-05-18",
+    "2026-05-26",
+    "2026-06-04",
+    "2026-06-11",
+    "2026-06-12",
+    "2026-06-13",
+    "2026-06-29",
+    "2026-07-04",
+    "2026-07-11",
+    "2026-07-12",
+    "2026-07-18",
+    "2026-07-20",
+    "2026-08-09",
+    "2026-08-15",
+    "2026-08-17",
+    "2026-08-19",
+    "2026-08-22",
+    "2026-08-24",
+    "2026-09-10",
+    "2026-09-17",
+    "2026-09-18",
+    "2026-09-25",
+    "2026-09-27",
+    "2026-09-28",
+    "2026-09-29"
+  ]
+}
