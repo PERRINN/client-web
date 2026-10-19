@@ -63,6 +63,11 @@ window.telemetryHarness = {
   laps(){config={scalars:Object.fromEntries(service.channels.map(c=>[c.id,true])),charts:Object.fromEntries(service.channels.filter(c=>c.points.length).map(c=>[c.id,true])),revision:1,updatedBy:'viewer'};notify();service.channels.push({id:'["Lap"]:',label:'Lap',unit:'',value:'5',points:service.channels[0].points.map((p,i)=>({time:p.time,value:1+Math.floor(i/60)}))});service.changed.next();fixture.detectChanges();},
   longList(){const source=service.channels.find(c=>c.points.length);service.channels=Array.from({length:20},(_,i)=>({...source,id:'synthetic-channel-'+i,label:'Channel '+String(i).padStart(2,'0')}));service.changed.next();fixture.detectChanges();},
   snapshot() { const c=fixture.componentInstance; return {start:c.start,end:c.end,cursor:c.cursor,zoomed:!!c.window}; },
+  current(values) {
+    fixture.componentInstance.zoom();
+    service.channels=service.channels.map(c=>c.id==='["A"]:A'?{...c,points:values.map((value,i)=>({time:service.start+i*3000,value}))}:c);
+    service.changed.next();fixture.detectChanges();
+  },
   scalarReadings() {
     const c=fixture.componentInstance;
     return c.scalars.map(channel=>{
@@ -134,10 +139,31 @@ try {
     assert.equal(await page.locator('.reading').count(), 8);
     assert.equal(await page.locator('a[href="/prototypes"]').count(), 0);
     assert.ok(await page.locator('.trace').first().getAttribute('d'));
+    const current=page.locator('app-greenpower-chart').filter({has:page.locator('.current-legend')});
+    assert.equal(await current.count(),1,name+' only current gets the overlay');
+    assert.ok(await current.locator('.average-trace').getAttribute('d'));
+    assert.equal(await current.locator('.limit-label').innerText(),'24 A');
+    assert.match(await current.locator('svg').getAttribute('aria-label'),/150-reading average and 24 amp limit/);
+    const currentBox=await current.boundingBox();
+    const nextChart=page.locator('app-greenpower-chart').nth(1);
+    const nextY=(await nextChart.boundingBox()).y;
+    for(const [count,value] of [[149,24],[150,24],[160,20],[160,28]]) {
+      await page.evaluate(({count,value})=>window.telemetryHarness.current(Array(count).fill(value)),{count,value});
+      await page.mouse.move(0,0);
+      assert.equal(await current.locator('.average-readout').innerText(),count < 150 ? 'Avg · —' : 'Avg · '+value.toFixed(1)+' A');
+      assert.doesNotMatch(await current.innerText(),/Over limit|Under limit|At limit/);
+      assert.equal((await current.boundingBox()).height,currentBox.height,name+' average states preserve chart height');
+      assert.equal((await nextChart.boundingBox()).y,nextY,name+' average states preserve following chart');
+      if(count===149)assert.equal(await current.locator('.average-trace').getAttribute('d'),'');
+    }
+    await current.scrollIntoViewIfNeeded();
+    await page.screenshot({path:output+'/'+name+'-current-average.png'});
+    await page.evaluate(()=>window.telemetryHarness.state('live'));
+    await page.locator('h1').scrollIntoViewIfNeeded();
     const latestScalars=await page.locator('.reading strong').allTextContents();
     const firstChart=page.locator('app-greenpower-chart').first();
     const initialChartBox=await firstChart.boundingBox();
-    const hoverBox=await firstChart.locator('svg').boundingBox();
+    let hoverBox=await firstChart.locator('svg').boundingBox();
     await page.mouse.move(hoverBox.x+hoverBox.width*.25,hoverBox.y+40);
     assert.deepEqual(await page.locator('.reading strong').allTextContents(),await page.evaluate(()=>window.telemetryHarness.scalarReadings()),name+' scalars follow cursor');
     assert.notDeepEqual(await page.locator('.reading strong').allTextContents(),latestScalars);
@@ -150,6 +176,7 @@ try {
     const labels=await firstChart.locator('.lap-labels > span').evaluateAll(nodes=>nodes.map(node=>({width:node.getBoundingClientRect().width,textWidth:node.firstElementChild.getBoundingClientRect().width})));
     assert.ok(labels.every(l=>l.textWidth<=l.width),name+' lap labels fit');
     assert.equal((await firstChart.boundingBox()).y,initialChartBox.y,name+' lap appearance preserves layout');
+    hoverBox=await firstChart.locator('svg').boundingBox();
     await page.mouse.move(hoverBox.x+hoverBox.width*.5,hoverBox.y+40);
     assert.match(await firstChart.locator('.readout').innerText(),/Lap 3/);
     await page.screenshot({path:`${output}/${name}-laps.png`});

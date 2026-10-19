@@ -4,11 +4,34 @@ import { formatAxisValue, formatTelemetryValue } from '../telemetry/sessionHisto
 
 export interface ChartWindow { start: number; end: number; }
 export type ChartPoint = { time: number; value: number };
+export const CURRENT_AVERAGE_PERIODS = 150;
+export const CURRENT_LIMIT_AMPS = 24;
+export function isCurrentChannel(channel: GreenpowerChannel) { return channel.id === '["A"]:A'; }
+
+/** Trailing sample average, including the current sample; no partial warm-up windows. */
+export function trailingAverage(points: ChartPoint[], periods = CURRENT_AVERAGE_PERIODS): ChartPoint[] {
+  if (!Number.isInteger(periods) || periods < 1) throw new Error('Average periods must be a positive integer');
+  const result: ChartPoint[] = [];
+  let sum = 0;
+  for (let i = 0; i < points.length; i++) {
+    if (i >= periods) sum -= points[i - periods].value / periods;
+    sum += points[i].value / periods;
+    if (i >= periods - 1) result.push({ time: points[i].time, value: sum });
+  }
+  return result;
+}
+export function chartY(value: number, axis: { min: number; max: number }) {
+  const scale = Math.max(1, Math.abs(axis.min), Math.abs(axis.max));
+  return 110 - (value / scale - axis.min / scale) / (axis.max / scale - axis.min / scale || 1) * 100;
+}
 export { formatAxisValue, formatTelemetryValue };
-export function plotFor(points: ChartPoint[], start: number, end: number, width: number) {
+export function plotFor(points: ChartPoint[], start: number, end: number, width: number, average: ChartPoint[] = [], limit?: number) {
   const visible = points.slice(pointIndex(points, start), pointIndex(points, end, true));
+  const visibleAverage = average.slice(pointIndex(average, start), pointIndex(average, end, true));
   let min = Infinity, max = -Infinity;
   for (const point of visible) { min = Math.min(min, point.value); max = Math.max(max, point.value); }
+  for (const point of visibleAverage) { min = Math.min(min, point.value); max = Math.max(max, point.value); }
+  if (limit !== undefined) { min = Math.min(min, limit); max = Math.max(max, limit); }
   // Normalize only extreme magnitudes so the shared rounding algorithm cannot overflow.
   const scale = Math.max(Math.abs(min), Math.abs(max));
   const factor = Number.isFinite(scale) && scale > 1e100 ? scale : scale > 0 && scale < 1e-100 ? scale : 1;
@@ -18,7 +41,8 @@ export function plotFor(points: ChartPoint[], start: number, end: number, width:
   axis.ticks = axis.ticks.map(tick => ({ ...tick, value: tick.value * factor, y: 10 + (tick.y - 8) / 44 * 100 })).filter(tick => Number.isFinite(tick.value));
   const magnitude = Math.max(1, Math.abs(axis.min), Math.abs(axis.max));
   axis.ticks.forEach(tick => tick.y = 110 - (tick.value / magnitude - axis.min / magnitude) / (axis.max / magnitude - axis.min / magnitude || 1) * 100);
-  return { axis, trace: chartTrace(visible, start, end, Math.max(1, Math.ceil(width)), axis), empty: !visible.length };
+  const bins = Math.max(1, Math.ceil(width));
+  return { axis, trace: chartTrace(visible, start, end, bins, axis), averageTrace: chartTrace(visibleAverage, start, end, bins, axis), empty: !visible.length };
 }
 export function nearestPoint(points: ChartPoint[], time: number, start: number, end: number) {
   const index = pointIndex(points, time);

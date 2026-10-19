@@ -192,6 +192,8 @@ Admins can select **Edit** beside Live/Load history, switch between **Scalars** 
 
 Chart cursors snap to the nearest original sample in the visible window on hover or touch hold, with a circular point marker and matching sample time/value. Left/Right arrow keys step through sample timestamps; synchronized charts select their own nearest visible sample.
 
+The Current (A) chart overlays a gold trailing 150-reading arithmetic average and a labelled dashed 24 A limit. The average includes the current reading and waits for 150 numeric current readings; it is calculated from the full loaded channel before display reduction, so zooming preserves preceding readings. The Avg value follows the cursor, or the latest visible reading when no cursor is active. Both traces and the limit share the Y axis. This is a sample-based average, not a 150-second or time-weighted average; missing current readings do not count. Calculation stays in browser memory, with no writes or additional reads. `CURRENT_AVERAGE_PERIODS` and `CURRENT_LIMIT_AMPS` in `greenpowerChart.ts` define the tuning values.
+
 Dates and chart times use `Europe/London`, including GMT/BST. Live timelines use **server receipt time**; imported history uses the preserved **source timestamp**, with import receipt time stored separately. Numeric display rounds to six decimal places, while storage preserves the original JSON. Plot rendering preserves per-bin minima/maxima; the full samples remain loaded and stored. See [data-model.md → Greenpower telemetry](data-model.md#greenpower-telemetry) for the contract, work budgets and deployment considerations.
 
 #### Phone setup and workshop verification

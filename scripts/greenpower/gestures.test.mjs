@@ -27,6 +27,35 @@ function fixture() {
   const pointer=(x,type='touch') => ({pointerId:1,pointerType:type,button:0,isPrimary:true,clientX:x,clientY:0,currentTarget:svg,timeStamp:Date.now()});
   return {component,pointer};
 }
+test('current average readout follows cursor and live data without recalculating on zoom', () => {
+  const {component:c} = fixture();
+  c.channel = {id:'["A"]:A',label:'Current',unit:'A',value:'24',points:Array.from({length:160},(_,time)=>({time,value:24}))};
+  c.start = 0; c.end = 159;
+  c.ngOnChanges({channel:{}});
+  assert.equal(c.averageLabel, '24.0 A');
+  const cached = c.average;
+  c.start = 150;
+  c.ngOnChanges({start:{}});
+  assert.equal(c.average, cached, 'zoom reuses the full channel average');
+  assert.equal(c.averageLabel, '24.0 A');
+  c.start = 0; c.cursor = 148;
+  assert.equal(c.averageLabel, '—');
+  c.cursor = 149;
+  assert.equal(c.averageLabel, '24.0 A');
+  c.cursor = undefined;
+  for (const value of [20, 28]) {
+    c.channel = {...c.channel,points:c.channel.points.map(p=>({...p,value}))};
+    c.ngOnChanges({channel:{}});
+    assert.equal(c.averageLabel, value.toFixed(1) + ' A');
+    assert.ok(c.limitY >= 10 && c.limitY <= 110);
+  }
+  c.channel = {...c.channel,id:'["Vt"]:V'};
+  c.ngOnChanges({channel:{}});
+  // A changed channel identity with reused point storage must remove the overlay too.
+  assert.equal(c.hasCurrentAverage, false);
+  assert.deepEqual(c.average, []);
+  c.ngOnDestroy();
+});
 test('zoom stays locked through a held drag and live updates for touch and mouse', async () => {
   for (const type of ['touch','mouse']) {
     const {component:c,pointer:p}=fixture();
