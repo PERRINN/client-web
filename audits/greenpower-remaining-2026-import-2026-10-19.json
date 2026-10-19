@@ -1,0 +1,1212 @@
+{
+  "startedAt": "2026-10-19T13:52:44.816Z",
+  "project": "perrinn-d5fc1",
+  "status": "stopped",
+  "sourceRequests": 0,
+  "budget": {
+    "days": 72,
+    "records": 327845,
+    "chunks": 10280,
+    "committedWrites": 30840,
+    "maxReadEquivalents": 113584,
+    "maxTransactionAttempts": 30840,
+    "concurrency": 1
+  },
+  "work": {
+    "readEquivalents": 24898,
+    "transactionAttempts": 4993,
+    "transactions": 4992,
+    "committedWrites": 14976
+  },
+  "days": [
+    {
+      "date": "2026-04-18",
+      "expectedCount": 1268,
+      "sourceSha256": "c585e4862aeaf4841961f01371a546ff19dbf850ae552cb7009160ed9d55302f",
+      "status": "verified",
+      "completedChunks": 40,
+      "imported": {
+        "mode": "imported",
+        "count": 1268,
+        "added": 1268,
+        "existing": 0,
+        "chunks": 40,
+        "sourceSha256": "c585e4862aeaf4841961f01371a546ff19dbf850ae552cb7009160ed9d55302f"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 1268,
+        "added": 0,
+        "existing": 1268,
+        "chunks": 40,
+        "sourceSha256": "c585e4862aeaf4841961f01371a546ff19dbf850ae552cb7009160ed9d55302f"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 42,
+      "completedAt": "2026-10-19T13:53:25.566Z",
+      "work": {
+        "readEquivalents": 207,
+        "transactionAttempts": 40,
+        "transactions": 40,
+        "committedWrites": 120
+      },
+      "versionSha256": "7abd58b9d9cf19e658a21cd6454a31e76f96ffd99b8e24943b2e210f7c1fc179"
+    },
+    {
+      "date": "2026-04-29",
+      "expectedCount": 705,
+      "sourceSha256": "be3665e12777ebbfbcabac76aa5a48e2f3967a450def25a16131bf7777157860",
+      "status": "verified",
+      "completedChunks": 23,
+      "imported": {
+        "mode": "imported",
+        "count": 705,
+        "added": 705,
+        "existing": 0,
+        "chunks": 23,
+        "sourceSha256": "be3665e12777ebbfbcabac76aa5a48e2f3967a450def25a16131bf7777157860"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 705,
+        "added": 0,
+        "existing": 705,
+        "chunks": 23,
+        "sourceSha256": "be3665e12777ebbfbcabac76aa5a48e2f3967a450def25a16131bf7777157860"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 25,
+      "completedAt": "2026-10-19T13:53:47.322Z",
+      "work": {
+        "readEquivalents": 122,
+        "transactionAttempts": 23,
+        "transactions": 23,
+        "committedWrites": 69
+      },
+      "versionSha256": "7d5c8a0eccc16e368d9d5bef941892f05822d59752b582c4bdb2742d5cb6fae5"
+    },
+    {
+      "date": "2026-04-30",
+      "expectedCount": 1017,
+      "sourceSha256": "53a63a89347e6f0d05070260a64dac4f5555e7bb0f033e9659562400f950b086",
+      "status": "verified",
+      "completedChunks": 32,
+      "imported": {
+        "mode": "imported",
+        "count": 1017,
+        "added": 1017,
+        "existing": 0,
+        "chunks": 32,
+        "sourceSha256": "53a63a89347e6f0d05070260a64dac4f5555e7bb0f033e9659562400f950b086"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 1017,
+        "added": 0,
+        "existing": 1017,
+        "chunks": 32,
+        "sourceSha256": "53a63a89347e6f0d05070260a64dac4f5555e7bb0f033e9659562400f950b086"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 34,
+      "completedAt": "2026-10-19T13:54:16.813Z",
+      "work": {
+        "readEquivalents": 167,
+        "transactionAttempts": 32,
+        "transactions": 32,
+        "committedWrites": 96
+      },
+      "versionSha256": "8f021f73bb41f37713bf353ceb9c3c679694f77fa8929cfc87a74fbf16c1bf97"
+    },
+    {
+      "date": "2026-05-01",
+      "expectedCount": 656,
+      "sourceSha256": "8b5e09ffa2e1af0fa8b4321cf6dbfd0e5596d67e189acdb0aaf71f1ca929feb9",
+      "status": "verified",
+      "completedChunks": 21,
+      "imported": {
+        "mode": "imported",
+        "count": 656,
+        "added": 656,
+        "existing": 0,
+        "chunks": 21,
+        "sourceSha256": "8b5e09ffa2e1af0fa8b4321cf6dbfd0e5596d67e189acdb0aaf71f1ca929feb9"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 656,
+        "added": 0,
+        "existing": 656,
+        "chunks": 21,
+        "sourceSha256": "8b5e09ffa2e1af0fa8b4321cf6dbfd0e5596d67e189acdb0aaf71f1ca929feb9"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 23,
+      "completedAt": "2026-10-19T13:54:34.418Z",
+      "work": {
+        "readEquivalents": 112,
+        "transactionAttempts": 21,
+        "transactions": 21,
+        "committedWrites": 63
+      },
+      "versionSha256": "ebd2b4fcbdcef471de81e030e5c809e1aeee919f731770e4b0c83eb78c41f1d7"
+    },
+    {
+      "date": "2026-05-02",
+      "expectedCount": 666,
+      "sourceSha256": "ad9fcdc932d9c173898662b0597e1bcca57adbb46931af7c568c558fdd8f16e2",
+      "status": "verified",
+      "completedChunks": 21,
+      "imported": {
+        "mode": "imported",
+        "count": 666,
+        "added": 666,
+        "existing": 0,
+        "chunks": 21,
+        "sourceSha256": "ad9fcdc932d9c173898662b0597e1bcca57adbb46931af7c568c558fdd8f16e2"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 666,
+        "added": 0,
+        "existing": 666,
+        "chunks": 21,
+        "sourceSha256": "ad9fcdc932d9c173898662b0597e1bcca57adbb46931af7c568c558fdd8f16e2"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 23,
+      "completedAt": "2026-10-19T13:54:53.861Z",
+      "work": {
+        "readEquivalents": 112,
+        "transactionAttempts": 21,
+        "transactions": 21,
+        "committedWrites": 63
+      },
+      "versionSha256": "0025e8e97308b8dcf45c40c36d1283ffa139f87b5e701eee1f8ebfaba9f0dd46"
+    },
+    {
+      "date": "2026-05-03",
+      "expectedCount": 2319,
+      "sourceSha256": "101399c7f61f62dbe8af8407f49733271ba3864261b7aea9e2b436942faba9fa",
+      "status": "verified",
+      "completedChunks": 73,
+      "imported": {
+        "mode": "imported",
+        "count": 2319,
+        "added": 2319,
+        "existing": 0,
+        "chunks": 73,
+        "sourceSha256": "101399c7f61f62dbe8af8407f49733271ba3864261b7aea9e2b436942faba9fa"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 2319,
+        "added": 0,
+        "existing": 2319,
+        "chunks": 73,
+        "sourceSha256": "101399c7f61f62dbe8af8407f49733271ba3864261b7aea9e2b436942faba9fa"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 75,
+      "completedAt": "2026-10-19T13:55:43.774Z",
+      "work": {
+        "readEquivalents": 372,
+        "transactionAttempts": 73,
+        "transactions": 73,
+        "committedWrites": 219
+      },
+      "versionSha256": "871c10d14263ce415c40b340438d1444fc0ba66f9d9ba4971fe4f329e7fd477b"
+    },
+    {
+      "date": "2026-05-04",
+      "expectedCount": 2231,
+      "sourceSha256": "c2cf4e1aeeb72e1a38882c16cf94387f55ae7d35074ee6610047fd028d85881b",
+      "status": "verified",
+      "completedChunks": 70,
+      "imported": {
+        "mode": "imported",
+        "count": 2231,
+        "added": 2231,
+        "existing": 0,
+        "chunks": 70,
+        "sourceSha256": "c2cf4e1aeeb72e1a38882c16cf94387f55ae7d35074ee6610047fd028d85881b"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 2231,
+        "added": 0,
+        "existing": 2231,
+        "chunks": 70,
+        "sourceSha256": "c2cf4e1aeeb72e1a38882c16cf94387f55ae7d35074ee6610047fd028d85881b"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 72,
+      "completedAt": "2026-10-19T13:56:34.545Z",
+      "work": {
+        "readEquivalents": 357,
+        "transactionAttempts": 70,
+        "transactions": 70,
+        "committedWrites": 210
+      },
+      "versionSha256": "45949b33b4a6de9df33485022f4479055a982e8cf7f10755d2c25d871e28d129"
+    },
+    {
+      "date": "2026-05-06",
+      "expectedCount": 1673,
+      "sourceSha256": "897d66a3cff147a6e3d2ab64b8860b0ac7d3344f04a1a39e2d2c0744f2b3d1fa",
+      "status": "verified",
+      "completedChunks": 53,
+      "imported": {
+        "mode": "imported",
+        "count": 1673,
+        "added": 1673,
+        "existing": 0,
+        "chunks": 53,
+        "sourceSha256": "897d66a3cff147a6e3d2ab64b8860b0ac7d3344f04a1a39e2d2c0744f2b3d1fa"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 1673,
+        "added": 0,
+        "existing": 1673,
+        "chunks": 53,
+        "sourceSha256": "897d66a3cff147a6e3d2ab64b8860b0ac7d3344f04a1a39e2d2c0744f2b3d1fa"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 55,
+      "completedAt": "2026-10-19T13:57:08.722Z",
+      "work": {
+        "readEquivalents": 272,
+        "transactionAttempts": 53,
+        "transactions": 53,
+        "committedWrites": 159
+      },
+      "versionSha256": "6d19340f7fda3bf259841b7335a50582f28f67f04b05dfb8516a1eba7f1d831c"
+    },
+    {
+      "date": "2026-05-08",
+      "expectedCount": 2333,
+      "sourceSha256": "dc312df5a7d0a0e2c529546f94be5bf4c2da192260e098cafce1c8c9c31c6dcb",
+      "status": "verified",
+      "completedChunks": 73,
+      "imported": {
+        "mode": "imported",
+        "count": 2333,
+        "added": 2333,
+        "existing": 0,
+        "chunks": 73,
+        "sourceSha256": "dc312df5a7d0a0e2c529546f94be5bf4c2da192260e098cafce1c8c9c31c6dcb"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 2333,
+        "added": 0,
+        "existing": 2333,
+        "chunks": 73,
+        "sourceSha256": "dc312df5a7d0a0e2c529546f94be5bf4c2da192260e098cafce1c8c9c31c6dcb"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 75,
+      "completedAt": "2026-10-19T13:58:02.674Z",
+      "work": {
+        "readEquivalents": 372,
+        "transactionAttempts": 73,
+        "transactions": 73,
+        "committedWrites": 219
+      },
+      "versionSha256": "29d7262e2dac0a7f4db9906e1c75cc8000dd325c18ca499009bacf9411b3f4c4"
+    },
+    {
+      "date": "2026-05-10",
+      "expectedCount": 11,
+      "sourceSha256": "b3f29902b709ef9517de5b4c4403e14d3abaebf45e1c2e9a512e68c2faf3a9a6",
+      "status": "verified",
+      "completedChunks": 1,
+      "imported": {
+        "mode": "imported",
+        "count": 11,
+        "added": 11,
+        "existing": 0,
+        "chunks": 1,
+        "sourceSha256": "b3f29902b709ef9517de5b4c4403e14d3abaebf45e1c2e9a512e68c2faf3a9a6"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 11,
+        "added": 0,
+        "existing": 11,
+        "chunks": 1,
+        "sourceSha256": "b3f29902b709ef9517de5b4c4403e14d3abaebf45e1c2e9a512e68c2faf3a9a6"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 3,
+      "completedAt": "2026-10-19T13:58:05.424Z",
+      "work": {
+        "readEquivalents": 12,
+        "transactionAttempts": 1,
+        "transactions": 1,
+        "committedWrites": 3
+      },
+      "versionSha256": "24f48b72bca2ba1e83629d28590b4bab40ffe063c120a60221b2e617bd9f568e"
+    },
+    {
+      "date": "2026-05-11",
+      "expectedCount": 1315,
+      "sourceSha256": "b444936e1647cbfe5d8813445b870dd32d3b776db5bfd950647b281e011ffb4f",
+      "status": "verified",
+      "completedChunks": 42,
+      "imported": {
+        "mode": "imported",
+        "count": 1315,
+        "added": 1315,
+        "existing": 0,
+        "chunks": 42,
+        "sourceSha256": "b444936e1647cbfe5d8813445b870dd32d3b776db5bfd950647b281e011ffb4f"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 1315,
+        "added": 0,
+        "existing": 1315,
+        "chunks": 42,
+        "sourceSha256": "b444936e1647cbfe5d8813445b870dd32d3b776db5bfd950647b281e011ffb4f"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 44,
+      "completedAt": "2026-10-19T13:58:33.231Z",
+      "work": {
+        "readEquivalents": 217,
+        "transactionAttempts": 42,
+        "transactions": 42,
+        "committedWrites": 126
+      },
+      "versionSha256": "cdebb03ea303d7ae659fe9e7b533b0b2ab70cfc67548a372f53e5af5e9bd26b9"
+    },
+    {
+      "date": "2026-05-15",
+      "expectedCount": 6261,
+      "sourceSha256": "19815ced49d2a2bc90064e03bd501bebde4041413d6017dae8bd26dfbe13dc9c",
+      "status": "verified",
+      "completedChunks": 196,
+      "imported": {
+        "mode": "imported",
+        "count": 6261,
+        "added": 6261,
+        "existing": 0,
+        "chunks": 196,
+        "sourceSha256": "19815ced49d2a2bc90064e03bd501bebde4041413d6017dae8bd26dfbe13dc9c"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 6261,
+        "added": 0,
+        "existing": 6261,
+        "chunks": 196,
+        "sourceSha256": "19815ced49d2a2bc90064e03bd501bebde4041413d6017dae8bd26dfbe13dc9c"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 198,
+      "completedAt": "2026-10-19T14:00:33.316Z",
+      "work": {
+        "readEquivalents": 987,
+        "transactionAttempts": 196,
+        "transactions": 196,
+        "committedWrites": 588
+      },
+      "versionSha256": "d45ed009957fc0d815271221de060ac58c08c61682417c139e5523e43ff05e95"
+    },
+    {
+      "date": "2026-05-17",
+      "expectedCount": 4197,
+      "sourceSha256": "8d73baf0d368237a3bded2b89d0af16426d4ed3356a2973a027ba40fa3ae1132",
+      "status": "verified",
+      "completedChunks": 132,
+      "imported": {
+        "mode": "imported",
+        "count": 4197,
+        "added": 4197,
+        "existing": 0,
+        "chunks": 132,
+        "sourceSha256": "8d73baf0d368237a3bded2b89d0af16426d4ed3356a2973a027ba40fa3ae1132"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 4197,
+        "added": 0,
+        "existing": 4197,
+        "chunks": 132,
+        "sourceSha256": "8d73baf0d368237a3bded2b89d0af16426d4ed3356a2973a027ba40fa3ae1132"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 134,
+      "completedAt": "2026-10-19T14:02:04.119Z",
+      "work": {
+        "readEquivalents": 667,
+        "transactionAttempts": 132,
+        "transactions": 132,
+        "committedWrites": 396
+      },
+      "versionSha256": "08ce736b1779ecf7b3128485a63fb21af778187e42c91f29ff4747740bd8b830"
+    },
+    {
+      "date": "2026-05-18",
+      "expectedCount": 3730,
+      "sourceSha256": "7da30643bb3abdaf9701233b4483f4b6c9e473722ce4e26895cd15e9ed82fce4",
+      "status": "verified",
+      "completedChunks": 117,
+      "imported": {
+        "mode": "imported",
+        "count": 3730,
+        "added": 3730,
+        "existing": 0,
+        "chunks": 117,
+        "sourceSha256": "7da30643bb3abdaf9701233b4483f4b6c9e473722ce4e26895cd15e9ed82fce4"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 3730,
+        "added": 0,
+        "existing": 3730,
+        "chunks": 117,
+        "sourceSha256": "7da30643bb3abdaf9701233b4483f4b6c9e473722ce4e26895cd15e9ed82fce4"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 119,
+      "completedAt": "2026-10-19T14:03:25.734Z",
+      "work": {
+        "readEquivalents": 592,
+        "transactionAttempts": 117,
+        "transactions": 117,
+        "committedWrites": 351
+      },
+      "versionSha256": "0a08aacf49f308b70f5ff8aa5c82663910d286701636d937dc3ec0338c0ab7c7"
+    },
+    {
+      "date": "2026-05-24",
+      "expectedCount": 8077,
+      "sourceSha256": "509f8fefab099412a2bc897795bec641e19298789d1aa2628f47c0e9011a0235",
+      "status": "verified",
+      "completedChunks": 253,
+      "imported": {
+        "mode": "imported",
+        "count": 8077,
+        "added": 8077,
+        "existing": 0,
+        "chunks": 253,
+        "sourceSha256": "509f8fefab099412a2bc897795bec641e19298789d1aa2628f47c0e9011a0235"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 8077,
+        "added": 0,
+        "existing": 8077,
+        "chunks": 253,
+        "sourceSha256": "509f8fefab099412a2bc897795bec641e19298789d1aa2628f47c0e9011a0235"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 255,
+      "completedAt": "2026-10-19T14:06:19.228Z",
+      "work": {
+        "readEquivalents": 1272,
+        "transactionAttempts": 253,
+        "transactions": 253,
+        "committedWrites": 759
+      },
+      "versionSha256": "1c9d4466e966c18fb29a5e7cd2cf39294a87cd7d0da322f487e6c20425cca7fe"
+    },
+    {
+      "date": "2026-05-26",
+      "expectedCount": 2621,
+      "sourceSha256": "ce89c1bcc22072ed3115d2a314e089df8623ea08fd1adf4ab581913d45a0306a",
+      "status": "verified",
+      "completedChunks": 82,
+      "imported": {
+        "mode": "imported",
+        "count": 2621,
+        "added": 2621,
+        "existing": 0,
+        "chunks": 82,
+        "sourceSha256": "ce89c1bcc22072ed3115d2a314e089df8623ea08fd1adf4ab581913d45a0306a"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 2621,
+        "added": 0,
+        "existing": 2621,
+        "chunks": 82,
+        "sourceSha256": "ce89c1bcc22072ed3115d2a314e089df8623ea08fd1adf4ab581913d45a0306a"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 84,
+      "completedAt": "2026-10-19T14:07:23.194Z",
+      "work": {
+        "readEquivalents": 417,
+        "transactionAttempts": 82,
+        "transactions": 82,
+        "committedWrites": 246
+      },
+      "versionSha256": "83f663a9201208365b38483e9728a401e2c94a21290e142755a2037ca4fa5d8c"
+    },
+    {
+      "date": "2026-05-27",
+      "expectedCount": 3454,
+      "sourceSha256": "48476f49da0e3f9042c6c5c1ad10096c2f6a14db6925127a41d88d7944f5c788",
+      "status": "verified",
+      "completedChunks": 108,
+      "imported": {
+        "mode": "imported",
+        "count": 3454,
+        "added": 3454,
+        "existing": 0,
+        "chunks": 108,
+        "sourceSha256": "48476f49da0e3f9042c6c5c1ad10096c2f6a14db6925127a41d88d7944f5c788"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 3454,
+        "added": 0,
+        "existing": 3454,
+        "chunks": 108,
+        "sourceSha256": "48476f49da0e3f9042c6c5c1ad10096c2f6a14db6925127a41d88d7944f5c788"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 110,
+      "completedAt": "2026-10-19T14:08:36.840Z",
+      "work": {
+        "readEquivalents": 547,
+        "transactionAttempts": 108,
+        "transactions": 108,
+        "committedWrites": 324
+      },
+      "versionSha256": "e519a413dce252e28520164060cb9785a9e8d60d754c468d71a926d996aac4b1"
+    },
+    {
+      "date": "2026-05-31",
+      "expectedCount": 7902,
+      "sourceSha256": "d30562d162c8c0039174122029a0989734fd98e0d04715e95ddd2c3bab56d974",
+      "status": "verified",
+      "completedChunks": 247,
+      "imported": {
+        "mode": "imported",
+        "count": 7902,
+        "added": 7902,
+        "existing": 0,
+        "chunks": 247,
+        "sourceSha256": "d30562d162c8c0039174122029a0989734fd98e0d04715e95ddd2c3bab56d974"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 7902,
+        "added": 0,
+        "existing": 7902,
+        "chunks": 247,
+        "sourceSha256": "d30562d162c8c0039174122029a0989734fd98e0d04715e95ddd2c3bab56d974"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 249,
+      "completedAt": "2026-10-19T14:11:13.342Z",
+      "work": {
+        "readEquivalents": 1242,
+        "transactionAttempts": 247,
+        "transactions": 247,
+        "committedWrites": 741
+      },
+      "versionSha256": "1dd4fe8baf395cc01a0cc02b215719a7ba9abadd8a9d209eaaa0f5fbb6d845c2"
+    },
+    {
+      "date": "2026-06-04",
+      "expectedCount": 3651,
+      "sourceSha256": "b5d42728edbe73dc0ed8ed56c27afb134f10121f759d68544be57d078a0b3f2f",
+      "status": "verified",
+      "completedChunks": 115,
+      "imported": {
+        "mode": "imported",
+        "count": 3651,
+        "added": 3651,
+        "existing": 0,
+        "chunks": 115,
+        "sourceSha256": "b5d42728edbe73dc0ed8ed56c27afb134f10121f759d68544be57d078a0b3f2f"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 3651,
+        "added": 0,
+        "existing": 3651,
+        "chunks": 115,
+        "sourceSha256": "b5d42728edbe73dc0ed8ed56c27afb134f10121f759d68544be57d078a0b3f2f"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 117,
+      "completedAt": "2026-10-19T14:12:23.527Z",
+      "work": {
+        "readEquivalents": 582,
+        "transactionAttempts": 115,
+        "transactions": 115,
+        "committedWrites": 345
+      },
+      "versionSha256": "2065b7ac9ba746953d6f8cd8789c89193e94f54777040e0ba290c09e9830aeda"
+    },
+    {
+      "date": "2026-06-07",
+      "expectedCount": 7048,
+      "sourceSha256": "80aea6afd9f167af53f206360cbaaeed062dae444c36f9ffa41b79657cb430f7",
+      "status": "verified",
+      "completedChunks": 221,
+      "imported": {
+        "mode": "imported",
+        "count": 7048,
+        "added": 7048,
+        "existing": 0,
+        "chunks": 221,
+        "sourceSha256": "80aea6afd9f167af53f206360cbaaeed062dae444c36f9ffa41b79657cb430f7"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 7048,
+        "added": 0,
+        "existing": 7048,
+        "chunks": 221,
+        "sourceSha256": "80aea6afd9f167af53f206360cbaaeed062dae444c36f9ffa41b79657cb430f7"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 223,
+      "completedAt": "2026-10-19T14:14:52.316Z",
+      "work": {
+        "readEquivalents": 1112,
+        "transactionAttempts": 221,
+        "transactions": 221,
+        "committedWrites": 663
+      },
+      "versionSha256": "e2b303f4b5666ffab16de33e29a3bb45ecb5e2a3bca389723f2e816cf4f43a7a"
+    },
+    {
+      "date": "2026-06-11",
+      "expectedCount": 6473,
+      "sourceSha256": "fe1f41db343c0076d6f9964c55be46608bf484479679d1e3600e48f753c56a2e",
+      "status": "verified",
+      "completedChunks": 203,
+      "imported": {
+        "mode": "imported",
+        "count": 6473,
+        "added": 6473,
+        "existing": 0,
+        "chunks": 203,
+        "sourceSha256": "fe1f41db343c0076d6f9964c55be46608bf484479679d1e3600e48f753c56a2e"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 6473,
+        "added": 0,
+        "existing": 6473,
+        "chunks": 203,
+        "sourceSha256": "fe1f41db343c0076d6f9964c55be46608bf484479679d1e3600e48f753c56a2e"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 205,
+      "completedAt": "2026-10-19T14:16:48.797Z",
+      "work": {
+        "readEquivalents": 1022,
+        "transactionAttempts": 203,
+        "transactions": 203,
+        "committedWrites": 609
+      },
+      "versionSha256": "086c7f3d206216eecd78acfcdc5ef66eb60658b7d040e2b480124347808e856e"
+    },
+    {
+      "date": "2026-06-12",
+      "expectedCount": 7655,
+      "sourceSha256": "c832fc07277367b63158c2b4da02eff336c5d672e24a5ddb5f99b4983962e391",
+      "status": "verified",
+      "completedChunks": 240,
+      "imported": {
+        "mode": "imported",
+        "count": 7655,
+        "added": 7655,
+        "existing": 0,
+        "chunks": 240,
+        "sourceSha256": "c832fc07277367b63158c2b4da02eff336c5d672e24a5ddb5f99b4983962e391"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 7655,
+        "added": 0,
+        "existing": 7655,
+        "chunks": 240,
+        "sourceSha256": "c832fc07277367b63158c2b4da02eff336c5d672e24a5ddb5f99b4983962e391"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 242,
+      "completedAt": "2026-10-19T14:19:27.490Z",
+      "work": {
+        "readEquivalents": 1207,
+        "transactionAttempts": 240,
+        "transactions": 240,
+        "committedWrites": 720
+      },
+      "versionSha256": "35042d2741a657d0a3bad1a09b4718f401a63c5409f768a403f8733533e421b0"
+    },
+    {
+      "date": "2026-06-13",
+      "expectedCount": 6856,
+      "sourceSha256": "28a2ce107c1a77d55075e821c7d233948d78aa4647e5370e862d1dfa26152f79",
+      "status": "verified",
+      "completedChunks": 215,
+      "imported": {
+        "mode": "imported",
+        "count": 6856,
+        "added": 6856,
+        "existing": 0,
+        "chunks": 215,
+        "sourceSha256": "28a2ce107c1a77d55075e821c7d233948d78aa4647e5370e862d1dfa26152f79"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 6856,
+        "added": 0,
+        "existing": 6856,
+        "chunks": 215,
+        "sourceSha256": "28a2ce107c1a77d55075e821c7d233948d78aa4647e5370e862d1dfa26152f79"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 217,
+      "completedAt": "2026-10-19T14:21:34.818Z",
+      "work": {
+        "readEquivalents": 1082,
+        "transactionAttempts": 215,
+        "transactions": 215,
+        "committedWrites": 645
+      },
+      "versionSha256": "7e083c31603c016d180a08bb2f0fe2c3609a17dd2309abf2881229f0c66e4553"
+    },
+    {
+      "date": "2026-06-14",
+      "expectedCount": 5365,
+      "sourceSha256": "23fbdd95fe628ea586ef9b18c1bde70db3f92b9574344bac87c6e062a7aaceed",
+      "status": "verified",
+      "completedChunks": 168,
+      "imported": {
+        "mode": "imported",
+        "count": 5365,
+        "added": 5365,
+        "existing": 0,
+        "chunks": 168,
+        "sourceSha256": "23fbdd95fe628ea586ef9b18c1bde70db3f92b9574344bac87c6e062a7aaceed"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 5365,
+        "added": 0,
+        "existing": 5365,
+        "chunks": 168,
+        "sourceSha256": "23fbdd95fe628ea586ef9b18c1bde70db3f92b9574344bac87c6e062a7aaceed"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 170,
+      "completedAt": "2026-10-19T14:23:30.123Z",
+      "work": {
+        "readEquivalents": 847,
+        "transactionAttempts": 168,
+        "transactions": 168,
+        "committedWrites": 504
+      },
+      "versionSha256": "e57bb0150b8ff91d8632907d116de60df85c9b85d7bf94b7ce5246309f4f37a0"
+    },
+    {
+      "date": "2026-06-15",
+      "expectedCount": 4900,
+      "sourceSha256": "5651aaea9ba4ffc2e220157bd44abbe64a5a3a7315b43f2302430d87f0b46f79",
+      "status": "verified",
+      "completedChunks": 154,
+      "imported": {
+        "mode": "imported",
+        "count": 4900,
+        "added": 4900,
+        "existing": 0,
+        "chunks": 154,
+        "sourceSha256": "5651aaea9ba4ffc2e220157bd44abbe64a5a3a7315b43f2302430d87f0b46f79"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 4900,
+        "added": 0,
+        "existing": 4900,
+        "chunks": 154,
+        "sourceSha256": "5651aaea9ba4ffc2e220157bd44abbe64a5a3a7315b43f2302430d87f0b46f79"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 156,
+      "completedAt": "2026-10-19T14:25:07.257Z",
+      "work": {
+        "readEquivalents": 777,
+        "transactionAttempts": 154,
+        "transactions": 154,
+        "committedWrites": 462
+      },
+      "versionSha256": "56b0b3aca48ee1c53e7a344b1dba53d84eef2a5a17ab1ecd3bee483656528b47"
+    },
+    {
+      "date": "2026-06-16",
+      "expectedCount": 5744,
+      "sourceSha256": "f9734736d3b28ccd9d19cd509e7c56b827f9a4e051fe5c353382bdd247fcf291",
+      "status": "verified",
+      "completedChunks": 180,
+      "imported": {
+        "mode": "imported",
+        "count": 5744,
+        "added": 5744,
+        "existing": 0,
+        "chunks": 180,
+        "sourceSha256": "f9734736d3b28ccd9d19cd509e7c56b827f9a4e051fe5c353382bdd247fcf291"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 5744,
+        "added": 0,
+        "existing": 5744,
+        "chunks": 180,
+        "sourceSha256": "f9734736d3b28ccd9d19cd509e7c56b827f9a4e051fe5c353382bdd247fcf291"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 182,
+      "completedAt": "2026-10-19T14:27:11.943Z",
+      "work": {
+        "readEquivalents": 907,
+        "transactionAttempts": 180,
+        "transactions": 180,
+        "committedWrites": 540
+      },
+      "versionSha256": "6a18eace2e5d883635c6d217baf1f0ab5edb6bd815072b371e6154a3fa0ec122"
+    },
+    {
+      "date": "2026-06-17",
+      "expectedCount": 6529,
+      "sourceSha256": "8e93e8fb96ca550de2d46031efe60b3d62895e2fec5d20131e4bdfbdd276bb02",
+      "status": "verified",
+      "completedChunks": 205,
+      "imported": {
+        "mode": "imported",
+        "count": 6529,
+        "added": 6529,
+        "existing": 0,
+        "chunks": 205,
+        "sourceSha256": "8e93e8fb96ca550de2d46031efe60b3d62895e2fec5d20131e4bdfbdd276bb02"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 6529,
+        "added": 0,
+        "existing": 6529,
+        "chunks": 205,
+        "sourceSha256": "8e93e8fb96ca550de2d46031efe60b3d62895e2fec5d20131e4bdfbdd276bb02"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 207,
+      "completedAt": "2026-10-19T14:29:30.898Z",
+      "work": {
+        "readEquivalents": 1032,
+        "transactionAttempts": 205,
+        "transactions": 205,
+        "committedWrites": 615
+      },
+      "versionSha256": "9a7f1f5fc2af0cfb430ac93c0fc44fb8eb3a8c417a1687bef661b5516aa1e7c8"
+    },
+    {
+      "date": "2026-06-18",
+      "expectedCount": 7606,
+      "sourceSha256": "82ef57f947cfeab1c0e5595d5ff56fac7ecbe1bbc17579054cf870bbd98ce533",
+      "status": "verified",
+      "completedChunks": 238,
+      "imported": {
+        "mode": "imported",
+        "count": 7606,
+        "added": 7606,
+        "existing": 0,
+        "chunks": 238,
+        "sourceSha256": "82ef57f947cfeab1c0e5595d5ff56fac7ecbe1bbc17579054cf870bbd98ce533"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 7606,
+        "added": 0,
+        "existing": 7606,
+        "chunks": 238,
+        "sourceSha256": "82ef57f947cfeab1c0e5595d5ff56fac7ecbe1bbc17579054cf870bbd98ce533"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 240,
+      "completedAt": "2026-10-19T14:31:43.372Z",
+      "work": {
+        "readEquivalents": 1197,
+        "transactionAttempts": 238,
+        "transactions": 238,
+        "committedWrites": 714
+      },
+      "versionSha256": "17dfc4b63dc9949c27e612d4ac9486a893cac037efc2d49ab27654476044f218"
+    },
+    {
+      "date": "2026-06-19",
+      "expectedCount": 10013,
+      "sourceSha256": "da0dcf2c1d9bb900f253af84c30bbf5367ea92600130825c00602d7beb271189",
+      "status": "verified",
+      "completedChunks": 313,
+      "imported": {
+        "mode": "imported",
+        "count": 10013,
+        "added": 10013,
+        "existing": 0,
+        "chunks": 313,
+        "sourceSha256": "da0dcf2c1d9bb900f253af84c30bbf5367ea92600130825c00602d7beb271189"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 10013,
+        "added": 0,
+        "existing": 10013,
+        "chunks": 313,
+        "sourceSha256": "da0dcf2c1d9bb900f253af84c30bbf5367ea92600130825c00602d7beb271189"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 315,
+      "completedAt": "2026-10-19T14:34:51.605Z",
+      "work": {
+        "readEquivalents": 1572,
+        "transactionAttempts": 313,
+        "transactions": 313,
+        "committedWrites": 939
+      },
+      "versionSha256": "e379b1b2c812ce02bc8d5b2f5c61c411ed70403a415f1915b06483de05597951"
+    },
+    {
+      "date": "2026-06-20",
+      "expectedCount": 8956,
+      "sourceSha256": "cb90a61fcbeda25290793420405d5b98acb519440deda75f2ee8929e3f53f141",
+      "status": "verified",
+      "completedChunks": 280,
+      "imported": {
+        "mode": "imported",
+        "count": 8956,
+        "added": 8956,
+        "existing": 0,
+        "chunks": 280,
+        "sourceSha256": "cb90a61fcbeda25290793420405d5b98acb519440deda75f2ee8929e3f53f141"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 8956,
+        "added": 0,
+        "existing": 8956,
+        "chunks": 280,
+        "sourceSha256": "cb90a61fcbeda25290793420405d5b98acb519440deda75f2ee8929e3f53f141"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 282,
+      "completedAt": "2026-10-19T14:37:35.168Z",
+      "work": {
+        "readEquivalents": 1407,
+        "transactionAttempts": 280,
+        "transactions": 280,
+        "committedWrites": 840
+      },
+      "versionSha256": "ad848efbcb6b4dcd66db6b5e242172d25ed999f5de720a4af710044d9ed4897c"
+    },
+    {
+      "date": "2026-06-21",
+      "expectedCount": 5043,
+      "sourceSha256": "17f0038fdf4959a582a042abcc84e46b93e010212b8136cd16d65cb5b49b84bb",
+      "status": "verified",
+      "completedChunks": 158,
+      "imported": {
+        "mode": "imported",
+        "count": 5043,
+        "added": 5043,
+        "existing": 0,
+        "chunks": 158,
+        "sourceSha256": "17f0038fdf4959a582a042abcc84e46b93e010212b8136cd16d65cb5b49b84bb"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 5043,
+        "added": 0,
+        "existing": 5043,
+        "chunks": 158,
+        "sourceSha256": "17f0038fdf4959a582a042abcc84e46b93e010212b8136cd16d65cb5b49b84bb"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 160,
+      "completedAt": "2026-10-19T14:39:14.718Z",
+      "work": {
+        "readEquivalents": 797,
+        "transactionAttempts": 158,
+        "transactions": 158,
+        "committedWrites": 474
+      },
+      "versionSha256": "57d8323c0889d345c282473b3e8d07a954cc466c4b47739467fda121609a592f"
+    },
+    {
+      "date": "2026-06-22",
+      "expectedCount": 5249,
+      "sourceSha256": "f54802670a3f36ea9cc2c752be582784d403c86931ce688651c560da2127f21b",
+      "status": "verified",
+      "completedChunks": 165,
+      "imported": {
+        "mode": "imported",
+        "count": 5249,
+        "added": 5249,
+        "existing": 0,
+        "chunks": 165,
+        "sourceSha256": "f54802670a3f36ea9cc2c752be582784d403c86931ce688651c560da2127f21b"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 5249,
+        "added": 0,
+        "existing": 5249,
+        "chunks": 165,
+        "sourceSha256": "f54802670a3f36ea9cc2c752be582784d403c86931ce688651c560da2127f21b"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 167,
+      "completedAt": "2026-10-19T14:41:26.017Z",
+      "work": {
+        "readEquivalents": 832,
+        "transactionAttempts": 165,
+        "transactions": 165,
+        "committedWrites": 495
+      },
+      "versionSha256": "bf9acd48613ba95e34c02d4073fe03609416c0c00b8ca05b4b8ef161f8a8b7b8"
+    },
+    {
+      "date": "2026-06-23",
+      "expectedCount": 6338,
+      "sourceSha256": "af9a8185c2989c1cafe0805de04eb7ecbbeca59cc6395075e978d74b68080f0c",
+      "status": "verified",
+      "completedChunks": 199,
+      "imported": {
+        "mode": "imported",
+        "count": 6338,
+        "added": 6338,
+        "existing": 0,
+        "chunks": 199,
+        "sourceSha256": "af9a8185c2989c1cafe0805de04eb7ecbbeca59cc6395075e978d74b68080f0c"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 6338,
+        "added": 0,
+        "existing": 6338,
+        "chunks": 199,
+        "sourceSha256": "af9a8185c2989c1cafe0805de04eb7ecbbeca59cc6395075e978d74b68080f0c"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 201,
+      "completedAt": "2026-10-19T14:43:15.822Z",
+      "work": {
+        "readEquivalents": 1002,
+        "transactionAttempts": 199,
+        "transactions": 199,
+        "committedWrites": 597
+      },
+      "versionSha256": "357bb334f765abea8d31b814aea4d69b67ae968828cd56cb1306673be06ae0f5"
+    },
+    {
+      "date": "2026-06-24",
+      "expectedCount": 6419,
+      "sourceSha256": "21894a2dc39ebb5baa2c81066ca76f1cc36930adcd16aacd6b9d52f201f6437e",
+      "status": "verified",
+      "completedChunks": 201,
+      "imported": {
+        "mode": "imported",
+        "count": 6419,
+        "added": 6419,
+        "existing": 0,
+        "chunks": 201,
+        "sourceSha256": "21894a2dc39ebb5baa2c81066ca76f1cc36930adcd16aacd6b9d52f201f6437e"
+      },
+      "rerun": {
+        "mode": "verified-rerun",
+        "count": 6419,
+        "added": 0,
+        "existing": 6419,
+        "chunks": 201,
+        "sourceSha256": "21894a2dc39ebb5baa2c81066ca76f1cc36930adcd16aacd6b9d52f201f6437e"
+      },
+      "documentVersionsUnchanged": true,
+      "verifiedDocuments": 203,
+      "completedAt": "2026-10-19T14:45:20.740Z",
+      "work": {
+        "readEquivalents": 1012,
+        "transactionAttempts": 201,
+        "transactions": 201,
+        "committedWrites": 603
+      },
+      "versionSha256": "8dd116be8d357136fbb1f2d71c6969fd31d6e89ae1cda573541a6238fe207dbb"
+    },
+    {
+      "date": "2026-06-25",
+      "expectedCount": 9966,
+      "sourceSha256": "742ea06dd38f43cc6e97e8b695a4b5519af3a101dc24d2d39d6aac2ea1a3b00e",
+      "status": "stopped",
+      "initialReads": 2,
+      "completedChunks": 153
+    }
+  ],
+  "stoppedAt": "2026-10-19T14:47:09.680Z",
+  "error": "SDK error code ETIMEDOUT",
+  "issue": 96,
+  "kind": "remaining 2026 import stopped at first failure",
+  "stopReason": "Firebase SDK ETIMEDOUT during the 154th chunk transaction for 2026-06-25. No outer retry, resume, or later-day import was attempted.",
+  "stoppedDayReadOnlyVerification": {
+    "checkedAt": "2026-10-19T14:48:11.536Z",
+    "readOnly": true,
+    "result": {
+      "mode": "dry-run",
+      "count": 9966,
+      "added": 0,
+      "existing": 4896,
+      "chunks": 312,
+      "sourceSha256": "742ea06dd38f43cc6e97e8b695a4b5519af3a101dc24d2d39d6aac2ea1a3b00e"
+    },
+    "readBudget": 315,
+    "verifiedPrefixChunks": 153,
+    "complete": false,
+    "documentReadEquivalents": 155
+  },
+  "summary": {
+    "verifiedDays": 34,
+    "verifiedRecords": 154281,
+    "verifiedThrough": "2026-06-24",
+    "partialDay": "2026-06-25",
+    "partialRecordsVerified": 4896,
+    "partialExpectedRecords": 9966,
+    "partialChunksVerified": 153,
+    "partialExpectedChunks": 312,
+    "totalRecordsSaved": 159177,
+    "untouchedDays": 37,
+    "recordsRemaining": 168668,
+    "zeroWriteDeduplicationRerunsPassed": 34,
+    "documentVersionsUnchangedForAllCompletedDays": true,
+    "conflictsFound": 0,
+    "failures": 1,
+    "confirmedCommittedWrites": 14976,
+    "readEquivalentsIncludingStoppedDayCheck": 25053,
+    "sourceRequests": 0
+  },
+  "liveHistoryCheck": {
+    "status": "first completed day checked before failure; full batch check pending",
+    "url": "https://perrinn.com/424-greenpower-telemetry",
+    "date": "2026-04-18",
+    "expectedSourceFirstUk": "12:28:05",
+    "expectedSourceLastUk": "19:04:55",
+    "observedStatus": "History \u00b7 UK timeLast sample 19:04:55",
+    "renderedCharts": 11,
+    "visibleErrors": []
+  },
+  "changes": {
+    "applicationCodeChanged": false,
+    "firebaseRulesChanged": false,
+    "cloudFunctionsChanged": false,
+    "deploymentPerformed": false,
+    "issue96Closed": false
+  },
+  "sourceAudit": "audits/greenpower-remaining-2026-dry-run-2026-10-19.json"
+}

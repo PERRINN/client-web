@@ -1,0 +1,1396 @@
+{
+  "issue": 96,
+  "kind": "read-only remaining-2026 dry run",
+  "generatedAt": "2026-10-19T13:41:24.255239+00:00",
+  "carId": "69e36aa623ee354582952a26",
+  "excludedPreviouslyImportedDay": "2026-10-18",
+  "source": {
+    "discoveredDays": 73,
+    "remainingAvailableUkDays": 72,
+    "firstDay": "2026-04-18",
+    "lastDay": "2026-09-29",
+    "records": 327845,
+    "uniqueSourceIds": 327845,
+    "duplicateSourceIds": 0,
+    "conflictingSourceRecords": 0,
+    "invalidRecords": 0,
+    "zeroSpeedRecordsRetained": 299903,
+    "allWindowsEndedWithShortPage": true,
+    "ukAndUtcBoundaryCoverage": "Each discovery window covers the union of its UTC and Europe/London day; source IDs deduplicate any boundary overlap.",
+    "work": {
+      "requests": 104,
+      "records": 327845,
+      "bytes": 119230576,
+      "retries": 0,
+      "dayListUnchangedAtEnd": true
+    },
+    "budget": {
+      "requests": 400,
+      "records": 1000000,
+      "bytes": 536870912
+    },
+    "allDaySnapshotsPassImporterValidation": true,
+    "rawSnapshotsStoredLocallyOutsideGit": "/private/tmp/echook-remaining-2026-gaVnyK"
+  },
+  "monthlyCounts": {
+    "2026-04": {
+      "days": 3,
+      "records": 2990,
+      "chunks": 95
+    },
+    "2026-05": {
+      "days": 15,
+      "records": 47446,
+      "chunks": 1489
+    },
+    "2026-06": {
+      "days": 20,
+      "records": 133978,
+      "chunks": 4199
+    },
+    "2026-07": {
+      "days": 16,
+      "records": 72604,
+      "chunks": 2277
+    },
+    "2026-08": {
+      "days": 7,
+      "records": 20686,
+      "chunks": 649
+    },
+    "2026-09": {
+      "days": 11,
+      "records": 50141,
+      "chunks": 1571
+    }
+  },
+  "firebase": {
+    "project": "perrinn-d5fc1",
+    "readOnly": true,
+    "snapshotTime": "2026-10-19T13:39:32.319Z",
+    "budget": {
+      "queries": 120,
+      "chunks": 1000,
+      "sampleBytes": 134217728,
+      "concurrency": 4
+    },
+    "work": {
+      "queries": 78,
+      "dayDocuments": 2,
+      "checkpointDocuments": 1,
+      "chunks": 247,
+      "samples": 7883,
+      "sampleBytes": 5993693,
+      "orphanChecks": 72
+    },
+    "checkpoints": 1,
+    "days": [
+      {
+        "date": "2026-10-18",
+        "metadataCount": 3252,
+        "activeChunk": 101,
+        "chunks": 102,
+        "samples": 3252,
+        "imported": 3252,
+        "synthetic": 0,
+        "live": 0,
+        "liveSourceDays": {},
+        "liveFirstAt": null,
+        "liveLastAt": null,
+        "liveWithoutSourceTime": 0,
+        "countMatches": true,
+        "chunkSequenceMatches": true
+      },
+      {
+        "date": "2026-10-19",
+        "metadataCount": 4631,
+        "activeChunk": 144,
+        "chunks": 145,
+        "samples": 4631,
+        "imported": 0,
+        "synthetic": 3,
+        "live": 4628,
+        "liveSourceDays": {
+          "2026-10-19": 4628
+        },
+        "liveFirstAt": 1792410230618,
+        "liveLastAt": 1792417171119,
+        "liveWithoutSourceTime": 0,
+        "countMatches": true,
+        "chunkSequenceMatches": true
+      }
+    ],
+    "exactSourceIdMatches": 0,
+    "sourceIdMatchDetails": [],
+    "exactTimestampCollisions": 0,
+    "liveSourceDays": {
+      "2026-10-19": 4628
+    },
+    "liveDayIntersection": [],
+    "liveWithoutSourceTime": 0,
+    "orphanCandidateDays": [],
+    "complete": true,
+    "firebaseWrites": 0
+  },
+  "proposedImport": {
+    "approvedForExecution": false,
+    "days": 72,
+    "records": 327845,
+    "chunksAndTransactions": 10280,
+    "newDocuments": 10424,
+    "committedDocumentWrites": 30840,
+    "concurrency": 1,
+    "maximumTransactionAttempts": 3,
+    "maximumTotalTransactionAttempts": 30840,
+    "maximumSamplesInAnyDay": 10676,
+    "maximumChunksInAnyDay": 334,
+    "normalReadEquivalentsIncludingPreflightPostVerificationAndOneRerun": 51904,
+    "worstCaseReadEquivalentsWithThreeAttemptsEveryTransaction": 113584,
+    "readAccountingNote": "Counts include one minimum read-equivalent per empty orphan query. SDK transport retries/reconnects, rule evaluation and provider billing details may add work; no monetary estimate is claimed.",
+    "serializedSampleBytes": 179951897,
+    "writePayloadNote": "Serialized sample-content size is not a Firestore billed-storage measurement; document/index/protocol overhead is additional.",
+    "execution": "Use the frozen local snapshot and reviewed SHA-256/count for each day, one day per resumable CLI invocation; verify every chunk and perform exactly one zero-write verification rerun before advancing.",
+    "stopConditions": [
+      "Any new destination day or orphan chunk",
+      "Changed snapshot checksum/count or source-ID conflict",
+      "Any validation or verification mismatch",
+      "Failed transaction after three SDK attempts; no automatic outer resume loop"
+    ],
+    "sourceRequestsNeededWithReviewedSnapshots": 0,
+    "furtherResumesRequireNewBoundedAction": true
+  },
+  "days": [
+    {
+      "date": "2026-04-18",
+      "records": 1268,
+      "chunks": 40,
+      "committedWrites": 120,
+      "firstAt": 1776511685000,
+      "lastAt": 1776535495000,
+      "zeroSpeedRecords": 1268,
+      "sourceSha256": "c585e4862aeaf4841961f01371a546ff19dbf850ae552cb7009160ed9d55302f",
+      "serializedSampleBytes": 714325,
+      "sourceWindows": [
+        "2026-04-18"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-04-29",
+      "records": 705,
+      "chunks": 23,
+      "committedWrites": 69,
+      "firstAt": 1777483985000,
+      "lastAt": 1777491055000,
+      "zeroSpeedRecords": 696,
+      "sourceSha256": "be3665e12777ebbfbcabac76aa5a48e2f3967a450def25a16131bf7777157860",
+      "serializedSampleBytes": 393596,
+      "sourceWindows": [
+        "2026-04-29"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-04-30",
+      "records": 1017,
+      "chunks": 32,
+      "committedWrites": 96,
+      "firstAt": 1777547485000,
+      "lastAt": 1777558725000,
+      "zeroSpeedRecords": 996,
+      "sourceSha256": "53a63a89347e6f0d05070260a64dac4f5555e7bb0f033e9659562400f950b086",
+      "serializedSampleBytes": 572525,
+      "sourceWindows": [
+        "2026-04-30"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-05-01",
+      "records": 656,
+      "chunks": 21,
+      "committedWrites": 63,
+      "firstAt": 1777630245000,
+      "lastAt": 1777662105000,
+      "zeroSpeedRecords": 627,
+      "sourceSha256": "8b5e09ffa2e1af0fa8b4321cf6dbfd0e5596d67e189acdb0aaf71f1ca929feb9",
+      "serializedSampleBytes": 361821,
+      "sourceWindows": [
+        "2026-05-01"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-05-02",
+      "records": 666,
+      "chunks": 21,
+      "committedWrites": 63,
+      "firstAt": 1777743465000,
+      "lastAt": 1777754345000,
+      "zeroSpeedRecords": 652,
+      "sourceSha256": "ad9fcdc932d9c173898662b0597e1bcca57adbb46931af7c568c558fdd8f16e2",
+      "serializedSampleBytes": 366866,
+      "sourceWindows": [
+        "2026-05-02"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-05-03",
+      "records": 2319,
+      "chunks": 73,
+      "committedWrites": 219,
+      "firstAt": 1777801095000,
+      "lastAt": 1777832505000,
+      "zeroSpeedRecords": 1694,
+      "sourceSha256": "101399c7f61f62dbe8af8407f49733271ba3864261b7aea9e2b436942faba9fa",
+      "serializedSampleBytes": 1324975,
+      "sourceWindows": [
+        "2026-05-03"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-05-04",
+      "records": 2231,
+      "chunks": 70,
+      "committedWrites": 210,
+      "firstAt": 1777882725000,
+      "lastAt": 1777909715000,
+      "zeroSpeedRecords": 2223,
+      "sourceSha256": "c2cf4e1aeeb72e1a38882c16cf94387f55ae7d35074ee6610047fd028d85881b",
+      "serializedSampleBytes": 1281169,
+      "sourceWindows": [
+        "2026-05-04"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-05-06",
+      "records": 1673,
+      "chunks": 53,
+      "committedWrites": 159,
+      "firstAt": 1778050975000,
+      "lastAt": 1778079785000,
+      "zeroSpeedRecords": 312,
+      "sourceSha256": "897d66a3cff147a6e3d2ab64b8860b0ac7d3344f04a1a39e2d2c0744f2b3d1fa",
+      "serializedSampleBytes": 1010853,
+      "sourceWindows": [
+        "2026-05-06"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-05-08",
+      "records": 2333,
+      "chunks": 73,
+      "committedWrites": 219,
+      "firstAt": 1778233325000,
+      "lastAt": 1778273985000,
+      "zeroSpeedRecords": 2324,
+      "sourceSha256": "dc312df5a7d0a0e2c529546f94be5bf4c2da192260e098cafce1c8c9c31c6dcb",
+      "serializedSampleBytes": 1338988,
+      "sourceWindows": [
+        "2026-05-08"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-05-10",
+      "records": 11,
+      "chunks": 1,
+      "committedWrites": 3,
+      "firstAt": 1778408978743,
+      "lastAt": 1778409010208,
+      "zeroSpeedRecords": 10,
+      "sourceSha256": "b3f29902b709ef9517de5b4c4403e14d3abaebf45e1c2e9a512e68c2faf3a9a6",
+      "serializedSampleBytes": 5946,
+      "sourceWindows": [
+        "2026-05-10"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-05-11",
+      "records": 1315,
+      "chunks": 42,
+      "committedWrites": 126,
+      "firstAt": 1778493334740,
+      "lastAt": 1778523633013,
+      "zeroSpeedRecords": 1184,
+      "sourceSha256": "b444936e1647cbfe5d8813445b870dd32d3b776db5bfd950647b281e011ffb4f",
+      "serializedSampleBytes": 717179,
+      "sourceWindows": [
+        "2026-05-11"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-05-15",
+      "records": 6261,
+      "chunks": 196,
+      "committedWrites": 588,
+      "firstAt": 1778850932316,
+      "lastAt": 1778873989594,
+      "zeroSpeedRecords": 3983,
+      "sourceSha256": "19815ced49d2a2bc90064e03bd501bebde4041413d6017dae8bd26dfbe13dc9c",
+      "serializedSampleBytes": 3419532,
+      "sourceWindows": [
+        "2026-05-15"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-05-17",
+      "records": 4197,
+      "chunks": 132,
+      "committedWrites": 396,
+      "firstAt": 1779026157774,
+      "lastAt": 1779041441525,
+      "zeroSpeedRecords": 3607,
+      "sourceSha256": "8d73baf0d368237a3bded2b89d0af16426d4ed3356a2973a027ba40fa3ae1132",
+      "serializedSampleBytes": 2288996,
+      "sourceWindows": [
+        "2026-05-17"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-05-18",
+      "records": 3730,
+      "chunks": 117,
+      "committedWrites": 351,
+      "firstAt": 1779097736172,
+      "lastAt": 1779108938420,
+      "zeroSpeedRecords": 3722,
+      "sourceSha256": "7da30643bb3abdaf9701233b4483f4b6c9e473722ce4e26895cd15e9ed82fce4",
+      "serializedSampleBytes": 2021788,
+      "sourceWindows": [
+        "2026-05-18"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-05-24",
+      "records": 8077,
+      "chunks": 253,
+      "committedWrites": 759,
+      "firstAt": 1779605573865,
+      "lastAt": 1779631381769,
+      "zeroSpeedRecords": 8011,
+      "sourceSha256": "509f8fefab099412a2bc897795bec641e19298789d1aa2628f47c0e9011a0235",
+      "serializedSampleBytes": 4622774,
+      "sourceWindows": [
+        "2026-05-24"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-05-26",
+      "records": 2621,
+      "chunks": 82,
+      "committedWrites": 246,
+      "firstAt": 1779800598475,
+      "lastAt": 1779808459958,
+      "zeroSpeedRecords": 1942,
+      "sourceSha256": "ce89c1bcc22072ed3115d2a314e089df8623ea08fd1adf4ab581913d45a0306a",
+      "serializedSampleBytes": 1429777,
+      "sourceWindows": [
+        "2026-05-26"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-05-27",
+      "records": 3454,
+      "chunks": 108,
+      "committedWrites": 324,
+      "firstAt": 1779898229261,
+      "lastAt": 1779908598316,
+      "zeroSpeedRecords": 1524,
+      "sourceSha256": "48476f49da0e3f9042c6c5c1ad10096c2f6a14db6925127a41d88d7944f5c788",
+      "serializedSampleBytes": 1961104,
+      "sourceWindows": [
+        "2026-05-27"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-05-31",
+      "records": 7902,
+      "chunks": 247,
+      "committedWrites": 741,
+      "firstAt": 1780214539064,
+      "lastAt": 1780240542675,
+      "zeroSpeedRecords": 7901,
+      "sourceSha256": "d30562d162c8c0039174122029a0989734fd98e0d04715e95ddd2c3bab56d974",
+      "serializedSampleBytes": 4477294,
+      "sourceWindows": [
+        "2026-05-31"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-06-04",
+      "records": 3651,
+      "chunks": 115,
+      "committedWrites": 345,
+      "firstAt": 1780595170288,
+      "lastAt": 1780606116451,
+      "zeroSpeedRecords": 3651,
+      "sourceSha256": "b5d42728edbe73dc0ed8ed56c27afb134f10121f759d68544be57d078a0b3f2f",
+      "serializedSampleBytes": 1982052,
+      "sourceWindows": [
+        "2026-06-04"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-06-07",
+      "records": 7048,
+      "chunks": 221,
+      "committedWrites": 663,
+      "firstAt": 1780814187075,
+      "lastAt": 1780842320376,
+      "zeroSpeedRecords": 7047,
+      "sourceSha256": "80aea6afd9f167af53f206360cbaaeed062dae444c36f9ffa41b79657cb430f7",
+      "serializedSampleBytes": 3842103,
+      "sourceWindows": [
+        "2026-06-07"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-06-11",
+      "records": 6473,
+      "chunks": 203,
+      "committedWrites": 609,
+      "firstAt": 1781186574348,
+      "lastAt": 1781210808545,
+      "zeroSpeedRecords": 6473,
+      "sourceSha256": "fe1f41db343c0076d6f9964c55be46608bf484479679d1e3600e48f753c56a2e",
+      "serializedSampleBytes": 3527320,
+      "sourceWindows": [
+        "2026-06-11"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-06-12",
+      "records": 7655,
+      "chunks": 240,
+      "committedWrites": 720,
+      "firstAt": 1781257855882,
+      "lastAt": 1781291462874,
+      "zeroSpeedRecords": 7655,
+      "sourceSha256": "c832fc07277367b63158c2b4da02eff336c5d672e24a5ddb5f99b4983962e391",
+      "serializedSampleBytes": 4175875,
+      "sourceWindows": [
+        "2026-06-12"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-06-13",
+      "records": 6856,
+      "chunks": 215,
+      "committedWrites": 645,
+      "firstAt": 1781353507395,
+      "lastAt": 1781380511469,
+      "zeroSpeedRecords": 6856,
+      "sourceSha256": "28a2ce107c1a77d55075e821c7d233948d78aa4647e5370e862d1dfa26152f79",
+      "serializedSampleBytes": 3746393,
+      "sourceWindows": [
+        "2026-06-13"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-06-14",
+      "records": 5365,
+      "chunks": 168,
+      "committedWrites": 504,
+      "firstAt": 1781426099221,
+      "lastAt": 1781456907184,
+      "zeroSpeedRecords": 5365,
+      "sourceSha256": "23fbdd95fe628ea586ef9b18c1bde70db3f92b9574344bac87c6e062a7aaceed",
+      "serializedSampleBytes": 2938860,
+      "sourceWindows": [
+        "2026-06-14"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-06-15",
+      "records": 4900,
+      "chunks": 154,
+      "committedWrites": 462,
+      "firstAt": 1781512248858,
+      "lastAt": 1781546386555,
+      "zeroSpeedRecords": 4900,
+      "sourceSha256": "5651aaea9ba4ffc2e220157bd44abbe64a5a3a7315b43f2302430d87f0b46f79",
+      "serializedSampleBytes": 2677426,
+      "sourceWindows": [
+        "2026-06-15"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-06-16",
+      "records": 5744,
+      "chunks": 180,
+      "committedWrites": 540,
+      "firstAt": 1781597333450,
+      "lastAt": 1781623715756,
+      "zeroSpeedRecords": 5744,
+      "sourceSha256": "f9734736d3b28ccd9d19cd509e7c56b827f9a4e051fe5c353382bdd247fcf291",
+      "serializedSampleBytes": 3144341,
+      "sourceWindows": [
+        "2026-06-16"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-06-17",
+      "records": 6529,
+      "chunks": 205,
+      "committedWrites": 615,
+      "firstAt": 1781682942936,
+      "lastAt": 1781717385296,
+      "zeroSpeedRecords": 6529,
+      "sourceSha256": "8e93e8fb96ca550de2d46031efe60b3d62895e2fec5d20131e4bdfbdd276bb02",
+      "serializedSampleBytes": 3573573,
+      "sourceWindows": [
+        "2026-06-17"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-06-18",
+      "records": 7606,
+      "chunks": 238,
+      "committedWrites": 714,
+      "firstAt": 1781772190992,
+      "lastAt": 1781800389037,
+      "zeroSpeedRecords": 7606,
+      "sourceSha256": "82ef57f947cfeab1c0e5595d5ff56fac7ecbe1bbc17579054cf870bbd98ce533",
+      "serializedSampleBytes": 4145116,
+      "sourceWindows": [
+        "2026-06-18"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-06-19",
+      "records": 10013,
+      "chunks": 313,
+      "committedWrites": 939,
+      "firstAt": 1781853585140,
+      "lastAt": 1781898397102,
+      "zeroSpeedRecords": 10013,
+      "sourceSha256": "da0dcf2c1d9bb900f253af84c30bbf5367ea92600130825c00602d7beb271189",
+      "serializedSampleBytes": 5457239,
+      "sourceWindows": [
+        "2026-06-19"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-06-20",
+      "records": 8956,
+      "chunks": 280,
+      "committedWrites": 840,
+      "firstAt": 1781946127312,
+      "lastAt": 1781984798601,
+      "zeroSpeedRecords": 8956,
+      "sourceSha256": "cb90a61fcbeda25290793420405d5b98acb519440deda75f2ee8929e3f53f141",
+      "serializedSampleBytes": 4858147,
+      "sourceWindows": [
+        "2026-06-20"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-06-21",
+      "records": 5043,
+      "chunks": 158,
+      "committedWrites": 474,
+      "firstAt": 1782030695800,
+      "lastAt": 1782068020824,
+      "zeroSpeedRecords": 5043,
+      "sourceSha256": "17f0038fdf4959a582a042abcc84e46b93e010212b8136cd16d65cb5b49b84bb",
+      "serializedSampleBytes": 2746359,
+      "sourceWindows": [
+        "2026-06-21"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-06-22",
+      "records": 5249,
+      "chunks": 165,
+      "committedWrites": 495,
+      "firstAt": 1782105610275,
+      "lastAt": 1782152437910,
+      "zeroSpeedRecords": 5249,
+      "sourceSha256": "f54802670a3f36ea9cc2c752be582784d403c86931ce688651c560da2127f21b",
+      "serializedSampleBytes": 2861669,
+      "sourceWindows": [
+        "2026-06-22"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-06-23",
+      "records": 6338,
+      "chunks": 199,
+      "committedWrites": 597,
+      "firstAt": 1782200693162,
+      "lastAt": 1782223159356,
+      "zeroSpeedRecords": 6338,
+      "sourceSha256": "af9a8185c2989c1cafe0805de04eb7ecbbeca59cc6395075e978d74b68080f0c",
+      "serializedSampleBytes": 3467667,
+      "sourceWindows": [
+        "2026-06-23"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-06-24",
+      "records": 6419,
+      "chunks": 201,
+      "committedWrites": 603,
+      "firstAt": 1782280790434,
+      "lastAt": 1782304307918,
+      "zeroSpeedRecords": 6419,
+      "sourceSha256": "21894a2dc39ebb5baa2c81066ca76f1cc36930adcd16aacd6b9d52f201f6437e",
+      "serializedSampleBytes": 3507065,
+      "sourceWindows": [
+        "2026-06-24"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-06-25",
+      "records": 9966,
+      "chunks": 312,
+      "committedWrites": 936,
+      "firstAt": 1782367191295,
+      "lastAt": 1782407319159,
+      "zeroSpeedRecords": 9966,
+      "sourceSha256": "742ea06dd38f43cc6e97e8b695a4b5519af3a101dc24d2d39d6aac2ea1a3b00e",
+      "serializedSampleBytes": 5436497,
+      "sourceWindows": [
+        "2026-06-25"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-06-26",
+      "records": 2598,
+      "chunks": 82,
+      "committedWrites": 246,
+      "firstAt": 1782453593969,
+      "lastAt": 1782461381936,
+      "zeroSpeedRecords": 2598,
+      "sourceSha256": "e187d4a35642667c3d59003850ceef799413cdf024ddd81af62fe2f07d4d6670",
+      "serializedSampleBytes": 1423208,
+      "sourceWindows": [
+        "2026-06-26"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-06-29",
+      "records": 10676,
+      "chunks": 334,
+      "committedWrites": 1002,
+      "firstAt": 1782724094929,
+      "lastAt": 1782768589889,
+      "zeroSpeedRecords": 10676,
+      "sourceSha256": "73f8991df623d6f2de00c4804a7d806c724aba458209fc6527068ff794aa7cac",
+      "serializedSampleBytes": 5811617,
+      "sourceWindows": [
+        "2026-06-29"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-06-30",
+      "records": 6893,
+      "chunks": 216,
+      "committedWrites": 648,
+      "firstAt": 1782808217560,
+      "lastAt": 1782843309794,
+      "zeroSpeedRecords": 6893,
+      "sourceSha256": "f5eefa7c784bb099c6f7fb5967dfd6482ca3da10fdbab682e1c6fdfece03574d",
+      "serializedSampleBytes": 3764398,
+      "sourceWindows": [
+        "2026-06-30"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-07-01",
+      "records": 5972,
+      "chunks": 187,
+      "committedWrites": 561,
+      "firstAt": 1782892782341,
+      "lastAt": 1782927144161,
+      "zeroSpeedRecords": 5972,
+      "sourceSha256": "cf6a57d4a5d4b77a79456b585f309012d4009a36757a5dfc545f8c8a6e4c419a",
+      "serializedSampleBytes": 3255495,
+      "sourceWindows": [
+        "2026-07-01"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-07-02",
+      "records": 6027,
+      "chunks": 189,
+      "committedWrites": 567,
+      "firstAt": 1782979307599,
+      "lastAt": 1783013028154,
+      "zeroSpeedRecords": 6027,
+      "sourceSha256": "0629c5711154b9c76d42063eab898b372d27f71f1c55edf41fe90df3fb9b1de2",
+      "serializedSampleBytes": 3289201,
+      "sourceWindows": [
+        "2026-07-02"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-07-03",
+      "records": 2896,
+      "chunks": 91,
+      "committedWrites": 273,
+      "firstAt": 1783065260486,
+      "lastAt": 1783073945682,
+      "zeroSpeedRecords": 2896,
+      "sourceSha256": "3a22add168a4a7de7df55475454160592d80452959c050ebc6846a02faed78ee",
+      "serializedSampleBytes": 1586717,
+      "sourceWindows": [
+        "2026-07-03"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-07-04",
+      "records": 3612,
+      "chunks": 113,
+      "committedWrites": 339,
+      "firstAt": 1783172200210,
+      "lastAt": 1783183031730,
+      "zeroSpeedRecords": 3612,
+      "sourceSha256": "a5dcce5f44fae3617b2e5b557b2a5d6588717419e02e0d40696ad06c6510d315",
+      "serializedSampleBytes": 1967607,
+      "sourceWindows": [
+        "2026-07-04"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-07-06",
+      "records": 6966,
+      "chunks": 218,
+      "committedWrites": 654,
+      "firstAt": 1783327481008,
+      "lastAt": 1783357058885,
+      "zeroSpeedRecords": 6966,
+      "sourceSha256": "f2e0355695bdbc7be6da0f5488ddf5cee5199368b04eb59cff7cb65b40f81470",
+      "serializedSampleBytes": 3796402,
+      "sourceWindows": [
+        "2026-07-06"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-07-07",
+      "records": 10004,
+      "chunks": 313,
+      "committedWrites": 939,
+      "firstAt": 1783413893953,
+      "lastAt": 1783455437128,
+      "zeroSpeedRecords": 9870,
+      "sourceSha256": "7e082de0bb1a394907de65274d1014abcf5741f9419faf817ede88c614e948ef",
+      "serializedSampleBytes": 5457178,
+      "sourceWindows": [
+        "2026-07-07"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-07-11",
+      "records": 3665,
+      "chunks": 115,
+      "committedWrites": 345,
+      "firstAt": 1783789917630,
+      "lastAt": 1783800908036,
+      "zeroSpeedRecords": 58,
+      "sourceSha256": "2602477708d2d221112fa3885ba3edf8de9a84e006bcd2630bb28e4dacf16d16",
+      "serializedSampleBytes": 2014687,
+      "sourceWindows": [
+        "2026-07-11"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-07-12",
+      "records": 4389,
+      "chunks": 138,
+      "committedWrites": 414,
+      "firstAt": 1783844207048,
+      "lastAt": 1783857383455,
+      "zeroSpeedRecords": 2640,
+      "sourceSha256": "41fb02312bfda21270091db671d07e9b3e7f7d7b2c38e3727b70d90983a67c2f",
+      "serializedSampleBytes": 2401993,
+      "sourceWindows": [
+        "2026-07-12"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-07-13",
+      "records": 4525,
+      "chunks": 142,
+      "committedWrites": 426,
+      "firstAt": 1783937491243,
+      "lastAt": 1783951075651,
+      "zeroSpeedRecords": 4525,
+      "sourceSha256": "080626b002d2dbd61fb57be4eaba1ca30384b4b6ead2fe62a0bbbe1f8f0c3403",
+      "serializedSampleBytes": 2469166,
+      "sourceWindows": [
+        "2026-07-13"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-07-14",
+      "records": 2509,
+      "chunks": 79,
+      "committedWrites": 237,
+      "firstAt": 1784046953216,
+      "lastAt": 1784054475725,
+      "zeroSpeedRecords": 2509,
+      "sourceSha256": "5127dc8d8861d2b4a894b0c0ae0f74e41ebdf5ac1339ca434ac07ea4036fe8a1",
+      "serializedSampleBytes": 1368506,
+      "sourceWindows": [
+        "2026-07-14"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-07-18",
+      "records": 2628,
+      "chunks": 83,
+      "committedWrites": 249,
+      "firstAt": 1784366795581,
+      "lastAt": 1784374707306,
+      "zeroSpeedRecords": 2620,
+      "sourceSha256": "1e9f12f0784186bae1562d81bdf63e0a611446b407a1e1d584bb3786f499c79f",
+      "serializedSampleBytes": 1428892,
+      "sourceWindows": [
+        "2026-07-18"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-07-20",
+      "records": 2859,
+      "chunks": 90,
+      "committedWrites": 270,
+      "firstAt": 1784538463444,
+      "lastAt": 1784547037474,
+      "zeroSpeedRecords": 2859,
+      "sourceSha256": "a689550658b68b3ad6b1bb8d93173828e7390bde38e8d7227660406853df318a",
+      "serializedSampleBytes": 1561881,
+      "sourceWindows": [
+        "2026-07-20"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-07-21",
+      "records": 2773,
+      "chunks": 87,
+      "committedWrites": 261,
+      "firstAt": 1784619634100,
+      "lastAt": 1784627948649,
+      "zeroSpeedRecords": 2773,
+      "sourceSha256": "9dcc78adc4ba2ef8deb2be8472158574db825b97a4c47755a2fb0cf20d641873",
+      "serializedSampleBytes": 1514930,
+      "sourceWindows": [
+        "2026-07-21"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-07-22",
+      "records": 7017,
+      "chunks": 220,
+      "committedWrites": 660,
+      "firstAt": 1784712049507,
+      "lastAt": 1784733267426,
+      "zeroSpeedRecords": 7017,
+      "sourceSha256": "dc7a7dba2d7f7ed59adb99957ca7c0d0a0f33d0353927e3eb6465e11d242980c",
+      "serializedSampleBytes": 3829537,
+      "sourceWindows": [
+        "2026-07-22"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-07-23",
+      "records": 3533,
+      "chunks": 111,
+      "committedWrites": 333,
+      "firstAt": 1784799007101,
+      "lastAt": 1784809603109,
+      "zeroSpeedRecords": 3533,
+      "sourceSha256": "4175cb5a16094de4e0fc39a46dfa738892bee5e170f988e2000afe9a95936806",
+      "serializedSampleBytes": 1927916,
+      "sourceWindows": [
+        "2026-07-23"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-07-24",
+      "records": 3229,
+      "chunks": 101,
+      "committedWrites": 303,
+      "firstAt": 1784893712724,
+      "lastAt": 1784903412503,
+      "zeroSpeedRecords": 3229,
+      "sourceSha256": "6b6c2f2cf7c766a33553fc90158fd444b37f03befe9dddf059b68c9a3845f062",
+      "serializedSampleBytes": 1760495,
+      "sourceWindows": [
+        "2026-07-24"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-08-09",
+      "records": 3158,
+      "chunks": 99,
+      "committedWrites": 297,
+      "firstAt": 1786293197734,
+      "lastAt": 1786302755003,
+      "zeroSpeedRecords": 2685,
+      "sourceSha256": "4c3c1b583e6205ed6942516c0b91358532d6e8a5721909d606caf505efccf466",
+      "serializedSampleBytes": 1723003,
+      "sourceWindows": [
+        "2026-08-09"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-08-14",
+      "records": 3753,
+      "chunks": 118,
+      "committedWrites": 354,
+      "firstAt": 1786723962871,
+      "lastAt": 1786735243534,
+      "zeroSpeedRecords": 887,
+      "sourceSha256": "a7b7165cae2fcdb3fef218325f789ea286a014955baf1b9cd1e6f21d12a9da64",
+      "serializedSampleBytes": 2138170,
+      "sourceWindows": [
+        "2026-08-14"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-08-15",
+      "records": 3676,
+      "chunks": 115,
+      "committedWrites": 345,
+      "firstAt": 1786794379856,
+      "lastAt": 1786805401854,
+      "zeroSpeedRecords": 3676,
+      "sourceSha256": "5a7e05f46006af225edb54175bf3b54d68ea04ebea6700a6ce2a2b4884e181a1",
+      "serializedSampleBytes": 2002676,
+      "sourceWindows": [
+        "2026-08-15"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-08-17",
+      "records": 3704,
+      "chunks": 116,
+      "committedWrites": 348,
+      "firstAt": 1786959591933,
+      "lastAt": 1786970703882,
+      "zeroSpeedRecords": 3692,
+      "sourceSha256": "aa99a5b6fa0dd271a97fed48898fcb9966303c72e89feea942f44b88ffb681aa",
+      "serializedSampleBytes": 2017811,
+      "sourceWindows": [
+        "2026-08-17"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-08-19",
+      "records": 150,
+      "chunks": 5,
+      "committedWrites": 15,
+      "firstAt": 1787154595213,
+      "lastAt": 1787155109829,
+      "zeroSpeedRecords": 110,
+      "sourceSha256": "333498a85d4d7952895e881a715d44547c6ff4d377f24e0022b2295c69d10007",
+      "serializedSampleBytes": 81935,
+      "sourceWindows": [
+        "2026-08-19"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-08-22",
+      "records": 3693,
+      "chunks": 116,
+      "committedWrites": 348,
+      "firstAt": 1787397701922,
+      "lastAt": 1787408806932,
+      "zeroSpeedRecords": 3669,
+      "sourceSha256": "b8ae3880116f59d447d33e72f62f9ab022cb5700acb22b2c949a9d6a055fbbf4",
+      "serializedSampleBytes": 2010905,
+      "sourceWindows": [
+        "2026-08-22"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-08-24",
+      "records": 2552,
+      "chunks": 80,
+      "committedWrites": 240,
+      "firstAt": 1787594516696,
+      "lastAt": 1787602186885,
+      "zeroSpeedRecords": 2494,
+      "sourceSha256": "420a08cd80ae6c630d4a896b69fe845ee899d7e6de201af14acb4b18a2fef1d8",
+      "serializedSampleBytes": 1389835,
+      "sourceWindows": [
+        "2026-08-24"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-09-10",
+      "records": 3647,
+      "chunks": 114,
+      "committedWrites": 342,
+      "firstAt": 1789046751218,
+      "lastAt": 1789057699352,
+      "zeroSpeedRecords": 2,
+      "sourceSha256": "5d0dae7d941532b438e3211d930803456c33fafa78d30dcc2236d0f9a10979e7",
+      "serializedSampleBytes": 2004637,
+      "sourceWindows": [
+        "2026-09-10"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-09-12",
+      "records": 4733,
+      "chunks": 148,
+      "committedWrites": 444,
+      "firstAt": 1789194548124,
+      "lastAt": 1789216749264,
+      "zeroSpeedRecords": 2641,
+      "sourceSha256": "3ff5abec0c1d7ac96d3b84b1e0612eee3fd5f9dbb16d84b679ad01a5bf26624c",
+      "serializedSampleBytes": 2644445,
+      "sourceWindows": [
+        "2026-09-12"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-09-17",
+      "records": 4413,
+      "chunks": 138,
+      "committedWrites": 414,
+      "firstAt": 1789656365270,
+      "lastAt": 1789669599752,
+      "zeroSpeedRecords": 4413,
+      "sourceSha256": "b3cc7d34bf2b814c1276497acdb7799a5fd7e8782a736495b9b47896a2d9301d",
+      "serializedSampleBytes": 2402528,
+      "sourceWindows": [
+        "2026-09-17"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-09-18",
+      "records": 8879,
+      "chunks": 278,
+      "committedWrites": 834,
+      "firstAt": 1789732151275,
+      "lastAt": 1789759628028,
+      "zeroSpeedRecords": 8879,
+      "sourceSha256": "3befcd6c83fd92223fe9ec8ccdb9032da5c1799b698e7ba7f425b6b55daba3a1",
+      "serializedSampleBytes": 4829266,
+      "sourceWindows": [
+        "2026-09-18"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-09-19",
+      "records": 2933,
+      "chunks": 92,
+      "committedWrites": 276,
+      "firstAt": 1789813928955,
+      "lastAt": 1789822725038,
+      "zeroSpeedRecords": 2933,
+      "sourceSha256": "cec4e9fbd40fa3d94cbd80875b89733804d9327114fde8257a13135108aa8f15",
+      "serializedSampleBytes": 1600876,
+      "sourceWindows": [
+        "2026-09-19"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-09-20",
+      "records": 4656,
+      "chunks": 146,
+      "committedWrites": 438,
+      "firstAt": 1789905866673,
+      "lastAt": 1789931348917,
+      "zeroSpeedRecords": 4555,
+      "sourceSha256": "6cfd0f1916d52190ebc623871477c41fc9dd34986246e0f9761f2196552da99e",
+      "serializedSampleBytes": 2536059,
+      "sourceWindows": [
+        "2026-09-20"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-09-24",
+      "records": 6428,
+      "chunks": 201,
+      "committedWrites": 603,
+      "firstAt": 1790234535315,
+      "lastAt": 1790262411845,
+      "zeroSpeedRecords": 3380,
+      "sourceSha256": "6121b3c86d32b77865e72be089166009fbb906e211e9baa73b6a9aba0f0b0b02",
+      "serializedSampleBytes": 3629772,
+      "sourceWindows": [
+        "2026-09-24"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-09-25",
+      "records": 3602,
+      "chunks": 113,
+      "committedWrites": 339,
+      "firstAt": 1790332580415,
+      "lastAt": 1790343395789,
+      "zeroSpeedRecords": 1297,
+      "sourceSha256": "f02051ddb4a20a9732bb3cdbe881c2cafb002966af41412da127a64bcc3c52ac",
+      "serializedSampleBytes": 1980173,
+      "sourceWindows": [
+        "2026-09-25"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-09-27",
+      "records": 3636,
+      "chunks": 114,
+      "committedWrites": 342,
+      "firstAt": 1790520049024,
+      "lastAt": 1790530954026,
+      "zeroSpeedRecords": 3636,
+      "sourceSha256": "621a551f0585803aa394a684892f9fe5689415740ce4ae62c5ee80affc0d985e",
+      "serializedSampleBytes": 1984580,
+      "sourceWindows": [
+        "2026-09-27"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-09-28",
+      "records": 3629,
+      "chunks": 114,
+      "committedWrites": 342,
+      "firstAt": 1790622717697,
+      "lastAt": 1790633603205,
+      "zeroSpeedRecords": 3629,
+      "sourceSha256": "7222011ec68c3f0b86605f6dc576cb8d5763e05f4c913f25d42d774d13c501b0",
+      "serializedSampleBytes": 1987817,
+      "sourceWindows": [
+        "2026-09-28"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    },
+    {
+      "date": "2026-09-29",
+      "records": 3585,
+      "chunks": 113,
+      "committedWrites": 339,
+      "firstAt": 1790691933042,
+      "lastAt": 1790702697744,
+      "zeroSpeedRecords": 3566,
+      "sourceSha256": "37ac23f11a93e4686114544fbf17fbcd064c48788dc987c0e244154f338278ab",
+      "serializedSampleBytes": 1960373,
+      "sourceWindows": [
+        "2026-09-29"
+      ],
+      "destinationExists": false,
+      "orphanChunksFound": false,
+      "importValidation": "passed"
+    }
+  ],
+  "firebaseWritesPerformed": 0,
+  "applicationCodeChangedByThisDryRun": false,
+  "limitations": [
+    "Counts reconcile records exposed by the historical API, not proof of continuous vehicle capture.",
+    "No candidate/live source-date overlap exists in the checked Firebase snapshot; general matching of live/history records within overlapping dates remains unestablished.",
+    "Repeat destination preflight immediately before any future authorized write.",
+    "No source download or import for future dates is included."
+  ]
+}
