@@ -1,0 +1,56 @@
+{
+  "checkedAt": "2026-10-19T15:51:54.342Z",
+  "project": "perrinn-d5fc1",
+  "mode": "verify",
+  "commit": "0f466101dd648586dc0459067afdd2af299c9762",
+  "deploymentScope": [
+    "hosting",
+    "firestore:rules"
+  ],
+  "liveRulesMatchBaseline": true,
+  "liveRulesMatchRepository": true,
+  "liveRulesSha256": "99db2c24ec24e89120de741ee297a14037af7aa5348e665fc5ae13a5356b6aef",
+  "indexes": {
+    "repositoryIndexes": 19,
+    "liveIndexes": 19,
+    "repositoryOnly": [],
+    "liveOnly": [],
+    "notReady": 0
+  },
+  "indexChanges": false,
+  "trackArrayIndexEnabled": true,
+  "fieldOverridesMatch": true,
+  "productionWrites": 0,
+  "telemetryRecordsRead": 0,
+  "issue95": "Already closed as completed; real OMNI workshop verification confirmed on 19 October 2026",
+  "boundedTrackQueryStatus": 200,
+  "trackNamesOnlyRead": 0,
+  "validation": {
+    "greenpowerTests": 82,
+    "telemetryRegressionTests": 22,
+    "firestoreEmulatorTests": 10,
+    "browserWidths": [
+      1440,
+      390,
+      320
+    ],
+    "productionBuild": "passed",
+    "lint": "passed with 64 existing warnings"
+  },
+  "url": "https://perrinn.com/424-greenpower-telemetry",
+  "pageStatus": 200,
+  "mainBundle": "main.3e956dd5774d61c5.js",
+  "bundleStatus": 200,
+  "htmlReferencesReleaseBundle": true,
+  "bundleMatchesLocal": true,
+  "bundleSha256": "c8df4eafe711f81c3d92430d4316c1d82518f64e13d85bfe696d29de2bdccb1d",
+  "hostingRelease": "sites/perrinn-d5fc1/releases/1792425103381000",
+  "hostingVersion": "sites/perrinn-d5fc1/versions/b908824279f0bd4c",
+  "anonymousTrackReadStatus": 403,
+  "productionSignedOutBrowser": {
+    "headingVisible": true,
+    "signInRequired": true,
+    "javascriptErrors": [],
+    "viewportWidth": 1440
+  }
+}
