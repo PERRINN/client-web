@@ -1,0 +1,53 @@
+{
+  "issue": 96,
+  "project": "perrinn-d5fc1",
+  "releaseCommit": "6430afdad7c0d0c3e9b3e2afd8f25bc4baee49de",
+  "deploymentScope": [
+    "hosting"
+  ],
+  "hostingUrl": "https://perrinn-d5fc1.web.app",
+  "verifiedUrl": "https://perrinn.com/424-greenpower-telemetry",
+  "mainBundle": "main.33599311cbfe8f90.js",
+  "liveBundleFilenameMatchesValidatedBuild": true,
+  "servedMainBundleSha256": "1c2fa32309f1a40f491668096c2cca2ef9ecb62a9b62c90f4d3b8cc52a9f2a92",
+  "liveUi": {
+    "signedIn": true,
+    "date": "2026-10-18",
+    "status": "History \u00b7 UK time",
+    "lastSample": "14:54:09",
+    "timezone": "Europe/London (BST for this event)",
+    "sourceTimeChartTicks": [
+      "09:00:00",
+      "11:00:00",
+      "13:00:00"
+    ],
+    "visibleCharts": 12,
+    "pageErrors": 0,
+    "desktopViewport": [
+      1440,
+      1000
+    ],
+    "defaultNarrowLayoutAlsoVerified": true,
+    "screenshotsSavedLocally": true
+  },
+  "data": {
+    "previouslyVerifiedImportedRecords": 3252,
+    "previouslyVerifiedChunks": 102,
+    "newImporterRunsDuringDeployment": 0,
+    "otherDaysImportedByThisRelease": false,
+    "telemetryWritesByDeployment": 0
+  },
+  "validation": {
+    "greenpowerTests": 54,
+    "productionBuild": "passed",
+    "lintErrors": 0,
+    "existingLintWarnings": 64,
+    "previousUnchangedCodeEmulatorTests": 9,
+    "liveCompositeIndexesMatchRepository": 19,
+    "indexChanges": false
+  },
+  "issueState": "open",
+  "remainingScope": "Other 2026 dates and general cross-source live/history reconciliation remain pending; user requested no other imports.",
+  "workspaceNote": "Concurrent edits appeared after deployment and were excluded from release 6430afd and this evidence-only follow-up.",
+  "verifiedAt": "2026-10-19T13:32:48.709553+00:00"
+}
