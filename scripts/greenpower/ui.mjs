@@ -146,7 +146,7 @@ try {
     assert.deepEqual(await page.locator('.reading strong').allTextContents(),latestScalars,name+' cursor dismissal restores latest');
     await page.evaluate(()=>window.telemetryHarness.laps());
     assert.equal(await firstChart.locator('.lap-band').count(),5,name+' lap backgrounds');
-    assert.equal(await firstChart.locator('.lap-split').count(),4,name+' split lines');
+    assert.equal(await firstChart.locator('.lap-split').count(),0,name+' no lap separator lines');
     const labels=await firstChart.locator('.lap-labels > span').evaluateAll(nodes=>nodes.map(node=>({width:node.getBoundingClientRect().width,textWidth:node.firstElementChild.getBoundingClientRect().width})));
     assert.ok(labels.every(l=>l.textWidth<=l.width),name+' lap labels fit');
     assert.equal((await firstChart.boundingBox()).y,initialChartBox.y,name+' lap appearance preserves layout');

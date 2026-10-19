@@ -19,7 +19,6 @@ svg:focus-visible { outline: 1px solid var(--color-text-secondary); outline-offs
 .cursor-point { fill: var(--color-surface); stroke: var(--color-data-comparison); stroke-width: 2; vector-effect: non-scaling-stroke; pointer-events: none; }
 .lap-band { fill: var(--color-page); fill-opacity: .35; }
 .lap-band.alternate { fill: var(--color-raised); fill-opacity: .6; }
-.lap-split { stroke: var(--color-text-muted); stroke-width: 1; stroke-dasharray: 3 4; vector-effect: non-scaling-stroke; pointer-events: none; }
 .lap-labels { position: absolute; top: 0; left: 73px; right: 0; height: 19px; pointer-events: none; }
 .lap-labels > span { position: absolute; text-align: center; white-space: nowrap; }
 .lap-labels span { font-size: 13px; line-height: 19px; color: var(--color-text-secondary); }

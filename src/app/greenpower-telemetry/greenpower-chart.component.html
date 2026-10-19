@@ -11,7 +11,6 @@
       (lostpointercapture)="cancel($event)" (pointerleave)="leave()" (dblclick)="reset()" (keydown)="key($event)" (blur)="cancel(); leave()" (contextmenu)="$event.preventDefault()">
       @for (lap of lapBands; track lap.time) {
         <rect class="lap-band" [class.alternate]="lap.alternate" [attr.x]="lap.x * 8" y="0" [attr.width]="lap.width * 8" height="120"><title>Lap {{ lap.lap }} · {{ time(lap.time) }}–{{ time(lap.end) }}</title></rect>
-        @if (lap.time > start) { <path class="lap-split" [attr.d]="'M' + lap.x * 8 + ' 0V120'" /> }
       }
       @for (tick of model.axis.ticks; track tick.y) { <path class="grid" [attr.d]="'M0 ' + tick.y + 'H800'" /> }
       <path class="trace" transform="matrix(1.0204081633 0 0 1 -8.1632653061 0)" [attr.d]="model.trace.path" />
