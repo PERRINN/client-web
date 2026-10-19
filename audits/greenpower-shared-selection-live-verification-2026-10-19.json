@@ -1,0 +1,70 @@
+{
+  "checkedAt": "2026-10-19T16:24:48.077Z",
+  "project": "perrinn-d5fc1",
+  "mode": "verify",
+  "commit": "b6465caf59212f89a72613a8ef1e468dbe7d2231",
+  "deploymentScope": [
+    "hosting",
+    "firestore:rules"
+  ],
+  "liveRulesMatchBaseline": true,
+  "liveRulesMatchRepository": true,
+  "liveRulesSha256": "d54bbd18e75233207f8e6a8e278b27b1e5a8b48d4fe1101472e406c5daa30be2",
+  "indexes": {
+    "repositoryIndexes": 19,
+    "liveIndexes": 19,
+    "repositoryOnly": [],
+    "liveOnly": [],
+    "notReady": 0
+  },
+  "indexChanges": false,
+  "trackArrayIndexEnabled": true,
+  "fieldOverridesMatch": true,
+  "productionWrites": 0,
+  "telemetryRecordsRead": 0,
+  "issue95": "Already closed as completed; real OMNI workshop verification confirmed on 19 October 2026",
+  "boundedTrackQueryStatus": 200,
+  "trackNamesOnlyRead": 0,
+  "validation": {
+    "greenpowerTests": 92,
+    "firestoreEmulatorTests": 12,
+    "browserWidths": [
+      1440,
+      390,
+      320
+    ],
+    "productionBuild": "passed",
+    "lint": "passed with 64 existing warnings",
+    "browserStates": [
+      "live",
+      "history",
+      "stale",
+      "loading",
+      "empty",
+      "error",
+      "continuation",
+      "signed-out"
+    ],
+    "sharedChoiceIntegration": "two signed-in emulator clients: draft isolation, atomic Save, published override and Automatic"
+  },
+  "url": "https://perrinn.com/424-greenpower-telemetry",
+  "pageStatus": 200,
+  "mainBundle": "main.c413336ee5dc6ec8.js",
+  "bundleStatus": 200,
+  "htmlReferencesReleaseBundle": true,
+  "bundleMatchesLocal": true,
+  "bundleSha256": "dbbde09d91366608109a705634be6a1aef746c56435aac86b3dfa5dd59bc51b9",
+  "hostingRelease": "sites/perrinn-d5fc1/releases/1792427079673000",
+  "hostingVersion": "sites/perrinn-d5fc1/versions/8a0bde6da96724a4",
+  "anonymousTrackReadStatus": 403,
+  "productionSignedOutBrowser": {
+    "headingVisible": true,
+    "signInRequired": true,
+    "javascriptErrors": [],
+    "viewportWidth": 1440
+  },
+  "excludedScope": [
+    "Cloud Functions event metadata",
+    "unfinished telemetry view navigation"
+  ]
+}
