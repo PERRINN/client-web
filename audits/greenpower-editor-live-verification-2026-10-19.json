@@ -1,0 +1,28 @@
+{
+  "verifiedAt": "2026-10-19T12:37:02.395Z",
+  "commit": "f7204e030ca36b7d7f5ce6c49373f4dbe678a8bf",
+  "projectId": "perrinn-d5fc1",
+  "url": "https://perrinn.com/424-greenpower-telemetry",
+  "hostingRelease": "sites/perrinn-d5fc1/releases/1792413369259000",
+  "hostingVersion": "sites/perrinn-d5fc1/versions/ae1896cb2f9c4f2d",
+  "pageStatus": 200,
+  "htmlReferencesReleaseBundle": true,
+  "mainBundle": "main.6813187bbe6fa2ab.js",
+  "bundleStatus": 200,
+  "bundleSha256": "667347cc6071484ef838b1b18dc672994f4b507c9c4e1fbe04a04ad021c9b15d",
+  "bundleMatchesLocal": true,
+  "liveRulesMatchRepository": true,
+  "adminClaimVerified": true,
+  "anonymousConfigReadStatus": 403,
+  "productionConfigWrites": 0,
+  "telemetryRecordsRead": 0,
+  "unitChecks": 38,
+  "telemetryRegressionChecks": 22,
+  "emulatorChecksPreviouslyPassed": 8,
+  "browserWidths": [
+    1440,
+    390,
+    320
+  ],
+  "issue95": "Open pending actual OMNI phone workshop verification"
+}
