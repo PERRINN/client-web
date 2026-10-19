@@ -128,3 +128,10 @@
   :host .sidebarShell .radioReturn:hover { background: var(--color-selected); }
 }
 :host .mobileShellHeader .radioReturn { margin-left: auto; }
+
+:host .shellDiscoverActions{display:flex;align-items:center;gap:8px;height:40px}
+:host .sidebarShell .shellDiscoverActions .iconBtn{flex:1;min-width:0;width:auto}
+:host .sidebarShell .greenpowerLive{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;gap:8px;min-height:36px;padding:8px;border-radius:var(--radius-sm);background:var(--color-raised);color:var(--color-text);text-decoration:none;font-size:14px;white-space:nowrap}
+:host .sidebarShell .greenpowerLive:hover,:host .sidebarShell .greenpowerLive.activeNav{background:var(--color-selected)}
+:host .liveBadge{display:inline-flex;align-items:center;gap:6px;margin-left:auto;color:var(--color-text)}
+:host .liveDot{flex:0 0 8px;width:8px;height:8px;border-radius:50%;background:var(--color-success)}

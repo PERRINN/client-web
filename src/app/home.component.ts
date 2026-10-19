@@ -1,3 +1,4 @@
+import { GreenpowerLiveService } from './greenpower-telemetry/greenpowerLive.service';
 import { recordImage } from './image-viewer/imageViewer.service';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
@@ -43,6 +44,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     private activity: MessageActivityService,
     private changeDetector: ChangeDetectorRef,
     private router: Router,
+    public greenpowerLive: GreenpowerLiveService,
     public UI: UserInterfaceService
   ) {}
 

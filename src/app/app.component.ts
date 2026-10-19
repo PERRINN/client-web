@@ -1,3 +1,4 @@
+import { GreenpowerLiveService } from './greenpower-telemetry/greenpowerLive.service';
 import { RadioLifecycleService } from './prototypes/team-radio/radioLifecycle.service';
 import { Component, OnInit, OnDestroy, HostListener, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { activeChatChain, sidebarChatCommands } from './chatNavigation';
@@ -123,6 +124,7 @@ export class AppComponent implements OnInit, OnDestroy {
     activity: MessageActivityService,
     conversations: SidebarConversationsService,
     public radioLifecycle: RadioLifecycleService,
+    public greenpowerLive: GreenpowerLiveService,
     changeDetector: ChangeDetectorRef
   ) {
     this.radioSubscription = radioLifecycle.changed.subscribe(() => changeDetector.markForCheck());

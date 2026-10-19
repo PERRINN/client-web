@@ -20,10 +20,17 @@
         <span class="material-icons">group</span>
         <span>Team</span>
       </button>
-      <button class="iconBtn" (click)="openDiscover()" aria-label="Open discover">
-        <span class="material-icons-outlined">info</span>
-        <span>Discover</span>
-      </button>
+      <div class="shellDiscoverActions">
+        <button class="iconBtn" (click)="openDiscover()" aria-label="Open discover">
+          <span class="material-icons-outlined">info</span>
+          <span>Discover</span>
+        </button>
+        @if (greenpowerLive.live$ | async) {
+          <a class="greenpowerLive" routerLink="/424-greenpower-telemetry" routerLinkActive="activeNav" [attr.aria-current]="router.url === '/424-greenpower-telemetry' ? 'page' : null" aria-label="Greenpower live telemetry">
+            <span>Telemetry</span><span class="liveBadge"><span class="liveDot" aria-hidden="true"></span>Live</span>
+          </a>
+        }
+      </div>
       <div class="shellAppActions">
         <button class="iconBtn" routerLink="/apps" routerLinkActive="activeNav" [attr.aria-current]="router.url === '/apps' ? 'page' : null" aria-label="Open apps">
           <span class="material-icons-outlined">apps</span>
