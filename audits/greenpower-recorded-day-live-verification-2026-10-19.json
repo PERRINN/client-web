@@ -1,0 +1,72 @@
+{
+  "checkedAt": "2026-10-19T17:59:47.873Z",
+  "project": "perrinn-d5fc1",
+  "status": "deployed_verified",
+  "commit": "a6e72d5",
+  "deploymentScope": [
+    "hosting"
+  ],
+  "url": "https://perrinn.com/424-greenpower-telemetry",
+  "pageStatus": 200,
+  "mainBundle": "main.2b838ce7efbf231a.js",
+  "bundleStatus": 200,
+  "bundleSha256": "1f28e28dac30865c262ffa5a408db80e0af2bf4b44ec4c4aa1aa00c690ba5f85",
+  "bundleMatchesIsolatedBuild": true,
+  "hostingRelease": "sites/perrinn-d5fc1/releases/1792432771086000",
+  "hostingVersion": "sites/perrinn-d5fc1/versions/bd3619a67a75816b",
+  "liveMetadata": {
+    "queries": 1,
+    "resultLimit": 60,
+    "documentsReturned": 2,
+    "projection": [
+      "name",
+      "date",
+      "state"
+    ],
+    "labels": [
+      "2026-10-18 · Goodwood finals",
+      "2026-06-14 · Full dyno · 2026-06-14",
+      "2026-04-18 · No event"
+    ],
+    "credential": "trusted operator OAuth; not an end-user browser token"
+  },
+  "anonymousEventReadStatus": 403,
+  "signedOutMobileBrowser": {
+    "width": 390,
+    "signInRequired": true,
+    "pageErrors": []
+  },
+  "validation": {
+    "unitPassed": 126,
+    "emulatorPassed": 18,
+    "lintErrors": 0,
+    "existingLintWarnings": 64,
+    "buildHash": "67448bfb98c60daa",
+    "browserWidths": [
+      1440,
+      390,
+      320
+    ],
+    "browserErrors": [],
+    "browserArtifacts": "/var/folders/6j/540yrv1536x9pc7qv833941h0000gn/T/greenpower-ui-kfYSJg",
+    "fullBrowserRegression": true
+  },
+  "indexes": {
+    "live": 23,
+    "repository": 23,
+    "allReady": true,
+    "additions": 0,
+    "deletions": 0,
+    "comparison": "greenpower-recorded-day-release-indexes-2026-10-19.json"
+  },
+  "productionMetadataWrites": 0,
+  "rawTelemetryReads": 0,
+  "rawTelemetryWrites": 0,
+  "sessionBoundaries": "pending_review",
+  "batteryTestAssignments": "pending_review",
+  "issue97": "open: historical session assignments remain pending review",
+  "limitations": [
+    "Hosted signed-in UI was not exercised; real signed-in reads and labels are covered by the local emulator and template harness",
+    "Live metadata read uses operator IAM and does not independently prove end-user rules"
+  ]
+}
