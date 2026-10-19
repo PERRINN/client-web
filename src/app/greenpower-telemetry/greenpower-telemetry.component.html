@@ -22,13 +22,18 @@
           <button type="button" class="primary" [disabled]="view.saving" (click)="view.save()">{{ view.saving ? 'Saving' : 'Save' }}</button>
           <button type="button" [disabled]="view.saving" (click)="view.cancel()">Cancel</button>
         </div>
-        <div class="channel-options" role="group" aria-label="Channel visibility">
-          <div class="channel-option column-labels"><span>Channel</span><span>Scalar</span><span>Chart</span></div>
-          @for (channel of available; track channel.id) {
-            <div class="channel-option">
+        <div class="editor-tabs" role="group" aria-label="View section">
+          <button type="button" [attr.aria-pressed]="editorKind === 'scalars'" (click)="selectEditor('scalars')">Scalars</button>
+          <button type="button" [attr.aria-pressed]="editorKind === 'charts'" (click)="selectEditor('charts')">Charts</button>
+        </div>
+        <span class="order-notice" aria-live="polite">{{ orderNotice }}</span>
+        <div #channelOptions class="channel-options" role="group" [attr.aria-label]="editorKind === 'scalars' ? 'Scalar visibility and order' : 'Chart visibility and order'">
+          @for (channel of available; track channel.id; let index = $index) {
+            <div class="channel-option" [attr.data-channel]="channel.id">
+              <input type="checkbox" [attr.aria-label]="channel.label + (editorKind === 'scalars' ? ' scalar' : ' chart')" [checked]="!!view.draft[editorKind][channel.id]" [disabled]="view.saving" (change)="view.toggle(editorKind, channel.id, $any($event.target).checked)">
               <span class="channel-label">{{ channel.label }}{{ channel.unit ? ' · ' + channel.unit : '' }}</span>
-              <input type="checkbox" [attr.aria-label]="channel.label + ' scalar'" [checked]="!!view.draft.scalars[channel.id]" [disabled]="view.saving" (change)="view.toggle('scalars', channel.id, $any($event.target).checked)">
-              <input type="checkbox" [attr.aria-label]="channel.label + ' chart'" [checked]="!!view.draft.charts[channel.id]" [disabled]="view.saving || (!channel.points.length && !view.draft.charts[channel.id])" (change)="view.toggle('charts', channel.id, $any($event.target).checked)">
+              <button type="button" class="move-channel" [attr.aria-label]="'Move ' + channel.label + (editorKind === 'scalars' ? ' scalar' : ' chart') + ' up'" [disabled]="view.saving || index === 0 || index >= selectedCount" (click)="moveChannel(channel, -1)">↑</button>
+              <button type="button" class="move-channel" [attr.aria-label]="'Move ' + channel.label + (editorKind === 'scalars' ? ' scalar' : ' chart') + ' down'" [disabled]="view.saving || index >= selectedCount - 1" (click)="moveChannel(channel, 1)">↓</button>
             </div>
           } @empty { <p class="state">No channels in loaded telemetry.</p> }
         </div>

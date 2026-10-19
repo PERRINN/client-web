@@ -7,10 +7,16 @@ service cloud.firestore {
       function validChannels(channels) {
         return channels is map && channels.size() <= 512 && channels.values().hasOnly([true]);
       }
+      function validOrder(order, channels) {
+        return order is list && order.size() == channels.size()
+          && order.toSet() == channels.keys().toSet();
+      }
       function validView() {
         return request.resource.data.keys().hasAll(['scalars', 'charts', 'revision', 'updatedBy', 'updatedAt'])
-          && request.resource.data.keys().hasOnly(['scalars', 'charts', 'revision', 'updatedBy', 'updatedAt'])
+          && request.resource.data.keys().hasOnly(['scalars', 'charts', 'scalarOrder', 'chartOrder', 'revision', 'updatedBy', 'updatedAt'])
           && validChannels(request.resource.data.scalars) && validChannels(request.resource.data.charts)
+          && (!request.resource.data.keys().hasAny(['scalarOrder']) || validOrder(request.resource.data.scalarOrder, request.resource.data.scalars))
+          && (!request.resource.data.keys().hasAny(['chartOrder']) || validOrder(request.resource.data.chartOrder, request.resource.data.charts))
           && request.resource.data.revision is int && request.resource.data.revision > 0
           && request.resource.data.updatedBy == request.auth.uid && request.resource.data.updatedAt == request.time;
       }

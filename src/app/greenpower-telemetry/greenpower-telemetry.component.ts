@@ -1,8 +1,9 @@
-import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { Subscription } from 'rxjs';
 import { GreenpowerChannel, londonDay, londonTime } from './greenpowerData';
 import { ChartWindow } from './greenpowerChart';
+import { ViewKind } from './greenpowerView';
 import { GreenpowerViewService } from './greenpowerView.service';
 import { GreenpowerTelemetryService } from './greenpowerTelemetry.service';
 
@@ -16,6 +17,10 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   scalars: GreenpowerChannel[] = [];
   charts: GreenpowerChannel[] = [];
   available: GreenpowerChannel[] = [];
+  editorKind: ViewKind = 'scalars';
+  selectedCount = 0;
+  orderNotice = '';
+  @ViewChild('channelOptions') private channelOptions?: ElementRef<HTMLElement>;
   window?: ChartWindow;
   cursor?: number;
   private context = '';
@@ -40,9 +45,19 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     this.clock = setInterval(() => { this.now = Date.now(); telemetry.tick(); change.markForCheck(); }, 1000);
   }
   private refreshView() {
+    if (!this.view.editing) this.orderNotice = '';
+    this.selectedCount = Object.keys(this.view.draft[this.editorKind]).length;
     this.scalars = this.view.scalars(this.telemetry.channels);
     this.charts = this.view.charts(this.telemetry.channels);
-    this.available = this.view.editing ? this.view.available(this.telemetry.channels) : [];
+    this.available = this.view.editing ? this.view.available(this.telemetry.channels, this.editorKind) : [];
+  }
+  selectEditor(kind: ViewKind) {
+    this.editorKind = kind; this.orderNotice = ''; this.refreshView();
+    if (this.channelOptions) this.channelOptions.nativeElement.scrollTop = 0;
+  }
+  moveChannel(channel: GreenpowerChannel, direction: -1 | 1) {
+    this.view.move(this.editorKind, channel.id, direction);
+    this.orderNotice = channel.label + ', position ' + (this.available.findIndex(c => c.id === channel.id) + 1) + ' of ' + this.selectedCount;
   }
   get status() {
     const data = this.telemetry;

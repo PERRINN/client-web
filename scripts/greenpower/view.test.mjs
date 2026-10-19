@@ -108,3 +108,59 @@ test('save bounds database reads to three attempts and rejects duplicate clicks'
   const first=h.service.save();assert.equal(h.service.saving,true);await h.service.save();await first;
   h.service.ngOnDestroy();
 });
+
+test('legacy views retain their order; explicit scalar and chart orders are independent', () => {
+  const legacy={...saved};
+  assert.equal(view.validView(legacy),true);
+  const prior=view.selectedChannels(channels,legacy.scalars).map(c=>c.id);
+  const copy=view.copySelection(legacy);
+  assert.deepEqual(copy.scalarOrder,prior);
+  copy.scalarOrder.reverse();
+  assert.deepEqual(view.selectedChannels(channels,copy.scalars,copy.scalarOrder).map(c=>c.id),prior.slice().reverse());
+  assert.deepEqual(copy.chartOrder,Object.keys(legacy.charts).sort());
+  assert.deepEqual(view.selectedChannels([],copy.scalars,copy.scalarOrder).map(c=>c.id),copy.scalarOrder,'missing historical channels retain their slots');
+  for(const invalid of [[...prior,prior[0]],prior.slice(1),[...prior.slice(1),'unknown'],[...prior.slice(1),5],null]) {
+    assert.equal(view.validSelection({...copy,scalarOrder:invalid}),false);
+  }
+  assert.equal(view.validSelection({scalars:{},charts:{},scalarOrder:[],chartOrder:[]}),true);
+});
+test('ordering is draft-only, bounded at each end, cancelable, and saved for every viewer', async () => {
+  const h=harness();h.signIn();h.emit(saved);h.service.edit(channels);
+  const original=h.service.scalars(channels).map(c=>c.id);
+  const chartOrder=h.service.charts(channels).map(c=>c.id);
+  const first=original[0],second=original[1];
+  h.service.move('scalars',first,-1);assert.deepEqual(h.service.draft.scalarOrder,original);
+  h.service.move('scalars',first,1);assert.deepEqual(h.service.draft.scalarOrder.slice(0,2),[second,first]);
+  assert.deepEqual(h.service.draft.chartOrder,chartOrder);
+  assert.deepEqual(h.service.scalars(channels).map(c=>c.id),original,'draft order is private');
+  h.service.cancel();h.service.edit(channels);assert.deepEqual(h.service.draft.scalarOrder,original);
+  h.service.move('scalars',first,1);h.service.move('charts',chartOrder[0],1);
+  const draft=view.copySelection(h.service.draft);await h.service.save();h.emit(h.record);
+  h.signIn(false);
+  assert.deepEqual(h.service.scalars(channels).map(c=>c.id),draft.scalarOrder);
+  assert.deepEqual(h.service.charts(channels).map(c=>c.id),draft.chartOrder);
+  h.service.move('scalars',first,-1);assert.deepEqual(h.record.scalarOrder,draft.scalarOrder);
+  h.service.ngOnDestroy();
+});
+test('removing and re-adding channels maintains a complete order and appends new choices', () => {
+  const h=harness();h.signIn();h.emit(saved);h.service.edit(channels);
+  const id=h.service.draft.scalarOrder[0];
+  h.service.toggle('scalars',id,false);
+  assert.ok(!h.service.draft.scalarOrder.includes(id));assert.equal(view.validSelection(h.service.draft),true);
+  h.service.move('scalars',id,1);assert.ok(!h.service.draft.scalarOrder.includes(id));
+  h.service.toggle('scalars',id,true);
+  assert.equal(h.service.draft.scalarOrder.at(-1),id);assert.equal(view.validSelection(h.service.draft),true);
+  h.service.ngOnDestroy();
+});
+
+test('immediately reopening after a committed save uses its revision without waiting for a listener', async () => {
+  const h=harness();h.signIn();h.emit(saved);h.service.edit(channels);
+  h.service.move('scalars',h.service.draft.scalarOrder[0],1);
+  await h.service.save();assert.equal(h.record.revision,2);
+  const confirmed=view.copySelection(h.record);
+  h.emit(saved); // An older listener event cannot regress a confirmed commit.
+  assert.deepEqual(h.service.scalars(channels).map(c=>c.id),confirmed.scalarOrder);
+  h.record={...confirmed,revision:2,updatedBy:'admin'};
+  h.service.edit(channels);await h.service.save();assert.equal(h.record.revision,3);assert.equal(h.service.error,'');
+  h.service.ngOnDestroy();
+});

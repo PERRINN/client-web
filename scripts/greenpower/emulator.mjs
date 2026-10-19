@@ -117,6 +117,7 @@ test('shared view is signed-in readable and only exact admin claims can save val
   const path='GreenpowerTelemetry/424/config/view',ref=db.doc(path);
   await ref.delete();
   const fieldMap = value => ({mapValue:{fields:Object.fromEntries(Object.entries(value).map(([key,flag])=>[key,{booleanValue:flag}]))}});
+  const fieldList = values => ({arrayValue:{values:values.map(value=>typeof value==='string'?{stringValue:value}:{integerValue:String(value)})}});
   const fields = (revision=1,extra={})=>({
     scalars:fieldMap({'["Vt"]:V':true}), charts:fieldMap({'["A"]:A':true}),
     revision:{integerValue:String(revision)},updatedBy:{stringValue:'admin'},...extra
@@ -138,10 +139,18 @@ test('shared view is signed-in readable and only exact admin claims can save val
     fields(2,{updatedBy:{stringValue:'bob'}}),
     fields(2,{charts:fieldMap({bad:false})}),
     fields(2,{unexpected:{stringValue:'denied'}}),
+    fields(2,{scalarOrder:fieldList([])}),
+    fields(2,{scalarOrder:fieldList(['unknown'])}),
+    fields(2,{scalarOrder:fieldList(['["Vt"]:V','["Vt"]:V'])}),
+    fields(2,{chartOrder:fieldList([4])}),
+    fields(2,{chartOrder:fieldMap({bad:true})}),
     fields(2,{scalars:{arrayValue:{values:[]}}}),
     fields(2,{charts:fieldMap(Object.fromEntries(Array.from({length:513},(_,i)=>[String(i),true])))})
   ]) assert.equal((await commit('admin',{perrinnAdmin:true},updates)).status,403);
-  assert.equal((await commit('admin',{perrinnAdmin:true},fields(2))).status,200);
+  assert.equal((await commit('admin',{perrinnAdmin:true},fields(2,{scalarOrder:fieldList(['["Vt"]:V']),chartOrder:fieldList(['["A"]:A'])}))).status,200);
+  // An older client can still write the previous shape, and empty ordered sections are valid.
+  assert.equal((await commit('admin',{perrinnAdmin:true},fields(3))).status,200);
+  assert.equal((await commit('admin',{perrinnAdmin:true},fields(4,{scalars:fieldMap({}),charts:fieldMap({}),scalarOrder:fieldList([]),chartOrder:fieldList([])}))).status,200);
   assert.equal((await request(path,'admin','DELETE',undefined,{perrinnAdmin:true})).status,403);
   for(const target of ['GreenpowerTelemetry/424/config/other','GreenpowerTelemetry/other/config/view','GreenpowerTelemetry/424/days/2026-10-18']) {
     assert.equal((await commit('admin',{perrinnAdmin:true},fields(1),target)).status,403,'role grants no telemetry-data writes');
@@ -178,6 +187,16 @@ test('real admin saves are synchronized to another signed-in viewer without chan
     await until(viewer.service,()=>viewer.service.scalars(channels).length===1);
     assert.equal(viewer.service.canEdit,false);assert.equal(viewer.service.scalars(channels)[0].label,'Current');
     assert.equal(viewer.service.charts(channels).length,2,'chart selection remains independent');
+    // Re-enable the hidden scalar, then save different orders through a second real transaction.
+    editor.service.edit(channels);editor.service.toggle('scalars',channels[0].id,true);
+    const helperOrder=viewHelpers.orderFor(editor.service.draft,'scalars');
+    editor.service.move('scalars',helperOrder[0],1);
+    assert.notDeepEqual(editor.service.draft.scalarOrder,editor.service.draft.chartOrder,'two sections can have different orders');
+    const expected=viewHelpers.copySelection(editor.service.draft);
+    await editor.service.save();assert.equal(editor.service.error,'');
+    await until(viewer.service,()=>viewer.service.scalars(channels).length===2 && viewer.service.scalars(channels)[0].id===expected.scalarOrder[0]);
+    assert.deepEqual(viewer.service.scalars(channels).map(c=>c.id),expected.scalarOrder);
+    assert.deepEqual(viewer.service.charts(channels).map(c=>c.id),expected.chartOrder);
     viewer.state.next({uid:'',isAdmin:false,ready:true});assert.deepEqual(viewer.service.scalars(channels),[]);
   } finally {
     services.forEach(service=>service.ngOnDestroy());await Promise.all(clients.map(client=>client.terminate()));await Promise.all(apps.map(app=>app.delete()));await ref.delete();

@@ -33,11 +33,15 @@ select { border-color: var(--color-border); }
 .editor-actions { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .editor-actions h2 { flex: 1; font-size: 16px; line-height: 1.35; font-weight: 600; overflow: visible; }
 .channel-options { max-height: min(50dvh, 480px); overflow-y: auto; }
-.channel-option { display: grid; grid-template-columns: minmax(0, 1fr) 48px 48px; align-items: center; gap: 8px; min-height: 44px; }
+.channel-option { display: grid; grid-template-columns: 24px minmax(0, 1fr) 44px 44px; align-items: center; gap: 8px; min-height: 44px; }
 .channel-option span { font-size: 13px; line-height: 1.45; }
 .channel-label { overflow-wrap: anywhere; }
-.column-labels { color: var(--color-text-secondary); }
-.column-labels span:not(:first-child) { text-align: center; }
 .channel-option input { width: 20px; height: 20px; justify-self: center; accent-color: var(--color-accent); }
 .channel-option input:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
 .channel-option input:disabled { opacity: .5; }
+
+.editor-tabs { display: flex; gap: 8px; margin-bottom: 8px; }
+.editor-tabs button[aria-pressed="true"] { background: var(--color-selected); }
+.move-channel { padding: 0; width: 44px; height: 44px; }
+.move-channel:disabled { cursor: default; }
+.order-notice { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); white-space: nowrap; }

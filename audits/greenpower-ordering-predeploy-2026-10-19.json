@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-10-19T12:45:16.917Z",
+  "projectId": "perrinn-d5fc1",
+  "liveRulesMatchBaseline": true,
+  "baselineCommit": "aae560f0968e311e2dbcb87efa74416f5660335f",
+  "liveRulesSha256": "16d0282a468324f0d04a20ecc711f8ccbd65e1e7e14d00f3399a81383244a79a",
+  "adminClaimVerified": true,
+  "config": {
+    "exists": true,
+    "revision": "4"
+  },
+  "deploymentScope": [
+    "hosting",
+    "firestore:rules"
+  ],
+  "telemetryRecordsRead": 0
+}
