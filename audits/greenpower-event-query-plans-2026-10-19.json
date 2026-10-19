@@ -1,0 +1,379 @@
+{
+  "checkedAt": "2026-10-19T17:15:06.920Z",
+  "project": "perrinn-d5fc1",
+  "executedQueries": 0,
+  "telemetryDocumentsRead": 0,
+  "plans": [
+    {
+      "query": {
+        "from": [
+          {
+            "collectionId": "events"
+          }
+        ],
+        "where": {
+          "compositeFilter": {
+            "op": "AND",
+            "filters": [
+              {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "date"
+                  },
+                  "op": "GREATER_THAN_OR_EQUAL",
+                  "value": {
+                    "stringValue": "2026-01-01"
+                  }
+                }
+              },
+              {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "date"
+                  },
+                  "op": "LESS_THAN_OR_EQUAL",
+                  "value": {
+                    "stringValue": "2026-12-31"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "orderBy": [
+          {
+            "field": {
+              "fieldPath": "date"
+            },
+            "direction": "DESCENDING"
+          },
+          {
+            "field": {
+              "fieldPath": "__name__"
+            },
+            "direction": "DESCENDING"
+          }
+        ],
+        "limit": 1
+      },
+      "planningOnly": true,
+      "status": 200,
+      "result": [
+        {
+          "explainMetrics": {
+            "planSummary": {
+              "indexesUsed": [
+                {
+                  "properties": "(date DESC, __name__ DESC)",
+                  "query_scope": "Collection"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "query": {
+        "from": [
+          {
+            "collectionId": "events"
+          }
+        ],
+        "where": {
+          "compositeFilter": {
+            "op": "AND",
+            "filters": [
+              {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "type"
+                  },
+                  "op": "EQUAL",
+                  "value": {
+                    "stringValue": "full_dyno"
+                  }
+                }
+              },
+              {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "date"
+                  },
+                  "op": "GREATER_THAN_OR_EQUAL",
+                  "value": {
+                    "stringValue": "2026-01-01"
+                  }
+                }
+              },
+              {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "date"
+                  },
+                  "op": "LESS_THAN_OR_EQUAL",
+                  "value": {
+                    "stringValue": "2026-12-31"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "orderBy": [
+          {
+            "field": {
+              "fieldPath": "date"
+            },
+            "direction": "DESCENDING"
+          },
+          {
+            "field": {
+              "fieldPath": "__name__"
+            },
+            "direction": "DESCENDING"
+          }
+        ],
+        "limit": 1
+      },
+      "planningOnly": true,
+      "status": 200,
+      "result": [
+        {
+          "explainMetrics": {
+            "planSummary": {
+              "indexesUsed": [
+                {
+                  "query_scope": "Collection",
+                  "properties": "(type ASC, date DESC, __name__ DESC)"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "query": {
+        "from": [
+          {
+            "collectionId": "events"
+          }
+        ],
+        "where": {
+          "compositeFilter": {
+            "op": "AND",
+            "filters": [
+              {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "locationKey"
+                  },
+                  "op": "EQUAL",
+                  "value": {
+                    "stringValue": "release-audit-synthetic"
+                  }
+                }
+              },
+              {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "date"
+                  },
+                  "op": "GREATER_THAN_OR_EQUAL",
+                  "value": {
+                    "stringValue": "2026-01-01"
+                  }
+                }
+              },
+              {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "date"
+                  },
+                  "op": "LESS_THAN_OR_EQUAL",
+                  "value": {
+                    "stringValue": "2026-12-31"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "orderBy": [
+          {
+            "field": {
+              "fieldPath": "date"
+            },
+            "direction": "DESCENDING"
+          },
+          {
+            "field": {
+              "fieldPath": "__name__"
+            },
+            "direction": "DESCENDING"
+          }
+        ],
+        "limit": 1
+      },
+      "planningOnly": true,
+      "status": 200,
+      "result": [
+        {
+          "explainMetrics": {
+            "planSummary": {
+              "indexesUsed": [
+                {
+                  "properties": "(locationKey ASC, date DESC, __name__ DESC)",
+                  "query_scope": "Collection"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "query": {
+        "from": [
+          {
+            "collectionId": "events"
+          }
+        ],
+        "where": {
+          "compositeFilter": {
+            "op": "AND",
+            "filters": [
+              {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "type"
+                  },
+                  "op": "EQUAL",
+                  "value": {
+                    "stringValue": "full_dyno"
+                  }
+                }
+              },
+              {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "locationKey"
+                  },
+                  "op": "EQUAL",
+                  "value": {
+                    "stringValue": "release-audit-synthetic"
+                  }
+                }
+              },
+              {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "date"
+                  },
+                  "op": "GREATER_THAN_OR_EQUAL",
+                  "value": {
+                    "stringValue": "2026-01-01"
+                  }
+                }
+              },
+              {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "date"
+                  },
+                  "op": "LESS_THAN_OR_EQUAL",
+                  "value": {
+                    "stringValue": "2026-12-31"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "orderBy": [
+          {
+            "field": {
+              "fieldPath": "date"
+            },
+            "direction": "DESCENDING"
+          },
+          {
+            "field": {
+              "fieldPath": "__name__"
+            },
+            "direction": "DESCENDING"
+          }
+        ],
+        "limit": 1
+      },
+      "planningOnly": true,
+      "status": 200,
+      "result": [
+        {
+          "explainMetrics": {
+            "planSummary": {
+              "indexesUsed": [
+                {
+                  "properties": "(type ASC, locationKey ASC, date DESC, __name__ DESC)",
+                  "query_scope": "Collection"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "query": {
+        "from": [
+          {
+            "collectionId": "sessions"
+          }
+        ],
+        "where": {
+          "fieldFilter": {
+            "field": {
+              "fieldPath": "eventId"
+            },
+            "op": "EQUAL",
+            "value": {
+              "stringValue": "release-audit-synthetic"
+            }
+          }
+        },
+        "orderBy": [
+          {
+            "field": {
+              "fieldPath": "firstAt"
+            },
+            "direction": "ASCENDING"
+          },
+          {
+            "field": {
+              "fieldPath": "__name__"
+            },
+            "direction": "ASCENDING"
+          }
+        ],
+        "limit": 1
+      },
+      "planningOnly": true,
+      "status": 200,
+      "result": [
+        {
+          "explainMetrics": {
+            "planSummary": {
+              "indexesUsed": [
+                {
+                  "properties": "(eventId ASC, firstAt ASC, __name__ ASC)",
+                  "query_scope": "Collection"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

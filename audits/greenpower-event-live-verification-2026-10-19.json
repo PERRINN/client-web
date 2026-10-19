@@ -1,0 +1,77 @@
+{
+  "checkedAt": "2026-10-19T17:15:53.493Z",
+  "project": "perrinn-d5fc1",
+  "commit": "0881a7f",
+  "deploymentScope": [
+    "firestore:indexes",
+    "functions:greenpowerEventEdit",
+    "hosting"
+  ],
+  "function": {
+    "name": "projects/perrinn-d5fc1/locations/us-central1/functions/greenpowerEventEdit",
+    "state": "ACTIVE",
+    "runtime": "nodejs20",
+    "revision": "greenpowereventedit-00001-nol",
+    "entryPoint": "greenpowerEventEdit",
+    "unauthenticatedStatus": 401,
+    "unauthenticatedCode": "UNAUTHENTICATED"
+  },
+  "hosting": {
+    "url": "https://perrinn.com/424-greenpower-telemetry",
+    "pageStatus": 200,
+    "mainBundle": "main.3a68cfffa85d227a.js",
+    "bundleStatus": 200,
+    "bundleSha256": "b6754a7c5dda48794f97ec04d104eab1271aa6386953808f671ce48e17b9d4de",
+    "bundleMatchesLocal": true,
+    "release": "sites/perrinn-d5fc1/releases/1792430127446000",
+    "version": "sites/perrinn-d5fc1/versions/86bfb9644d1173ef"
+  },
+  "anonymousEventReadStatus": 403,
+  "signedOutBrowser": {
+    "width": 390,
+    "headingVisible": true,
+    "signInRequired": true,
+    "pageErrors": []
+  },
+  "historicalMapping": "pending_review",
+  "historicalBackfillApplied": false,
+  "productionMetadataWrites": 0,
+  "productionRawWrites": 0,
+  "issue97": "open: historical mapping/backfill remains pending review",
+  "validation": {
+    "unitPassed": 119,
+    "emulatorPassed": 18,
+    "browserWidths": [
+      1440,
+      390,
+      320
+    ],
+    "buildHash": "7854754e49654c71",
+    "lintErrors": 0,
+    "existingLintWarnings": 64
+  },
+  "limits": [
+    "No production admin write performed; admin edit/retry/access paths validated with synthetic emulator data",
+    "Browser layout coverage uses synthetic event/session services; hosted smoke verifies the fresh signed-out app and exact deployed bundle"
+  ],
+  "indexes": {
+    "existingRetained": 19,
+    "added": 4,
+    "liveTotal": 23,
+    "allReady": true,
+    "deletions": 0,
+    "comparison": "greenpower-event-live-indexes-2026-10-19.json",
+    "queryPlans": "greenpower-event-query-plans-2026-10-19.json",
+    "successfulQueryShapes": 5,
+    "planningRequestsIncludingEarlyReadinessFailures": 9,
+    "executedQueries": 0,
+    "documentsReturned": 0
+  },
+  "runtimeWarning": "Firebase CLI reports Node.js 20 deployment support ends on 2026-10-30; runtime migration is separate work.",
+  "productionSmoke": {
+    "unauthenticatedCallableRequests": 3,
+    "anonymousEventListRequests": 2,
+    "documentsReturned": 0,
+    "writes": 0
+  }
+}
