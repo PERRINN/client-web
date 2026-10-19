@@ -14,7 +14,8 @@ const chart = load('../../src/app/greenpower-telemetry/greenpowerChart.ts', {
 });
 const { GreenpowerChartComponent } = load('../../src/app/greenpower-telemetry/greenpower-chart.component.ts', {
   '@angular/core': { Component: decorate, Input: decorate, Output: decorate, ViewChild: decorate, EventEmitter: Emitter, ChangeDetectionStrategy: {} },
-  './greenpowerData': data, './greenpowerChart': chart, '../telemetry/chartDoubleTap': taps
+  './greenpowerData': data, './greenpowerChart': chart, '../telemetry/chartDoubleTap': taps,
+  './greenpowerLaps': load('../../src/app/greenpower-telemetry/greenpowerLaps.ts', { './greenpowerData': data })
 });
 function fixture() {
   const component = new GreenpowerChartComponent({ markForCheck() {} }, { run(fn) { fn(); } });

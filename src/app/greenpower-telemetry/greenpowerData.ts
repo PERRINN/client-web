@@ -16,7 +16,7 @@ export function londonDay(time = Date.now()) {
 }
 export function londonTime(time: number) { return timeFormat.format(time); }
 export function sampleTime(sample: GreenpowerSample) { return sample.eventAt ?? sample.receivedAt; }
-function displayValue(value: unknown): string {
+export function displayValue(value: unknown): string {
   if (value === null) return '—';
   if (typeof value === 'number') return value && (Math.abs(value) >= 1e9 || Math.abs(value) < 1e-6)
     ? value.toExponential(5) : valueFormat.format(value);

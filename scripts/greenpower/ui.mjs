@@ -60,8 +60,17 @@ window.telemetryHarness = {
   config(value){config=value;notify();fixture.detectChanges();},
   saveError(value){saveError=value;},
   saved(){return config;},
+  laps(){config={scalars:Object.fromEntries(service.channels.map(c=>[c.id,true])),charts:Object.fromEntries(service.channels.filter(c=>c.points.length).map(c=>[c.id,true])),revision:1,updatedBy:'viewer'};notify();service.channels.push({id:'["Lap"]:',label:'Lap',unit:'',value:'5',points:service.channels[0].points.map((p,i)=>({time:p.time,value:1+Math.floor(i/60)}))});service.changed.next();fixture.detectChanges();},
   longList(){const source=service.channels.find(c=>c.points.length);service.channels=Array.from({length:20},(_,i)=>({...source,id:'synthetic-channel-'+i,label:'Channel '+String(i).padStart(2,'0')}));service.changed.next();fixture.detectChanges();},
   snapshot() { const c=fixture.componentInstance; return {start:c.start,end:c.end,cursor:c.cursor,zoomed:!!c.window}; },
+  scalarReadings() {
+    const c=fixture.componentInstance;
+    return c.scalars.map(channel=>{
+      const point=c.cursor===undefined ? undefined : channel.points.filter(p=>p.time>=c.start&&p.time<=c.end).sort((a,b)=>Math.abs(a.time-c.cursor)-Math.abs(b.time-c.cursor))[0];
+      const value=c.cursor===undefined ? channel.value : point ? new Intl.NumberFormat('en-GB',{maximumFractionDigits:6,useGrouping:false}).format(point.value) : '—';
+      return value+(channel.unit?' '+channel.unit:'');
+    });
+  },
   state(name) {
     service.access = name === 'signed-out' ? 'signed-out' : 'signed-in';
     service.error = name === 'error' ? 'Could not load telemetry. Check your connection and try again.' : '';
@@ -125,9 +134,29 @@ try {
     assert.equal(await page.locator('.reading').count(), 8);
     assert.equal(await page.locator('a[href="/prototypes"]').count(), 0);
     assert.ok(await page.locator('.trace').first().getAttribute('d'));
+    const latestScalars=await page.locator('.reading strong').allTextContents();
+    const firstChart=page.locator('app-greenpower-chart').first();
+    const initialChartBox=await firstChart.boundingBox();
+    const hoverBox=await firstChart.locator('svg').boundingBox();
+    await page.mouse.move(hoverBox.x+hoverBox.width*.25,hoverBox.y+40);
+    assert.deepEqual(await page.locator('.reading strong').allTextContents(),await page.evaluate(()=>window.telemetryHarness.scalarReadings()),name+' scalars follow cursor');
+    assert.notDeepEqual(await page.locator('.reading strong').allTextContents(),latestScalars);
+    assert.equal((await firstChart.boundingBox()).y,initialChartBox.y,name+' scalar updates preserve layout');
+    await page.mouse.move(0,0);
+    assert.deepEqual(await page.locator('.reading strong').allTextContents(),latestScalars,name+' cursor dismissal restores latest');
+    await page.evaluate(()=>window.telemetryHarness.laps());
+    assert.equal(await firstChart.locator('.lap-band').count(),5,name+' lap backgrounds');
+    assert.equal(await firstChart.locator('.lap-split').count(),4,name+' split lines');
+    const labels=await firstChart.locator('.lap-labels > span').evaluateAll(nodes=>nodes.map(node=>({width:node.getBoundingClientRect().width,textWidth:node.firstElementChild.getBoundingClientRect().width})));
+    assert.ok(labels.every(l=>l.textWidth<=l.width),name+' lap labels fit');
+    assert.equal((await firstChart.boundingBox()).y,initialChartBox.y,name+' lap appearance preserves layout');
+    await page.mouse.move(hoverBox.x+hoverBox.width*.5,hoverBox.y+40);
+    assert.match(await firstChart.locator('.readout').innerText(),/Lap 3/);
+    await page.screenshot({path:`${output}/${name}-laps.png`});
+    await page.mouse.move(0,0);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${name} horizontal overflow`);
     const before = await page.locator('h1').boundingBox();
-    await page.evaluate(() => window.telemetryHarness.state('stale'));
+    await page.evaluate(() => {window.telemetryHarness.state('stale');window.telemetryHarness.config(undefined);});
     assert.match(await page.locator('.status').innerText(), /Stale/);
     assert.equal((await page.locator('h1').boundingBox()).y, before.y);
     await page.getByRole('button', { name: 'Load history', exact: true }).click();
@@ -199,6 +228,7 @@ try {
   const x=tb.x+tb.width*.25,y=tb.y+40;
   await finger('touchStart',x,y); await touch.waitForTimeout(550);
   assert.equal(await touch.locator('.cursor').count(),7,'long press activates shared cursor');
+  assert.deepEqual(await touch.locator('.reading strong').allTextContents(),await touch.evaluate(()=>window.telemetryHarness.scalarReadings()),'touch cursor updates scalars');
   const touchMarker=await touch.locator('.cursor-point').first().boundingBox();
   assert.ok(Math.abs(touchMarker.width-10)<.1 && Math.abs(touchMarker.height-10)<.1,'marker stays circular on mobile: '+JSON.stringify(touchMarker));
   await touch.screenshot({path:`${output}/mobile-snapped-cursor.png`});

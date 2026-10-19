@@ -66,9 +66,9 @@
       <div class="error" role="alert">{{ telemetry.error }} <button type="button" (click)="telemetry.select(telemetry.day, telemetry.live)">Retry</button></div>
     }
     @if (scalars.length) {
-      <section class="values" aria-label="Latest values">
+      <section class="values" [attr.aria-label]="cursor === undefined ? 'Latest values' : 'Cursor values'">
         @for (channel of scalars; track channel.id) {
-          <div class="reading"><span>{{ channel.label }}</span><strong>{{ channel.value }}{{ channel.unit ? ' ' + channel.unit : '' }}</strong></div>
+          <div class="reading"><span>{{ channel.label }}</span><strong>{{ scalarValue(channel, cursor, start, end) }}{{ channel.unit ? ' ' + channel.unit : '' }}</strong></div>
         }
       </section>
     }
@@ -78,7 +78,7 @@
     } @else if (!telemetry.channels.length && !telemetry.error) { <p class="state">No telemetry recorded for this day.</p> }
     <div class="charts">
       @for (channel of charts; track channel.id) {
-        @if (channel.points.length) { <app-greenpower-chart [channel]="channel" [start]="start" [end]="end" [cursor]="cursor" [context]="telemetry.day + telemetry.live" (windowChange)="zoom($event)" (cursorChange)="cursor = $event" /> }
+        @if (channel.points.length) { <app-greenpower-chart [channel]="channel" [laps]="laps" [start]="start" [end]="end" [cursor]="cursor" [context]="telemetry.day + telemetry.live" (windowChange)="zoom($event)" (cursorChange)="cursor = $event" /> }
       }
     </div>
   }

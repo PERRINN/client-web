@@ -47,3 +47,16 @@ test('clock ticks respect width, fractional seconds and London daylight saving',
   assert.match(chart.clockTicks(start,start+200,300)[0].label,/\.\d{3}$/);
   assert.deepEqual(chart.clockTicks(1,1,300),[]);
 });
+test('scalars follow the nearest visible cursor sample and restore latest values on dismissal', () => {
+  const channel = { value: '99', points: [{ time: 0, value: 0 }, { time: 3, value: 8.1234567 }, { time: 6, value: 2 }] };
+  assert.equal(chart.scalarValue(channel, undefined, 0, 6), '99');
+  assert.equal(chart.scalarValue(channel, 0, 0, 6), '0');
+  assert.equal(chart.scalarValue(channel, 2.7, 0, 6), '8.123457');
+  assert.equal(chart.scalarValue(channel, 5, 0, 6), '2');
+  assert.equal(chart.scalarValue(channel, 4, 3.5, 5), '—');
+  assert.equal(chart.scalarValue({value:'running',points:[]}, 3, 0, 6), '—');
+  assert.equal(channel.value, '99', 'inspection does not overwrite live values');
+  channel.value = '100';
+  assert.equal(chart.scalarValue(channel, 3, 0, 6), '8.123457', 'live updates preserve inspection');
+  assert.equal(chart.scalarValue(channel, undefined, 0, 6), '100');
+});

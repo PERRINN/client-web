@@ -1,4 +1,4 @@
-import { chartTrace, londonTime, pointIndex } from './greenpowerData';
+import { chartTrace, displayValue, GreenpowerChannel, londonTime, pointIndex } from './greenpowerData';
 import { verticalAxis } from '../telemetry/verticalAxis';
 import { formatAxisValue, formatTelemetryValue } from '../telemetry/sessionHistory';
 
@@ -25,6 +25,11 @@ export function nearestPoint(points: ChartPoint[], time: number, start: number, 
   const before = points[index - 1], after = points[index];
   const candidates = [before, after].filter((p): p is ChartPoint => !!p && p.time >= start && p.time <= end);
   return candidates.sort((a, b) => Math.abs(a.time - time) - Math.abs(b.time - time))[0];
+}
+export function scalarValue(channel: GreenpowerChannel, cursor: number | undefined, start: number, end: number) {
+  if (cursor === undefined) return channel.value;
+  const point = nearestPoint(channel.points, cursor, start, end);
+  return point ? displayValue(point.value) : '—';
 }
 const intervals = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 15000, 30000, 60000, 120000, 300000, 600000, 900000, 1800000, 3600000, 7200000, 10800000, 21600000, 43200000, 86400000];
 export function clockTicks(start: number, end: number, width: number) {

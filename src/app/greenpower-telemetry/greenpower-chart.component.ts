@@ -2,6 +2,7 @@ import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, E
 import { GreenpowerChannel, londonTime, pointIndex } from './greenpowerData';
 import { ChartWindow, clockTicks, formatAxisValue, formatTelemetryValue, nearestPoint, plotFor } from './greenpowerChart';
 import { ChartDoubleTap } from '../telemetry/chartDoubleTap';
+import { lapAt, LapInterval, visibleLaps } from './greenpowerLaps';
 
 @Component({
   selector: 'app-greenpower-chart', standalone: false,
@@ -13,12 +14,15 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   @Input() start = 0;
   @Input() end = 0;
   @Input() cursor?: number;
+  @Input() laps: LapInterval[] = [];
   @Input() context = '';
   @Output() windowChange = new EventEmitter<ChartWindow | undefined>();
   @Output() cursorChange = new EventEmitter<number | undefined>();
   @ViewChild('plot') plot?: ElementRef<SVGSVGElement>;
   model = plotFor([], 0, 0, 300);
   ticks = clockTicks(0, 0, 300);
+  lapBands = visibleLaps([], 0, 0, 300);
+  get cursorLap() { return this.cursor === undefined ? undefined : lapAt(this.laps, this.cursor); }
   formatAxis = formatAxisValue;
   time = londonTime;
   private width = 300;
@@ -56,7 +60,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   }
   ngOnChanges(changes: SimpleChanges) {
     if (changes['context']) this.cancel();
-    if (changes['channel'] || changes['start'] || changes['end']) {
+    if (changes['channel'] || changes['start'] || changes['end'] || changes['laps']) {
       if (this.drag) this.renderPending = true;
       else this.render();
     }
@@ -71,6 +75,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   private render() {
     this.model = plotFor(this.channel.points, this.start, this.end, this.width);
     this.ticks = clockTicks(this.start, this.end, this.width);
+    this.lapBands = visibleLaps(this.laps, this.start, this.end, this.width);
   }
   private fraction(event: PointerEvent) {
     const box = this.plot!.nativeElement.getBoundingClientRect();

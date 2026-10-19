@@ -1,6 +1,6 @@
 <section class="chart" [attr.aria-label]="channel.label + ' over time'">
   <h2>{{ channel.label }}{{ channel.unit ? ' · ' + channel.unit : '' }}</h2>
-  <div class="readout"><span>{{ reading ? time(reading!.time) : 'Cursor —' }}</span><span>{{ cursor === undefined ? '—' : cursorLabel }}</span></div>
+  <div class="readout"><span>{{ cursorLap !== undefined ? 'Lap ' + cursorLap + ' · ' : '' }}{{ reading ? time(reading!.time) : 'Cursor —' }}</span><span>{{ cursor === undefined ? '—' : cursorLabel }}</span></div>
   <div class="plot">
     <div class="scale">
       @for (tick of model.axis.ticks; track tick.y) { <span [style.top.%]="tick.y / 120 * 100">{{ formatAxis(tick.value, model.axis.step) }}</span> }
@@ -9,6 +9,10 @@
       [attr.aria-label]="channel.label + ' chart. Drag to zoom; hold to inspect on touch; double click or press Home to reset. Arrow keys step through data points.'"
       (pointerdown)="down($event)" (pointermove)="move($event)" (pointerup)="up($event)" (pointercancel)="cancel($event)"
       (lostpointercapture)="cancel($event)" (pointerleave)="leave()" (dblclick)="reset()" (keydown)="key($event)" (blur)="cancel(); leave()" (contextmenu)="$event.preventDefault()">
+      @for (lap of lapBands; track lap.time) {
+        <rect class="lap-band" [class.alternate]="lap.alternate" [attr.x]="lap.x * 8" y="0" [attr.width]="lap.width * 8" height="120"><title>Lap {{ lap.lap }} · {{ time(lap.time) }}–{{ time(lap.end) }}</title></rect>
+        @if (lap.time > start) { <path class="lap-split" [attr.d]="'M' + lap.x * 8 + ' 0V120'" /> }
+      }
       @for (tick of model.axis.ticks; track tick.y) { <path class="grid" [attr.d]="'M0 ' + tick.y + 'H800'" /> }
       <path class="trace" transform="matrix(1.0204081633 0 0 1 -8.1632653061 0)" [attr.d]="model.trace.path" />
       @if (band; as selection) { <rect class="selection" [attr.x]="selection.x" y="0" [attr.width]="selection.width" height="120" /> }
@@ -17,6 +21,11 @@
         <ellipse class="cursor-point" [attr.cx]="cursorPosition" [attr.cy]="markerY" [attr.rx]="markerRadiusX" ry="3.2" />
       }
     </svg>
+    <div class="lap-labels" aria-hidden="true">
+      @for (lap of lapBands; track lap.time) {
+        @if (lap.label) { <span [style.left.%]="lap.x" [style.width.%]="lap.width"><span>{{ lap.label }}</span></span> }
+      }
+    </div>
   </div>
   <div class="times">
     @for (tick of ticks; track tick.position) { <span [style.left.%]="tick.position" [style.transform]="'translateX(-' + tick.position + '%)'">{{ tick.label }}</span> }

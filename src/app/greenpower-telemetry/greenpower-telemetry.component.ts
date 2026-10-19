@@ -2,7 +2,8 @@ import { ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, View
 import { Title } from '@angular/platform-browser';
 import { Subscription } from 'rxjs';
 import { GreenpowerChannel, londonDay, londonTime, sampleTime } from './greenpowerData';
-import { ChartWindow } from './greenpowerChart';
+import { ChartWindow, scalarValue } from './greenpowerChart';
+import { lapIntervals, LapInterval } from './greenpowerLaps';
 import { ChannelDrag } from './channelDrag';
 import { orderFor, ViewKind } from './greenpowerView';
 import { GreenpowerViewService } from './greenpowerView.service';
@@ -17,6 +18,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   historyOpen = false;
   scalars: GreenpowerChannel[] = [];
   charts: GreenpowerChannel[] = [];
+  laps: LapInterval[] = [];
   available: GreenpowerChannel[] = [];
   editorKind: ViewKind = 'scalars';
   selectedCount = 0;
@@ -26,6 +28,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   @ViewChild('channelOptions') private channelOptions?: ElementRef<HTMLElement>;
   window?: ChartWindow;
   cursor?: number;
+  scalarValue = scalarValue;
   private context = '';
   get start() { return this.window?.start ?? this.telemetry.start; }
   get end() { return this.window?.end ?? this.telemetry.end; }
@@ -60,6 +63,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     this.selectedCount = Object.keys(this.view.draft[this.editorKind]).length;
     this.scalars = this.view.scalars(this.telemetry.channels);
     this.charts = this.view.charts(this.telemetry.channels);
+    this.laps = lapIntervals(this.telemetry.channels.find(channel => channel.id === '["Lap"]:')?.points ?? [], this.telemetry.end);
     this.available = this.view.editing ? this.view.available(this.telemetry.channels, this.editorKind) : [];
   }
   selectEditor(kind: ViewKind) {
