@@ -1,0 +1,38 @@
+{
+  "project": "perrinn-d5fc1",
+  "collectionGroups": [
+    {
+      "collectionGroup": "days",
+      "resultLimit": 1,
+      "found": 0,
+      "outsideTelemetry": false
+    },
+    {
+      "collectionGroup": "chunks",
+      "resultLimit": 1,
+      "found": 0,
+      "outsideTelemetry": false
+    }
+  ],
+  "liveRulesSaved": true,
+  "date": "2026-10-19",
+  "liveCompositeIndexCount": 19,
+  "repositoryCompositeIndexCount": 19,
+  "compositeAdditions": [],
+  "compositeDeletions": [],
+  "newFieldOverrides": [
+    {
+      "collectionGroup": "days",
+      "fieldPath": "latest",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "chunks",
+      "fieldPath": "samples",
+      "indexes": []
+    }
+  ],
+  "liveRulesMatchRepositoryBaseline": true,
+  "documentReadsBudget": 2,
+  "notes": "Two collection-group queries, limit one each, projecting document names only; both empty. No document fields were retrieved. Deployment is a separate step."
+}

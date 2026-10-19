@@ -1,0 +1,11 @@
+<section class="chart" [attr.aria-label]="channel.label + ' over time'">
+  <h2>{{ channel.label }}{{ channel.unit ? ' · ' + channel.unit : '' }}</h2>
+  <div class="plot">
+    <div class="scale"><span>{{ number(trace.max) }}</span><span>{{ number(trace.min) }}</span></div>
+    <svg viewBox="0 0 800 120" preserveAspectRatio="none" role="img" [attr.aria-label]="channel.label + ', minimum ' + trace.min + ', maximum ' + trace.max">
+      <path class="grid" d="M8 10H792 M8 60H792 M8 110H792" />
+      <path class="trace" [attr.d]="trace.path" />
+    </svg>
+  </div>
+  <div class="times"><span>{{ time(start) }}</span><span>{{ time(start + (end - start) / 2) }}</span><span>{{ time(end) }}</span></div>
+</section>

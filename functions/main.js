@@ -26,3 +26,4 @@ exports.revolutWebhook = revolutWebhook.revolutWebhook;
 exports.syncRevolutOrderStatus = syncRevolutOrderStatus.syncRevolutOrderStatus;
 exports.driveFolderActivity = driveFolderActivity.driveFolderActivity;
 exports.githubActivity = githubActivity.githubActivity;
+exports.greenpowerTelemetry = require('./greenpowerTelemetry.f.js').greenpowerTelemetry;

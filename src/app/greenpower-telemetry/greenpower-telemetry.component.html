@@ -1,0 +1,54 @@
+<main class="telemetry-page">
+  <h1>424 Greenpower Telemetry</h1>
+  @if (telemetry.access === 'checking') {
+    <p class="state" role="status">Checking sign-in…</p>
+  } @else if (telemetry.access === 'signed-out') {
+    <a class="primary sign-in" routerLink="/login">Sign in to view telemetry</a>
+  } @else {
+    <div class="controls">
+      <div class="actions">
+        <button type="button" [class.primary]="telemetry.live" [attr.aria-pressed]="telemetry.live" (click)="live()">Live</button>
+        <button type="button" [attr.aria-expanded]="historyOpen" aria-controls="history-picker" (click)="history()">Load history</button>
+      </div>
+      <span class="day">{{ telemetry.day }} · UK time</span>
+    </div>
+    @if (historyOpen) {
+      <section id="history-picker" class="history-picker" aria-label="History dates">
+        @if (telemetry.dates.length) {
+          <label for="history-date">Recorded day</label>
+          <select id="history-date" #date [value]="telemetry.live ? '' : telemetry.day" (change)="telemetry.select(date.value)">
+            <option value="" disabled>Select date</option>
+            @for (day of telemetry.dates; track day) { <option [value]="day">{{ day }}</option> }
+          </select>
+        }
+        @if (telemetry.loadingDates) { <p class="state" role="status">Loading dates…</p> }
+        @else if (telemetry.datesError) { <p class="error" role="alert">{{ telemetry.datesError }}</p><button type="button" (click)="telemetry.loadDates()">Retry dates</button> }
+        @else if (!telemetry.dates.length) { <p class="state">No recorded days.</p> }
+        @if (telemetry.moreDates) { <button type="button" [disabled]="telemetry.loadingDates" (click)="telemetry.loadDates()">Earlier dates</button> }
+      </section>
+    }
+    <div class="status" role="status">
+      <span>{{ status }}</span>
+      <span>Last received {{ telemetry.latest ? time(telemetry.latest.receivedAt) : '—' }}</span>
+    </div>
+    @if (telemetry.error) {
+      <div class="error" role="alert">{{ telemetry.error }} <button type="button" (click)="telemetry.select(telemetry.day, telemetry.live)">Retry</button></div>
+    }
+    @if (telemetry.channels.length) {
+      <section class="values" aria-label="Latest values">
+        @for (channel of telemetry.channels; track channel.id) {
+          <div class="reading"><span>{{ channel.label }}</span><strong>{{ channel.value }}{{ channel.unit ? ' ' + channel.unit : '' }}</strong></div>
+        }
+      </section>
+    }
+    @if (telemetry.loading) { <p class="state" role="status">Loading {{ telemetry.day }}…</p> }
+    @else if (telemetry.more) {
+      <div class="continuation"><span>More data is available for this day.</span><button type="button" (click)="telemetry.loadMore()">Load remaining data</button></div>
+    } @else if (!telemetry.channels.length && !telemetry.error) { <p class="state">No telemetry recorded for this day.</p> }
+    <div class="charts">
+      @for (channel of telemetry.channels; track channel.id) {
+        @if (channel.points.length) { <app-greenpower-chart [channel]="channel" [start]="telemetry.start" [end]="telemetry.end" /> }
+      }
+    </div>
+  }
+</main>

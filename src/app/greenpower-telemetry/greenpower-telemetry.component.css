@@ -1,0 +1,30 @@
+:host { display: block; color: var(--color-text); font-family: var(--font-family-ui); }
+.telemetry-page { padding: 20px; max-width: 1500px; margin: 0 auto; }
+h1 { font-size: 23px; line-height: 1.35; overflow: visible; font-weight: 600; margin: 0 0 16px; }
+.state, .error, .day, .status span, .history-picker label, .continuation span { font-size: 15px; line-height: 1.45; }
+.controls, .actions, .status, .history-picker, .continuation { display: flex; align-items: center; gap: 10px; }
+.controls { justify-content: space-between; min-height: 44px; }
+.day { color: var(--color-text-secondary); }
+button, select, .primary { font: inherit; font-size: 16px; line-height: 1.45; padding: 9px 12px; border: 1px solid transparent; background: var(--color-raised); color: var(--color-text); min-height: 44px; border-radius: 6px; }
+button:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+button:disabled { opacity: .6; cursor: wait; }
+.primary { background: var(--color-accent); color: var(--color-accent-ink); }
+.sign-in { display: inline-block; text-decoration: none; }
+.history-picker { flex-wrap: wrap; margin: 12px 0; padding: 12px; background: var(--color-surface); }
+select { border-color: var(--color-border); }
+.status { justify-content: space-between; color: var(--color-text-secondary); min-height: 44px; margin: 4px 0; }
+.error { color: var(--color-danger-text); margin: 8px 0; overflow-wrap: anywhere; }
+.values { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px 20px; padding: 14px; margin-bottom: 14px; background: var(--color-surface); }
+.reading { min-width: 0; }
+.reading span { display: block; font-size: 14px; line-height: 1.45; color: var(--color-text-secondary); overflow-wrap: anywhere; }
+.reading strong { display: block; font-size: 16px; line-height: 1.45; font-weight: 600; overflow-wrap: anywhere; }
+.charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.state { margin: 12px 0; color: var(--color-text-secondary); }
+.continuation { margin: 12px 0; flex-wrap: wrap; }
+@media (max-width: 900px) { .charts { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 520px) {
+  .telemetry-page { padding: 14px; }
+  .controls { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .values { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .status { gap: 8px; align-items: flex-start; }
+}

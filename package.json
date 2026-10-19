@@ -21,7 +21,9 @@
     "test:image-viewer": "node --test scripts/image-viewer.test.mjs",
     "test:chat": "node --test scripts/chat.test.mjs scripts/chat-actions.test.mjs",
     "test:radio": "node --test scripts/team-radio.test.mjs",
-    "test:radio:rules": "node --test scripts/team-radio-rules.test.mjs"
+    "test:radio:rules": "node --test scripts/team-radio-rules.test.mjs",
+    "test:greenpower": "node --test scripts/greenpower/*.test.mjs",
+    "test:greenpower:emulator": "node --test scripts/greenpower/emulator.mjs"
   },
   "dependencies": {
     "@angular/animations": "21.2.24",

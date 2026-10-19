@@ -442,5 +442,8 @@
       "density": "SPARSE_ALL"
     }
   ],
-  "fieldOverrides": []
+  "fieldOverrides": [
+    { "collectionGroup": "days", "fieldPath": "latest", "indexes": [] },
+    { "collectionGroup": "chunks", "fieldPath": "samples", "indexes": [] }
+  ]
 }
