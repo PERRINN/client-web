@@ -1,0 +1,49 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { data, load } from './load.mjs';
+const vertical = load('../../src/app/telemetry/verticalAxis.ts');
+const history = load('../../src/app/telemetry/sessionHistory.ts', { './verticalAxis': vertical });
+const chart = load('../../src/app/greenpower-telemetry/greenpowerChart.ts', {
+  './greenpowerData': data, '../telemetry/verticalAxis': vertical, '../telemetry/sessionHistory': history
+});
+test('visible window controls extrema and rounded axes without off-window spikes', () => {
+  const points = [{time:0,value:1000},{time:1,value:24.1},{time:2,value:24.8},{time:3,value:-1000}];
+  const {axis,trace}=chart.plotFor(points,1,2,300);
+  assert.equal(trace.min,24.1); assert.equal(trace.max,24.8);
+  assert.ok(axis.min<=24.1 && axis.max>=24.8 && axis.max<26);
+  assert.doesNotMatch(trace.path,/NaN|Infinity/);
+  assert.ok(axis.ticks.length<=5);
+  const expected=vertical.verticalAxis(24.1,24.8);
+  assert.equal(axis.min,expected.min); assert.equal(axis.max,expected.max);
+});
+test('signed and constant channels share Nürburgring axis policy; empty windows stay finite', () => {
+  for (const values of [[-12,8],[52,52],[0,0],[]]) {
+    const points=values.map((value,time)=>({time,value}));
+    const {axis,trace}=chart.plotFor(points,0,5,200);
+    assert.ok(Number.isFinite(axis.min) && Number.isFinite(axis.max) && axis.max>axis.min);
+    assert.doesNotMatch(trace.path,/NaN|Infinity/);
+    if(values.length) assert.ok(axis.min<=Math.min(...values) && axis.max>=Math.max(...values));
+  }
+});
+test('extreme finite numbers remain renderable with rounded axes', () => {
+  for(const values of [[-1e308,1e308],[Number.MAX_VALUE,Number.MAX_VALUE],[1e-200,2e-200]]) {
+    const {axis,trace}=chart.plotFor(values.map((value,time)=>({time,value})),0,1,200);
+    assert.ok(Number.isFinite(axis.min) && Number.isFinite(axis.max));
+    assert.doesNotMatch(trace.path,/NaN|Infinity/);
+  }
+});
+test('cursor uses original nearest sample and never borrows data outside visible window', () => {
+  const points=[{time:0,value:1},{time:3,value:8},{time:6,value:2}];
+  assert.equal(chart.nearestPoint(points,2.7,0,6),points[1]);
+  assert.equal(chart.nearestPoint(points,5,0,6),points[2]);
+  assert.equal(chart.nearestPoint(points,4,3.5,5),undefined);
+  assert.equal(chart.nearestPoint([],0,0,1),undefined);
+});
+test('clock ticks respect width, fractional seconds and London daylight saving', () => {
+  const start=Date.parse('2026-07-01T12:00:00Z');
+  const wide=chart.clockTicks(start,start+3600000,1000),small=chart.clockTicks(start,start+3600000,150);
+  assert.ok(wide.length>small.length);
+  assert.match(wide[0].label,/13:00:00/);
+  assert.match(chart.clockTicks(start,start+200,300)[0].label,/\.\d{3}$/);
+  assert.deepEqual(chart.clockTicks(1,1,300),[]);
+});

@@ -1,5 +1,22 @@
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isPerrinnAdmin() {
+      return request.auth != null && request.auth.token.perrinnAdmin == true;
+    }
+    match /GreenpowerTelemetry/424/config/view {
+      function validChannels(channels) {
+        return channels is map && channels.size() <= 512 && channels.values().hasOnly([true]);
+      }
+      function validView() {
+        return request.resource.data.keys().hasAll(['scalars', 'charts', 'revision', 'updatedBy', 'updatedAt'])
+          && request.resource.data.keys().hasOnly(['scalars', 'charts', 'revision', 'updatedBy', 'updatedAt'])
+          && validChannels(request.resource.data.scalars) && validChannels(request.resource.data.charts)
+          && request.resource.data.revision is int && request.resource.data.revision > 0
+          && request.resource.data.updatedBy == request.auth.uid && request.resource.data.updatedAt == request.time;
+      }
+      allow create: if isPerrinnAdmin() && validView() && request.resource.data.revision == 1;
+      allow update: if isPerrinnAdmin() && validView() && request.resource.data.revision == resource.data.revision + 1;
+    }
     match /{collection}/{document=**} {
       allow read: if collection != 'GreenpowerTelemetry';
     }

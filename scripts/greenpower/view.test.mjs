@@ -1,0 +1,110 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { BehaviorSubject, Subject, combineLatest } from 'rxjs';
+import { data, load, sample } from './load.mjs';
+import { setAdminRole } from '../admin/set-admin-role.mjs';
+const angular = { Injectable: () => target => target, runInInjectionContext: (_, callback) => callback() };
+const view = load('../../src/app/greenpower-telemetry/greenpowerView.ts', { './greenpowerData': data });
+const { PermissionsService } = load('../../src/app/permissions.service.ts', { '@angular/core': angular, rxjs: { BehaviorSubject, combineLatest } });
+const { GreenpowerViewService } = load('../../src/app/greenpower-telemetry/greenpowerView.service.ts', {
+  '@angular/core': angular, rxjs: { Subject }, 'firebase/compat/app': { default: { firestore: { FieldValue: {serverTimestamp:()=> 'server-time'} } } },
+  'firebase/compat/firestore': {}, './greenpowerView': view
+});
+const channels = data.channelsFor([sample(0), sample(1)]);
+const saved = { ...view.selectionFor(channels), revision: 1, updatedBy: 'admin' };
+
+test('admin permissions require an exact true claim belonging to the real signed-in account', () => {
+  const authState = new Subject(), idTokenResult = new Subject();
+  const permissions = new PermissionsService({ authState, idTokenResult }, {});
+  authState.next({uid:'alice'}); idTokenResult.next({claims:{sub:'alice',perrinnAdmin:'true'}});
+  assert.equal(permissions.current.isAdmin,false);
+  idTokenResult.next({claims:{sub:'alice',perrinnAdmin:true}}); assert.equal(permissions.current.isAdmin,true);
+  authState.next({uid:'bob'}); assert.equal(permissions.current.isAdmin,false); assert.equal(permissions.current.ready,false);
+  idTokenResult.next({claims:{sub:'bob'}}); assert.equal(permissions.current.ready,true); assert.equal(permissions.current.isAdmin,false);
+  authState.next(null); assert.deepEqual(permissions.current,{uid:'',isAdmin:false,ready:true});
+  permissions.ngOnDestroy();
+});
+test('operator role assignment preserves unrelated claims and supports revocation', async () => {
+  let customClaims={billing:true,feature:'a'};
+  const auth={getUser:async()=>({customClaims}),setCustomUserClaims:async(uid,claims)=>{assert.equal(uid,'admin');customClaims=claims;}};
+  await setAdminRole(auth,'admin',true); assert.deepEqual(customClaims,{billing:true,feature:'a',perrinnAdmin:true});
+  await setAdminRole(auth,'admin',false); assert.deepEqual(customClaims,{billing:true,feature:'a'});
+});
+test('selection validates channel bounds, keeps scalar/chart choices independent, and labels absent channels', () => {
+  const selection=view.selectionFor(channels);
+  assert.equal(Object.keys(selection.scalars).length,8); assert.equal(Object.keys(selection.charts).length,7);
+  const id=channels[0].id; delete selection.scalars[id];
+  assert.ok(!view.selectedChannels(channels,selection.scalars).some(c=>c.id===id));
+  assert.ok(view.selectedChannels(channels,selection.charts).some(c=>c.id===id));
+  const absent=view.selectedChannels([],selection.charts);
+  assert.ok(absent.every(c=>c.value==='—' && !c.points.length));
+  assert.ok(absent.some(c=>c.label==='Total voltage'));
+  assert.equal(view.validSelection(selection),true);
+  assert.equal(view.validSelection({scalars:[],charts:{}}),false);
+  assert.equal(view.validSelection({scalars:{a:false},charts:{}}),false);
+  assert.equal(view.validSelection({scalars:Object.fromEntries(Array.from({length:513},(_,i)=>[i,true])),charts:{}}),false);
+  assert.equal(view.validSelection({scalars:{['x'.repeat(1501)]:true},charts:{}}),false);
+  assert.deepEqual(data.channelDetails('["key]:value"]:a:b'),{label:'key]:value',unit:'a:b'});
+});
+function harness() {
+  const state=new BehaviorSubject({uid:'',isAdmin:false,ready:true});
+  const permissions={state,get current(){return state.value;}};
+  let record, attempts=0, blocked, writes=0;
+  const listeners=[];
+  const ref={firestore:{async runTransaction(callback,options){assert.equal(options,undefined);attempts++;await callback({get:async()=>{if(blocked) await blocked;return {data:()=>record};},set:(_,value)=>{record=value;writes++;}});}},
+    onSnapshot(options,next,error){assert.equal(options.includeMetadataChanges,true);const l={next,error,active:true};listeners.push(l);return()=>l.active=false;}};
+  const service=new GreenpowerViewService(permissions,{firestore:{doc:path=>{assert.equal(path,view.VIEW_PATH);return ref;}}});
+  return {service,state,listeners,get record(){return record;},set record(value){record=value;},get writes(){return writes;},get attempts(){return attempts;},block(value){blocked=value;},
+    signIn(admin=true,uid='admin'){state.next({uid,isAdmin:admin,ready:true});},
+    emit(value,metadata={fromCache:false,hasPendingWrites:false}){record=value;listeners.at(-1).next({metadata,exists:!!value,data:()=>value});}};
+}
+test('view uses one document listener per account, ignores cache, and clears on logout', () => {
+  const h=harness(); assert.equal(h.listeners.length,0);
+  h.signIn(); h.emit(saved,{fromCache:true,hasPendingWrites:false}); assert.equal(h.service.ready,false);
+  h.emit(saved); assert.equal(h.service.canEdit,true);
+  h.state.next({uid:'admin',isAdmin:true,ready:true}); assert.equal(h.listeners.length,1);
+  h.service.edit(channels);h.signIn(false);assert.equal(h.service.editing,false);assert.equal(h.service.canEdit,false);
+  h.state.next({uid:'',isAdmin:false,ready:true});assert.equal(h.listeners[0].active,false);assert.deepEqual(h.service.scalars(channels),[]);
+  h.listeners[0].next({metadata:{fromCache:false},exists:true,data:()=>saved});assert.equal(h.service.ready,false);
+  h.service.ngOnDestroy();
+});
+test('default view shows loaded channels; save is one bounded transaction and viewer updates from server', async () => {
+  const h=harness();h.signIn();h.emit(undefined);
+  assert.equal(h.service.scalars(channels).length,8);
+  h.service.edit(channels);const id=channels[0].id;h.service.toggle('scalars',id,false);
+  assert.equal(h.service.scalars(channels).length,8,'draft stays private until saved');
+  await h.service.save(); assert.equal(h.attempts,1);assert.equal(h.writes,1);assert.equal(h.record.revision,1);
+  assert.equal(h.record.updatedAt,'server-time');assert.equal(h.record.updatedBy,'admin');
+  assert.equal(h.service.editing,false);
+  h.emit(h.record);assert.equal(h.service.scalars(channels).length,7);
+  assert.ok(h.service.charts(channels).some(c=>c.id===id));
+  h.service.ngOnDestroy();
+});
+test('cancel, unauthorized saves, conflicts and listener errors leave saved settings intact', async () => {
+  const h=harness();h.signIn();h.emit(saved);h.service.edit(channels);h.service.toggle('scalars',channels[0].id,false);h.service.cancel();
+  await h.service.save();assert.equal(h.writes,0);
+  h.service.edit(channels);h.emit({...saved,revision:2});await h.service.save();assert.match(h.service.error,/changed elsewhere/);assert.equal(h.writes,0);assert.equal(h.service.editing,true);
+  h.signIn(false);await h.service.save();assert.equal(h.writes,0);
+  h.listeners.at(-1).error();assert.equal(h.service.ready,false);assert.match(h.service.error,/Could not load/);
+  h.service.retry();assert.equal(h.listeners.length,2);assert.equal(h.listeners[0].active,false);
+  h.emit({scalars:[]});assert.equal(h.service.ready,false);assert.match(h.service.error,/invalid/);
+  h.service.ngOnDestroy();assert.equal(h.listeners.at(-1).active,false);
+});
+test('sign-out while save is waiting for a read cannot write stale account settings', async () => {
+  const h=harness();h.signIn();h.emit(saved);h.service.edit(channels);
+  let release;h.block(new Promise(resolve=>release=resolve));
+  const pending=h.service.save();h.state.next({uid:'',isAdmin:false,ready:true});release();await pending;
+  assert.equal(h.writes,0);assert.equal(h.service.editing,false);h.service.ngOnDestroy();
+});
+
+test('save bounds database reads to three attempts and rejects duplicate clicks', async () => {
+  const h=harness();h.signIn();h.emit(saved);h.service.edit(channels);
+  let reads=0;
+  h.service.ref.firestore.runTransaction=async callback=>{
+    for(let attempt=0;attempt<5;attempt++) await callback({get:async()=>{reads++;return {data:()=>saved};},set(){}});
+  };
+  await h.service.save();assert.equal(reads,3);assert.match(h.service.error,/Could not save/);
+  h.service.ref.firestore.runTransaction=async()=>new Promise(resolve=>setTimeout(resolve,20));
+  const first=h.service.save();assert.equal(h.service.saving,true);await h.service.save();await first;
+  h.service.ngOnDestroy();
+});

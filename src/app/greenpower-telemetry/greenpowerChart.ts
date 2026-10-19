@@ -1,0 +1,39 @@
+import { chartTrace, londonTime, pointIndex } from './greenpowerData';
+import { verticalAxis } from '../telemetry/verticalAxis';
+import { formatAxisValue, formatTelemetryValue } from '../telemetry/sessionHistory';
+
+export interface ChartWindow { start: number; end: number; }
+export type ChartPoint = { time: number; value: number };
+export { formatAxisValue, formatTelemetryValue };
+export function plotFor(points: ChartPoint[], start: number, end: number, width: number) {
+  const visible = points.slice(pointIndex(points, start), pointIndex(points, end, true));
+  let min = Infinity, max = -Infinity;
+  for (const point of visible) { min = Math.min(min, point.value); max = Math.max(max, point.value); }
+  // Normalize only extreme magnitudes so the shared rounding algorithm cannot overflow.
+  const scale = Math.max(Math.abs(min), Math.abs(max));
+  const factor = Number.isFinite(scale) && scale > 1e100 ? scale : scale > 0 && scale < 1e-100 ? scale : 1;
+  const axis = verticalAxis(min / factor, max / factor);
+  const finite = (value: number) => Math.max(-Number.MAX_VALUE, Math.min(Number.MAX_VALUE, value));
+  axis.min = finite(axis.min * factor); axis.max = finite(axis.max * factor); axis.step *= factor;
+  axis.ticks = axis.ticks.map(tick => ({ ...tick, value: tick.value * factor, y: 10 + (tick.y - 8) / 44 * 100 })).filter(tick => Number.isFinite(tick.value));
+  const magnitude = Math.max(1, Math.abs(axis.min), Math.abs(axis.max));
+  axis.ticks.forEach(tick => tick.y = 110 - (tick.value / magnitude - axis.min / magnitude) / (axis.max / magnitude - axis.min / magnitude || 1) * 100);
+  return { axis, trace: chartTrace(visible, start, end, Math.max(1, Math.ceil(width)), axis), empty: !visible.length };
+}
+export function nearestPoint(points: ChartPoint[], time: number, start: number, end: number) {
+  const index = pointIndex(points, time);
+  const before = points[index - 1], after = points[index];
+  const candidates = [before, after].filter((p): p is ChartPoint => !!p && p.time >= start && p.time <= end);
+  return candidates.sort((a, b) => Math.abs(a.time - time) - Math.abs(b.time - time))[0];
+}
+const intervals = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 15000, 30000, 60000, 120000, 300000, 600000, 900000, 1800000, 3600000, 7200000, 10800000, 21600000, 43200000, 86400000];
+export function clockTicks(start: number, end: number, width: number) {
+  if (end <= start) return [];
+  const count = Math.max(1, Math.min(8, Math.floor(width / (end - start < 1000 ? 110 : 80))));
+  const step = intervals.find(value => value >= (end - start) / count) ?? 86400000;
+  const ticks: { position: number; label: string }[] = [];
+  for (let time = Math.ceil(start / step) * step; time <= end && ticks.length < 10; time += step) {
+    ticks.push({ position: (time - start) / (end - start) * 100, label: londonTime(time) + (step < 1000 ? '.' + String(time % 1000).padStart(3, '0') : '') });
+  }
+  return ticks;
+}

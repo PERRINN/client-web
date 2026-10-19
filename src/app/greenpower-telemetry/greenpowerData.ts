@@ -94,12 +94,14 @@ export function updateValues(channels: GreenpowerChannel[], latest?: GreenpowerS
 }
 
 // Preserve extrema in each time bin; retain all original samples independently.
-export function chartTrace(points: { time: number; value: number }[], start: number, end: number, bins = 600) {
+export function chartTrace(points: { time: number; value: number }[], start: number, end: number, bins = 600, axis?: { min: number; max: number }) {
+  points = points.slice(pointIndex(points, start), pointIndex(points, end, true));
   if (!points.length) return { path: '', min: 0, max: 0 };
   let min = Infinity, max = -Infinity;
   for (const point of points) { min = Math.min(min, point.value); max = Math.max(max, point.value); }
-  const span = Math.max(1, end - start), scale = Math.max(1, Math.abs(min), Math.abs(max));
-  const range = max / scale - min / scale || 1;
+  const low = axis?.min ?? min, high = axis?.max ?? max;
+  const span = Math.max(1, end - start), scale = Math.max(1, Math.abs(low), Math.abs(high));
+  const range = high / scale - low / scale || 1;
   const buckets = new Map<number, { time: number; value: number }[]>();
   for (const point of points) {
     const key = Math.min(bins - 1, Math.floor((point.time - start) / span * bins));
@@ -108,6 +110,30 @@ export function chartTrace(points: { time: number; value: number }[], start: num
     else { if (point.value < bucket[0].value) bucket[0] = point; if (point.value > bucket[1].value) bucket[1] = point; }
   }
   const selected = Array.from(buckets.values()).flatMap(bucket => bucket.sort((a, b) => a.time - b.time));
-  const path = selected.map((point, index) => `${index ? 'L' : 'M'}${(8 + (point.time - start) / span * 784).toFixed(2)},${(max === min ? 60 : 110 - (point.value / scale - min / scale) / range * 100).toFixed(2)}`).join(' ');
+  const path = selected.map((point, index) => `${index ? 'L' : 'M'}${(8 + (point.time - start) / span * 784).toFixed(2)},${(high === low ? 60 : 110 - (point.value / scale - low / scale) / range * 100).toFixed(2)}`).join(' ');
   return { path, min, max };
+}
+
+/** Binary search on receipt-time ordered channel samples. */
+export function pointIndex(points: { time: number }[], time: number, after = false) {
+  let low = 0, high = points.length;
+  while (low < high) {
+    const mid = (low + high) >>> 1;
+    if (points[mid].time < time || after && points[mid].time === time) low = mid + 1;
+    else high = mid;
+  }
+  return low;
+}
+
+/** Recover a saved selection's label even when this day has no matching samples. */
+export function channelDetails(id: string): { label: string; unit: string } {
+  for (let at = id.indexOf(']:'); at >= 0; at = id.indexOf(']:', at + 2)) {
+    try {
+      const path: unknown = JSON.parse(id.slice(0, at + 1));
+      if (Array.isArray(path) && path.every(part => typeof part === 'string')) {
+        return { label: (path.length === 1 && known[path[0]]?.[0]) || path.join(' / ') || 'Value', unit: id.slice(at + 2) };
+      }
+    } catch { /* A channel key can itself contain ]:. Continue to the JSON boundary. */ }
+  }
+  return { label: id, unit: '' };
 }

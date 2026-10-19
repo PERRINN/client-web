@@ -9,9 +9,33 @@
       <div class="actions">
         <button type="button" [class.primary]="telemetry.live" [attr.aria-pressed]="telemetry.live" (click)="live()">Live</button>
         <button type="button" [attr.aria-expanded]="historyOpen" aria-controls="history-picker" (click)="history()">Load history</button>
+        @if (view.canEdit) {
+          <button type="button" aria-label="Edit view" [attr.aria-expanded]="view.editing" aria-controls="view-editor" [disabled]="view.saving" (click)="view.editing ? view.cancel() : view.edit(telemetry.channels)">Edit</button>
+        }
       </div>
       <span class="day">{{ telemetry.day }} · UK time</span>
     </div>
+    @if (view.editing) {
+      <section id="view-editor" class="view-editor" aria-label="Edit shared telemetry view">
+        <div class="editor-actions">
+          <h2>Shared view</h2>
+          <button type="button" class="primary" [disabled]="view.saving" (click)="view.save()">{{ view.saving ? 'Saving' : 'Save' }}</button>
+          <button type="button" [disabled]="view.saving" (click)="view.cancel()">Cancel</button>
+        </div>
+        <div class="channel-options" role="group" aria-label="Channel visibility">
+          <div class="channel-option column-labels"><span>Channel</span><span>Scalar</span><span>Chart</span></div>
+          @for (channel of available; track channel.id) {
+            <div class="channel-option">
+              <span class="channel-label">{{ channel.label }}{{ channel.unit ? ' · ' + channel.unit : '' }}</span>
+              <input type="checkbox" [attr.aria-label]="channel.label + ' scalar'" [checked]="!!view.draft.scalars[channel.id]" [disabled]="view.saving" (change)="view.toggle('scalars', channel.id, $any($event.target).checked)">
+              <input type="checkbox" [attr.aria-label]="channel.label + ' chart'" [checked]="!!view.draft.charts[channel.id]" [disabled]="view.saving || (!channel.points.length && !view.draft.charts[channel.id])" (change)="view.toggle('charts', channel.id, $any($event.target).checked)">
+            </div>
+          } @empty { <p class="state">No channels in loaded telemetry.</p> }
+        </div>
+      </section>
+    }
+    @if (view.error) { <div class="error" role="alert">{{ view.error }} @if (!view.ready) { <button type="button" (click)="view.retry()">Retry view</button> }</div> }
+    @if (!view.ready && !view.error) { <p class="state" role="status">Loading view…</p> }
     @if (historyOpen) {
       <section id="history-picker" class="history-picker" aria-label="History dates">
         @if (telemetry.dates.length) {
@@ -34,9 +58,9 @@
     @if (telemetry.error) {
       <div class="error" role="alert">{{ telemetry.error }} <button type="button" (click)="telemetry.select(telemetry.day, telemetry.live)">Retry</button></div>
     }
-    @if (telemetry.channels.length) {
+    @if (scalars.length) {
       <section class="values" aria-label="Latest values">
-        @for (channel of telemetry.channels; track channel.id) {
+        @for (channel of scalars; track channel.id) {
           <div class="reading"><span>{{ channel.label }}</span><strong>{{ channel.value }}{{ channel.unit ? ' ' + channel.unit : '' }}</strong></div>
         }
       </section>
@@ -46,8 +70,8 @@
       <div class="continuation"><span>More data is available for this day.</span><button type="button" (click)="telemetry.loadMore()">Load remaining data</button></div>
     } @else if (!telemetry.channels.length && !telemetry.error) { <p class="state">No telemetry recorded for this day.</p> }
     <div class="charts">
-      @for (channel of telemetry.channels; track channel.id) {
-        @if (channel.points.length) { <app-greenpower-chart [channel]="channel" [start]="telemetry.start" [end]="telemetry.end" /> }
+      @for (channel of charts; track channel.id) {
+        @if (channel.points.length) { <app-greenpower-chart [channel]="channel" [start]="start" [end]="end" [cursor]="cursor" [context]="telemetry.day + telemetry.live" (windowChange)="zoom($event)" (cursorChange)="cursor = $event" /> }
       }
     </div>
   }

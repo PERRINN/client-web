@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 import { after, test } from 'node:test';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
-import { Subject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { createServer } from 'node:http';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -17,13 +17,13 @@ const { storeSample, validatePayload, createHandler, londonDay } = require('./ut
 const app = admin.initializeApp({ projectId }, `greenpower-${process.pid}`);
 const db = app.firestore();
 after(async () => { await db.terminate(); await app.delete(); });
-function token(uid) {
+function token(uid, claims = {}) {
   const b64 = value => Buffer.from(JSON.stringify(value)).toString('base64url');
-  return `${b64({ alg: 'none', typ: 'JWT' })}.${b64({ sub: uid, user_id: uid, aud: projectId, iss: `https://securetoken.google.com/${projectId}`, iat: Math.floor(Date.now()/1000), exp: Math.floor(Date.now()/1000)+3600, firebase: { sign_in_provider: 'custom', identities: {} } })}.`;
+  return `${b64({ alg: 'none', typ: 'JWT' })}.${b64({ ...claims, sub: uid, user_id: uid, aud: projectId, iss: `https://securetoken.google.com/${projectId}`, iat: Math.floor(Date.now()/1000), exp: Math.floor(Date.now()/1000)+3600, firebase: { sign_in_provider: 'custom', identities: {} } })}.`;
 }
-async function request(path, uid, method = 'GET', body) {
+async function request(path, uid, method = 'GET', body, claims) {
   return fetch(`http://${host}/v1/projects/${projectId}/databases/(default)/documents/${path}`, {
-    method, headers: { 'Content-Type': 'application/json', ...(uid ? { Authorization: `Bearer ${token(uid)}` } : {}) }, body: body ? JSON.stringify(body) : undefined
+    method, headers: { 'Content-Type': 'application/json', ...(uid ? { Authorization: `Bearer ${token(uid, claims)}` } : {}) }, body: body ? JSON.stringify(body) : undefined
   });
 }
 test('real Firestore stores every sample through chunk rollover and concurrent transactions', async () => {
@@ -111,4 +111,88 @@ test('bounded synthetic sender uploads POST and path-JSON GET through HTTP into 
     assert.equal(after.count - before, 2);
     assert.equal(JSON.parse(after.latest.raw).synthetic, true);
   } finally { await new Promise(resolve => server.close(resolve)); }
+});
+
+test('shared view is signed-in readable and only exact admin claims can save valid revisioned settings', async () => {
+  const path='GreenpowerTelemetry/424/config/view',ref=db.doc(path);
+  await ref.delete();
+  const fieldMap = value => ({mapValue:{fields:Object.fromEntries(Object.entries(value).map(([key,flag])=>[key,{booleanValue:flag}]))}});
+  const fields = (revision=1,extra={})=>({
+    scalars:fieldMap({'["Vt"]:V':true}), charts:fieldMap({'["A"]:A':true}),
+    revision:{integerValue:String(revision)},updatedBy:{stringValue:'admin'},...extra
+  });
+  async function commit(uid,claims,updates=fields(),target=path) {
+    return fetch(`http://${host}/v1/projects/${projectId}/databases/(default)/documents:commit`,{
+      method:'POST',headers:{'Content-Type':'application/json',...(uid?{Authorization:`Bearer ${token(uid,claims)}`}:{})},
+      body:JSON.stringify({writes:[{update:{name:`projects/${projectId}/databases/(default)/documents/${target}`,fields:updates},updateTransforms:[{fieldPath:'updatedAt',setToServerValue:'REQUEST_TIME'}]}]})
+    });
+  }
+  for(const [uid,claims] of [[undefined,{}],['bob',{}],['admin',{perrinnAdmin:'true'}],['admin',{admin:true}]]) {
+    assert.equal((await commit(uid,claims)).status,403,'only the exact trusted claim grants access');
+  }
+  assert.equal((await commit('admin',{perrinnAdmin:true})).status,200,'admin creates configuration');
+  assert.equal((await request(path)).status,403);
+  for(const uid of ['alice','bob']) assert.equal((await request(path,uid)).status,200);
+  assert.equal((await commit('admin',{perrinnAdmin:true})).status,403,'stale revision rejected');
+  for(const updates of [
+    fields(2,{updatedBy:{stringValue:'bob'}}),
+    fields(2,{charts:fieldMap({bad:false})}),
+    fields(2,{unexpected:{stringValue:'denied'}}),
+    fields(2,{scalars:{arrayValue:{values:[]}}}),
+    fields(2,{charts:fieldMap(Object.fromEntries(Array.from({length:513},(_,i)=>[String(i),true])))})
+  ]) assert.equal((await commit('admin',{perrinnAdmin:true},updates)).status,403);
+  assert.equal((await commit('admin',{perrinnAdmin:true},fields(2))).status,200);
+  assert.equal((await request(path,'admin','DELETE',undefined,{perrinnAdmin:true})).status,403);
+  for(const target of ['GreenpowerTelemetry/424/config/other','GreenpowerTelemetry/other/config/view','GreenpowerTelemetry/424/days/2026-10-18']) {
+    assert.equal((await commit('admin',{perrinnAdmin:true},fields(1),target)).status,403,'role grants no telemetry-data writes');
+  }
+  await ref.delete();
+});
+
+test('real admin saves are synchronized to another signed-in viewer without changing telemetry', async () => {
+  const viewHelpers=load('../../src/app/greenpower-telemetry/greenpowerView.ts',{'./greenpowerData':data});
+  const {GreenpowerViewService}=load('../../src/app/greenpower-telemetry/greenpowerView.service.ts',{
+    '@angular/core':{Injectable:()=>target=>target},'firebase/compat/app':{default:firebase},'firebase/compat/firestore':{},rxjs:{Subject},'./greenpowerView':viewHelpers
+  });
+  const apps=[],services=[],clients=[];
+  function connect(uid,isAdmin) {
+    const app=firebase.initializeApp({projectId,apiKey:'demo-key'},`view-${uid}-${process.pid}`);apps.push(app);
+    const client=app.firestore();clients.push(client);const [hostname,port]=host.split(':');
+    client.useEmulator(hostname,Number(port),{mockUserToken:{sub:uid,user_id:uid,...(isAdmin?{perrinnAdmin:true}:{})}});
+    const state=new BehaviorSubject({uid,isAdmin,ready:true}),permissions={state,get current(){return state.value;}};
+    const service=new GreenpowerViewService(permissions,{firestore:client});services.push(service);
+    return {service,state};
+  }
+  const until=(service,predicate)=>new Promise((resolve,reject)=>{
+    if(predicate())return resolve();
+    const timer=setTimeout(()=>{sub.unsubscribe();reject(new Error('Timed out waiting for shared view'));},10000);
+    const sub=service.changed.subscribe(()=>{if(predicate()){clearTimeout(timer);sub.unsubscribe();resolve();}});
+  });
+  const ref=db.doc(viewHelpers.VIEW_PATH);await ref.delete();
+  const channels=data.channelsFor([{id:'a',receivedAt:1,source:'demo',raw:'{"Vt":24,"A":30}'}]);
+  try {
+    const editor=connect('editor',true),viewer=connect('viewer',false);
+    await Promise.all([until(editor.service,()=>editor.service.ready),until(viewer.service,()=>viewer.service.ready)]);
+    editor.service.edit(channels);editor.service.toggle('scalars',channels[0].id,false);await editor.service.save();
+    assert.equal(editor.service.error,'');
+    await until(viewer.service,()=>viewer.service.scalars(channels).length===1);
+    assert.equal(viewer.service.canEdit,false);assert.equal(viewer.service.scalars(channels)[0].label,'Current');
+    assert.equal(viewer.service.charts(channels).length,2,'chart selection remains independent');
+    viewer.state.next({uid:'',isAdmin:false,ready:true});assert.deepEqual(viewer.service.scalars(channels),[]);
+  } finally {
+    services.forEach(service=>service.ngOnDestroy());await Promise.all(clients.map(client=>client.terminate()));await Promise.all(apps.map(app=>app.delete()));await ref.delete();
+  }
+});
+
+test('existing presence ownership and timestamp-only writes remain unchanged', async () => {
+  async function presence(uid,extra={}) {
+    return fetch(`http://${host}/v1/projects/${projectId}/databases/(default)/documents:commit`,{
+      method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token(uid)}`},
+      body:JSON.stringify({writes:[{update:{name:`projects/${projectId}/databases/(default)/documents/userPresence/alice`,fields:extra},updateTransforms:[{fieldPath:'lastActiveAt',setToServerValue:'REQUEST_TIME'}]}]})
+    });
+  }
+  assert.equal((await presence('alice')).status,200);
+  assert.equal((await presence('bob')).status,403);
+  assert.equal((await presence('alice',{unexpected:{booleanValue:true}})).status,403);
+  await db.doc('userPresence/alice').delete();
 });

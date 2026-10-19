@@ -1,11 +1,21 @@
 <section class="chart" [attr.aria-label]="channel.label + ' over time'">
   <h2>{{ channel.label }}{{ channel.unit ? ' · ' + channel.unit : '' }}</h2>
+  <div class="readout"><span>{{ cursor === undefined ? 'Cursor —' : time(cursor) }}</span><span>{{ cursor === undefined ? '—' : cursorLabel }}</span></div>
   <div class="plot">
-    <div class="scale"><span>{{ number(trace.max) }}</span><span>{{ number(trace.min) }}</span></div>
-    <svg viewBox="0 0 800 120" preserveAspectRatio="none" role="img" [attr.aria-label]="channel.label + ', minimum ' + trace.min + ', maximum ' + trace.max">
-      <path class="grid" d="M8 10H792 M8 60H792 M8 110H792" />
-      <path class="trace" [attr.d]="trace.path" />
+    <div class="scale">
+      @for (tick of model.axis.ticks; track tick.y) { <span [style.top.%]="tick.y / 120 * 100">{{ formatAxis(tick.value, model.axis.step) }}</span> }
+    </div>
+    <svg #plot viewBox="0 0 800 120" preserveAspectRatio="none" role="group" tabindex="0"
+      [attr.aria-label]="channel.label + ' chart. Drag to zoom; hold to inspect on touch; double click or press Home to reset. Arrow keys move cursor.'"
+      (pointerdown)="down($event)" (pointermove)="move($event)" (pointerup)="up($event)" (pointercancel)="cancel($event)"
+      (lostpointercapture)="cancel($event)" (pointerleave)="leave()" (dblclick)="reset()" (keydown)="key($event)" (blur)="cancel(); leave()" (contextmenu)="$event.preventDefault()">
+      @for (tick of model.axis.ticks; track tick.y) { <path class="grid" [attr.d]="'M0 ' + tick.y + 'H800'" /> }
+      <path class="trace" transform="matrix(1.0204081633 0 0 1 -8.1632653061 0)" [attr.d]="model.trace.path" />
+      @if (band; as selection) { <rect class="selection" [attr.x]="selection.x" y="0" [attr.width]="selection.width" height="120" /> }
+      @if (cursorPosition !== undefined) { <path class="cursor" [attr.d]="'M' + cursorPosition + ' 0V120'" /> }
     </svg>
   </div>
-  <div class="times"><span>{{ time(start) }}</span><span>{{ time(start + (end - start) / 2) }}</span><span>{{ time(end) }}</span></div>
+  <div class="times">
+    @for (tick of ticks; track tick.position) { <span [style.left.%]="tick.position" [style.transform]="'translateX(-' + tick.position + '%)'">{{ tick.label }}</span> }
+  </div>
 </section>
