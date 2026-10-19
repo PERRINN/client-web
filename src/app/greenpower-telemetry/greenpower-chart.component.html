@@ -1,5 +1,11 @@
-<section class="chart" [attr.aria-label]="channel.label + ' over time'">
-  <h2>{{ channel.label }}{{ channel.unit ? ' · ' + channel.unit : '' }}</h2>
+<section class="chart" [attr.aria-label]="(heading || channel.label) + ' over time'">
+  <h2>{{ heading || channel.label }}{{ channel.unit ? ' · ' + channel.unit : '' }}</h2>
+  @if (comparison) {
+    <div class="current-legend comparison-legend" aria-label="Voltage chart legend">
+      <span class="raw-key">{{ channel.label }}<span class="legend-value">{{ cursor === undefined ? channel.value + ' ' + channel.unit : cursorLabel }}</span></span>
+      <span class="comparison-key">{{ comparison.label }}<span class="legend-value">{{ cursor === undefined ? comparison.value + ' ' + comparison.unit : comparisonLabel }}</span></span>
+    </div>
+  }
   @if (hasCurrentLimit) {
     <div class="current-legend" aria-label="Current chart legend">
       <span class="raw-key">Current</span><span class="limit-key">{{ currentLimit }} A limit</span>
@@ -14,7 +20,7 @@
       @if (hasCurrentLimit) { <span class="limit-label" [style.top.%]="limitY / 120 * 100">{{ currentLimit }} A</span> }
     </div>
     <svg #plot viewBox="0 0 800 120" preserveAspectRatio="none" role="group" tabindex="0"
-      [attr.aria-label]="channel.label + (hasCurrentLimit ? ' chart with ' + currentLimit + ' amp limit. ' : ' chart. ') + 'Drag to zoom; hold to inspect on touch; double click or press Home to reset. Arrow keys step through data points.'"
+      [attr.aria-label]="(heading || channel.label) + (hasCurrentLimit ? ' chart with ' + currentLimit + ' amp limit. ' : ' chart. ') + 'Drag to zoom; hold to inspect on touch; double click or press Home to reset. Arrow keys step through data points.'"
       (pointerdown)="down($event)" (pointermove)="move($event)" (pointerup)="up($event)" (pointercancel)="cancel($event)"
       (lostpointercapture)="cancel($event)" (pointerleave)="leave()" (dblclick)="reset()" (keydown)="key($event)" (blur)="cancel(); leave()" (contextmenu)="$event.preventDefault()">
       @for (lap of lapBands; track lap.time) {
@@ -23,7 +29,11 @@
       @for (tick of model.axis.ticks; track tick.y) { <path class="grid" [attr.d]="'M0 ' + tick.y + 'H800'" /> }
       @if (hasCurrentLimit) { <path class="current-limit" [attr.d]="'M0 ' + limitY + 'H800'" /> }
       <path class="trace" transform="matrix(1.0204081633 0 0 1 -8.1632653061 0)" [attr.d]="model.trace.path" />
+      @if (comparison) { <path class="trace comparison-trace" transform="matrix(1.0204081633 0 0 1 -8.1632653061 0)" [attr.d]="model.comparison.path" /> }
       @if (band; as selection) { <rect class="selection" [attr.x]="selection.x" y="0" [attr.width]="selection.width" height="120" /> }
+      @if (comparisonReading; as point) {
+        <ellipse class="cursor-point comparison-point" [attr.cx]="(point.time - start) / (end - start || 1) * 800" [attr.cy]="comparisonY(point.value)" [attr.rx]="markerRadiusX" ry="3.2" />
+      }
       @if (cursorPosition !== undefined) {
         <path class="cursor" [attr.d]="'M' + cursorPosition + ' 0V120'" />
         <ellipse class="cursor-point" [attr.cx]="cursorPosition" [attr.cy]="markerY" [attr.rx]="markerRadiusX" ry="3.2" />

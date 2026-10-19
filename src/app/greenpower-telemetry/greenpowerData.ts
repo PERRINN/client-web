@@ -66,12 +66,34 @@ export function fields(raw: string, historical = false) {
   visit(JSON.parse(raw), [], 0);
   return result;
 }
+export const VOLTAGE_LEFT = 'computed:voltage-left';
+export const VOLTAGE_RIGHT = 'computed:voltage-right';
+export const VOLTAGE_DIFF = 'computed:voltage-diff';
+export function isVoltageChannel(id: string) { return [VOLTAGE_LEFT, VOLTAGE_RIGHT, VOLTAGE_DIFF].includes(id); }
+const voltageLabels: Record<string, string> = {
+  [VOLTAGE_LEFT]: 'Voltage left', [VOLTAGE_RIGHT]: 'Voltage right', [VOLTAGE_DIFF]: 'Voltage diff'
+};
+// Calculate within one payload: never combine readings from different samples.
+function voltageFields(source: { id: string; unit: string; value: unknown }[]) {
+  const finiteVoltage = (id: string) => source.find(field => field.id === id && field.unit === 'V' && typeof field.value === 'number' && Number.isFinite(field.value))?.value as number | undefined;
+  const left = finiteVoltage('["V1"]'), total = finiteVoltage('["Vt"]');
+  const result: { id: string; label: string; unit: string; value: number }[] = [];
+  const add = (id: string, value: number) => {
+    if (Number.isFinite(value)) result.push({ id, label: voltageLabels[id], unit: 'V', value });
+  };
+  if (left !== undefined) {
+    add(VOLTAGE_LEFT, left);
+    if (total !== undefined) { const right = total - left; add(VOLTAGE_RIGHT, right); add(VOLTAGE_DIFF, right - left); }
+  }
+  return result;
+}
 export function channelsFor(samples: GreenpowerSample[], latest?: GreenpowerSample): GreenpowerChannel[] {
   const channels = new Map<string, GreenpowerChannel>();
   const readings = new Map<string, unknown>();
   const append = (sample: GreenpowerSample, plot: boolean) => {
-    for (const field of fields(sample.raw, sample.source === 'echook-history')) {
-      const key = `${field.id}:${field.unit}`;
+    const source = fields(sample.raw, sample.source === 'echook-history');
+    for (const field of [...source, ...voltageFields(source)]) {
+      const key = field.id.startsWith('computed:') ? field.id : `${field.id}:${field.unit}`;
       const factor = speedFactor(field.unit);
       const value = factor !== undefined && typeof field.value === 'number' ? field.value * factor : field.value;
       let channel = channels.get(key);
@@ -144,6 +166,7 @@ export function pointIndex(points: { time: number }[], time: number, after = fal
 
 /** Recover a saved selection's label even when this day has no matching samples. */
 export function channelDetails(id: string): { label: string; unit: string } {
+  if (Object.hasOwn(voltageLabels, id)) return { label: voltageLabels[id], unit: 'V' };
   if (id === 'computed:gps-lap') return { label: 'GPS lap', unit: '' };
   for (let at = id.indexOf(']:'); at >= 0; at = id.indexOf(']:', at + 2)) {
     try {

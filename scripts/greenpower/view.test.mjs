@@ -205,3 +205,15 @@ test('combined view/track Save retries are bounded to six client document reads'
   await h.service.save({day:'2026-10-19',trackId:null,revision:0,current:()=>true,acknowledged:()=>assert.fail('failed save acknowledged')});
   assert.equal(reads,6);assert.equal(h.service.editing,true);h.service.ngOnDestroy();
 });
+
+test('voltage plots follow saved charts without requiring a shared-view migration or duplicate plots', () => {
+  const channels=data.channelsFor([{source:'424-phone',receivedAt:1,raw:'{"Vt":25,"V1":12}'}]);
+  const plots=view.voltageCharts(channels,channels);
+  assert.equal(plots.filter(c=>c.id===data.VOLTAGE_LEFT).length,1);
+  assert.equal(plots.filter(c=>c.id===data.VOLTAGE_DIFF).length,1);
+  assert.equal(plots.filter(c=>c.id===data.VOLTAGE_RIGHT).length,0);
+  assert.deepEqual(view.voltageCharts(channels,[]).map(c=>c.id),[data.VOLTAGE_LEFT,data.VOLTAGE_DIFF]);
+  assert.equal(view.selectionFor(channels).charts[data.VOLTAGE_LEFT],undefined);
+  assert.equal(view.selectionFor(channels).scalars[data.VOLTAGE_RIGHT],true);
+  assert.deepEqual(view.voltageCharts([],[]),[]);
+});

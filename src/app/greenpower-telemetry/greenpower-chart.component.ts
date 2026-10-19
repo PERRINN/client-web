@@ -11,6 +11,8 @@ import { lapAt, LapInterval, visibleLaps } from './greenpowerLaps';
 })
 export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDestroy {
   @Input({ required: true }) channel!: GreenpowerChannel;
+  @Input() comparison?: GreenpowerChannel;
+  @Input() heading = '';
   @Input() start = 0;
   @Input() end = 0;
   @Input() cursor?: number;
@@ -26,6 +28,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   get hasCurrentLimit() { return isCurrentChannel(this.channel); }
   get limitY() { return chartY(this.currentLimit, this.model.axis); }
   get cursorLap() { return this.cursor === undefined ? undefined : lapAt(this.laps, this.cursor); }
+  comparisonY(value: number) { return chartY(value, this.model.axis); }
   formatAxis = formatAxisValue;
   time = londonTime;
   private width = 300;
@@ -52,6 +55,11 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   // The SVG stretches horizontally; compensate to keep the marker circular in CSS pixels.
   get markerRadiusX() { return 4 * 800 / Math.max(1, this.width); }
   get reading() { return this.cursor === undefined ? undefined : nearestPoint(this.channel.points, this.cursor, this.start, this.end); }
+  get comparisonReading() { return this.cursor === undefined || !this.comparison ? undefined : nearestPoint(this.comparison.points, this.cursor, this.start, this.end); }
+  get comparisonLabel() {
+    const point = this.comparisonReading;
+    return point ? formatTelemetryValue(point.value, this.model.axis.min, this.model.axis.max) + ' ' + this.comparison!.unit : '—';
+  }
   get cursorLabel() {
     const point = this.reading;
     return point ? formatTelemetryValue(point.value, this.model.axis.min, this.model.axis.max) + (this.channel.unit ? ' ' + this.channel.unit : '') : '—';
@@ -68,7 +76,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   }
   ngOnChanges(changes: SimpleChanges) {
     if (changes['context']) this.cancel();
-    if (changes['channel'] || changes['start'] || changes['end'] || changes['laps']) {
+    if (changes['channel'] || changes['comparison'] || changes['start'] || changes['end'] || changes['laps']) {
       if (this.drag) this.renderPending = true;
       else this.render();
     }
@@ -81,7 +89,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
     this.plot!.nativeElement.addEventListener('touchmove', this.touchMove, { passive: false });
   }
   private render() {
-    this.model = plotFor(this.channel.points, this.start, this.end, this.width, this.hasCurrentLimit ? this.currentLimit : undefined);
+    this.model = plotFor(this.channel.points, this.start, this.end, this.width, this.hasCurrentLimit ? this.currentLimit : undefined, this.comparison?.points);
     this.ticks = clockTicks(this.start, this.end, this.width);
     this.lapBands = visibleLaps(this.laps, this.start, this.end, this.width);
   }

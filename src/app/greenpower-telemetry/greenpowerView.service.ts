@@ -6,7 +6,7 @@ import { Subject, Subscription } from 'rxjs';
 import { DatasetTrackWrite, datasetTrackPath, validTrackId } from './greenpowerDatasetTrack';
 import { PermissionsService } from '../permissions.service';
 import { GreenpowerChannel } from './greenpowerData';
-import { copySelection, editorChannels, orderField, orderFor, ViewKind, GreenpowerView, selectedChannels, selectionFor, validSelection, validView, VIEW_PATH, ViewSelection } from './greenpowerView';
+import { voltageCharts, configurableCharts, copySelection, editorChannels, orderField, orderFor, ViewKind, GreenpowerView, selectedChannels, selectionFor, validSelection, validView, VIEW_PATH, ViewSelection } from './greenpowerView';
 
 @Injectable()
 export class GreenpowerViewService implements OnDestroy {
@@ -38,11 +38,14 @@ export class GreenpowerViewService implements OnDestroy {
   }
   get canEdit() { return this.ready && this.permissions.current.isAdmin && this.account === this.permissions.current.uid; }
   scalars(channels: GreenpowerChannel[]) { return this.ready ? selectedChannels(channels, this.saved?.scalars, this.saved?.scalarOrder) : []; }
-  charts(channels: GreenpowerChannel[]) { return this.ready ? selectedChannels(channels, this.saved?.charts, this.saved?.chartOrder).filter(c => c.points.length) : []; }
+  charts(channels: GreenpowerChannel[]) {
+    if (!this.ready) return [];
+    return voltageCharts(channels, selectedChannels(channels, this.saved?.charts, this.saved?.chartOrder));
+  }
   available(channels: GreenpowerChannel[], kind: ViewKind) {
     const chosen = selectedChannels(channels, this.draft[kind], orderFor(this.draft, kind));
     const other = editorChannels(channels, this.draft).filter(c => !this.draft[kind][c.id] && (kind === 'scalars' || c.points.length));
-    return [...chosen, ...other];
+    return kind === 'scalars' ? [...chosen, ...other] : configurableCharts([...chosen, ...other]);
   }
   private listen() {
     const generation = ++this.generation;

@@ -82,3 +82,28 @@ test('extreme finite channel values cannot overflow chart coordinates', () => {
   assert.doesNotMatch(trace.path, /NaN|Infinity/);
   assert.match(trace.path, /,110\.00/); assert.match(trace.path, /,10\.00/);
 });
+
+test('voltage channels calculate per payload for live and imported data without changing raw', () => {
+  for (const source of ['424-phone', 'echook-history']) {
+    const raw = JSON.stringify(source === 'echook-history' ? {voltage:25,voltageLower:12} : {Vt:25,V1:12});
+    const sample = {source,raw,receivedAt:100};
+    const channels = data.channelsFor([sample], sample);
+    for (const [id,label,value] of [[data.VOLTAGE_LEFT,'Voltage left',12],[data.VOLTAGE_RIGHT,'Voltage right',13],[data.VOLTAGE_DIFF,'Voltage diff',1]]) {
+      const channel = channels.find(c => c.id === id);
+      assert.deepEqual(channel, {id,label,unit:'V',value:String(value),points:[{time:100,value}]});
+      assert.deepEqual(data.channelDetails(id), {label,unit:'V'});
+    }
+    assert.equal(sample.raw,raw);
+  }
+});
+test('voltage inputs require finite numeric volts in the same sample; differences remain signed', () => {
+  const samples = [{V1:12},{Vt:25},{Vt:23,V1:12},{Vt:24,V1:null},{Vt:24,V1:'12'},{Vt:{value:24,unit:'mV'},V1:12}]
+    .map((value,receivedAt)=>({source:'424-phone',receivedAt,raw:JSON.stringify(value)}));
+  const channels = data.mergeChannels(samples.map(sample=>data.channelsFor([sample])),samples.at(-1));
+  assert.deepEqual(channels.find(c=>c.id===data.VOLTAGE_RIGHT).points,[{time:2,value:11}]);
+  assert.deepEqual(channels.find(c=>c.id===data.VOLTAGE_DIFF).points,[{time:2,value:-1}]);
+  assert.equal(channels.find(c=>c.id===data.VOLTAGE_DIFF).value,'—');
+  data.updateValues(channels,{source:'424-phone',receivedAt:6,raw:'{"Vt":24,"V1":12}'});
+  assert.equal(channels.find(c=>c.id===data.VOLTAGE_DIFF).value,'0');
+  assert.deepEqual(channels.find(c=>c.id===data.VOLTAGE_DIFF).points,[{time:2,value:-1}]);
+});

@@ -99,7 +99,7 @@
         }
         <div class="charts">
           @for (channel of charts; track channel.id) {
-            @if (channel.points.length) { <app-greenpower-chart [channel]="channel" [laps]="laps" [start]="start" [end]="end" [cursor]="cursor" [context]="dataset" (windowChange)="zoom($event)" (cursorChange)="cursor = $event" /> }
+            @if (channel.points.length) { <app-greenpower-chart [channel]="channel" [comparison]="channel.id === voltageLeftId ? voltageRight : undefined" [heading]="channel.id === voltageLeftId ? 'Voltage left / right' : ''" [laps]="laps" [start]="start" [end]="end" [cursor]="cursor" [context]="dataset" (windowChange)="zoom($event)" (cursorChange)="cursor = $event" /> }
           }
         </div>
       }

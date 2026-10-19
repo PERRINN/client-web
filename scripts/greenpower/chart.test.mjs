@@ -85,3 +85,12 @@ test('current chart fits measured readings and the 24 A limit', () => {
   assert.ok(high.axis.min <= 24 && high.axis.max >= 40);
   assert.ok(chart.chartY(24, high.axis) >= 10 && chart.chartY(24, high.axis) <= 110);
 });
+
+test('comparison traces share an axis spanning both visible series', () => {
+  const left=[{time:0,value:11},{time:1,value:12}], right=[{time:0,value:14},{time:1,value:15},{time:2,value:1000}];
+  const model=chart.plotFor(left,0,1,390,undefined,right);
+  assert.ok(model.axis.min<=11 && model.axis.max>=15 && model.axis.max<1000);
+  assert.equal(model.trace.min,11); assert.equal(model.comparison.max,15);
+  assert.doesNotMatch(model.comparison.path,/NaN|Infinity/);
+  assert.equal(chart.plotFor([],0,1,320,undefined,right).empty,false);
+});

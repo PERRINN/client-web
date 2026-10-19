@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, ViewChild } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { Subscription } from 'rxjs';
-import { GreenpowerChannel, londonDay, londonTime, sampleTime } from './greenpowerData';
+import { GreenpowerChannel, VOLTAGE_LEFT, VOLTAGE_RIGHT, londonDay, londonTime, sampleTime } from './greenpowerData';
 import { ChartWindow, scalarValue } from './greenpowerChart';
 import { LapInterval } from './greenpowerLaps';
 import { GreenpowerLapService } from './greenpowerLap.service';
@@ -36,6 +36,8 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   get dataset() { return this.telemetry.day + ':' + this.telemetry.live + ':' + this.telemetry.recordingKey; }
   scalars: GreenpowerChannel[] = [];
   charts: GreenpowerChannel[] = [];
+  readonly voltageLeftId = VOLTAGE_LEFT;
+  voltageRight?: GreenpowerChannel;
   laps: LapInterval[] = [];
   available: GreenpowerChannel[] = [];
   editorKind: ViewKind = 'scalars';
@@ -96,6 +98,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     this.lapConfig.syncEditing(this.view.editing);
     this.lapConfig.update(this.telemetry.channels, this.telemetry.end);
     this.channels = [...this.telemetry.channels, this.lapConfig.analysis.channel];
+    this.voltageRight = this.channels.find(channel => channel.id === VOLTAGE_RIGHT);
     this.scalars = this.view.scalars(this.channels);
     this.charts = this.view.charts(this.channels);
     this.laps = this.lapConfig.analysis.laps;

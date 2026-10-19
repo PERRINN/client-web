@@ -12,10 +12,11 @@ export function chartY(value: number, axis: { min: number; max: number }) {
   return 110 - (value / scale - axis.min / scale) / (axis.max / scale - axis.min / scale || 1) * 100;
 }
 export { formatAxisValue, formatTelemetryValue };
-export function plotFor(points: ChartPoint[], start: number, end: number, width: number, limit?: number) {
+export function plotFor(points: ChartPoint[], start: number, end: number, width: number, limit?: number, comparison: ChartPoint[] = []) {
   const visible = points.slice(pointIndex(points, start), pointIndex(points, end, true));
   let min = Infinity, max = -Infinity;
-  for (const point of visible) { min = Math.min(min, point.value); max = Math.max(max, point.value); }
+  const other = comparison.slice(pointIndex(comparison, start), pointIndex(comparison, end, true));
+  for (const series of [visible, other]) for (const point of series) { min = Math.min(min, point.value); max = Math.max(max, point.value); }
   if (limit !== undefined) { min = Math.min(min, limit); max = Math.max(max, limit); }
   // Normalize only extreme magnitudes so the shared rounding algorithm cannot overflow.
   const scale = Math.max(Math.abs(min), Math.abs(max));
@@ -27,7 +28,7 @@ export function plotFor(points: ChartPoint[], start: number, end: number, width:
   const magnitude = Math.max(1, Math.abs(axis.min), Math.abs(axis.max));
   axis.ticks.forEach(tick => tick.y = 110 - (tick.value / magnitude - axis.min / magnitude) / (axis.max / magnitude - axis.min / magnitude || 1) * 100);
   const bins = Math.max(1, Math.ceil(width));
-  return { axis, trace: chartTrace(visible, start, end, bins, axis), empty: !visible.length };
+  return { axis, trace: chartTrace(visible, start, end, bins, axis), comparison: chartTrace(other, start, end, bins, axis), empty: !visible.length && !other.length };
 }
 export function nearestPoint(points: ChartPoint[], time: number, start: number, end: number) {
   const index = pointIndex(points, time);

@@ -95,6 +95,10 @@ const fixture = TestBed.createComponent(GreenpowerTelemetryComponent);
 document.querySelector('.contentCard').append(fixture.nativeElement); fixture.autoDetectChanges();
 const service = fixture.componentInstance.telemetry;
 window.telemetryHarness = {
+  voltages() {
+    const samples=Array.from({length:300},(_,i)=>({id:String(i),receivedAt:service.end-(299-i)*3000,source:'synthetic',raw:JSON.stringify({Vt:24+Math.sin(i/10),V1:12+Math.sin(i/15)*.3})}));
+    service.channels=channelsFor(samples,samples.at(-1));service.changed.next();fixture.detectChanges();
+  },
   async metadataSeed() {
     fixture.componentInstance.selectView('data');
     fixture.componentInstance.eventEdit.cancel();fixture.componentInstance.view.cancel();fixture.componentInstance.metadataEditing=false;fixture.componentInstance.editorPanel='view';fixture.componentInstance.historyOpen=false;fixture.componentInstance.events.clear();
@@ -228,16 +232,48 @@ const server = createServer(async (req, res) => {
 });
 await new Promise(done => server.listen(0, '127.0.0.1', done));
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
+async function verifyVoltage(page,name) {
+    await page.evaluate(() => window.telemetryHarness.voltages());
+    const voltage = page.locator('section.chart[aria-label="Voltage left / right over time"]');
+    await voltage.waitFor();
+    assert.ok((await voltage.locator('.trace').first().getAttribute('d')).length);
+    assert.ok((await voltage.locator('.comparison-trace').getAttribute('d')).length);
+    assert.match(await voltage.locator('.comparison-legend').innerText(), /Voltage left[\s\S]*V[\s\S]*Voltage right[\s\S]*V/);
+    await page.locator('section.chart[aria-label="Voltage diff over time"]').waitFor();
+    await voltage.scrollIntoViewIfNeeded();
+    const voltageBox=await voltage.boundingBox();
+    const svgBox=await voltage.locator('svg').boundingBox();
+    await page.mouse.move(svgBox.x+svgBox.width/2,svgBox.y+40);
+    assert.equal(await voltage.locator('.cursor-point').count(),2);
+    assert.deepEqual(await voltage.boundingBox(),voltageBox,'cursor values preserve voltage chart geometry');
+    await voltage.screenshot({path:output+'/'+name+'-voltage.png'});
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),false,name+' voltage has no horizontal overflow');
+    await page.mouse.move(0,0);
+    await page.evaluate(() => window.telemetryHarness.state('live'));
+    await page.locator('#main_container').evaluate(el=>el.scrollTop=0);
+    assert.equal(await voltage.count(),0,'voltage plots clear when inputs are removed');
+}
 try {
   const page = await browser.newPage();
   const errors = []; page.on('pageerror', error => {errors.push(error.message);console.error('UI page error: '+error.message);});
   await page.goto(`http://127.0.0.1:${server.address().port}`);
   await page.waitForFunction(() => !!window.telemetryHarness);
+  if (process.env.GREENPOWER_VOLTAGE_ONLY) {
+    for (const [name,width,height] of [['desktop',1440,1000],['mobile',390,844],['small-mobile',320,740]]) {
+      await page.setViewportSize({width,height});
+      await page.evaluate(()=>window.telemetryHarness.state('live'));
+      await verifyVoltage(page,name);
+    }
+    assert.deepEqual(errors,[]);
+    console.log(JSON.stringify({output,widths:[1440,390,320],voltage:'traces, legend, cursor, stable geometry, input removal',errors}));
+  } else {
   if (!process.env.GREENPOWER_EVENTS_ONLY) {
   if (!process.env.GREENPOWER_GPS_ONLY) {
   for (const [name, width, height] of [['desktop', 1440, 1000], ['mobile', 390, 844], ['small-mobile', 320, 740]]) {
     await page.setViewportSize({ width, height });
     await page.evaluate(() => window.telemetryHarness.state('live'));
+    await verifyVoltage(page,name);
+
     const navigation=page.getByRole('group',{name:'Telemetry views',exact:true});
     assert.equal(await navigation.getByRole('button').count(),3);
     assert.equal(await navigation.getByRole('button',{name:'Data',exact:true}).getAttribute('aria-pressed'),'true');
@@ -903,4 +939,5 @@ try {
   assert.match(apps, /routerLink="\/424-greenpower-telemetry"/);
   assert.deepEqual(errors, []);
   console.log(JSON.stringify({ output, widths: [1440, 390, 320], states: ['live', 'history', 'stale', 'loading', 'empty', 'error', 'continuation', 'signed-out'], discovery: 'Apps only; absent from prototype gallery', errors }));
+  }
 } finally { await browser.close(); await new Promise(done => server.close(done)); }
