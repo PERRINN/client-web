@@ -1,0 +1,102 @@
+{
+  "checkedAt": "2026-10-19T19:20:31.772590+00:00",
+  "status": "validated_for_deployment",
+  "baseCommit": "b8dddade4405c480b3807b883fe68c402e3ce232",
+  "deploymentScope": [
+    "firestore:indexes",
+    "functions:greenpowerEventEdit",
+    "hosting"
+  ],
+  "backendApproval": "User approved callable, index and client deployment after specific implementation explanation",
+  "validation": {
+    "unitPassed": 138,
+    "emulatorPassed": 18,
+    "buildHash": "740f9170e22ff584",
+    "build": "passed",
+    "lintErrors": 0,
+    "existingLintWarnings": 64,
+    "browserWidths": [
+      1440,
+      390,
+      320
+    ],
+    "browserErrors": [],
+    "browserArtifacts": "/var/folders/6j/540yrv1536x9pc7qv833941h0000gn/T/greenpower-ui-ucNrg0",
+    "screenshotsVisuallyInspected": true
+  },
+  "indexes": {
+    "checkedAt": "2026-10-19T19:19:27.618Z",
+    "project": "perrinn-d5fc1",
+    "repositoryIndexes": 24,
+    "liveIndexes": 23,
+    "repositoryOnly": [
+      {
+        "collectionGroup": "sessions",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "eventId",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "type",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "firstAt",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "__name__",
+            "order": "ASCENDING"
+          }
+        ],
+        "density": "SPARSE_ALL"
+      }
+    ],
+    "liveOnly": [],
+    "notReady": [],
+    "historicalEventGroups": "applied_separately",
+    "sessionBoundaries": "pending_review",
+    "indexChanges": true,
+    "approvedAdditions": 1,
+    "deletions": 0
+  },
+  "bounds": {
+    "yearListMaximumQueries": 14,
+    "maximumDays": 366,
+    "dayResultLimit": 367,
+    "maximumDateMetadataBatches": 13,
+    "metadataBatchResultLimit": 60,
+    "maximumReturnedDocuments": 1146,
+    "automaticPagination": false,
+    "automaticRetries": false,
+    "additionalListeners": 0
+  },
+  "productionMetadataWrites": 0,
+  "bulkMetadataMigration": "not_applied_pending_separate_review",
+  "historicalSessionBoundaries": "pending_review",
+  "batteryTestAssignments": "pending_review",
+  "rulesChanges": false,
+  "sourceSha256": {
+    "functions/utils/greenpowerEvents.js": "8b60b0e50a9f087795ece46400fe0a1fddfe79850afa328a6f4ca6d5b0532648",
+    "src/app/greenpower-telemetry/greenpower-event-editor.component.css": "ce65ec4f2d564a5991680534bb0ed8e5bdf92fad187298545dd1d1a802ee979f",
+    "src/app/greenpower-telemetry/greenpower-event-editor.component.html": "d27ade40ca52fed3104b0d350c43487c670d24f19c9db52ab72d929a8f073fb3",
+    "src/app/greenpower-telemetry/greenpower-event-editor.component.ts": "5991ce63e9644abefde185ea1dc0c891f450cdd7e7c90b580d2a2b3d9f1182af",
+    "src/app/greenpower-telemetry/greenpower-event-selector.component.css": "9bde8f59d22bc09d10eb361660c5db17f5298d2648b013ddfe78ff104e83282a",
+    "src/app/greenpower-telemetry/greenpower-event-selector.component.html": "583dc37d4563f099cedbaa822c3823b20f43305e4246ed3ca91553fd766b6240",
+    "src/app/greenpower-telemetry/greenpower-event-selector.component.ts": "59e84127bef8c6088e4dfb8c768dfd625d87d869ffb52a40845d6716718ac180",
+    "src/app/greenpower-telemetry/greenpower-metadata-fields.component.html": "7f3c1fc886c9ea71bf0fa466c1b19cbdf5519b13f2e83c07295c4f0b7a138800",
+    "src/app/greenpower-telemetry/greenpower-metadata-fields.component.ts": "d0fd506488f23d38228d52fc4a8c51ff0e5750762d175d8d70f4b58b67494eff",
+    "src/app/greenpower-telemetry/greenpower-telemetry.component.html": "583c4444738a673e4097fe7c3c7d521e3d73ced23929ab8cd41f89a0b65b3f40",
+    "src/app/greenpower-telemetry/greenpower-telemetry.component.ts": "d2650de18be5146f4e5d557bc51c887d04c36d9bc80cbfea5789cecd41eb2049",
+    "src/app/greenpower-telemetry/greenpowerContext.ts": "39c099829671e0ab89c0664db0d12a8c33eb681f66090f0f3e7b9a075a19ea6c",
+    "src/app/greenpower-telemetry/greenpowerEventEdit.service.ts": "8d41279af08f855b922547af52f40aa9f9d3100017260cf1fcea14c96333ab0f",
+    "src/app/greenpower-telemetry/greenpowerEvents.service.ts": "087255cbddadda8afcdb631fd3aed9786e4be4b3e2fbb9791a0328b9bbe886e9",
+    "src/app/greenpower-telemetry/greenpowerEvents.ts": "c754bb6154b9f11b38b6061f8b564892194bc3ad9a608abf900942599301be30"
+  },
+  "limitations": [
+    "Synthetic browser fixtures; authenticated transport and live signed-in browser not tested locally",
+    "Physical mobile devices and independent screen-reader audit not exercised"
+  ]
+}

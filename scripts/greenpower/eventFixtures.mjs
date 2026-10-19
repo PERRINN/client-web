@@ -25,7 +25,7 @@ export function recording(day = '2026-06-14', source = 'echook-history', first =
   return { records, segment, samples };
 }
 export function session(eventId, segments, name = 'Run 1') {
-  return { name, eventId, runNumber: 1, metadataStatus: 'review_needed', firstAt: segments[0].firstAt, lastAt: segments.at(-1).lastAt, segments };
+  return { name, type: 'practice', eventId, runNumber: 1, metadataStatus: 'review_needed', firstAt: segments[0].firstAt, lastAt: segments.at(-1).lastAt, segments };
 }
 export const sessionChange = (id, data, expectedRevision = 0) => ({ id, data, expectedRevision });
 

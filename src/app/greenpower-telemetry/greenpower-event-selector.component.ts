@@ -1,40 +1,27 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { EVENT_TYPES, eventType, EventFilters } from './greenpowerEvents';
+import { SESSION_TYPES, EventFilters } from './greenpowerEvents';
 import { GreenpowerEventsService } from './greenpowerEvents.service';
-import { GreenpowerTelemetryService } from './greenpowerTelemetry.service';
 
 @Component({ selector: 'app-greenpower-event-selector', standalone: false,
   templateUrl: './greenpower-event-selector.component.html', styleUrls: ['./greenpower-event-selector.component.css'] })
 export class GreenpowerEventSelectorComponent implements OnInit, OnDestroy {
   @Input() locked = false;
-  @Output() daySelect = new EventEmitter<string>();
-  get mode() { return this.events.historySource; }
-  set mode(value: 'events' | 'days') {
-    this.events.historySource = value; this.dates = this.telemetry.dates.join(',');
-    if (value === 'days') void this.events.loadDayNames(this.telemetry.dates);
-  }
   filters: EventFilters;
-  readonly types = EVENT_TYPES;
-  eventType = eventType;
+  readonly currentYear = Number(new Intl.DateTimeFormat('en', { timeZone: 'Europe/London', year: 'numeric' }).format(new Date()));
+  readonly years = Array.from({ length: Math.max(1, this.currentYear - 2025) }, (_, index) => 2026 + index);
+  year = this.currentYear;
+  readonly types = SESSION_TYPES;
   private readonly changes: Subscription;
-  private dates = '';
-  constructor(public events: GreenpowerEventsService, public telemetry: GreenpowerTelemetryService, change: ChangeDetectorRef) {
-    this.filters = { ...events.filters };
+  constructor(public events: GreenpowerEventsService, change: ChangeDetectorRef) {
+    this.filters = { ...events.filters }; this.year = Number(events.filters.from.slice(0, 4)) || this.currentYear;
     this.changes = events.changed.subscribe(() => change.markForCheck());
-    this.changes.add(telemetry.changed.subscribe(() => {
-      const dates = telemetry.dates.join(',');
-      if (dates !== this.dates) { this.dates = dates; if (this.mode === 'days') void events.loadDayNames(telemetry.dates); }
-      change.markForCheck();
-    }));
   }
-  ngOnInit() {
-    this.dates = this.telemetry.dates.join(',');
-    if (!this.events.loadedEvents && !this.events.loadingEvents) void this.events.loadEvents();
-    if (this.mode === 'days') void this.events.loadDayNames(this.telemetry.dates);
-  }
+  ngOnInit() { if (!this.events.loadedEvents && !this.events.loadingEvents) void this.events.loadEvents(); }
   get selectedOutsidePage() { return this.events.selectedEvent && !this.events.events.some(event => event.id === this.events.eventId); }
   get sessionOutsidePage() { return this.events.selectedSession && !this.events.sessions.some(session => session.id === this.events.sessionId); }
-  apply() { if (!this.locked) void this.events.loadEvents(true, this.filters); }
+  sessionType(type: string) { return this.types.find(value => value.id === type)?.label || type; }
+  session(id: string) { if (!this.locked) { if (id) this.events.selectSession(id); else this.events.selectEvent(this.events.eventId); } }
+  apply() { if (!this.locked) void this.events.loadEvents(true, { ...this.filters, from: `${this.year}-01-01`, to: `${this.year}-12-31` }); }
   ngOnDestroy() { this.changes.unsubscribe(); }
 }

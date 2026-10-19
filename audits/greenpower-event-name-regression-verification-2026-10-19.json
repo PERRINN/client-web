@@ -1,0 +1,57 @@
+{
+  "verifiedAt": "2026-10-19T19:11:17.795487+00:00",
+  "status": "fixed_locally_not_deployed",
+  "regression": "Full-year lookup selected only date-ID metadata, excluding existing historical original-ID event names and breaking loaded headers.",
+  "fix": "Query event metadata by recorded date, prefer active canonical day metadata when present, otherwise retain active historical same-date names. Share name resolution across event options and recording headers.",
+  "validation": {
+    "unitPassed": 136,
+    "emulatorPassed": 18,
+    "productionBuild": "passed",
+    "buildHash": "a0b29e6e24f1b357",
+    "lintErrors": 0,
+    "existingLintWarnings": 64,
+    "browserWidths": [
+      1440,
+      390,
+      320
+    ],
+    "browserErrors": [],
+    "browserArtifacts": "/var/folders/6j/540yrv1536x9pc7qv833941h0000gn/T/greenpower-ui-Klusj8",
+    "cases": [
+      "Historical original-ID names before migration",
+      "Whole-event title and browser title",
+      "Named session header with fallback day metadata",
+      "Canonical metadata precedence and former track exclusion",
+      "Metadata refresh removes old cached names",
+      "Crowded metadata pages report incomplete load",
+      "All-year listing without More events remains covered"
+    ]
+  },
+  "bounds": {
+    "maximumCalendarYears": 1,
+    "maximumRecordedDays": 366,
+    "maximumQueries": 14,
+    "dayLimit": 367,
+    "metadataDatesPerBatch": 30,
+    "metadataLimitPerBatch": 60,
+    "maximumReturnedDocuments": 1146,
+    "automaticPaginationOrRetries": false,
+    "newListeners": 0
+  },
+  "schemaRulesFunctionsIndexChanges": false,
+  "productionDataWrites": 0,
+  "historicalSessionBoundaries": "pending_review",
+  "batteryTestAssignments": "pending_review",
+  "limitations": [
+    "Validation uses synthetic local fixtures, including original-ID historical metadata; no hosted signed-in browser check."
+  ],
+  "sourceSha256": {
+    "src/app/greenpower-telemetry/greenpowerEvents.service.ts": "518f3fba7d57d069e24f4183fdda3ecb6de0b6c8393a1da2617d7be83ac1be72",
+    "src/app/greenpower-telemetry/greenpowerEvents.ts": "c754bb6154b9f11b38b6061f8b564892194bc3ad9a608abf900942599301be30",
+    "src/app/greenpower-telemetry/greenpowerContext.ts": "39c099829671e0ab89c0664db0d12a8c33eb681f66090f0f3e7b9a075a19ea6c",
+    "scripts/greenpower/eventClient.test.mjs": "360ac2f84fdfd0c40ba273e0f0afa791f451bb42fe71412feae99b14d988b829",
+    "scripts/greenpower/context.test.mjs": "543a3cf19cfd56cee4224c87e82bcdb668b329cbaf0190940d19e27ad85855ad",
+    "scripts/greenpower/ui.mjs": "42bf680a753dd987bcb5bad02e25d4f6817cbdc3c145a3252cc119c6886e94cb",
+    "data-model.md": "5f30edaa90146dc33111d9ea534fe46c360d89fabef3c3efbed988ded90503b9"
+  }
+}

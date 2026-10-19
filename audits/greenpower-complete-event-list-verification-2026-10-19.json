@@ -1,0 +1,62 @@
+{
+  "verifiedAt": "2026-10-19T19:08:06.040536+00:00",
+  "status": "implemented_not_deployed",
+  "scope": "All matching recorded-day events loaded when year/track filters are applied; no More events button",
+  "validation": {
+    "unitTestsPassed": 133,
+    "emulatorTestsPassed": 18,
+    "build": "passed",
+    "buildHash": "ea057aaecb0b1738",
+    "lintErrors": 0,
+    "existingLintWarnings": 64,
+    "browserWidths": [
+      1440,
+      390,
+      320
+    ],
+    "browserErrors": [],
+    "browserArtifacts": "/var/folders/6j/540yrv1536x9pc7qv833941h0000gn/T/greenpower-ui-rvKBxA",
+    "screenshotsVisuallyInspected": true,
+    "cases": [
+      "31+ event options without continuation",
+      "366 leap-year days and a late track match in 14 queries",
+      "Empty year uses one query",
+      "Metadata failure preserves unfiltered choices; explicit retry",
+      "Year change cancels stale batch continuation",
+      "Multi-year ranges rejected before reads"
+    ]
+  },
+  "bounds": {
+    "calendarYearsPerAction": 1,
+    "maximumRecordedDays": 366,
+    "dayQueryLimit": 367,
+    "maximumMetadataBatches": 13,
+    "metadataBatchLimit": 30,
+    "maximumQueriesPerListAction": 14,
+    "maximumReturnedDocumentsPerListAction": 732,
+    "batchConcurrency": 1,
+    "automaticRetries": 0,
+    "newListeners": 0,
+    "rawSampleReads": 0,
+    "cache": "Successful results reused when reopening history; explicit filter, retry or event detail save refreshes the year. Account change/destruction clears cache.",
+    "cancellation": "Old in-flight read may finish; stale results discarded and later batches stopped"
+  },
+  "newSchemaRulesFunctionsOrIndexChanges": false,
+  "deploymentPerformed": false,
+  "productionWrites": 0,
+  "historicalSessionBoundaries": "pending_review",
+  "batteryTestAssignments": "pending_review",
+  "limitations": [
+    "Synthetic browser harness and local emulator; no signed-in production browser or physical mobile device check",
+    "Other local event/day-model work remains in the shared working copy"
+  ],
+  "sourceSha256": {
+    "src/app/greenpower-telemetry/greenpowerEvents.service.ts": "c5f7d65069e75ecf139eab3d5ea2fa348d456d375aee0bada51a678b4f400ddc",
+    "src/app/greenpower-telemetry/greenpower-event-selector.component.ts": "59e84127bef8c6088e4dfb8c768dfd625d87d869ffb52a40845d6716718ac180",
+    "src/app/greenpower-telemetry/greenpower-event-selector.component.html": "583dc37d4563f099cedbaa822c3823b20f43305e4246ed3ca91553fd766b6240",
+    "scripts/greenpower/eventClient.test.mjs": "880da67622be3cda08c55b7c924fc367a71fae433170e43afbd466bda80cdb31",
+    "scripts/greenpower/ui.mjs": "7d26fbebf67629de2994d44dfd76157486fb07675b939d6f5d97477ccbc9e241",
+    "data-model.md": "4e5627aec8d6a9de2e6e52545871f578c61ad08093f6691d9f41540eae773c1f",
+    "ui-spec.md": "5c150a03feb2cd8055fc2eb908a348eea57b31007a139641737363ce6052dcf5"
+  }
+}

@@ -4,6 +4,7 @@ const ROOT = 'GreenpowerTelemetry/424';
 const LIMITS = Object.freeze({ requestBytes: 128 * 1024, recordBytes: 8 * 1024, auditBytes: 512 * 1024,
   events: 4, sessions: 20, segments: 20, attempts: 3, readsPerAttempt: 105, writes: 26 });
 const TYPES = ['race', 'track_test', 'full_dyno', 'battery_dyno', 'workshop_test', 'other'];
+const SESSION_TYPES = ['race', 'practice', 'qualifying', 'track_test', 'full_dyno', 'battery_dyno', 'workshop_test', 'other'];
 const STATUSES = ['matched', 'review_needed', 'unmatched'];
 const dayFormat = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' });
 
@@ -96,9 +97,10 @@ function segmentData(value) {
   else check(!('importId' in value), 'Live-source segments cannot claim an import.');
 }
 const segmentPosition = (segment, side) => segment.day + '/' + segment[side + 'Chunk'] + '/' + String(segment[side + 'Index']).padStart(2, '0');
-function sessionData(value) {
-  keys(value, [...COMMON, 'eventId', 'runNumber', 'firstAt', 'lastAt', 'segments'], ['name', 'eventId', 'metadataStatus', 'firstAt', 'lastAt', 'segments']);
+function sessionData(value, requireType = true) {
+  keys(value, [...COMMON, 'type', 'eventId', 'runNumber', 'firstAt', 'lastAt', 'segments'], ['name', 'eventId', 'metadataStatus', 'firstAt', 'lastAt', 'segments']);
   common(value); check(id(value.eventId), 'Invalid session event ID.');
+  check((!requireType && value.type === undefined) || SESSION_TYPES.includes(value.type), 'Choose a session type.');
   if ('runNumber' in value) check(integer(value.runNumber, 1), 'Invalid run number.');
   check(Array.isArray(value.segments) && value.segments.length > 0 && value.segments.length <= LIMITS.segments, 'A session requires bounded recording segments.');
   value.segments.forEach((segment, index) => {
@@ -133,7 +135,7 @@ function validateRequest(input) {
 }
 function storedData(value, kind) {
   const data = Object.fromEntries(Object.entries(value).filter(([key]) => !SERVER.includes(key) && !(kind === 'events' && ['sessionCount', 'locationKey'].includes(key))));
-  (kind === 'events' ? eventData : sessionData)(data);
+  if (kind === 'events') eventData(data); else sessionData(data, false);
   check(integer(value.revision, 1) && text(value.updatedBy, 128) && value.updatedAt != null, 'Stored metadata is invalid.', 'failed-precondition');
   if (kind === 'events') check(integer(value.sessionCount), 'Stored session count is invalid.', 'failed-precondition');
   return data;
@@ -144,9 +146,15 @@ function authorize(auth) {
 }
 
 /** Only exact metadata paths are writable. Raw/day/import documents are read-only. */
-async function editMetadata(db, auth, input, { timestamp, dryRun = false } = {}) {
+async function editMetadata(db, auth, input, { timestamp, dryRun = false, migrationSources = [] } = {}) {
   authorize(auth);
   const request = validateRequest(input), uid = auth.uid;
+  check(request.action === 'edit', 'Events are recorded UK days; sessions cannot move between events.');
+  for (const change of request.events) if (change.data) {
+    check(change.id === change.data.date && change.data.state === 'active', 'An event ID must be its recorded UK date and remain active.');
+  }
+  check(Array.isArray(migrationSources) && migrationSources.length <= 4 && migrationSources.every(source =>
+    source && id(source.id) && date(source.date) && source.id !== source.date && integer(source.revision, 1)), 'Invalid migration sources.');
   check(typeof timestamp === 'function', 'Server timestamp provider is required.', 'internal');
   const hash = digest(canonical(request)), changeId = digest(canonical([uid, request.requestId]));
   const requestRef = db.doc(ROOT + '/metadataRequests/' + changeId);
@@ -188,44 +196,47 @@ async function editMetadata(db, auth, input, { timestamp, dryRun = false } = {})
     }
     const event = eventId => {
       const record = records.events.get(eventId);
-      check(record, 'Include every source, target and successor event with its expected revision.', 'failed-precondition');
+      check(record, 'Include the session’s event with its expected revision.', 'failed-precondition');
       return record;
     };
     const counts = new Map(Array.from(records.events, ([eventId, record]) => [eventId, record.before?.sessionCount ?? 0]));
-    const moves = [];
-    await preload(request.sessions.flatMap(change => change.data.segments.flatMap(segment => [
+    await preload([
+      ...Array.from(records.events.values(), record => db.doc(ROOT + '/days/' + record.data.date)),
+      ...migrationSources.map(source => db.doc(ROOT + '/events/' + source.id)),
+      ...request.sessions.flatMap(change => change.data.segments.flatMap(segment => [
       db.doc(ROOT + '/days/' + segment.day),
       db.doc(ROOT + '/days/' + segment.day + '/chunks/' + segment.firstChunk),
       db.doc(ROOT + '/days/' + segment.day + '/chunks/' + segment.lastChunk),
       ...(segment.importId ? [db.doc(ROOT + '/imports/' + segment.importId)] : []),
-    ])));
-    for (const [sessionId, record] of records.sessions) {
+    ]))]);
+    for (const [eventId, record] of records.events) {
+      check(eventId === record.data.date && record.data.state === 'active', 'Migrate legacy event metadata before editing.', 'failed-precondition');
+      const day = (await get(db.doc(ROOT + '/days/' + eventId))).data();
+      check(day?.date === eventId && integer(day.count, 1), 'An event requires a recorded UK day.', 'failed-precondition');
+    }
+    const sourceSnapshots = {};
+    for (const source of migrationSources) {
+      check(id(source.id) && date(source.date) && source.id !== source.date && integer(source.revision, 1), 'Invalid migration source.');
+      const before = (await get(db.doc(ROOT + '/events/' + source.id))).data();
+      check(before && before.revision === source.revision && before.date === source.date && before.sessionCount === 0, 'Migration source changed or has sessions.', 'failed-precondition');
+      const target = records.events.get(source.date);
+      check(target && !target.before && canonical(storedData(before, 'events')) === canonical(target.data), 'Migration must preserve source metadata exactly.', 'failed-precondition');
+      sourceSnapshots[source.id] = before;
+    }
+    for (const record of records.sessions.values()) {
       const target = event(record.data.eventId);
-      check(target.data.state === 'active', 'Sessions must belong to active events.', 'failed-precondition');
+      check(record.data.segments.every(segment => segment.day === target.data.date), 'Sessions must stay within their event’s UK recorded day.');
       const sourceId = record.before?.eventId;
-      if (sourceId) event(sourceId);
+      check(!sourceId || sourceId === record.data.eventId, 'Sessions cannot move between recorded days.');
       if (sourceId !== record.data.eventId) {
-        if (sourceId) { counts.set(sourceId, counts.get(sourceId) - 1); moves.push({ sessionId, from: sourceId, to: record.data.eventId }); }
         counts.set(record.data.eventId, counts.get(record.data.eventId) + 1);
       }
       for (const segment of record.data.segments) await verifySegment(db, get, segment);
     }
-    if (request.action === 'edit') check(!moves.length, 'Use an explicit reassignment, split or merge action.');
-    else {
-      check(moves.length > 0, 'This action requires an existing session reassignment.');
-      if (request.action === 'split') check(new Set(moves.map(m => m.from)).size === 1, 'Split one source event per action.');
-      if (request.action === 'merge') check(new Set(moves.map(m => m.to)).size === 1, 'Merge into one target event per action.');
-    }
     const auditRecords = [];
     const result = { changeId, events: [], sessions: [] };
     for (const kind of ['events', 'sessions']) for (const [recordId, record] of records[kind]) {
-      if (kind === 'events') {
-        check(integer(counts.get(recordId)), 'Session counts would become invalid.', 'failed-precondition');
-        if (record.data.state === 'superseded') {
-          check(counts.get(recordId) === 0, 'Move remaining sessions before superseding an event.', 'failed-precondition');
-          for (const successor of record.data.supersededBy) check(successor !== recordId && event(successor).data.state === 'active', 'Successors must be distinct active events.', 'failed-precondition');
-        }
-      }
+      if (kind === 'events') check(integer(counts.get(recordId)), 'Session counts would become invalid.', 'failed-precondition');
       const after = { ...record.data, ...(kind === 'events' ? { sessionCount: counts.get(recordId),
         ...(record.data.location ? { locationKey: record.data.location.normalize('NFKC').toLowerCase().replace(/\s+/g, ' ') } : {}) } : {}),
       revision: record.revision, updatedBy: uid, updatedAt: timestamp() };
@@ -236,6 +247,7 @@ async function editMetadata(db, auth, input, { timestamp, dryRun = false } = {})
     }
     // Server timestamps are supported inside maps, not inside array elements.
     const audit = { actor: uid, action: request.action, requestId: request.requestId, requestSha256: hash, createdAt: timestamp(),
+      ...(migrationSources.length ? { migrationSources: sourceSnapshots } : {}),
       records: Object.fromEntries(['events', 'sessions'].map(kind => [kind, Object.fromEntries(auditRecords.filter(record => record.kind === kind)
         .map(record => [record.id, { before: record.before, after: record.after }]))])) };
     check(bytes(audit) <= LIMITS.auditBytes, 'Audit exceeds 512 KiB. Split this edit into smaller actions.');
@@ -273,4 +285,4 @@ async function verifySegment(db, get, segment) {
   }
 }
 
-module.exports = { ROOT, LIMITS, TYPES, STATUSES, MetadataError, validateRequest, editMetadata };
+module.exports = { ROOT, LIMITS, TYPES, SESSION_TYPES, STATUSES, MetadataError, validateRequest, editMetadata };

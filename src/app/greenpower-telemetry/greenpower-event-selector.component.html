@@ -1,39 +1,26 @@
 <section id="history-picker" aria-label="Telemetry history">
-  <div class="tabs" role="group" aria-label="History source">
-    <button type="button" [attr.aria-pressed]="mode === 'events'" (click)="mode = 'events'">Events</button>
-    <button type="button" [attr.aria-pressed]="mode === 'days'" (click)="mode = 'days'">Recorded days</button>
-  </div>
-  @if (mode === 'events') {
-    <form class="filters" (ngSubmit)="apply()">
-      <label for="event-type-filter">Type<select id="event-type-filter" name="type" [(ngModel)]="filters.type" [disabled]="locked"><option value="">All types</option>@for (type of types; track type.id) { <option [value]="type.id">{{ type.label }}</option> }</select></label>
-      <label for="event-location-filter">Location<input id="event-location-filter" name="location" [(ngModel)]="filters.location" maxlength="120" [disabled]="locked"></label>
-      <label for="event-from-filter">From<input id="event-from-filter" type="date" name="from" [(ngModel)]="filters.from" [disabled]="locked"></label>
-      <label for="event-to-filter">To<input id="event-to-filter" type="date" name="to" [(ngModel)]="filters.to" [disabled]="locked"></label>
-      <button type="submit" [disabled]="locked || events.loadingEvents">Filter</button>
-    </form>
-    <label for="history-event">Event</label>
-    <select id="history-event" [ngModel]="events.eventId" [ngModelOptions]="{standalone:true}" [disabled]="locked" (ngModelChange)="events.selectEvent($event)">
-      <option value="" disabled>Select event</option>
-      @if (selectedOutsidePage) { <option [value]="events.selectedEvent!.id">{{ events.selectedEvent!.name }} · {{ eventType(events.selectedEvent!.type) }} · {{ events.selectedEvent!.date }}{{ events.selectedEvent!.metadataStatus === 'review_needed' ? ' · Needs review' : '' }}</option> }
-      @for (event of events.events; track event.id) { <option [value]="event.id">{{ event.name }} · {{ eventType(event.type) }} · {{ event.date }}{{ event.metadataStatus === 'review_needed' ? ' · Needs review' : '' }}{{ event.state === 'superseded' ? ' · Superseded' : '' }}</option> }
+  <form class="filters" (ngSubmit)="apply()">
+    <label for="event-year-filter">Year<select aria-label="Year" id="event-year-filter" name="year" [(ngModel)]="year" [disabled]="locked">@for (value of years; track value) { <option [ngValue]="value">{{ value }}</option> }</select></label>
+    <label for="event-location-filter">Track<input id="event-location-filter" name="location" [(ngModel)]="filters.location" maxlength="120" [disabled]="locked"></label>
+    <label for="session-type-filter">Session type<select aria-label="Session type" id="session-type-filter" name="type" [(ngModel)]="filters.type" [disabled]="locked"><option value="">All types</option>@for (type of types; track type.id) { <option [value]="type.id">{{ type.label }}</option> }</select></label>
+    <button type="submit" [disabled]="locked || events.loadingEvents">Filter</button>
+  </form>
+  <label for="history-event">Event</label>
+  <select id="history-event" [ngModel]="events.eventId" [ngModelOptions]="{standalone:true}" [disabled]="locked" (ngModelChange)="events.selectEvent($event)">
+    <option value="" disabled>Select event</option>
+    @if (selectedOutsidePage) { <option [value]="events.eventId">{{ events.eventLabel(events.eventId) }}</option> }
+    @for (event of events.events; track event.id) { <option [value]="event.id">{{ events.eventLabel(event.date) }}</option> }
+  </select>
+  <div class="feedback" aria-live="polite">@if (events.loadingEvents) { <span>Loading</span> } @else if (events.listError) { <span class="error" role="alert">{{ events.listError }}</span><button type="button" [disabled]="locked" (click)="events.loadEvents()">Retry</button> } @else if (events.loadedEvents && !events.events.length) { <span>No events.</span> }</div>
+  @if (events.eventId) {
+    <label for="history-session">Session</label>
+    <select id="history-session" [ngModel]="events.sessionId" [ngModelOptions]="{standalone:true}" [disabled]="locked || !events.eventReady" (ngModelChange)="session($event)">
+      <option value="">Whole event</option>
+      @if (sessionOutsidePage) { <option [value]="events.sessionId">{{ events.selectedSession!.name }}</option> }
+      @for (session of events.sessions; track session.id) { <option [value]="session.id">{{ session.name }} · {{ sessionType(session.type || 'other') }}</option> }
     </select>
-    <div class="feedback" aria-live="polite">@if (events.loadingEvents) { <span>Loading</span> } @else if (events.listError) { <span class="error" role="alert">{{ events.listError }}</span><button type="button" (click)="events.loadEvents()">Retry</button> } @else if (events.loadedEvents && !events.events.length) { <span>No events.</span> }</div>
-    @if (events.moreEvents) { <button type="button" [disabled]="locked || events.loadingEvents" (click)="events.loadEvents()">More events</button> }
-    @if (events.eventId) {
-      <label for="history-session">Session</label>
-      <select id="history-session" [ngModel]="events.sessionId" [ngModelOptions]="{standalone:true}" [disabled]="locked || !events.eventReady" (ngModelChange)="events.selectSession($event)">
-        <option value="" disabled>Select session</option>
-        @if (sessionOutsidePage) { <option [value]="events.selectedSession!.id">{{ events.selectedSession!.name }}{{ events.selectedSession!.metadataStatus === 'review_needed' ? ' · Needs review' : '' }}</option> }
-        @for (session of events.sessions; track session.id) { <option [value]="session.id">{{ session.name }}{{ session.metadataStatus === 'review_needed' ? ' · Needs review' : '' }}</option> }
-      </select>
-      <div class="feedback" aria-live="polite">@if (events.loadingSessions || !events.eventReady && !events.error) { <span>Loading</span> } @else if (events.sessionError) { <span class="error" role="alert">{{ events.sessionError }}</span><button type="button" (click)="events.loadSessions()">Retry sessions</button> } @else if (events.eventReady && !events.sessions.length) { <span>No sessions.</span> }</div>
-      @if (events.moreSessions) { <button type="button" [disabled]="locked || events.loadingSessions" (click)="events.loadSessions()">More sessions</button> }
-    }
-    @if (events.error) { <p class="error" role="alert">{{ events.error }}</p><button type="button" [disabled]="locked" (click)="events.selectEvent(events.eventId)">Reload event</button> }
-  } @else {
-    <label for="history-date">Recorded day · UK</label>
-    <select id="history-date" [ngModel]="telemetry.live ? '' : telemetry.day" [ngModelOptions]="{standalone:true}" [disabled]="locked" (ngModelChange)="daySelect.emit($event)"><option value="" disabled>Select date</option>@for (day of telemetry.dates; track day) { <option [value]="day">{{ events.dayLabel(day) }}</option> }</select>
-    <div class="feedback" aria-live="polite">@if (telemetry.loadingDates || events.dayNamesLoading) { <span>Loading</span> } @else if (telemetry.datesError) { <span class="error" role="alert">{{ telemetry.datesError }}</span><button type="button" (click)="telemetry.loadDates()">Retry dates</button> } @else if (events.dayNamesError) { <span class="error" role="alert">{{ events.dayNamesError }}</span> } @else if (!telemetry.dates.length) { <span>No recorded days.</span> } @if (events.moreDayNames(telemetry.dates)) { <button type="button" [disabled]="locked || events.dayNamesLoading" (click)="events.loadDayNames(telemetry.dates, true)">{{ events.dayNamesError ? 'Retry names' : 'More names' }}</button> }</div>
-    @if (telemetry.moreDates) { <button type="button" [disabled]="locked || telemetry.loadingDates" (click)="telemetry.loadDates()">Earlier dates</button> }
+    <div class="feedback" aria-live="polite">@if (events.loadingSessions || !events.eventReady && !events.error) { <span>Loading</span> } @else if (events.sessionError) { <span class="error" role="alert">{{ events.sessionError }}</span><button type="button" [disabled]="locked" (click)="events.loadSessions()">Retry sessions</button> } @else if (events.eventReady && !events.sessions.length) { <span>No sessions{{ events.filters.type ? ' of this type' : '' }}.</span> }</div>
+    @if (events.moreSessions) { <button type="button" [disabled]="locked || events.loadingSessions" (click)="events.loadSessions()">More sessions</button> }
   }
+  @if (events.error) { <p class="error" role="alert">{{ events.error }}</p><button type="button" [disabled]="locked" (click)="events.selectEvent(events.eventId)">Reload event</button> }
 </section>

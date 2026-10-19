@@ -88,7 +88,9 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     this.changes.add(eventEdit.changed.subscribe(() => change.markForCheck()));
     this.changes.add(events.recordingChanged.subscribe(session => {
       if (session) void telemetry.selectRecording(session.id + ':' + ++this.recordingRevision, session.segments);
-      else telemetry.clearRecording(events.selectedEvent?.date, events.eventId ? 'event:' + events.eventId : '');
+      else if (events.eventReady && events.selectedEvent && !events.sessionId) {
+        void telemetry.select(events.selectedEvent.date);
+      } else telemetry.clearRecording(events.selectedEvent?.date, events.eventId ? 'event:' + events.eventId : '');
     }));
     this.refreshView();
     this.syncHeader();
@@ -127,7 +129,6 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     this.drag.cancel(); this.editorPanel = 'event';
     if (!this.events.loadedEvents && !this.events.loadingEvents) void this.events.loadEvents();
   }
-  selectDay(day: string) { if (!this.eventEdit.locked) { this.events.clear(); void this.telemetry.select(day); } }
   retryRecording() {
     const session = this.events.selectedSession;
     if (session && this.telemetry.recordingKey) void this.telemetry.selectRecording(session.id + ':' + ++this.recordingRevision, session.segments);
@@ -174,7 +175,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   }
   async history() {
     this.historyOpen = !this.historyOpen;
-    if (this.historyOpen && !this.telemetry.dates.length) await this.telemetry.loadDates();
+    if (this.historyOpen && !this.events.loadedEvents && !this.events.loadingEvents) await this.events.loadEvents();
   }
   live() { if (!this.eventEdit.locked) { this.events.clear(); this.historyOpen = false; void this.telemetry.select(londonDay(), true); } }
   ngOnDestroy() { this.changes.unsubscribe(); this.drag.cancel(); clearInterval(this.clock); this.title.setTitle(this.previousTitle); }

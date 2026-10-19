@@ -1,0 +1,71 @@
+{
+  "verifiedAt": "2026-10-19T18:51:41.784739+00:00",
+  "status": "implemented_not_deployed",
+  "scope": [
+    "Event names as page/browser title for whole recorded days as well as selected sessions",
+    "Explicit whole-day versus named-session context, UK dates and actual loaded sample times",
+    "Stable mobile context rows with loading/partial/review/unavailable states; plot zoom does not change loaded identity",
+    "Latest-day bounded lookup and cancellation behind an existing names query; per-page metadata failures"
+  ],
+  "validation": {
+    "unitPassed": 139,
+    "emulatorPassed": 19,
+    "buildHash": "6ca196e9778bb7a7",
+    "build": "passed",
+    "lintErrors": 0,
+    "existingLintWarnings": 64,
+    "fullBrowserArtifacts": "/var/folders/6j/540yrv1536x9pc7qv833941h0000gn/T/greenpower-ui-Eg4MaF",
+    "finalFocusedBrowserArtifacts": "/var/folders/6j/540yrv1536x9pc7qv833941h0000gn/T/greenpower-ui-MNZi25",
+    "browserWidths": [
+      1440,
+      390,
+      320
+    ],
+    "browserErrors": [],
+    "screenshotsVisuallyInspected": true,
+    "cases": [
+      "Page and browser title after recorded-day selection",
+      "Multiple/unassigned dates and pending/failed names",
+      "Selected session name and no-session/cleared ranges",
+      "Midnight date spans and exact loaded bounds (model tests)",
+      "Zoom preserves loaded context and header geometry",
+      "Combined partial/review state with stable row height",
+      "Signed-out title clearing and return to Live",
+      "Direct-day read bounds, latest queued day, Live cancellation, failed-page isolation and destruction"
+    ],
+    "diffCheck": "passed"
+  },
+  "bounds": {
+    "newListeners": 0,
+    "newQueryShapes": 0,
+    "newCompositeIndexes": 0,
+    "extraQueriesPerUncachedDirectDay": 1,
+    "eventResultLimit": 60,
+    "concurrency": 1,
+    "queue": "Latest current day only; can wait behind an already-issued names-page lookup",
+    "automaticNamePagination": false,
+    "automaticErrorRetry": false,
+    "cache": "Same routed/account day-name cache, cleared on account change/destruction"
+  },
+  "componentLines": 367,
+  "schemaChanges": false,
+  "functionsChanges": false,
+  "rulesChanges": false,
+  "productionWrites": 0,
+  "deploymentPerformed": false,
+  "historicalSessionBoundaries": "pending_review",
+  "batteryTestAssignments": "pending_review",
+  "limitations": [
+    "Browser uses synthetic services; real signed-in metadata reads are exercised in the local emulator",
+    "No real mobile-device or independent screen-reader audit",
+    "Cached same-date names are metadata labels, not approved sample/session assignments"
+  ],
+  "sourceSha256": {
+    "src/app/greenpower-telemetry/greenpower-telemetry.component.ts": "3e82c6fd57c5ade3512f3feb19143278621186caaf77347826bb0efbe89035b5",
+    "src/app/greenpower-telemetry/greenpower-telemetry.component.html": "9724f099653df65dc7771b2b1c19e1544f2a39a70cbe5805cdf6b7b484e54878",
+    "src/app/greenpower-telemetry/greenpower-telemetry.component.css": "0a1c1d9d4984c7a067e55713bcbb0d9324d3c27248fdb69c08321782b6356a21",
+    "src/app/greenpower-telemetry/greenpowerEvents.service.ts": "b6dc34d0d118113cbc4b4f0e0096f25fea693568bcd414d54aa4113acded3d9b",
+    "src/app/greenpower-telemetry/greenpowerEvents.ts": "43289bde9cf3e16a0ba86463bb02cae982e27c0bf97ac2c077a049fb3fc16351",
+    "src/app/greenpower-telemetry/greenpowerContext.ts": "de72b85b53e6e093b3ccbe3046f07a6f40e7e6f11815c227fa1fd40c4067477e"
+  }
+}

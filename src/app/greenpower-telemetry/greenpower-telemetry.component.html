@@ -40,7 +40,7 @@
             <button type="button" [disabled]="view.saving" [attr.aria-pressed]="editorPanel === 'event'" (click)="eventPanel()">Event</button>
           </div>
           @if (editorPanel === 'event') {
-            <app-greenpower-event-editor [range]="window" (daySelect)="selectDay($event)" />
+            <app-greenpower-event-editor [range]="window" />
           } @else {
           <span class="order-notice" aria-live="polite">{{ orderNotice }}</span>
           @if (drag.preview; as preview) {
@@ -62,7 +62,7 @@
     @if (view.error) { <div class="error" role="alert">{{ view.error }} @if (!view.ready) { <button type="button" (click)="view.retry()">Retry view</button> }</div> }
     @if (!view.ready && !view.error) { <p class="state" role="status">Loading view…</p> }
     @if (historyOpen) {
-      <app-greenpower-event-selector [locked]="eventEdit.locked" (daySelect)="selectDay($event); historyOpen = false; historyButton.focus()" />
+      <app-greenpower-event-selector [locked]="eventEdit.locked" />
     }
     @if (telemetry.error) {
       <div class="error" role="alert">{{ telemetry.error }} <button type="button" (click)="retryRecording()">Retry</button></div>

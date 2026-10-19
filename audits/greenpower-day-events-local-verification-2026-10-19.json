@@ -1,0 +1,102 @@
+{
+  "date": "2026-10-19",
+  "scope": "Greenpower recorded-day events and same-day typed sessions",
+  "environment": "local synthetic data only",
+  "checks": {
+    "greenpowerUnitTests": {
+      "command": "npm run test:greenpower",
+      "passed": 130
+    },
+    "firestoreEmulatorTests": {
+      "command": "npm run test:greenpower:emulator via demo-greenpower Firestore emulator",
+      "passed": 18
+    },
+    "browser": {
+      "command": "node scripts/greenpower/ui.mjs",
+      "widths": [
+        1440,
+        390,
+        320
+      ],
+      "passed": true,
+      "javascriptErrors": [],
+      "screenshots": "/private/var/folders/6j/540yrv1536x9pc7qv833941h0000gn/T/greenpower-ui-LgeCUI",
+      "coverage": [
+        "unnamed events",
+        "year and exact track filters",
+        "typed session filters",
+        "whole-event return",
+        "same-day session creation",
+        "failed draft retention",
+        "no whole-day preload on session selection",
+        "chart hover/zoom/touch/drag",
+        "view and track admin workflows",
+        "stable header geometry",
+        "sign-out and role revocation"
+      ]
+    },
+    "productionBuild": {
+      "command": "npm run build",
+      "passed": true,
+      "bundleHash": "2c1b38afbe909934"
+    },
+    "lint": {
+      "command": "npm run lint",
+      "passed": true,
+      "errors": 0,
+      "existingWarnings": 64
+    },
+    "diffWhitespace": {
+      "passed": true
+    }
+  },
+  "workBounds": {
+    "eventPage": {
+      "days": 30,
+      "optionalNames": 60,
+      "automaticContinuation": false
+    },
+    "trackPage": {
+      "metadata": 30,
+      "dayVerification": 30,
+      "automaticContinuation": false
+    },
+    "sessionPage": 30,
+    "recordingLoad": {
+      "maxQueryIterations": 50,
+      "maxSerializedChunkBytes": 67108864
+    },
+    "cache": "routed-account name cache; selected event/session listeners only; explicit More pages",
+    "migration": {
+      "prepareExactReads": 72,
+      "prepareQueries": 36,
+      "queryLimit": 1,
+      "batchesPerPhase": 9,
+      "transactionAttempts": 3,
+      "maximumTransactionReadsPerPhase": 351,
+      "maximumCommittedWrites": 54,
+      "concurrency": 1,
+      "automaticApplicationRetries": 0
+    }
+  },
+  "production": {
+    "reads": false,
+    "writes": false,
+    "migrationPreparedAgainstLiveData": false,
+    "migrationApplied": false,
+    "indexDeployment": false,
+    "functionsDeployment": false,
+    "hostingDeployment": false
+  },
+  "releaseRequirements": [
+    "compare live and repository indexes; deploy session-type index and wait for readiness",
+    "prevent concurrent legacy metadata edits",
+    "prepare and review a live migration plan; apply using exact plan checksum",
+    "release the validated callable and client together"
+  ],
+  "coverageLimits": [
+    "Emulator checks do not establish live index readiness or deployed HTTPS transport",
+    "Browser checks use synthetic services; real-device operation remains a workshop check",
+    "Migration operator CLI authentication is reused from the existing operator but was not invoked against production"
+  ]
+}

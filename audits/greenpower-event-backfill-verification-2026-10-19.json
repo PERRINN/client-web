@@ -1,0 +1,44 @@
+{
+  "verifiedAt": "2026-10-19T17:25:18.684955+00:00",
+  "project": "perrinn-d5fc1",
+  "approval": "Apply event names and same-day dyno groups; leave uncertain session boundaries and battery-test assignments pending review.",
+  "manifestSha256": "db76813169bc1b5224bb3158d6ce5d83fd4168d887195379fe6386bc6334fee8",
+  "eventsApplied": 36,
+  "groups": {
+    "race": 7,
+    "track_test": 2,
+    "full_dyno": 19,
+    "battery_dyno": 8
+  },
+  "sessionsCreated": 0,
+  "rawWrites": 0,
+  "metadataAndAuditWrites": 54,
+  "verifiedEventDocuments": 36,
+  "replayedRequestsWithoutWrites": 9,
+  "actualFirestoreDocumentReads": 180,
+  "pending": {
+    "sessionBoundaryAssignments": 49,
+    "futureBatteryRowsUnapplied": 4,
+    "unassignedImportedDates": 37,
+    "individualBatteryTestAssignments": 22,
+    "ambiguousEngineeringUnits": true
+  },
+  "validation": {
+    "unitPassed": 125,
+    "emulatorPassed": 19,
+    "existingSessionZoomReplacementTest": "passed; same session ID, reviewed save and exact stored boundaries",
+    "laterAdminEditAndReplay": "passed in emulator; admin correction preserved",
+    "diffCheck": "passed"
+  },
+  "applicationCodeChanged": false,
+  "functionsChanged": false,
+  "rulesChanged": false,
+  "deploymentRequired": false,
+  "issue97": "open: session boundaries and battery assignments remain pending review",
+  "evidence": [
+    "greenpower-event-approved-manifest-2026-10-19.json",
+    "greenpower-event-backfill-dry-run-2026-10-19.json",
+    "greenpower-event-backfill-applied-2026-10-19.json",
+    "greenpower-event-backfill-replay-2026-10-19.json"
+  ]
+}

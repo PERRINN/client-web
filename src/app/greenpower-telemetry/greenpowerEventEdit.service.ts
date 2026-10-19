@@ -1,30 +1,24 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { firstValueFrom, Subject, Subscription } from 'rxjs';
-import { editable, EventData, EventEditRequest, EventEditResult, MetadataDraft, metadataError, SessionData, TelemetryEvent, TelemetrySession, validSegments } from './greenpowerEvents';
+import { editable, SESSION_TYPES, EventData, EventEditRequest, EventEditResult, MetadataDraft, metadataError, SessionData, TelemetryEvent, TelemetrySession, validSegments } from './greenpowerEvents';
 import { GreenpowerEventsService } from './greenpowerEvents.service';
 import { GreenpowerTelemetryService } from './greenpowerTelemetry.service';
 
 @Injectable()
 export class GreenpowerEventEditService implements OnDestroy {
   readonly changed = new Subject<void>();
-  mode: '' | 'event' | 'session' | 'merge' = '';
+  mode: '' | 'event' | 'session' = '';
   draft: MetadataDraft = {};
-  splitDraft?: EventData;
-  targetEventId = '';
-  selected = new Map<string, TelemetrySession>();
   reviewing = false;
   saving = false;
   uncertain = false;
   error = '';
   notice = '';
-  loadingReferences = false;
-  private references: TelemetryEvent[] = [];
   private baseEvent?: TelemetryEvent;
   private baseSession?: TelemetrySession;
   private newId = '';
   private prepared?: EventEditRequest;
-  private beforeSessions: TelemetrySession[] = [];
   private generation = 0;
   private uid = '';
   private readonly subscription: Subscription;
@@ -35,146 +29,78 @@ export class GreenpowerEventEditService implements OnDestroy {
     });
   }
   get locked() { return this.saving || this.uncertain; }
-  get isNew() { return this.mode === 'event' ? !this.baseEvent : !this.baseSession; }
-  get target() { return this.events.events.find(event => event.id === this.targetEventId) || (this.events.selectedEvent?.id === this.targetEventId ? this.events.selectedEvent : undefined) || (this.baseEvent?.id === this.targetEventId ? this.baseEvent : undefined); }
+  get isNew() { return !this.baseSession; }
   get sourceEvent() { return this.baseEvent; }
-  get sourceName() { return this.baseEvent?.name || ''; }
-  get remaining() { return Math.max(0, (this.baseEvent?.sessionCount || 0) - this.selected.size); }
   private reset() {
-    this.mode = ''; this.draft = {}; this.splitDraft = undefined; this.prepared = undefined;
-    this.newId = ''; this.references = []; this.loadingReferences = false;
-    this.baseEvent = this.baseSession = undefined; this.selected.clear(); this.targetEventId = '';
+    this.mode = ''; this.draft = {}; this.prepared = undefined; this.newId = '';
+    this.baseEvent = this.baseSession = undefined;
     this.reviewing = this.uncertain = false; this.error = ''; this.changed.next();
   }
   cancel() { if (!this.locked) { this.reset(); this.notice = ''; } }
-  private begin(mode: 'event' | 'session' | 'merge') {
-    if (!this.events.canEdit || this.locked) return false;
+  private begin(mode: 'event' | 'session') {
+    if (!this.events.canEdit || this.locked || !this.events.eventReady || !this.events.selectedEvent) return false;
+    if (this.events.ambiguousHistoricalEvent) { this.error = 'Review this day’s historical event metadata before editing.'; this.changed.next(); return false; }
     this.reset(); this.mode = mode; this.notice = ''; this.newId = crypto.randomUUID();
-    this.baseEvent = this.events.selectedEvent ? JSON.parse(JSON.stringify(this.events.selectedEvent)) : undefined;
+    this.baseEvent = JSON.parse(JSON.stringify(this.events.selectedEvent));
     return true;
   }
-  async event(create = false) {
+  event() {
     if (!this.begin('event')) return;
-    if (create) this.baseEvent = undefined;
-    this.draft = this.baseEvent ? editable(this.baseEvent) : this.emptyEvent(); this.changed.next();
-    if (this.baseEvent?.state === 'superseded') {
-      const ids = this.baseEvent.supersededBy || [], context = this.newId;
-      if (!ids.length || ids.length > 3) { this.error = 'Event links are invalid. Reopen the event before saving.'; return; }
-      this.loadingReferences = true; this.changed.next();
-      try {
-        const references = await Promise.all(ids.map(id => this.events.eventReference(id)));
-        if (context === this.newId) this.references = references;
-      } catch { if (context === this.newId) this.error = 'Could not load event links. Cancel and reopen the editor.'; }
-      finally { if (context === this.newId) { this.loadingReferences = false; this.changed.next(); } }
-    }
-  }
-  private emptyEvent(): EventData {
-    return { name: '', type: '', date: this.telemetry.day, timeZone: 'Europe/London', state: 'active', metadataStatus: 'review_needed' };
+    this.draft = editable(this.baseEvent!); this.changed.next();
   }
   session(create = false, range?: { start: number; end: number }) {
-    if (!create && (!this.events.selectedSession || this.events.selectedEvent?.state !== 'active') || !this.begin('session')) return;
-    if (!create && this.events.selectedSession) {
-      this.baseSession = JSON.parse(JSON.stringify(this.events.selectedSession)); this.draft = editable(this.baseSession!);
+    if (!create && !this.events.selectedSession || !this.begin('session')) return;
+    if (!create) {
+      this.baseSession = JSON.parse(JSON.stringify(this.events.selectedSession)); this.draft = { ...editable(this.baseSession!), type: this.baseSession!.type || 'other' };
     } else {
-      this.draft = { name: '', eventId: this.baseEvent?.state === 'active' ? this.baseEvent.id : '', metadataStatus: 'review_needed', segments: [] };
-      try {
-        const segments = this.telemetry.range(range?.start ?? this.telemetry.start, range?.end ?? this.telemetry.end);
-        Object.assign(this.draft, { firstAt: segments[0].firstAt, lastAt: segments.at(-1)!.lastAt, segments });
-      } catch (error) {
-        // An empty draft can wait for a recording; an invalid loaded range needs feedback.
-        if (!this.telemetry.live && !this.telemetry.loading && !this.telemetry.more && this.telemetry.channels?.length) this.error = error instanceof Error ? error.message : 'Choose a recorded range.';
-      }
-      if (!this.telemetry.dates.length && !this.telemetry.loadingDates) void this.telemetry.loadDates();
+      this.draft = { name: '', type: '', eventId: this.baseEvent!.id, metadataStatus: 'unmatched', segments: [] };
+      if (!this.telemetry.live && this.telemetry.day === this.baseEvent!.date) this.replaceRange(range || { start: this.telemetry.start, end: this.telemetry.end });
     }
-    this.targetEventId = this.draft.eventId || ''; this.changed.next();
-  }
-  addRange(range: { start: number; end: number }) {
-    if (this.mode !== 'session' || this.locked || this.reviewing) return;
-    try {
-      const segments = [...(this.draft.segments || []), ...this.telemetry.range(range.start, range.end)].sort((a, b) => a.firstAt - b.firstAt);
-      const next = { ...this.draft, segments, firstAt: segments[0].firstAt, lastAt: segments.at(-1)!.lastAt };
-      if (!validSegments(segments)) throw new Error('Choose ordered, non-overlapping ranges, up to 20 in total.');
-      this.draft = next; this.error = '';
-    } catch (error) { this.error = error instanceof Error ? error.message : 'Could not add range.'; }
     this.changed.next();
   }
-  replaceRange(range: { start: number; end: number }) {
+  private capture(range: { start: number; end: number }, append: boolean) {
     if (this.mode !== 'session' || this.locked || this.reviewing) return;
     try {
-      const segments = this.telemetry.range(range.start, range.end);
+      const segments = [...(append ? this.draft.segments || [] : []), ...this.telemetry.range(range.start, range.end)].sort((a, b) => a.firstAt - b.firstAt);
+      if (this.telemetry.day !== this.baseEvent?.date || segments.some(segment => segment.day !== this.baseEvent?.date)) throw new Error('Sessions must stay within this event’s UK day.');
+      if (!validSegments(segments)) throw new Error('Choose ordered, non-overlapping ranges, up to 20 in total.');
       this.draft = { ...this.draft, segments, firstAt: segments[0].firstAt, lastAt: segments.at(-1)!.lastAt }; this.error = '';
     } catch (error) { this.error = error instanceof Error ? error.message : 'Choose a recorded range.'; }
     this.changed.next();
   }
+  addRange(range: { start: number; end: number }) { this.capture(range, true); }
+  replaceRange(range: { start: number; end: number }) { this.capture(range, false); }
   removeRange(index: number) {
     if (this.locked || this.reviewing) return;
     const segments = this.draft.segments?.filter((_, at) => at !== index) || [];
     this.draft = { ...this.draft, segments, firstAt: segments[0]?.firstAt, lastAt: segments.at(-1)?.lastAt }; this.changed.next();
   }
-  split() {
-    if (this.mode !== 'session' || !this.baseSession || this.locked) return;
-    this.splitDraft = this.splitDraft ? undefined : this.emptyEvent(); this.changed.next();
-  }
-  merge() {
-    if (!this.events.selectedEvent?.sessionCount || !this.begin('merge')) return;
-    this.changed.next();
-  }
-  toggle(session: TelemetrySession, checked: boolean) {
-    if (this.locked || this.reviewing || this.mode !== 'merge') return;
-    if (checked && this.selected.size < 20) this.selected.set(session.id, JSON.parse(JSON.stringify(session)));
-    else if (!checked) this.selected.delete(session.id);
-    this.changed.next();
-  }
   back() { if (!this.locked) { this.prepared = undefined; this.reviewing = false; this.error = ''; this.changed.next(); } }
   private build(): EventEditRequest {
-    this.draft = cleanDraft(this.draft);
-    if (this.splitDraft) this.splitDraft = cleanDraft(this.splitDraft) as EventData;
-    const events: EventEditRequest['events'] = [], sessions: EventEditRequest['sessions'] = [];
-    const addEvent = (event: TelemetryEvent, data?: EventData) => {
-      if (!events.some(change => change.id === event.id)) events.push({ id: event.id, expectedRevision: event.revision, ...(data ? { data } : {}) });
-    };
-    let action: EventEditRequest['action'] = 'edit'; this.beforeSessions = [];
-    if (this.mode === 'event') {
-      const error = metadataError(this.draft); if (error) throw new Error(error);
-      events.push({ id: this.baseEvent?.id || this.newId, expectedRevision: this.baseEvent?.revision || 0, data: editable(this.draft as EventData) });
-      if (this.draft.state === 'superseded') for (const id of this.draft.supersededBy || []) {
-        const reference = this.references.find(event => event.id === id);
-        if (!reference) throw new Error('Could not load event links. Cancel and reopen the editor.');
-        addEvent(reference);
-      }
-    } else {
-      if (this.mode === 'session' && !this.baseSession && this.target) this.baseEvent = JSON.parse(JSON.stringify(this.target));
-      if (!this.baseEvent) throw new Error('Choose an event.');
-      addEvent(this.baseEvent);
-      let targetId = this.targetEventId;
-      if (this.splitDraft) {
-        const error = metadataError(this.splitDraft); if (error) throw new Error(error);
-        targetId = this.newId; events.push({ id: targetId, expectedRevision: 0, data: editable(this.splitDraft) }); action = 'split';
-      } else {
-        const target = this.target;
-        if (!target || target.state !== 'active') throw new Error('Choose an active target event.');
-        addEvent(target); if (target.id !== this.baseEvent.id) action = 'reassign';
-      }
-      if (this.mode === 'session') {
-        const data = { ...editable(this.draft as SessionData), eventId: targetId };
-        const error = metadataError(data, true); if (error) throw new Error(error);
-        if (this.baseSession) this.beforeSessions = [this.baseSession];
-        sessions.push({ id: this.baseSession?.id || (this.splitDraft ? crypto.randomUUID() : this.newId), expectedRevision: this.baseSession?.revision || 0, data });
-        if (!this.baseSession && action !== 'edit') action = 'edit';
-      } else {
-        if (targetId === this.baseEvent.id || !this.selected.size) throw new Error('Choose a different event and up to 20 sessions.');
-        action = 'merge'; this.beforeSessions = Array.from(this.selected.values());
-        for (const session of this.beforeSessions) sessions.push({ id: session.id, expectedRevision: session.revision, data: { ...editable(session), eventId: targetId } });
-        if (this.remaining === 0) events[0].data = { ...editable(this.baseEvent), state: 'superseded', supersededBy: [targetId] };
-      }
+    const event = this.baseEvent;
+    if (!event || event.id !== event.date) throw new Error('Choose an event.');
+    if (this.mode === 'session') {
+      if (!this.draft.type) throw new Error('Choose a session type.');
+      if (!this.baseSession) this.draft.name = SESSION_TYPES.find(type => type.id === this.draft.type)?.label || '';
     }
-    if (sessions.reduce((count, change) => count + change.data!.segments.length, 0) > 20) throw new Error('Choose sessions with at most 20 recording ranges in total.');
-    const payload: EventEditRequest = { requestId: crypto.randomUUID(), action, events, sessions };
-    if (new TextEncoder().encode(JSON.stringify(payload)).length > 128 * 1024) throw new Error('Choose fewer sessions or shorten the metadata.');
-    return payload;
+    this.draft = cleanDraft(this.draft);
+    const error = metadataError(this.draft, this.mode === 'session'); if (error) throw new Error(error);
+    let data: EventData | undefined;
+    const sessions: EventEditRequest['sessions'] = [];
+    if (this.mode === 'event') {
+      if (this.draft.date !== event.date) throw new Error('An event’s recorded UK day cannot change.');
+      data = editable(this.draft as EventData);
+    } else {
+      if (this.draft.segments!.some(segment => segment.day !== event.date)) throw new Error('Sessions must stay within this event’s UK day.');
+      sessions.push({ id: this.baseSession?.id || this.newId, expectedRevision: this.baseSession?.revision || 0,
+        data: { ...editable(this.draft as SessionData), eventId: event.id } });
+      if (!event.revision) data = editable(event);
+    }
+    return { requestId: crypto.randomUUID(), action: 'edit',
+      events: [{ id: event.id, expectedRevision: event.revision, ...(data ? { data } : {}) }], sessions };
   }
   review() {
-    if (!this.events.canEdit || this.locked || this.loadingReferences) return;
+    if (!this.events.canEdit || this.locked) return;
     try { this.prepared = this.build(); this.reviewing = true; this.error = ''; }
     catch (error) { this.error = error instanceof Error ? error.message : 'Check the metadata.'; }
     this.changed.next();
@@ -186,13 +112,12 @@ export class GreenpowerEventEditService implements OnDestroy {
     try {
       const result = await firstValueFrom(this.functions.httpsCallable<EventEditRequest, EventEditResult>('greenpowerEventEdit', { timeout: 35000 })(request));
       if (generation !== this.generation || !this.events.canEdit || this.uid !== uid) return;
-      this.events.acknowledge(request, result, this.beforeSessions);
-      const newEvent = this.mode === 'event' && !this.baseEvent ? request.events[0].id : undefined;
-      const newSession = request.sessions.find(change => change.expectedRevision === 0 && change.data?.eventId === this.events.eventId)?.id;
+      this.events.acknowledge(request, result, this.baseSession ? [this.baseSession] : []);
+      const newSession = request.sessions.find(change => !change.expectedRevision)?.id;
       this.uncertain = false; this.saving = false; this.reset(); this.notice = 'Saved';
-      void this.events.loadEvents(true);
-      if (newEvent) this.events.selectEvent(newEvent);
-      else if (this.events.eventReady) void this.events.loadSessions(true);
+      // A session save does not change the event list's date/track selection.
+      if (request.sessions.length) void this.events.loadSessions(true);
+      else void this.events.loadEvents(true);
       if (newSession && this.events.eventReady) this.events.selectSession(newSession);
     } catch (error) {
       if (generation !== this.generation || this.uid !== uid) return;

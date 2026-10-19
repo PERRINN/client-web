@@ -1,19 +1,21 @@
 <fieldset [disabled]="disabled">
   <div class="fields">
-    <label class="wide" [for]="prefix + '-name'">Name<input #nameInput [id]="prefix + '-name'" [value]="data.name || ''" (input)="text('name', $any($event.target).value)" required maxlength="120"></label>
     @if (!session) {
-      <label [for]="prefix + '-type'">Type<select aria-label="Type" [id]="prefix + '-type'" [ngModel]="data.type || ''" (ngModelChange)="text('type', $event)" [ngModelOptions]="{standalone:true}"><option value="" disabled>Choose type</option>@for (type of types; track type.id) { <option [value]="type.id">{{ type.label }}</option> }</select></label>
-      <label [for]="prefix + '-date'">Date · UK<input [id]="prefix + '-date'" type="date" [value]="data.date || ''" (input)="text('date', $any($event.target).value)"></label>
+      <label class="wide" [for]="prefix + '-name'">Name<input #initialInput [id]="prefix + '-name'" [value]="data.name || ''" (input)="text('name', $any($event.target).value)" required maxlength="120"></label>
+      <label [for]="prefix + '-date'">Date · UK<input [id]="prefix + '-date'" type="date" [value]="data.date || ''" readonly></label>
       <label [for]="prefix + '-time'">Time · UK<input [id]="prefix + '-time'" type="time" [value]="data.localTime || ''" (input)="text('localTime', $any($event.target).value)"></label>
-      <label [for]="prefix + '-location'">Location<input [id]="prefix + '-location'" [value]="data.location || ''" (input)="text('location', $any($event.target).value)" maxlength="120"></label>
+      <label [for]="prefix + '-location'">Track<input [id]="prefix + '-location'" [value]="data.location || ''" (input)="text('location', $any($event.target).value)" maxlength="120"></label>
     } @else {
-      <label [for]="prefix + '-run'">Run number<input [id]="prefix + '-run'" type="number" min="1" step="1" [value]="data.runNumber ?? ''" (input)="data.runNumber = $any($event.target).value === '' ? undefined : $any($event.target).valueAsNumber"></label>
+      <label [for]="prefix + '-type'">Session type<select #initialInput aria-label="Session type" [id]="prefix + '-type'" [ngModel]="data.type || ''" (ngModelChange)="text('type', $event)" [ngModelOptions]="{standalone:true}"><option value="" disabled>Choose type</option>@for (type of types; track type.id) { <option [value]="type.id">{{ type.label }}</option> }</select></label>
     }
-    <label [for]="prefix + '-status'">Review status<select aria-label="Review status" [id]="prefix + '-status'" [ngModel]="data.metadataStatus" (ngModelChange)="text('metadataStatus', $event)" [ngModelOptions]="{standalone:true}">@for (status of statuses; track status.id) { <option [value]="status.id">{{ status.label }}</option> }</select></label>
-    @for (person of people; track person.key) { <label [for]="prefix + '-' + person.key">{{ person.label }}<input [id]="prefix + '-' + person.key" [value]="$any(data)[person.key] || ''" (input)="text(person.key, $any($event.target).value)" maxlength="120"></label> }
-    <label class="wide" [for]="prefix + '-description'">Description<textarea [id]="prefix + '-description'" [value]="data.description || ''" (input)="text('description', $any($event.target).value)" rows="2"></textarea></label>
+    @for (person of visiblePeople; track person.key) { <label [for]="prefix + '-' + person.key">{{ person.label }}<input [id]="prefix + '-' + person.key" [value]="$any(data)[person.key] || ''" (input)="text(person.key, $any($event.target).value)" maxlength="120"></label> }
+    @if (!session) {
+      <label class="wide" [for]="prefix + '-description'">Description<textarea [id]="prefix + '-description'" [value]="data.description || ''" (input)="text('description', $any($event.target).value)" rows="2"></textarea></label>
+    }
     <label class="wide" [for]="prefix + '-notes'">Notes<textarea [id]="prefix + '-notes'" [value]="data.notes || ''" (input)="text('notes', $any($event.target).value)" rows="2"></textarea></label>
-    <label class="wide" [for]="prefix + '-tags'">Tags<input [id]="prefix + '-tags'" [value]="tagText" (input)="tags($any($event.target).value)"></label>
+    @if (!session) {
+      <label class="wide" [for]="prefix + '-tags'">Tags<input [id]="prefix + '-tags'" [value]="tagText" (input)="tags($any($event.target).value)"></label>
+    }
   </div>
   <details><summary>Engineering</summary>
     <div class="fields">

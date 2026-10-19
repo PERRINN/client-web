@@ -1,0 +1,38 @@
+{
+  "checkedAt": "2026-10-19T19:19:27.618Z",
+  "project": "perrinn-d5fc1",
+  "repositoryIndexes": 24,
+  "liveIndexes": 23,
+  "repositoryOnly": [
+    {
+      "collectionGroup": "sessions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "eventId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "type",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "firstAt",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    }
+  ],
+  "liveOnly": [],
+  "notReady": [],
+  "historicalEventGroups": "applied_separately",
+  "sessionBoundaries": "pending_review",
+  "indexChanges": true,
+  "approvedAdditions": 1,
+  "deletions": 0
+}

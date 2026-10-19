@@ -18,13 +18,6 @@ ul { list-style: none; padding: 0; }
 li { display: flex; align-items: center; gap: 8px; justify-content: space-between; margin-bottom: 8px; }
 li span, .review p { overflow-wrap: anywhere; font-size: 15px; }
 .review { background: var(--color-raised); padding: 12px; }
-.session-options { max-height: 280px; overflow-y: auto; }
-.session-option { display: flex; gap: 10px; align-items: center; min-height: 44px; font-size: 16px; }
-.session-option input { width: 20px; height: 20px; flex-shrink: 0; }
-.session-option span { overflow-wrap: anywhere; }
 @media (max-width: 520px) { li { align-items: flex-start; } }
 
 button, input, select, textarea { transition: none; }
-:host .day-feedback { min-height: 44px; display: flex; align-items: center; gap: 8px; }
-:host .day-feedback span { min-width: 0; }
-:host .day-feedback button { flex-shrink: 0; }

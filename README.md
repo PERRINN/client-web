@@ -266,41 +266,31 @@ Writes are three documents per chunk (chunk + day + checkpoint), at most three t
 
 Issue #97 implements admin event/session metadata edits through the callable `greenpowerEventEdit`, exported from `functions/main.js`, and a selector/editor on `/424-greenpower-telemetry`. Hosting, the callable and its four required index additions were deployed and verified on 19 October 2026. The approved historical event names and same-day dyno groups were subsequently applied as 36 events; session boundaries and individual battery-test assignments remain pending review. [Release evidence](audits/greenpower-event-live-verification-2026-10-19.json). See [data-model.md → Greenpower event metadata](data-model.md#greenpower-event-metadata) for exact fields, units, authorization, query/load budgets and rollback behavior.
 
-Open Load history → Events, filter by type/date/exact location, then choose an event and session. More events/sessions load only on request. Recorded days shows each date with its same-date event names (or No event), including in the admin session editor. Choosing a date still opens the whole recorded day; the label does not approve a session assignment. Existing unassigned recordings remain accessible. Opening a recorded day uses its cached same-date event names as the page and browser title; several events remain named together. The header identifies Whole recorded day or the selected session name, with its UK date and loaded sample range. Plot zoom does not change that recording identity or range. Unassigned days, pending/failed metadata, empty selections and partial loads remain explicit. The selected event name also becomes the page title when choosing a session. Live, Data, Track map and Lap list keep their existing behavior; session changes reset dataset-specific chart/cursor/lap state while view switching preserves it. Recorded-day labels were deployed and verified on 19 October 2026. [Label release evidence](audits/greenpower-recorded-day-live-verification-2026-10-19.json). The event/session header was deployed and verified on 19 October 2026. [Header release evidence](audits/greenpower-header-live-verification-2026-10-19.json).
+The updated event workflow presents one event per recorded UK day. Open Load history, choose Year (2026 onward, default current UK year) and optional exact Track, then select an event. The whole event loads immediately, even without saved metadata or sessions. Choose a session to load just its ranges, or Whole event to return to the day. Session type filters sessions within the selected event. Applying filters loads all recorded events for that year without a More events action. Historical original-ID metadata still supplies event names until a reviewed day-based record exists. Event names, UK dates and actual loaded times remain independent of chart zoom. Review-status labels and controls are removed; legacy fields/audit information remain stored.
 
-Admins use Edit → Event for New/Edit event, Add/Edit session, reassignment, Move to new event (split), or Merge sessions. To add a run, load a recorded day, zoom the charts, choose Add session and select the intended event in the draft. An event without recordings can also open an empty session draft; its Recorded day control loads data explicitly, then Use current zoom captures the reviewed range. Review the event and actual UK time range before confirming. Additional loaded day ranges can be appended to a draft; overlapping or unordered ranges are refused. Optional engineering values carry explicit units, and existing source provenance is retained. Metadata saves and shared view/track saves remain separate. Merge review shows how many sessions remain; larger merges continue through explicit actions. No spreadsheet candidate is approved or applied automatically.
+Admins use Edit → Event to name/edit that day or Add/Edit session. Load the event, zoom the charts, add a session, choose its type and confirm the actual sample ranges. Additional disjoint ranges must remain inside the same UK day. Event dates are read-only, and the separate New event, split/merge and reassignment flows are retired. Shared view/track saves remain separate from metadata saves. Engineering units and source provenance retain their documented contracts.
 
-The release retained all 19 existing indexes and added four ready composite indexes; all five selector query shapes planned successfully without executing queries. See the [live index comparison](audits/greenpower-event-live-indexes-2026-10-19.json) and [query plans](audits/greenpower-event-query-plans-2026-10-19.json). Future releases must perform the documented live index comparison without deleting unrelated definitions. Existing signed-in telemetry rules already protect metadata reads and deny direct client writes; the new UI uses `PermissionsService` for controls and the callable for protected writes. A missing callable/index produces a visible error and retains the draft. This release made no production metadata or raw-sample writes.
-
-An authenticated Firebase Functions client calls `httpsCallable('greenpowerEventEdit')` with a stable request ID and complete metadata changes. For example, a **new manually reviewed event without sessions** uses this request shape (the example is not an instruction to write production data):
-
-```json
-{
-  "requestId": "reviewed-create-unique-id",
-  "action": "edit",
-  "events": [{
-    "id": "stable-event-id",
-    "expectedRevision": 0,
-    "data": {
-      "name": "Full dyno",
-      "type": "full_dyno",
-      "date": "2026-06-14",
-      "timeZone": "Europe/London",
-      "state": "active",
-      "metadataStatus": "review_needed"
-    }
-  }],
-  "sessions": []
-}
-```
-
-Use the current positive `expectedRevision` for an edit; never submit server-owned counts, actors or timestamps. Every changed session needs exact reviewed sample locators and its affected event revisions. An existing event entry may omit `data` to retain its metadata during a session edit. Retry an uncertain response with the **same request ID and identical payload**. A `failed-precondition` conflict requires reloading/reviewing current metadata and a new request ID; `already-exists` means that key was used with different content. Split/merge operations work in explicit bounded batches. Historical mapping remains [pending Nico's review](audits/greenpower-event-review-2026-10-19.md); no spreadsheet rows are applied automatically.
+The callable keeps its authenticated request/revision/idempotency envelope, but now requires date-keyed events backed by an existing recording day and typed same-day sessions. Signed-in read access and trusted-admin write checks remain unchanged. See [data-model.md](data-model.md#greenpower-event-metadata) for the exact contracts and work bounds.
 
 Run `npm run test:greenpower` for schema/callable unit coverage. With Java 21 and the repository Firebase CLI available, run `node_modules/.bin/firebase emulators:exec --only firestore --project demo-greenpower 'npm run test:greenpower:emulator'`. The emulator tests refuse non-local Firestore hosts and use synthetic demo data. They exercise real metadata transactions, audit timestamps, concurrent idempotency/revision conflicts and existing authenticated/unauthenticated/cross-user rules. The callable handler is invoked through its Functions SDK `.run` entry point; HTTPS token verification/transport and a deployed endpoint are not covered by these local checks. The Functions package defines no separate lint/test command; new backend tests run through the root Greenpower scripts.
 
-The same unit command covers selector pagination, cancelled/stale responses, recording budgets, cache reuse/account clearing and editor workflows. `scripts/greenpower/ui.mjs` renders the real Angular templates with synthetic services at desktop, 390px and 320px; set `PLAYWRIGHT_MODULE` to an available Playwright module when it is not installed locally. `GREENPOWER_EVENTS_ONLY=1` runs its focused event/editor checks. This harness makes no production Firebase calls. The release audit records ready production indexes, a deployed callable rejecting unsigned edits, protected anonymous metadata reads and an exact Hosting bundle match. Admin writes were exercised only with synthetic emulator data.
+The same unit command covers selector pagination, cancelled/stale responses, recording budgets, cache reuse/account clearing and editor workflows. `scripts/greenpower/ui.mjs` renders the real Angular templates with synthetic services at desktop, 390px and 320px; set `PLAYWRIGHT_MODULE` to an available Playwright module when it is not installed locally. `GREENPOWER_EVENTS_ONLY=1` runs its focused event/editor checks. This harness makes no production Firebase calls. Historical release audits record the earlier production indexes/callable/header. The replacement is validated locally with synthetic unit, emulator and browser data; those earlier audits do not establish deployment or index readiness for this version.
 
-Rollback is additive: disable the callable independently or roll back its export. Existing raw ingestion/readers remain compatible. Restore metadata only through an explicitly reviewed compensating edit with current revisions; preserve the prior audit and raw data. Historical mapping/backfill remains separate reviewed work; no historical metadata writes are part of this release.
+Bulk metadata migration remains pending review and is not part of this deployment. The old arbitrary-ID event backfill command is retired. For a separately requested migration, prepare a reviewed plan from **current saved metadata**, without applying it:
+
+```sh
+node scripts/greenpower/eventDayMigration.mjs prepare audits/greenpower-event-approved-manifest-2026-10-19.json --out /private/tmp/event-day-plan.json
+```
+
+Preparation prints a zero-write preflight report, skipped dates without recordings, and the exact plan SHA-256. Review that saved plan before running its explicit apply command:
+
+```sh
+node scripts/greenpower/eventDayMigration.mjs apply /private/tmp/event-day-plan.json --sha256 REVIEWED_PLAN_SHA256 --report /private/tmp/event-day-migration.json
+```
+
+The operator requires the Firebase CLI account’s enabled live Auth identity and trusted admin claim. It preserves raw samples, sessions, legacy event records and historical audits. Changed sources, existing canonical targets, duplicate dates or sources with sessions stop instead of guessing or overwriting. Apply is resumable by replaying the same plan/actor, with no collection scans or automatic application retries. [Migration bounds and safeguards](data-model.md#historical-event-metadata-migration).
+
+Before releasing this replacement, audit live indexes against the repository, add the session-type index and wait for readiness, prevent concurrent legacy metadata edits, prepare/review/apply the migration, then release the validated callable and client together. Existing 36-event application/header release audits describe the earlier deployed model, not verification of this replacement. No production migration, index operation or deployment has been performed for the day-based replacement. [Local verification and release requirements](audits/greenpower-day-events-local-verification-2026-10-19.json).
 
 ### Team Radio prototype
 

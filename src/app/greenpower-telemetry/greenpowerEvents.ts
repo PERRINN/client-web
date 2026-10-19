@@ -5,6 +5,10 @@ export const EVENT_TYPES = [
   { id: 'full_dyno', label: 'Full dyno' }, { id: 'battery_dyno', label: 'Battery dyno' },
   { id: 'workshop_test', label: 'Workshop test' }, { id: 'other', label: 'Other' }
 ];
+export const SESSION_TYPES = [
+  { id: 'race', label: 'Race' }, { id: 'practice', label: 'Practice' }, { id: 'qualifying', label: 'Qualifying' },
+  ...EVENT_TYPES.filter(type => type.id !== 'race')
+];
 export const METADATA_STATUSES = [
   { id: 'review_needed', label: 'Needs review' }, { id: 'matched', label: 'Matched' }, { id: 'unmatched', label: 'Unmatched' }
 ];
@@ -28,21 +32,31 @@ export interface RecordingSegment {
   firstChunk: string; lastChunk: string; firstIndex: number; lastIndex: number;
   firstSampleId: string; lastSampleId: string; firstAt: number; lastAt: number;
 }
-export interface SessionData extends Metadata { eventId: string; runNumber?: number; firstAt: number; lastAt: number; segments: RecordingSegment[]; }
+export interface SessionData extends Metadata { type?: string; eventId: string; runNumber?: number; firstAt: number; lastAt: number; segments: RecordingSegment[]; }
 export interface SavedMetadata { id: string; revision: number; updatedBy: string; }
 export interface TelemetryEvent extends EventData, SavedMetadata { sessionCount: number; locationKey?: string; }
 export interface TelemetrySession extends SessionData, SavedMetadata {}
 export type DayEventSummary = Pick<TelemetryEvent, 'id' | 'name' | 'date' | 'state' | 'revision'>;
+/** Prefer day metadata after migration; retain historical same-date names until then. */
+export function recordedEventName(day: string, events: DayEventSummary[]): string {
+  const active = events.filter(event => event.date === day && event.state === 'active');
+  const canonical = active.find(event => event.id === day);
+  return (canonical ? [canonical] : active).map(event => event.name).join(' / ');
+}
 export interface RecordedDayContext { events: DayEventSummary[]; complete: boolean; loading: boolean; failed: boolean; }
+export function defaultEventFilters(): EventFilters {
+  const year = new Intl.DateTimeFormat('en', { timeZone: 'Europe/London', year: 'numeric' }).format(new Date());
+  return { type: '', location: '', from: `${year}-01-01`, to: `${year}-12-31` };
+}
 export interface EventFilters { type: string; location: string; from: string; to: string; }
 export interface MetadataChange<T> { id: string; expectedRevision: number; data?: T; }
-export interface EventEditRequest { requestId: string; action: 'edit' | 'reassign' | 'split' | 'merge'; events: MetadataChange<EventData>[]; sessions: MetadataChange<SessionData>[]; }
+export interface EventEditRequest { requestId: string; action: 'edit'; events: MetadataChange<EventData>[]; sessions: MetadataChange<SessionData>[]; }
 export interface EventEditResult { changeId: string; events: { id: string; revision: number }[]; sessions: { id: string; revision: number }[]; }
 export type MetadataDraft = Partial<EventData & SessionData>;
 
 const common = ['name', 'description', 'notes', 'driver', 'operator', 'result', 'tags', 'engineering', 'metadataStatus', 'provenance'];
 export function editable<T extends EventData | SessionData>(record: T): T {
-  const fields = 'eventId' in record ? [...common, 'eventId', 'runNumber', 'firstAt', 'lastAt', 'segments']
+  const fields = 'eventId' in record ? [...common, 'type', 'eventId', 'runNumber', 'firstAt', 'lastAt', 'segments']
     : [...common, 'type', 'date', 'timeZone', 'localTime', 'location', 'state', 'supersededBy'];
   return JSON.parse(JSON.stringify(Object.fromEntries(Object.entries(record).filter(([key]) => fields.includes(key)))));
 }
@@ -75,6 +89,8 @@ export function metadataError(data: MetadataDraft, session = false): string {
     if (data[key] !== undefined && size(data[key]) > max) return `${key[0].toUpperCase() + key.slice(1)} is too long.`;
   }
   if (session) {
+    if (data.type !== undefined && !SESSION_TYPES.some(type => type.id === data.type)) return 'Choose a session type.';
+    if (data.segments?.some(segment => segment.day !== data.segments![0].day)) return 'Sessions must stay within one UK recorded day.';
     if (!validId(data.eventId) || !validSegments(data.segments) || data.firstAt !== data.segments[0].firstAt || data.lastAt !== data.segments.at(-1)?.lastAt) return 'Choose a valid recorded range.';
     if (data.runNumber !== undefined && (!Number.isSafeInteger(data.runNumber) || data.runNumber < 1)) return 'Enter a positive run number.';
   } else if (!EVENT_TYPES.some(item => item.id === data.type) || !validDate(data.date) || data.timeZone !== 'Europe/London') return 'Choose an event type and valid UK date.';
@@ -105,3 +121,9 @@ export function validEvent(value: unknown): value is TelemetryEvent {
   catch { return false; }
 }
 export function validSession(value: unknown): value is TelemetrySession { try { return saved(value) && !metadataError(editable(value as TelemetrySession), true); } catch { return false; } }
+
+/** A recorded day exists as an event even before optional metadata is saved. */
+export function dayEvent(date: string): TelemetryEvent {
+  return { id: date, date, name: 'Event', type: 'other', timeZone: 'Europe/London', state: 'active',
+    metadataStatus: 'unmatched', revision: 0, updatedBy: '', sessionCount: 0 };
+}

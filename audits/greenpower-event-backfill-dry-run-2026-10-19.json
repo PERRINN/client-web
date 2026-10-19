@@ -1,0 +1,29 @@
+{
+  "checkedAt": "2026-10-19T17:22:53.326Z",
+  "projectId": "perrinn-d5fc1",
+  "manifestSha256": "db76813169bc1b5224bb3158d6ce5d83fd4168d887195379fe6386bc6334fee8",
+  "mode": "dry-run",
+  "bounds": {
+    "events": 36,
+    "requestsPerPhase": 9,
+    "concurrency": 1,
+    "transactionAttemptsPerRequest": 3,
+    "transactionReadsPerPhase": 135,
+    "maximumCommittedWrites": 54,
+    "verificationReads": 36,
+    "automaticApplicationRetries": 0
+  },
+  "actorVerified": "Live Firebase Auth account with perrinnAdmin === true",
+  "dryRunReads": 45,
+  "plannedWrites": 54,
+  "applyReads": 0,
+  "committedWrites": 0,
+  "replayedRequests": 0,
+  "results": [],
+  "verification": [],
+  "sessionWrites": 0,
+  "rawWrites": 0,
+  "historicalSessionBoundaries": "pending_review",
+  "batteryTestAssignments": "pending_review",
+  "manifest": "audits/greenpower-event-approved-manifest-2026-10-19.json"
+}

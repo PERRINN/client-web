@@ -1,5 +1,5 @@
 import { Component, ElementRef, Input, OnChanges, ViewChild } from '@angular/core';
-import { Engineering, EVENT_TYPES, MetadataDraft, METADATA_STATUSES } from './greenpowerEvents';
+import { Engineering, SESSION_TYPES, MetadataDraft } from './greenpowerEvents';
 
 @Component({ selector: 'app-greenpower-metadata-fields', standalone: false,
   templateUrl: './greenpower-metadata-fields.component.html', styleUrls: ['./greenpower-metadata-fields.component.css'] })
@@ -7,11 +7,11 @@ export class GreenpowerMetadataFieldsComponent implements OnChanges {
   @Input() data: MetadataDraft = {};
   @Input() session = false;
   @Input() disabled = false;
-  @ViewChild('nameInput') set nameInput(input: ElementRef<HTMLInputElement> | undefined) { input?.nativeElement.focus(); }
+  @ViewChild('initialInput') set initialInput(input: ElementRef<HTMLElement> | undefined) { input?.nativeElement.focus(); }
   readonly prefix = 'metadata-' + crypto.randomUUID();
-  readonly types = EVENT_TYPES;
-  readonly statuses = METADATA_STATUSES;
+  readonly types = SESSION_TYPES;
   readonly people = [{ key: 'driver', label: 'Driver' }, { key: 'operator', label: 'Operator' }, { key: 'result', label: 'Result' }];
+  get visiblePeople() { return this.session ? this.people.filter(person => person.key !== 'operator') : this.people; }
   readonly measures = [
     { key: 'gearingRatio', label: 'Ratio', unit: '1' }, { key: 'carMass', label: 'Car mass', unit: 'kg' },
     { key: 'driverMass', label: 'Driver mass', unit: 'kg' }, { key: 'ambientTemperature', label: 'Ambient temperature', unit: '°C' },

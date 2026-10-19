@@ -1,0 +1,1371 @@
+{
+  "version": 1,
+  "projectId": "perrinn-d5fc1",
+  "scope": "events-only",
+  "approval": {
+    "date": "2026-10-19",
+    "decision": "Apply approved event names and same-day dyno groups. Leave uncertain session boundaries and individual battery-test assignments pending review."
+  },
+  "source": {
+    "snapshot": "audits/greenpower-event-source-2026-10-19.json",
+    "snapshotSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f",
+    "reconciliation": "audits/greenpower-event-reconciliation-2026-10-19.json",
+    "reconciliationSha256": "9f73fbce67f046d568f2cab6d8b836fae905b47c6e977c7ad0e98d284741643d"
+  },
+  "events": [
+    {
+      "id": "historical-battery-dyno-2026-07-13",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Battery dyno · 2026-07-13",
+        "type": "battery_dyno",
+        "date": "2026-07-13",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "battery-dyno-test:1",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1199941008,
+            "sheetName": "battery dyno tests",
+            "row": 2,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          },
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "battery-dyno-test:2",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1199941008,
+            "sheetName": "battery dyno tests",
+            "row": 3,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          },
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "battery-dyno-test:3",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1199941008,
+            "sheetName": "battery dyno tests",
+            "row": 4,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          },
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "battery-dyno-test:4",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1199941008,
+            "sheetName": "battery dyno tests",
+            "row": 5,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Battery dyno tests 1, 2, 3, 4."
+      }
+    },
+    {
+      "id": "historical-battery-dyno-2026-07-14",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Battery dyno · 2026-07-14",
+        "type": "battery_dyno",
+        "date": "2026-07-14",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "battery-dyno-test:5",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1199941008,
+            "sheetName": "battery dyno tests",
+            "row": 6,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          },
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "battery-dyno-test:6",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1199941008,
+            "sheetName": "battery dyno tests",
+            "row": 7,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Battery dyno tests 5, 6."
+      }
+    },
+    {
+      "id": "historical-battery-dyno-2026-07-21",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Battery dyno · 2026-07-21",
+        "type": "battery_dyno",
+        "date": "2026-07-21",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "battery-dyno-test:7",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1199941008,
+            "sheetName": "battery dyno tests",
+            "row": 8,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          },
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "battery-dyno-test:8",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1199941008,
+            "sheetName": "battery dyno tests",
+            "row": 9,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Battery dyno tests 7, 8."
+      }
+    },
+    {
+      "id": "historical-battery-dyno-2026-07-22",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Battery dyno · 2026-07-22",
+        "type": "battery_dyno",
+        "date": "2026-07-22",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "battery-dyno-test:9",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1199941008,
+            "sheetName": "battery dyno tests",
+            "row": 10,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          },
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "battery-dyno-test:10",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1199941008,
+            "sheetName": "battery dyno tests",
+            "row": 11,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Battery dyno tests 9, 10."
+      }
+    },
+    {
+      "id": "historical-battery-dyno-2026-07-23",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Battery dyno · 2026-07-23",
+        "type": "battery_dyno",
+        "date": "2026-07-23",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "battery-dyno-test:11",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1199941008,
+            "sheetName": "battery dyno tests",
+            "row": 12,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          },
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "battery-dyno-test:12",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1199941008,
+            "sheetName": "battery dyno tests",
+            "row": 13,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Battery dyno tests 11, 12."
+      }
+    },
+    {
+      "id": "historical-battery-dyno-2026-07-24",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Battery dyno · 2026-07-24",
+        "type": "battery_dyno",
+        "date": "2026-07-24",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "battery-dyno-test:13",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1199941008,
+            "sheetName": "battery dyno tests",
+            "row": 14,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          },
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "battery-dyno-test:14",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1199941008,
+            "sheetName": "battery dyno tests",
+            "row": 15,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Battery dyno tests 13, 14."
+      }
+    },
+    {
+      "id": "historical-battery-dyno-2026-09-19",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Battery dyno · 2026-09-19",
+        "type": "battery_dyno",
+        "date": "2026-09-19",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "battery-dyno-test:15",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1199941008,
+            "sheetName": "battery dyno tests",
+            "row": 16,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          },
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "battery-dyno-test:16",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1199941008,
+            "sheetName": "battery dyno tests",
+            "row": 17,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Battery dyno tests 15, 16."
+      }
+    },
+    {
+      "id": "historical-battery-dyno-2026-09-20",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Battery dyno · 2026-09-20",
+        "type": "battery_dyno",
+        "date": "2026-09-20",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "battery-dyno-test:17",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1199941008,
+            "sheetName": "battery dyno tests",
+            "row": 18,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          },
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "battery-dyno-test:18",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1199941008,
+            "sheetName": "battery dyno tests",
+            "row": 19,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Battery dyno tests 17, 18."
+      }
+    },
+    {
+      "id": "historical-event-2026-05-06",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Mallory Park race",
+        "type": "race",
+        "date": "2026-05-06",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "events:2026-05-06:Mallory park race",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 2133803028,
+            "sheetName": "events",
+            "row": 3,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "driver": "Zack",
+        "result": "P2",
+        "location": "Mallory Park"
+      }
+    },
+    {
+      "id": "historical-event-2026-05-24",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Goodwood race",
+        "type": "race",
+        "date": "2026-05-24",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "events:2026-05-24:Goodwood race",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 2133803028,
+            "sheetName": "events",
+            "row": 4,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "driver": "Laura",
+        "result": "DNF",
+        "location": "Goodwood"
+      }
+    },
+    {
+      "id": "historical-event-2026-05-27",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Castle Combe test",
+        "type": "track_test",
+        "date": "2026-05-27",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "events:2026-05-27:Castle Combe test",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 2133803028,
+            "sheetName": "events",
+            "row": 5,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "location": "Castle Combe"
+      }
+    },
+    {
+      "id": "historical-event-2026-05-31",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Castle Combe race",
+        "type": "race",
+        "date": "2026-05-31",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "events:2026-05-31:Castle Combe race",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 2133803028,
+            "sheetName": "events",
+            "row": 6,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "driver": "Zack",
+        "result": "P3",
+        "location": "Castle Combe"
+      }
+    },
+    {
+      "id": "historical-event-2026-06-07",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Bedford race",
+        "type": "race",
+        "date": "2026-06-07",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "events:2026-06-07:Bedford race",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 2133803028,
+            "sheetName": "events",
+            "row": 7,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "driver": "Zack",
+        "result": "P1",
+        "location": "Bedford"
+      }
+    },
+    {
+      "id": "historical-event-2026-08-14",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Castle Combe test",
+        "type": "track_test",
+        "date": "2026-08-14",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "events:2026-08-14:Castle Combe test",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 2133803028,
+            "sheetName": "events",
+            "row": 8,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "location": "Castle Combe"
+      }
+    },
+    {
+      "id": "historical-event-2026-09-12",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Dunsfold race",
+        "type": "race",
+        "date": "2026-09-12",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "events:2026-09-12:Dunsfold race",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 2133803028,
+            "sheetName": "events",
+            "row": 9,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "driver": "Zack",
+        "result": "P2",
+        "location": "Dunsfold"
+      }
+    },
+    {
+      "id": "historical-event-2026-09-24",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Mallory Park race",
+        "type": "race",
+        "date": "2026-09-24",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "events:2026-09-24:Mallory park race",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 2133803028,
+            "sheetName": "events",
+            "row": 10,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "driver": "Laura",
+        "result": "P4",
+        "location": "Mallory Park"
+      }
+    },
+    {
+      "id": "historical-event-2026-10-18",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Goodwood finals",
+        "type": "race",
+        "date": "2026-10-18",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "events:2026-10-18:Goodwood finals",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 2133803028,
+            "sheetName": "events",
+            "row": 11,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "driver": "Zack",
+        "result": "P5",
+        "location": "Goodwood"
+      }
+    },
+    {
+      "id": "historical-full-dyno-2026-06-14",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Full dyno · 2026-06-14",
+        "type": "full_dyno",
+        "date": "2026-06-14",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:1",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 2,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          },
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:2",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 3,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Full dyno runs 1, 2."
+      }
+    },
+    {
+      "id": "historical-full-dyno-2026-06-15",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Full dyno · 2026-06-15",
+        "type": "full_dyno",
+        "date": "2026-06-15",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:3",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 4,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Full dyno runs 3."
+      }
+    },
+    {
+      "id": "historical-full-dyno-2026-06-16",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Full dyno · 2026-06-16",
+        "type": "full_dyno",
+        "date": "2026-06-16",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:4",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 5,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          },
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:5",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 6,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Full dyno runs 4, 5."
+      }
+    },
+    {
+      "id": "historical-full-dyno-2026-06-17",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Full dyno · 2026-06-17",
+        "type": "full_dyno",
+        "date": "2026-06-17",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:6",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 7,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          },
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:7",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 8,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Full dyno runs 6, 7."
+      }
+    },
+    {
+      "id": "historical-full-dyno-2026-06-18",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Full dyno · 2026-06-18",
+        "type": "full_dyno",
+        "date": "2026-06-18",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:8",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 10,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Full dyno runs 8."
+      }
+    },
+    {
+      "id": "historical-full-dyno-2026-06-19",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Full dyno · 2026-06-19",
+        "type": "full_dyno",
+        "date": "2026-06-19",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:9",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 11,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Full dyno runs 9."
+      }
+    },
+    {
+      "id": "historical-full-dyno-2026-06-20",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Full dyno · 2026-06-20",
+        "type": "full_dyno",
+        "date": "2026-06-20",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:10",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 13,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Full dyno runs 10."
+      }
+    },
+    {
+      "id": "historical-full-dyno-2026-06-21",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Full dyno · 2026-06-21",
+        "type": "full_dyno",
+        "date": "2026-06-21",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:11",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 14,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Full dyno runs 11."
+      }
+    },
+    {
+      "id": "historical-full-dyno-2026-06-22",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Full dyno · 2026-06-22",
+        "type": "full_dyno",
+        "date": "2026-06-22",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:12",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 15,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Full dyno runs 12."
+      }
+    },
+    {
+      "id": "historical-full-dyno-2026-06-23",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Full dyno · 2026-06-23",
+        "type": "full_dyno",
+        "date": "2026-06-23",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:13",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 16,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Full dyno runs 13."
+      }
+    },
+    {
+      "id": "historical-full-dyno-2026-06-24",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Full dyno · 2026-06-24",
+        "type": "full_dyno",
+        "date": "2026-06-24",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:14",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 17,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Full dyno runs 14."
+      }
+    },
+    {
+      "id": "historical-full-dyno-2026-06-25",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Full dyno · 2026-06-25",
+        "type": "full_dyno",
+        "date": "2026-06-25",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:15",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 18,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Full dyno runs 15."
+      }
+    },
+    {
+      "id": "historical-full-dyno-2026-06-26",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Full dyno · 2026-06-26",
+        "type": "full_dyno",
+        "date": "2026-06-26",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:16",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 19,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Full dyno runs 16."
+      }
+    },
+    {
+      "id": "historical-full-dyno-2026-06-30",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Full dyno · 2026-06-30",
+        "type": "full_dyno",
+        "date": "2026-06-30",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:17",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 21,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Full dyno runs 17."
+      }
+    },
+    {
+      "id": "historical-full-dyno-2026-07-01",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Full dyno · 2026-07-01",
+        "type": "full_dyno",
+        "date": "2026-07-01",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:18",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 22,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Full dyno runs 18."
+      }
+    },
+    {
+      "id": "historical-full-dyno-2026-07-02",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Full dyno · 2026-07-02",
+        "type": "full_dyno",
+        "date": "2026-07-02",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:19",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 24,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Full dyno runs 19."
+      }
+    },
+    {
+      "id": "historical-full-dyno-2026-07-03",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Full dyno · 2026-07-03",
+        "type": "full_dyno",
+        "date": "2026-07-03",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:20",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 25,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Full dyno runs 20."
+      }
+    },
+    {
+      "id": "historical-full-dyno-2026-07-06",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Full dyno · 2026-07-06",
+        "type": "full_dyno",
+        "date": "2026-07-06",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:21",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 26,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Full dyno runs 21."
+      }
+    },
+    {
+      "id": "historical-full-dyno-2026-07-07",
+      "expectedRevision": 0,
+      "data": {
+        "name": "Full dyno · 2026-07-07",
+        "type": "full_dyno",
+        "date": "2026-07-07",
+        "timeZone": "Europe/London",
+        "state": "active",
+        "metadataStatus": "review_needed",
+        "provenance": [
+          {
+            "kind": "spreadsheet",
+            "sourceKey": "full-dyno-run:22",
+            "documentId": "1hM885tvrrUEp_6FDfRgioVTdUpNmd7SnPByL4zPGoS0",
+            "sheetId": 1362403411,
+            "sheetName": "dyno logs",
+            "row": 27,
+            "sourceSha256": "e299043a548ae1db9dbae121990bb88ec9caf2b700d4eea514915574fa6bf68f"
+          }
+        ],
+        "description": "Full dyno runs 22."
+      }
+    }
+  ],
+  "pendingAssignments": [
+    {
+      "sourceKey": "events:2026-05-06:Mallory park race",
+      "date": "2026-05-06",
+      "eventId": "historical-event-2026-05-06",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "events:2026-05-24:Goodwood race",
+      "date": "2026-05-24",
+      "eventId": "historical-event-2026-05-24",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "events:2026-05-27:Castle Combe test",
+      "date": "2026-05-27",
+      "eventId": "historical-event-2026-05-27",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "events:2026-05-31:Castle Combe race",
+      "date": "2026-05-31",
+      "eventId": "historical-event-2026-05-31",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "events:2026-06-07:Bedford race",
+      "date": "2026-06-07",
+      "eventId": "historical-event-2026-06-07",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "events:2026-08-14:Castle Combe test",
+      "date": "2026-08-14",
+      "eventId": "historical-event-2026-08-14",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "events:2026-09-12:Dunsfold race",
+      "date": "2026-09-12",
+      "eventId": "historical-event-2026-09-12",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "events:2026-09-24:Mallory park race",
+      "date": "2026-09-24",
+      "eventId": "historical-event-2026-09-24",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "events:2026-10-18:Goodwood finals",
+      "date": "2026-10-18",
+      "eventId": "historical-event-2026-10-18",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:1",
+      "date": "2026-06-14",
+      "eventId": "historical-full-dyno-2026-06-14",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:2",
+      "date": "2026-06-14",
+      "eventId": "historical-full-dyno-2026-06-14",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:3",
+      "date": "2026-06-15",
+      "eventId": "historical-full-dyno-2026-06-15",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:4",
+      "date": "2026-06-16",
+      "eventId": "historical-full-dyno-2026-06-16",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:5",
+      "date": "2026-06-16",
+      "eventId": "historical-full-dyno-2026-06-16",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:6",
+      "date": "2026-06-17",
+      "eventId": "historical-full-dyno-2026-06-17",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:7",
+      "date": "2026-06-17",
+      "eventId": "historical-full-dyno-2026-06-17",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:8",
+      "date": "2026-06-18",
+      "eventId": "historical-full-dyno-2026-06-18",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:9",
+      "date": "2026-06-19",
+      "eventId": "historical-full-dyno-2026-06-19",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:10",
+      "date": "2026-06-20",
+      "eventId": "historical-full-dyno-2026-06-20",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:11",
+      "date": "2026-06-21",
+      "eventId": "historical-full-dyno-2026-06-21",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:12",
+      "date": "2026-06-22",
+      "eventId": "historical-full-dyno-2026-06-22",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:13",
+      "date": "2026-06-23",
+      "eventId": "historical-full-dyno-2026-06-23",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:14",
+      "date": "2026-06-24",
+      "eventId": "historical-full-dyno-2026-06-24",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:15",
+      "date": "2026-06-25",
+      "eventId": "historical-full-dyno-2026-06-25",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:16",
+      "date": "2026-06-26",
+      "eventId": "historical-full-dyno-2026-06-26",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:17",
+      "date": "2026-06-30",
+      "eventId": "historical-full-dyno-2026-06-30",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:18",
+      "date": "2026-07-01",
+      "eventId": "historical-full-dyno-2026-07-01",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:19",
+      "date": "2026-07-02",
+      "eventId": "historical-full-dyno-2026-07-02",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:20",
+      "date": "2026-07-03",
+      "eventId": "historical-full-dyno-2026-07-03",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:21",
+      "date": "2026-07-06",
+      "eventId": "historical-full-dyno-2026-07-06",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "full-dyno-run:22",
+      "date": "2026-07-07",
+      "eventId": "historical-full-dyno-2026-07-07",
+      "reason": "Actual session boundaries pending review."
+    },
+    {
+      "sourceKey": "battery-dyno-test:1",
+      "date": "2026-07-13",
+      "eventId": "historical-battery-dyno-2026-07-13",
+      "reason": "Individual battery-test sample assignment and session boundaries pending review."
+    },
+    {
+      "sourceKey": "battery-dyno-test:2",
+      "date": "2026-07-13",
+      "eventId": "historical-battery-dyno-2026-07-13",
+      "reason": "Individual battery-test sample assignment and session boundaries pending review."
+    },
+    {
+      "sourceKey": "battery-dyno-test:3",
+      "date": "2026-07-13",
+      "eventId": "historical-battery-dyno-2026-07-13",
+      "reason": "Individual battery-test sample assignment and session boundaries pending review."
+    },
+    {
+      "sourceKey": "battery-dyno-test:4",
+      "date": "2026-07-13",
+      "eventId": "historical-battery-dyno-2026-07-13",
+      "reason": "Individual battery-test sample assignment and session boundaries pending review."
+    },
+    {
+      "sourceKey": "battery-dyno-test:5",
+      "date": "2026-07-14",
+      "eventId": "historical-battery-dyno-2026-07-14",
+      "reason": "Individual battery-test sample assignment and session boundaries pending review."
+    },
+    {
+      "sourceKey": "battery-dyno-test:6",
+      "date": "2026-07-14",
+      "eventId": "historical-battery-dyno-2026-07-14",
+      "reason": "Individual battery-test sample assignment and session boundaries pending review."
+    },
+    {
+      "sourceKey": "battery-dyno-test:7",
+      "date": "2026-07-21",
+      "eventId": "historical-battery-dyno-2026-07-21",
+      "reason": "Individual battery-test sample assignment and session boundaries pending review."
+    },
+    {
+      "sourceKey": "battery-dyno-test:8",
+      "date": "2026-07-21",
+      "eventId": "historical-battery-dyno-2026-07-21",
+      "reason": "Individual battery-test sample assignment and session boundaries pending review."
+    },
+    {
+      "sourceKey": "battery-dyno-test:9",
+      "date": "2026-07-22",
+      "eventId": "historical-battery-dyno-2026-07-22",
+      "reason": "Individual battery-test sample assignment and session boundaries pending review."
+    },
+    {
+      "sourceKey": "battery-dyno-test:10",
+      "date": "2026-07-22",
+      "eventId": "historical-battery-dyno-2026-07-22",
+      "reason": "Individual battery-test sample assignment and session boundaries pending review."
+    },
+    {
+      "sourceKey": "battery-dyno-test:11",
+      "date": "2026-07-23",
+      "eventId": "historical-battery-dyno-2026-07-23",
+      "reason": "Individual battery-test sample assignment and session boundaries pending review."
+    },
+    {
+      "sourceKey": "battery-dyno-test:12",
+      "date": "2026-07-23",
+      "eventId": "historical-battery-dyno-2026-07-23",
+      "reason": "Individual battery-test sample assignment and session boundaries pending review."
+    },
+    {
+      "sourceKey": "battery-dyno-test:13",
+      "date": "2026-07-24",
+      "eventId": "historical-battery-dyno-2026-07-24",
+      "reason": "Individual battery-test sample assignment and session boundaries pending review."
+    },
+    {
+      "sourceKey": "battery-dyno-test:14",
+      "date": "2026-07-24",
+      "eventId": "historical-battery-dyno-2026-07-24",
+      "reason": "Individual battery-test sample assignment and session boundaries pending review."
+    },
+    {
+      "sourceKey": "battery-dyno-test:15",
+      "date": "2026-09-19",
+      "eventId": "historical-battery-dyno-2026-09-19",
+      "reason": "Individual battery-test sample assignment and session boundaries pending review."
+    },
+    {
+      "sourceKey": "battery-dyno-test:16",
+      "date": "2026-09-19",
+      "eventId": "historical-battery-dyno-2026-09-19",
+      "reason": "Individual battery-test sample assignment and session boundaries pending review."
+    },
+    {
+      "sourceKey": "battery-dyno-test:17",
+      "date": "2026-09-20",
+      "eventId": "historical-battery-dyno-2026-09-20",
+      "reason": "Individual battery-test sample assignment and session boundaries pending review."
+    },
+    {
+      "sourceKey": "battery-dyno-test:18",
+      "date": "2026-09-20",
+      "eventId": "historical-battery-dyno-2026-09-20",
+      "reason": "Individual battery-test sample assignment and session boundaries pending review."
+    },
+    {
+      "sourceKey": "battery-dyno-test:19",
+      "date": "2026-10-20",
+      "eventId": null,
+      "reason": "No imported recording; future source row remains unapplied."
+    },
+    {
+      "sourceKey": "battery-dyno-test:20",
+      "date": "2026-10-20",
+      "eventId": null,
+      "reason": "No imported recording; future source row remains unapplied."
+    },
+    {
+      "sourceKey": "battery-dyno-test:21",
+      "date": "2026-10-21",
+      "eventId": null,
+      "reason": "No imported recording; future source row remains unapplied."
+    },
+    {
+      "sourceKey": "battery-dyno-test:22",
+      "date": "2026-10-21",
+      "eventId": null,
+      "reason": "No imported recording; future source row remains unapplied."
+    }
+  ],
+  "unassignedImportedDates": [
+    "2026-04-18",
+    "2026-04-29",
+    "2026-04-30",
+    "2026-05-01",
+    "2026-05-02",
+    "2026-05-03",
+    "2026-05-04",
+    "2026-05-08",
+    "2026-05-10",
+    "2026-05-11",
+    "2026-05-15",
+    "2026-05-17",
+    "2026-05-18",
+    "2026-05-26",
+    "2026-06-04",
+    "2026-06-11",
+    "2026-06-12",
+    "2026-06-13",
+    "2026-06-29",
+    "2026-07-04",
+    "2026-07-11",
+    "2026-07-12",
+    "2026-07-18",
+    "2026-07-20",
+    "2026-08-09",
+    "2026-08-15",
+    "2026-08-17",
+    "2026-08-19",
+    "2026-08-22",
+    "2026-08-24",
+    "2026-09-10",
+    "2026-09-17",
+    "2026-09-18",
+    "2026-09-25",
+    "2026-09-27",
+    "2026-09-28",
+    "2026-09-29"
+  ]
+}

@@ -1,132 +1,112 @@
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
-import { createRequire } from 'node:module';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { load, eventData, recordings } from './load.mjs';
-import { ROOT, adminAuth, recording, event, eventChange, request, session, sessionChange } from './eventFixtures.mjs';
+import { load, eventData } from './load.mjs';
+import { ROOT, adminAuth, recording, eventChange, request, session, sessionChange } from './eventFixtures.mjs';
+import { createRequire } from 'node:module';
+import { prepareDayMigration, runDayMigration } from './eventDayMigration.mjs';
 const host = process.env.FIRESTORE_EMULATOR_HOST;
 assert.match(host || '', /^(127\.0\.0\.1|localhost):\d+$/, 'A local Firestore emulator is required; never use production.');
-const projectId = 'demo-greenpower';
 const require = createRequire(import.meta.url), admin = require('firebase-admin');
-const app = admin.initializeApp({ projectId });
-const db = app.firestore();
+const projectId = 'demo-greenpower', app = admin.initializeApp({ projectId }), db = app.firestore();
 const { greenpowerEventEdit } = require('../../functions/greenpowerEvents.f.js');
-after(async () => { await db.terminate(); await app.delete(); });
 const invoke = (data, auth = adminAuth) => greenpowerEventEdit.run({ data, auth });
+const day = '2026-06-14', fixture = recording(day);
+after(async () => { await db.terminate(); await app.delete(); });
+let created;
 function token(uid, claims = {}) {
-  const b64 = value => Buffer.from(JSON.stringify(value)).toString('base64url');
-  const now = Math.floor(Date.now() / 1000);
+  const b64 = value => Buffer.from(JSON.stringify(value)).toString('base64url'), now = Math.floor(Date.now() / 1000);
   return b64({ alg: 'none', typ: 'JWT' }) + '.' + b64({ ...claims, sub: uid, user_id: uid, aud: projectId,
-    iss: 'https://securetoken.google.com/' + projectId, iat: now, exp: now + 3600,
-    firebase: { sign_in_provider: 'custom', identities: {} } }) + '.';
+    iss: 'https://securetoken.google.com/' + projectId, iat: now, exp: now + 3600, firebase: { sign_in_provider: 'custom', identities: {} } }) + '.';
 }
-const documentsUrl = 'http://' + host + '/v1/projects/' + projectId + '/databases/(default)/documents/';
 async function access(path, uid, method = 'GET', claims = {}) {
-  return fetch(documentsUrl + path, { method, headers: { 'Content-Type': 'application/json', ...(uid ? { Authorization: 'Bearer ' + token(uid, claims) } : {}) },
+  return fetch('http://' + host + '/v1/projects/' + projectId + '/databases/(default)/documents/' + path, {
+    method, headers: { 'Content-Type': 'application/json', ...(uid ? { Authorization: 'Bearer ' + token(uid, claims) } : {}) },
     ...(['PATCH', 'POST'].includes(method) ? { body: JSON.stringify({ fields: { tampered: { booleanValue: true } } }) } : {}) });
 }
-let created;
-const fixture = recording('2026-06-14');
-test('real callable handler commits verified sessions, counters and timestamped audit maps atomically', async () => {
+test('real callable creates one date-keyed event and typed sessions atomically without modifying raw data', async () => {
   const batch = db.batch(); fixture.records.forEach(([path, value]) => batch.set(db.doc(path), value)); await batch.commit();
   const before = await db.getAll(...fixture.records.map(([path]) => db.doc(path)));
-  const input = request('emulator-create', [eventChange('emulator-dyno')], [sessionChange('emulator-run-1', session('emulator-dyno', [fixture.segment(0, 1)])),
-    sessionChange('emulator-run-2', session('emulator-dyno', [fixture.segment(2, 3)], 'Run 2'))]);
-  created = await invoke(input);
-  assert.equal(created.writes, 5); assert.equal(created.reads, 7);
-  const eventDoc = await db.doc(ROOT + '/events/emulator-dyno').get();
-  assert.equal(eventDoc.data().sessionCount, 2); assert.ok(eventDoc.data().updatedAt.toMillis() > 0);
+  const input = request('day-emulator-create', [eventChange(day)], [sessionChange('practice', session(day, [fixture.segment(0, 1)])),
+    sessionChange('race', { ...session(day, [fixture.segment(2, 3)]), type: 'race' })]);
+  created = await invoke(input); assert.equal(created.writes, 5); assert.equal(created.reads, 7);
+  const event = (await db.doc(ROOT + '/events/' + day).get()).data(); assert.equal(event.sessionCount, 2);
   const audit = (await db.doc(ROOT + '/metadataChanges/' + created.changeId).get()).data();
-  assert.equal(audit.records.events['emulator-dyno'].after.updatedAt.toMillis(), eventDoc.data().updatedAt.toMillis());
-  assert.equal(audit.records.sessions['emulator-run-1'].before, null);
+  assert.equal(audit.records.events[day].after.updatedAt.toMillis(), event.updatedAt.toMillis());
   const after = await db.getAll(...fixture.records.map(([path]) => db.doc(path)));
-  assert.ok(after.every((snapshot, i) => snapshot.updateTime.isEqual(before[i].updateTime)), 'raw/day/import versions never change');
-  const replay = await invoke(input); assert.equal(replay.writes, 0); assert.equal(replay.replayed, true);
-  assert.equal((await db.doc(ROOT + '/events/emulator-dyno').get()).data().revision, 1);
+  assert.ok(after.every((snapshot, i) => snapshot.updateTime.isEqual(before[i].updateTime)));
+  assert.equal((await invoke(input)).writes, 0);
 });
 
-test('metadata rules deny anonymous reads and every direct client write, including admin claims', async () => {
-  const paths = [ROOT + '/events/emulator-dyno', ROOT + '/sessions/emulator-run-1',
-    ROOT + '/metadataChanges/' + created.changeId, ROOT + '/metadataRequests/' + created.changeId];
-  for (const path of paths) {
+test('anonymous reads and all direct writes remain denied while other signed-in users can read', async () => {
+  for (const path of [ROOT + '/events/' + day, ROOT + '/sessions/race', ROOT + '/metadataChanges/' + created.changeId, ROOT + '/metadataRequests/' + created.changeId]) {
     assert.equal((await access(path)).status, 403);
-    for (const uid of ['alice', 'bob']) assert.equal((await access(path, uid)).status, 200, uid + ': ' + path);
-    for (const [uid, claims] of [[undefined, {}], ['alice', {}], ['bob', {}], ['test-admin', { perrinnAdmin: true }]]) {
-      for (const method of ['PATCH', 'DELETE']) assert.equal((await access(path, uid, method, claims)).status, 403, method + ': ' + path);
-    }
+    for (const uid of ['alice', 'bob']) assert.equal((await access(path, uid)).status, 200);
+    for (const [uid, claims] of [[undefined, {}], ['alice', {}], ['admin', { perrinnAdmin: true }]])
+      for (const method of ['PATCH', 'DELETE']) assert.equal((await access(path, uid, method, claims)).status, 403);
   }
-  // A protected collection query also cannot expose telemetry while signed out.
-  const response = await fetch(documentsUrl + ROOT + ':runQuery', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ structuredQuery: { from: [{ collectionId: 'events' }], limit: 2 } }) });
-  assert.equal(response.status, 403);
 });
 
-test('handler rejects unauthenticated, ordinary and revoked admins without writes', async () => {
-  const input = request('emulator-forbidden', [eventChange('emulator-forbidden')]);
-  for (const [auth, code] of [[null, 'unauthenticated'], [{ uid: 'alice', token: {} }, 'permission-denied'],
-    [{ uid: 'test-admin', token: { perrinnAdmin: 'true' } }, 'permission-denied'], [{ uid: 'test-admin', token: {} }, 'permission-denied']]) {
-    await assert.rejects(invoke(input, auth), e => e.code === code);
-  }
-  assert.equal((await db.doc(ROOT + '/events/emulator-forbidden').get()).exists, false);
+test('callable rejects missing recordings, duplicate event identities, cross-day sessions and revoked admins', async () => {
+  await assert.rejects(invoke(request('random', [eventChange('random')])), error => error.code === 'invalid-argument');
+  await assert.rejects(invoke(request('revoked', [eventChange(day, 1, null)]), { uid: 'admin', token: {} }), error => error.code === 'permission-denied');
+  await assert.rejects(invoke(request('missing', [eventChange('2026-06-15', 0, eventData.editable(eventData.dayEvent('2026-06-15')))])), error => error.code === 'failed-precondition');
+  const next = recording('2026-06-15'), bad = { ...session(day, [fixture.segment(), next.segment()]), type: 'race' };
+  await assert.rejects(invoke(request('cross', [eventChange(day, 1, null)], [sessionChange('cross', bad)])), error => error.code === 'invalid-argument');
+  assert.equal((await db.doc(ROOT + '/sessions/cross').get()).exists, false);
 });
 
-test('concurrent identical requests commit once; conflicting revisions retain the winning metadata', async () => {
-  const input = request('emulator-concurrent', [eventChange('emulator-concurrent')]);
+test('concurrent identical creates replay once and stale revisions cannot duplicate a day event', async () => {
+  const date = '2026-06-16'; await db.doc(ROOT + '/days/' + date).set({ date, count: 1 });
+  const input = request('concurrent-date-create', [eventChange(date, 0, eventData.editable(eventData.dayEvent(date)))]);
   const results = await Promise.all([invoke(input), invoke(input)]);
-  assert.equal(results.filter(r => !r.replayed).length, 1); assert.equal(results[0].changeId, results[1].changeId);
-  const updates = ['A', 'B'].map(name => invoke(request('emulator-update-' + name, [eventChange('emulator-concurrent', 1, event(name))])));
-  const settled = await Promise.allSettled(updates);
-  assert.equal(settled.filter(r => r.status === 'fulfilled').length, 1);
-  assert.equal(settled.find(r => r.status === 'rejected').reason.code, 'failed-precondition');
-  assert.equal((await db.doc(ROOT + '/events/emulator-concurrent').get()).data().revision, 2);
+  assert.equal(results.filter(result => !result.replayed).length, 1);
+  assert.equal(results[0].changeId, results[1].changeId);
+  await assert.rejects(invoke({ ...input, requestId: 'different-create' }), error => error.code === 'failed-precondition');
+  assert.equal((await db.doc(ROOT + '/events/' + date).get()).data().revision, 1);
 });
 
-test('real split/merge changes only metadata and retains source event until its last session moves', async () => {
-  const move = { ...session('emulator-target', [fixture.segment(2, 3)], 'Run 2') };
-  await invoke(request('emulator-split', [eventChange('emulator-dyno', 1, null), eventChange('emulator-target')], [sessionChange('emulator-run-2', move, 1)], 'split'));
-  await assert.rejects(invoke(request('emulator-premature', [eventChange('emulator-dyno', 2, { ...event(), state: 'superseded', supersededBy: ['emulator-target'] }), eventChange('emulator-target', 1, null)])), e => e.code === 'failed-precondition');
-  const merge = request('emulator-merge', [eventChange('emulator-dyno', 2, null), eventChange('emulator-target', 1, { ...event(), state: 'superseded', supersededBy: ['emulator-dyno'] })],
-    [sessionChange('emulator-run-2', { ...move, eventId: 'emulator-dyno' }, 2)], 'merge');
-  const result = await invoke(merge);
-  assert.equal((await db.doc(ROOT + '/events/emulator-dyno').get()).data().sessionCount, 2);
-  assert.equal((await db.doc(ROOT + '/events/emulator-target').get()).data().sessionCount, 0);
-  const audit = (await db.doc(ROOT + '/metadataChanges/' + result.changeId).get()).data();
-  assert.equal(audit.records.sessions['emulator-run-2'].before.eventId, 'emulator-target');
-  assert.equal(audit.records.sessions['emulator-run-2'].after.eventId, 'emulator-dyno');
-});
-
-test('ordinary signed-in client selects events and loads only the session samples from a shared chunk', async () => {
+test('ordinary signed-in client discovers recorded events, filters typed sessions and clears on logout', async () => {
   const { GreenpowerEventsService } = load('../../src/app/greenpower-telemetry/greenpowerEvents.service.ts', {
-    '@angular/core': { Injectable: () => target => target }, 'firebase/compat/app': { default: firebase }, 'firebase/compat/firestore': {},
-    rxjs: { Subject }, './greenpowerEvents': eventData
+    '@angular/core': { Injectable: () => target => target }, 'firebase/compat/app': { default: firebase }, 'firebase/compat/firestore': {}, rxjs: { Subject }, './greenpowerEvents': eventData
   });
-  const clientApp = firebase.initializeApp({ projectId, apiKey: 'demo-key' }, 'metadata-viewer');
-  const client = clientApp.firestore(), [hostname, port] = host.split(':');
-  client.useEmulator(hostname, Number(port), { mockUserToken: { sub: 'viewer', user_id: 'viewer' } });
+  const clientApp = firebase.initializeApp({ projectId, apiKey: 'demo-key' }, 'day-event-viewer'), client = clientApp.firestore();
+  const [hostname, port] = host.split(':'); client.useEmulator(hostname, Number(port), { mockUserToken: { sub: 'viewer', user_id: 'viewer' } });
   const state = new BehaviorSubject({ uid: 'viewer', ready: true, isAdmin: false });
-  const permissions = { state, get current() { return state.value; } };
-  const events = new GreenpowerEventsService(permissions, { firestore: client });
+  const service = new GreenpowerEventsService({ state, get current() { return state.value; } }, { firestore: client });
   const until = predicate => new Promise((resolve, reject) => {
     if (predicate()) return resolve();
-    const timer = setTimeout(() => { subscription.unsubscribe(); reject(new Error('Metadata listener timed out')); }, 10000);
-    const subscription = events.changed.subscribe(() => { if (predicate()) { clearTimeout(timer); subscription.unsubscribe(); resolve(); } });
+    const timer = setTimeout(() => { sub.unsubscribe(); reject(Error('Listener timed out')); }, 10000);
+    const sub = service.changed.subscribe(() => { if (predicate()) { clearTimeout(timer); sub.unsubscribe(); resolve(); } });
   });
   try {
-    await events.loadEvents(); assert.equal(events.listError, ''); assert.ok(events.events.some(event => event.id === 'emulator-dyno'));
-    await events.loadDayNames(['2026-06-14', '2026-06-15']);
-    assert.equal(events.dayNamesError, ''); assert.match(events.dayLabel('2026-06-14'), /emulator-dyno/);
-    assert.equal(events.dayLabel('2026-06-15'), '2026-06-15 · No event');
-    events.setRecordedDay('2026-06-16'); await until(() => events.dayContext('2026-06-16').complete);
-    assert.equal(events.dayContext('2026-06-16').events.length, 0);
-    events.setRecordedDay('');
-    events.selectEvent('emulator-dyno'); await until(() => events.eventReady && events.sessions.length === 2);
-    events.selectSession('emulator-run-1'); await until(() => events.sessionReady);
-    const reader = new recordings.RecordingReader(client.collection(ROOT + '/days'), events.selectedSession.segments);
-    await reader.load(() => true);
-    assert.deepEqual(reader.entries.map(entry => entry.sample.id), fixture.samples.slice(0, 2).map(sample => sample.id));
-    assert.equal(reader.more, false); assert.equal(events.canEdit, false);
-    state.next({ uid: '', ready: true, isAdmin: false }); assert.equal(events.selectedSession, undefined); assert.deepEqual(events.events, []);
-  } finally { events.ngOnDestroy(); await client.terminate(); await clientApp.delete(); }
+    await service.loadEvents(true, { type: 'race', location: '', from: '2026-01-01', to: '2026-12-31' });
+    assert.equal(service.listError, ''); assert.ok(service.events.some(event => event.id === day));
+    await service.selectEvent(day); await until(() => service.eventReady && !service.loadingSessions);
+    assert.deepEqual(service.sessions.map(session => session.id), ['race']);
+    service.selectSession('race'); await until(() => service.sessionReady); assert.equal(service.selectedSession.type, 'race');
+    state.next({ uid: '', ready: true, isAdmin: false }); assert.equal(service.selectedEvent, undefined); assert.deepEqual(service.events, []);
+  } finally { service.ngOnDestroy(); await client.terminate(); await clientApp.delete(); }
+});
+
+test('real migration preserves source/raw versions and commits timestamped source audit snapshots', async () => {
+  const date = '2026-06-17', sourceId = 'legacy-migration-source';
+  const data = eventData.editable(eventData.dayEvent(date)); data.name = 'Current corrected name';
+  const sourceRef = db.doc(ROOT + '/events/' + sourceId), dayRef = db.doc(ROOT + '/days/' + date);
+  await dayRef.set({ date, count: 1 });
+  await sourceRef.set({ ...data, revision: 2, sessionCount: 0, updatedBy: adminAuth.uid, updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+  const before = await db.getAll(sourceRef, dayRef);
+  const manifest = JSON.stringify({ version: 1, projectId: 'perrinn-d5fc1', scope: 'events-only', events: [
+    { id: sourceId, expectedRevision: 0, data: { ...data, name: 'Old manifest name', metadataStatus: 'review_needed' } }
+  ] });
+  const plan = await prepareDayMigration(db, manifest), settings = { actor: async () => adminAuth, timestamp: () => admin.firestore.FieldValue.serverTimestamp() };
+  assert.equal((await runDayMigration(db, plan, settings)).writes, 0);
+  const applied = await runDayMigration(db, plan, { ...settings, apply: true }); assert.equal(applied.writes, 3);
+  const canonical = (await db.doc(ROOT + '/events/' + date).get()).data(); assert.equal(canonical.name, 'Current corrected name');
+  const audit = (await db.doc(ROOT + '/metadataChanges/' + applied.results[0].changeId).get()).data();
+  assert.equal(audit.migrationSources[sourceId].revision, 2); assert.ok(audit.migrationSources[sourceId].updatedAt.toMillis() > 0);
+  assert.equal((await runDayMigration(db, plan, { ...settings, apply: true })).writes, 0);
+  const after = await db.getAll(sourceRef, dayRef); assert.ok(after.every((snapshot, i) => snapshot.updateTime.isEqual(before[i].updateTime)));
 });

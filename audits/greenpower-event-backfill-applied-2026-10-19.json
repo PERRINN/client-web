@@ -1,0 +1,472 @@
+{
+  "checkedAt": "2026-10-19T17:24:06.725Z",
+  "projectId": "perrinn-d5fc1",
+  "manifestSha256": "db76813169bc1b5224bb3158d6ce5d83fd4168d887195379fe6386bc6334fee8",
+  "mode": "apply",
+  "bounds": {
+    "events": 36,
+    "requestsPerPhase": 9,
+    "concurrency": 1,
+    "transactionAttemptsPerRequest": 3,
+    "transactionReadsPerPhase": 135,
+    "maximumCommittedWrites": 54,
+    "verificationReads": 36,
+    "automaticApplicationRetries": 0
+  },
+  "actorVerified": "Live Firebase Auth account with perrinnAdmin === true",
+  "dryRunReads": 45,
+  "plannedWrites": 54,
+  "applyReads": 45,
+  "committedWrites": 54,
+  "replayedRequests": 0,
+  "results": [
+    {
+      "changeId": "6ba31906dc02666fbc37151bf6090c9da9683a84afffc592bec9588a717efd5d",
+      "events": [
+        {
+          "id": "historical-battery-dyno-2026-07-13",
+          "revision": 1
+        },
+        {
+          "id": "historical-battery-dyno-2026-07-14",
+          "revision": 1
+        },
+        {
+          "id": "historical-battery-dyno-2026-07-21",
+          "revision": 1
+        },
+        {
+          "id": "historical-battery-dyno-2026-07-22",
+          "revision": 1
+        }
+      ],
+      "sessions": [],
+      "replayed": false,
+      "dryRun": false,
+      "reads": 5,
+      "attemptReads": 5,
+      "attempts": 1,
+      "writes": 6,
+      "plannedWrites": 6
+    },
+    {
+      "changeId": "2708108582c4ad304ecb6f4fb0b6c98ba119817bc094e76ce9e6a993dd52e512",
+      "events": [
+        {
+          "id": "historical-battery-dyno-2026-07-23",
+          "revision": 1
+        },
+        {
+          "id": "historical-battery-dyno-2026-07-24",
+          "revision": 1
+        },
+        {
+          "id": "historical-battery-dyno-2026-09-19",
+          "revision": 1
+        },
+        {
+          "id": "historical-battery-dyno-2026-09-20",
+          "revision": 1
+        }
+      ],
+      "sessions": [],
+      "replayed": false,
+      "dryRun": false,
+      "reads": 5,
+      "attemptReads": 5,
+      "attempts": 1,
+      "writes": 6,
+      "plannedWrites": 6
+    },
+    {
+      "changeId": "78f47054fb2e4ef2efd13d739dfa3dea91ccd5c1ee366562206da9f7cd75f11f",
+      "events": [
+        {
+          "id": "historical-event-2026-05-06",
+          "revision": 1
+        },
+        {
+          "id": "historical-event-2026-05-24",
+          "revision": 1
+        },
+        {
+          "id": "historical-event-2026-05-27",
+          "revision": 1
+        },
+        {
+          "id": "historical-event-2026-05-31",
+          "revision": 1
+        }
+      ],
+      "sessions": [],
+      "replayed": false,
+      "dryRun": false,
+      "reads": 5,
+      "attemptReads": 5,
+      "attempts": 1,
+      "writes": 6,
+      "plannedWrites": 6
+    },
+    {
+      "changeId": "bb5b5c73ef1e22e84e0dbf535f7b8619651a82d0cbbab6c23693a4b5824a96e0",
+      "events": [
+        {
+          "id": "historical-event-2026-06-07",
+          "revision": 1
+        },
+        {
+          "id": "historical-event-2026-08-14",
+          "revision": 1
+        },
+        {
+          "id": "historical-event-2026-09-12",
+          "revision": 1
+        },
+        {
+          "id": "historical-event-2026-09-24",
+          "revision": 1
+        }
+      ],
+      "sessions": [],
+      "replayed": false,
+      "dryRun": false,
+      "reads": 5,
+      "attemptReads": 5,
+      "attempts": 1,
+      "writes": 6,
+      "plannedWrites": 6
+    },
+    {
+      "changeId": "255ddc922921b7fa78bfa7001a41a8dbff6b513fcbc5e63a14b785683fc11d1c",
+      "events": [
+        {
+          "id": "historical-event-2026-10-18",
+          "revision": 1
+        },
+        {
+          "id": "historical-full-dyno-2026-06-14",
+          "revision": 1
+        },
+        {
+          "id": "historical-full-dyno-2026-06-15",
+          "revision": 1
+        },
+        {
+          "id": "historical-full-dyno-2026-06-16",
+          "revision": 1
+        }
+      ],
+      "sessions": [],
+      "replayed": false,
+      "dryRun": false,
+      "reads": 5,
+      "attemptReads": 5,
+      "attempts": 1,
+      "writes": 6,
+      "plannedWrites": 6
+    },
+    {
+      "changeId": "9594ebef57905c89604f9a0e2cefb261cc114e1664e7218ea700a067aed89bb4",
+      "events": [
+        {
+          "id": "historical-full-dyno-2026-06-17",
+          "revision": 1
+        },
+        {
+          "id": "historical-full-dyno-2026-06-18",
+          "revision": 1
+        },
+        {
+          "id": "historical-full-dyno-2026-06-19",
+          "revision": 1
+        },
+        {
+          "id": "historical-full-dyno-2026-06-20",
+          "revision": 1
+        }
+      ],
+      "sessions": [],
+      "replayed": false,
+      "dryRun": false,
+      "reads": 5,
+      "attemptReads": 5,
+      "attempts": 1,
+      "writes": 6,
+      "plannedWrites": 6
+    },
+    {
+      "changeId": "9818c2beb9e8e563d1aad1746830e2cab819edb0363f601b647d8816433ca307",
+      "events": [
+        {
+          "id": "historical-full-dyno-2026-06-21",
+          "revision": 1
+        },
+        {
+          "id": "historical-full-dyno-2026-06-22",
+          "revision": 1
+        },
+        {
+          "id": "historical-full-dyno-2026-06-23",
+          "revision": 1
+        },
+        {
+          "id": "historical-full-dyno-2026-06-24",
+          "revision": 1
+        }
+      ],
+      "sessions": [],
+      "replayed": false,
+      "dryRun": false,
+      "reads": 5,
+      "attemptReads": 5,
+      "attempts": 1,
+      "writes": 6,
+      "plannedWrites": 6
+    },
+    {
+      "changeId": "7052aaccacb59f981d8311a10e50efb21e33616bbbc9a53689cf0043bb627756",
+      "events": [
+        {
+          "id": "historical-full-dyno-2026-06-25",
+          "revision": 1
+        },
+        {
+          "id": "historical-full-dyno-2026-06-26",
+          "revision": 1
+        },
+        {
+          "id": "historical-full-dyno-2026-06-30",
+          "revision": 1
+        },
+        {
+          "id": "historical-full-dyno-2026-07-01",
+          "revision": 1
+        }
+      ],
+      "sessions": [],
+      "replayed": false,
+      "dryRun": false,
+      "reads": 5,
+      "attemptReads": 5,
+      "attempts": 1,
+      "writes": 6,
+      "plannedWrites": 6
+    },
+    {
+      "changeId": "636e47522dc8d46a12118adb0c05e9d2d4d58d87e37fdb7c22d3a4efa21370ae",
+      "events": [
+        {
+          "id": "historical-full-dyno-2026-07-02",
+          "revision": 1
+        },
+        {
+          "id": "historical-full-dyno-2026-07-03",
+          "revision": 1
+        },
+        {
+          "id": "historical-full-dyno-2026-07-06",
+          "revision": 1
+        },
+        {
+          "id": "historical-full-dyno-2026-07-07",
+          "revision": 1
+        }
+      ],
+      "sessions": [],
+      "replayed": false,
+      "dryRun": false,
+      "reads": 5,
+      "attemptReads": 5,
+      "attempts": 1,
+      "writes": 6,
+      "plannedWrites": 6
+    }
+  ],
+  "verification": [
+    {
+      "id": "historical-battery-dyno-2026-07-13",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-battery-dyno-2026-07-14",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-battery-dyno-2026-07-21",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-battery-dyno-2026-07-22",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-battery-dyno-2026-07-23",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-battery-dyno-2026-07-24",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-battery-dyno-2026-09-19",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-battery-dyno-2026-09-20",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-event-2026-05-06",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-event-2026-05-24",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-event-2026-05-27",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-event-2026-05-31",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-event-2026-06-07",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-event-2026-08-14",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-event-2026-09-12",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-event-2026-09-24",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-event-2026-10-18",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-full-dyno-2026-06-14",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-full-dyno-2026-06-15",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-full-dyno-2026-06-16",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-full-dyno-2026-06-17",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-full-dyno-2026-06-18",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-full-dyno-2026-06-19",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-full-dyno-2026-06-20",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-full-dyno-2026-06-21",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-full-dyno-2026-06-22",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-full-dyno-2026-06-23",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-full-dyno-2026-06-24",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-full-dyno-2026-06-25",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-full-dyno-2026-06-26",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-full-dyno-2026-06-30",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-full-dyno-2026-07-01",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-full-dyno-2026-07-02",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-full-dyno-2026-07-03",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-full-dyno-2026-07-06",
+      "revision": 1,
+      "status": "verified"
+    },
+    {
+      "id": "historical-full-dyno-2026-07-07",
+      "revision": 1,
+      "status": "verified"
+    }
+  ],
+  "sessionWrites": 0,
+  "rawWrites": 0,
+  "historicalSessionBoundaries": "pending_review",
+  "batteryTestAssignments": "pending_review",
+  "manifest": "audits/greenpower-event-approved-manifest-2026-10-19.json"
+}
