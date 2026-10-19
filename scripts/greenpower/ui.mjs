@@ -148,6 +148,14 @@ try {
   const chartBefore = await page.locator('app-greenpower-chart').nth(2).boundingBox();
   await page.mouse.move(box.x+box.width*.4, box.y+40);
   assert.equal(await page.locator('.cursor').count(),7, 'hover synchronizes every chart');
+  assert.equal(await page.locator('.cursor-point').count(),7,'every selected sample has a marker');
+  const markerBox=await page.locator('.cursor-point').first().boundingBox();
+  assert.ok(Math.abs(markerBox.width-10)<.1 && Math.abs(markerBox.height-10)<.1,'marker stays circular at desktop width: '+JSON.stringify(markerBox));
+  const snapped=(await page.evaluate(()=>window.telemetryHarness.snapshot())).cursor;
+  assert.ok(Math.abs((snapped-original.start)/3000-Math.round((snapped-original.start)/3000))<1e-6);
+  await page.mouse.move(box.x+box.width*.4001,box.y+40);
+  assert.equal((await page.evaluate(()=>window.telemetryHarness.snapshot())).cursor,snapped,'small pointer motion within a sample leaves cursor fixed');
+  await page.screenshot({path:`${output}/desktop-snapped-cursor.png`});
   assert.doesNotMatch(await page.locator('.readout').first().innerText(), /Cursor —/);
   assert.equal((await page.locator('h1').boundingBox()).y,titleBefore.y,'cursor does not move layout');
   assert.equal((await page.locator('app-greenpower-chart').nth(2).boundingBox()).y,chartBefore.y,'cursor appearance preserves later chart positions');
@@ -181,6 +189,9 @@ try {
   const x=tb.x+tb.width*.25,y=tb.y+40;
   await finger('touchStart',x,y); await touch.waitForTimeout(550);
   assert.equal(await touch.locator('.cursor').count(),7,'long press activates shared cursor');
+  const touchMarker=await touch.locator('.cursor-point').first().boundingBox();
+  assert.ok(Math.abs(touchMarker.width-10)<.1 && Math.abs(touchMarker.height-10)<.1,'marker stays circular on mobile: '+JSON.stringify(touchMarker));
+  await touch.screenshot({path:`${output}/mobile-snapped-cursor.png`});
   const cursorScrollStart=await touch.locator('#main_container').evaluate(el=>el.scrollTop);
   const cursorStart=(await touch.evaluate(()=>window.telemetryHarness.snapshot())).cursor;
   // Start with a vertical movement, then move diagonally beyond the chart's edge.

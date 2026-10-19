@@ -49,7 +49,7 @@ test('stationary touch hold still enters cursor mode and never zooms on release'
     c.down(p(20)); await new Promise(resolve=>setTimeout(resolve,550));
     c.move(p(160)); c.up(p(160));
     assert.equal(c.band,undefined);
-    assert.equal(c.cursorChange.values.at(-1),800);
+    assert.equal(c.cursorChange.values.at(-1),1000);
     assert.deepEqual(c.windowChange.values,[]);
   } finally { c.ngOnDestroy(); }
 });
@@ -74,8 +74,50 @@ test('touch scroll is blocked only after cursor or zoom owns a single-finger ges
     c.touchMove(touch()); assert.equal(prevented,1,'active cursor retains the gesture');
     c.touchMove(touch(2)); c.touchMove(touch(1,false)); assert.equal(prevented,1);
     c.move({...p(80),clientY:100});
-    assert.equal(c.cursorChange.values.at(-1),400,'vertical movement keeps cursor control');
+    assert.equal(c.cursorChange.values.at(-1),0,'vertical movement keeps cursor control');
     c.up(p(80)); c.touchMove(touch()); assert.equal(prevented,1,'lifting restores ordinary scroll');
     c.down(p(20)); c.move(p(80)); c.touchMove(touch()); assert.equal(prevented,2,'zoom stays locked too');
   } finally {c.ngOnDestroy();}
+});
+
+test('hover snaps line and marker to original samples, including synchronized cursor times', () => {
+  const {component:c,pointer:p}=fixture();
+  c.ngOnChanges({channel:{}});
+  for (const x of [101,120,180,200]) {
+    c.move(p(x,'mouse'));
+    assert.equal(c.cursorChange.values.at(-1),1000);
+  }
+  c.cursor=800; // Another channel can have a different sample cadence.
+  assert.equal(c.reading,c.channel.points[1]);
+  assert.equal(c.cursorPosition,800);
+  assert.ok(Math.abs(c.markerY-(110-(5-c.model.axis.min)/(c.model.axis.max-c.model.axis.min)*100))<1e-10);
+  c.cursor=100;
+  assert.equal(c.cursorPosition,0);
+  c.start=200;c.end=800;
+  assert.equal(c.cursorPosition,undefined);
+  assert.equal(c.markerY,undefined);
+  c.move(p(100,'mouse'));
+  assert.equal(c.cursorChange.values.at(-1),undefined,'empty window has no invented sample');
+  c.ngOnDestroy();
+});
+
+test('keyboard visits distinct sample timestamps across irregular gaps and stops at window edges', () => {
+  const {component:c}=fixture();
+  c.channel.points=[{time:0,value:1},{time:10,value:2},{time:10,value:3},{time:900,value:4},{time:1000,value:5}];
+  const key=key=>{c.key({key,preventDefault(){}});c.cursor=c.cursorChange.values.at(-1);return c.cursor;};
+  c.cursor=0;
+  assert.equal(key('ArrowRight'),10);
+  assert.equal(key('ArrowRight'),900);
+  assert.equal(key('ArrowLeft'),10);
+  assert.equal(key('ArrowLeft'),0);
+  assert.equal(key('ArrowLeft'),0);
+  c.start=10;c.end=900;c.cursor=900;
+  assert.equal(key('ArrowRight'),900);
+  assert.equal(key('ArrowLeft'),10);
+  assert.equal(key('ArrowLeft'),10);
+  c.cursor=undefined;
+  assert.equal(key('ArrowRight'),10,'midpoint ties select the earlier sample');
+  c.start=20;c.end=800;
+  assert.equal(key('ArrowRight'),undefined);
+  c.ngOnDestroy();
 });

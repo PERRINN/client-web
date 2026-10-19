@@ -1,5 +1,5 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, NgZone, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { GreenpowerChannel, londonTime } from './greenpowerData';
+import { GreenpowerChannel, londonTime, pointIndex } from './greenpowerData';
 import { ChartWindow, clockTicks, formatAxisValue, formatTelemetryValue, nearestPoint, plotFor } from './greenpowerChart';
 import { ChartDoubleTap } from '../telemetry/chartDoubleTap';
 
@@ -33,7 +33,18 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   private taps = new ChartDoubleTap();
   private drag?: { id: number; x: number; y: number; anchor: number; position: number; mode: 'pending' | 'zoom' | 'cursor'; range: ChartWindow };
   constructor(private change: ChangeDetectorRef, private zone: NgZone) {}
-  get cursorPosition() { return this.cursor === undefined ? undefined : (this.cursor - this.start) / Math.max(1, this.end - this.start) * 800; }
+  get cursorPosition() {
+    const point = this.reading;
+    return point ? (point.time - this.start) / Math.max(1, this.end - this.start) * 800 : undefined;
+  }
+  get markerY() {
+    const point = this.reading, axis = this.model.axis;
+    if (!point) return undefined;
+    const scale = Math.max(1, Math.abs(axis.min), Math.abs(axis.max));
+    return 110 - (point.value / scale - axis.min / scale) / (axis.max / scale - axis.min / scale || 1) * 100;
+  }
+  // The SVG stretches horizontally; compensate to keep the marker circular in CSS pixels.
+  get markerRadiusX() { return 4 * 800 / Math.max(1, this.width); }
   get reading() { return this.cursor === undefined ? undefined : nearestPoint(this.channel.points, this.cursor, this.start, this.end); }
   get cursorLabel() {
     const point = this.reading;
@@ -76,14 +87,14 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
     const gesture = this.drag;
     if (event.pointerType === 'touch') this.timer = setTimeout(() => {
       if (this.drag !== gesture || gesture.mode !== 'pending') return;
-      gesture.mode = 'cursor'; this.cursorChange.emit(gesture.range.start + anchor * (gesture.range.end - gesture.range.start)); this.change.markForCheck();
+      gesture.mode = 'cursor'; this.inspect(anchor, gesture.range); this.change.markForCheck();
     }, 500);
   }
   move(event: PointerEvent) {
     this.taps.move(event);
     const d = this.drag;
     if (!d) {
-      if (event.pointerType !== 'touch') this.cursorChange.emit(this.start + this.fraction(event) * (this.end - this.start));
+      if (event.pointerType !== 'touch') this.inspect(this.fraction(event));
       return;
     }
     if (event.pointerId !== d.id) return;
@@ -94,7 +105,11 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
       d.mode = 'zoom';
     }
     d.position = this.fraction(event);
-    if (d.mode === 'cursor') this.cursorChange.emit(d.range.start + d.position * (d.range.end - d.range.start));
+    if (d.mode === 'cursor') this.inspect(d.position, d.range);
+  }
+  private inspect(position: number, range: ChartWindow = { start: this.start, end: this.end }) {
+    const time = range.start + position * (range.end - range.start);
+    this.cursorChange.emit(nearestPoint(this.channel.points, time, range.start, range.end)?.time);
   }
   up(event: PointerEvent) {
     this.move(event);
@@ -124,8 +139,13 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
     else if (event.key === 'Escape') { this.cancel(); this.cursorChange.emit(undefined); }
     else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
       event.preventDefault();
-      const step = (this.end - this.start) / 100;
-      this.cursorChange.emit(Math.max(this.start, Math.min(this.end, (this.cursor ?? (this.start + this.end) / 2) + (event.key === 'ArrowRight' ? step : -step))));
+      const points = this.channel.points;
+      const first = pointIndex(points, this.start), last = pointIndex(points, this.end, true) - 1;
+      if (first > last) { this.cursorChange.emit(undefined); return; }
+      const index = this.cursor === undefined
+        ? pointIndex(points, nearestPoint(points, (this.start + this.end) / 2, this.start, this.end)!.time)
+        : event.key === 'ArrowRight' ? pointIndex(points, this.cursor, true) : pointIndex(points, this.cursor) - 1;
+      this.cursorChange.emit(points[Math.max(first, Math.min(last, index))].time);
     }
   }
   ngOnDestroy() {
