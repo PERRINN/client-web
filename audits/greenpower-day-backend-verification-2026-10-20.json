@@ -1,0 +1,109 @@
+{
+  "ingestionWithoutCredentialsStatus": 401,
+  "checkedAt": "2026-10-20T08:54:05.212Z",
+  "projectId": "perrinn-d5fc1",
+  "functions": [
+    {
+      "name": "projects/perrinn-d5fc1/locations/us-central1/functions/greenpowerTelemetry",
+      "state": "ACTIVE",
+      "updateTime": "2026-10-20T08:49:36.882222737Z",
+      "runtime": "nodejs20",
+      "revision": "greenpowertelemetry-00003-xeh",
+      "uri": "https://greenpowertelemetry-4lvuo66zya-uc.a.run.app"
+    },
+    {
+      "name": "projects/perrinn-d5fc1/locations/us-central1/functions/greenpowerEventEdit",
+      "state": "ACTIVE",
+      "updateTime": "2026-10-20T08:49:34.540828304Z",
+      "runtime": "nodejs20",
+      "revision": "greenpowereventedit-00003-tis",
+      "uri": "https://greenpowereventedit-4lvuo66zya-uc.a.run.app"
+    }
+  ],
+  "indexes": {
+    "repositoryCount": 27,
+    "liveCount": 27,
+    "repositoryOnly": [],
+    "liveOnly": [],
+    "notReady": [],
+    "overrides": [
+      {
+        "collection": "chunks",
+        "field": "samples"
+      },
+      {
+        "collection": "days",
+        "field": "latest"
+      },
+      {
+        "collection": "live",
+        "field": "latest"
+      },
+      {
+        "collection": "sessions",
+        "field": "ranges"
+      }
+    ]
+  },
+  "queryPlans": [
+    {
+      "name": "year_days",
+      "analyze": false,
+      "indexesUsed": [
+        {
+          "query_scope": "Collection",
+          "properties": "(date DESC, __name__ DESC)"
+        }
+      ]
+    },
+    {
+      "name": "track_days",
+      "analyze": false,
+      "indexesUsed": [
+        {
+          "properties": "(trackId ASC, date DESC, __name__ DESC)",
+          "query_scope": "Collection"
+        }
+      ]
+    },
+    {
+      "name": "day_sessions",
+      "analyze": false,
+      "indexesUsed": [
+        {
+          "properties": "(startAt ASC, __name__ ASC)",
+          "query_scope": "Collection"
+        }
+      ]
+    },
+    {
+      "name": "day_race_sessions",
+      "analyze": false,
+      "indexesUsed": [
+        {
+          "properties": "(type ASC, startAt ASC, __name__ ASC)",
+          "query_scope": "Collection"
+        }
+      ]
+    },
+    {
+      "name": "all_race_sessions",
+      "analyze": false,
+      "indexesUsed": [
+        {
+          "properties": "(telemetryRoot ASC, schemaVersion ASC, type ASC, startAt ASC, __name__ ASC)",
+          "query_scope": "Collection group"
+        }
+      ]
+    }
+  ],
+  "anonymousDayReadStatus": 403,
+  "anonymousCallable": {
+    "status": 401,
+    "error": "UNAUTHENTICATED"
+  },
+  "executedDataQueries": 0,
+  "chunkReads": 0,
+  "chunkWrites": 0,
+  "productionMetadataWrites": 0
+}

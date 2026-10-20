@@ -416,7 +416,7 @@ No composite index is added/deleted: chunk queries order by document ID and date
 
 ### Greenpower event metadata
 
-The schema-v2 contract makes each existing `GreenpowerTelemetry/424/days/{YYYY-MM-DD}` document the event. No separate catalogue is introduced. This is locally implemented; releasing the backend/client and applying reviewed production migration plans are separate authorized operations. Original `events`/`sessions` documents, historical audits and raw chunks remain intact.
+The schema-v2 contract makes each existing `GreenpowerTelemetry/424/days/{YYYY-MM-DD}` document the event. No separate catalogue is introduced. Released on 20 October 2026 in commit `314676f`, with both Greenpower Functions, rules, indexes and Hosting verified. The approved three-batch migration converted 74 days with 296 document writes; all 348,560 recorded samples and original legacy sources remain intact. No saved sessions existed to copy. See the [release verification](audits/greenpower-day-release-verification-2026-10-20.json); future migrations still require separately reviewed plans. Original `events`/`sessions` documents, historical audits and raw chunks remain intact.
 
 | Event/day field | Meaning |
 | --- | --- |

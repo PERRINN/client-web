@@ -1,0 +1,177 @@
+{
+  "dryRun": false,
+  "planHash": "23f1174faa513c4dca57e3275d76ace0d517b25feb54b5f69428167002e82186",
+  "results": [
+    {
+      "date": "2026-04-18",
+      "writes": 4,
+      "reads": 5
+    },
+    {
+      "date": "2026-04-29",
+      "writes": 4,
+      "reads": 5
+    },
+    {
+      "date": "2026-04-30",
+      "writes": 4,
+      "reads": 5
+    },
+    {
+      "date": "2026-05-01",
+      "writes": 4,
+      "reads": 5
+    },
+    {
+      "date": "2026-05-02",
+      "writes": 4,
+      "reads": 5
+    },
+    {
+      "date": "2026-05-03",
+      "writes": 4,
+      "reads": 5
+    },
+    {
+      "date": "2026-05-04",
+      "writes": 4,
+      "reads": 5
+    },
+    {
+      "date": "2026-05-06",
+      "writes": 4,
+      "reads": 7
+    },
+    {
+      "date": "2026-05-08",
+      "writes": 4,
+      "reads": 5
+    },
+    {
+      "date": "2026-05-10",
+      "writes": 4,
+      "reads": 5
+    },
+    {
+      "date": "2026-05-11",
+      "writes": 4,
+      "reads": 5
+    },
+    {
+      "date": "2026-05-15",
+      "writes": 4,
+      "reads": 5
+    },
+    {
+      "date": "2026-05-17",
+      "writes": 4,
+      "reads": 5
+    },
+    {
+      "date": "2026-05-18",
+      "writes": 4,
+      "reads": 5
+    },
+    {
+      "date": "2026-05-24",
+      "writes": 4,
+      "reads": 7
+    },
+    {
+      "date": "2026-05-26",
+      "writes": 4,
+      "reads": 5
+    },
+    {
+      "date": "2026-05-27",
+      "writes": 4,
+      "reads": 7
+    },
+    {
+      "date": "2026-05-31",
+      "writes": 4,
+      "reads": 7
+    },
+    {
+      "date": "2026-06-04",
+      "writes": 4,
+      "reads": 5
+    },
+    {
+      "date": "2026-06-07",
+      "writes": 4,
+      "reads": 7
+    },
+    {
+      "date": "2026-06-11",
+      "writes": 4,
+      "reads": 5
+    },
+    {
+      "date": "2026-06-12",
+      "writes": 4,
+      "reads": 5
+    },
+    {
+      "date": "2026-06-13",
+      "writes": 4,
+      "reads": 5
+    },
+    {
+      "date": "2026-06-14",
+      "writes": 4,
+      "reads": 6
+    },
+    {
+      "date": "2026-06-15",
+      "writes": 4,
+      "reads": 6
+    },
+    {
+      "date": "2026-06-16",
+      "writes": 4,
+      "reads": 6
+    },
+    {
+      "date": "2026-06-17",
+      "writes": 4,
+      "reads": 6
+    },
+    {
+      "date": "2026-06-18",
+      "writes": 4,
+      "reads": 6
+    },
+    {
+      "date": "2026-06-19",
+      "writes": 4,
+      "reads": 6
+    },
+    {
+      "date": "2026-06-20",
+      "writes": 4,
+      "reads": 6
+    }
+  ],
+  "writes": 120,
+  "bounds": {
+    "days": 30,
+    "eventQueries": 30,
+    "eventQueryLimit": 3,
+    "sessionQueries": 90,
+    "sessionQueryLimit": 21,
+    "targetSessionQueries": 30,
+    "targetSessionQueryLimit": 1,
+    "maximumPrepareDocuments": 2130,
+    "maximumApplyReadsPerAttempt": 48,
+    "attempts": 3,
+    "maximumApplyReads": 4320,
+    "maximumWrites": 720,
+    "concurrency": 1,
+    "automaticApplicationRetries": 0,
+    "chunkReads": 0,
+    "chunkWrites": 0
+  },
+  "chunkReads": 0,
+  "chunkWrites": 0
+}

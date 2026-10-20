@@ -1,0 +1,272 @@
+{
+  "checkedAt": "2026-10-20T09:06:15.195Z",
+  "projectId": "perrinn-d5fc1",
+  "status": "deployed_verified",
+  "codeCommit": "314676f",
+  "deploymentScope": [
+    "functions:greenpowerTelemetry",
+    "functions:greenpowerEventEdit",
+    "firestore:rules",
+    "firestore:indexes",
+    "hosting"
+  ],
+  "url": "https://perrinn.com/424-greenpower-telemetry",
+  "structure": {
+    "event": "GreenpowerTelemetry/424/days/{date}",
+    "sessions": "GreenpowerTelemetry/424/days/{date}/sessions/{sessionId}",
+    "live": "GreenpowerTelemetry/424/days/{date}/live/latest",
+    "chunks": "unchanged"
+  },
+  "validation": {
+    "unitTestsPassed": 138,
+    "emulatorTestsPassed": 22,
+    "build": "passed",
+    "buildHash": "8a8407a115de2cd0",
+    "lintErrors": 0,
+    "existingLintWarnings": 64,
+    "browserWidths": [
+      1440,
+      390,
+      320
+    ],
+    "browserErrors": [],
+    "browserArtifacts": "/var/folders/6j/540yrv1536x9pc7qv833941h0000gn/T/greenpower-day-ui-2XN8hR",
+    "screenshotsVisuallyInspected": true,
+    "cases": [
+      "selection does not fetch raw data or clear the loaded recording",
+      "explicit Load snapshots the selected recording",
+      "event year query and thirty-session pagination",
+      "independent session revisions and inherited defaults",
+      "scoped collection-group Race query across dates for two signed-in viewers; anonymous denial",
+      "admin-only writers and denied direct session/day/live client writes",
+      "idempotent saves/migration, stale-source conflicts and unchanged raw/source document versions",
+      "loading controls and scroll position stay stable",
+      "failed drafts, loading/error/empty states and account clearing"
+    ]
+  },
+  "backendVerification": {
+    "ingestionWithoutCredentialsStatus": 401,
+    "checkedAt": "2026-10-20T08:54:05.212Z",
+    "projectId": "perrinn-d5fc1",
+    "functions": [
+      {
+        "name": "projects/perrinn-d5fc1/locations/us-central1/functions/greenpowerTelemetry",
+        "state": "ACTIVE",
+        "updateTime": "2026-10-20T08:49:36.882222737Z",
+        "runtime": "nodejs20",
+        "revision": "greenpowertelemetry-00003-xeh",
+        "uri": "https://greenpowertelemetry-4lvuo66zya-uc.a.run.app"
+      },
+      {
+        "name": "projects/perrinn-d5fc1/locations/us-central1/functions/greenpowerEventEdit",
+        "state": "ACTIVE",
+        "updateTime": "2026-10-20T08:49:34.540828304Z",
+        "runtime": "nodejs20",
+        "revision": "greenpowereventedit-00003-tis",
+        "uri": "https://greenpowereventedit-4lvuo66zya-uc.a.run.app"
+      }
+    ],
+    "indexes": {
+      "repositoryCount": 27,
+      "liveCount": 27,
+      "repositoryOnly": [],
+      "liveOnly": [],
+      "notReady": [],
+      "overrides": [
+        {
+          "collection": "chunks",
+          "field": "samples"
+        },
+        {
+          "collection": "days",
+          "field": "latest"
+        },
+        {
+          "collection": "live",
+          "field": "latest"
+        },
+        {
+          "collection": "sessions",
+          "field": "ranges"
+        }
+      ]
+    },
+    "queryPlans": [
+      {
+        "name": "year_days",
+        "analyze": false,
+        "indexesUsed": [
+          {
+            "query_scope": "Collection",
+            "properties": "(date DESC, __name__ DESC)"
+          }
+        ]
+      },
+      {
+        "name": "track_days",
+        "analyze": false,
+        "indexesUsed": [
+          {
+            "properties": "(trackId ASC, date DESC, __name__ DESC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      {
+        "name": "day_sessions",
+        "analyze": false,
+        "indexesUsed": [
+          {
+            "properties": "(startAt ASC, __name__ ASC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      {
+        "name": "day_race_sessions",
+        "analyze": false,
+        "indexesUsed": [
+          {
+            "properties": "(type ASC, startAt ASC, __name__ ASC)",
+            "query_scope": "Collection"
+          }
+        ]
+      },
+      {
+        "name": "all_race_sessions",
+        "analyze": false,
+        "indexesUsed": [
+          {
+            "properties": "(telemetryRoot ASC, schemaVersion ASC, type ASC, startAt ASC, __name__ ASC)",
+            "query_scope": "Collection group"
+          }
+        ]
+      }
+    ],
+    "anonymousDayReadStatus": 403,
+    "anonymousCallable": {
+      "status": 401,
+      "error": "UNAUTHENTICATED"
+    },
+    "executedDataQueries": 0,
+    "chunkReads": 0,
+    "chunkWrites": 0,
+    "productionMetadataWrites": 0
+  },
+  "hostingVerification": {
+    "checkedAt": "2026-10-20T09:03:53.882Z",
+    "projectId": "perrinn-d5fc1",
+    "status": "hosting_and_rules_verified",
+    "url": "https://perrinn.com/424-greenpower-telemetry",
+    "pageStatus": 200,
+    "mainBundle": "main.ba86c875b64fd589.js",
+    "bundleStatus": 200,
+    "bundleSha256": "0bdea20de34bc71e9d105e77329dd49691b3327ec40d7c6ced7732439fe0f96a",
+    "bundleMatchesApprovedBuild": true,
+    "serviceWorkerManifestMatchesApprovedBuild": true,
+    "hostingRelease": "sites/perrinn-d5fc1/releases/1792487017734000",
+    "hostingVersion": "sites/perrinn-d5fc1/versions/e330d1523812e176",
+    "firestoreRules": {
+      "release": "projects/perrinn-d5fc1/releases/cloud.firestore",
+      "ruleset": "projects/perrinn-d5fc1/rulesets/1ac68503-e755-4d9d-bc2e-3be8846c8644",
+      "updatedAt": "2026-10-20T08:48:16.927280Z",
+      "sourceMatchesRepository": true,
+      "sourceSha256": "75d7ea343ae1b5787fe1e6c5848f2abbc9db9786bf89773b82297f362458d343"
+    },
+    "productionWrites": 0,
+    "chunkReads": 0,
+    "chunkWrites": 0
+  },
+  "migrationVerification": {
+    "checkedAt": "2026-10-20T09:03:03.730Z",
+    "projectId": "perrinn-d5fc1",
+    "status": "migration_verified",
+    "verifiedDays": 74,
+    "verifiedLiveDocuments": 74,
+    "verifiedAudits": 74,
+    "verifiedCheckpoints": 74,
+    "verifiedSourceFingerprints": 184,
+    "legacySourcesUnchanged": true,
+    "copiedSamples": 348560,
+    "advancedLiveDays": 0,
+    "sessionsMigrated": 0,
+    "unexpectedTargetSessions": 0,
+    "writes": 296,
+    "batchWrites": [
+      120,
+      120,
+      56
+    ],
+    "metadataVerification": {
+      "attempts": 2,
+      "priorAttemptExactReads": 480,
+      "priorAttemptFinalQuery": "Rejected: verification-only query lacked a deployed index; corrected to use the deployed typed-session index.",
+      "exactReadsThisAttempt": 480,
+      "totalExactReads": 960,
+      "maximumTotalExactReads": 1036,
+      "sessionQueries": 2,
+      "sessionQueryLimit": 1,
+      "sessionTypeValues": 4,
+      "concurrency": 1,
+      "automaticApplicationRetries": 0
+    },
+    "chunkReads": 0,
+    "chunkWrites": 0,
+    "verificationWrites": 0
+  },
+  "hostedSignedInBrowser": {
+    "daysListed": 74,
+    "knownEventLabelVerified": "2026-10-18 · Goodwood finals",
+    "eventSelectionPreservesDisplayedRecording": true,
+    "selectionBeforeLoadPreservesEmptyLiveRecording": true,
+    "explicitLoad": {
+      "date": "2026-05-10",
+      "samplesInRecording": 11,
+      "knownChunkCount": 1,
+      "loadActions": 1,
+      "displayedTimeUK": "11:29:38 – 11:30:10",
+      "samplesChanged": false
+    },
+    "subsequentEventSelectionPreservesLoadedDate": "2026-05-10",
+    "subsequentSelectedEvent": "2026-10-18",
+    "testedLayouts": [
+      "default desktop",
+      390,
+      320
+    ],
+    "mobileHorizontalOverflow": false,
+    "visibleAlerts": [],
+    "consoleErrorCount": 0,
+    "screenshotsVisuallyInspected": true,
+    "rawChunkReadsExpected": 1,
+    "networkRequestCountsInstrumented": false,
+    "metadataWrites": 0,
+    "browserTabClosed": true,
+    "temporaryViewportReset": true
+  },
+  "sourceSnapshots": {
+    "publication": "Private full source snapshots remain local and excluded from Git; exact plan checksums and safe summaries are tracked.",
+    "serverAuditSnapshotsRetained": true
+  },
+  "issue97": {
+    "state": "open",
+    "reason": "Historical spreadsheet session boundaries and battery assignments remain pending review; no saved sessions existed to migrate."
+  },
+  "limitations": [
+    "Production browser checks covered metadata selection and one small whole-event load, without creating/editing metadata. Session selection and admin write behavior are covered by local template/emulator tests.",
+    "No new physical OMNI phone transmission or phone-to-screen latency measurement was performed.",
+    "The all-Race collection-group query is indexed and verified in emulator/planning; no cross-event filter UI was added."
+  ],
+  "deploymentWarnings": [
+    {
+      "source": "Firebase CLI",
+      "message": "Node.js 20 is deprecated; the deployment CLI reported removal on 2026-10-30. Runtime upgrade remains separate work."
+    },
+    {
+      "source": "lint",
+      "errors": 0,
+      "existingWarnings": 64
+    }
+  ],
+  "committedAndPushed": true
+}

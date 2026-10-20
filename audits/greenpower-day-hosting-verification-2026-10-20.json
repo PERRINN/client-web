@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-10-20T09:03:53.882Z",
+  "projectId": "perrinn-d5fc1",
+  "status": "hosting_and_rules_verified",
+  "url": "https://perrinn.com/424-greenpower-telemetry",
+  "pageStatus": 200,
+  "mainBundle": "main.ba86c875b64fd589.js",
+  "bundleStatus": 200,
+  "bundleSha256": "0bdea20de34bc71e9d105e77329dd49691b3327ec40d7c6ced7732439fe0f96a",
+  "bundleMatchesApprovedBuild": true,
+  "serviceWorkerManifestMatchesApprovedBuild": true,
+  "hostingRelease": "sites/perrinn-d5fc1/releases/1792487017734000",
+  "hostingVersion": "sites/perrinn-d5fc1/versions/e330d1523812e176",
+  "firestoreRules": {
+    "release": "projects/perrinn-d5fc1/releases/cloud.firestore",
+    "ruleset": "projects/perrinn-d5fc1/rulesets/1ac68503-e755-4d9d-bc2e-3be8846c8644",
+    "updatedAt": "2026-10-20T08:48:16.927280Z",
+    "sourceMatchesRepository": true,
+    "sourceSha256": "75d7ea343ae1b5787fe1e6c5848f2abbc9db9786bf89773b82297f362458d343"
+  },
+  "productionWrites": 0,
+  "chunkReads": 0,
+  "chunkWrites": 0
+}
