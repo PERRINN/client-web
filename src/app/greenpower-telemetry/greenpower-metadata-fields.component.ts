@@ -12,10 +12,10 @@ export class GreenpowerMetadataFieldsComponent {
   @ViewChild('initialInput') set initialInput(input: ElementRef<HTMLElement> | undefined) { input?.nativeElement.focus(); }
   readonly prefix = 'metadata-' + crypto.randomUUID();
   readonly types = DAY_SESSION_TYPES;
-  readonly fields = [
+  readonly fields: { key: string; label: string; numeric: boolean; options?: number[] }[] = [
     { key: 'driver', label: 'Driver', numeric: false },
-    { key: 'motorGearTeeth', label: 'Motor gear · teeth', numeric: true },
-    { key: 'wheelGearTeeth', label: 'Wheel gear · teeth', numeric: true },
+    { key: 'motorGearTeeth', label: 'Motor gear · teeth', numeric: true, options: [15, 16, 17, 18, 19, 20, 21, 22] },
+    { key: 'wheelGearTeeth', label: 'Wheel gear · teeth', numeric: true, options: [48, 57] },
     { key: 'motorId', label: 'Motor', numeric: false }, { key: 'generatorId', label: 'Generator', numeric: false },
     { key: 'carMassKg', label: 'Car mass · kg', numeric: true }, { key: 'driverMassKg', label: 'Driver mass · kg', numeric: true }
   ];

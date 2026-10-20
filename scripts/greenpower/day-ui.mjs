@@ -23,6 +23,7 @@ import { BehaviorSubject, Subject, defer } from 'rxjs';
 import { PermissionsService } from '${root}/src/app/permissions.service';
 import { GreenpowerTelemetryComponent } from '${folder}/greenpower-telemetry.component';
 import { GreenpowerTelemetryService } from '${folder}/greenpowerTelemetry.service';
+import { GreenpowerOverlayService } from '${folder}/greenpowerOverlay.service';
 import { GreenpowerEventsService } from '${folder}/greenpowerEvents.service';
 import { GreenpowerEventEditService } from '${folder}/greenpowerEventEdit.service';
 import { GreenpowerEventSelectorComponent } from '${folder}/greenpower-event-selector.component';
@@ -65,7 +66,7 @@ const functions={httpsCallable:()=>input=>defer(async()=>{if(saveFail)throw {cod
 const parentPath='GreenpowerTelemetry/424/days/'+input.date;
 if(input.kind==='session'){const next={...input.session,telemetryRoot:'GreenpowerTelemetry/424',schemaVersion:2,revision:input.expectedSessionRevision+1,updatedBy:'viewer'};records.set(parentPath+'/sessions/'+next.id,next);notify();return {date:input.date,revision:input.expectedRevision,sessionId:next.id,sessionRevision:next.revision,changeId:'synthetic'};}
 const next={...input.data,schemaVersion:2,revision:input.expectedRevision+1,updatedBy:'viewer'};records.set(parentPath,next);notify();return {date:input.date,revision:next.revision,changeId:'synthetic'};})};
-GreenpowerTelemetryComponent.ctorParameters=()=>[{type:GreenpowerTelemetryService},{type:ChangeDetectorRef},{type:Title},{type:GreenpowerViewService},{type:GreenpowerLapService},{type:GreenpowerEventsService},{type:GreenpowerEventEditService}];
+GreenpowerTelemetryComponent.ctorParameters=()=>[{type:GreenpowerTelemetryService},{type:ChangeDetectorRef},{type:Title},{type:GreenpowerViewService},{type:GreenpowerLapService},{type:GreenpowerEventsService},{type:GreenpowerEventEditService},{type:GreenpowerOverlayService}];
 GreenpowerEventsService.ctorParameters=()=>[{type:PermissionsService},{type:AngularFirestore}];
 GreenpowerEventEditService.ctorParameters=()=>[{type:GreenpowerEventsService},{type:GreenpowerTelemetryService},{type:AngularFireFunctions}];
 GreenpowerEventSelectorComponent.ctorParameters=()=>[{type:GreenpowerEventsService},{type:ChangeDetectorRef}];
@@ -74,7 +75,7 @@ GreenpowerMetadataFieldsComponent.ctorParameters=()=>[{type:GreenpowerEventsServ
 GreenpowerMapComponent.ctorParameters=()=>[{type:ChangeDetectorRef}];GreenpowerChartComponent.ctorParameters=()=>[{type:ChangeDetectorRef},{type:NgZone}];
 TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTesting());
 TestBed.configureTestingModule({imports:[CommonModule,FormsModule,RouterModule.forRoot([])],declarations:[GreenpowerTelemetryComponent,GreenpowerEventSelectorComponent,GreenpowerEventEditorComponent,GreenpowerMetadataFieldsComponent,GreenpowerChartComponent,GreenpowerMapComponent,GreenpowerLapListComponent],providers:[{provide:PermissionsService,useValue:permissions},{provide:AngularFirestore,useValue:{firestore:db}},{provide:AngularFireFunctions,useValue:functions}]});
-TestBed.overrideComponent(GreenpowerTelemetryComponent,{set:{providers:[{provide:GreenpowerTelemetryService,useValue:telemetry},{provide:GreenpowerViewService,useValue:view},{provide:GreenpowerLapService,useValue:laps},GreenpowerEventsService,GreenpowerEventEditService]}});
+TestBed.overrideComponent(GreenpowerTelemetryComponent,{set:{providers:[{provide:GreenpowerTelemetryService,useValue:telemetry},{provide:GreenpowerViewService,useValue:view},{provide:GreenpowerLapService,useValue:laps},GreenpowerEventsService,GreenpowerEventEditService,{provide:GreenpowerOverlayService,useValue:{active:false,changed:new Subject(),clear(){}}}]}});
 const fixture=TestBed.createComponent(GreenpowerTelemetryComponent);document.querySelector('.contentCard').append(fixture.nativeElement);fixture.autoDetectChanges();
 window.dayHarness={sessionLaps(){laps.line={a:{lat:52,lon:-1},b:{lat:52,lon:-0.9999},direction:1};laps.fixes=Array.from({length:1801},(_,i)=>({time:first+i*3000,lat:52,lon:-1}));laps.analysis.laps=[{time:first+300000,end:first+900000,lap:1,complete:true},{time:first+900000,end:first+1800000,lap:2,complete:false},{time:first+3900000,end:first+4500000,lap:3,complete:true},{time:first+4500000,end:first+5400000,lap:4,complete:false}];laps.changed.next();fixture.detectChanges();},sessionCounts(counts){records.get('GreenpowerTelemetry/424/days/'+date).sessionTypeCounts=counts;notify();fixture.detectChanges();},stats:()=>({cursor:fixture.componentInstance.cursor,sessionDraft:fixture.componentInstance.eventEdit.sessionDraft,dayLoads:telemetry.dayLoads,sessionLoads:telemetry.sessionLoads,calls:[...calls]}),viewer(){state.next({ready:true,uid:'viewer',isAdmin:false});fixture.detectChanges();},noLaps(){laps.analysis.laps=[];laps.changed.next();fixture.detectChanges();},admin(){state.next({ready:true,uid:'viewer',isAdmin:true});fixture.detectChanges();},empty(){records.clear();fixture.componentInstance.events.loadEvents(true);},failure(value){fail=value;},saveFailure(value){saveFail=value;},error(){telemetry.error='Synthetic load failure';telemetry.changed.next();},loading(value){telemetry.loading=value;telemetry.changed.next();},logout(){telemetry.access='signed-out';state.next({ready:true,uid:'',isAdmin:false});telemetry.changed.next();}};
 `);
@@ -186,7 +187,14 @@ try {
     await page.evaluate(() => window.dayHarness.admin()); await page.locator('.edit-mode').click();
     await page.getByRole('button', { name: 'Edit event', exact: true }).click();
     assert.equal(await page.locator('app-greenpower-event-selector').count(),0,'Edit closes history');
-    await page.getByLabel('Motor gear · teeth', { exact: true }).fill('13');
+    const motorGear = page.getByLabel('Motor gear · teeth', { exact: true });
+    const wheelGear = page.getByLabel('Wheel gear · teeth', { exact: true });
+    assert.equal(await motorGear.locator('option:checked').innerText(), '12', 'historical motor gear stays visible');
+    assert.equal(await wheelGear.locator('option:checked').innerText(), '60', 'historical wheel gear stays visible');
+    assert.deepEqual(await motorGear.locator('option:enabled').evaluateAll(options => options.map(option => option.textContent.trim())), ['—', '15', '16', '17', '18', '19', '20', '21', '22']);
+    assert.deepEqual(await wheelGear.locator('option:enabled').evaluateAll(options => options.map(option => option.textContent.trim())), ['—', '48', '57']);
+    await motorGear.selectOption({ label: '18' });
+    await wheelGear.selectOption({ label: '57' });
     await page.getByRole('button',{name:'Load history',exact:true}).click();
     await page.locator('#view-editor').waitFor({state:'hidden'});
     assert.equal(await page.locator('#view-editor').isVisible(),false,'History hides the editor');
@@ -195,11 +203,11 @@ try {
     await page.locator('.edit-mode').click();
     await page.locator('app-greenpower-event-selector').waitFor({state:'detached'});
     assert.equal(await page.locator('app-greenpower-event-selector').count(),0);
-    assert.equal(await page.getByLabel('Motor gear · teeth',{exact:true}).inputValue(),'13','switching panels preserves drafts');
+    assert.equal(await page.getByLabel('Motor gear · teeth',{exact:true}).locator('option:checked').innerText(),'18','switching panels preserves drafts');
     await page.screenshot({ path: output + '/editor-' + width + '.png', fullPage: true });
     await page.evaluate(() => window.dayHarness.saveFailure(true)); await page.getByRole('button', { name: 'Save', exact: true }).click();
     await page.getByRole('alert').filter({ hasText: 'Metadata changed elsewhere' }).waitFor();
-    assert.equal(await page.getByLabel('Motor gear · teeth', { exact: true }).inputValue(), '13');
+    assert.equal(await page.getByLabel('Motor gear · teeth', { exact: true }).locator('option:checked').innerText(), '18');
     await page.evaluate(() => window.dayHarness.saveFailure(false)); await page.getByRole('button', { name: 'Save', exact: true }).click();
     await page.getByText('Saved', { exact: true }).waitFor();
     assert.equal(await page.getByRole('button', { name: 'Sessions', exact: true }).isDisabled(), false, 'sessions belong to the loaded event independently of pending history');
@@ -234,6 +242,16 @@ try {
     assert.equal(await editButton.locator('path').getAttribute('d'),'m5 12 4 4L19 6');
     assert.deepEqual(await editButton.boundingBox(),editBounds,'Edit and Done keep the same button geometry');
     assert.deepEqual(await summaries.boundingBox(),summaryBox,'Edit actions preserve the session summary layout');
+    for (const row of await summaries.locator('li').all()) {
+      const rowBox = await row.boundingBox();
+      const actionBox = await row.getByRole('button', {name: /^Edit /}).boundingBox();
+      for (const gear of await row.locator('.gearing').all()) {
+        const gearBox = await gear.boundingBox();
+        assert.ok(gearBox.x >= rowBox.x && gearBox.x + gearBox.width <= rowBox.x + rowBox.width, 'gear ratio stays inside its session row');
+        assert.ok(gearBox.y >= actionBox.y + actionBox.height || gearBox.x + gearBox.width <= actionBox.x, 'gear ratio does not overlap Edit');
+      }
+    }
+    await summaries.screenshot({ path: output + '/session-summary-edit-' + width + '.png' });
     assert.deepEqual(await page.locator('.controls').boundingBox(),modeControls);
     assert.equal(await page.locator('#main_container').evaluate(el=>el.scrollTop),modeScroll);
     await page.locator('.edit-mode').click();
@@ -274,7 +292,7 @@ try {
     assert.match(await page.locator('.session-heading').nth(1).innerText(), /Race · Sam/);
     assert.deepEqual(await page.locator('[aria-label="GPS laps"] tbody button').allTextContents(),['1','2','3','1','2','3'],'each session includes the run from session start to its first crossing');
     await page.screenshot({ path: output + '/session-laps-' + width + '.png', fullPage: true });
-    assert.match(await page.locator('.gearing').nth(1).innerText(), /4:1 · changed/);
+    assert.match(await page.locator('.gearing').nth(1).innerText(), /3\.8:1 · changed/);
     await page.getByRole('button', {name:'Zoom all graphs to GPS lap 1 · Race · Sam',exact:true}).click();
     await page.getByRole('button', {name:'Zoom all graphs to lap 1 · Race · Sam',exact:true}).waitFor();
     assert.equal(await page.locator('.lap-band title').first().textContent(),'Lap 1 · Race · Sam · 10:00:00–10:05:00');
@@ -308,7 +326,13 @@ try {
     const fields = page.locator('app-greenpower-metadata-fields');
     await fields.getByLabel('Session type', { exact: true }).selectOption('practice');
     for (const retired of ['Name', 'Notes', 'Description', 'Operator', 'Tags', 'Result', 'Purpose', 'Outcome']) assert.equal(await fields.getByLabel(retired, { exact: true }).count(), 0);
-    assert.equal(await fields.getByLabel('Motor gear · teeth', { exact: true }).getAttribute('placeholder'), '13');
+    const sessionGear = fields.getByLabel('Motor gear · teeth', { exact: true });
+    assert.equal(await sessionGear.inputValue(), '');
+    assert.equal(await sessionGear.locator('option').first().innerText(), 'Use event value · 18');
+    await sessionGear.selectOption({ label: '22' });
+    assert.equal(await sessionGear.locator('option:checked').innerText(), '22');
+    await sessionGear.selectOption('');
+    assert.equal(await sessionGear.inputValue(), '', 'session gear can return to event inheritance');
     await fields.getByLabel('Driver', { exact: true }).fill('Sam');
     const startButton=page.getByRole('button',{name:'Set start at cursor',exact:true});
     const endButton=page.getByRole('button',{name:'Set end at cursor',exact:true});

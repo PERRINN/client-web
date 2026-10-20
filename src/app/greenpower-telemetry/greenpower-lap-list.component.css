@@ -23,11 +23,11 @@ button:disabled { opacity: .5; }
 .sessions { margin-bottom: 12px; }
 .sessions ol { list-style: none; padding: 0; margin: 0; }
 .sessions li { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 8px 0; }
-.session-summary { min-width: 0; font-size: 16px; line-height: 1.45; }
+.session-summary { min-width: 0; overflow: visible; font-size: 16px; line-height: 1.45; }
 .session-summary h3 { font-size: 16px; font-weight: 550; line-height: 1.45; overflow: visible; overflow-wrap: anywhere; }
 .session-details { font-size: 15px; line-height: 1.45; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; color: var(--color-text-secondary); overflow: visible; }
 :host .session-summary .session-details span { font: inherit; font-size: 15px; line-height: 1.45; overflow: visible; }
-.session-details .gearing { padding: 0 6px; border-radius: 4px; background: var(--color-raised); }
+.session-details .gearing { white-space: nowrap; padding: 0 6px; border-radius: 4px; background: var(--color-raised); }
 .edit-session, .session-action { margin: 0; flex: 0 0 auto; min-height: 44px; padding: 8px 12px; background: var(--color-raised); }
 .error { color: var(--color-danger-text); }
 

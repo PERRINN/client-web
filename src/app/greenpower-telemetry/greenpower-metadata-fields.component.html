@@ -20,7 +20,19 @@
       <label [for]="prefix + '-batteries'">Batteries<input [id]="prefix + '-batteries'" [value]="session.batteryIds.join(', ')" (input)="batteries($any($event.target).value)"></label>
     }
     @for (field of fields; track field.key) {
-      <label [for]="prefix + '-' + field.key">{{ field.label }}<input [id]="prefix + '-' + field.key" [type]="field.numeric ? 'number' : 'text'" [step]="field.key.endsWith('Teeth') ? '1' : 'any'" min="0" maxlength="120" [value]="$any(values)[field.key] ?? ''" [placeholder]="session ? ($any(data.defaults)[field.key] ?? 'Use event value') : ''" (input)="value(field.key, $any($event.target).value, field.numeric)"></label>
+      <label [for]="prefix + '-' + field.key">{{ field.label }}
+        @if (field.options; as options) {
+          <select [attr.aria-label]="field.label" [id]="prefix + '-' + field.key" [ngModel]="$any(values)[field.key] ?? ''" [ngModelOptions]="{standalone:true}" (ngModelChange)="value(field.key, '' + $event, true)">
+            <option value="">{{ session ? 'Use event value' + ($any(data.defaults)[field.key] ? ' · ' + $any(data.defaults)[field.key] : '') : '—' }}</option>
+            @if ($any(values)[field.key] && !options.includes($any(values)[field.key])) {
+              <option [ngValue]="$any(values)[field.key]" disabled>{{ $any(values)[field.key] }}</option>
+            }
+            @for (teeth of options; track teeth) { <option [ngValue]="teeth">{{ teeth }}</option> }
+          </select>
+        } @else {
+          <input [id]="prefix + '-' + field.key" [type]="field.numeric ? 'number' : 'text'" step="any" min="0" maxlength="120" [value]="$any(values)[field.key] ?? ''" [placeholder]="session ? ($any(data.defaults)[field.key] ?? 'Use event value') : ''" (input)="value(field.key, $any($event.target).value, field.numeric)">
+        }
+      </label>
     }
   </div>
 </fieldset>
