@@ -29,13 +29,13 @@
       <div>
         <h1>A place for everyone to contribute to something extraordinary.</h1>
       </div>
-      <a class="greenpower-link" routerLink="/424-greenpower-telemetry" aria-label="Open Greenpower telemetry">
-        <span>Greenpower telemetry</span>
-        @if (greenpowerLive.live$ | async) {
+      @if (greenpowerLive.live$ | async) {
+        <a class="greenpower-link" routerLink="/424-greenpower-telemetry" aria-label="Open Greenpower telemetry">
+          <span>Greenpower telemetry</span>
           <span class="live-badge"><span class="live-dot" aria-hidden="true"></span>Live</span>
-        }
-        <span aria-hidden="true">→</span>
-      </a>
+          <span aria-hidden="true">→</span>
+        </a>
+      }
     </header>
     @if (UI.currentUser && mentionActivity.userId === UI.currentUser && mentionActivity.status !== 'signed-out') {
       <section class="panel mentions-panel" aria-label="Mentioned you">

@@ -111,7 +111,7 @@ button:focus-visible,.visitor-list:focus-visible{outline:2px solid var(--color-f
 .mention-arrow{color:var(--color-text-muted);font-size:13px}
 @container home (max-width:760px){.mentions-panel{margin-bottom:10px}.mention-row{gap:8px;padding:10px 4px}.mention-avatar{width:30px;height:30px;flex-basis:30px}.mention-arrow{display:none}.mention-time{align-self:flex-start;margin-top:2px}}
 
-/* A useful permanent destination keeps live status from changing the layout. */
+/* Live discovery sits below the heading only while telemetry is active. */
 .page-header{align-items:flex-start;flex-direction:column;gap:8px}
 .greenpower-link{display:inline-flex;align-items:center;gap:10px;min-height:36px;padding:8px 12px;border-radius:8px;background:var(--color-raised);color:var(--color-text);font-size:13px;line-height:1.45;text-decoration:none;white-space:nowrap}
 .live-badge{display:inline-flex;align-items:center;gap:6px}

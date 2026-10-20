@@ -62,9 +62,14 @@ try{
   await page.evaluate(()=>window.liveHarness.route('/home'));
   const geometry=()=>page.evaluate(()=>{const box=s=>{const r=document.querySelector(s).getBoundingClientRect();return [r.x,r.y,r.width,r.height]};return {main:box('#main_container'),dashboard:box('.dashboard-grid'),scroll:document.querySelector('#main_container').scrollTop}});
   const before=await geometry();
+  const link=page.getByRole('link',{name:'Open Greenpower telemetry'});
+  assert.equal(await link.count(),0,'Home telemetry link is absent when inactive at '+width);
   await page.evaluate(()=>window.liveHarness.state(true,true));
-  assert.deepEqual(await geometry(),before,'live appearance preserves Home layout at '+width);
-  const link=page.getByRole('link',{name:'Open Greenpower telemetry'});await link.waitFor();
+  assert.deepEqual((await geometry()).main,before.main,'live appearance preserves shell viewport at '+width);
+  await link.waitFor();
+  const liveGeometry=await geometry();
+  await page.evaluate(()=>window.liveHarness.state(true,true));
+  assert.deepEqual(await geometry(),liveGeometry,'live updates preserve Home layout at '+width);
   assert.ok((await link.boundingBox()).width<=width);
   assert.equal(await page.getByRole('heading',{level:1}).isVisible(),true,'Home heading stays visible');
   const headingBox=await page.getByRole('heading',{level:1}).boundingBox();
@@ -84,6 +89,7 @@ try{
   await page.screenshot({path:output+'/'+name+'-navigation-live.png'});
   const appsBefore=await page.getByRole('button',{name:'Open apps',exact:true}).boundingBox();
   await page.evaluate(()=>window.liveHarness.state(false,true));
+  assert.equal(await link.count(),0,'Home telemetry link is removed when live status expires at '+width);
   assert.deepEqual(await page.getByRole('button',{name:'Open apps',exact:true}).boundingBox(),appsBefore);
   assert.deepEqual(await geometry(),before,'live removal preserves Home layout at '+width);
   await page.evaluate(()=>window.liveHarness.state(true,true));await nav.click();
