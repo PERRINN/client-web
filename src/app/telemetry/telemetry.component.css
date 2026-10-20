@@ -129,7 +129,7 @@ button[aria-pressed="true"] { background: var(--color-selected); }
 .timing-table .faster, .timing-table .faster .timing-delta { color: var(--color-success); }
 .timing-table .slower, .timing-table .slower .timing-delta { color: var(--color-danger-text); }
 .setup-column, .setup-cell { width: 26%; min-width: 248px; }
-.setup-cell select { margin: 0; height: auto; text-align: left; width: 100%; min-width: 0; background: var(--color-raised); color: var(--color-text); border: 1px solid var(--color-border); border-radius: 6px; padding: 7px 8px; font-size: 14px; }
+.setup-cell select { margin: 0; height: auto; text-align: left; width: 100%; min-width: 0; background: var(--color-raised); color: var(--color-text); border: 1px solid var(--color-border); border-radius: 6px; padding: 7px 8px; padding-inline-end: 2em; font-size: 14px; }
 .setup-cell select:disabled { opacity: .65; }
 .lap-adjustment { display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 6px; margin-top: 6px; }
 .amount-field { display: flex; align-items: center; gap: 6px; background: var(--color-raised); border: 1px solid var(--color-border); border-radius: 6px; padding-right: 8px; }
@@ -145,3 +145,8 @@ button[aria-pressed="true"] { background: var(--color-selected); }
 .chart-group:first-child > .chart-group-label { margin-top:0; }
 .chart-group { position: relative; }
 .group-cursor { position: absolute; margin: 0; pointer-events: none; z-index: 1; }
+
+@media (max-width: 600px) {
+  .setup-cell select { font-size: 16px; }
+  .lap-adjustment { grid-template-columns: 120px minmax(0, 1fr); }
+}

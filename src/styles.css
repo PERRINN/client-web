@@ -123,13 +123,32 @@ select:focus-visible {
   outline-offset: 1px;
 }
 select {
-  padding: 5px 10px;
+  /* Let text and padding determine height instead of clipping the native control. */
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.45;
+  padding: 8px 12px;
   background-color: var(--color-surface);
   color: var(--color-text);
-  width: 200px;
-  height: 30px;
-  text-align: center;
-  margin: 10px 10px 10px 10px;
+  color-scheme: dark;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  height: auto;
+  min-height: 44px;
+  text-align: start;
+  margin: 0;
+  overflow: visible;
+}
+/* Reserve arrow space even when a component supplies its own padding shorthand.
+   Multiple/size list controls do not have a dropdown arrow. */
+select:not([multiple]):not([size]) {
+  padding-inline-end: 2em;
+}
+@media (max-width: 600px) {
+  select:not([multiple]):not([size]) {
+    font-size: 16px;
+  }
 }
 option {
   color: var(--color-text-secondary);
