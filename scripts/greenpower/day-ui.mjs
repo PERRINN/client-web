@@ -77,7 +77,7 @@ TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTe
 TestBed.configureTestingModule({imports:[CommonModule,FormsModule,RouterModule.forRoot([])],declarations:[GreenpowerTelemetryComponent,GreenpowerEventSelectorComponent,GreenpowerEventEditorComponent,GreenpowerMetadataFieldsComponent,GreenpowerChartComponent,GreenpowerMapComponent,GreenpowerLapListComponent],providers:[{provide:PermissionsService,useValue:permissions},{provide:AngularFirestore,useValue:{firestore:db}},{provide:AngularFireFunctions,useValue:functions}]});
 TestBed.overrideComponent(GreenpowerTelemetryComponent,{set:{providers:[{provide:GreenpowerTelemetryService,useValue:telemetry},{provide:GreenpowerViewService,useValue:view},{provide:GreenpowerLapService,useValue:laps},GreenpowerEventsService,GreenpowerEventEditService,{provide:GreenpowerOverlayService,useValue:{active:false,changed:new Subject(),clear(){}}}]}});
 const fixture=TestBed.createComponent(GreenpowerTelemetryComponent);document.querySelector('.contentCard').append(fixture.nativeElement);fixture.autoDetectChanges();
-window.dayHarness={sessionLaps(){laps.line={a:{lat:52,lon:-1},b:{lat:52,lon:-0.9999},direction:1};laps.fixes=Array.from({length:1801},(_,i)=>({time:first+i*3000,lat:52,lon:-1}));laps.analysis.laps=[{time:first+300000,end:first+900000,lap:1,complete:true},{time:first+900000,end:first+1800000,lap:2,complete:false},{time:first+3900000,end:first+4500000,lap:3,complete:true},{time:first+4500000,end:first+5400000,lap:4,complete:false}];laps.changed.next();fixture.detectChanges();},sessionCounts(counts){records.get('GreenpowerTelemetry/424/days/'+date).sessionTypeCounts=counts;notify();fixture.detectChanges();},stats:()=>({cursor:fixture.componentInstance.cursor,sessionDraft:fixture.componentInstance.eventEdit.sessionDraft,dayLoads:telemetry.dayLoads,sessionLoads:telemetry.sessionLoads,calls:[...calls]}),viewer(){state.next({ready:true,uid:'viewer',isAdmin:false});fixture.detectChanges();},noLaps(){laps.analysis.laps=[];laps.changed.next();fixture.detectChanges();},admin(){state.next({ready:true,uid:'viewer',isAdmin:true});fixture.detectChanges();},empty(){records.clear();fixture.componentInstance.events.loadEvents(true);},failure(value){fail=value;},saveFailure(value){saveFail=value;},error(){telemetry.error='Synthetic load failure';telemetry.changed.next();},loading(value){telemetry.loading=value;telemetry.changed.next();},logout(){telemetry.access='signed-out';state.next({ready:true,uid:'',isAdmin:false});telemetry.changed.next();}};
+window.dayHarness={sessionLaps(){laps.line={a:{lat:52,lon:-1},b:{lat:52,lon:-0.9999},direction:1};laps.fixes=Array.from({length:1801},(_,i)=>({time:first+i*3000,lat:52,lon:-1}));laps.analysis.laps=[{time:first+300000,end:first+900000,lap:1,complete:true},{time:first+900000,end:first+1800000,lap:2,complete:false},{time:first+3900000,end:first+4500000,lap:3,complete:true},{time:first+4500000,end:first+5400000,lap:4,complete:false}];laps.changed.next();fixture.detectChanges();},sessionCounts(counts){records.get('GreenpowerTelemetry/424/days/'+date).sessionTypeCounts=counts;notify();fixture.detectChanges();},stats:()=>({window:fixture.componentInstance.window,cursor:fixture.componentInstance.cursor,sessionDraft:fixture.componentInstance.eventEdit.sessionDraft,dayLoads:telemetry.dayLoads,sessionLoads:telemetry.sessionLoads,calls:[...calls]}),viewer(){state.next({ready:true,uid:'viewer',isAdmin:false});fixture.detectChanges();},noLaps(){laps.analysis.laps=[];laps.changed.next();fixture.detectChanges();},admin(){state.next({ready:true,uid:'viewer',isAdmin:true});fixture.detectChanges();},empty(){records.clear();fixture.componentInstance.events.loadEvents(true);},failure(value){fail=value;},saveFailure(value){saveFail=value;},error(){telemetry.error='Synthetic load failure';telemetry.changed.next();},loading(value){telemetry.loading=value;telemetry.changed.next();},logout(){telemetry.access='signed-out';state.next({ready:true,uid:'',isAdmin:false});telemetry.changed.next();}};
 `);
 await build({ entryPoints: [output + '/entry.ts'], outfile: output + '/bundle.js', bundle: true, platform: 'browser', format: 'iife', nodePaths: [root + '/node_modules'], tsconfigRaw: { compilerOptions: { experimentalDecorators: true } }, plugins: [{ name: 'angular-resources', setup(plugin) {
   plugin.onLoad({ filter: /\.component\.ts$/ }, async args => {
@@ -310,6 +310,23 @@ try {
     await page.getByRole('button',{name:'Zoom all graphs to lap 1 · Practice · Alex',exact:true}).waitFor();
     assert.equal(await page.locator('.session-boundary').count(), 1, 'Lap 1 begins on the actual session start');
     assert.equal(await page.locator('.session-labels span').innerText(), 'Practice · Alex');
+    assert.deepEqual(await chartBox('app-greenpower-chart .plot'), overviewPlot);
+    assert.deepEqual(await chartBox('app-greenpower-chart'), overviewChart);
+    const sessionButton = page.getByRole('button', {name:'Zoom all graphs to Practice · Alex · 09:00:00–09:30:00',exact:true});
+    const sessionWindow = {start:Date.parse('2026-06-14T08:00:00Z'),end:Date.parse('2026-06-14T08:30:00Z')};
+    if (width < 500) await sessionButton.tap();
+    else await sessionButton.click();
+    assert.deepEqual(await page.evaluate(() => window.dayHarness.stats().window), sessionWindow, 'session label expands a partial lap view to the full saved session');
+    await page.waitForFunction(() => document.querySelectorAll('.session-boundary').length === 2);
+    for (const key of ['Enter','Space']) {
+      await page.locator('app-greenpower-chart svg').focus();
+      await page.keyboard.press('ArrowRight');
+      assert.equal(typeof await page.evaluate(() => window.dayHarness.stats().cursor), 'number');
+      await sessionButton.focus();
+      await page.keyboard.press(key);
+      assert.deepEqual(await page.evaluate(() => window.dayHarness.stats().window), sessionWindow);
+      assert.equal(await page.evaluate(() => window.dayHarness.stats().cursor), undefined);
+    }
     assert.deepEqual(await chartBox('app-greenpower-chart .plot'), overviewPlot);
     assert.deepEqual(await chartBox('app-greenpower-chart'), overviewChart);
     await page.screenshot({path: output + '/session-zoom-' + width + '.png', fullPage: true});

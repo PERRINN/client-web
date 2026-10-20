@@ -156,6 +156,24 @@ test('lap activation selects the full recorded interval and clears cursor and pe
   } finally {c.ngOnDestroy();}
 });
 
+test('session activation restores its full interval from a partial view and cancels inspection gestures', () => {
+  const {component:c,pointer:p}=fixture();
+  try {
+    c.start=200;c.end=800;
+    c.down(p(20));c.move(p(80));
+    const session={id:'practice',start:100,end:900,label:'Practice · Alex'};
+    c.zoomSession(session);
+    assert.equal(c.band,undefined);
+    assert.equal(c.drag,undefined);
+    assert.equal(c.cursorChange.values.at(-1),undefined);
+    assert.deepEqual(c.windowChange.values,[{start:100,end:900}]);
+    for (const bounds of [{start:900,end:900},{start:900,end:100},{start:NaN,end:900},{start:100,end:Infinity}]) {
+      c.zoomSession({...session,...bounds});
+    }
+    assert.equal(c.windowChange.values.length,1,'invalid intervals never change the shared window');
+  } finally {c.ngOnDestroy();}
+});
+
 test('keyboard visits distinct sample timestamps across irregular gaps and stops at window edges', () => {
   const {component:c}=fixture();
   c.channel.points=[{time:0,value:1},{time:10,value:2},{time:10,value:3},{time:900,value:4},{time:1000,value:5}];

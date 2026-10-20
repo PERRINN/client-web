@@ -71,7 +71,9 @@
       @for (session of sessionBands; track session.id) {
         @if (session.showLabel) {
           <span [style.left.%]="session.x" [style.width.%]="session.width"
-            [title]="session.label + ' · ' + time(session.start) + '–' + time(session.end)">{{ session.label }}</span>
+            [title]="session.label + ' · ' + time(session.start) + '–' + time(session.end)"><button type="button"
+              [attr.aria-label]="'Zoom all graphs to ' + session.label + ' · ' + time(session.start) + '–' + time(session.end)"
+              (click)="zoomSession(session)">{{ session.label }}</button></span>
         }
       }
     </div>
