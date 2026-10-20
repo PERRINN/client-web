@@ -1,0 +1,82 @@
+{
+  "checkedAt": "2026-10-20T11:13:15.359681+00:00",
+  "project": "perrinn-d5fc1",
+  "codeCommit": "34c0a94fc86fe23b94f06739e4321df1fb362a37",
+  "deploymentScope": [
+    "hosting"
+  ],
+  "deploymentStatus": "succeeded",
+  "assets": [
+    {
+      "origin": "https://perrinn-d5fc1.web.app",
+      "checks": [
+        {
+          "path": "/424-greenpower-telemetry",
+          "status": 200,
+          "sha256": "5e5e3b72bdeac867706b6342de63c86fe25195c0325703ad06e6bdf6172bf20b",
+          "matchesBuild": true,
+          "finalUrl": "https://perrinn-d5fc1.web.app/424-greenpower-telemetry?release=34c0a94"
+        },
+        {
+          "path": "/main.fcc3e97cdf2d7506.js",
+          "status": 200,
+          "sha256": "555162e34d65dc2462481195b939204980fa6f0b4f33f048c2cd0d9bf1ddc739",
+          "matchesBuild": true,
+          "finalUrl": "https://perrinn-d5fc1.web.app/main.fcc3e97cdf2d7506.js?release=34c0a94"
+        },
+        {
+          "path": "/ngsw.json",
+          "status": 200,
+          "sha256": "2d33733cfcf8c7ef8aa461da3a4c1fa5f3e7eaea14b7ec58c21e42ae3f43bdda",
+          "matchesBuild": true,
+          "finalUrl": "https://perrinn-d5fc1.web.app/ngsw.json?release=34c0a94"
+        }
+      ]
+    },
+    {
+      "origin": "https://perrinn.com",
+      "checks": [
+        {
+          "path": "/424-greenpower-telemetry",
+          "status": 200,
+          "sha256": "5e5e3b72bdeac867706b6342de63c86fe25195c0325703ad06e6bdf6172bf20b",
+          "matchesBuild": true,
+          "finalUrl": "https://perrinn.com/424-greenpower-telemetry?release=34c0a94"
+        },
+        {
+          "path": "/main.fcc3e97cdf2d7506.js",
+          "status": 200,
+          "sha256": "555162e34d65dc2462481195b939204980fa6f0b4f33f048c2cd0d9bf1ddc739",
+          "matchesBuild": true,
+          "finalUrl": "https://perrinn.com/main.fcc3e97cdf2d7506.js?release=34c0a94"
+        },
+        {
+          "path": "/ngsw.json",
+          "status": 200,
+          "sha256": "2d33733cfcf8c7ef8aa461da3a4c1fa5f3e7eaea14b7ec58c21e42ae3f43bdda",
+          "matchesBuild": true,
+          "finalUrl": "https://perrinn.com/ngsw.json?release=34c0a94"
+        }
+      ]
+    }
+  ],
+  "signedOutBrowser": [
+    {
+      "width": 1440,
+      "status": 200,
+      "signInVisible": true,
+      "runtimeErrors": [],
+      "horizontalOverflow": false
+    },
+    {
+      "width": 390,
+      "status": 200,
+      "signInVisible": true,
+      "runtimeErrors": [],
+      "horizontalOverflow": false
+    }
+  ],
+  "verificationLimit": "Production smoke checks cover signed-out rendering and exact asset identity. Authenticated editing and lap workflows were validated with synthetic fixtures before deployment; production telemetry data was not edited.",
+  "initialBrowserAttempt": "networkidle navigation timed out on background traffic; repeated using DOMContentLoaded and the visible sign-in control passed.",
+  "linkedIssue": null
+}
