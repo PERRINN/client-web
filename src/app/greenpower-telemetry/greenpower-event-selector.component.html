@@ -1,12 +1,7 @@
 <section id="history-picker" aria-label="Telemetry history">
-  <form class="filters" (ngSubmit)="apply()">
-    <label for="event-year-filter">Year<select id="event-year-filter" name="year" [(ngModel)]="year" [disabled]="locked">@for (value of years; track value) { <option [ngValue]="value">{{ value }}</option> }</select></label>
-    <label for="event-location-filter">Track<select id="event-location-filter" name="location" [(ngModel)]="filters.location" [disabled]="locked"><option value="">All tracks</option>@for (track of events.tracks; track track.id) { <option [value]="track.id">{{ track.name }}</option> }</select></label>
-    <label for="session-type-filter">Session type<select id="session-type-filter" name="type" [(ngModel)]="filters.type" [disabled]="locked"><option value="">All types</option>@for (type of types; track type.id) { <option [value]="type.id">{{ type.label }}</option> }</select></label>
-    <button type="submit" [disabled]="locked || events.loadingEvents">Filter</button>
-  </form>
-  @if (events.moreTracks) { <button type="button" [disabled]="locked || events.loadingTracks" (click)="events.loadTracks()">More tracks</button> }
-  @if (events.trackError) { <p class="error" role="alert">{{ events.trackError }} <button type="button" [disabled]="locked" (click)="events.loadTracks()">Retry tracks</button></p> }
+  <div class="filters">
+    <label for="event-year-filter">Year<select id="event-year-filter" [ngModel]="year" [disabled]="locked" (ngModelChange)="selectYear($event)">@for (value of years; track value) { <option [ngValue]="value">{{ value }}</option> }</select></label>
+  </div>
   <label for="history-event">Event</label>
   <select id="history-event" [ngModel]="events.eventId" [ngModelOptions]="{standalone:true}" [disabled]="locked" (ngModelChange)="events.selectEvent($event)">
     <option value="" disabled>Select event</option>
@@ -25,9 +20,7 @@
   <div class="feedback" aria-live="polite">
     @if (events.loadingSessions || events.eventId && !events.eventReady && !events.error || events.sessionId && !events.sessionReady && !events.error) { <span>Loading</span> }
     @else if (events.sessionError) { <span class="error" role="alert">{{ events.sessionError }}</span> }
-    @else if (events.eventReady && !events.sessions.length) { <span>No sessions{{ events.filters.type ? ' of this type' : '' }}.</span> }
     @if (events.moreSessions) { <button type="button" [disabled]="locked || events.loadingSessions" (click)="events.loadSessions()">More sessions</button> }
-    <button type="button" class="session-refresh" aria-label="Reload sessions" title="Reload sessions" [disabled]="locked || !events.eventReady || events.loadingSessions" (click)="events.loadSessions(true)"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7" /></svg></button>
   </div>
   @if (events.error) { <p class="error" role="alert">{{ events.error }} <button type="button" [disabled]="locked" (click)="events.selectEvent(events.eventId)">Retry</button></p> }
 </section>
