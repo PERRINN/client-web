@@ -104,6 +104,68 @@ test('year query selects only canonical 2026 races, inherits labels, rebases tim
   h.service.ngOnDestroy();
 });
 
+test('overlay power and Wh retain session baselines after elapsed-time projection', () => {
+  const startAt = Date.parse(date + 'T08:00:00Z');
+  const rows = Array.from({ length: 11 }, (_, index) => ({ id: String(index), source: '424-phone',
+    receivedAt: startAt + index * 3000, raw: JSON.stringify({ Vt: 24, A: 20, AH: 10 + index / 60 }) }));
+  const result = overlay.overlayChannels(rows, { type: 'battery_dyno', startAt: startAt + 6000,
+    endAt: startAt + 30000, overrides: {} });
+  const power = result.find(channel => channel.id === data.POWER);
+  const energy = result.find(channel => channel.id === data.ENERGY);
+  assert.deepEqual(power.points[0], { time: 0, value: 480 });
+  assert.deepEqual(energy.points[0], { time: 0, value: 0 });
+  assert.ok(Math.abs(energy.valueAt(24000) - 3.2) < 1e-10);
+  assert.ok(Math.abs(energy.points.at(-1).value - 3.2) < 1e-10);
+  assert.equal(energy.value, '3.2');
+});
+
+test('battery dyno overlay labels include saved batteries and omit empty battery lists', () => {
+  const event = { ...dayData.emptyDay(date), eventName: 'Battery test', defaults: { driver: 'Sam' } };
+  const session = { type: 'battery_dyno', batteryIds: ['Battery A'], overrides: {} };
+  const base = date + ' · Battery test · Sam';
+  assert.equal(overlay.overlayLabel(event, session), base + ' · Battery A');
+  assert.equal(overlay.overlayLabel(event, { ...session, batteryIds: ['Battery A', 'Battery B'] }), base + ' · Battery A, Battery B');
+  assert.equal(overlay.overlayLabel(event, { ...session, batteryIds: [] }), base);
+  for (const type of ['race', 'practice', 'motor_dyno']) {
+    assert.equal(overlay.overlayLabel(event, { ...session, type }), base);
+  }
+  assert.equal(overlay.overlayLabel({ ...event, eventName: '', defaults: {} }, session), date + ' · Battery A');
+});
+
+test('battery dyno preset filters the year and type, retains its filter on pagination and retry, and resets when switching', async () => {
+  const h = fixture(31);
+  for (const [path, value] of h.records) if (path.includes('/sessions/')) value.type = 'battery_dyno';
+  const source = h.records.get(`${ROOT}/days/${date}/sessions/race-0`);
+  for (const [id, changes] of [['race', { type: 'race' }], ['motor', { type: 'motor_dyno' }],
+    ['practice', { type: 'practice' }], ['old-year', { startAt: Date.UTC(2025, 11, 31) }],
+    ['next-year', { startAt: Date.UTC(2027, 0, 1) }], ['legacy', { schemaVersion: 1 }]]) {
+    h.records.set(`${ROOT}/days/${date}/sessions/${id}`, { ...source, id, ...changes });
+  }
+  const component = new GreenpowerOverlayComponent(h.service, { changed: new Subject(), charts: channels => channels }, { markForCheck() {} });
+  component.choose('2026-battery-dyno');
+  while (h.service.loading) await Promise.resolve();
+  assert.equal(h.service.title, '2026 battery dyno tests');
+  assert.equal(h.service.sessions.length, 30);
+  assert.ok(h.service.sessions.every(item => item.loaded && item.session.type === 'battery_dyno'));
+  h.fail(true); await h.service.load();
+  assert.ok(h.service.error);
+  assert.equal(h.service.sessions.length, 31);
+  h.fail(false); await h.service.load();
+  assert.equal(h.service.error, '');
+  assert.ok(h.service.sessions.every(item => item.loaded));
+  const queries = h.calls.filter(call => call.path === 'group:sessions');
+  assert.equal(queries.length, 2);
+  assert.ok(queries.every(query => query.limit === 30 && query.filters.some(([key, , value]) => key === 'type' && value === 'battery_dyno')));
+  assert.ok(queries[1].after, 'continuation uses the battery preset cursor');
+  component.choose('2026-race');
+  while (h.service.loading) await Promise.resolve();
+  assert.equal(h.service.title, '2026 race sessions');
+  assert.deepEqual(h.service.sessions.map(item => item.session.type), ['race']);
+  assert.equal(h.service.hasMore, false);
+  assert.equal(h.calls.filter(call => call.path === 'group:sessions').at(-1).after, undefined);
+  component.ngOnDestroy(); h.service.ngOnDestroy();
+});
+
 test('metadata pagination needs an explicit action and preserves hidden sessions', async () => {
   const h = fixture(31);
   await h.service.load(true);

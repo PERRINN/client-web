@@ -35,15 +35,16 @@ import {lapMetricChannels} from '${folder}/greenpowerLapMetrics';
 import {GreenpowerMetadataFieldsComponent} from '${folder}/greenpower-metadata-fields.component';
 import {channelsFor} from '${folder}/greenpowerData';
 import {emptyDay,editableDay,dayMetadataError} from '${folder}/greenpowerDay';
-import {overlayChannels,overlayColour} from '${folder}/greenpowerOverlay';
+import {overlayChannels,overlayColour,overlayLabel} from '${folder}/greenpowerOverlay';
 const channels=(offset=0)=>['Current','Voltage left','Voltage right','Voltage diff','Speed'].map((label,index)=>({
  id:['["A"]:A','computed:voltage-left','computed:voltage-right','computed:voltage-diff','["Spd"]:m/s'][index],label,unit:index===4?'m/s':index?'V':'A',value:'20',
  points:Array.from({length:200},(_,i)=>({time:i*30000,value:(index===0?20:index===3?1:12)+Math.sin(i/15+offset)*(index===0?4:.5)}))
 }));
 const overlay:any={active:false,loading:false,more:false,error:'',sessions:[],changed:new Subject(),end:5970000,hasMore:false,
- get channels(){return this.sessions.length?Object.getOwnPropertyDescriptor(GreenpowerOverlayService.prototype,'channels').get.call(this):channels()},get visibleSessions(){return this.sessions.filter(s=>s.loaded&&!s.hidden&&!s.excluded)},get status(){return this.loading?'Loading race sessions…':this.sessions.length+' sessions'},
- async load(reset=false){this.active=true;this.loading=true;this.changed.next();await new Promise(r=>setTimeout(r,80));
-  this.sessions=Array.from({length:6},(_,i)=>({id:'session-'+i,label:'2026-06-'+(14+i)+' · '+(i%2?'Goodwood':'Dunsfold')+' · Driver '+(i+1),colour:overlayColour(i),loaded:true,hidden:false,excluded:false,channels:channels(i),session:{startAt:0,endAt:this.end}}));
+ get title(){return Object.getOwnPropertyDescriptor(GreenpowerOverlayService.prototype,'title').get.call(this)},
+ get channels(){return this.sessions.length?Object.getOwnPropertyDescriptor(GreenpowerOverlayService.prototype,'channels').get.call(this):channels()},get visibleSessions(){return this.sessions.filter(s=>s.loaded&&!s.hidden&&!s.excluded)},get status(){return this.loading?'Loading sessions…':this.sessions.length+' sessions'},
+ async load(reset=false,sessionType='race'){this.sessionType=sessionType;this.active=true;this.loading=true;this.changed.next();await new Promise(r=>setTimeout(r,80));
+  this.sessions=Array.from({length:6},(_,i)=>({id:'session-'+i,label:overlayLabel({...emptyDay('2026-06-'+(14+i)),eventName:i%2?'Goodwood':'Dunsfold',defaults:{driver:'Driver '+(i+1)}},{type:sessionType,batteryIds:['Battery '+(i+1)+'A','Battery '+(i+1)+'B'],overrides:{}} as any),colour:overlayColour(i),loaded:true,hidden:false,excluded:false,channels:channels(i),session:{startAt:0,endAt:this.end}}));
   this.loading=false;this.changed.next()},
  toggleVisibility:GreenpowerOverlayService.prototype.toggleVisibility,
  toggleInclusion:GreenpowerOverlayService.prototype.toggleInclusion,
@@ -73,7 +74,19 @@ TestBed.overrideComponent(GreenpowerTelemetryComponent,{set:{providers:[
 const metadataFixture=TestBed.createComponent(GreenpowerMetadataFieldsComponent);metadataFixture.componentInstance.data=editableDay(emptyDay('2026-10-20'));metadataFixture.detectChanges();metadataFixture.changeDetectorRef.detach();metadataFixture.nativeElement.remove();
 const fixture=TestBed.createComponent(GreenpowerTelemetryComponent);const detect=()=>{fixture.changeDetectorRef.markForCheck();fixture.detectChanges()};document.body.append(fixture.nativeElement);detect();
 overlay.changed.subscribe(detect);view.changed.subscribe(detect);
-window.overlayHarness={speed(mode,recorded=true,circumference=1.29){
+let electricalSaved;
+window.overlayHarness={electrical(mode){
+ if(mode==='restore'){view['saved']=electricalSaved;electricalSaved=undefined;fixture.componentInstance.recordingSessions=[];overlay.clear();view.changed.next();detect();return}
+ electricalSaved ??= view['saved'];
+ const samples=Array.from({length:11},(_,i)=>({id:String(i),source:'424-phone',receivedAt:i*3000,raw:JSON.stringify({Vt:24,A:20,AH:10+i/60})}));
+ const event=emptyDay('2026-10-20'),session={id:'battery',type:'battery_dyno',startAt:6000,endAt:30000,overrides:{},batteryIds:['A','B']};
+ const rows=channelsFor(samples,samples.at(-1));
+ view['saved']={...selectionFor(rows),charts:{'["A"]:A':true,'["AH"]:Ah':true},chartOrder:['["A"]:A','["AH"]:Ah'],revision:1,updatedBy:'admin'};
+ fixture.componentInstance.window=undefined;fixture.componentInstance.cursor=undefined;
+ if(mode==='overlay'){overlay.sessionType='battery_dyno';overlay.active=true;overlay.end=24000;overlay.sessions=[{id:'battery',label:overlayLabel(event,session as any),colour:overlayColour(0),loaded:true,hidden:false,excluded:false,session,channels:overlayChannels(samples,session as any,event)}];overlay.changed.next()}
+ else{overlay.clear();fixture.componentInstance['loadedEvent']=mode==='live'?undefined:event;fixture.componentInstance.recordingSessions=mode==='live'?[]:[session as any];telemetry.live=mode==='live';telemetry.channels=rows;telemetry.latest=samples.at(-1);telemetry.start=0;telemetry.end=30000;telemetry.changed.next()}
+ detect();
+},speed(mode,recorded=true,circumference=1.29){
  const event={...emptyDay('2026-10-20'),wheelCircumferenceM:circumference,defaults:{motorGearTeeth:12,wheelGearTeeth:60}};
  const samples=Array.from({length:4},(_,i)=>({id:String(i),source:'424-phone',receivedAt:i*3000,raw:JSON.stringify({RPM:2000+i*200,A:20,...(recorded?{Spd:10+i}: {})})}));
  if(mode==='overlay') {overlay.active=true;overlay.sessions=Array.from({length:2},(_,i)=>{const rows=i?samples.map(row=>({...row,raw:JSON.stringify({RPM:2400,A:20})})):samples;return {id:'speed-'+i,label:'Driver '+(i+1),colour:overlayColour(i),loaded:true,hidden:false,excluded:false,channels:overlayChannels(rows,{id:'s'+i,type:'race',startAt:0,endAt:9000,overrides:{}} as any,event),session:{startAt:0,endAt:9000}}});overlay.end=9000;overlay.changed.next()}
@@ -116,6 +129,21 @@ try {
   const after=await toolbar.boundingBox();assert.deepEqual(after,initial,'opening preserves toolbar geometry at '+width);
   await page.locator('#overlay-source').selectOption('2026-race');
   await page.waitForFunction(()=>window.overlayHarness.overlay.sessions.length===6&&!window.overlayHarness.overlay.loading);
+  assert.equal(await page.locator('#overlay-source option[value="2026-battery-dyno"]').textContent(),'2026 battery dyno tests');
+  await page.locator('#overlay-source').selectOption('2026-battery-dyno');
+  await page.waitForFunction(()=>window.overlayHarness.overlay.sessionType==='battery_dyno'&&!window.overlayHarness.overlay.loading);
+  assert.deepEqual(await toolbar.boundingBox(),initial,'battery dyno selection preserves toolbar geometry at '+width);
+  assert.equal(await page.locator('body').evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  assert.equal(await page.getByRole('heading',{name:'2026 battery dyno tests',exact:true}).count(),1);
+  assert.equal(await page.title(),'2026 battery dyno tests · PERRINN');
+  const batteryLabels=await page.locator('.session-list .session-label').allTextContents();
+  assert.ok(batteryLabels.every((label,index)=>label.endsWith('Battery '+(index+1)+'A, Battery '+(index+1)+'B')));
+  assert.deepEqual(await page.locator('app-greenpower-chart').first().locator('.overlay-name').allTextContents(),batteryLabels);
+  await page.screenshot({path:output+'/'+name+'-battery-dyno.png',fullPage:true});
+  await page.locator('#overlay-source').selectOption('2026-race');
+  await page.waitForFunction(()=>window.overlayHarness.overlay.sessionType==='race'&&!window.overlayHarness.overlay.loading);
+  assert.equal(await page.getByRole('heading',{name:'2026 race sessions',exact:true}).count(),1);
+  assert.equal(await page.title(),'2026 race sessions · PERRINN');
   assert.equal(await page.getByRole('button',{name:'Track map',exact:true}).isDisabled(),true);
   assert.equal(await page.getByRole('button',{name:'Lap list',exact:true}).isDisabled(),true);
   assert.equal(await page.locator('app-greenpower-chart').count(),4);
@@ -253,10 +281,10 @@ try {
   await page.evaluate(()=>{const h=window.overlayHarness;h.fixture.componentInstance.telemetry.channels=[];h.fixture.componentInstance.telemetry.changed.next();h.detect()});
   await page.evaluate(()=>{window.overlayHarness.view.permissions.current.isAdmin=false;window.overlayHarness.detect()});
   assert.equal(await page.getByRole('button',{name:'Edit view',exact:true}).count(),1,'underlying metadata editor remains available');
-  await page.evaluate(()=>window.overlayHarness.set({active:true,error:'Could not load race sessions.',hasMore:true}));
+  await page.evaluate(()=>window.overlayHarness.set({active:true,error:'Could not load sessions.',hasMore:true}));
   assert.equal(await page.getByRole('button',{name:'Edit view',exact:true}).count(),0,'non-admin cannot edit overlay');
   assert.equal(await page.getByRole('alert').count(),1);assert.equal(await page.getByRole('button',{name:'Retry',exact:true}).count(),1);
-  await page.evaluate(()=>window.overlayHarness.set({error:'',hasMore:false}));assert.equal(await page.getByText('No race sessions loaded.',{exact:true}).count(),1);
+  await page.evaluate(()=>window.overlayHarness.set({error:'',hasMore:false}));assert.equal(await page.getByText('No sessions loaded.',{exact:true}).count(),1);
   await page.evaluate(()=>{window.overlayHarness.view.permissions.current.isAdmin=true;window.overlayHarness.detect()});
   await page.evaluate(()=>window.overlayHarness.metrics('normal'));
   for(const label of ['Lap time · s','Lap average speed · from motor · mph','Lap average amps · A']) {
@@ -339,6 +367,31 @@ try {
   await circumference.fill('1.36');
   assert.equal(await page.locator('body').evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   await page.screenshot({path:output+'/'+name+'-circumference.png',fullPage:true});
+  await page.evaluate(()=>window.overlayHarness.removeMetadata());
+  const electricalHeadings=['Current · A','Power · W','Amp hours used · Ah','Energy · Wh'];
+  for(const mode of ['normal','live','overlay']) {
+   await page.evaluate(mode=>window.overlayHarness.electrical(mode),mode);
+   assert.deepEqual(await page.locator('app-greenpower-chart h2').allTextContents(),electricalHeadings);
+   assert.equal(await page.locator('body').evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+   const power=page.locator('app-greenpower-chart').nth(1),energy=page.locator('app-greenpower-chart').nth(3);
+   assert.ok((await power.locator('svg .trace').first().getAttribute('d')).length>0);
+   assert.ok((await energy.locator('svg .trace').first().getAttribute('d')).length>0);
+   if(mode==='normal') {
+    await page.evaluate(()=>{const h=window.overlayHarness;h.fixture.componentInstance.window={start:18000,end:30000};h.fixture.componentInstance.cursor=30000;h.detect()});
+    assert.match(await energy.locator('.readout').textContent(),/3\.2\s*Wh/,'zoom retains session energy baseline');
+    await energy.locator('svg').focus();await energy.locator('svg').press('ArrowLeft');
+    assert.equal(await energy.locator('.cursor').count(),1,'energy chart supports keyboard inspection');
+   } else if(mode==='live') {
+    await page.evaluate(()=>{const h=window.overlayHarness;h.fixture.componentInstance.cursor=30000;h.detect()});
+    assert.match(await energy.locator('.readout').textContent(),/4\.0\s*Wh/,'live energy starts at recording origin');
+   } else {
+    assert.equal(await page.getByRole('heading',{name:'2026 battery dyno tests',exact:true}).count(),1);
+    await page.evaluate(()=>{const h=window.overlayHarness;h.comparison.cursor=24000;h.detect()});
+    assert.match(await energy.locator('.overlay-readout').textContent(),/3\.2/,'overlay uses the same session energy');
+   }
+   await page.screenshot({path:output+'/'+name+'-electrical-'+mode+'.png',fullPage:true});
+  }
+  await page.evaluate(()=>window.overlayHarness.electrical('restore'));
   await page.evaluate(()=>{const h=window.overlayHarness;h.removeMetadata();const t=h.fixture.componentInstance.telemetry;t.channels=[];t.latest=undefined;t.live=true;t.start=0;t.end=1000;h.fixture.componentInstance['loadedEvent']=undefined;t.changed.next();h.detect()});
 
 

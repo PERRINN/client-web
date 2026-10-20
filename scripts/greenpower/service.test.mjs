@@ -148,7 +148,7 @@ test('load errors surface without automatic request loops and can be retried exp
   await h.service.select('2026-10-17');
   assert.ok(h.service.error); assert.equal(h.calls.length, 1);
   h.seed('2026-10-17', 1); await h.service.select('2026-10-17');
-  assert.equal(h.service.error, ''); assert.equal(h.service.channels.length, 8);
+  assert.equal(h.service.error, ''); assert.equal(h.service.channels.length, 9);
   h.service.ngOnDestroy();
 });
 test('UK midnight rolls live onto the next day and closes previous listeners', async () => {

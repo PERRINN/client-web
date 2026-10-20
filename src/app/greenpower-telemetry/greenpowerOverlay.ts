@@ -4,7 +4,7 @@ import { gpsAnalysis, gpsFixes } from './greenpowerGps';
 import { contains, TrackDefinition } from './greenpowerTracks';
 import { motorLapSpeeds, withMotorDerivedSpeed } from './greenpowerSpeed';
 import { lapMetricChannels } from './greenpowerLapMetrics';
-import { sessionLapAnalysis, sessionIntervals, sessionAmpHours, savedGear } from './greenpowerSessions';
+import { sessionLapAnalysis, sessionIntervals, sessionAmpHours, savedGear, withEnergy } from './greenpowerSessions';
 
 // Local display state only: hidden retains graph rows; excluded removes them.
 export interface OverlaySession {
@@ -14,12 +14,13 @@ export interface OverlaySession {
 export interface OverlayTrace { id: string; label: string; colour: string; channel: GreenpowerChannel; dashed?: boolean; detail?: string; sessionId?: string; hidden?: boolean; excluded?: boolean; }
 export function overlayColour(index: number) { return `hsl(${(205 + index * 137.508) % 360} 60% 72%)`; }
 export function overlayLabel(event: RecordedEvent, session: DaySession) {
-  return [event.date, event.eventName, effectiveDefaults(event, session).driver].filter(Boolean).join(' · ');
+  return [event.date, event.eventName, effectiveDefaults(event, session).driver,
+    session.type === 'battery_dyno' ? session.batteryIds.join(', ') : ''].filter(Boolean).join(' · ');
 }
 export function overlayChannels(samples: Parameters<typeof channelsFor>[0], session: DaySession, event?: RecordedEvent, track?: TrackDefinition | null) {
   const ordered = [...samples].sort((a, b) => sampleTime(a) - sampleTime(b) || a.id.localeCompare(b.id));
   const latest = ordered.at(-1);
-  const channels = channelsFor(ordered, latest), fixes = gpsFixes(channels);
+  const channels = withEnergy(channelsFor(ordered, latest), [session], latest && sampleTime(latest)), fixes = gpsFixes(channels);
   const line = track?.line && fixes.every(fix => contains(track.bounds, fix)) ? track.line : null;
   const analysis = gpsAnalysis(fixes, line, channels, session.endAt);
   const numbered = sessionLapAnalysis(analysis, event ? sessionIntervals(event, [session]) : [], {

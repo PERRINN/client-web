@@ -75,6 +75,9 @@ export const LAP_METRICS: Record<string, { label: string; unit: string }> = {
   'computed:lap-average-amps': { label: 'Lap average amps', unit: 'A' }
 };
 export const isLapMetric = (id: string) => Object.hasOwn(LAP_METRICS, id);
+export const POWER = 'computed:power';
+export const ENERGY = 'computed:energy';
+export const isElectricalMetric = (id: string) => id === POWER || id === ENERGY;
 export const VOLTAGE_LEFT = 'computed:voltage-left';
 export const VOLTAGE_RIGHT = 'computed:voltage-right';
 export const VOLTAGE_DIFF = 'computed:voltage-diff';
@@ -83,9 +86,9 @@ const voltageLabels: Record<string, string> = {
   [VOLTAGE_LEFT]: 'Voltage left', [VOLTAGE_RIGHT]: 'Voltage right', [VOLTAGE_DIFF]: 'Voltage diff'
 };
 // Calculate within one payload: never combine readings from different samples.
-function voltageFields(source: { id: string; unit: string; value: unknown }[]) {
-  const finiteVoltage = (id: string) => source.find(field => field.id === id && field.unit === 'V' && typeof field.value === 'number' && Number.isFinite(field.value))?.value as number | undefined;
-  const left = finiteVoltage('["V1"]'), total = finiteVoltage('["Vt"]');
+function electricalFields(source: { id: string; unit: string; value: unknown }[]) {
+  const finiteReading = (id: string, unit: string) => source.find(field => field.id === id && field.unit === unit && typeof field.value === 'number' && Number.isFinite(field.value))?.value as number | undefined;
+  const left = finiteReading('["V1"]', 'V'), total = finiteReading('["Vt"]', 'V');
   const result: { id: string; label: string; unit: string; value: number }[] = [];
   const add = (id: string, value: number) => {
     if (Number.isFinite(value)) result.push({ id, label: voltageLabels[id], unit: 'V', value });
@@ -94,6 +97,10 @@ function voltageFields(source: { id: string; unit: string; value: unknown }[]) {
     add(VOLTAGE_LEFT, left);
     if (total !== undefined) { const right = total - left; add(VOLTAGE_RIGHT, right); add(VOLTAGE_DIFF, right - left); }
   }
+  const current = finiteReading('["A"]', 'A');
+  if (total !== undefined && current !== undefined && Number.isFinite(total * current)) {
+    result.push({ id: POWER, label: 'Power', unit: 'W', value: total * current });
+  }
   return result;
 }
 export function channelsFor(samples: GreenpowerSample[], latest?: GreenpowerSample): GreenpowerChannel[] {
@@ -101,7 +108,7 @@ export function channelsFor(samples: GreenpowerSample[], latest?: GreenpowerSamp
   const readings = new Map<string, unknown>();
   const append = (sample: GreenpowerSample, plot: boolean) => {
     const source = fields(sample.raw, sample.source === 'echook-history');
-    for (const field of [...source, ...voltageFields(source)]) {
+    for (const field of [...source, ...electricalFields(source)]) {
       const key = field.id.startsWith('computed:') ? field.id : `${field.id}:${field.unit}`;
       const factor = speedFactor(field.unit);
       const value = factor !== undefined && typeof field.value === 'number' ? field.value * factor : field.value;
@@ -175,6 +182,8 @@ export function pointIndex(points: { time: number }[], time: number, after = fal
 
 /** Recover a saved selection's label even when this day has no matching samples. */
 export function channelDetails(id: string): { label: string; unit: string } {
+  if (id === POWER) return { label: 'Power', unit: 'W' };
+  if (id === ENERGY) return { label: 'Energy', unit: 'Wh' };
   if (id === MOTOR_DERIVED_SPEED) return { label: 'Motor-derived speed', unit: 'mph' };
   if (isLapMetric(id)) return LAP_METRICS[id];
   if (Object.hasOwn(voltageLabels, id)) return { label: voltageLabels[id], unit: 'V' };

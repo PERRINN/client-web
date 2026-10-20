@@ -18,6 +18,7 @@ export class GreenpowerOverlayService implements OnDestroy {
   error = '';
   sessions: OverlaySession[] = [];
   more = false;
+  private sessionType: 'race' | 'battery_dyno' = 'race';
   private cursor?: firebase.firestore.QueryDocumentSnapshot;
   private queue: OverlaySession[] = [];
   private reader?: RecordingReader;
@@ -45,8 +46,9 @@ export class GreenpowerOverlayService implements OnDestroy {
     return [...channels.values()];
   }
   get end() { return Math.max(1, ...this.sessions.filter(item => item.loaded).map(item => item.session.endAt - item.session.startAt)); }
+  get title() { return this.sessionType === 'battery_dyno' ? '2026 battery dyno tests' : '2026 race sessions'; }
   get status() {
-    return this.loading ? 'Loading race sessions…' : this.sessions.filter(item => item.loaded).length + ' sessions'
+    return this.loading ? 'Loading sessions…' : this.sessions.filter(item => item.loaded).length + ' sessions'
       + (this.error ? ' · Load incomplete' : this.hasMore ? ' · More available' : '');
   }
   clear() {
@@ -65,9 +67,9 @@ export class GreenpowerOverlayService implements OnDestroy {
     this.sessions = this.sessions.map(item => item.id === id ? { ...item, hidden: !item.hidden } : item);
     this.changed.next();
   }
-  async load(reset = false) {
+  async load(reset = false, sessionType: 'race' | 'battery_dyno' = 'race') {
     if (!this.account || this.loading) return;
-    if (reset) { this.clear(); this.active = true; this.more = true; }
+    if (reset) { this.clear(); this.sessionType = sessionType; this.active = true; this.more = true; }
     if (!this.active || !this.more && !this.queue.length) return;
     const generation = this.generation, current = () => generation === this.generation && !!this.account;
     const budget = recordingBudget();
@@ -76,7 +78,7 @@ export class GreenpowerOverlayService implements OnDestroy {
       // One metadata page, with no automatic pagination or retries.
       if (!this.queue.length && this.more) {
         let query = this.db.collectionGroup('sessions').where('telemetryRoot', '==', SESSION_SCOPE)
-          .where('schemaVersion', '==', 2).where('type', '==', 'race')
+          .where('schemaVersion', '==', 2).where('type', '==', this.sessionType)
           .where('startAt', '>=', Date.UTC(2026, 0, 1)).where('startAt', '<', Date.UTC(2027, 0, 1))
           .orderBy('startAt').orderBy(firebase.firestore.FieldPath.documentId()).limit(30);
         if (this.cursor) query = query.startAfter(this.cursor);
@@ -124,7 +126,7 @@ export class GreenpowerOverlayService implements OnDestroy {
         item.loaded = true; this.queue.shift(); this.reader = undefined; this.sessions = [...this.sessions];
         this.changed.next();
       }
-    } catch { if (current()) { this.reader = undefined; this.error = 'Could not load race sessions. Try again.'; } }
+    } catch { if (current()) { this.reader = undefined; this.error = 'Could not load sessions. Try again.'; } }
     finally { if (current()) { this.loading = false; this.changed.next(); } }
   }
   get hasMore() { return this.more || !!this.queue.length; }

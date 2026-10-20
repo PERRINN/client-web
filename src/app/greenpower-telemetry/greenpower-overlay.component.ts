@@ -28,7 +28,10 @@ export class GreenpowerOverlayComponent implements OnDestroy {
   get start() { return this.window?.start ?? 0; }
   get end() { return this.window?.end ?? this.overlay.end; }
   zoom(window?: ChartWindow) { this.window = window; this.cursor = undefined; }
-  choose(value: string) { if (value === '2026-race') void this.overlay.load(true); }
+  choose(value: string) {
+    if (value === '2026-race') void this.overlay.load(true, 'race');
+    else if (value === '2026-battery-dyno') void this.overlay.load(true, 'battery_dyno');
+  }
   private refresh() {
     const membership = this.overlay.sessions.filter(item => item.loaded).map(item => item.id).join('|');
     if (membership !== this.membership) { this.membership = membership; this.zoom(); }

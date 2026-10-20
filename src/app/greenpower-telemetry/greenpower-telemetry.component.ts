@@ -13,7 +13,7 @@ import { GreenpowerTelemetryService } from './greenpowerTelemetry.service';
 import { GreenpowerEventsService } from './greenpowerEvents.service';
 import { GreenpowerEventEditService } from './greenpowerEventEdit.service';
 import { DaySession, RecordedEvent } from './greenpowerDay';
-import { SessionInterval, sessionIntervals, sessionLapAnalysis, sessionAmpHours, savedGear } from './greenpowerSessions';
+import { SessionInterval, sessionIntervals, sessionLapAnalysis, sessionAmpHours, savedGear, withEnergy } from './greenpowerSessions';
 import { GreenpowerOverlayService } from './greenpowerOverlay.service';
 import { motorLapSpeeds, withMotorDerivedSpeed } from './greenpowerSpeed';
 import { lapMetricChannels } from './greenpowerLapMetrics';
@@ -47,7 +47,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
       start: data.start, end: data.end, lastReceived: data.latest?.receivedAt, liveStatus: this.liveStatus,
       event: this.loadedEvent });
   }
-  get heading() { return this.overlay.active ? '2026 race sessions' : this.header.title; }
+  get heading() { return this.overlay.active ? this.overlay.title : this.header.title; }
   get wholeEventLoaded() { return !!this.loadedEvent && !this.telemetry.live; }
   get editing() { return this.view.editing || this.metadataEditing; }
   get dataset() { return this.telemetry.day + ':' + this.telemetry.live + ':' + this.telemetry.recordingKey; }
@@ -143,7 +143,8 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
       this.numberedLaps = numbered.laps; this.lapChannel = numbered.channel;
     }
     const latestTime = this.telemetry.latest ? sampleTime(this.telemetry.latest) : undefined;
-    this.channels = savedGear(this.telemetry.channels.map(channel => sessionAmpHours(channel, this.recordingSessions, latestTime)),
+    const electrical = withEnergy(this.telemetry.channels, this.recordingSessions, latestTime);
+    this.channels = savedGear(electrical.map(channel => sessionAmpHours(channel, this.recordingSessions, latestTime)),
       this.loadedEvent, this.recordingSessions, this.telemetry.start, Math.max(this.telemetry.end, latestTime ?? 0), latestTime,
       !this.sessionsLoading && !this.sessionsMore && !this.sessionsError);
     this.channels = withMotorDerivedSpeed(this.channels, this.loadedEvent, latestTime);

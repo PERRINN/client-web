@@ -33,7 +33,7 @@ test('operator role assignment preserves unrelated claims and supports revocatio
 });
 test('selection validates channel bounds, keeps scalar/chart choices independent, and labels absent channels', () => {
   const selection=view.selectionFor(channels);
-  assert.equal(Object.keys(selection.scalars).length,8); assert.equal(Object.keys(selection.charts).length,7);
+  assert.equal(Object.keys(selection.scalars).length,9); assert.equal(Object.keys(selection.charts).length,7);
   const id=channels[0].id; delete selection.scalars[id];
   assert.ok(!view.selectedChannels(channels,selection.scalars).some(c=>c.id===id));
   assert.ok(view.selectedChannels(channels,selection.charts).some(c=>c.id===id));
@@ -72,13 +72,13 @@ test('view uses one document listener per account, ignores cache, and clears on 
 });
 test('default view shows loaded channels; save is one bounded transaction and viewer updates from server', async () => {
   const h=harness();h.signIn();h.emit(undefined);
-  assert.equal(h.service.scalars(channels).length,8);
+  assert.equal(h.service.scalars(channels).length,9);
   h.service.edit(channels);const id=channels[0].id;h.service.toggle('scalars',id,false);
-  assert.equal(h.service.scalars(channels).length,8,'draft stays private until saved');
+  assert.equal(h.service.scalars(channels).length,9,'draft stays private until saved');
   await h.service.save(); assert.equal(h.attempts,1);assert.equal(h.writes,1);assert.equal(h.record.revision,1);
   assert.equal(h.record.updatedAt,'server-time');assert.equal(h.record.updatedBy,'admin');
   assert.equal(h.service.editing,false);
-  h.emit(h.record);assert.equal(h.service.scalars(channels).length,7);
+  h.emit(h.record);assert.equal(h.service.scalars(channels).length,8);
   assert.ok(h.service.charts(channels).some(c=>c.id===id));
   h.service.ngOnDestroy();
 });
@@ -129,7 +129,7 @@ test('legacy views retain their order; explicit scalar and chart orders are inde
 test('ordering is draft-only, bounded at each end, cancelable, and saved for every viewer', async () => {
   const h=harness();h.signIn();h.emit(saved);h.service.edit(channels);
   const original=h.service.scalars(channels).map(c=>c.id);
-  const chartOrder=h.service.charts(channels).map(c=>c.id);
+  const chartOrder=view.configurableCharts(h.service.charts(channels)).map(c=>c.id);
   const first=original[0],second=original[1];
   h.service.move('scalars',first,-1);assert.deepEqual(h.service.draft.scalarOrder,original);
   h.service.move('scalars',first,1);assert.deepEqual(h.service.draft.scalarOrder.slice(0,2),[second,first]);
@@ -140,7 +140,7 @@ test('ordering is draft-only, bounded at each end, cancelable, and saved for eve
   const draft=view.copySelection(h.service.draft);await h.service.save();h.emit(h.record);
   h.signIn(false);
   assert.deepEqual(h.service.scalars(channels).map(c=>c.id),draft.scalarOrder);
-  assert.deepEqual(h.service.charts(channels).map(c=>c.id),draft.chartOrder);
+  assert.deepEqual(view.configurableCharts(h.service.charts(channels)).map(c=>c.id),draft.chartOrder);
   h.service.move('scalars',first,-1);assert.deepEqual(h.record.scalarOrder,draft.scalarOrder);
   h.service.ngOnDestroy();
 });
