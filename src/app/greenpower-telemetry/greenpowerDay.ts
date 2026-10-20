@@ -32,6 +32,10 @@ export function emptyDay(date: string): RecordedEvent {
 export function effectiveDefaults(event: DayMetadata, session?: DaySession): EventDefaults {
   return { ...event.defaults, ...session?.overrides };
 }
+export function eventSummary(event: DayMetadata, session?: DaySession): string {
+  const driver = effectiveDefaults(event, session).driver;
+  return [event.eventName, driver, event.result].filter(Boolean).join(' · ');
+}
 export function gearingRatio(event: DayMetadata, session?: DaySession): number | undefined {
   const values = effectiveDefaults(event, session);
   return values.motorGearTeeth && values.wheelGearTeeth ? values.wheelGearTeeth / values.motorGearTeeth : undefined;

@@ -113,7 +113,11 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   }
   saveView() { void this.view.save(this.lapConfig.selectionWrite()); }
   toggleEditing() {
-    if (this.activeView === 'laps' || this.eventEdit.locked || this.view.saving) return;
+    if (this.activeView === 'laps' || this.eventEdit.locked || this.view.saving || this.lapConfig.saving) return;
+    if (this.historyOpen) {
+      this.historyOpen = false;
+      if (this.editing) return;
+    }
     if (this.editing) { this.view.cancel(); this.eventEdit.cancel(); this.metadataEditing = false; }
     else {
       if (this.view.canEdit) this.view.edit(this.channels);
@@ -180,6 +184,8 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     return this.now - data.latest.receivedAt > 15000 ? 'Stale' : 'Live';
   }
   async history() {
+    if (this.eventEdit.locked || this.view.saving || this.lapConfig.saving) return;
+    this.drag.cancel();
     this.historyOpen = !this.historyOpen;
     if (this.historyOpen && !this.events.loadedEvents && !this.events.loadingEvents) await this.events.loadEvents();
   }

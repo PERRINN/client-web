@@ -100,11 +100,11 @@ test('touch scroll is blocked only after cursor or zoom owns a single-finger ges
   } finally {c.ngOnDestroy();}
 });
 
-test('hover snaps line and marker to original samples, including synchronized cursor times', () => {
+test('cursor snaps line and marker to original samples, including synchronized cursor times', () => {
   const {component:c,pointer:p}=fixture();
   c.ngOnChanges({channel:{}});
   for (const x of [101,120,180,200]) {
-    c.move(p(x,'mouse'));
+    c.inspect(x/200);
     assert.equal(c.cursorChange.values.at(-1),1000);
   }
   c.cursor=800; // Another channel can have a different sample cadence.
@@ -116,7 +116,7 @@ test('hover snaps line and marker to original samples, including synchronized cu
   c.start=200;c.end=800;
   assert.equal(c.cursorPosition,undefined);
   assert.equal(c.markerY,undefined);
-  c.move(p(100,'mouse'));
+  c.inspect(.5);
   assert.equal(c.cursorChange.values.at(-1),undefined,'empty window has no invented sample');
   c.ngOnDestroy();
 });
@@ -153,5 +153,48 @@ test('keyboard visits distinct sample timestamps across irregular gaps and stops
   assert.equal(key('ArrowRight'),10,'midpoint ties select the earlier sample');
   c.start=20;c.end=800;
   assert.equal(key('ArrowRight'),undefined);
+  c.ngOnDestroy();
+});
+
+test('long press selects a sticky cursor on mouse and touch', async () => {
+  for (const type of ['mouse', 'touch']) {
+    const {component:c,pointer:p}=fixture();
+    c.down(p(20,type));
+    assert.equal(c.cursorChange.values.length,0,'short presses do not activate the cursor');
+    await new Promise(resolve=>setTimeout(resolve,550));
+    assert.equal(c.cursorChange.values.at(-1),0);
+    c.move(p(180,type));
+    assert.equal(c.band,undefined,'movement after the hold stays in cursor mode');
+    c.up(p(180,type));
+    assert.equal(c.cursorChange.values.at(-1),1000);
+    const count=c.cursorChange.values.length;
+    c.doubleClick();
+    assert.equal(c.cursorChange.values.length,count,'native double click after a held press must not reset the cursor');
+    c.move(p(0,'mouse')); c.cancel();
+    c.down(p(0,type)); c.up(p(0,type));
+    c.cancel({...p(180,type),type:'lostpointercapture'});
+    c.end=1100; c.ngOnChanges({end:{},channel:{}});
+    assert.equal(c.cursorChange.values.length,count);
+    c.key({key:'Escape'});
+    assert.equal(c.cursorChange.values.at(-1),undefined);
+    c.ngOnDestroy();
+  }
+});
+
+test('short mouse clicks and touch taps do not activate cursor mode', () => {
+  for (const type of ['mouse','touch']) {
+    const {component:c,pointer:p}=fixture();
+    c.down(p(180,type)); c.up(p(180,type));
+    assert.equal(c.cursorChange.values.length,0);
+    assert.equal(c.windowChange.values.length,0);
+    c.ngOnDestroy();
+  }
+});
+
+test('ordinary double click still resets zoom and cursor', () => {
+  const {component:c,pointer:p}=fixture();
+  c.down(p(20,'mouse')); c.up(p(20,'mouse')); c.doubleClick();
+  assert.deepEqual(c.windowChange.values,[undefined]);
+  assert.deepEqual(c.cursorChange.values,[undefined]);
   c.ngOnDestroy();
 });

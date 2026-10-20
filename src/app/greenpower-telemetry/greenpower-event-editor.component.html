@@ -17,7 +17,8 @@
           <label for="session-start">Start · UK<input id="session-start" type="time" step="1" [(ngModel)]="startTime" [disabled]="edit.locked"></label>
           <label for="session-end">End · UK<input id="session-end" type="time" step="1" [(ngModel)]="endTime" [disabled]="edit.locked"></label>
           <button type="button" [disabled]="edit.locked || !canCapture" (click)="useTimes()">Use times</button>
-          <button type="button" [disabled]="edit.locked || !canCapture" (click)="edit.replaceRange(window)">Use current zoom</button>
+          <button type="button" [disabled]="edit.locked || !canCapture || cursor === undefined" (click)="capture('start')">Set start at cursor</button>
+          <button type="button" [disabled]="edit.locked || !canCapture || cursor === undefined" (click)="capture('end')">Set end at cursor</button>
         </div>
       }
     } @else {

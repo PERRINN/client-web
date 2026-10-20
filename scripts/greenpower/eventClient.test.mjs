@@ -138,6 +138,20 @@ test('event selection loads one session page; session selection listens to metad
   h.state.next({ ready: true, uid: '', isAdmin: false }); assert.equal(h.service.selectedEvent, undefined);
   assert.ok(h.listeners.every(listener => !listener.active)); h.service.ngOnDestroy();
 });
+test('history labels reuse day metadata and update saved driver and result without extra reads', async () => {
+  const { value } = migrated(); value.result = '3rd';
+  const h = client(new Map([[ROOT + '/days/' + day, value]]));
+  await h.service.loadEvents(true, filters()); const reads = h.calls.length;
+  assert.equal(h.service.eventLabel(day), day + ' · Workshop · Alex · 3rd');
+  assert.equal(h.service.eventLabel('2026-01-01'), '2026-01-01');
+  assert.equal(h.calls.length, reads);
+  h.service.selectEvent(day); await flush();
+  const afterSelection = h.calls.length;
+  h.publish(ROOT + '/days/' + day, { ...value, revision: 2, defaults: {}, result: '' });
+  assert.equal(h.service.eventLabel(day), day + ' · Workshop');
+  assert.equal(h.calls.length, afterSelection);
+  h.service.ngOnDestroy();
+});
 test('stale year responses and failed reads do not replace current results or retry automatically', async () => {
   const h = client(); let release;
   h.delay(() => new Promise(resolve => release = resolve)); const old = h.service.loadEvents(true, filters());
@@ -198,4 +212,29 @@ test('session selection changes and listener updates never trigger recording loa
   assert.equal(h.calls.length, reads);
   h.service.selectSession(''); old.next({ exists: true, data: () => session, metadata: { fromCache: false, hasPendingWrites: false } });
   assert.equal(h.service.selectedSession, undefined); assert.equal(h.service.sessionId, ''); h.service.ngOnDestroy();
+});
+
+test('cursor boundary edits preserve the opposite boundary and reject inverted, locked or non-finite changes', async () => {
+  const {value, session}=migrated();
+  const h=client(new Map([[ROOT+'/days/'+day,value],[ROOT+'/days/'+day+'/sessions/practice',session]]));
+  h.service.selectEvent(day); await flush(); h.service.selectSession('practice'); await flush();
+  const ranges=[];
+  const editor=new GreenpowerEventEditService(h.service,{day,range(start,end){
+    ranges.push([start,end]);
+    return [{...session.ranges[0],firstAt:start,lastAt:end}];
+  }},{});
+  editor.session();
+  const start=editor.sessionDraft.startAt, end=editor.sessionDraft.endAt;
+  editor.setBoundary('start',start+1);
+  assert.deepEqual(ranges.at(-1),[start+1,end]);
+  editor.setBoundary('end',end-1);
+  assert.deepEqual(ranges.at(-1),[start+1,end-1]);
+  const before=structuredClone(editor.sessionDraft), count=ranges.length;
+  editor.setBoundary('start',end+1);
+  assert.match(editor.error,/Start must/); assert.deepEqual(editor.sessionDraft,before);
+  editor.setBoundary('end',NaN);
+  editor.reviewing=true; editor.setBoundary('end',end);
+  editor.reviewing=false; editor.saving=true; editor.setBoundary('end',end);
+  assert.equal(ranges.length,count);
+  editor.ngOnDestroy();h.service.ngOnDestroy();
 });

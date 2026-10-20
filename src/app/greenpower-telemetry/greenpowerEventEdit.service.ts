@@ -50,6 +50,16 @@ export class GreenpowerEventEditService implements OnDestroy {
     if (create && range) this.replaceRange(range);
     this.changed.next();
   }
+  setBoundary(boundary: 'start' | 'end', time: number) {
+    const session = this.sessionDraft;
+    if (!session || this.locked || this.reviewing || !Number.isFinite(time)) return;
+    const start = boundary === 'start' ? time : session.startAt;
+    const end = boundary === 'end' ? time : session.endAt;
+    if (start > end) {
+      this.error = 'Start must be at or before end.'; this.changed.next(); return;
+    }
+    this.replaceRange({ start, end });
+  }
   replaceRange(range: { start: number; end: number }) {
     if (!this.sessionDraft || !this.draft || this.locked || this.reviewing) return;
     try {

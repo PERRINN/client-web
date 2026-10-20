@@ -27,3 +27,12 @@ test('live and signed-out contexts cannot inherit historical titles, names or ra
   assert.equal(live.title, '424 Greenpower Telemetry'); assert.equal(live.scope, 'Stale');
   assert.deepEqual(recordingHeader(input({ signedIn: false })), { title: '424 Greenpower Telemetry', date: '', scope: '', range: '', state: '' });
 });
+test('historical headings show saved driver and result, with session driver overrides', () => {
+  const metadata = { ...event, defaults: { driver: 'Alex' }, result: '3rd' };
+  assert.equal(recordingHeader(input({ event: metadata })).title, 'Workshop · Alex · 3rd');
+  const session = { type: 'race', startAt: first, endAt: first + 1000, overrides: { driver: 'Sam' } };
+  assert.equal(recordingHeader(input({ event: metadata, session })).title, 'Workshop · Sam · 3rd');
+  assert.equal(recordingHeader(input({ event: metadata, session: { ...session, overrides: {} } })).title, 'Workshop · Alex · 3rd');
+  assert.equal(recordingHeader(input({ event: { ...metadata, eventName: '', defaults: {} } })).title, 'Event · 3rd');
+  assert.equal(recordingHeader(input({ event: metadata, live: true })).title, '424 Greenpower Telemetry');
+});

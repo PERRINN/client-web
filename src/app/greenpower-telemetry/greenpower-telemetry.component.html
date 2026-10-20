@@ -1,5 +1,5 @@
 <main class="telemetry-page">
-  <h1 [title]="heading">{{ heading }}</h1>
+  <h1 tabindex="0" [title]="heading">{{ heading }}</h1>
   @if (telemetry.access === 'checking') {
     <p class="state" role="status">Checking sign-in…</p>
   } @else if (telemetry.access === 'signed-out') {
@@ -8,9 +8,9 @@
     <div class="controls">
       <div class="actions">
         <button type="button" [class.primary]="telemetry.live" [attr.aria-pressed]="telemetry.live" [disabled]="eventEdit.locked" (click)="live()">Live</button>
-        <button #historyButton type="button" class="compact-action" aria-label="Load history" title="Load history" [attr.aria-expanded]="historyOpen" aria-controls="history-picker" (click)="history()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7M12 7v5l3 2" /></svg><span>Load history</span></button>
+        <button #historyButton type="button" class="compact-action" aria-label="Load history" title="Load history" [attr.aria-expanded]="historyOpen" aria-controls="history-picker" [disabled]="eventEdit.locked || view.saving || lapConfig.saving" (click)="history()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7M12 7v5l3 2" /></svg><span>Load history</span></button>
         @if (view.canEdit || events.canEdit) {
-          <button type="button" class="compact-action" title="Edit view" aria-label="Edit view" [attr.aria-expanded]="editing && activeView !== 'laps'" aria-controls="view-editor" [disabled]="activeView === 'laps' || view.saving || eventEdit.locked" (click)="toggleEditing()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-1 5 5-1L21 7l-4-4ZM14 6l4 4" /></svg><span>Edit</span></button>
+          <button type="button" class="compact-action" title="Edit view" aria-label="Edit view" [attr.aria-expanded]="editing && !historyOpen && activeView !== 'laps'" aria-controls="view-editor" [disabled]="activeView === 'laps' || view.saving || eventEdit.locked || lapConfig.saving" (click)="toggleEditing()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-1 5 5-1L21 7l-4-4ZM14 6l4 4" /></svg><span>Edit</span></button>
         }
         <div class="view-navigation" role="group" aria-label="Telemetry views">
           <button type="button" class="view-button" aria-label="Data" title="Data" [attr.aria-pressed]="activeView === 'data'" aria-controls="telemetry-data" (click)="selectView('data')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18M6 15l4-5 4 3 6-8" /></svg></button>
@@ -25,7 +25,7 @@
       <span class="recording-range" [title]="header.range">{{ header.range }}</span>
     </div>
     @if (editing && activeView !== 'laps') {
-      <section id="view-editor" class="view-editor" aria-label="Edit shared telemetry view">
+      <section id="view-editor" class="view-editor" [hidden]="historyOpen" aria-label="Edit shared telemetry view">
         <div class="editor-actions">
           <h2>{{ activeView === 'track' ? 'Track map' : editorPanel === 'event' ? 'Event' : 'Shared view' }}</h2>
           @if (activeView === 'track' || editorPanel === 'view') {
@@ -40,7 +40,7 @@
             <button type="button" [disabled]="view.saving" [attr.aria-pressed]="editorPanel === 'event'" (click)="eventPanel()">Event</button>
           </div>
           @if (editorPanel === 'event') {
-            <app-greenpower-event-editor [range]="window" />
+            <app-greenpower-event-editor [range]="window" [cursor]="cursor" />
           } @else {
           <span class="order-notice" aria-live="polite">{{ orderNotice }}</span>
           @if (drag.preview; as preview) {
@@ -70,7 +70,7 @@
     @if (telemetry.more) {
       <div class="continuation"><span>{{ telemetry.recordingKey ? 'More data is available for this session.' : 'More data is available for this day.' }}</span><button type="button" (click)="telemetry.loadMore()">Load remaining data</button></div>
     } @else if (!telemetry.loading && !telemetry.channels.length && !telemetry.error && !(historyOpen && events.eventId)) { <p class="state">No telemetry recorded for this day.</p> }
-    <div id="telemetry-track-map" class="view-panel" [hidden]="activeView !== 'track'" role="region" aria-label="Track map view">
+    <div id="telemetry-track-map" class="view-panel" [hidden]="activeView !== 'track' || (historyOpen && editing)" role="region" aria-label="Track map view">
       @if (view.editing && view.canEdit) {
         @if (!lapConfig.eventTrack) { <div class="track-selection" aria-label="Track selection">
           <label for="telemetry-track">Track</label>

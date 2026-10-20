@@ -20,9 +20,9 @@
       @if (hasCurrentLimit) { <span class="limit-label" [style.top.%]="limitY / 120 * 100">{{ currentLimit }} A</span> }
     </div>
     <svg #plot viewBox="0 0 800 120" preserveAspectRatio="none" role="group" tabindex="0"
-      [attr.aria-label]="(heading || channel.label) + (hasCurrentLimit ? ' chart with ' + currentLimit + ' amp limit. ' : ' chart. ') + 'Drag to zoom; hold to inspect on touch; double click or press Home to reset. Arrow keys step through data points.'"
+      [attr.aria-label]="(heading || channel.label) + (hasCurrentLimit ? ' chart with ' + currentLimit + ' amp limit. ' : ' chart. ') + 'Drag to zoom; long press to inspect; double click or press Home to reset. Arrow keys step through data points; Escape clears the cursor.'"
       (pointerdown)="down($event)" (pointermove)="move($event)" (pointerup)="up($event)" (pointercancel)="cancel($event)"
-      (lostpointercapture)="cancel($event)" (pointerleave)="leave()" (dblclick)="reset()" (keydown)="key($event)" (blur)="cancel(); leave()" (contextmenu)="$event.preventDefault()">
+      (lostpointercapture)="cancel($event)" (dblclick)="doubleClick()" (keydown)="key($event)" (blur)="cancel()" (contextmenu)="$event.preventDefault()">
       @for (lap of lapBands; track lap.time) {
         <rect class="lap-band" [class.alternate]="lap.alternate" [attr.x]="lap.x * 8" y="0" [attr.width]="lap.width * 8" height="120"><title>Lap {{ lap.lap }} · {{ time(lap.time) }}–{{ time(lap.end) }}</title></rect>
       }

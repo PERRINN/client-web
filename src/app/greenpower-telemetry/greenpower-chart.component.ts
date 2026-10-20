@@ -41,6 +41,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
     if (this.drag && this.drag.mode !== 'pending' && event.touches.length === 1 && event.cancelable) event.preventDefault();
   };
   private taps = new ChartDoubleTap();
+  private doubleClickReady = true;
   private drag?: { id: number; x: number; y: number; anchor: number; position: number; mode: 'pending' | 'zoom' | 'cursor'; range: ChartWindow };
   constructor(private change: ChangeDetectorRef, private zone: NgZone) {}
   get cursorPosition() {
@@ -98,15 +99,14 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
     return Math.max(0, Math.min(1, (event.clientX - box.left) / (box.width || 1)));
   }
   down(event: PointerEvent) {
-    if (!this.taps.start(event)) { this.cancel(); this.cursorChange.emit(undefined); return; }
+    if (!this.taps.start(event)) { this.cancel(); return; }
     if (event.button !== 0 || this.end <= this.start) return;
     this.cancel();
     const anchor = this.fraction(event);
     this.drag = { id: event.pointerId, x: event.clientX, y: event.clientY, anchor, position: anchor, mode: 'pending', range: { start: this.start, end: this.end } };
     this.plot!.nativeElement.setPointerCapture(event.pointerId);
-    this.cursorChange.emit(undefined);
     const gesture = this.drag;
-    if (event.pointerType === 'touch') this.timer = setTimeout(() => {
+    this.timer = setTimeout(() => {
       if (this.drag !== gesture || gesture.mode !== 'pending') return;
       gesture.mode = 'cursor'; this.inspect(anchor, gesture.range); this.change.markForCheck();
     }, 500);
@@ -114,16 +114,13 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   move(event: PointerEvent) {
     this.taps.move(event);
     const d = this.drag;
-    if (!d) {
-      if (event.pointerType !== 'touch') this.inspect(this.fraction(event));
-      return;
-    }
+    if (!d) return;
     if (event.pointerId !== d.id) return;
     const dx = Math.abs(event.clientX - d.x), dy = Math.abs(event.clientY - d.y);
     if (d.mode === 'pending' && Math.hypot(dx, dy) >= 6) {
       clearTimeout(this.timer);
       if (event.pointerType === 'touch' && dy > dx) { this.cancel(); return; }
-      d.mode = 'zoom';
+      d.mode = 'zoom'; this.cursorChange.emit(undefined);
     }
     d.position = this.fraction(event);
     if (d.mode === 'cursor') this.inspect(d.position, d.range);
@@ -138,6 +135,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
     const double = this.taps.finish(event);
     if (!d || d.id !== event.pointerId) return;
     const band = this.band;
+    this.doubleClickReady = d.mode === 'pending';
     this.cancel();
     if (double) this.reset();
     else if (band && Math.abs(d.position - d.anchor) >= .005) {
@@ -147,13 +145,12 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   cancel(event?: PointerEvent) {
     if (event) this.taps.cancel(event);
     if (event && this.drag?.id !== event.pointerId) return;
-    if (event) this.cursorChange.emit(undefined);
     clearTimeout(this.timer);
     const drag = this.drag; this.drag = undefined;
     if (drag && this.plot?.nativeElement.hasPointerCapture(drag.id)) this.plot.nativeElement.releasePointerCapture(drag.id);
     if (this.renderPending) { this.renderPending = false; this.render(); }
   }
-  leave() { if (!this.drag) this.cursorChange.emit(undefined); }
+  doubleClick() { if (this.doubleClickReady) this.reset(); }
   reset() { this.cancel(); this.taps.cancel(); this.cursorChange.emit(undefined); this.windowChange.emit(undefined); }
   key(event: KeyboardEvent) {
     if (event.key === 'Home' || event.key === 'Enter') { event.preventDefault(); this.reset(); }

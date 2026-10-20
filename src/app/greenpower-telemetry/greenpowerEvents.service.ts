@@ -5,7 +5,7 @@ import 'firebase/compat/firestore';
 import { Subject, Subscription } from 'rxjs';
 import { PermissionsService } from '../permissions.service';
 import { defaultEventFilters, EVENT_ROOT, EventFilters, validDate, validId } from './greenpowerEvents';
-import { DayEditRequest, DayEditResult, DaySession, emptyDay, RecordedEvent, validRecordedEvent, validDaySession, SESSION_SCOPE } from './greenpowerDay';
+import { DayEditRequest, DayEditResult, DaySession, emptyDay, eventSummary, RecordedEvent, validRecordedEvent, validDaySession, SESSION_SCOPE } from './greenpowerDay';
 import { TrackChoice, TRACKS_PATH, validTrack } from './greenpowerTracks';
 
 @Injectable()
@@ -89,7 +89,7 @@ export class GreenpowerEventsService implements OnDestroy {
   }
   eventLabel(date: string) {
     const event = this.selectedEvent?.date === date ? this.selectedEvent : this.events.find(event => event.date === date);
-    return date + (event?.eventName ? ' · ' + event.eventName : '');
+    return [date, event ? eventSummary(event) : ''].filter(Boolean).join(' · ');
   }
   clear() {
     this.sessionsGeneration++; this.sessionSelection++; this.sessionOff?.(); this.sessionOff = undefined;

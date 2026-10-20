@@ -1,5 +1,5 @@
 import { londonTime } from './greenpowerData';
-import { DaySession, RecordedEvent, sessionLabel } from './greenpowerDay';
+import { DaySession, RecordedEvent, eventSummary, sessionLabel } from './greenpowerDay';
 
 interface HeaderInput {
   signedIn: boolean; live: boolean; day: string;
@@ -16,7 +16,7 @@ export function recordingHeader(input: HeaderInput): RecordingHeader {
   if (input.live) return { ...header, date: input.day, scope: input.liveStatus,
     range: 'Last received ' + (input.lastReceived === undefined ? '—' : londonTime(input.lastReceived)) };
   return {
-    title: input.event?.eventName || 'Event', date: input.day,
+    title: input.event ? eventSummary({ ...input.event, eventName: input.event.eventName || 'Event' }, input.session) : 'Event', date: input.day,
     scope: input.session ? sessionLabel(input.session) : 'Whole event',
     state: input.error ? 'Load failed' : input.loading ? 'Loading' : input.partial ? 'Partial recording' : '',
     range: input.hasSamples ? 'Loaded ' + londonTime(input.start) + ' – ' + londonTime(input.end)

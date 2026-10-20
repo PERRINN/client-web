@@ -39,7 +39,7 @@ const state = new BehaviorSubject({ ready:true, uid:'viewer', isAdmin:false });
 const permissions = { state, get current(){return state.value;} };
 const records = new Map(), calls = [], listeners = []; let fail = false, saveFail = false;
 const date='2026-06-14', first=Date.parse(date+'T08:00:00Z');
-const event=emptyDay(date); event.eventName='Workshop'; event.trackId='workshop'; event.defaults={driver:'Alex',motorGearTeeth:12,wheelGearTeeth:60};
+const event=emptyDay(date); event.eventName='Workshop'; event.result='P3'; event.trackId='workshop'; event.defaults={driver:'Alex',motorGearTeeth:12,wheelGearTeeth:60};
 for(let i=0;i<2;i++){const id='s'+i, startAt=first+i*3600000,endAt=startAt+1800000; records.set('GreenpowerTelemetry/424/days/'+date+'/sessions/'+id,{id,type:i?'race':'practice',startAt,endAt,batteryIds:['A','B'],overrides:i?{driver:'Sam'}:{},ranges:[{day:date,source:'424-phone',firstChunk:'0000000000',lastChunk:'0000000000',firstIndex:0,lastIndex:1,firstSampleId:'a',lastSampleId:'b',firstAt:startAt,lastAt:endAt}],schemaVersion:2,telemetryRoot:'GreenpowerTelemetry/424',revision:1,updatedBy:'viewer'});}
 records.set('GreenpowerTelemetry/424/days/'+date,event);
 records.set('GreenpowerTelemetry/424/days/2026-06-15',{...emptyDay('2026-06-15'),eventName:'Circuit test'});
@@ -76,7 +76,7 @@ TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTe
 TestBed.configureTestingModule({imports:[CommonModule,FormsModule,RouterModule.forRoot([])],declarations:[GreenpowerTelemetryComponent,GreenpowerEventSelectorComponent,GreenpowerEventEditorComponent,GreenpowerMetadataFieldsComponent,GreenpowerChartComponent,GreenpowerMapComponent,GreenpowerLapListComponent],providers:[{provide:PermissionsService,useValue:permissions},{provide:AngularFirestore,useValue:{firestore:db}},{provide:AngularFireFunctions,useValue:functions}]});
 TestBed.overrideComponent(GreenpowerTelemetryComponent,{set:{providers:[{provide:GreenpowerTelemetryService,useValue:telemetry},{provide:GreenpowerViewService,useValue:view},{provide:GreenpowerLapService,useValue:laps},GreenpowerEventsService,GreenpowerEventEditService]}});
 const fixture=TestBed.createComponent(GreenpowerTelemetryComponent);document.querySelector('.contentCard').append(fixture.nativeElement);fixture.autoDetectChanges();
-window.dayHarness={stats:()=>({dayLoads:telemetry.dayLoads,sessionLoads:telemetry.sessionLoads,calls:[...calls]}),admin(){state.next({ready:true,uid:'viewer',isAdmin:true});fixture.detectChanges();},empty(){records.clear();fixture.componentInstance.events.loadEvents(true);},failure(value){fail=value;},saveFailure(value){saveFail=value;},error(){telemetry.error='Synthetic load failure';telemetry.changed.next();},loading(value){telemetry.loading=value;telemetry.changed.next();},logout(){telemetry.access='signed-out';state.next({ready:true,uid:'',isAdmin:false});telemetry.changed.next();}};
+window.dayHarness={stats:()=>({cursor:fixture.componentInstance.cursor,sessionDraft:fixture.componentInstance.eventEdit.sessionDraft,dayLoads:telemetry.dayLoads,sessionLoads:telemetry.sessionLoads,calls:[...calls]}),admin(){state.next({ready:true,uid:'viewer',isAdmin:true});fixture.detectChanges();},empty(){records.clear();fixture.componentInstance.events.loadEvents(true);},failure(value){fail=value;},saveFailure(value){saveFail=value;},error(){telemetry.error='Synthetic load failure';telemetry.changed.next();},loading(value){telemetry.loading=value;telemetry.changed.next();},logout(){telemetry.access='signed-out';state.next({ready:true,uid:'',isAdmin:false});telemetry.changed.next();}};
 `);
 await build({ entryPoints: [output + '/entry.ts'], outfile: output + '/bundle.js', bundle: true, platform: 'browser', format: 'iife', nodePaths: [root + '/node_modules'], tsconfigRaw: { compilerOptions: { experimentalDecorators: true } }, plugins: [{ name: 'angular-resources', setup(plugin) {
   plugin.onLoad({ filter: /\.component\.ts$/ }, async args => {
@@ -95,26 +95,45 @@ const browser = await chromium.launch({ channel: 'chrome', headless: true });
 const errors = [];
 try {
   for (const width of [1440, 390, 320]) {
-    const page = await browser.newPage({ viewport: { width, height: 900 } }); page.setDefaultTimeout(10000); page.on('pageerror', error => { errors.push(error.message); console.error(error.message); });
+    const page = await browser.newPage({ viewport: { width, height: 900 }, hasTouch: width < 500 }); page.setDefaultTimeout(10000); page.on('pageerror', error => { errors.push(error.message); console.error(error.message); });
     await page.goto('http://127.0.0.1:' + server.address().port); await page.locator('.telemetry-page h1').waitFor();
     const origin = await page.locator('.controls').boundingBox(); const originalHeader = await page.locator('h1').innerText();
     await page.getByRole('button', { name: 'Load history', exact: true }).click();
     await page.locator('#history-event option[value="2026-06-14"]').waitFor({ state: 'attached' });
     await page.locator('#history-event').selectOption('2026-06-14'); await page.locator('#history-session option[value="s1"]').waitFor({ state: 'attached' });
+    assert.equal(await page.locator('#history-event option[value="2026-06-14"]').innerText(), '2026-06-14 · Workshop · Alex · P3');
     await page.locator('#history-session').selectOption('s1');
     assert.deepEqual(await page.evaluate(() => [window.dayHarness.stats().dayLoads, window.dayHarness.stats().sessionLoads]), [0, 0]);
     assert.equal(await page.locator('h1').innerText(), originalHeader); assert.deepEqual(await page.locator('.controls').boundingBox(), origin);
     await page.getByRole('button', { name: 'Load', exact: true }).click(); assert.deepEqual(await page.evaluate(() => [window.dayHarness.stats().dayLoads, window.dayHarness.stats().sessionLoads]), [0, 1]);
-    await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Workshop');
-    assert.equal(await page.locator('h1').innerText(), 'Workshop'); assert.match(await page.locator('[aria-label="Loaded recording"]').innerText(), /Race/);
+    await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Workshop · Sam · P3');
+    assert.equal(await page.locator('h1').innerText(), 'Workshop · Sam · P3'); assert.match(await page.locator('[aria-label="Loaded recording"]').innerText(), /Race/);
+    assert.deepEqual(await page.locator('.controls').boundingBox(), origin, 'driver and result preserve control geometry');
+    const heading = page.locator('h1');
+    if (await heading.evaluate(el => el.scrollWidth > el.clientWidth)) {
+      await heading.focus(); await page.keyboard.press('End');
+      await heading.evaluate(el => el.scrollLeft = el.scrollWidth);
+      assert.ok(await heading.evaluate(el => el.scrollLeft > 0), 'long heading remains scrollable on mobile');
+    }
+    await page.screenshot({ path: output + '/event-summary-' + width + '.png', fullPage: true });
     await page.locator('#history-event').selectOption('2026-06-15');
-    assert.equal(await page.locator('h1').innerText(), 'Workshop'); assert.match(await page.locator('[aria-label="Loaded recording"]').innerText(), /Race/);
+    assert.equal(await page.locator('h1').innerText(), 'Workshop · Sam · P3'); assert.match(await page.locator('[aria-label="Loaded recording"]').innerText(), /Race/);
     await page.getByRole('button', { name: 'Load', exact: true }).click(); await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Circuit test'); assert.equal(await page.locator('h1').innerText(), 'Circuit test');
     assert.equal(await page.evaluate(() => window.dayHarness.stats().dayLoads), 1);
     await page.locator('#history-event').selectOption('2026-06-14'); await page.locator('#history-session option[value="s1"]').waitFor({ state: 'attached' });
     await page.evaluate(() => window.dayHarness.admin()); await page.getByRole('button', { name: 'Edit view', exact: true }).click();
     await page.getByRole('button', { name: 'Edit event', exact: true }).click();
+    assert.equal(await page.locator('app-greenpower-event-selector').count(),0,'Edit closes history');
     await page.getByLabel('Motor gear · teeth', { exact: true }).fill('13');
+    await page.getByRole('button',{name:'Load history',exact:true}).click();
+    await page.locator('#view-editor').waitFor({state:'hidden'});
+    assert.equal(await page.locator('#view-editor').isVisible(),false,'History hides the editor');
+    assert.equal(await page.locator('app-greenpower-event-selector').isVisible(),true);
+    assert.equal(await page.getByRole('button',{name:'Edit view',exact:true}).getAttribute('aria-expanded'),'false');
+    await page.getByRole('button',{name:'Edit view',exact:true}).click();
+    await page.locator('app-greenpower-event-selector').waitFor({state:'detached'});
+    assert.equal(await page.locator('app-greenpower-event-selector').count(),0);
+    assert.equal(await page.getByLabel('Motor gear · teeth',{exact:true}).inputValue(),'13','switching panels preserves drafts');
     await page.screenshot({ path: output + '/editor-' + width + '.png', fullPage: true });
     await page.getByRole('button', { name: 'Review', exact: true }).click();
     await page.evaluate(() => window.dayHarness.saveFailure(true)); await page.getByRole('button', { name: 'Confirm save', exact: true }).click();
@@ -123,9 +142,9 @@ try {
     await page.evaluate(() => window.dayHarness.saveFailure(false)); await page.getByRole('button', { name: 'Review', exact: true }).click(); await page.getByRole('button', { name: 'Confirm save', exact: true }).click();
     await page.getByText('Saved', { exact: true }).waitFor();
     assert.equal(await page.getByRole('button', { name: 'Add session', exact: true }).isDisabled(), true, 'a different loaded day cannot supply session ranges');
-    await page.getByRole('button', { name: 'Edit view', exact: true }).click();
+    await page.getByRole('button', { name: 'Load history', exact: true }).click();
     await page.getByRole('button', { name: 'Load', exact: true }).click();
-    await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Workshop');
+    await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Workshop · Alex · P3');
     await page.getByRole('button', { name: 'Edit view', exact: true }).click();
     await page.getByRole('button', { name: 'Add session', exact: true }).click();
     const fields = page.locator('app-greenpower-metadata-fields');
@@ -136,6 +155,53 @@ try {
     await page.getByLabel('Start · UK', { exact: true }).fill('10:00:00');
     await page.getByLabel('End · UK', { exact: true }).fill('10:30:00');
     await page.getByRole('button', { name: 'Use times', exact: true }).click();
+    const startButton=page.getByRole('button',{name:'Set start at cursor',exact:true});
+    const endButton=page.getByRole('button',{name:'Set end at cursor',exact:true});
+    assert.equal(await startButton.isDisabled(),true);
+    const plot=page.locator('app-greenpower-chart svg').first();
+    const choose=async fraction=>{
+      await plot.scrollIntoViewIfNeeded();
+      const oldCursor=await page.evaluate(()=>window.dayHarness.stats().cursor);
+      const box=await plot.boundingBox(), x=box.x+box.width*fraction, y=box.y+box.height*.7;
+      if(width<500) {
+        const touch=await page.context().newCDPSession(page);
+        await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
+        await page.waitForFunction(old=>typeof window.dayHarness.stats().cursor === 'number' && window.dayHarness.stats().cursor !== old,oldCursor);
+        await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+        await touch.detach();
+      } else {
+        await page.mouse.move(x,y); await page.mouse.down();
+        await page.waitForFunction(old=>typeof window.dayHarness.stats().cursor === 'number' && window.dayHarness.stats().cursor !== old,oldCursor); await page.mouse.up();
+      }
+      const cursor=await page.evaluate(()=>window.dayHarness.stats().cursor);
+      assert.equal(typeof cursor,'number');
+      await page.mouse.move(0,0);
+      return cursor;
+    };
+    const previous=await page.evaluate(()=>window.dayHarness.stats());
+    const cursorStart=await choose(.13);
+    await startButton.scrollIntoViewIfNeeded();
+    const layout=await page.locator('app-greenpower-event-editor').boundingBox();
+    await startButton.click();
+    let current=await page.evaluate(()=>window.dayHarness.stats());
+    assert.equal(current.cursor,cursorStart);
+    assert.equal(current.sessionDraft.startAt,Math.round(cursorStart));
+    assert.equal(current.sessionDraft.endAt,previous.sessionDraft.endAt);
+    const cursorEnd=await choose(.18);
+    await endButton.scrollIntoViewIfNeeded(); await endButton.click();
+    current=await page.evaluate(()=>window.dayHarness.stats());
+    assert.equal(current.sessionDraft.startAt,Math.round(cursorStart));
+    assert.equal(current.sessionDraft.endAt,Math.round(cursorEnd));
+    assert.deepEqual(current.calls,previous.calls,'cursor editing makes no database reads');
+    await page.screenshot({path:output+'/cursor-boundaries-'+width+'.png',fullPage:true});
+    const updated=await page.locator('app-greenpower-event-editor').boundingBox();
+    assert.equal(updated.height,layout.height,'cursor changes preserve editor height');
+    const controls=await page.locator('.controls').boundingBox();
+    assert.deepEqual([controls.x,controls.width,controls.height],[origin.x,origin.width,origin.height],'cursor preserves top control geometry');
+    await plot.scrollIntoViewIfNeeded(); await plot.focus(); await page.keyboard.press('Escape');
+    await page.waitForFunction(()=>window.dayHarness.stats().cursor === undefined);
+    await page.waitForFunction(()=>[...document.querySelectorAll('button')].find(button=>button.textContent==='Set start at cursor')?.disabled);
+    assert.equal(await startButton.isDisabled(),true);
     await fields.getByLabel('Driver', { exact: true }).scrollIntoViewIfNeeded();
     await page.screenshot({ path: output + '/session-' + width + '.png', fullPage: true });
     await page.getByRole('button', { name: 'Review', exact: true }).click();
@@ -145,6 +211,7 @@ try {
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     await page.getByRole('button', { name: 'Edit view', exact: true }).click();
     await page.locator('app-greenpower-event-editor').waitFor({ state: 'detached' });
+    await page.getByRole('button',{name:'Load history',exact:true}).click();
     const load = page.getByRole('button', { name: 'Load', exact: true }); const before = await load.boundingBox(); const scrollBefore = await page.locator('#main_container').evaluate(el => el.scrollTop);
     await page.evaluate(() => window.dayHarness.loading(true)); assert.equal(await page.getByRole('button', { name: 'Loading', exact: true }).isDisabled(), true);
     assert.equal(await page.locator('#main_container').evaluate(el => el.scrollTop), scrollBefore, 'loading preserves the scroll position');
