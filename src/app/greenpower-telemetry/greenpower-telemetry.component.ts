@@ -13,7 +13,7 @@ import { GreenpowerTelemetryService } from './greenpowerTelemetry.service';
 import { GreenpowerEventsService } from './greenpowerEvents.service';
 import { GreenpowerEventEditService } from './greenpowerEventEdit.service';
 import { DaySession, RecordedEvent } from './greenpowerDay';
-import { SessionInterval, sessionIntervals, sessionLapAnalysis, sessionAmpHours } from './greenpowerSessions';
+import { SessionInterval, sessionIntervals, sessionLapAnalysis, sessionAmpHours, savedGear } from './greenpowerSessions';
 import { recordingHeader } from './greenpowerContext';
 
 @Component({
@@ -131,7 +131,9 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
       this.laps = numbered.laps; this.lapChannel = numbered.channel;
     }
     const latestTime = this.telemetry.latest ? sampleTime(this.telemetry.latest) : undefined;
-    this.channels = [...this.telemetry.channels.map(channel => sessionAmpHours(channel, this.recordingSessions, latestTime)), this.lapChannel!];
+    this.channels = savedGear([...this.telemetry.channels.map(channel => sessionAmpHours(channel, this.recordingSessions, latestTime)), this.lapChannel!],
+      this.loadedEvent, this.recordingSessions, this.telemetry.start, Math.max(this.telemetry.end, latestTime ?? 0), latestTime,
+      !this.sessionsLoading && !this.sessionsMore && !this.sessionsError);
     this.voltageRight = this.channels.find(channel => channel.id === VOLTAGE_RIGHT);
     this.scalars = this.view.scalars(this.channels);
     this.charts = this.view.charts(this.channels);
@@ -188,12 +190,11 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
       if (this.loadedEvent !== event) return;
       this.recordingSessions = [...this.recordingSessions, ...page.sessions.filter(session => !this.recordingSessions.some(item => item.id === session.id))];
       this.sessions = sessionIntervals(this.loadedEvent!, this.recordingSessions);
-      this.refreshView();
       const last = page.sessions.at(-1);
       if (last) this.sessionAfter = { start: last.startAt, id: last.id };
       this.sessionsMore = page.more;
     } catch { if (this.loadedEvent === event) this.sessionsError = 'Could not load session details.'; }
-    finally { if (this.loadedEvent === event) this.sessionsLoading = false; }
+    finally { if (this.loadedEvent === event) { this.sessionsLoading = false; this.refreshView(); } }
   }
   private fetchLoadedRecording() {
     if (this.loadedEvent) void this.telemetry.select(this.loadedEvent.date);

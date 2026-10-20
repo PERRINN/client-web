@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, NgZone, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { GreenpowerChannel, londonTime, pointIndex } from './greenpowerData';
-import { ChartWindow, chartY, clockTicks, CURRENT_LIMIT_AMPS, formatAxisValue, formatTelemetryValue, isCurrentChannel, nearestPoint, plotFor } from './greenpowerChart';
+import { ChartWindow, chartY, channelReading, clockTicks, CURRENT_LIMIT_AMPS, formatAxisValue, formatTelemetryValue, isCurrentChannel, nearestPoint, plotFor } from './greenpowerChart';
 import { SessionInterval, visibleSessions } from './greenpowerSessions';
 import { ChartDoubleTap } from '../telemetry/chartDoubleTap';
 import { lapAt, LapInterval, visibleLaps } from './greenpowerLaps';
@@ -58,7 +58,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   }
   // The SVG stretches horizontally; compensate to keep the marker circular in CSS pixels.
   get markerRadiusX() { return 4 * 800 / Math.max(1, this.width); }
-  get reading() { return this.cursor === undefined ? undefined : nearestPoint(this.channel.points, this.cursor, this.start, this.end); }
+  get reading() { return this.cursor === undefined ? undefined : channelReading(this.channel, this.cursor, this.start, this.end); }
   get comparisonReading() { return this.cursor === undefined || !this.comparison ? undefined : nearestPoint(this.comparison.points, this.cursor, this.start, this.end); }
   get comparisonLabel() {
     const point = this.comparisonReading;

@@ -1,7 +1,7 @@
 export interface GreenpowerSample { id: string; receivedAt: number; eventAt?: number; source: string; raw: string; }
 export interface GreenpowerChunk { samples: GreenpowerSample[]; bytes: number; }
 export interface GreenpowerDay { date: string; activeChunk: number; count: number; latest: GreenpowerSample; }
-export interface GreenpowerChannel { id: string; label: string; unit: string; value: string; points: { time: number; value: number }[]; }
+export interface GreenpowerChannel { id: string; label: string; unit: string; value: string; points: { time: number; value: number }[]; valueAt?: (time: number) => number | undefined; }
 // Display speeds in mph; retain source units in channel IDs for saved selections.
 const speedFactors: Record<string, number> = { 'm/s': 1 / 0.44704, 'km/h': 1 / 1.609344, kph: 1 / 1.609344, mph: 1 };
 function speedFactor(unit: string) { return Object.hasOwn(speedFactors, unit) ? speedFactors[unit] : undefined; }
@@ -32,8 +32,8 @@ export function displayValue(value: unknown): string {
 const known: Record<string, [string, string]> = {
   Vt: ['Total voltage', 'V'], V1: ['Lower battery voltage', 'V'], A: ['Current', 'A'],
   RPM: ['Motor speed', 'rpm'], Spd: ['Vehicle speed', 'm/s'], Thrtl: ['Throttle', '%'],
-  Tmp1: ['Temperature 1', '°C'], Tmp2: ['Temperature 2', '°C'], AH: ['Amp hours used', 'Ah'],
-  Lap: ['Telemetry lap', ''], Gear: ['Gear', ''], Brk: ['Brake', ''], Lon: ['Longitude', '°'], Lat: ['Latitude', '°']
+  Tmp1: ['Ambient temp', '°C'], Tmp2: ['Motor temp', '°C'], AH: ['Amp hours used', 'Ah'],
+  Lap: ['Telemetry lap', ''], Gear: ['Gear ratio', ''], Brk: ['Brake', ''], Lon: ['Longitude', '°'], Lat: ['Latitude', '°']
 };
 const historicalAliases: Record<string, string> = {
   voltage: 'Vt', voltageLower: 'V1', current: 'A', rpm: 'RPM', speed: 'Spd',

@@ -4,6 +4,31 @@ import { GpsFix, GpsLap, MAX_GPS_GAP, timeAverage, validSegment } from './greenp
 
 export interface SessionInterval { id: string; start: number; end: number; label: string; gearRatio?: number; gearChanged?: boolean; }
 
+/** Replace the unreliable sensor gear for display, preserving saved channel selections. */
+export function savedGear(channels: GreenpowerChannel[], event: RecordedEvent | undefined, sessions: DaySession[], start: number, end: number, latestTime?: number, complete = true): GreenpowerChannel[] {
+  const valueAt = (time: number) => {
+    if (!event || !complete || time < start || time > end) return undefined;
+    const matches = sessions.filter(session => session.startAt <= time && time <= session.endAt
+      && (time !== session.endAt || !sessions.some(other => other.startAt === time && other !== session)));
+    if (matches.length > 1) return undefined;
+    const ratio = gearingRatio(event, matches[0]);
+    return ratio !== undefined && Number.isFinite(ratio) && ratio > 0 ? ratio : undefined;
+  };
+  const times = new Set([start, end]);
+  for (const session of sessions) for (const time of [session.startAt, session.endAt + .001]) {
+    if (time > start && time <= end) { times.add(time - .001); times.add(time); }
+  }
+  const values = [...times].sort((a, b) => a - b).map(time => ({ time, value: valueAt(time) }));
+  // Do not draw a line through missing or ambiguous metadata.
+  const points = values.every(point => point.value !== undefined) ? values as { time: number; value: number }[] : [];
+  const value = latestTime === undefined ? undefined : valueAt(latestTime);
+  const gear: GreenpowerChannel = { id: '["Gear"]:', label: 'Gear ratio', unit: '',
+    value: value === undefined ? '—' : displayValue(value), points, valueAt };
+  const result = channels.map(channel => channel.id.startsWith('["Gear"]:') ? { ...gear, id: channel.id } : channel);
+  if (!result.some(channel => channel.id.startsWith('["Gear"]:'))) result.push(gear);
+  return result;
+}
+
 /** Rebase display readings only; zoom and view changes never alter the baseline. */
 export function sessionAmpHours(channel: GreenpowerChannel, sessions: DaySession[], latestTime?: number): GreenpowerChannel {
   if (channel.id !== '["AH"]:Ah' || !channel.points.length) return channel;

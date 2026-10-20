@@ -38,8 +38,13 @@ export function nearestPoint(points: ChartPoint[], time: number, start: number, 
 }
 export function scalarValue(channel: GreenpowerChannel, cursor: number | undefined, start: number, end: number) {
   if (cursor === undefined) return channel.value;
-  const point = nearestPoint(channel.points, cursor, start, end);
+  const point = channelReading(channel, cursor, start, end);
   return point ? displayValue(point.value) : '—';
+}
+export function channelReading(channel: GreenpowerChannel, time: number, start: number, end: number) {
+  if (!channel.valueAt) return nearestPoint(channel.points, time, start, end);
+  const value = time >= start && time <= end ? channel.valueAt(time) : undefined;
+  return value === undefined ? undefined : { time, value };
 }
 const intervals = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 15000, 30000, 60000, 120000, 300000, 600000, 900000, 1800000, 3600000, 7200000, 10800000, 21600000, 43200000, 86400000];
 export function clockTicks(start: number, end: number, width: number) {
