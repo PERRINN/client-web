@@ -30,12 +30,12 @@ test('real Firestore stores every sample through chunk rollover and concurrent t
   const at = Date.UTC(2026, 9, 18);
   const old = await db.collection('GreenpowerTelemetry/424/days/2026-10-18/chunks').limit(10).get();
   assert.ok(old.size < 10, 'Refuse unexpected large demo cleanup');
-  const batch = db.batch(); old.docs.forEach(doc => batch.delete(doc.ref)); batch.delete(db.doc('GreenpowerTelemetry/424/days/2026-10-18')); await batch.commit();
+  const batch = db.batch(); old.docs.forEach(doc => batch.delete(doc.ref)); batch.delete(db.doc('GreenpowerTelemetry/424/days/2026-10-18')); batch.delete(db.doc('GreenpowerTelemetry/424/days/2026-10-18/live/latest')); await batch.commit();
   for (let i = 0; i < 34; i++) await storeSample(db, validatePayload(JSON.stringify({ Vt: 24, unknown: [[i]], status: 'synthetic' })), at + i, `seq-${i}`, () => admin.firestore.FieldValue.serverTimestamp());
   // Small concurrency: exercise transaction contention without an unbounded retry loop.
   await Promise.all([0, 1].map(i => storeSample(db, '{"A":30}', at + 100 + i, `parallel-${i}`)));
   const day = await db.doc('GreenpowerTelemetry/424/days/2026-10-18').get();
-  assert.equal(day.data().count, 36);
+  assert.equal((await day.ref.collection('live').doc('latest').get()).data().count, 36);
   const chunks = await day.ref.collection('chunks').orderBy(admin.firestore.FieldPath.documentId()).limit(100).get();
   assert.equal(chunks.size, 2);
   assert.equal(chunks.docs.flatMap(doc => doc.data().samples).length, 36);
@@ -43,11 +43,11 @@ test('real Firestore stores every sample through chunk rollover and concurrent t
 });
 test('anonymous telemetry reads/listing are denied; two signed-in users can read; all client writes are denied', async () => {
   const day = 'GreenpowerTelemetry/424/days/2026-10-18';
-  for (const path of [day, `${day}/chunks/0000000000`, 'GreenpowerTelemetry/424/days', `${day}/chunks`]) {
+  for (const path of [day, `${day}/live/latest`, `${day}/chunks/0000000000`, 'GreenpowerTelemetry/424/days', `${day}/chunks`]) {
     assert.equal((await request(path)).status, 403, path);
     for (const uid of ['alice', 'bob']) assert.equal((await request(path, uid)).status, 200, `${uid}: ${path}`);
   }
-  for (const uid of [undefined, 'alice', 'bob']) for (const path of [day, `${day}/chunks/0000000000`, 'GreenpowerTelemetry/424']) {
+  for (const uid of [undefined, 'alice', 'bob']) for (const path of [day, `${day}/live/latest`, `${day}/chunks/0000000000`, 'GreenpowerTelemetry/424']) {
     assert.equal((await request(path, uid, 'PATCH', { fields: { tampered: { booleanValue: true } } })).status, 403);
     assert.equal((await request(path, uid, 'DELETE')).status, 403);
   }
@@ -100,14 +100,14 @@ test('bounded synthetic sender uploads POST and path-JSON GET through HTTP into 
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   try {
     const dayRef = db.doc(`GreenpowerTelemetry/424/days/${londonDay()}`);
-    const before = (await dayRef.get()).data()?.count || 0;
+    const before = (await dayRef.collection('live').doc('latest').get()).data()?.count || 0;
     for (const method of ['POST', 'GET']) {
       const { stdout } = await promisify(execFile)(process.execPath, [new URL('./send.mjs', import.meta.url).pathname], {
         env: { ...process.env, GREENPOWER_TEST_URL: `http://127.0.0.1:${server.address().port}/`, GREENPOWER_TELEMETRY_PASSWORD: password, GREENPOWER_TEST_METHOD: method, GREENPOWER_TEST_COUNT: '1' }, timeout: 20000
       });
       assert.equal(JSON.parse(stdout).status, 204);
     }
-    const after = (await dayRef.get()).data();
+    const after = (await dayRef.collection('live').doc('latest').get()).data();
     assert.equal(after.count - before, 2);
     assert.equal(JSON.parse(after.latest.raw).synthetic, true);
   } finally { await new Promise(resolve => server.close(resolve)); }
@@ -322,4 +322,21 @@ test('Edit Save atomically publishes the dataset choice to another real signed-i
     services.forEach(service=>service.ngOnDestroy());await Promise.all(clients.map(client=>client.terminate()));await Promise.all(apps.map(app=>app.delete()));
     await selection.delete();await viewRef.delete();await Promise.all(trackRefs.map(ref=>ref.delete()));
   }
+});
+
+test('name-only tracks retain admin-only writes and reject partial or inconsistent geometry', async () => {
+  const path = 'GreenpowerTelemetry/424/tracks/name-only';
+  await db.doc(path).delete();
+  const value = x => x === null ? { nullValue: null } : typeof x === 'string' ? { stringValue: x } : typeof x === 'number' ? { integerValue: String(x) } : { arrayValue: { values: [] } };
+  const save = (uid, claims, extra = {}) => fetch(`http://${host}/v1/projects/${projectId}/databases/(default)/documents:commit`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', ...(uid ? { Authorization: `Bearer ${token(uid, claims)}` } : {}) },
+    body: JSON.stringify({ writes: [{ update: { name: `projects/${projectId}/databases/(default)/documents/${path}`,
+      fields: { name: value('Workshop'), bounds: value(null), line: value(null), cells: value([]), revision: value(1), updatedBy: value(uid || 'admin'), ...extra } },
+      updateTransforms: [{ fieldPath: 'updatedAt', setToServerValue: 'REQUEST_TIME' }] }] }) });
+  for (const [uid, claims] of [[undefined, {}], ['alice', {}], ['admin', { perrinnAdmin: 'true' }]]) assert.equal((await save(uid, claims)).status, 403);
+  assert.equal((await save('admin', { perrinnAdmin: true }, { cells: { arrayValue: { values: [value('unexpected')] } } })).status, 403);
+  assert.equal((await save('admin', { perrinnAdmin: true })).status, 200);
+  for (const uid of ['alice', 'bob']) assert.equal((await request(path, uid)).status, 200);
+  assert.equal((await request(path)).status, 403);
+  await db.doc(path).delete();
 });

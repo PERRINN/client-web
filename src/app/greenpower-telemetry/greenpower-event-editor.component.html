@@ -1,28 +1,31 @@
 <section aria-label="Event metadata editor">
+  @if (events.eventReady && !events.migrated) { <p class="error">This day requires metadata migration before editing.</p> }
   @if (!edit.mode) {
     <div class="actions">
-      <button type="button" [disabled]="!events.canEdit || !events.eventReady" (click)="edit.event()">Edit event</button>
-      <button type="button" [disabled]="!events.canEdit || !canCapture" (click)="edit.session(true, window)">Add session</button>
-      <button type="button" [disabled]="!events.canEdit || !events.sessionReady" (click)="edit.session()">Edit session</button>
+      <button type="button" [disabled]="!events.canEdit || !events.eventReady || !events.migrated" (click)="edit.event()">Edit event</button>
+      <button type="button" [disabled]="!events.canEdit || !canCapture || !events.migrated" (click)="edit.session(true, window)">Add session</button>
+      <button type="button" [disabled]="!events.canEdit || !events.sessionReady || !events.migrated" (click)="edit.session()">Edit session</button>
     </div>
   } @else {
-    <div class="heading"><h3>{{ edit.mode === 'event' ? 'Edit event' : edit.isNew ? 'New session' : 'Edit session' }}</h3></div>
+    <div class="heading"><h3>{{ edit.mode === 'event' ? 'Edit event' : 'Session' }}</h3></div>
     @if (!edit.reviewing) {
-      <app-greenpower-metadata-fields [data]="edit.draft" [session]="edit.mode === 'session'" [disabled]="edit.locked" />
+      <app-greenpower-metadata-fields [data]="edit.draft" [session]="edit.sessionDraft" [disabled]="edit.locked" />
       @if (edit.mode === 'session') {
         <h4>Recording · {{ edit.sourceEvent?.date }} · UK</h4>
-        <ul>@for (segment of edit.draft.segments || []; track $index) { <li><span>{{ time(segment.firstAt) }} – {{ time(segment.lastAt) }}</span><button type="button" [disabled]="edit.locked" [attr.aria-label]="'Remove range ' + ($index + 1)" (click)="edit.removeRange($index)">Remove</button></li> }</ul>
+        <p>{{ time(edit.sessionDraft?.startAt) }} – {{ time(edit.sessionDraft?.endAt) }}</p>
         <div class="actions">
+          <label for="session-start">Start · UK<input id="session-start" type="time" step="1" [(ngModel)]="startTime" [disabled]="edit.locked"></label>
+          <label for="session-end">End · UK<input id="session-end" type="time" step="1" [(ngModel)]="endTime" [disabled]="edit.locked"></label>
+          <button type="button" [disabled]="edit.locked || !canCapture" (click)="useTimes()">Use times</button>
           <button type="button" [disabled]="edit.locked || !canCapture" (click)="edit.replaceRange(window)">Use current zoom</button>
-          <button type="button" [disabled]="edit.locked || !canCapture" (click)="edit.addRange(window)">Add current zoom</button>
         </div>
       }
     } @else {
       <div class="review" role="region" aria-label="Review metadata changes">
-        <p>{{ edit.mode === 'session' ? sessionType : edit.draft.name }}</p>
+        <p>{{ edit.mode === 'session' ? sessionType : edit.draft?.eventName }}</p>
         <p>{{ edit.sourceEvent?.date }} · UK</p>
         @if (edit.mode === 'session') {
-          @for (segment of edit.draft.segments || []; track $index) { <p>{{ time(segment.firstAt) }} – {{ time(segment.lastAt) }}</p> }
+          <p>{{ time(edit.sessionDraft?.startAt) }} – {{ time(edit.sessionDraft?.endAt) }}</p>
         }
       </div>
     }

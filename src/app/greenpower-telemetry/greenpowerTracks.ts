@@ -2,7 +2,7 @@ import { FinishLine, GpsFix, GpsPoint, localPoint, validLine, validPoint, validS
 
 export interface TrackBounds { south: number; north: number; west: number; east: number; }
 export interface TrackDefinition {
-  name: string; line: FinishLine | null; bounds: TrackBounds; cells: string[]; revision: number; updatedBy: string;
+  name: string; line: FinishLine | null; bounds: TrackBounds | null; cells: string[]; revision: number; updatedBy: string;
 }
 export interface TrackChoice extends TrackDefinition { id: string; }
 export const TRACKS_PATH = 'GreenpowerTelemetry/424/tracks';
@@ -10,8 +10,8 @@ export const TRACK_PAGE_SIZE = 6;
 export const MAX_TRACK_PAGES = 10;
 const CELL_DEGREES = .05;
 export function trackCell(p: GpsPoint) { return `${Math.floor(p.lat / CELL_DEGREES)}:${Math.floor(p.lon / CELL_DEGREES)}`; }
-export function contains(bounds: TrackBounds, p: GpsPoint) {
-  return p.lat >= bounds.south && p.lat <= bounds.north && p.lon >= bounds.west && p.lon <= bounds.east;
+export function contains(bounds: TrackBounds | null, p: GpsPoint) {
+  return !!bounds && p.lat >= bounds.south && p.lat <= bounds.north && p.lon >= bounds.west && p.lon <= bounds.east;
 }
 export function coverageCells(bounds: TrackBounds) {
   const south = Math.floor(bounds.south / CELL_DEGREES), north = Math.floor(bounds.north / CELL_DEGREES);
@@ -30,9 +30,11 @@ export function validBounds(bounds: TrackBounds) {
 }
 export function validTrack(value: unknown): value is TrackDefinition {
   const track = value as TrackDefinition;
-  if (!track || typeof track.name !== 'string' || !track.name.trim() || track.name.length > 60 || !validBounds(track.bounds) ||
+  if (!track || typeof track.name !== 'string' || !track.name.trim() || track.name.length > 60 ||
     !(track.line === null || validLine(track.line)) || !Array.isArray(track.cells) ||
     !Number.isSafeInteger(track.revision) || track.revision < 1 || typeof track.updatedBy !== 'string') return false;
+  if (track.bounds === null) return track.line === null && track.cells.length === 0;
+  if (!validBounds(track.bounds)) return false;
   const cells = coverageCells(track.bounds);
   return cells.length === track.cells.length && cells.every((cell, i) => cell === track.cells[i]) &&
     (!track.line || contains(track.bounds, track.line.a) && contains(track.bounds, track.line.b));
@@ -61,5 +63,5 @@ export function mergedCoverage(bounds: TrackBounds, other: TrackBounds) {
 export function matchesTrack(track: TrackDefinition, fixes: GpsFix[]) {
   // Do not silently accept recordings from several venues or select disabled definitions.
   const anchor = lookupAnchor(fixes);
-  return !!track.line && !!anchor && contains(track.bounds, anchor) && fixes.every(fix => contains(track.bounds, fix));
+  return !!track.bounds && !!track.line && !!anchor && contains(track.bounds, anchor) && fixes.every(fix => contains(track.bounds, fix));
 }

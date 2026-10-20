@@ -1,30 +1,25 @@
 <fieldset [disabled]="disabled">
   <div class="fields">
     @if (!session) {
-      <label class="wide" [for]="prefix + '-name'">Name<input #initialInput [id]="prefix + '-name'" [value]="data.name || ''" (input)="text('name', $any($event.target).value)" required maxlength="120"></label>
-      <label [for]="prefix + '-date'">Date · UK<input [id]="prefix + '-date'" type="date" [value]="data.date || ''" readonly></label>
-      <label [for]="prefix + '-time'">Time · UK<input [id]="prefix + '-time'" type="time" [value]="data.localTime || ''" (input)="text('localTime', $any($event.target).value)"></label>
-      <label [for]="prefix + '-location'">Track<input [id]="prefix + '-location'" [value]="data.location || ''" (input)="text('location', $any($event.target).value)" maxlength="120"></label>
+      <label class="wide" [for]="prefix + '-name'">Event name<input #initialInput [id]="prefix + '-name'" [(ngModel)]="data.eventName" [ngModelOptions]="{standalone:true}" maxlength="120"></label>
+      <label [for]="prefix + '-date'">Date · UK<input [id]="prefix + '-date'" type="date" [value]="data.date" readonly></label>
+      <label [for]="prefix + '-result'">Result<input [id]="prefix + '-result'" [(ngModel)]="data.result" [ngModelOptions]="{standalone:true}" maxlength="120"></label>
+      <label class="wide" [for]="prefix + '-track'">Track<select [id]="prefix + '-track'" [(ngModel)]="data.trackId" [ngModelOptions]="{standalone:true}"><option [ngValue]="null">No track</option>@for (track of events.tracks; track track.id) { <option [value]="track.id">{{ track.name }}</option> }</select></label>
+      <div class="wide track-actions">
+        @if (events.moreTracks) { <button type="button" [disabled]="events.loadingTracks" (click)="events.loadTracks()">More tracks</button> }
+        <button type="button" [disabled]="events.loadingTracks" (click)="addingTrack = !addingTrack">{{ addingTrack ? 'Cancel new track' : 'Add track' }}</button>
+      </div>
+      @if (addingTrack) {
+        <label [for]="prefix + '-new-track'">Track name<input [id]="prefix + '-new-track'" [(ngModel)]="trackName" [ngModelOptions]="{standalone:true}" maxlength="60"></label>
+        <button type="button" [disabled]="events.loadingTracks || !trackName.trim()" (click)="addTrack()">{{ events.loadingTracks ? 'Saving' : 'Save track' }}</button>
+      }
+      @if (events.trackError) { <p class="wide error" role="alert">{{ events.trackError }}</p> }
     } @else {
-      <label [for]="prefix + '-type'">Session type<select #initialInput aria-label="Session type" [id]="prefix + '-type'" [ngModel]="data.type || ''" (ngModelChange)="text('type', $event)" [ngModelOptions]="{standalone:true}"><option value="" disabled>Choose type</option>@for (type of types; track type.id) { <option [value]="type.id">{{ type.label }}</option> }</select></label>
+      <label [for]="prefix + '-type'">Session type<select #initialInput aria-label="Session type" [id]="prefix + '-type'" [(ngModel)]="session.type" [ngModelOptions]="{standalone:true}"><option value="" disabled>Choose type</option>@for (type of types; track type.id) { <option [value]="type.id">{{ type.label }}</option> }</select></label>
+      <label [for]="prefix + '-batteries'">Batteries<input [id]="prefix + '-batteries'" [value]="session.batteryIds.join(', ')" (input)="batteries($any($event.target).value)"></label>
     }
-    @for (person of visiblePeople; track person.key) { <label [for]="prefix + '-' + person.key">{{ person.label }}<input [id]="prefix + '-' + person.key" [value]="$any(data)[person.key] || ''" (input)="text(person.key, $any($event.target).value)" maxlength="120"></label> }
-    @if (!session) {
-      <label class="wide" [for]="prefix + '-description'">Description<textarea [id]="prefix + '-description'" [value]="data.description || ''" (input)="text('description', $any($event.target).value)" rows="2"></textarea></label>
-    }
-    <label class="wide" [for]="prefix + '-notes'">Notes<textarea [id]="prefix + '-notes'" [value]="data.notes || ''" (input)="text('notes', $any($event.target).value)" rows="2"></textarea></label>
-    @if (!session) {
-      <label class="wide" [for]="prefix + '-tags'">Tags<input [id]="prefix + '-tags'" [value]="tagText" (input)="tags($any($event.target).value)"></label>
+    @for (field of fields; track field.key) {
+      <label [for]="prefix + '-' + field.key">{{ field.label }}<input [id]="prefix + '-' + field.key" [type]="field.numeric ? 'number' : 'text'" [step]="field.key.endsWith('Teeth') ? '1' : 'any'" min="0" maxlength="120" [value]="$any(values)[field.key] ?? ''" [placeholder]="session ? ($any(data.defaults)[field.key] ?? 'Use event value') : ''" (input)="value(field.key, $any($event.target).value, field.numeric)"></label>
     }
   </div>
-  <details><summary>Engineering</summary>
-    <div class="fields">
-      <label class="wide" [for]="prefix + '-batteries'">Batteries<input [id]="prefix + '-batteries'" [value]="batteryText" (input)="batteries($any($event.target).value)"></label>
-      @for (field of identifiers; track field.key) { <label [for]="prefix + '-' + field.key">{{ field.label }}<input [id]="prefix + '-' + field.key" [value]="$any(data.engineering)?.[field.key] || ''" (input)="engineeringText(field.key, $any($event.target).value)"></label> }
-      @for (field of measures; track field.key) { <label [for]="prefix + '-' + field.key">{{ field.label }}{{ field.unit === '1' ? '' : ' · ' + field.unit }}<input [id]="prefix + '-' + field.key" type="number" step="any" [value]="$any(data.engineering)?.[field.key]?.value ?? ''" (input)="measurement(field.key, field.unit, $any($event.target).value)"></label> }
-    </div>
-  </details>
-  @if (data.provenance?.length) {
-    <details><summary>Source</summary>@for (source of data.provenance; track $index) { <p>{{ source.sheetName || source.kind }}{{ source.row ? ' · Row ' + source.row : '' }}</p> }</details>
-  }
 </fieldset>

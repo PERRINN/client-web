@@ -1,3 +1,6 @@
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const { emptyDay } = require('../../functions/utils/greenpowerDayMetadata');
 import { CAR_ID } from './historySource.mjs';
 
 const MAX_CHUNK_BYTES = 128 * 1024;
@@ -60,9 +63,13 @@ function sameSample(actual, expected) {
 
 export async function runImport(db, plan, { write = false, now = Date.now, timestamp = () => new Date(), progress = () => {} } = {}) {
   const dayRef = db.doc(`GreenpowerTelemetry/424/days/${plan.day}`);
+  const liveRef = db.doc(dayRef.path + '/live/latest');
   const stateRef = db.doc(`GreenpowerTelemetry/424/imports/echook-${CAR_ID}-${plan.day}`);
   const [daySnapshot, stateSnapshot] = await Promise.all([dayRef.get(), stateRef.get()]);
-  let day = daySnapshot.data(), state = stateSnapshot.data();
+  const parent = daySnapshot.data();
+  const modern = !parent || parent.schemaVersion === 2;
+  let day = modern ? (await liveRef.get()).data() : parent, state = stateSnapshot.data();
+  if (parent?.schemaVersion === 2 && !day) throw new Error('Missing live state');
   const receivedAt = state?.receivedAt ?? now();
   const chunks = importChunks(plan, receivedAt);
   checkState(state, day, plan, chunks);
@@ -76,9 +83,13 @@ export async function runImport(db, plan, { write = false, now = Date.now, times
   for (let index = state?.nextChunk || 0; index < chunks.length; index++) {
     const chunkRef = dayRef.collection('chunks').doc(chunkId(index));
     await db.runTransaction(async transaction => {
-      const [currentDay, currentState, currentChunk] = await transaction.getAll(dayRef, stateRef, chunkRef);
+      const [currentDay, currentState, currentChunk, currentLive] = await transaction.getAll(dayRef, stateRef, chunkRef, liveRef);
       const prior = currentState.data();
-      checkState(prior, currentDay.data(), plan, chunks);
+      const currentParent = currentDay.data();
+      const useLive = !currentParent || currentParent.schemaVersion === 2;
+      const currentData = useLive ? currentLive.data() : currentParent;
+      checkState(prior, currentData, plan, chunks);
+      if (!prior && currentParent) throw new Error('Destination day exists');
       if ((prior?.nextChunk || 0) !== index || currentChunk.exists || prior && prior.receivedAt !== receivedAt) throw new Error('Import advanced concurrently; rerun to verify');
       const count = (prior?.count || 0) + chunks[index].samples.length;
       const next = { carId: CAR_ID, day: plan.day, source: 'echook-history', sourceSha256: plan.sourceSha256,
@@ -86,12 +97,17 @@ export async function runImport(db, plan, { write = false, now = Date.now, times
         firstAt: plan.firstAt, lastAt: plan.lastAt, receivedAt,
         status: index + 1 === chunks.length ? 'complete' : 'importing', updatedAt: timestamp() };
       transaction.create(chunkRef, chunks[index]);
-      transaction.set(dayRef, { date: plan.day, activeChunk: index, count, latest: chunks[index].samples.at(-1), updatedAt: timestamp() });
+      const liveState = { date: plan.day, activeChunk: index, count, latest: chunks[index].samples.at(-1), updatedAt: timestamp() };
+      if (useLive) {
+        transaction.set(liveRef, liveState);
+        if (!currentParent) transaction.set(dayRef, emptyDay(plan.day, timestamp));
+      } else transaction.set(dayRef, { ...currentParent, ...liveState });
       transaction.set(stateRef, next);
     }, { maxAttempts: 3 });
     progress({ completedChunks: index + 1, totalChunks: chunks.length });
   }
-  [day, state] = await Promise.all([dayRef.get().then(s => s.data()), stateRef.get().then(s => s.data())]);
+  const finalParent = (await dayRef.get()).data();
+  [day, state] = await Promise.all([finalParent?.schemaVersion === 2 ? liveRef.get().then(s => s.data()) : finalParent, stateRef.get().then(s => s.data())]);
   await verifyImport(db, plan, chunks, state, day);
   return { mode: 'imported', count: plan.records.length, added: plan.records.length - resumed, existing: resumed, chunks: chunks.length, sourceSha256: plan.sourceSha256 };
 }

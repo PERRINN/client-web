@@ -90,7 +90,7 @@ export class GreenpowerTelemetryService implements OnDestroy {
     this.chunks.clear(); this.projections.clear(); this.channels = []; this.latest = undefined;
     const generation = this.generation;
     if (live) {
-      this.metadataOff = this.root.doc(day).onSnapshot({ includeMetadataChanges: true }, snapshot => {
+      this.metadataOff = this.root.doc(day).collection('live').doc('latest').onSnapshot({ includeMetadataChanges: true }, snapshot => {
         if (!this.valid(generation)) return;
         this.connected = !snapshot.metadata.fromCache;
         // Never render private cached records before a server-authorized read.
@@ -103,7 +103,10 @@ export class GreenpowerTelemetryService implements OnDestroy {
       try {
         const snapshot = await this.root.doc(day).get({ source: 'server' });
         if (!this.valid(generation)) return;
-        this.latest = (snapshot.data() as GreenpowerDay | undefined)?.latest;
+        const parent = snapshot.data();
+        const state = parent?.schemaVersion === 2 ? (await this.root.doc(day).collection('live').doc('latest').get({ source: 'server' })).data() : parent;
+        if (!this.valid(generation)) return;
+        this.latest = (state as GreenpowerDay | undefined)?.latest;
       } catch { this.fail(generation); return; }
       finally { if (this.valid(generation)) { this.loading = false; this.changed.next(); } }
     }

@@ -21,11 +21,11 @@ test('real transactions resume atomically; full rerun validates raw data without
   const plan = planImport(body, day, 65);
   const old = await db.doc(root).collection('chunks').limit(4).get();
   assert.ok(old.size < 4, 'Unexpected demo data; refuse cleanup');
-  const batch = db.batch(); old.docs.forEach(d => batch.delete(d.ref)); batch.delete(db.doc(root));
+  const batch = db.batch(); old.docs.forEach(d => batch.delete(d.ref)); batch.delete(db.doc(root)); batch.delete(db.doc(root + '/live/latest'));
   const stateRef = db.doc(`GreenpowerTelemetry/424/imports/echook-${CAR_ID}-${day}`);
   batch.delete(stateRef); await batch.commit();
   await assert.rejects(runImport(db, plan, { write: true, timestamp: () => admin.firestore.FieldValue.serverTimestamp(), progress: () => { throw new Error('stop after first atomic chunk'); } }), /stop after/);
-  assert.equal((await db.doc(root).get()).data().count, 32);
+  assert.equal((await db.doc(root + '/live/latest').get()).data().count, 32);
   const result = await runImport(db, plan, { write: true, timestamp: () => admin.firestore.FieldValue.serverTimestamp() });
   assert.equal(result.added, 33);
   const before = await db.doc(root).collection('chunks').orderBy('__name__').limit(4).get();
@@ -38,7 +38,7 @@ test('real transactions resume atomically; full rerun validates raw data without
   assert.deepEqual(after.docs.map(d => d.updateTime.toMillis()), before.docs.map(d => d.updateTime.toMillis()));
   assert.ok((await db.doc(root).get()).updateTime.isEqual(metadataBefore.updateTime));
   assert.ok((await stateRef.get()).updateTime.isEqual(stateBefore.updateTime));
-  assert.equal((await db.doc(root).get()).data().count, 65);
+  assert.equal((await db.doc(root + '/live/latest').get()).data().count, 65);
   const clientApp = firebase.initializeApp({ projectId: 'demo-greenpower', apiKey: 'demo-key' }, 'history-reader-test');
   const client = clientApp.firestore();
   client.useEmulator('127.0.0.1', Number(host.split(':')[1]), { mockUserToken: { sub: 'history-viewer', user_id: 'history-viewer' } });

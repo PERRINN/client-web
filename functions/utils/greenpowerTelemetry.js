@@ -1,4 +1,5 @@
 const { randomUUID, createHash, timingSafeEqual } = require('node:crypto');
+const { emptyDay } = require('./greenpowerDayMetadata');
 
 const MAX_PAYLOAD_BYTES = 16 * 1024;
 const MAX_CHUNK_BYTES = 128 * 1024;
@@ -47,8 +48,12 @@ async function storeSample(db, raw, now = Date.now(), id = randomUUID(), timesta
   const sample = { id, receivedAt: now, source: '424-phone', raw };
   const bytes = Buffer.byteLength(JSON.stringify(sample));
   await db.runTransaction(async transaction => {
-    const daySnapshot = await transaction.get(dayRef);
-    const previous = daySnapshot.data();
+    const liveRef = db.doc(dayRef.path + '/live/latest');
+    const live = (await transaction.get(liveRef)).data();
+    const parent = live ? undefined : (await transaction.get(dayRef)).data();
+    if (!live && parent?.schemaVersion === 2) throw new Error('Missing live state');
+    const previous = live || parent;
+    const modern = !!live || !parent;
     let index = previous?.activeChunk ?? 0;
     let chunkRef = dayRef.collection('chunks').doc(String(index).padStart(10, '0'));
     const chunkSnapshot = await transaction.get(chunkRef);
@@ -60,7 +65,11 @@ async function storeSample(db, raw, now = Date.now(), id = randomUUID(), timesta
     }
     const latest = !previous?.latest || previous.latest.receivedAt <= now ? sample : previous.latest;
     transaction.set(chunkRef, { samples: [...chunk.samples, sample], bytes: chunk.bytes + bytes });
-    transaction.set(dayRef, { date: day, activeChunk: index, count: (previous?.count || 0) + 1, latest, updatedAt: timestamp() });
+    const state = { date: day, activeChunk: index, count: (previous?.count || 0) + 1, latest, updatedAt: timestamp() };
+    if (modern) {
+      transaction.set(liveRef, state);
+      if (!live) transaction.set(dayRef, emptyDay(day, timestamp));
+    } else transaction.set(dayRef, { ...parent, ...state });
   }, { maxAttempts: 3 });
   return { day, id };
 }

@@ -1,0 +1,729 @@
+{
+  "preparedAt": "2026-10-20T08:46:06.740Z",
+  "projectId": "perrinn-d5fc1",
+  "status": "prepared_pending_exact_manifest_review_and_deployment_authorization",
+  "batches": [
+    {
+      "file": "audits/greenpower-migration-plan-2026-10-20-batch-1.json",
+      "sha256": "23f1174faa513c4dca57e3275d76ace0d517b25feb54b5f69428167002e82186",
+      "days": 30,
+      "expectedWrites": 120
+    },
+    {
+      "file": "audits/greenpower-migration-plan-2026-10-20-batch-2.json",
+      "sha256": "4f958e7e33d792df1f7dd58c5260e3d2dae273d32de5187ba75a0c0c4b116831",
+      "days": 30,
+      "expectedWrites": 120
+    },
+    {
+      "file": "audits/greenpower-migration-plan-2026-10-20-batch-3.json",
+      "sha256": "32ad7e03e340c4300b5c55e38c897365ae49c56c722aede24fd74574f43a1fd2",
+      "days": 14,
+      "expectedWrites": 56
+    }
+  ],
+  "totals": {
+    "days": 74,
+    "namedEvents": 36,
+    "knownTracks": 10,
+    "unknownTracks": 64,
+    "sessions": 0,
+    "expectedMigrationWrites": 296,
+    "warnings": 0
+  },
+  "preservation": {
+    "legacyEvents": "unchanged",
+    "legacySessions": "unchanged",
+    "rawChunks": "unchanged",
+    "latestSample": "copied atomically from current day to live/latest during apply",
+    "unmappedTracks": "left empty",
+    "sessionBoundaries": "not inferred"
+  },
+  "productionWrites": 0,
+  "chunkReads": 0,
+  "chunkWrites": 0,
+  "deploymentPerformed": false,
+  "migrationApplied": false,
+  "days": [
+    {
+      "date": "2026-04-18",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-04-29",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-04-30",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-05-01",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-05-02",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-05-03",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-05-04",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-05-06",
+      "eventName": "Mallory Park race",
+      "track": "Mallory Park",
+      "result": "P2",
+      "inheritedFields": [
+        "driver"
+      ],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-05-08",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-05-10",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-05-11",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-05-15",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-05-17",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-05-18",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-05-24",
+      "eventName": "Goodwood race",
+      "track": "Goodwood",
+      "result": "DNF",
+      "inheritedFields": [
+        "driver"
+      ],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-05-26",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-05-27",
+      "eventName": "Castle Combe test",
+      "track": "Castle Combe",
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-05-31",
+      "eventName": "Castle Combe race",
+      "track": "Castle Combe",
+      "result": "P3",
+      "inheritedFields": [
+        "driver"
+      ],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-06-04",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-06-07",
+      "eventName": "Bedford race",
+      "track": "Bedford",
+      "result": "P1",
+      "inheritedFields": [
+        "driver"
+      ],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-06-11",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-06-12",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-06-13",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-06-14",
+      "eventName": "Full dyno · 2026-06-14",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-06-15",
+      "eventName": "Full dyno · 2026-06-15",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-06-16",
+      "eventName": "Full dyno · 2026-06-16",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-06-17",
+      "eventName": "Full dyno · 2026-06-17",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-06-18",
+      "eventName": "Full dyno · 2026-06-18",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-06-19",
+      "eventName": "Full dyno · 2026-06-19",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-06-20",
+      "eventName": "Full dyno · 2026-06-20",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-06-21",
+      "eventName": "Full dyno · 2026-06-21",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-06-22",
+      "eventName": "Full dyno · 2026-06-22",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-06-23",
+      "eventName": "Full dyno · 2026-06-23",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-06-24",
+      "eventName": "Full dyno · 2026-06-24",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-06-25",
+      "eventName": "Full dyno · 2026-06-25",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-06-26",
+      "eventName": "Full dyno · 2026-06-26",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-06-29",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-06-30",
+      "eventName": "Full dyno · 2026-06-30",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-07-01",
+      "eventName": "Full dyno · 2026-07-01",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-07-02",
+      "eventName": "Full dyno · 2026-07-02",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-07-03",
+      "eventName": "Full dyno · 2026-07-03",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-07-04",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-07-06",
+      "eventName": "Full dyno · 2026-07-06",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-07-07",
+      "eventName": "Full dyno · 2026-07-07",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-07-11",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-07-12",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-07-13",
+      "eventName": "Battery dyno · 2026-07-13",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-07-14",
+      "eventName": "Battery dyno · 2026-07-14",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-07-18",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-07-20",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-07-21",
+      "eventName": "Battery dyno · 2026-07-21",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-07-22",
+      "eventName": "Battery dyno · 2026-07-22",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-07-23",
+      "eventName": "Battery dyno · 2026-07-23",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-07-24",
+      "eventName": "Battery dyno · 2026-07-24",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-08-09",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-08-14",
+      "eventName": "Castle Combe test",
+      "track": "Castle Combe",
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-08-15",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-08-17",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-08-19",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-08-22",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-08-24",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-09-10",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-09-12",
+      "eventName": "Dunsfold race",
+      "track": "Dunsfold",
+      "result": "P2",
+      "inheritedFields": [
+        "driver"
+      ],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-09-17",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-09-18",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-09-19",
+      "eventName": "Battery dyno · 2026-09-19",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-09-20",
+      "eventName": "Battery dyno · 2026-09-20",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-09-24",
+      "eventName": "Mallory Park race",
+      "track": "Mallory Park",
+      "result": "P4",
+      "inheritedFields": [
+        "driver"
+      ],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-09-25",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-09-27",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-09-28",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-09-29",
+      "eventName": "",
+      "track": null,
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-10-18",
+      "eventName": "Goodwood finals",
+      "track": "Goodwood",
+      "result": "P5",
+      "inheritedFields": [
+        "driver"
+      ],
+      "sessions": 0,
+      "warnings": []
+    },
+    {
+      "date": "2026-10-19",
+      "eventName": "",
+      "track": "Workshop",
+      "result": "",
+      "inheritedFields": [],
+      "sessions": 0,
+      "warnings": []
+    }
+  ]
+}

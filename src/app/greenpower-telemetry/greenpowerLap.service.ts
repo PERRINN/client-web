@@ -22,11 +22,13 @@ export class GreenpowerLapService implements OnDestroy {
   creating = false;
   mismatch = false;
   selectionReady = false;
+  eventTrack = false;
   draftTrackId: string | null = null;
   private editing = false;
   private baseSelectionRevision = 0;
   private selection?: DatasetTrack;
   private selectionOff?: () => void;
+  private dayOff?: () => void;
   private datasetGeneration = 0;
   private selectionGeneration = 0;
   private automaticId = '';
@@ -70,7 +72,7 @@ export class GreenpowerLapService implements OnDestroy {
   }
   private reset() {
     this.off?.(); this.off = undefined; this.generation++;
-    this.selectionOff?.(); this.selectionOff = undefined; this.datasetGeneration++;
+    this.selectionOff?.(); this.selectionOff = undefined; this.dayOff?.(); this.dayOff = undefined; this.datasetGeneration++; this.eventTrack = false;
     this.selection = undefined; this.selectionReady = false; this.editing = false; this.draftTrackId = null; this.automaticId = '';
     this.saved = undefined; this.ready = false; this.searching = false; this.error = '';
     this.selectedId = ''; this.creating = this.mismatch = false;
@@ -82,7 +84,7 @@ export class GreenpowerLapService implements OnDestroy {
     this.selectionOff?.(); this.selectionOff = undefined;
     const day = this.dataset.slice(0, 10), generation = this.datasetGeneration, listener = ++this.selectionGeneration;
     if (!this.account || !/^\d{4}-\d{2}-\d{2}$/.test(day)) return;
-    this.selectionOff = this.firestore.doc(datasetTrackPath(day)).onSnapshot({ includeMetadataChanges: true }, snapshot => {
+    const listenLegacy = () => { this.selectionOff = this.firestore.doc(datasetTrackPath(day)).onSnapshot({ includeMetadataChanges: true }, snapshot => {
       if (generation !== this.datasetGeneration || listener !== this.selectionGeneration || snapshot.metadata.fromCache || snapshot.metadata.hasPendingWrites) return;
       const value = snapshot.data();
       if (validDatasetTrack(value) && this.selection && value.revision < this.selection.revision) return;
@@ -95,7 +97,27 @@ export class GreenpowerLapService implements OnDestroy {
     }, () => {
       if (generation !== this.datasetGeneration || listener !== this.selectionGeneration) return;
       this.selectionReady = this.ready = false; this.error = 'Could not load dataset track settings.'; this.changed.next();
-    });
+    }); };
+    this.dayOff?.();
+    this.dayOff = this.firestore.doc('GreenpowerTelemetry/424/days/' + day).onSnapshot({ includeMetadataChanges: true }, snapshot => {
+      if (generation !== this.datasetGeneration || listener !== this.selectionGeneration || snapshot.metadata.fromCache || snapshot.metadata.hasPendingWrites) return;
+      const event = snapshot.data();
+      if (event?.schemaVersion === 2) {
+        this.selectionOff?.(); this.selectionOff = undefined; this.eventTrack = true;
+        const value = { trackId: event.trackId, revision: event.revision, updatedBy: event.updatedBy };
+        if (value.trackId !== null && (typeof value.trackId !== 'string' || !value.trackId || value.trackId.includes('/'))) {
+          this.selectionReady = this.ready = false; this.error = 'Event track is unavailable.';
+        } else {
+          this.selection = value; this.selectionReady = true; this.error = '';
+          this.draftTrackId = value.trackId; this.applySelection();
+        }
+        this.changed.next();
+      } else if (!this.selectionOff) {
+        this.eventTrack = false; listenLegacy();
+        // A known legacy day needs its fixed config listener, not per-sample parent updates.
+        if (snapshot.exists) { this.dayOff?.(); this.dayOff = undefined; }
+      }
+    }, () => { if (generation === this.datasetGeneration) { this.selectionReady = this.ready = false; this.error = 'Could not load event track.'; this.changed.next(); } });
   }
   syncEditing(editing: boolean) {
     editing = editing && this.selectionReady && this.permissions.current.isAdmin;
@@ -105,7 +127,7 @@ export class GreenpowerLapService implements OnDestroy {
     else { this.creating = false; this.newId = ''; this.applySelection(); }
   }
   selectionWrite(): DatasetTrackWrite | undefined {
-    if (!this.editing || !this.canSelect || this.draftTrackId === (this.selection?.trackId ?? null)) return undefined;
+    if (this.eventTrack || !this.editing || !this.canSelect || this.draftTrackId === (this.selection?.trackId ?? null)) return undefined;
     const generation = this.datasetGeneration, trackId = this.draftTrackId, revision = this.baseSelectionRevision;
     return { day: this.dataset.slice(0, 10), trackId, revision,
       current: () => generation === this.datasetGeneration && this.editing && this.canSelect,
@@ -130,7 +152,7 @@ export class GreenpowerLapService implements OnDestroy {
       const anchor = lookupAnchor(this.fixes);
       if (anchor) { this.cell = trackCell(anchor); this.lookedUp = true; void this.lookup(); }
     }
-    this.mismatch = !!this.saved && this.fixes.some(fix => !contains(this.saved!.bounds, fix));
+    this.mismatch = !!this.saved?.bounds && this.fixes.some(fix => !contains(this.saved!.bounds, fix));
     if (!changed && this.analysedLine === this.line && this.analysedEnd === end && this.analysedMismatch === this.mismatch) return;
     this.source = channels; this.analysedLine = this.line; this.analysedEnd = end; this.analysedMismatch = this.mismatch;
     this.analysis = gpsAnalysis(this.fixes, this.mismatch ? null : this.line, channels, end);
@@ -214,7 +236,7 @@ export class GreenpowerLapService implements OnDestroy {
       this.error = 'Enter a track name and a line between 2 and 500 m long.'; this.changed.next(); return false;
     }
     const loadedCoverage = trackCoverage(this.fixes, line);
-    const coverage = loadedCoverage && (this.saved ? mergedCoverage(this.saved.bounds, loadedCoverage.bounds) : loadedCoverage);
+    const coverage = loadedCoverage && (this.saved?.bounds ? mergedCoverage(this.saved.bounds, loadedCoverage.bounds) : loadedCoverage);
     if (!coverage || line && (!contains(coverage.bounds, line.a) || !contains(coverage.bounds, line.b))) {
       this.error = 'Track coverage must fit one venue. Keep the line within the recorded track area.'; this.changed.next(); return false;
     }
@@ -250,5 +272,5 @@ export class GreenpowerLapService implements OnDestroy {
       return false;
     } finally { this.saving = false; this.changed.next(); }
   }
-  ngOnDestroy() { this.generation++; this.datasetGeneration++; this.off?.(); this.selectionOff?.(); this.subscription.unsubscribe(); this.changed.complete(); }
+  ngOnDestroy() { this.generation++; this.datasetGeneration++; this.off?.(); this.selectionOff?.(); this.dayOff?.(); this.subscription.unsubscribe(); this.changed.complete(); }
 }

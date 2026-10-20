@@ -62,18 +62,17 @@
     @if (view.error) { <div class="error" role="alert">{{ view.error }} @if (!view.ready) { <button type="button" (click)="view.retry()">Retry view</button> }</div> }
     @if (!view.ready && !view.error) { <p class="state" role="status">Loading view…</p> }
     @if (historyOpen) {
-      <app-greenpower-event-selector [locked]="eventEdit.locked" />
+      <app-greenpower-event-selector [locked]="eventEdit.locked || !!eventEdit.mode" [loading]="telemetry.loading" (loadRecording)="loadSelectedRecording()" />
     }
     @if (telemetry.error) {
       <div class="error" role="alert">{{ telemetry.error }} <button type="button" (click)="retryRecording()">Retry</button></div>
     }
-    @if (telemetry.loading) { <p class="state" role="status">Loading {{ telemetry.day }}…</p> }
-    @else if (telemetry.more) {
+    @if (telemetry.more) {
       <div class="continuation"><span>{{ telemetry.recordingKey ? 'More data is available for this session.' : 'More data is available for this day.' }}</span><button type="button" (click)="telemetry.loadMore()">Load remaining data</button></div>
-    } @else if (!telemetry.channels.length && !telemetry.error && !(historyOpen && events.eventId)) { <p class="state">{{ events.eventId ? (events.selectedEvent?.sessionCount === 0 ? 'No sessions.' : 'Choose a session.') : 'No telemetry recorded for this day.' }}</p> }
+    } @else if (!telemetry.loading && !telemetry.channels.length && !telemetry.error && !(historyOpen && events.eventId)) { <p class="state">No telemetry recorded for this day.</p> }
     <div id="telemetry-track-map" class="view-panel" [hidden]="activeView !== 'track'" role="region" aria-label="Track map view">
       @if (view.editing && view.canEdit) {
-        <div class="track-selection" aria-label="Track selection">
+        @if (!lapConfig.eventTrack) { <div class="track-selection" aria-label="Track selection">
           <label for="telemetry-track">Track</label>
           <select id="telemetry-track" [value]="lapConfig.draftTrackId ?? ''" [disabled]="lapConfig.saving || lapConfig.searching" (change)="selectTrack($any($event.target).value); $any($event.target).value = lapConfig.draftTrackId ?? ''">
             <option value="">{{ lapConfig.searching ? 'Finding track…' : lapConfig.creating ? 'New track' : 'Automatic' }}</option>
@@ -81,7 +80,7 @@
             @if (lapConfig.hasMore) { <option value="more">More tracks…</option> }
           </select>
           @if (view.editing && lapConfig.canEdit) { <button type="button" [disabled]="lapConfig.saving || lapConfig.searching" (click)="lapConfig.newTrack()">New track</button> }
-        </div>
+        </div> }
       }
       @if (lapConfig.mismatch) { <p class="error" role="alert">{{ view.canEdit ? 'GPS extends outside the selected track. Choose the correct track to analyse this dataset.' : 'GPS extends outside the matched track. Lap analysis is unavailable.' }}</p> }
       @if (!view.canEdit && lapConfig.ready && !lapConfig.selectedId && lapConfig.candidates.length) { <p class="state">No automatic track match.</p> }

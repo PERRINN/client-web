@@ -1,3 +1,4 @@
+rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function isPerrinnAdmin() {
@@ -50,8 +51,10 @@ service cloud.firestore {
         return request.resource.data.keys().hasAll(['name', 'line', 'bounds', 'cells', 'revision', 'updatedBy', 'updatedAt'])
           && request.resource.data.keys().hasOnly(['name', 'line', 'bounds', 'cells', 'revision', 'updatedBy', 'updatedAt'])
           && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 60
-          && validBounds(request.resource.data.bounds) && validFinish(request.resource.data.line, request.resource.data.bounds)
-          && request.resource.data.cells is list && request.resource.data.cells.size() > 0 && request.resource.data.cells.size() <= 64
+          && ((request.resource.data.bounds == null && request.resource.data.line == null
+              && request.resource.data.cells is list && request.resource.data.cells.size() == 0)
+            || (validBounds(request.resource.data.bounds) && validFinish(request.resource.data.line, request.resource.data.bounds)
+              && request.resource.data.cells is list && request.resource.data.cells.size() > 0 && request.resource.data.cells.size() <= 64))
           && request.resource.data.cells.toSet().size() == request.resource.data.cells.size()
           && request.resource.data.revision is int && request.resource.data.revision > 0
           && request.resource.data.updatedBy == request.auth.uid && request.resource.data.updatedAt == request.time;
@@ -77,6 +80,12 @@ service cloud.firestore {
     }
     match /GreenpowerTelemetry/{document=**} {
       allow read: if request.auth != null;
+    }
+    // Collection-group queries must constrain both fields; writes remain server-only.
+    match /{parent=**}/sessions/{sessionId} {
+      allow list: if request.auth != null
+        && resource.data.telemetryRoot == 'GreenpowerTelemetry/424'
+        && resource.data.schemaVersion == 2;
     }
     match /userPresence/{userId} {
       // Activity is public. Only the owner can write a server-time-only record.

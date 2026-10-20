@@ -57,7 +57,7 @@ test('shared status fails closed and releases listeners across account changes, 
     navigator.onLine = true; window.dispatchEvent(new Event('online')); assert.equal(values.at(-1), true);
     now += GREENPOWER_LIVE_TIMEOUT; document.dispatchEvent(new Event('visibilitychange'));
     assert.equal(values.at(-1), false); assert.equal(listeners[0].active, false);
-    assert.match(listeners.at(-1).path, /2026-07-02$/);
+    assert.match(listeners.at(-1).path, /2026-07-02\/live\/latest$/);
     send(listeners.at(-1), { ...sample, receivedAt: now }); assert.equal(values.at(-1), true);
     authState.next({ uid: 'two' }); await settle(); assert.equal(values.at(-1), false);
     const current = listeners.at(-1); current.error(new Error('unavailable')); assert.equal(values.at(-1), false);

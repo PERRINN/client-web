@@ -90,7 +90,7 @@ test('saved dataset choice is followed by viewers and bypasses candidate lookup 
   const h=harness(undefined,{trackId:'circuit',revision:1,updatedBy:'admin'});h.signIn(false);await h.open();
   assert.equal(h.service.selectedId,'circuit');assert.equal(h.queries,0);assert.equal(h.service.canEdit,false);
   await h.open('2026-10-19:false');assert.equal(h.service.selectedId,'circuit');assert.equal(h.queries,0);
-  assert.ok(h.selectionListeners.every(l=>l.path==='GreenpowerTelemetry/424/days/2026-10-19/config/track'));
+  assert.ok(h.selectionListeners.every(l=>['GreenpowerTelemetry/424/days/2026-10-19','GreenpowerTelemetry/424/days/2026-10-19/config/track'].includes(l.path)));
   assert.equal(h.selectionListeners[0].active,false);h.service.ngOnDestroy();assert.equal(h.selectionListeners.at(-1).active,false);
 });
 test('draft choices are local, Cancel restores the shared choice, and committed choices update viewers',async()=>{

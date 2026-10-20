@@ -3,7 +3,7 @@ import { after, test } from 'node:test';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { load, eventData } from './load.mjs';
+import { load, eventData, dayData, tracks } from './load.mjs';
 import { ROOT, adminAuth, recording, eventChange, request, session, sessionChange } from './eventFixtures.mjs';
 import { createRequire } from 'node:module';
 import { prepareDayMigration, runDayMigration } from './eventDayMigration.mjs';
@@ -68,9 +68,16 @@ test('concurrent identical creates replay once and stale revisions cannot duplic
   assert.equal((await db.doc(ROOT + '/events/' + date).get()).data().revision, 1);
 });
 
-test('ordinary signed-in client discovers recorded events, filters typed sessions and clears on logout', async () => {
+test('ordinary signed-in client discovers day events and session subcollections, filters sessions and clears on logout', async () => {
+  const metadata = dayData.emptyDay(day); metadata.eventName = 'Workshop';
+  for (const [index, type] of ['practice', 'race'].entries()) {
+    const range = fixture.segment(index * 2, index * 2 + 1);
+    await db.doc(ROOT + '/days/' + day + '/sessions/' + type).set({ id: type, type, startAt: range.firstAt, endAt: range.lastAt, batteryIds: [], overrides: {}, ranges: [range], schemaVersion: 2, telemetryRoot: ROOT, revision: 1, updatedBy: 'admin' });
+  }
+  await db.doc(ROOT + '/days/' + day).set(metadata);
+  await db.doc(ROOT + '/days/' + day + '/live/latest').set({ count: 4, activeChunk: 0, latest: fixture.samples.at(-1) });
   const { GreenpowerEventsService } = load('../../src/app/greenpower-telemetry/greenpowerEvents.service.ts', {
-    '@angular/core': { Injectable: () => target => target }, 'firebase/compat/app': { default: firebase }, 'firebase/compat/firestore': {}, rxjs: { Subject }, './greenpowerEvents': eventData
+    '@angular/core': { Injectable: () => target => target }, 'firebase/compat/app': { default: firebase }, 'firebase/compat/firestore': {}, rxjs: { Subject }, './greenpowerEvents': eventData, './greenpowerDay': dayData, './greenpowerTracks': tracks
   });
   const clientApp = firebase.initializeApp({ projectId, apiKey: 'demo-key' }, 'day-event-viewer'), client = clientApp.firestore();
   const [hostname, port] = host.split(':'); client.useEmulator(hostname, Number(port), { mockUserToken: { sub: 'viewer', user_id: 'viewer' } });
@@ -83,7 +90,7 @@ test('ordinary signed-in client discovers recorded events, filters typed session
   });
   try {
     await service.loadEvents(true, { type: 'race', location: '', from: '2026-01-01', to: '2026-12-31' });
-    assert.equal(service.listError, ''); assert.ok(service.events.some(event => event.id === day));
+    assert.equal(service.listError, ''); assert.ok(service.events.some(event => event.date === day));
     await service.selectEvent(day); await until(() => service.eventReady && !service.loadingSessions);
     assert.deepEqual(service.sessions.map(session => session.id), ['race']);
     service.selectSession('race'); await until(() => service.sessionReady); assert.equal(service.selectedSession.type, 'race');
@@ -109,4 +116,71 @@ test('real migration preserves source/raw versions and commits timestamped sourc
   assert.equal(audit.migrationSources[sourceId].revision, 2); assert.ok(audit.migrationSources[sourceId].updatedAt.toMillis() > 0);
   assert.equal((await runDayMigration(db, plan, { ...settings, apply: true })).writes, 0);
   const after = await db.getAll(sourceRef, dayRef); assert.ok(after.every((snapshot, i) => snapshot.updateTime.isEqual(before[i].updateTime)));
+});
+
+test('day/session callable edits defaults atomically, verifies ranges and blocks legacy edits after migration', async () => {
+  const before = await db.doc(ROOT + '/days/' + day + '/chunks/0000000000').get();
+  const parent = (await db.doc(ROOT + '/days/' + day).get()).data();
+  const input = { schemaVersion: 2, requestId: 'day-defaults', kind: 'event', date: day, expectedRevision: parent.revision, data: dayData.editableDay(parent) };
+  input.data.defaults = { driver: 'Alex', motorGearTeeth: 12, wheelGearTeeth: 60 };
+  const result = await invoke(input); assert.equal(result.writes, 3); assert.equal((await invoke(input)).writes, 0);
+  assert.ok((await before.ref.get()).updateTime.isEqual(before.updateTime));
+  const audit = (await db.doc(ROOT + '/metadataChanges/' + result.changeId).get()).data();
+  assert.ok(audit.records.days[ROOT + '/days/' + day].after.updatedAt.toMillis() > 0);
+  await assert.rejects(invoke({ ...input, requestId: 'revoked-embedded' }, { uid: 'viewer', token: {} }), error => error.code === 'permission-denied');
+  await assert.rejects(invoke(request('old-client-after-migration', [eventChange(day, 1, null)])), error => error.code === 'failed-precondition');
+  const race = (await db.doc(ROOT + '/days/' + day + '/sessions/race').get()).data();
+  const bad = { schemaVersion: 2, kind: 'session', requestId: 'bad-boundary', date: day, expectedRevision: result.revision, expectedSessionRevision: race.revision, session: dayData.editableSession(race) };
+  bad.session.ranges[0].lastSampleId = 'missing';
+  await assert.rejects(invoke(bad), error => error.code === 'failed-precondition');
+});
+
+test('schema-v2 operator migration preserves chunk/source versions, resumes safely and exposes no client writes', async () => {
+  const { prepareMetadataMigration, applyMetadataMigration } = await import('./dayMetadataMigration.mjs');
+  const date = '2026-06-18', rec = recording(date), sourceId = 'embedded-migration-source';
+  const batch = db.batch(); rec.records.forEach(([path, value]) => batch.set(db.doc(path), value));
+  batch.set(db.doc(ROOT + '/days/' + date), { ...rec.records[0][1], latest: rec.samples.at(-1) });
+  batch.set(db.doc(ROOT + '/events/' + sourceId), { ...eventData.editable(eventData.dayEvent(date)), name: 'Preserved name', notes: 'Historical notes',
+    revision: 1, sessionCount: 1, updatedBy: adminAuth.uid, updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+  const sessionSource = db.doc(ROOT + '/sessions/migrated-session');
+  batch.set(sessionSource, { ...session(sourceId, [rec.segment()]), type: 'practice', revision: 1, updatedBy: adminAuth.uid, updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+  await batch.commit();
+  const rawRef = db.doc(rec.records[1][0]), sourceRef = db.doc(ROOT + '/events/' + sourceId);
+  const [rawBefore, sourceBefore, sessionBefore] = await db.getAll(rawRef, sourceRef, sessionSource);
+  const plan = JSON.parse(JSON.stringify(await prepareMetadataMigration(db, { version: 2, projectId: 'perrinn-d5fc1', days: [{ date, trackId: null }] })));
+  const settings = { timestamp: () => admin.firestore.FieldValue.serverTimestamp() };
+  assert.equal((await applyMetadataMigration(db, adminAuth, plan, settings)).writes, 0);
+  assert.equal((await applyMetadataMigration(db, adminAuth, plan, { ...settings, dryRun: false })).writes, 5);
+  assert.equal((await db.doc(ROOT + '/days/' + date).get()).data().eventName, 'Preserved name');
+  assert.equal((await applyMetadataMigration(db, adminAuth, plan, { ...settings, dryRun: false })).writes, 0);
+  assert.ok((await rawRef.get()).updateTime.isEqual(rawBefore.updateTime));
+  assert.ok((await sourceRef.get()).updateTime.isEqual(sourceBefore.updateTime));
+  assert.ok((await sessionSource.get()).updateTime.isEqual(sessionBefore.updateTime));
+  assert.deepEqual((await db.doc(ROOT + '/days/' + date + '/sessions/migrated-session').get()).data().ranges, [rec.segment()]);
+  for (const path of [ROOT + '/days/' + date, ROOT + '/days/' + date + '/live/latest']) {
+    assert.equal((await access(path)).status, 403);
+    for (const uid of ['alice', 'bob']) assert.equal((await access(path, uid)).status, 200);
+    assert.equal((await access(path, 'admin', 'PATCH', { perrinnAdmin: true })).status, 403);
+  }
+});
+
+test('scoped collection-group queries retrieve race sessions across days for signed-in users only', async () => {
+  const nextDay = '2026-06-19', rec = recording(nextDay), range = rec.segment();
+  const data = { id: 'race-other-day', type: 'race', startAt: range.firstAt, endAt: range.lastAt, ranges: [range], batteryIds: [], overrides: {}, schemaVersion: 2, telemetryRoot: ROOT, revision: 1, updatedBy: 'admin' };
+  const path = ROOT + '/days/' + nextDay + '/sessions/race-other-day'; await db.doc(path).set(data);
+  await db.doc(ROOT + '/sessions/legacy-not-in-group-results').set({ type: 'race', startAt: range.firstAt });
+  const field = (name, value) => ({ fieldFilter: { field: { fieldPath: name }, op: 'EQUAL', value: typeof value === 'number' ? { integerValue: String(value) } : { stringValue: value } } });
+  const query = { structuredQuery: { from: [{ collectionId: 'sessions', allDescendants: true }], where: { compositeFilter: { op: 'AND', filters: [field('telemetryRoot', ROOT), field('schemaVersion', 2), field('type', 'race')] } }, orderBy: [{ field: { fieldPath: 'startAt' }, direction: 'ASCENDING' }, { field: { fieldPath: '__name__' }, direction: 'ASCENDING' }], limit: 30 } };
+  for (const uid of [undefined, 'alice', 'bob']) {
+    const response = await fetch('http://' + host + '/v1/projects/' + projectId + '/databases/(default)/documents:runQuery', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', ...(uid ? { Authorization: 'Bearer ' + token(uid) } : {}) }, body: JSON.stringify(query) });
+    assert.equal(response.status, uid ? 200 : 403);
+    if (uid) {
+      const docs = (await response.json()).filter(item => item.document).map(item => item.document);
+      assert.ok(docs.some(doc => doc.name.endsWith('/days/' + day + '/sessions/race')));
+      assert.ok(docs.some(doc => doc.name.endsWith('/days/' + nextDay + '/sessions/race-other-day')));
+      assert.ok(docs.every(doc => doc.fields.type.stringValue === 'race' && doc.fields.telemetryRoot.stringValue === ROOT));
+    }
+  }
+  for (const uid of [undefined, 'alice', 'admin']) assert.equal((await access(path, uid, 'PATCH', { perrinnAdmin: true })).status, 403);
 });

@@ -33,21 +33,21 @@ test('day assignment uses UK midnight including BST/GMT transitions', () => {
   assert.equal(londonDay(Date.parse('2026-01-01T23:30:00Z')), '2026-01-01');
   for (const time of ['2026-10-25T00:30:00Z', '2026-10-25T01:30:00Z']) assert.equal(londonDay(Date.parse(time)), '2026-10-25');
 });
-test('chunk rollover retains every sample and limits each transaction to two reads/two writes', async () => {
+test('chunk rollover retains every sample and keeps ordinary appends at two reads/two writes and creates metadata once', async () => {
   const db = memoryDb(), at = Date.UTC(2026, 9, 19);
   for (let i = 0; i < 65; i++) await storeSample(db, '{"Vt":24}', at + i, String(i));
   const chunks = [...db.records.entries()].filter(([path]) => path.includes('/chunks/')).map(([, value]) => value);
   assert.deepEqual(chunks.map(c => c.samples.length), [32, 32, 1]);
   assert.equal(chunks.flatMap(c => c.samples).length, 65);
-  assert.equal(db.records.get('GreenpowerTelemetry/424/days/2026-10-19').count, 65);
-  assert.deepEqual(db.counts(), { reads: 130, writes: 130 });
+  assert.equal(db.records.get('GreenpowerTelemetry/424/days/2026-10-19/live/latest').count, 65);
+  assert.deepEqual(db.counts(), { reads: 131, writes: 131 });
 });
 test('byte rollover stays below the chunk budget, and late requests do not regress latest values', async () => {
   const db = memoryDb(), at = Date.UTC(2026, 9, 19), raw = JSON.stringify({ value: 'x'.repeat(15000) });
   for (let i = 0; i < 30; i++) await storeSample(db, raw, at + i, String(i));
   await storeSample(db, '{"older":true}', at, 'older');
   for (const [path, chunk] of db.records) if (path.includes('/chunks/')) assert.ok(chunk.bytes <= MAX_CHUNK_BYTES);
-  assert.equal(db.records.get('GreenpowerTelemetry/424/days/2026-10-19').latest.id, '29');
+  assert.equal(db.records.get('GreenpowerTelemetry/424/days/2026-10-19/live/latest').latest.id, '29');
 });
 test('HTTP accepts documented path JSON and JSON POST, and rejects unauthorized/invalid requests without writes', async () => {
   const db = memoryDb();

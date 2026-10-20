@@ -16,3 +16,10 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 @media (max-width: 360px) { .filters { grid-template-columns: minmax(0, 1fr); } }
 
 button, input, select, textarea { transition: none; }
+.recording-choice { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; }
+.primary { color: var(--color-accent-ink); background: var(--color-accent); }
+
+.recording-choice .primary { min-width: 96px; }
+
+.session-refresh { margin-left: auto; display: grid; place-items: center; width: 44px; }
+.session-refresh svg { fill: none; stroke: currentColor; stroke-width: 1.6; }

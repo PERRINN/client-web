@@ -31,7 +31,7 @@ export class GreenpowerLiveService {
           switchMap(day => {
             const latest = new Observable<GreenpowerSample | undefined>(subscriber => {
               subscriber.next(undefined);
-              return firestore.firestore.doc(`GreenpowerTelemetry/424/days/${day}`).onSnapshot(
+              return firestore.firestore.doc(`GreenpowerTelemetry/424/days/${day}/live/latest`).onSnapshot(
                 { includeMetadataChanges: true }, snapshot => {
                   subscriber.next(snapshot.metadata.fromCache || snapshot.metadata.hasPendingWrites
                     ? undefined : snapshot.data()?.['latest']);

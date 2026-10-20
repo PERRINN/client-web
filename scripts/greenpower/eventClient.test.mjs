@@ -1,15 +1,15 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { BehaviorSubject, Subject, firstValueFrom, defer } from 'rxjs';
-import { load, eventData, recordings, data } from './load.mjs';
+import { load, eventData, recordings, data, dayData, tracks } from './load.mjs';
 import { memoryDb, editMetadata, event, eventChange, request, recording, session, sessionChange, adminAuth, options, ROOT } from './eventFixtures.mjs';
 const core = { Injectable: () => target => target };
-const firebase = { default: { firestore: { FieldPath: { documentId: () => '__name__' } } } };
+const firebase = { default: { firestore: { FieldPath: { documentId: () => '__name__' }, FieldValue: { serverTimestamp: () => 'server-time' } } } };
 const { GreenpowerEventsService } = load('../../src/app/greenpower-telemetry/greenpowerEvents.service.ts', {
-  '@angular/core': core, 'firebase/compat/app': firebase, 'firebase/compat/firestore': {}, rxjs: { Subject }, './greenpowerEvents': eventData
+  '@angular/core': core, 'firebase/compat/app': firebase, 'firebase/compat/firestore': {}, rxjs: { Subject }, './greenpowerEvents': eventData, './greenpowerDay': dayData, './greenpowerTracks': tracks
 });
 const { GreenpowerEventEditService } = load('../../src/app/greenpower-telemetry/greenpowerEventEdit.service.ts', {
-  '@angular/core': core, rxjs: { firstValueFrom, Subject }, './greenpowerEvents': eventData
+  '@angular/core': core, rxjs: { firstValueFrom, Subject }, './greenpowerDay': dayData, './greenpowerDay': dayData, './greenpowerTracks': tracks
 });
 const flush = async () => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
 const savedEvent = (id, date = '2026-06-14') => ({ ...event(id), id, date, revision: 1, sessionCount: 0, updatedBy: 'test-admin' });
@@ -22,7 +22,7 @@ function client(records = new Map()) {
   const snapshot = (path, metadata = {}) => ({ id: path.split('/').at(-1), exists: records.has(path), ref: { path },
     data: () => structuredClone(records.get(path)), metadata: { fromCache: false, hasPendingWrites: false, ...metadata } });
   function ref(path, spec = { order: [], filters: [] }) {
-    return { path, doc: id => ref(path + '/' + id), collection: name => ref(path + '/' + name),
+    return { path, doc: (id = 'new-track') => ({ ...ref(path + '/' + id), id }), collection: name => ref(path + '/' + name),
       where: (field, op, value) => ref(path, { ...spec, filters: [...spec.filters, [field, op, value]] }),
       orderBy: (field, direction = 'asc') => ref(path, { ...spec, order: [...spec.order, [field, direction]] }),
       limit: limit => ref(path, { ...spec, limit }), startAt: first => ref(path, { ...spec, first }), endAt: end => ref(path, { ...spec, end }),
@@ -48,7 +48,10 @@ function client(records = new Map()) {
       }
     };
   }
-  const db = { doc: ref, collection: ref };
+  const db = { doc: ref, collection: ref, async runTransaction(callback) {
+    const pending = []; await callback({ get: async target => snapshot(target.path), set: (target, value) => pending.push([target.path, value]) });
+    pending.forEach(([path, value]) => records.set(path, value));
+  } };
   const service = new GreenpowerEventsService(permissions, { firestore: db });
   return { service, db, state, records, calls, listeners, delay(callback) { pending = callback; }, fail(value) { fail = value; },
     publish(path, value, metadata = {}) { records.set(path, value); listeners.filter(l => l.active && l.path === path).forEach(l => l.next(snapshot(path, metadata))); } };
@@ -97,246 +100,102 @@ test('zoom capture preserves exact positions, splits disjoint samples and derive
   assert.throws(() => recordings.recordingRange([], 0, 1), /Choose a range/);
 });
 
-async function editorHarness() {
-  const rec = recording(), backend = memoryDb(rec.records);
-  await editMetadata(backend, adminAuth, request('setup', [eventChange('2026-06-14')], [sessionChange('s', session('2026-06-14', [rec.segment()]))]), options);
-  const h = client(backend.records); h.service.selectEvent('2026-06-14'); await flush(); h.service.selectSession('s'); await flush(); await h.service.loadEvents();
-  const calls = []; let unknownOnce = false, wait;
-  const functions = { httpsCallable(name, config) {
-    assert.equal(name, 'greenpowerEventEdit'); assert.equal(config.timeout, 35000);
-    return input => defer(async () => {
-      calls.push(structuredClone(input)); if (wait) await wait;
-      const result = await editMetadata(backend, adminAuth, input, options);
-      if (unknownOnce) { unknownOnce = false; throw { code: 'functions/unavailable' }; }
-      return result;
-    });
-  } };
-  const telemetry = { day: '2026-06-14', dates: ['2026-06-14'], start: rec.segment().firstAt, end: rec.segment().lastAt, range: () => [rec.segment()] };
-  const editor = new GreenpowerEventEditService(h.service, telemetry, functions);
-  return { ...h, editor, backend, calls, telemetry, unknown() { unknownOnce = true; }, delay(value) { wait = value; }, destroy() { editor.ngOnDestroy(); h.service.ngOnDestroy(); } };
-}
-
 const day = '2026-06-14';
 const filters = (type = '', location = '') => ({ type, location, from: '2026-01-01', to: '2026-12-31' });
+const { editDayMetadata } = (await import('node:module')).createRequire(import.meta.url)('../../functions/utils/greenpowerDayMetadata.js');
+function migrated() {
+  const rec = recording(), value = dayData.emptyDay(day), segment = rec.segment();
+  value.eventName = 'Workshop'; value.defaults = { driver: 'Alex', motorGearTeeth: 12, wheelGearTeeth: 60 };
+  const session = { id: 'practice', type: 'practice', startAt: segment.firstAt, endAt: segment.lastAt, batteryIds: [], overrides: {}, ranges: [segment], schemaVersion: 2, telemetryRoot: ROOT, revision: 1, updatedBy: 'admin' };
+  return { rec, value, session };
 
-test('all filtered recorded days load at once, including unnamed days, with explicit year bounds', async () => {
-  const h = client();
-  for (let i = 1; i <= 31; i++) { const date = '2026-07-' + String(i).padStart(2, '0'); h.records.set(ROOT + '/days/' + date, { date, count: 1 }); }
-  h.records.set(ROOT + '/days/2025-06-14', { date: '2025-06-14', count: 1 });
-  h.records.set(ROOT + '/events/legacy', savedEvent('Legacy workshop'));
-  const year = new Intl.DateTimeFormat('en', { timeZone: 'Europe/London', year: 'numeric' }).format(new Date());
-  assert.equal(h.service.filters.from, year + '-01-01');
-  await h.service.loadEvents(true, filters()); assert.equal(h.service.events.length, 31);
-  assert.equal(h.calls.length, 3); assert.equal(h.calls[0].limit, 367); assert.equal(h.calls[1].limit, 60);
-  assert.deepEqual(h.calls[1].filters[0].slice(0, 2), ['date', 'in']);
-  assert.ok(h.service.events.every(event => event.id === event.date));
-  const calls = h.calls.length; await h.service.loadDayNames(h.service.events.map(event => event.date)); assert.equal(h.calls.length, calls);
-  h.service.ngOnDestroy();
-});
-
-test('track filters use canonical metadata for every recorded day, ignoring metadata without recordings', async () => {
-  const h = client(new Map(recording().records));
-  h.records.set(ROOT + '/events/' + day, { ...savedEvent(day), location: 'Castle Combe', locationKey: 'castle combe' });
-  h.records.set(ROOT + '/events/no-recording', { ...savedEvent('no-recording', '2026-06-15'), location: 'Castle Combe', locationKey: 'castle combe' });
-  await h.service.loadEvents(true, filters('', ' Castle  Combe '));
-  assert.equal(h.calls.length, 2); assert.equal(h.calls[0].path, ROOT + '/days'); assert.equal(h.calls[0].limit, 367);
-  assert.deepEqual(h.service.events.map(event => event.id), [day]); assert.equal(h.service.eventLabel(day), day + ' · ' + day);
-  h.service.ngOnDestroy();
-});
-
-
-test('a complete leap year loads all 366 days and metadata in fourteen queries, including late track matches', async () => {
+}
+test('all 366 event summaries load in one query; track filters are server-side', async () => {
   const h = client();
   for (let i = 0; i < 366; i++) {
     const date = new Date(Date.UTC(2028, 0, 1 + i)).toISOString().slice(0, 10);
-    h.records.set(ROOT + '/days/' + date, { date });
-    h.records.set(ROOT + '/events/' + date, { ...savedEvent(date, date), locationKey: date.endsWith('01-01') ? 'target' : 'elsewhere' });
+    h.records.set(ROOT + '/days/' + date, { ...dayData.emptyDay(date), trackId: i === 0 ? 'track' : null });
   }
-  await h.service.loadEvents(true, { ...filters('', 'Target'), from: '2028-01-01', to: '2028-12-31' });
-  assert.equal(h.service.listError, ''); assert.deepEqual(h.service.events.map(event => event.id), ['2028-01-01']);
-  assert.equal(h.calls.length, 14); assert.equal(h.calls[0].limit, 367);
-  assert.ok(h.calls.slice(1).every(call => call.limit === 60 && call.filters[0][2].length <= 30));
   await h.service.loadEvents(true, { ...filters(), from: '2028-01-01', to: '2028-12-31' });
-  assert.equal(h.service.events.length, 366); assert.equal(h.calls.length, 28);
-  await h.service.loadEvents(true, { ...filters(), from: '2028-01-01', to: '2029-12-31' });
-  assert.equal(h.calls.length, 28); assert.equal(h.service.listError, 'Choose a valid year.');
+  assert.equal(h.service.events.length, 366); assert.equal(h.calls.length, 1); assert.equal(h.calls[0].limit, 367);
+  await h.service.loadEvents(true, { ...filters('', 'track'), from: '2028-01-01', to: '2028-12-31' });
+  assert.equal(h.service.events.length, 1); assert.equal(h.calls.length, 2);
+  assert.ok(h.calls[1].filters.some(filter => filter[0] === 'trackId' && filter[2] === 'track'));
+  await h.service.loadEvents(true, { ...filters(), to: '2027-01-01' }); assert.equal(h.calls.length, 2);
   h.service.ngOnDestroy();
 });
-
-test('empty years stop after one query; metadata failures keep date choices and retry only on request', async () => {
-  const h = client(); await h.service.loadEvents(true, filters());
-  assert.deepEqual(h.service.events, []); assert.equal(h.calls.length, 1);
-  h.records.set(ROOT + '/days/' + day, { date: day });
-  const sub = h.service.changed.subscribe(() => { if (h.service.loadingEvents && h.service.events.length) h.fail(true); });
-  await h.service.loadEvents(true, filters()); sub.unsubscribe();
-  assert.equal(h.service.events.length, 1); assert.match(h.service.listError, /Could not load/);
-  const count = h.calls.length; await flush(); assert.equal(h.calls.length, count);
-  h.fail(false); await h.service.loadEvents(); assert.equal(h.service.listError, '');
-  assert.equal(h.calls.length, count + 2); h.service.ngOnDestroy();
+test('event selection loads one session page; session selection listens to metadata without raw reads', async () => {
+  const { value, session } = migrated(), h = client(new Map([[ROOT + '/days/' + day, value], [ROOT + '/days/' + day + '/sessions/practice', session]]));
+  await h.service.loadEvents(true, filters()); const reads = h.calls.length;
+  h.service.selectEvent(day); await flush(); h.service.selectSession('practice'); await flush();
+  assert.equal(h.service.eventReady, true); assert.equal(h.service.selectedSession.type, 'practice');
+  assert.equal(h.calls.length, reads + 1); assert.ok(h.calls.every(call => !call.path.includes('/chunks/'))); assert.equal(h.listeners.length, 2); assert.equal(h.listeners[0].path, ROOT + '/days/' + day);
+  const original = h.service.selectedEvent;
+  h.publish(ROOT + '/days/' + day, { ...value, eventName: 'Cached secret' }, { fromCache: true });
+  assert.equal(h.service.selectedEvent, original);
+  h.publish(ROOT + '/days/' + day, { ...value, revision: 2, defaults: { driver: 'Jamie' } });
+  assert.equal(dayData.effectiveDefaults(h.service.selectedEvent, h.service.selectedSession).driver, 'Jamie');
+  h.state.next({ ready: true, uid: '', isAdmin: false }); assert.equal(h.service.selectedEvent, undefined);
+  assert.ok(h.listeners.every(listener => !listener.active)); h.service.ngOnDestroy();
 });
-
-test('changing year during a metadata batch discards its results and prevents further old-year batches', async () => {
+test('stale year responses and failed reads do not replace current results or retry automatically', async () => {
   const h = client(); let release;
-  for (let i = 1; i <= 31; i++) { const date = '2026-07-' + String(i).padStart(2, '0'); h.records.set(ROOT + '/days/' + date, { date }); }
-  const sub = h.service.changed.subscribe(() => {
-    if (h.service.events.length === 31) { sub.unsubscribe(); h.delay(() => new Promise(resolve => release = resolve)); }
-  });
-  const old = h.service.loadEvents(true, filters()); await flush(); assert.equal(h.calls.length, 2);
+  h.delay(() => new Promise(resolve => release = resolve)); const old = h.service.loadEvents(true, filters());
   await h.service.loadEvents(true, { ...filters(), from: '2027-01-01', to: '2027-12-31' });
-  release({ docs: [], size: 0 }); await old;
-  assert.equal(h.calls.length, 3); assert.deepEqual(h.service.events, []); assert.equal(h.service.loadingEvents, false);
+  release({ docs: [], size: 0 }); await old; assert.equal(h.service.loadingEvents, false);
+  h.fail(true); await h.service.loadEvents(); const count = h.calls.length; await flush(); assert.equal(h.calls.length, count);
+  assert.match(h.service.listError, /Could not load/); h.fail(false); await h.service.loadEvents(); assert.equal(h.service.listError, ''); h.service.ngOnDestroy();
+});
+test('legacy days remain readable but cannot silently create replacement metadata', async () => {
+  const h = client(new Map(recording().records)); h.service.selectEvent(day); await flush();
+  assert.equal(h.service.eventReady, true); assert.equal(h.service.migrated, false);
+  const editor = new GreenpowerEventEditService(h.service, {}, {}); editor.event();
+  assert.equal(editor.mode, ''); assert.match(editor.error, /migration/); editor.ngOnDestroy(); h.service.ngOnDestroy();
+});
+test('metadata save patches one cached event, never refreshes the year, and retries unknown outcomes identically', async () => {
+  const { rec, value } = migrated(), backend = memoryDb([...rec.records, [ROOT + '/days/' + day, value], [ROOT + '/days/' + day + '/live/latest', { count: 4, activeChunk: 0 }]]);
+  const h = client(backend.records); await h.service.loadEvents(true, filters()); h.service.selectEvent(day); await flush();
+  const calls = []; let unknown = true;
+  const functions = { httpsCallable: () => input => defer(async () => {
+    calls.push(structuredClone(input)); const result = await editDayMetadata(backend, adminAuth, input, options);
+    if (unknown) { unknown = false; throw { code: 'functions/unavailable' }; } return result;
+  }) };
+  const editor = new GreenpowerEventEditService(h.service, { day, range: () => [rec.segment()] }, functions);
+  const reads = h.calls.length; editor.event(); editor.draft.eventName = 'Updated'; editor.review();
+  await editor.save(); assert.equal(editor.uncertain, true); assert.equal(editor.locked, true);
+  editor.cancel(); assert.equal(editor.locked, true); await editor.save();
+  assert.deepEqual(calls[0], calls[1]); assert.equal(h.service.selectedEvent.eventName, 'Updated');
+  assert.equal(h.calls.filter(call => call.path.endsWith('/days')).length, 1);
+  assert.equal(h.calls.length, reads + 1, 'only the initial track catalogue query is added');
+  assert.equal(editor.notice, 'Saved'); editor.ngOnDestroy(); h.service.ngOnDestroy();
+});
+test('track catalogue pagination is explicit and name-only tracks can be created before loading raw data', async () => {
+  const h = client();
+  for (let i = 0; i < 35; i++) h.records.set(ROOT + '/tracks/t' + i, { name: 'Track ' + String(i).padStart(2, '0'), bounds: null, line: null, cells: [], revision: 1, updatedBy: 'admin' });
+  await h.service.loadTracks(); assert.equal(h.service.tracks.length, 30); assert.equal(h.calls.length, 1); assert.equal(h.service.moreTracks, true);
+  await flush(); assert.equal(h.calls.length, 1); await h.service.loadTracks(); assert.equal(h.service.tracks.length, 35); assert.equal(h.service.moreTracks, false);
+  const id = await h.service.addTrack('New venue'); assert.ok(id); assert.equal(h.records.get(ROOT + '/tracks/' + id).bounds, null);
+  assert.ok(h.calls.every(call => !call.path.includes('/chunks'))); h.service.ngOnDestroy();
+});
+test('session pages are limited to thirty, only load more on action, and discard stale filter results', async () => {
+  const { value, session } = migrated(), h = client(new Map([[ROOT + '/days/' + day, value]]));
+  for (let i = 0; i < 35; i++) h.records.set(ROOT + '/days/' + day + '/sessions/s' + String(i).padStart(2, '0'), { ...session, id: 's' + String(i).padStart(2, '0') });
+  h.service.selectEvent(day); await flush(); assert.equal(h.service.sessions.length, 30); assert.equal(h.service.moreSessions, true);
+  assert.equal(h.calls.length, 1); await flush(); assert.equal(h.calls.length, 1);
+  await h.service.loadSessions(); assert.equal(h.service.sessions.length, 35); assert.equal(h.service.moreSessions, false);
+  let release; h.delay(() => new Promise(resolve => release = resolve)); const old = h.service.loadSessions(true); await flush();
+  h.service.filters.type = 'race'; await h.service.loadSessions(true); release({ docs: [], size: 0 }); await old;
+  assert.equal(h.service.sessions.length, 0); assert.equal(h.service.loadingSessions, false);
+  assert.ok(h.calls.every(call => call.limit === 30 && !call.path.includes('/chunks/')));
   h.service.ngOnDestroy();
 });
-
-test('whole events load without saved metadata; typed sessions paginate and account changes clear listeners', async () => {
-  const h = client(new Map(recording().records)), changes = [];
-  h.service.recordingChanged.subscribe(value => changes.push(value));
-  await h.service.selectEvent(day); await flush(); assert.equal(h.service.eventReady, true); assert.equal(h.service.selectedEvent.revision, 0);
-  h.records.set(ROOT + '/sessions/race', { ...session(day, [recording().segment()]), type: 'race', id: 'race', revision: 1, updatedBy: 'admin' });
-  h.records.set(ROOT + '/sessions/practice', { ...session(day, [recording().segment()]), type: 'practice', id: 'practice', revision: 1, updatedBy: 'admin' });
-  await h.service.loadEvents(true, filters('race')); await flush();
-  assert.deepEqual(h.service.sessions.map(session => session.id), ['race']);
-  const query = h.calls.findLast(call => call.path.endsWith('/sessions')); assert.equal(query.limit, 30);
-  assert.deepEqual(query.filters, [['eventId', '==', day], ['type', '==', 'race']]);
-  h.service.selectSession('race'); await flush(); assert.equal(changes.at(-1).id, 'race');
-  const active = h.listeners.filter(listener => listener.active); assert.equal(active.length, 2);
-  h.state.next({ ready: true, uid: '', isAdmin: false }); assert.equal(h.service.selectedSession, undefined);
-  assert.ok(h.listeners.every(listener => !listener.active)); assert.deepEqual(h.service.events, []); h.service.ngOnDestroy();
-});
-
-test('late pages and selections are cancelled; failures retain retry cursors without automatic retries', async () => {
-  const h = client(new Map(recording().records)); let release;
-  h.delay(() => new Promise(resolve => release = resolve));
-  const loading = h.service.loadEvents(true, filters()); h.state.next({ ready: true, uid: '', isAdmin: false });
-  release({ docs: [], size: 0 }); await loading; assert.deepEqual(h.service.events, []);
-  h.state.next({ ready: true, uid: 'other', isAdmin: true }); h.fail(true);
-  await h.service.loadEvents(true, filters()); assert.match(h.service.listError, /Could not load/);
-  const calls = h.calls.length; await flush(); assert.equal(h.calls.length, calls);
-  h.fail(false); await h.service.loadEvents(); assert.equal(h.service.events.length, 1); h.service.ngOnDestroy();
-});
-
-test('session edits preserve exact zoom boundaries, engineering fields and identity', async () => {
-  const h = await editorHarness(), range = recording().segment(1, 2);
-  h.editor.session(); h.editor.draft.notes = 'Reviewed'; h.editor.draft.type = 'race'; h.telemetry.range = () => [range];
-  h.editor.replaceRange({ start: range.firstAt, end: range.lastAt }); h.editor.review(); assert.equal(h.calls.length, 0);
-  await h.editor.save(); const saved = h.backend.records.get(ROOT + '/sessions/s');
-  assert.equal(saved.type, 'race'); assert.equal(saved.notes, 'Reviewed'); assert.deepEqual(saved.segments, [range]);
-  assert.equal(h.calls[0].sessions[0].id, 's'); assert.equal(h.backend.records.get(ROOT + '/events/' + day).sessionCount, 1);
-  h.destroy();
-});
-
-test('new sessions need a type and remain within the selected event day; rejected captures retain the draft', async () => {
-  const h = await editorHarness(); h.editor.session(true); h.editor.draft.name = 'Practice'; h.editor.review(); assert.match(h.editor.error, /type/);
-  const before = structuredClone(h.editor.draft.segments); h.telemetry.range = () => [recording('2026-06-15').segment()];
-  h.editor.addRange({ start: 0, end: 1 }); assert.match(h.editor.error, /UK day/); assert.deepEqual(h.editor.draft.segments, before);
-  h.editor.draft.type = 'practice'; h.editor.review(); await h.editor.save(); assert.equal(h.calls.length, 1);
-  assert.equal(h.backend.records.get(ROOT + '/events/' + day).sessionCount, 2); h.destroy();
-});
-
-test('an unnamed day can save its first session and event metadata atomically', async () => {
-  const h = await editorHarness(); h.backend.records.delete(ROOT + '/events/' + day); h.backend.records.delete(ROOT + '/sessions/s');
-  await h.service.selectEvent(day); await flush(); h.editor.session(true); h.editor.draft.name = 'First run'; h.editor.draft.type = 'practice';
-  h.editor.review(); assert.equal(h.calls.length, 0); await h.editor.save();
-  assert.equal(h.backend.records.get(ROOT + '/events/' + day).sessionCount, 1); assert.equal(h.calls[0].events[0].expectedRevision, 0); h.destroy();
-});
-
-test('uncertain saves reuse the exact request and conflicts/revocation retain safe UI state', async () => {
-  const h = await editorHarness(); h.editor.event(); h.editor.draft.name = 'Changed'; h.editor.review(); h.unknown(); await h.editor.save();
-  assert.equal(h.editor.uncertain, true); const writes = h.backend.counts.writes;
-  await h.editor.save(); assert.deepEqual(h.calls[0], h.calls[1]); assert.equal(h.backend.counts.writes, writes);
-  h.backend.records.get(ROOT + '/events/' + day).revision++;
-  h.editor.event(); h.editor.draft.name = 'Preserve'; h.editor.review(); await h.editor.save();
-  assert.equal(h.editor.draft.name, 'Preserve'); assert.match(h.editor.error, /changed elsewhere/);
-  h.editor.cancel(); h.editor.event(); h.editor.review(); let release; h.delay(new Promise(resolve => release = resolve));
-  const saving = h.editor.save(); h.state.next({ ready: true, uid: '', isAdmin: false }); release(); await saving;
-  assert.equal(h.editor.mode, ''); assert.equal(h.editor.notice, ''); h.destroy();
-});
-
-test('name lookup failures preserve event choices and retry only on explicit request', async () => {
-  const h = client(new Map(recording().records)); h.delay(() => Promise.reject(Error('synthetic names failure')));
-  await h.service.loadDayNames([day]); assert.match(h.service.dayNamesError, /Could not load/);
-  await h.service.loadEvents(true, filters()); assert.deepEqual(h.service.events.map(event => event.id), [day]);
-  const calls = h.calls.length; await flush(); assert.equal(h.calls.length, calls);
-  h.records.set(ROOT + '/events/' + day, savedEvent(day)); await h.service.loadEvents(true, filters());
-  assert.equal(h.service.dayNamesError, ''); assert.equal(h.service.eventLabel(day), day + ' · ' + day); h.service.ngOnDestroy();
-});
-
-test('selected listeners ignore cache/stale revisions and metadata-only edits avoid sample reloads', async () => {
-  const h = client(new Map(recording().records)); h.records.set(ROOT + '/events/' + day, savedEvent(day));
-  const path = ROOT + '/sessions/s', record = { ...session(day, [recording().segment()]), revision: 1, updatedBy: 'admin' };
-  h.records.set(path, record); await h.service.selectEvent(day); await flush();
-  const changes = []; h.service.recordingChanged.subscribe(value => changes.push({ value, requested: h.service.sessionId }));
-  h.service.selectSession('s'); assert.equal(changes[0].requested, 's', 'clear old samples after identifying the requested session, without loading a whole day');
-  await flush(); const count = changes.length;
-  h.publish(path, { ...record, revision: 2, notes: 'Cached' }, { fromCache: true }); assert.equal(h.service.selectedSession.revision, 1);
-  h.publish(path, { ...record, revision: 2, notes: 'Server' }); assert.equal(changes.length, count);
-  h.publish(path, record); assert.equal(h.service.selectedSession.revision, 2);
-  h.publish(path, { ...record, revision: 3, segments: [{ ...record.segments[0], day: '2026-06-15' }] });
-  assert.equal(h.service.selectedSession, undefined); assert.equal(changes.at(-1).value, undefined); h.service.ngOnDestroy();
-});
-
-test('legacy track metadata never matches a former track after canonical metadata changes', async () => {
-  const h = client(new Map(recording().records));
-  h.records.set(ROOT + '/events/legacy', { ...savedEvent('Old track'), locationKey: 'old track' });
-  h.records.set(ROOT + '/events/' + day, { ...savedEvent(day), locationKey: 'new track' });
-  await h.service.loadEvents(true, filters('', 'Old track')); assert.deepEqual(h.service.events, []); assert.equal(h.calls.length, 2);
-  await h.service.loadEvents(true, filters('', 'New track')); assert.deepEqual(h.service.events.map(event => event.id), [day]); h.service.ngOnDestroy();
-});
-
-
-test('historical original-ID metadata names every recorded day and supports track filtering before migration', async () => {
-  const h = client(new Map(recording().records));
-  h.records.set(ROOT + '/events/historical-dyno', { ...savedEvent('Workshop dyno'), locationKey: 'workshop' });
-  await h.service.loadEvents(true, filters());
-  assert.equal(h.service.listError, ''); assert.equal(h.service.eventLabel(day), day + ' · Workshop dyno');
-  await h.service.selectEvent(day); await flush();
-  assert.equal(h.service.selectedEvent.revision, 0, 'no migration or fabricated persisted event');
-  assert.equal(h.service.selectedEvent.name, 'Workshop dyno');
-  assert.equal(h.service.selectedEvent.locationKey, 'workshop');
-  assert.equal(eventData.recordedEventName(day, h.service.dayContext(day).events), 'Workshop dyno');
-  await h.service.loadEvents(true, filters('', 'Workshop'));
-  assert.deepEqual(h.service.events.map(event => event.id), [day]);
-  h.service.ngOnDestroy();
-});
-
-test('full-year metadata refresh replaces stale names and detects crowded pages without claiming completeness', async () => {
-  const h = client(new Map(recording().records));
-  h.records.set(ROOT + '/events/old', savedEvent('Old name'));
-  await h.service.loadEvents(true, filters()); assert.match(h.service.eventLabel(day), /Old name/);
-  h.records.delete(ROOT + '/events/old'); h.records.set(ROOT + '/events/new', savedEvent('New name'));
-  await h.service.loadEvents(true, filters()); assert.equal(h.service.eventLabel(day), day + ' · New name');
-  for(let i=0;i<60;i++)h.records.set(ROOT + '/events/crowded-'+i, savedEvent('Crowded '+i));
-  await h.service.loadEvents(true, filters()); assert.match(h.service.listError, /Could not load all event names/);
-  assert.equal(h.service.loadedEvents, false); assert.equal(h.service.events.length, 1);
-  h.service.ngOnDestroy();
-});
-
-
-test('sessions save without a name control, derive new labels from type and retain existing hidden metadata', async () => {
-  const h = await editorHarness();
-  h.editor.session(true); h.editor.draft.type = 'practice';
-  assert.equal(h.editor.draft.name, ''); h.editor.review(); assert.equal(h.editor.error, '');
-  assert.equal(h.editor.draft.name, 'Practice'); await h.editor.save();
-  const created = h.calls.at(-1).sessions[0]; assert.equal(created.data.name, 'Practice');
-  const existing = h.backend.records.get(ROOT + '/sessions/s');
-  Object.assign(existing, { name: 'Historical run', runNumber: 7, operator: 'Historical operator', tags: ['original'], description: 'Historical description' });
-  h.publish(ROOT + '/sessions/s', existing); h.service.selectSession('s'); await flush();
-  h.editor.session(); h.editor.draft.notes = 'Updated notes'; h.editor.review(); assert.equal(h.editor.error, ''); await h.editor.save();
-  const saved = h.backend.records.get(ROOT + '/sessions/s');
-  for(const key of ['name','runNumber','operator','tags','description'])assert.deepEqual(saved[key], existing[key], key);
-  assert.equal(saved.notes, 'Updated notes'); h.destroy();
-});
-
-
-test('historical day drafts retain source metadata and ambiguous days cannot create replacement metadata', async () => {
-  const h = await editorHarness();
-  const legacy = { ...h.backend.records.get(ROOT + '/events/' + day), name: 'Historical event', notes: 'Keep notes', description: 'Keep description', engineering: { batteryIds: ['original'] } };
-  h.records.delete(ROOT + '/events/' + day); h.records.set(ROOT + '/events/historical', legacy);
-  await h.service.loadEvents(true, filters()); await h.service.selectEvent(day); await flush();
-  h.editor.event(); assert.equal(h.editor.draft.name, 'Historical event'); assert.equal(h.editor.draft.notes, 'Keep notes');
-  assert.deepEqual(h.editor.draft.engineering, { batteryIds: ['original'] }); h.editor.cancel();
-  h.records.set(ROOT + '/events/another', { ...legacy, name: 'Another historical event' });
-  await h.service.loadEvents(true, filters());
-  h.editor.event(); assert.equal(h.editor.mode, ''); assert.match(h.editor.error, /Review this day/); assert.equal(h.calls.length, 0);
-  h.destroy();
+test('session selection changes and listener updates never trigger recording loads and stale session callbacks are ignored', async () => {
+  const { value, session } = migrated(), path = ROOT + '/days/' + day + '/sessions/practice';
+  const h = client(new Map([[ROOT + '/days/' + day, value], [path, session]]));
+  h.service.selectEvent(day); await flush(); h.service.selectSession('practice'); await flush();
+  const old = h.listeners.at(-1), reads = h.calls.length;
+  h.publish(path, { ...session, revision: 2, overrides: { driver: 'Sam' } }); assert.equal(h.service.selectedSession.overrides.driver, 'Sam');
+  assert.equal(h.calls.length, reads);
+  h.service.selectSession(''); old.next({ exists: true, data: () => session, metadata: { fromCache: false, hasPendingWrites: false } });
+  assert.equal(h.service.selectedSession, undefined); assert.equal(h.service.sessionId, ''); h.service.ngOnDestroy();
 });

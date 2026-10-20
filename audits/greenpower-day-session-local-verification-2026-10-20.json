@@ -1,0 +1,76 @@
+{
+  "date": "2026-10-20",
+  "status": "locally_implemented_not_deployed",
+  "structure": {
+    "event": "GreenpowerTelemetry/424/days/{date}",
+    "sessions": "GreenpowerTelemetry/424/days/{date}/sessions/{sessionId}",
+    "live": "GreenpowerTelemetry/424/days/{date}/live/latest",
+    "chunks": "unchanged"
+  },
+  "validation": {
+    "unitTestsPassed": 138,
+    "emulatorTestsPassed": 22,
+    "build": "passed",
+    "buildHash": "8a8407a115de2cd0",
+    "lintErrors": 0,
+    "existingLintWarnings": 64,
+    "browserWidths": [
+      1440,
+      390,
+      320
+    ],
+    "browserErrors": [],
+    "browserArtifacts": "/var/folders/6j/540yrv1536x9pc7qv833941h0000gn/T/greenpower-day-ui-2XN8hR",
+    "screenshotsVisuallyInspected": true,
+    "cases": [
+      "selection does not fetch raw data or clear the loaded recording",
+      "explicit Load snapshots the selected recording",
+      "event year query and thirty-session pagination",
+      "independent session revisions and inherited defaults",
+      "scoped collection-group Race query across dates for two signed-in viewers; anonymous denial",
+      "admin-only writers and denied direct session/day/live client writes",
+      "idempotent saves/migration, stale-source conflicts and unchanged raw/source document versions",
+      "loading controls and scroll position stay stable",
+      "failed drafts, loading/error/empty states and account clearing"
+    ]
+  },
+  "bounds": {
+    "eventQueryLimit": 367,
+    "sessionPageSize": 30,
+    "automaticSessionPagination": false,
+    "runtimeSessionCountLimit": null,
+    "eventMaxBytes": 8192,
+    "sessionMaxBytes": 16384,
+    "metadataSaveWrites": 3,
+    "migrationWritesPerDay": "4 + copied session count",
+    "migrationDaysPerPlan": 30,
+    "migrationSessionsPerDayBudget": 20,
+    "migrationMaximumWritesPerPlan": 720,
+    "migrationRawChunkReads": 0,
+    "migrationRawChunkWrites": 0
+  },
+  "productionReads": 0,
+  "productionWrites": 0,
+  "deploymentPerformed": false,
+  "migrationApplied": false,
+  "commitsCreated": false,
+  "limitations": [
+    "Production migration requires reviewed day/track/type mappings and exact plan checksum.",
+    "Live/repository index comparison and readiness verification are still required before deployment.",
+    "Browser checks use synthetic services; no hosted signed-in UI or physical-device/OMNI check.",
+    "The collection-group capability is verified; a cross-event filter UI is not part of this change."
+  ],
+  "sourceSha256": {
+    "src/app/greenpower-telemetry/greenpowerDay.ts": "bdcd8241532c264561bc3fd80a61482617ef052771ef39247372e982f050da5c",
+    "src/app/greenpower-telemetry/greenpowerEvents.service.ts": "7589ad464afc1037e99949a7c4b10ec57939aa3868d2ea7e45738524bc3f4d96",
+    "src/app/greenpower-telemetry/greenpowerEventEdit.service.ts": "b5f2e0eed2e448e03b6e940edc532eed08336dfc6e3adf4e7337c9b28be04fd2",
+    "src/app/greenpower-telemetry/greenpower-telemetry.component.ts": "098c7b7993d62eef54f0a9ce956e8d02acdfc029f15fe63334816a449f284588",
+    "src/app/greenpower-telemetry/greenpower-telemetry.component.html": "2d43b566d33bee99a96b97ed762ecae644ec3c003990b7c23bc2e01a47df4d1b",
+    "functions/utils/greenpowerDayMetadata.js": "21494175131a52ae651213e935d0abe240fddb901b827d7ad295c534fc198e28",
+    "functions/utils/greenpowerTelemetry.js": "7fba969fac608c0a6b5f2b317b9994d7db8406c8dd266c7142782d3f18dfbe62",
+    "scripts/greenpower/historyImport.mjs": "96550c7f3d72ef62dbcbb4237d4a99857f60ce57e42a8a4ac44d605abf193a3a",
+    "scripts/greenpower/dayMetadataMigration.mjs": "8381647abaf28e5cb1bbcc4d706a3eba1b6b1f3153a30403ec6d708f222785bf",
+    "firestore.rules": "75d7ea343ae1b5787fe1e6c5848f2abbc9db9786bf89773b82297f362458d343",
+    "firestore.indexes.json": "d92ddc1e28d247b4a89ab313b332e1f06d542f76468843a9f2e0cb73b9ba9a0c"
+  }
+}

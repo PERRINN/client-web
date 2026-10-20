@@ -212,6 +212,7 @@ async function editMetadata(db, auth, input, { timestamp, dryRun = false, migrat
     for (const [eventId, record] of records.events) {
       check(eventId === record.data.date && record.data.state === 'active', 'Migrate legacy event metadata before editing.', 'failed-precondition');
       const day = (await get(db.doc(ROOT + '/days/' + eventId))).data();
+      check(day?.schemaVersion !== 2, 'This day uses the new editor. Reload the application.', 'failed-precondition');
       check(day?.date === eventId && integer(day.count, 1), 'An event requires a recorded UK day.', 'failed-precondition');
     }
     const sourceSnapshots = {};
@@ -264,7 +265,8 @@ async function editMetadata(db, auth, input, { timestamp, dryRun = false, migrat
 
 async function verifySegment(db, get, segment) {
   const dayPath = ROOT + '/days/' + segment.day;
-  const day = (await get(db.doc(dayPath))).data();
+  const parent = (await get(db.doc(dayPath))).data();
+  const day = parent?.schemaVersion === 2 ? { ...(await get(db.doc(dayPath + '/live/latest'))).data(), date: parent.date } : parent;
   check(day?.date === segment.day && integer(day.count, 1) && integer(day.activeChunk) && Number(segment.lastChunk) <= day.activeChunk, 'Recording day is missing or changed.', 'failed-precondition');
   for (const side of ['first', 'last']) {
     const chunk = (await get(db.doc(dayPath + '/chunks/' + segment[side + 'Chunk']))).data();
@@ -285,4 +287,4 @@ async function verifySegment(db, get, segment) {
   }
 }
 
-module.exports = { ROOT, LIMITS, TYPES, SESSION_TYPES, STATUSES, MetadataError, validateRequest, editMetadata };
+module.exports = { ROOT, LIMITS, TYPES, SESSION_TYPES, STATUSES, MetadataError, validateRequest, editMetadata, verifySegment, londonDay };

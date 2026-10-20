@@ -44,7 +44,7 @@ test('import resumes after interruption and completed reruns perform zero writes
   const db = memoryDb(), plan = planFor();
   const dry = await runImport(db, plan); assert.equal(dry.mode, 'dry-run'); assert.equal(db.writes, 0);
   await assert.rejects(runImport(db, plan, { write: true, now: () => 1792400000000, progress: () => { throw new Error('interrupted after commit'); } }), /interrupted/);
-  assert.equal(db.records.get('GreenpowerTelemetry/424/days/2026-10-18').count, 32);
+  assert.equal(db.records.get('GreenpowerTelemetry/424/days/2026-10-18/live/latest').count, 32);
   const result = await runImport(db, plan, { write: true, now: () => 9999999999999 });
   assert.equal(result.added, 33); assert.equal(result.existing, 32); assert.equal(result.chunks, 3);
   const writes = db.writes;
@@ -71,7 +71,7 @@ test('rerun catches extra/missing chunks; byte rollover and all reads stay bound
   const plan = planFor(3252), db = memoryDb();
   await runImport(db, plan, { write: true }); const writes = db.writes;
   const before = db.reads; await runImport(db, plan, { write: true });
-  assert.equal(db.reads - before, 104); assert.equal(db.writes, writes);
+  assert.equal(db.reads - before, 105); assert.equal(db.writes, writes);
   db.records.set('GreenpowerTelemetry/424/days/2026-10-18/chunks/9999999999', { samples: [] });
   await assert.rejects(runImport(db, plan), /Unexpected/);
   const large = { ...planFor(1), records: Array.from({ length: 30 }, (_, i) => ({ id: String(i), eventAt: at, raw: JSON.stringify({ value: 'x'.repeat(15000) }) })) };

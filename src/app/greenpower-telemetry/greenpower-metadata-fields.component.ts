@@ -1,33 +1,34 @@
-import { Component, ElementRef, Input, OnChanges, ViewChild } from '@angular/core';
-import { Engineering, SESSION_TYPES, MetadataDraft } from './greenpowerEvents';
+import { Component, ElementRef, Input, ViewChild } from '@angular/core';
+import { DAY_SESSION_TYPES, DayMetadata, DaySession, EventDefaults } from './greenpowerDay';
+import { GreenpowerEventsService } from './greenpowerEvents.service';
 
 @Component({ selector: 'app-greenpower-metadata-fields', standalone: false,
   templateUrl: './greenpower-metadata-fields.component.html', styleUrls: ['./greenpower-metadata-fields.component.css'] })
-export class GreenpowerMetadataFieldsComponent implements OnChanges {
-  @Input() data: MetadataDraft = {};
-  @Input() session = false;
+export class GreenpowerMetadataFieldsComponent {
+  @Input() data!: DayMetadata;
+  @Input() session?: DaySession;
   @Input() disabled = false;
   @ViewChild('initialInput') set initialInput(input: ElementRef<HTMLElement> | undefined) { input?.nativeElement.focus(); }
   readonly prefix = 'metadata-' + crypto.randomUUID();
-  readonly types = SESSION_TYPES;
-  readonly people = [{ key: 'driver', label: 'Driver' }, { key: 'operator', label: 'Operator' }, { key: 'result', label: 'Result' }];
-  get visiblePeople() { return this.session ? this.people.filter(person => person.key !== 'operator') : this.people; }
-  readonly measures = [
-    { key: 'gearingRatio', label: 'Ratio', unit: '1' }, { key: 'carMass', label: 'Car mass', unit: 'kg' },
-    { key: 'driverMass', label: 'Driver mass', unit: 'kg' }, { key: 'ambientTemperature', label: 'Ambient temperature', unit: '°C' },
-    { key: 'batteryTemperature', label: 'Battery temperature', unit: '°C' }, { key: 'energy', label: 'Energy', unit: 'Wh' }
+  readonly types = DAY_SESSION_TYPES;
+  readonly fields = [
+    { key: 'driver', label: 'Driver', numeric: false },
+    { key: 'motorGearTeeth', label: 'Motor gear · teeth', numeric: true },
+    { key: 'wheelGearTeeth', label: 'Wheel gear · teeth', numeric: true },
+    { key: 'motorId', label: 'Motor', numeric: false }, { key: 'generatorId', label: 'Generator', numeric: false },
+    { key: 'carMassKg', label: 'Car mass · kg', numeric: true }, { key: 'driverMassKg', label: 'Driver mass · kg', numeric: true }
   ];
-  readonly identifiers = [{ key: 'motorId', label: 'Motor' }, { key: 'generatorId', label: 'Generator' }, { key: 'gear', label: 'Gear' }, { key: 'wheel', label: 'Wheel' }, { key: 'purpose', label: 'Purpose' }, { key: 'outcome', label: 'Outcome' }];
-  tagText = '';
-  batteryText = '';
-  ngOnChanges() { this.tagText = this.data.tags?.join(', ') || ''; this.batteryText = this.data.engineering?.batteryIds?.join(', ') || ''; }
-  text(key: string, value: string) { this.data[key] = value; }
-  tags(value: string) { this.tagText = value; this.data.tags = value.split(',').map(tag => tag.trim()).filter(Boolean); }
-  batteries(value: string) { this.batteryText = value; this.engineering().batteryIds = value.split(',').map(id => id.trim()).filter(Boolean); }
-  engineering(): Engineering { return this.data.engineering ||= {}; }
-  engineeringText(key: string, value: string) { this.engineering()[key] = value; }
-  measurement(key: string, unit: string, value: string) {
-    if (!value) delete this.engineering()[key];
-    else this.engineering()[key] = { value: Number(value), unit };
+  addingTrack = false;
+  trackName = '';
+  constructor(public events: GreenpowerEventsService) {}
+  get values(): EventDefaults { return this.session ? this.session.overrides : this.data.defaults; }
+  value(key: string, value: string, numeric: boolean) {
+    if (!value.trim()) delete this.values[key];
+    else this.values[key] = numeric ? Number(value) : value.trim();
+  }
+  batteries(value: string) { if (this.session) this.session.batteryIds = value.split(',').map(id => id.trim()).filter(Boolean); }
+  async addTrack() {
+    const id = await this.events.addTrack(this.trackName);
+    if (id && !this.disabled) { this.data.trackId = id; this.trackName = ''; this.addingTrack = false; }
   }
 }
