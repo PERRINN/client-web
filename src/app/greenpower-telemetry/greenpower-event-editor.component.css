@@ -4,11 +4,10 @@ section { max-width: 760px; }
 .actions, .heading { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 h3 { font-size: 17px; font-weight: 600; margin-bottom: 10px; }
 h4 { font-size: 16px; font-weight: 600; margin: 14px 0 8px; }
-label { display: block; font-size: 14px; color: var(--color-text-secondary); }
 button, select { min-height: 44px; margin: 0; flex: 0 0 auto; padding: 8px 10px; font: inherit; background: var(--color-raised); color: var(--color-text); border: 1px solid transparent; border-radius: 6px; }
 select { width: 100%; border-color: var(--color-border); margin-bottom: 12px; text-align: left; color-scheme: dark; }
 button:disabled, select:disabled { opacity: .6; }
-button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+button:focus-visible, select:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .primary { background: var(--color-accent); color: var(--color-accent-ink); }
 .footer { margin-top: 12px; }
 .feedback { min-height: 44px; padding-top: 8px; color: var(--color-text-secondary); }
@@ -16,12 +15,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .error { color: var(--color-danger-text); overflow-wrap: anywhere; }
 ul { list-style: none; padding: 0; }
 li { display: flex; align-items: center; gap: 8px; justify-content: space-between; margin-bottom: 8px; }
-li span, .review p { overflow-wrap: anywhere; font-size: 15px; }
-.review { background: var(--color-raised); padding: 12px; }
+li span { overflow-wrap: anywhere; font-size: 15px; }
 @media (max-width: 520px) { li { align-items: flex-start; } }
 
-button, input, select, textarea { transition: none; }
-
-label { display: grid; gap: 4px; color: var(--color-text-secondary); font-size: 14px; }
-input { min-height: 44px; min-width: 0; padding: 8px; background: var(--color-raised); color: var(--color-text); border: 1px solid var(--color-border); border-radius: 6px; font-size: 16px; color-scheme: dark; }
-input:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+button { transition: none; }

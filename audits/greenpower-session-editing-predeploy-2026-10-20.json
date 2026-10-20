@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-20",
+  "projectId": "perrinn-d5fc1",
+  "branch": "master",
+  "deploymentScope": [
+    "hosting"
+  ],
+  "validation": {
+    "greenpowerTests": {
+      "passed": 166,
+      "failed": 0
+    },
+    "productionBuild": "passed",
+    "lint": {
+      "errors": 0,
+      "existingWarnings": 64
+    },
+    "syntheticBrowser": {
+      "script": "scripts/greenpower/day-ui.mjs",
+      "widths": [
+        1440,
+        390,
+        320
+      ],
+      "status": "passed",
+      "runtimeErrors": []
+    }
+  },
+  "indexes": {
+    "repositoryCount": 27,
+    "liveCount": 27,
+    "fieldOverrides": 4,
+    "effectiveDifferences": 0,
+    "normalization": "Missing density defaults to SPARSE_ALL; missing ttl defaults to false."
+  },
+  "indexDeployment": false,
+  "backendRulesOrSchemaChanges": false,
+  "build": {
+    "indexSha256": "5e5e3b72bdeac867706b6342de63c86fe25195c0325703ad06e6bdf6172bf20b",
+    "main": "main.fcc3e97cdf2d7506.js",
+    "mainSha256": "555162e34d65dc2462481195b939204980fa6f0b4f33f048c2cd0d9bf1ddc739"
+  },
+  "productionDataReads": 0,
+  "productionDataWrites": 0,
+  "verificationLimit": "Authenticated interactions use synthetic fixtures; production metadata edits are not required for release verification."
+}

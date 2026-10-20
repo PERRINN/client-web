@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { data, load } from './load.mjs';
+import { data, dayData, load } from './load.mjs';
 const gps = load('../../src/app/greenpower-telemetry/greenpowerGps.ts', { './greenpowerData': data });
 const metre = 180 / (Math.PI * 6371000);
 const origin = { lat: 50, lon: 0 };
@@ -67,4 +67,23 @@ test('cursor interpolation uses valid GPS segments and geometry stays equal-scal
   const dense=Array.from({length:28800},(_,i)=>fix(i*1000,Math.sin(i/100)*100,Math.cos(i/100)*100));
   const path=gps.trackProjection(dense).path;
   assert.ok((path.match(/[ML]/g)||[]).length<=4001);assert.doesNotMatch(path,/NaN|Infinity/);
+});
+
+
+test('session analysis includes the start-to-first-crossing lap from the actual GPS detector', () => {
+  const {sessionLapAnalysis}=load('../../src/app/greenpower-telemetry/greenpowerSessions.ts',{
+    './greenpowerDay':dayData,'./greenpowerData':data,'./greenpowerGps':gps
+  });
+  const fixes=race(), raw=gps.gpsAnalysis(fixes,line,[],44000);
+  const context={channels:[],fixes,end:44000,configured:true};
+  const sessions=[{id:'race',start:0,end:44000,label:'Race'}];
+  const result=sessionLapAnalysis(raw,sessions,context);
+  assert.deepEqual(result.laps.map(lap=>[lap.lap,Math.round(lap.time),Math.round(lap.end),lap.complete]),[
+    [1,0,2000,true],[2,2000,22000,true],[3,22000,42000,true],[4,42000,44000,false]
+  ]);
+  assert.equal(result.channel.value,'4');
+  const adjusted=sessionLapAnalysis(raw,[{...sessions[0],start:10000}],context);
+  assert.deepEqual(adjusted.laps.filter(lap=>lap.sessionLabel).map(lap=>[lap.lap,Math.round(lap.time),Math.round(lap.end)]),[
+    [1,10000,22000],[2,22000,42000],[3,42000,44000]
+  ]);
 });

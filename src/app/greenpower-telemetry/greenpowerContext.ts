@@ -1,5 +1,5 @@
 import { londonTime } from './greenpowerData';
-import { DAY_SESSION_TYPES, DaySession, RecordedEvent, eventSummary, sessionLabel } from './greenpowerDay';
+import { DaySession, RecordedEvent, eventSummary } from './greenpowerDay';
 
 interface HeaderInput {
   signedIn: boolean; live: boolean; day: string;
@@ -16,11 +16,12 @@ export function recordingHeader(input: HeaderInput): RecordingHeader {
   if (input.live) return { ...header, date: input.day, scope: input.liveStatus,
     range: 'Last received ' + (input.lastReceived === undefined ? '—' : londonTime(input.lastReceived)) };
   const sessionType = input.session?.type;
-  const sessionName = DAY_SESSION_TYPES.find(type => type.id === sessionType)?.label || sessionType;
-  const eventName = [input.event?.eventName || 'Event', sessionName].filter(Boolean).join(' · ');
+  const eventName = input.event?.eventName || '424 Greenpower Telemetry';
+  const title = input.event ? eventSummary({ ...input.event, eventName,
+    result: !input.session || sessionType === 'race' ? input.event.result : '' }, input.session) : eventName;
   return {
-    title: input.event ? eventSummary({ ...input.event, eventName }, input.session) : 'Event', date: input.day,
-    scope: input.session ? sessionLabel(input.session) : 'Whole event',
+    title, date: input.day,
+    scope: '',
     state: input.error ? 'Load failed' : input.loading ? 'Loading' : input.partial ? 'Partial recording' : '',
     range: input.hasSamples ? 'Loaded ' + londonTime(input.start) + ' – ' + londonTime(input.end)
       : input.loading ? 'Loading recording…' : 'No recording loaded'

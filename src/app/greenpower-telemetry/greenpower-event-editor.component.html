@@ -1,38 +1,35 @@
 <section aria-label="Event metadata editor">
   @if (events.eventReady && !events.migrated) { <p class="error">This day requires metadata migration before editing.</p> }
   @if (!edit.mode) {
-    <div class="actions">
-      <button type="button" [disabled]="!events.canEdit || !events.eventReady || !events.migrated" (click)="edit.event()">Edit event</button>
-      <button type="button" [disabled]="!events.canEdit || !canCapture || !events.migrated" (click)="edit.session(true, window)">Add session</button>
-      <button type="button" [disabled]="!events.canEdit || !events.sessionReady || !events.migrated" (click)="edit.session()">Edit session</button>
-    </div>
-  } @else {
-    <div class="heading"><h3>{{ edit.mode === 'event' ? 'Edit event' : 'Session' }}</h3></div>
-    @if (!edit.reviewing) {
-      <app-greenpower-metadata-fields [data]="edit.draft" [session]="edit.sessionDraft" [disabled]="edit.locked" />
-      @if (edit.mode === 'session') {
-        <h4>Recording · {{ edit.sourceEvent?.date }} · UK</h4>
-        <p>{{ time(edit.sessionDraft?.startAt) }} – {{ time(edit.sessionDraft?.endAt) }}</p>
-        <div class="actions">
-          <label for="session-start">Start · UK<input id="session-start" type="time" step="1" [(ngModel)]="startTime" [disabled]="edit.locked"></label>
-          <label for="session-end">End · UK<input id="session-end" type="time" step="1" [(ngModel)]="endTime" [disabled]="edit.locked"></label>
-          <button type="button" [disabled]="edit.locked || !canCapture" (click)="useTimes()">Use times</button>
-          <button type="button" [disabled]="edit.locked || !canCapture || cursor === undefined" (click)="capture('start')">Set start at cursor</button>
-          <button type="button" [disabled]="edit.locked || !canCapture || cursor === undefined" (click)="capture('end')">Set end at cursor</button>
-        </div>
+    @if (sessionPanel) {
+      @if (!edit.canEditSessions) { <p>Load an event to edit its sessions.</p> }
+      @else {
+        <div class="actions"><button type="button" [disabled]="!events.canEdit || !canCapture" (click)="edit.session(true, window)">Add session</button></div>
+        <ul aria-label="Event sessions">
+          @for (session of sessions; track session.id) {
+            <li><span>{{ sessionLabel(session) }}</span><button type="button" [disabled]="!events.canEdit" [attr.aria-label]="'Edit ' + sessionLabel(session)" (click)="edit.session(false, undefined, session)">Edit</button></li>
+          } @empty { @if (!loading && !loadError) { <li>No sessions.</li> } }
+        </ul>
+        @if (loading) { <p role="status">Loading sessions…</p> }
+        @else if (loadError) { <p role="alert" class="error">{{ loadError }}</p><button type="button" (click)="loadMore.emit()">Retry sessions</button> }
+        @else if (more) { <button type="button" (click)="loadMore.emit()">More sessions</button> }
       }
     } @else {
-      <div class="review" role="region" aria-label="Review metadata changes">
-        <p>{{ edit.mode === 'session' ? sessionType : edit.draft?.eventName }}</p>
-        <p>{{ edit.sourceEvent?.date }} · UK</p>
-        @if (edit.mode === 'session') {
-          <p>{{ time(edit.sessionDraft?.startAt) }} – {{ time(edit.sessionDraft?.endAt) }}</p>
-        }
+      <div class="actions"><button type="button" [disabled]="!events.canEdit || !events.eventReady || !events.migrated" (click)="edit.event()">Edit event</button></div>
+    }
+  } @else {
+    <div class="heading"><h3>{{ edit.mode === 'event' ? 'Edit event' : 'Session' }}</h3></div>
+    <app-greenpower-metadata-fields [data]="edit.draft" [session]="edit.sessionDraft" [disabled]="edit.locked" />
+    @if (edit.mode === 'session') {
+      <h4>Recording · {{ edit.sourceEvent?.date }} · UK</h4>
+      <p>{{ time(edit.sessionDraft?.startAt) }} – {{ time(edit.sessionDraft?.endAt) }}</p>
+      <div class="actions">
+        <button type="button" [disabled]="edit.locked || !canCapture || cursor === undefined" (click)="capture('start')">Set start at cursor</button>
+        <button type="button" [disabled]="edit.locked || !canCapture || cursor === undefined" (click)="capture('end')">Set end at cursor</button>
       </div>
     }
     <div class="actions footer">
-      @if (edit.reviewing) { <button #confirmSave type="button" class="primary" [disabled]="edit.saving || !events.canEdit" (click)="edit.save()">{{ edit.saving ? 'Saving' : edit.uncertain ? 'Retry save' : 'Confirm save' }}</button><button type="button" [disabled]="edit.locked" (click)="edit.back()">Back</button> }
-      @else { <button type="button" class="primary" [disabled]="edit.locked || !events.canEdit" (click)="edit.review()">Review</button> }
+      <button type="button" class="primary" [disabled]="edit.saving || !events.canEdit" (click)="edit.save()">{{ edit.saving ? 'Saving' : edit.uncertain ? 'Retry save' : 'Save' }}</button>
       <button type="button" [disabled]="edit.locked" (click)="edit.cancel()">Cancel</button>
     </div>
   }

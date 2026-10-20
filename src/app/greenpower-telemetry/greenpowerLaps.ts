@@ -1,6 +1,6 @@
 import { pointIndex } from './greenpowerData';
 
-export interface LapInterval { time: number; end: number; lap: number; alternate: boolean; }
+export interface LapInterval { time: number; end: number; lap: number; alternate: boolean; sessionLabel?: string; }
 export function lapAt(laps: LapInterval[], time: number) {
   const lap = laps[pointIndex(laps, time, true) - 1];
   return lap && time <= lap.end ? lap.lap : undefined;

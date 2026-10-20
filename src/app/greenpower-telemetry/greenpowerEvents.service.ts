@@ -98,7 +98,7 @@ export class GreenpowerEventsService implements OnDestroy {
     this.eventId = this.sessionId = ''; this.selectedEvent = this.selectedSession = undefined;
     this.eventReady = this.migrated = false; this.error = ''; this.changed.next();
   }
-  selectEvent(date: string) {
+  selectEvent(date: string, includeSessions = true) {
     if (!this.account || !validDate(date)) return;
     this.clear(); this.eventId = date;
     const generation = this.generation, selection = this.selection;
@@ -112,7 +112,7 @@ export class GreenpowerEventsService implements OnDestroy {
         this.migrated = value.schemaVersion === 2;
         const first = !this.eventReady;
         this.accept(this.migrated ? value as RecordedEvent : emptyDay(date)); this.eventReady = true; this.error = '';
-        if (first && this.migrated) void this.loadSessions(true);
+        if (first && this.migrated && includeSessions) void this.loadSessions(true);
       }
       this.changed.next();
     }, () => { if (this.valid(generation) && selection === this.selection) { this.eventReady = false; this.error = 'Could not load event. Try again.'; this.changed.next(); } });

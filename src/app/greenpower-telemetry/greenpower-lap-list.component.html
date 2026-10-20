@@ -1,3 +1,30 @@
+@if (showSessions) {
+  <section class="sessions" aria-label="Recording sessions">
+    <h2>Sessions</h2>
+    <ol>
+      @for (session of sessions; track session.id; let index = $index) {
+        <li>
+          <div class="session-summary">
+            <h3>{{ session.label }}</h3>
+            <div class="session-details">
+              <span>{{ time(session.start) }}–{{ time(session.end) }}</span>
+              @if ((index === 0 && session.gearRatio !== undefined) || session.gearChanged) {
+                <span class="gearing">Gear ratio {{ session.gearRatio === undefined ? '—' : (session.gearRatio | number:'1.0-3') + ':1' }}{{ session.gearChanged ? ' · changed' : '' }}</span>
+              }
+            </div>
+          </div>
+          @if (canEditSessions) {
+            <button type="button" class="edit-session" [disabled]="editDisabled" [attr.aria-label]="'Edit ' + session.label + ' ' + time(session.start)" (click)="sessionEdit.emit(session.id)">Edit</button>
+          }
+        </li>
+      }
+    </ol>
+    @if (!sessions.length && !sessionsLoading && !sessionsError) { <p>No sessions.</p> }
+    @if (sessionsLoading) { <p role="status">Loading sessions…</p> }
+    @else if (sessionsError) { <p class="error" role="alert">{{ sessionsError }}</p><button type="button" class="session-action" (click)="loadSessions.emit()">Retry sessions</button> }
+    @else if (sessionsMore) { <button type="button" class="session-action" (click)="loadSessions.emit()">More sessions</button> }
+  </section>
+}
 <section aria-label="GPS laps">
   <h2>Laps</h2>
   @if (loading) { <p role="status">Loading laps…</p> }
@@ -16,7 +43,7 @@
               </th></tr>
             }
           @for (lap of group.laps; track lap.time) {
-            <tr><th scope="row"><button type="button" [attr.aria-label]="'Zoom all graphs to GPS lap ' + lap.lap" [disabled]="lap.end <= lap.time" (click)="lapSelect.emit({start: lap.time, end: lap.end})">{{ lap.lap }}</button></th><td>{{ duration(lap) }}</td><td>{{ reading(lap.current) }}</td><td>{{ reading(lap.speed) }}</td></tr>
+            <tr><th scope="row"><button type="button" [attr.aria-label]="'Zoom all graphs to GPS lap ' + lap.lap + (lap.sessionLabel ? ' · ' + lap.sessionLabel : '')" [disabled]="lap.end <= lap.time" (click)="lapSelect.emit({start: lap.time, end: lap.end})">{{ lap.lap }}</button></th><td>{{ duration(lap) }}</td><td>{{ reading(lap.current) }}</td><td>{{ reading(lap.speed) }}</td></tr>
           }
         </tbody>
         }

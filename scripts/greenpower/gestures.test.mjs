@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { data, dayData, load } from './load.mjs';
+import { data, dayData, gps, load } from './load.mjs';
 const decorate = () => () => {};
 class Emitter {
   values = [];
@@ -14,7 +14,7 @@ const chart = load('../../src/app/greenpower-telemetry/greenpowerChart.ts', {
 });
 const { GreenpowerChartComponent } = load('../../src/app/greenpower-telemetry/greenpower-chart.component.ts', {
   '@angular/core': { Component: decorate, Input: decorate, Output: decorate, ViewChild: decorate, EventEmitter: Emitter, ChangeDetectionStrategy: {} },
-  './greenpowerSessions': load('../../src/app/greenpower-telemetry/greenpowerSessions.ts', { './greenpowerDay': dayData }),
+  './greenpowerSessions': load('../../src/app/greenpower-telemetry/greenpowerSessions.ts', { './greenpowerDay': dayData, './greenpowerData': data, './greenpowerGps': gps }),
   './greenpowerData': data, './greenpowerChart': chart, '../telemetry/chartDoubleTap': taps,
   './greenpowerLaps': load('../../src/app/greenpower-telemetry/greenpowerLaps.ts', { './greenpowerData': data })
 });

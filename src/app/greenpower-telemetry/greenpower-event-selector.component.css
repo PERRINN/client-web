@@ -1,7 +1,7 @@
 :host { display: block; font-size: 15px; line-height: 1.45; }
 :host * { overflow: visible; line-height: inherit; font-size: inherit; }
 section { display: grid; gap: 12px; background: var(--color-surface); padding: 14px; margin: 12px 0; }
-.event-filters { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; align-items: end; }
+.event-filters { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; align-items: start; }
 label { display: grid; gap: 6px; min-width: 0; color: var(--color-text-secondary); font-size: 14px; }
 input, select, button { padding: 8px; min-height: 44px; min-width: 0; margin: 0; font: inherit; font-size: 16px; background: var(--color-raised); color: var(--color-text); border: 1px solid var(--color-border); border-radius: 6px; }
 input, select { display: block; width: 100%; text-align: left; color-scheme: dark; }
@@ -15,7 +15,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .error { color: var(--color-danger-text); overflow-wrap: anywhere; }
 
 button, input, select, textarea { transition: none; }
-.recording-choice { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: end; }
+.recording-choice { display: flex; justify-content: flex-end; }
 .primary { color: var(--color-accent-ink); background: var(--color-accent); }
 
 .recording-choice .primary { min-width: 96px; }
@@ -23,3 +23,17 @@ button, input, select, textarea { transition: none; }
 @media (max-width: 600px) {
   .event-filters { grid-template-columns: minmax(0, 1fr); }
 }
+
+.event-field, .event-picker { display: grid; gap: 6px; min-width: 0; }
+.select-shell { position: relative; display: block; min-width: 0; }
+.select-shell select { appearance: none; min-height: 48px; line-height: 1.5; padding: 10px 42px 10px 12px; }
+.select-shell svg, .event-trigger svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.select-shell svg { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); }
+:host .event-picker .event-trigger { display: grid; grid-template-columns: minmax(0, 1fr) 20px; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 10px 12px; text-align: left; line-height: 1.5; }
+:host .event-picker .event-trigger span { font: inherit; line-height: inherit; white-space: normal; overflow-wrap: anywhere; }
+.event-options { max-height: min(45dvh, 320px); overflow-y: auto; overscroll-behavior: contain; padding: 4px; background: var(--color-raised); border: 1px solid var(--color-border); border-radius: 6px; }
+.event-options[hidden] { display: none; }
+:host .event-options button { display: block; width: 100%; min-height: 48px; padding: 10px; text-align: left; white-space: normal; overflow-wrap: anywhere; line-height: 1.5; border: 0; background: transparent; }
+.event-options button[aria-selected="true"] { background: var(--color-selected); }
+.event-options button:focus-visible { outline-offset: -2px; }
+@media (hover: hover) and (pointer: fine) { .event-options button:hover { background: var(--color-selected); } }

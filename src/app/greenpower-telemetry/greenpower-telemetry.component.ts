@@ -3,9 +3,8 @@ import { Title } from '@angular/platform-browser';
 import { Subscription } from 'rxjs';
 import { GreenpowerChannel, VOLTAGE_LEFT, VOLTAGE_RIGHT, londonDay } from './greenpowerData';
 import { ChartWindow, scalarValue } from './greenpowerChart';
-import { LapInterval } from './greenpowerLaps';
 import { GreenpowerLapService } from './greenpowerLap.service';
-import { FinishLine } from './greenpowerGps';
+import { FinishLine, GpsLap } from './greenpowerGps';
 import { GreenpowerMapComponent } from './greenpower-map.component';
 import { ChannelDrag } from './channelDrag';
 import { orderFor, ViewKind } from './greenpowerView';
@@ -14,7 +13,7 @@ import { GreenpowerTelemetryService } from './greenpowerTelemetry.service';
 import { GreenpowerEventsService } from './greenpowerEvents.service';
 import { GreenpowerEventEditService } from './greenpowerEventEdit.service';
 import { DaySession, RecordedEvent } from './greenpowerDay';
-import { SessionInterval, sessionIntervals } from './greenpowerSessions';
+import { SessionInterval, sessionIntervals, sessionLapAnalysis } from './greenpowerSessions';
 import { recordingHeader } from './greenpowerContext';
 
 @Component({
@@ -28,12 +27,11 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   channels: GreenpowerChannel[] = [];
   historyOpen = false;
   activeView: 'data' | 'track' | 'laps' = 'data';
-  editorPanel: 'view' | 'event' = 'view';
+  editorPanel: 'view' | 'event' | 'sessions' = 'view';
   metadataEditing = false;
-  private recordingRevision = 0;
   private loadedEvent?: RecordedEvent;
-  private loadedSession?: DaySession;
   sessions: SessionInterval[] = [];
+  recordingSessions: DaySession[] = [];
   sessionsLoading = false;
   sessionsMore = false;
   sessionsError = '';
@@ -43,16 +41,20 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     return recordingHeader({ signedIn: data.access === 'signed-in', live: data.live, day: data.day,
       loading: data.loading, partial: data.more, error: !!data.error, hasSamples: !!data.latest && !!data.channels.length,
       start: data.start, end: data.end, lastReceived: data.latest?.receivedAt, liveStatus: this.liveStatus,
-      event: this.loadedEvent, session: this.loadedSession });
+      event: this.loadedEvent });
   }
   get heading() { return this.header.title; }
+  get wholeEventLoaded() { return !!this.loadedEvent && !this.telemetry.live; }
   get editing() { return this.view.editing || this.metadataEditing; }
   get dataset() { return this.telemetry.day + ':' + this.telemetry.live + ':' + this.telemetry.recordingKey; }
   scalars: GreenpowerChannel[] = [];
   charts: GreenpowerChannel[] = [];
   readonly voltageLeftId = VOLTAGE_LEFT;
   voltageRight?: GreenpowerChannel;
-  laps: LapInterval[] = [];
+  laps: GpsLap[] = [];
+  private rawLaps?: GpsLap[];
+  private lapSessions?: SessionInterval[];
+  private lapChannel?: GreenpowerChannel;
   available: GreenpowerChannel[] = [];
   editorKind: ViewKind = 'scalars';
   selectedCount = 0;
@@ -83,7 +85,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     this.context = this.dataset + ':' + telemetry.access;
     this.previousTitle = title.getTitle(); title.setTitle('424 Greenpower Telemetry · PERRINN');
     this.changes = telemetry.changed.subscribe(() => {
-      if (telemetry.access !== 'signed-in') { this.loadedEvent = undefined; this.loadedSession = undefined; this.clearSessions(); }
+      if (telemetry.access !== 'signed-in') { this.loadedEvent = undefined; this.eventEdit.cancel(); this.eventEdit.recordingEvent = undefined; this.clearSessions(); }
       const context = this.dataset + ':' + telemetry.access;
       if (this.context !== context || !telemetry.channels.length) { this.zoom(); this.context = context; }
       this.refreshView(); this.syncHeader(); change.markForCheck();
@@ -93,6 +95,14 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     this.changes.add(events.changed.subscribe(() => {
       if (!events.canEdit) { this.metadataEditing = false; this.eventEdit.cancel(); }
       this.syncHeader(); change.markForCheck();
+    }));
+    this.changes.add(eventEdit.saved.subscribe(({ event, session }) => {
+      if (this.loadedEvent?.date !== event.date) return;
+      this.loadedEvent = event;
+      if (session) this.recordingSessions = [...this.recordingSessions.filter(item => item.id !== session.id), session]
+        .sort((a, b) => a.startAt - b.startAt || a.id.localeCompare(b.id));
+      this.sessions = sessionIntervals(event, this.recordingSessions);
+      this.refreshView(); this.syncHeader(); change.markForCheck();
     }));
     this.changes.add(eventEdit.changed.subscribe(() => change.markForCheck()));
 
@@ -111,56 +121,73 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     this.lapConfig.select(this.dataset);
     this.lapConfig.syncEditing(this.view.editing);
     this.lapConfig.update(this.telemetry.channels, this.telemetry.end);
-    this.channels = [...this.telemetry.channels, this.lapConfig.analysis.channel];
+    const analysis = this.lapConfig.analysis;
+    if (this.rawLaps !== analysis.laps || this.lapSessions !== this.sessions) {
+      const numbered = sessionLapAnalysis(analysis, this.sessions, {
+        channels: this.telemetry.channels, fixes: this.lapConfig.fixes, end: this.telemetry.end,
+        configured: !!this.lapConfig.line && !this.lapConfig.mismatch
+      });
+      this.rawLaps = analysis.laps; this.lapSessions = this.sessions;
+      this.laps = numbered.laps; this.lapChannel = numbered.channel;
+    }
+    this.channels = [...this.telemetry.channels, this.lapChannel!];
     this.voltageRight = this.channels.find(channel => channel.id === VOLTAGE_RIGHT);
     this.scalars = this.view.scalars(this.channels);
     this.charts = this.view.charts(this.channels);
-    this.laps = this.lapConfig.analysis.laps;
     this.available = this.view.editing ? this.view.available(this.channels, this.editorKind) : [];
   }
   saveView() { void this.view.save(this.lapConfig.selectionWrite()); }
   toggleEditing() {
-    if (this.activeView === 'laps' || this.eventEdit.locked || this.view.saving || this.lapConfig.saving) return;
+    if (this.activeView === 'laps' && (!this.events.canEdit || !this.eventEdit.canEditSessions) || this.eventEdit.locked || this.view.saving || this.lapConfig.saving) return;
     if (this.historyOpen) {
       this.historyOpen = false;
       if (this.editing) return;
     }
     if (this.editing) { this.view.cancel(); this.eventEdit.cancel(); this.metadataEditing = false; }
     else {
-      if (this.view.canEdit) this.view.edit(this.channels);
+      if (this.activeView === 'laps') { this.metadataEditing = true; this.editorPanel = 'sessions'; }
+      else if (this.view.canEdit) this.view.edit(this.channels);
       else { this.metadataEditing = true; this.editorPanel = 'event'; }
     }
   }
+  editSession(id: string) {
+    if (!this.editing || this.historyOpen || !this.events.canEdit || !this.eventEdit.canEditSessions || this.eventEdit.mode || this.view.saving || this.lapConfig.saving) return;
+    const session = this.recordingSessions.find(item => item.id === id);
+    if (!session) return;
+    this.eventEdit.session(false, undefined, session);
+    if (!this.eventEdit.sessionDraft) return;
+    this.drag.cancel(); this.historyOpen = false; this.metadataEditing = true; this.editorPanel = 'sessions';
+  }
+  sessionsPanel() { this.drag.cancel(); this.editorPanel = 'sessions'; }
   eventPanel() {
     this.drag.cancel(); this.editorPanel = 'event';
     if (!this.events.loadedEvents && !this.events.loadingEvents) void this.events.loadEvents();
   }
   loadSelectedRecording() {
-    if (!this.events.eventReady || !this.events.selectedEvent || this.events.sessionId && !this.events.sessionReady || this.eventEdit.locked || this.telemetry.loading) return;
+    if (!this.events.eventReady || !this.events.selectedEvent || this.eventEdit.locked || this.telemetry.loading) return;
     this.loadedEvent = JSON.parse(JSON.stringify(this.events.selectedEvent));
-    this.loadedSession = this.events.selectedSession ? JSON.parse(JSON.stringify(this.events.selectedSession)) : undefined;
+    this.eventEdit.cancel();
+    this.eventEdit.recordingEvent = this.events.migrated ? this.loadedEvent : undefined;
     this.clearSessions();
-    if (!this.loadedSession) {
-      if (!this.events.filters.type && !this.events.loadingSessions && !this.events.moreSessions && !this.events.sessionError) {
-        this.sessions = sessionIntervals(this.loadedEvent!, this.events.sessions);
-      } else void this.loadRecordingSessions();
-    }
+    void this.loadRecordingSessions();
     this.historyOpen = false;
     this.fetchLoadedRecording();
     this.historyButton?.nativeElement.focus({ preventScroll: true });
   }
   private clearSessions() {
-    this.sessions = []; this.sessionAfter = undefined;
+    this.recordingSessions = []; this.sessions = []; this.sessionAfter = undefined;
     this.sessionsLoading = this.sessionsMore = false; this.sessionsError = '';
   }
   async loadRecordingSessions() {
     const event = this.loadedEvent;
-    if (!event || this.loadedSession || this.sessionsLoading) return;
+    if (!event || this.sessionsLoading) return;
     this.sessionsLoading = true; this.sessionsError = '';
     try {
       const page = await this.events.recordingSessionPage(event.date, this.sessionAfter);
       if (this.loadedEvent !== event) return;
-      this.sessions = [...this.sessions, ...sessionIntervals(event, page.sessions)];
+      this.recordingSessions = [...this.recordingSessions, ...page.sessions.filter(session => !this.recordingSessions.some(item => item.id === session.id))];
+      this.sessions = sessionIntervals(this.loadedEvent!, this.recordingSessions);
+      this.refreshView();
       const last = page.sessions.at(-1);
       if (last) this.sessionAfter = { start: last.startAt, id: last.id };
       this.sessionsMore = page.more;
@@ -168,11 +195,9 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     finally { if (this.loadedEvent === event) this.sessionsLoading = false; }
   }
   private fetchLoadedRecording() {
-    const event = this.loadedEvent, session = this.loadedSession;
-    if (!event) return;
-    if (session) void this.telemetry.selectRecording(session.id + ':' + ++this.recordingRevision, session.ranges);
-    else void this.telemetry.select(event.date);
+    if (this.loadedEvent) void this.telemetry.select(this.loadedEvent.date);
   }
+
   retryRecording() {
     if (this.telemetry.live) void this.telemetry.select(londonDay(), true);
     else this.fetchLoadedRecording();
@@ -222,6 +247,6 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     this.historyOpen = !this.historyOpen;
     if (this.historyOpen && !this.events.loadedEvents && !this.events.loadingEvents) await this.events.loadEvents();
   }
-  live() { if (!this.eventEdit.locked) { this.loadedEvent = undefined; this.loadedSession = undefined; this.clearSessions(); this.historyOpen = false; void this.telemetry.select(londonDay(), true); } }
+  live() { if (!this.eventEdit.locked) { this.loadedEvent = undefined; this.eventEdit.cancel(); this.eventEdit.recordingEvent = undefined; this.clearSessions(); this.historyOpen = false; void this.telemetry.select(londonDay(), true); } }
   ngOnDestroy() { this.loadedEvent = undefined; this.clearSessions(); this.changes.unsubscribe(); this.drag.cancel(); clearInterval(this.clock); this.title.setTitle(this.previousTitle); }
 }

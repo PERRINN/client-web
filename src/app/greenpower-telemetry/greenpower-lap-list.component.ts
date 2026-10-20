@@ -11,6 +11,14 @@ import { ChartWindow } from './greenpowerChart';
 })
 export class GreenpowerLapListComponent implements OnChanges {
   @Input() sessions: SessionInterval[] = [];
+  @Input() showSessions = false;
+  @Input() sessionsLoading = false;
+  @Input() sessionsError = '';
+  @Input() sessionsMore = false;
+  @Input() canEditSessions = false;
+  @Input() editDisabled = false;
+  @Output() sessionEdit = new EventEmitter<string>();
+  @Output() loadSessions = new EventEmitter<void>();
   groups = sessionLapGroups([], []);
   time = londonTime;
   ngOnChanges() { this.groups = sessionLapGroups(this.laps, this.sessions); }

@@ -10,7 +10,7 @@
         <button type="button" [class.primary]="telemetry.live" [attr.aria-pressed]="telemetry.live" [disabled]="eventEdit.locked" (click)="live()">Live</button>
         <button #historyButton type="button" class="compact-action" aria-label="Load history" title="Load history" [attr.aria-expanded]="historyOpen" aria-controls="history-picker" [disabled]="eventEdit.locked || view.saving || lapConfig.saving" (click)="history()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7M12 7v5l3 2" /></svg><span>Load history</span></button>
         @if (view.canEdit || events.canEdit) {
-          <button type="button" class="compact-action" title="Edit view" aria-label="Edit view" [attr.aria-expanded]="editing && !historyOpen && activeView !== 'laps'" aria-controls="view-editor" [disabled]="activeView === 'laps' || view.saving || eventEdit.locked || lapConfig.saving" (click)="toggleEditing()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-1 5 5-1L21 7l-4-4ZM14 6l4 4" /></svg><span>Edit</span></button>
+          <button type="button" class="compact-action edit-mode" [title]="editing && !historyOpen ? 'Done editing' : 'Edit view'" [attr.aria-label]="editing && !historyOpen ? 'Done editing' : 'Edit view'" [attr.aria-expanded]="editing && !historyOpen" [attr.aria-pressed]="editing && !historyOpen" [attr.aria-controls]="activeView === 'laps' ? 'telemetry-lap-list' : 'view-editor'" [disabled]="(activeView === 'laps' && (!events.canEdit || !eventEdit.canEditSessions)) || view.saving || eventEdit.locked || lapConfig.saving" (click)="toggleEditing()"><svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="editing && !historyOpen ? 'm5 12 4 4L19 6' : 'm4 16-1 5 5-1L21 7l-4-4ZM14 6l4 4'" /></svg><span>{{ editing && !historyOpen ? 'Done' : 'Edit' }}</span></button>
         }
         <div class="view-navigation" role="group" aria-label="Telemetry views">
           <button type="button" class="view-button" aria-label="Data" title="Data" [attr.aria-pressed]="activeView === 'data'" aria-controls="telemetry-data" (click)="selectView('data')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18M6 15l4-5 4 3 6-8" /></svg></button>
@@ -21,26 +21,29 @@
       <span class="day" [title]="header.date + ' · UK time'">{{ header.date }} · UK time</span>
     </div>
     <div class="status" role="status" aria-label="Loaded recording">
-      <span class="recording-scope" [title]="header.scope + (header.state ? ' · ' + header.state : '')">{{ header.scope }}{{ header.state ? ' · ' + header.state : '' }}</span>
+      @if (header.scope || header.state) { <span class="recording-scope" [title]="header.scope || header.state">{{ header.scope || header.state }}</span> }
       <span class="recording-range" [title]="header.range">{{ header.range }}</span>
     </div>
-    @if (editing && activeView !== 'laps') {
+    @if (editing && (activeView !== 'laps' || eventEdit.mode === 'session')) {
       <section id="view-editor" class="view-editor" [hidden]="historyOpen" aria-label="Edit shared telemetry view">
         <div class="editor-actions">
-          <h2>{{ activeView === 'track' ? 'Track map' : editorPanel === 'event' ? 'Event' : 'Shared view' }}</h2>
+          <h2>{{ activeView === 'track' ? 'Track map' : editorPanel === 'event' ? 'Event' : editorPanel === 'sessions' ? 'Sessions' : 'Shared view' }}</h2>
           @if (activeView === 'track' || editorPanel === 'view') {
             <button type="button" class="primary" [disabled]="eventEdit.locked || view.saving || drag.pending || lapConfig.saving || lapConfig.creating || !lapConfig.selectionReady || !lapConfig.ready || lapConfig.searching" (click)="saveView()">{{ view.saving ? 'Saving' : 'Save' }}</button>
             <button type="button" [disabled]="view.saving || eventEdit.locked" (click)="toggleEditing()">Cancel</button>
           }
         </div>
-        @if (activeView === 'data') {
+        @if (activeView !== 'track') {
+          @if (activeView !== 'laps') {
           <div class="editor-tabs" role="group" aria-label="View section">
-            <button type="button" [disabled]="!view.canEdit || eventEdit.locked" [attr.aria-pressed]="editorPanel === 'view' && editorKind === 'scalars'" (click)="selectEditor('scalars')">Scalars</button>
-            <button type="button" [disabled]="!view.canEdit || eventEdit.locked" [attr.aria-pressed]="editorPanel === 'view' && editorKind === 'charts'" (click)="selectEditor('charts')">Charts</button>
-            <button type="button" [disabled]="view.saving" [attr.aria-pressed]="editorPanel === 'event'" (click)="eventPanel()">Event</button>
+            <button type="button" [disabled]="!view.canEdit || !!eventEdit.mode" [attr.aria-pressed]="editorPanel === 'view' && editorKind === 'scalars'" (click)="selectEditor('scalars')">Scalars</button>
+            <button type="button" [disabled]="!view.canEdit || !!eventEdit.mode" [attr.aria-pressed]="editorPanel === 'view' && editorKind === 'charts'" (click)="selectEditor('charts')">Charts</button>
+            <button type="button" [disabled]="view.saving || !!eventEdit.mode" [attr.aria-pressed]="editorPanel === 'event'" (click)="eventPanel()">Event</button>
+            <button type="button" [disabled]="view.saving || !!eventEdit.mode || !eventEdit.canEditSessions" [attr.aria-pressed]="editorPanel === 'sessions'" (click)="sessionsPanel()">Sessions</button>
           </div>
-          @if (editorPanel === 'event') {
-            <app-greenpower-event-editor [range]="window" [cursor]="cursor" />
+          }
+          @if (editorPanel === 'event' || editorPanel === 'sessions') {
+            <app-greenpower-event-editor [range]="window" [cursor]="cursor" [sessionPanel]="editorPanel === 'sessions'" [sessions]="recordingSessions" [loading]="sessionsLoading" [more]="sessionsMore" [loadError]="sessionsError" (loadMore)="loadRecordingSessions()" />
           } @else {
           <span class="order-notice" aria-live="polite">{{ orderNotice }}</span>
           @if (drag.preview; as preview) {
@@ -70,7 +73,7 @@
     @if (telemetry.more) {
       <div class="continuation"><span>{{ telemetry.recordingKey ? 'More data is available for this session.' : 'More data is available for this day.' }}</span><button type="button" (click)="telemetry.loadMore()">Load remaining data</button></div>
     } @else if (!telemetry.loading && !telemetry.channels.length && !telemetry.error && !(historyOpen && events.eventId)) { <p class="state">No telemetry recorded for this day.</p> }
-    @if (activeView !== 'track' && (sessionsLoading || sessionsError || sessionsMore)) {
+    @if (activeView === 'data' && (sessionsLoading || sessionsError || sessionsMore)) {
       <div class="session-status" role="status">
         @if (sessionsLoading) { <span>Loading sessions…</span> }
         @else if (sessionsError) { <span>{{ sessionsError }}</span><button type="button" (click)="loadRecordingSessions()">Retry sessions</button> }
@@ -111,7 +114,7 @@
       }
     </div>
     <div id="telemetry-lap-list" class="view-panel" [hidden]="activeView !== 'laps'" role="region" aria-label="Lap list view">
-      <app-greenpower-lap-list [laps]="lapConfig.analysis.laps" [sessions]="sessions" [configured]="!!lapConfig.line" [loading]="telemetry.loading || lapConfig.searching || (!lapConfig.ready && !!lapConfig.selectedId)" [partial]="telemetry.more" (lapSelect)="selectLap($event)" />
+      <app-greenpower-lap-list [showSessions]="wholeEventLoaded" [sessionsLoading]="sessionsLoading" [sessionsError]="sessionsError" [sessionsMore]="sessionsMore" [canEditSessions]="editing && !historyOpen && events.canEdit && eventEdit.canEditSessions" [editDisabled]="!!eventEdit.mode || view.saving || lapConfig.saving" (sessionEdit)="editSession($event)" (loadSessions)="loadRecordingSessions()" [laps]="laps" [sessions]="sessions" [configured]="!!lapConfig.line" [loading]="telemetry.loading || lapConfig.searching || (!lapConfig.ready && !!lapConfig.selectedId)" [partial]="telemetry.more" (lapSelect)="selectLap($event)" />
     </div>
   }
 </main>

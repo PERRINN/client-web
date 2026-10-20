@@ -175,7 +175,7 @@ test('metadata save patches one cached event, never refreshes the year, and retr
     if (unknown) { unknown = false; throw { code: 'functions/unavailable' }; } return result;
   }) };
   const editor = new GreenpowerEventEditService(h.service, { day, range: () => [rec.segment()] }, functions);
-  const reads = h.calls.length; editor.event(); editor.draft.eventName = 'Updated'; editor.review();
+  const reads = h.calls.length; editor.event(); editor.draft.eventName = 'Updated';
   await editor.save(); assert.equal(editor.uncertain, true); assert.equal(editor.locked, true);
   editor.cancel(); assert.equal(editor.locked, true); await editor.save();
   assert.deepEqual(calls[0], calls[1]); assert.equal(h.service.selectedEvent.eventName, 'Updated');
@@ -225,6 +225,7 @@ test('cursor boundary edits preserve the opposite boundary and reject inverted, 
     ranges.push([start,end]);
     return [{...session.ranges[0],firstAt:start,lastAt:end}];
   }},{});
+  editor.recordingEvent = value;
   editor.session();
   const start=editor.sessionDraft.startAt, end=editor.sessionDraft.endAt;
   editor.setBoundary('start',start+1);
@@ -235,8 +236,8 @@ test('cursor boundary edits preserve the opposite boundary and reject inverted, 
   editor.setBoundary('start',end+1);
   assert.match(editor.error,/Start must/); assert.deepEqual(editor.sessionDraft,before);
   editor.setBoundary('end',NaN);
-  editor.reviewing=true; editor.setBoundary('end',end);
-  editor.reviewing=false; editor.saving=true; editor.setBoundary('end',end);
+  editor.uncertain=true; editor.setBoundary('end',end);
+  editor.uncertain=false; editor.saving=true; editor.setBoundary('end',end);
   assert.equal(ranges.length,count);
   editor.ngOnDestroy();h.service.ngOnDestroy();
 });
@@ -281,4 +282,51 @@ test('recording session pages ignore picker type, use one query per action and r
   const stale = h.service.recordingSessionPage(day);
   h.state.next({ ready: true, uid: '', isAdmin: false }); finish({ docs: [], size: 0 });
   await assert.rejects(stale, /Account changed/); h.service.ngOnDestroy();
+});
+
+
+test('session editing requires a loaded whole event and accepts an explicit session independently of history selection', async () => {
+  const { value, session } = migrated();
+  const h = client(new Map([[ROOT + '/days/' + day, value]]));
+  h.service.selectEvent(day); await flush();
+  const telemetry = { day, live: false, recordingKey: '' };
+  const editor = new GreenpowerEventEditService(h.service, telemetry, {});
+  editor.session(false, undefined, session); assert.equal(editor.mode, '');
+  editor.recordingEvent = value;
+  telemetry.recordingKey = 'loaded-session';
+  editor.session(false, undefined, session); assert.equal(editor.mode, '');
+  telemetry.recordingKey = ''; telemetry.live = true;
+  editor.session(false, undefined, session); assert.equal(editor.mode, '');
+  telemetry.live = false;
+  editor.session(false, undefined, session);
+  assert.equal(editor.sessionDraft.id, session.id);
+  assert.equal(h.service.sessionId, '', 'editing does not select or load a session');
+  editor.sessionDraft.overrides.driver = 'Draft';
+  assert.notEqual(session.overrides.driver, 'Draft');
+  editor.ngOnDestroy(); h.service.ngOnDestroy();
+});
+
+
+test('direct Save validates metadata before sending and retains invalid drafts', async () => {
+  const {value}=migrated();
+  const h=client(new Map([[ROOT+'/days/'+day,value]]));
+  h.service.selectEvent(day); await flush();
+  let calls=0;
+  const editor=new GreenpowerEventEditService(h.service,{}, {httpsCallable(){calls++; throw Error('Invalid metadata must not submit');}});
+  editor.event(); editor.draft.eventName='x'.repeat(121);
+  await editor.save();
+  assert.equal(calls,0); assert.equal(editor.mode,'event'); assert.equal(editor.draft.eventName.length,121);
+  assert.match(editor.error,/Invalid event/); assert.equal(editor.saving,false);
+  editor.ngOnDestroy(); h.service.ngOnDestroy();
+});
+
+
+test('event-only history selection defers session reads until the recording is loaded', async () => {
+  const {value,session}=migrated();
+  const h=client(new Map([[ROOT+'/days/'+day,value],[ROOT+'/days/'+day+'/sessions/'+session.id,session]]));
+  h.service.selectEvent(day,false); await flush();
+  assert.equal(h.service.eventReady,true); assert.equal(h.calls.length,0); assert.equal(h.service.sessions.length,0);
+  const page=await h.service.recordingSessionPage(day);
+  assert.equal(page.sessions.length,1); assert.equal(h.calls.length,1); assert.equal(h.calls[0].limit,30);
+  h.service.ngOnDestroy();
 });

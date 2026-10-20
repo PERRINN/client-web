@@ -8,10 +8,12 @@ import { GreenpowerTelemetryService } from './greenpowerTelemetry.service';
 @Injectable()
 export class GreenpowerEventEditService implements OnDestroy {
   readonly changed = new Subject<void>();
+  readonly saved = new Subject<{ event: RecordedEvent; session?: DaySession }>();
+  recordingEvent?: RecordedEvent;
+  get canEditSessions() { return !!this.recordingEvent && !this.telemetry.live && !this.telemetry.recordingKey && this.telemetry.day === this.recordingEvent.date; }
   mode: '' | 'event' | 'session' = '';
   draft?: DayMetadata;
   sessionDraft?: DaySession;
-  reviewing = false;
   saving = false;
   uncertain = false;
   error = '';
@@ -29,13 +31,15 @@ export class GreenpowerEventEditService implements OnDestroy {
   }
   get locked() { return this.saving || this.uncertain; }
   get sourceEvent() { return this.base; }
-  private reset() { this.mode = ''; this.draft = undefined; this.sessionDraft = undefined; this.base = undefined; this.prepared = undefined; this.reviewing = this.uncertain = false; this.error = ''; this.changed.next(); }
+  private reset() { this.mode = ''; this.draft = undefined; this.sessionDraft = undefined; this.base = undefined; this.prepared = undefined; this.uncertain = false; this.error = ''; this.changed.next(); }
   cancel() { if (!this.locked) { this.generation++; this.reset(); this.notice = ''; } }
   private begin(mode: 'event' | 'session') {
-    if (!this.events.canEdit || this.locked || !this.events.eventReady || !this.events.selectedEvent) return false;
-    if (!this.events.migrated) { this.error = 'This day requires metadata migration before editing.'; this.changed.next(); return false; }
+    if (!this.events.canEdit || this.locked || (mode === 'session' ? !this.canEditSessions : !this.events.eventReady || !this.events.selectedEvent)) return false;
+    if (mode === 'event' && !this.events.migrated) { this.error = 'This day requires metadata migration before editing.'; this.changed.next(); return false; }
     this.reset(); this.mode = mode; this.notice = '';
-    this.base = JSON.parse(JSON.stringify(this.events.selectedEvent)); this.draft = editableDay(this.base!);
+    const source = mode === 'session' ? (this.events.eventReady && this.events.selectedEvent?.date === this.recordingEvent?.date
+      ? this.events.selectedEvent : this.recordingEvent!) : this.events.selectedEvent;
+    this.base = JSON.parse(JSON.stringify(source)); this.draft = editableDay(this.base!);
     return true;
   }
   event() {
@@ -43,16 +47,16 @@ export class GreenpowerEventEditService implements OnDestroy {
     if (!this.events.tracks.length) void this.events.loadTracks();
     void this.events.ensureTrack(this.draft!.trackId); this.changed.next();
   }
-  session(create = false, range?: { start: number; end: number }) {
-    if (!create && !this.events.selectedSession || !this.begin('session')) return;
+  session(create = false, range?: { start: number; end: number }, selected = this.events.selectedSession) {
+    if (!this.canEditSessions || !create && !selected || !this.begin('session')) return;
     this.sessionDraft = create ? { id: crypto.randomUUID(), type: '', startAt: 0, endAt: 0, batteryIds: [], overrides: {}, ranges: [] }
-      : JSON.parse(JSON.stringify(this.events.selectedSession));
+      : JSON.parse(JSON.stringify(selected));
     if (create && range) this.replaceRange(range);
     this.changed.next();
   }
   setBoundary(boundary: 'start' | 'end', time: number) {
     const session = this.sessionDraft;
-    if (!session || this.locked || this.reviewing || !Number.isFinite(time)) return;
+    if (!session || this.locked || !Number.isFinite(time)) return;
     const start = boundary === 'start' ? time : session.startAt;
     const end = boundary === 'end' ? time : session.endAt;
     if (start > end) {
@@ -61,9 +65,9 @@ export class GreenpowerEventEditService implements OnDestroy {
     this.replaceRange({ start, end });
   }
   replaceRange(range: { start: number; end: number }) {
-    if (!this.sessionDraft || !this.draft || this.locked || this.reviewing) return;
+    if (!this.sessionDraft || !this.draft || this.locked) return;
     try {
-      if (this.telemetry.day !== this.base?.date) throw new Error('Load this event before choosing a recording range.');
+      if (!this.canEditSessions || this.telemetry.day !== this.base?.date) throw new Error('Load this event before choosing a recording range.');
       const ranges = this.telemetry.range(range.start, range.end);
       this.sessionDraft.ranges = ranges;
       this.sessionDraft.startAt = ranges[0].firstAt; this.sessionDraft.endAt = ranges.at(-1)!.lastAt;
@@ -71,9 +75,8 @@ export class GreenpowerEventEditService implements OnDestroy {
     } catch (error) { this.error = error instanceof Error ? error.message : 'Choose a recorded range.'; }
     this.changed.next();
   }
-  back() { if (!this.locked) { this.prepared = undefined; this.reviewing = false; this.error = ''; this.changed.next(); } }
-  review() {
-    if (!this.events.canEdit || this.locked || !this.draft || !this.base) return;
+  private prepare() {
+    if (!this.events.canEdit || this.locked || !this.draft || !this.base) return false;
     try {
       this.draft.eventName = this.draft.eventName.trim(); this.draft.result = this.draft.result.trim();
       const error = this.sessionDraft ? sessionMetadataError(this.sessionDraft, this.base.date) : dayMetadataError(this.draft); if (error) throw new Error(error);
@@ -81,29 +84,33 @@ export class GreenpowerEventEditService implements OnDestroy {
       this.prepared = this.sessionDraft
         ? { ...common, kind: 'session', expectedSessionRevision: this.sessionDraft.revision || 0, session: editableSession(this.sessionDraft) }
         : { ...common, kind: 'event', data: JSON.parse(JSON.stringify(this.draft)) };
-      this.reviewing = true; this.error = '';
+      this.error = ''; return true;
     } catch (error) { this.error = error instanceof Error ? error.message : 'Check the metadata.'; }
-    this.changed.next();
+    this.changed.next(); return false;
   }
   async save() {
-    if (!this.events.canEdit || this.saving || !this.reviewing || !this.prepared) return;
+    if (!this.events.canEdit || this.saving) return;
+    if (!this.prepared && !this.prepare()) return;
     const request = this.prepared, generation = this.generation, uid = this.uid;
     this.saving = true; this.error = ''; this.changed.next();
     try {
       const result = await firstValueFrom(this.functions.httpsCallable<DayEditRequest, DayEditResult>('greenpowerEventEdit', { timeout: 35000 })(request));
       if (generation !== this.generation || !this.events.canEdit || this.uid !== uid) return;
       this.events.acknowledge(request, result);
-      const sessionId = this.sessionDraft?.id;
+      const event = { ...this.base!, ...(request.kind === 'event' ? request.data : {}), revision: result.revision,
+        ...(result.sessionTypeCounts === undefined ? {} : { sessionTypeCounts: result.sessionTypeCounts }) };
+      const session = request.kind === 'session' ? { ...request.session, revision: result.sessionRevision } : undefined;
+      if (this.recordingEvent?.date === event.date) this.recordingEvent = event;
+      this.saved.next({ event, session });
       this.saving = false; this.reset(); this.notice = 'Saved';
-      if (sessionId) this.events.selectSession(sessionId);
     } catch (error) {
       if (generation !== this.generation || this.uid !== uid) return;
       const code = (error as { code?: string })?.code?.replace('functions/', '');
       this.uncertain = !['invalid-argument', 'failed-precondition', 'already-exists', 'permission-denied', 'unauthenticated', 'not-found', 'resource-exhausted'].includes(code || '');
       this.error = code === 'failed-precondition' ? 'Metadata changed elsewhere. Cancel and reopen the editor.'
         : this.uncertain ? 'Save status is unknown. Retry this save before making another edit.' : 'Could not save. Check the fields or reopen the editor.';
-      if (!this.uncertain) { this.reviewing = false; this.prepared = undefined; }
+      if (!this.uncertain) this.prepared = undefined;
     } finally { if (generation === this.generation) { this.saving = false; this.changed.next(); } }
   }
-  ngOnDestroy() { this.generation++; this.subscription.unsubscribe(); this.changed.complete(); }
+  ngOnDestroy() { this.generation++; this.subscription.unsubscribe(); this.changed.complete(); this.saved.complete(); }
 }
