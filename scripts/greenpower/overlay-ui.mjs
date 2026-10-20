@@ -16,6 +16,7 @@ await writeFile(output + '/entry.ts', `
 import 'zone.js'; import '@angular/compiler';
 import {NO_ERRORS_SCHEMA} from '@angular/core';
 import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
 import {TestBed} from '@angular/core/testing';
 import {BrowserDynamicTestingModule,platformBrowserDynamicTesting} from '@angular/platform-browser-dynamic/testing';
 import {Subject,BehaviorSubject} from 'rxjs';
@@ -30,13 +31,17 @@ import {GreenpowerOverlayComponent} from '${folder}/greenpower-overlay.component
 import {GreenpowerChartComponent} from '${folder}/greenpower-chart.component';
 import {GreenpowerOverlayService} from '${folder}/greenpowerOverlay.service';
 import {GreenpowerViewService} from '${folder}/greenpowerView.service';
-import {overlayColour} from '${folder}/greenpowerOverlay';
+import {lapMetricChannels} from '${folder}/greenpowerLapMetrics';
+import {GreenpowerMetadataFieldsComponent} from '${folder}/greenpower-metadata-fields.component';
+import {channelsFor} from '${folder}/greenpowerData';
+import {emptyDay,editableDay,dayMetadataError} from '${folder}/greenpowerDay';
+import {overlayChannels,overlayColour} from '${folder}/greenpowerOverlay';
 const channels=(offset=0)=>['Current','Voltage left','Voltage right','Voltage diff','Speed'].map((label,index)=>({
  id:['["A"]:A','computed:voltage-left','computed:voltage-right','computed:voltage-diff','["Spd"]:m/s'][index],label,unit:index===4?'m/s':index?'V':'A',value:'20',
  points:Array.from({length:200},(_,i)=>({time:i*30000,value:(index===0?20:index===3?1:12)+Math.sin(i/15+offset)*(index===0?4:.5)}))
 }));
 const overlay:any={active:false,loading:false,more:false,error:'',sessions:[],changed:new Subject(),end:5970000,hasMore:false,
- get channels(){return channels()},get visibleSessions(){return this.sessions.filter(s=>s.loaded&&!s.hidden&&!s.excluded)},get status(){return this.loading?'Loading race sessions…':this.sessions.length+' sessions'},
+ get channels(){return this.sessions.length?Object.getOwnPropertyDescriptor(GreenpowerOverlayService.prototype,'channels').get.call(this):channels()},get visibleSessions(){return this.sessions.filter(s=>s.loaded&&!s.hidden&&!s.excluded)},get status(){return this.loading?'Loading race sessions…':this.sessions.length+' sessions'},
  async load(reset=false){this.active=true;this.loading=true;this.changed.next();await new Promise(r=>setTimeout(r,80));
   this.sessions=Array.from({length:6},(_,i)=>({id:'session-'+i,label:'2026-06-'+(14+i)+' · '+(i%2?'Goodwood':'Dunsfold')+' · Driver '+(i+1),colour:overlayColour(i),loaded:true,hidden:false,excluded:false,channels:channels(i),session:{startAt:0,endAt:this.end}}));
   this.loading=false;this.changed.next()},
@@ -59,25 +64,37 @@ const lapConfig:any={changed:new Subject(),saving:false,line:null,fixes:[],ready
 const events:any={changed:new Subject(),canEdit:true};
 const eventEdit:any={changed:new Subject(),saved:new Subject(),locked:false,mode:'',canEditSessions:true,cancel(){}};
 TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTesting());
-TestBed.configureTestingModule({declarations:[GreenpowerTelemetryComponent,GreenpowerOverlayComponent,GreenpowerChartComponent],imports:[CommonModule],schemas:[NO_ERRORS_SCHEMA]});
+TestBed.configureTestingModule({declarations:[GreenpowerTelemetryComponent,GreenpowerOverlayComponent,GreenpowerChartComponent,GreenpowerMetadataFieldsComponent],imports:[CommonModule,FormsModule],providers:[{provide:GreenpowerEventsService,useValue:{tracks:[],loadingTracks:false}}],schemas:[NO_ERRORS_SCHEMA]});
 TestBed.overrideComponent(GreenpowerTelemetryComponent,{set:{providers:[
  {provide:GreenpowerOverlayService,useValue:overlay},{provide:GreenpowerViewService,useValue:view},
  {provide:GreenpowerTelemetryService,useValue:telemetry},{provide:GreenpowerLapService,useValue:lapConfig},
  {provide:GreenpowerEventsService,useValue:events},{provide:GreenpowerEventEditService,useValue:eventEdit}
 ]}});
+const metadataFixture=TestBed.createComponent(GreenpowerMetadataFieldsComponent);metadataFixture.componentInstance.data=editableDay(emptyDay('2026-10-20'));metadataFixture.detectChanges();metadataFixture.changeDetectorRef.detach();metadataFixture.nativeElement.remove();
 const fixture=TestBed.createComponent(GreenpowerTelemetryComponent);const detect=()=>{fixture.changeDetectorRef.markForCheck();fixture.detectChanges()};document.body.append(fixture.nativeElement);detect();
 overlay.changed.subscribe(detect);view.changed.subscribe(detect);
-window.overlayHarness={fixture,overlay,view,writes,lapConfig,comparison:fixture.debugElement.query(By.directive(GreenpowerOverlayComponent)).componentInstance,async detect(){detect()},set(state){Object.assign(overlay,state);overlay.changed.next();detect()}};
+window.overlayHarness={speed(mode,recorded=true,circumference=1.29){
+ const event={...emptyDay('2026-10-20'),wheelCircumferenceM:circumference,defaults:{motorGearTeeth:12,wheelGearTeeth:60}};
+ const samples=Array.from({length:4},(_,i)=>({id:String(i),source:'424-phone',receivedAt:i*3000,raw:JSON.stringify({RPM:2000+i*200,A:20,...(recorded?{Spd:10+i}: {})})}));
+ if(mode==='overlay') {overlay.active=true;overlay.sessions=Array.from({length:2},(_,i)=>{const rows=i?samples.map(row=>({...row,raw:JSON.stringify({RPM:2400,A:20})})):samples;return {id:'speed-'+i,label:'Driver '+(i+1),colour:overlayColour(i),loaded:true,hidden:false,excluded:false,channels:overlayChannels(rows,{id:'s'+i,type:'race',startAt:0,endAt:9000,overrides:{}} as any,event),session:{startAt:0,endAt:9000}}});overlay.end=9000;overlay.changed.next()}
+ else {overlay.clear();fixture.componentInstance['loadedEvent']=event;telemetry.live=false;telemetry.channels=channelsFor(samples,samples.at(-1));telemetry.latest=samples.at(-1);telemetry.start=0;telemetry.end=9000;telemetry.changed.next()}
+ detect();
+},metadata(){const editor=metadataFixture;const old={...emptyDay('2026-10-20')};delete old.wheelCircumferenceM;editor.componentRef.setInput('data',editableDay(old));editor.changeDetectorRef.reattach();document.body.append(editor.nativeElement);editor.detectChanges();this.metadataFixture=editor;return editor.componentInstance.data},metadataError(){return dayMetadataError(this.metadataFixture.componentInstance.data)},removeMetadata(){this.metadataFixture.changeDetectorRef.detach();this.metadataFixture.nativeElement.remove()},metrics(mode){
+ const laps=[{time:0,end:120000,lap:1,complete:true,speed:25,current:20},{time:120000,end:240000,lap:2,complete:false},{time:240000,end:390000,lap:3,complete:true,speed:26,current:21}];
+ if(mode==='overlay') {overlay.active=true;overlay.sessions=Array.from({length:3},(_,i)=>({id:'metric-'+i,label:'Driver '+(i+1),colour:overlayColour(i),loaded:true,hidden:false,excluded:false,channels:lapMetricChannels(laps),session:{startAt:0,endAt:390000}}));overlay.end=390000;overlay.changed.next()}
+ else {overlay.clear();telemetry.channels=channels();lapConfig.analysis={...lapConfig.analysis,laps};telemetry.start=0;telemetry.end=390000;telemetry.changed.next()}
+ detect();
+},fixture,overlay,view,writes,lapConfig,comparison:fixture.debugElement.query(By.directive(GreenpowerOverlayComponent)).componentInstance,async detect(){detect()},set(state){Object.assign(overlay,state);overlay.changed.next();detect()}};
 `);
 await build({entryPoints:[output+'/entry.ts'],outfile:output+'/bundle.js',bundle:true,format:'esm',platform:'browser',
  nodePaths:[root+'/node_modules'],logLevel:'silent',tsconfigRaw:{compilerOptions:{experimentalDecorators:true}},
- plugins:[{name:'angular-jit',setup(builder){builder.onLoad({filter:/greenpower-(telemetry|overlay|chart)\.component\.ts$/},async args=>{
+ plugins:[{name:'angular-jit',setup(builder){builder.onLoad({filter:/greenpower-(telemetry|overlay|chart|metadata-fields)\.component\.ts$/},async args=>{
   let source=await readFile(args.path,'utf8');
   source=source.replace(/templateUrl: '([^']+)'/,(_,name)=>'template: '+JSON.stringify(require('node:fs').readFileSync(resolve(dirname(args.path),name),'utf8')))
    .replace(/styleUrls: \[\'([^']+)\'\]/,(_,name)=>'styles: ['+JSON.stringify(require('node:fs').readFileSync(resolve(dirname(args.path),name),'utf8'))+']');
   source += args.path.includes('greenpower-telemetry.component')
    ? '\n(GreenpowerTelemetryComponent as any).ctorParameters = () => [{type:GreenpowerTelemetryService},{type:ChangeDetectorRef},{type:Title},{type:GreenpowerViewService},{type:GreenpowerLapService},{type:GreenpowerEventsService},{type:GreenpowerEventEditService},{type:GreenpowerOverlayService}];'
-   : args.path.includes('greenpower-overlay') ? '\n(GreenpowerOverlayComponent as any).ctorParameters = () => [{type:GreenpowerOverlayService},{type:GreenpowerViewService},{type:ChangeDetectorRef}];' : '\n(GreenpowerChartComponent as any).ctorParameters = () => [{type:ChangeDetectorRef},{type:NgZone}];';
+   : args.path.includes('metadata-fields') ? '\n(GreenpowerMetadataFieldsComponent as any).ctorParameters = () => [{type:GreenpowerEventsService}];' : args.path.includes('greenpower-overlay') ? '\n(GreenpowerOverlayComponent as any).ctorParameters = () => [{type:GreenpowerOverlayService},{type:GreenpowerViewService},{type:ChangeDetectorRef}];' : '\n(GreenpowerChartComponent as any).ctorParameters = () => [{type:ChangeDetectorRef},{type:NgZone}];';
   return {contents:ts.transpileModule(source,{compilerOptions:{experimentalDecorators:true,emitDecoratorMetadata:true,target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText,loader:'js'};
  })}}]});
 const styles = await readFile(root+'/src/styles.css','utf8');
@@ -239,6 +256,86 @@ try {
   assert.equal(await page.getByRole('alert').count(),1);assert.equal(await page.getByRole('button',{name:'Retry',exact:true}).count(),1);
   await page.evaluate(()=>window.overlayHarness.set({error:'',hasMore:false}));assert.equal(await page.getByText('No race sessions loaded.',{exact:true}).count(),1);
   await page.evaluate(()=>{window.overlayHarness.view.permissions.current.isAdmin=true;window.overlayHarness.detect()});
+  await page.evaluate(()=>window.overlayHarness.metrics('normal'));
+  for(const label of ['Lap time · s','Lap average speed · mph','Lap average amps · A']) {
+   const metric=page.locator('app-greenpower-chart').filter({has:page.getByRole('heading',{name:label,exact:true})});
+   assert.equal(await metric.count(),1,'normal metric '+label);
+   assert.equal((await metric.locator('svg').boundingBox()).height,150);
+   assert.equal(await metric.locator('.lap-dot').count(),2,'one dot per completed lap');
+   assert.equal((await metric.locator('svg .trace').getAttribute('d')).match(/M/g).length,1,'lap finishes connect with one line');
+  }
+  await page.evaluate(()=>{const h=window.overlayHarness;h.fixture.componentInstance.window={start:60000,end:390000};h.fixture.componentInstance.cursor=120000;h.detect()});
+  const normalMetric=page.locator('app-greenpower-chart').filter({has:page.getByRole('heading',{name:'Lap time · s',exact:true})});
+  assert.match(await normalMetric.locator('.readout').textContent(),/Lap 1.*120/,'finish reading identifies the completed lap');
+  assert.ok((await normalMetric.locator('svg .trace').getAttribute('d')).includes('L'),'zoom retains connecting line');
+  await page.screenshot({path:output+'/'+name+'-lap-metrics-normal.png',fullPage:true});
+  await page.evaluate(()=>window.overlayHarness.metrics('overlay'));
+  assert.equal(await page.locator('app-greenpower-chart').count(),3,'all three overlay metric charts');
+  const metric=page.locator('app-greenpower-chart').first();
+  assert.equal(await metric.locator('.overlay-entry').count(),3);
+  assert.equal(await metric.locator('.lap-dot').count(),6,'two dots per overlay session');
+  assert.equal((await metric.locator('svg').boundingBox()).height,300);
+  await page.evaluate(()=>{const h=window.overlayHarness;h.comparison.cursor=120000;h.detect()});
+  assert.ok((await metric.locator('.overlay-value').allTextContents()).every(value=>Number(value)===120));
+  const metricBox=await metric.locator('.overlay-readout').boundingBox();
+  await page.evaluate(()=>{const h=window.overlayHarness;h.comparison.cursor=390000;h.detect()});
+  assert.ok((await metric.locator('.overlay-value').allTextContents()).every(value=>Number(value)===150),'cursor reads the finished lap');
+  assert.deepEqual(await metric.locator('.overlay-readout').boundingBox(),metricBox);
+  await metric.getByRole('button',{name:'Hide Driver 1',exact:true}).click();
+  assert.equal(await metric.locator('.overlay-entry').count(),3);
+  assert.equal(await metric.locator('svg .trace').count(),2);
+  assert.equal(await metric.locator('.lap-dot').count(),4,'graph hiding removes dots too');
+  await page.evaluate(()=>window.overlayHarness.overlay.toggleInclusion('metric-1'));
+  assert.equal(await metric.locator('.overlay-entry').count(),2);
+  assert.equal(await metric.locator('.lap-dot').count(),2,'main-list hiding removes dots too');
+  await page.screenshot({path:output+'/'+name+'-lap-metrics-overlay.png',fullPage:true});
+  assert.equal(await page.locator('body').evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await page.evaluate(()=>{const h=window.overlayHarness;h.overlay.clear();h.lapConfig.analysis={...h.lapConfig.analysis,laps:[]};h.fixture.componentInstance.telemetry.channels=[];h.fixture.componentInstance.telemetry.changed.next();h.detect()});
+  await page.evaluate(()=>window.overlayHarness.speed('normal'));
+  const speedChart=page.locator('app-greenpower-chart').filter({has:page.getByRole('heading',{name:'Vehicle speed · mph',exact:true})});
+  assert.equal(await speedChart.count(),1);
+  assert.equal(await speedChart.locator('.comparison-trace').count(),1);
+  assert.match(await speedChart.locator('.comparison-legend').textContent(),/Motor-derived speed/);
+  const initialPath=await speedChart.locator('.comparison-trace').getAttribute('d');
+  await speedChart.locator('svg').focus();await speedChart.locator('svg').press('ArrowRight');
+  assert.notEqual(await speedChart.locator('.comparison-legend .legend-value').last().textContent(),'—');
+  await page.screenshot({path:output+'/'+name+'-motor-speed.png',fullPage:true});
+  await page.evaluate(()=>window.overlayHarness.speed('normal',false));
+  assert.equal(await speedChart.count(),1,'RPM-only chart remains available');
+  assert.equal(await speedChart.locator('.trace:not(.comparison-trace)').getAttribute('d'),'');
+  assert.ok((await speedChart.locator('.comparison-trace').getAttribute('d')).length>0);
+  await speedChart.locator('svg').focus();await speedChart.locator('svg').press('ArrowRight');
+  assert.equal(await speedChart.locator('.cursor').count(),1,'RPM-only keyboard cursor works');
+  assert.equal(await speedChart.locator('.comparison-legend .legend-value').first().textContent(),'—','recorded reading never borrows the derived value');
+  assert.notEqual(await speedChart.locator('.comparison-legend .legend-value').last().textContent(),'—');
+  await page.evaluate(()=>window.overlayHarness.speed('normal',true,1.4));
+  assert.notEqual(await speedChart.locator('.comparison-trace').getAttribute('d'),initialPath,'event circumference changes derived trace');
+  await page.evaluate(()=>window.overlayHarness.speed('overlay'));
+  const overlaySpeed=page.locator('app-greenpower-chart').filter({has:page.getByRole('heading',{name:'Vehicle speed · mph',exact:true})});
+  assert.equal(await overlaySpeed.locator('.trace').count(),3,'one recorded and two derived overlay traces');
+  assert.equal(await overlaySpeed.locator('.overlay-name').filter({hasText:'Motor-derived'}).count(),2);
+  assert.equal(await overlaySpeed.locator('.trace').evaluateAll(paths=>paths.filter(path=>getComputedStyle(path).strokeDasharray!=='none').length),2,'motor-derived traces are dashed');
+  await page.screenshot({path:output+'/'+name+'-motor-speed-overlay.png',fullPage:true});
+  await overlaySpeed.getByRole('button',{name:'Hide Driver 1',exact:true}).first().click();
+  assert.equal(await overlaySpeed.locator('.trace').count(),1,'graph Hide applies to both speed sources');
+  assert.equal(await overlaySpeed.locator('.overlay-entry').count(),3);
+  await page.evaluate(()=>window.overlayHarness.overlay.toggleInclusion('speed-1'));
+  assert.equal(await overlaySpeed.locator('.overlay-entry').count(),2,'main-list exclusion applies to both sources');
+  await page.evaluate(()=>window.overlayHarness.overlay.clear());
+  await page.evaluate(()=>window.overlayHarness.metadata());
+  const circumference=page.getByLabel('Wheel circumference · m',{exact:true});
+  assert.equal(await circumference.inputValue(),'1.29','legacy event editor receives default');
+  await circumference.fill('1.36');
+  assert.equal(await page.evaluate(()=>window.overlayHarness.metadataFixture.componentInstance.data.wheelCircumferenceM),1.36);
+  assert.equal(await page.evaluate(()=>window.overlayHarness.metadataError()),'');
+  await circumference.fill('0');
+  assert.match(await page.evaluate(()=>window.overlayHarness.metadataError()),/positive wheel circumference/);
+  await circumference.fill('1.36');
+  assert.equal(await page.locator('body').evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await page.screenshot({path:output+'/'+name+'-circumference.png',fullPage:true});
+  await page.evaluate(()=>{const h=window.overlayHarness;h.removeMetadata();const t=h.fixture.componentInstance.telemetry;t.channels=[];t.latest=undefined;t.live=true;t.start=0;t.end=1000;h.fixture.componentInstance['loadedEvent']=undefined;t.changed.next();h.detect()});
+
+
  }
  assert.deepEqual(errors,[]);console.log(JSON.stringify({output,widths:[1440,390,320],checks:['toolbar stability','touch targets','no page overflow','loading/error/empty','Hide/Show retains data, identity, geometry and cursor','panel collapse retains charts','voltage pairs','keyboard cursor','readout stability','map/laps disabled and restored','chart editing, keyboard order, save, cancel, exit and permissions','300px overlay plots']}));
 } finally {await browser.close();await new Promise(done=>server.close(done))}

@@ -66,6 +66,15 @@ export function fields(raw: string, historical = false) {
   visit(JSON.parse(raw), [], 0);
   return result;
 }
+export const MOTOR_DERIVED_SPEED = 'computed:motor-derived-speed';
+export const VEHICLE_SPEED = '["Spd"]:m/s';
+export const isVehicleSpeed = (id: string) => id.startsWith('["Spd"]:') && speedFactor(id.slice(8)) !== undefined;
+export const LAP_METRICS: Record<string, { label: string; unit: string }> = {
+  'computed:lap-time': { label: 'Lap time', unit: 's' },
+  'computed:lap-average-speed': { label: 'Lap average speed', unit: 'mph' },
+  'computed:lap-average-amps': { label: 'Lap average amps', unit: 'A' }
+};
+export const isLapMetric = (id: string) => Object.hasOwn(LAP_METRICS, id);
 export const VOLTAGE_LEFT = 'computed:voltage-left';
 export const VOLTAGE_RIGHT = 'computed:voltage-right';
 export const VOLTAGE_DIFF = 'computed:voltage-diff';
@@ -166,6 +175,8 @@ export function pointIndex(points: { time: number }[], time: number, after = fal
 
 /** Recover a saved selection's label even when this day has no matching samples. */
 export function channelDetails(id: string): { label: string; unit: string } {
+  if (id === MOTOR_DERIVED_SPEED) return { label: 'Motor-derived speed', unit: 'mph' };
+  if (isLapMetric(id)) return LAP_METRICS[id];
   if (Object.hasOwn(voltageLabels, id)) return { label: voltageLabels[id], unit: 'V' };
   if (id === 'computed:gps-lap') return { label: 'GPS lap', unit: '' };
   for (let at = id.indexOf(']:'); at >= 0; at = id.indexOf(']:', at + 2)) {

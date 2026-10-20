@@ -1,4 +1,4 @@
-import { isVoltageChannel, VOLTAGE_LEFT, VOLTAGE_DIFF, channelDetails, GreenpowerChannel } from './greenpowerData';
+import { isVehicleSpeed, MOTOR_DERIVED_SPEED, isLapMetric, isVoltageChannel, VOLTAGE_LEFT, VOLTAGE_DIFF, channelDetails, GreenpowerChannel } from './greenpowerData';
 export type ViewKind = 'scalars' | 'charts';
 export interface ViewSelection {
   scalars: Record<string, true>; charts: Record<string, true>;
@@ -15,7 +15,7 @@ export interface GreenpowerView extends ViewSelection { revision: number; update
 export const VIEW_PATH = 'GreenpowerTelemetry/424/config/view';
 export const MAX_VIEW_CHANNELS = 512;
 export function selectionFor(channels: GreenpowerChannel[]): ViewSelection {
-  return { scalars: Object.fromEntries(channels.map(c => [c.id, true])), charts: Object.fromEntries(channels.filter(c => c.points.length && !isVoltageChannel(c.id)).map(c => [c.id, true])) };
+  return { scalars: Object.fromEntries(channels.map(c => [c.id, true])), charts: Object.fromEntries(channels.filter(c => chartHasData(c, channels) && !isVoltageChannel(c.id) && !isLapMetric(c.id) && c.id !== MOTOR_DERIVED_SPEED).map(c => [c.id, true])) };
 }
 export function validSelection(value: unknown): value is ViewSelection {
   if (!value || typeof value !== 'object') return false;
@@ -43,7 +43,11 @@ export function editorChannels(channels: GreenpowerChannel[], selection: ViewSel
   return [...channels, ...absent.map(id => ({ id, ...channelDetails(id), value: '—', points: [] }))].sort((a, b) => a.label.localeCompare(b.label) || a.id.localeCompare(b.id));
 }
 
-export function configurableCharts(channels: GreenpowerChannel[]) { return channels.filter(c => !isVoltageChannel(c.id)); }
-export function voltageCharts(channels: GreenpowerChannel[], selected: GreenpowerChannel[]) {
-  return [...configurableCharts(selected), ...channels.filter(c => c.id === VOLTAGE_LEFT || c.id === VOLTAGE_DIFF)].filter(c => c.points.length);
+export function configurableCharts(channels: GreenpowerChannel[]) { return channels.filter(c => !isVoltageChannel(c.id) && !isLapMetric(c.id) && c.id !== MOTOR_DERIVED_SPEED); }
+export function telemetryCharts(channels: GreenpowerChannel[], selected: GreenpowerChannel[]) {
+  return [...configurableCharts(selected), ...channels.filter(c => c.id === VOLTAGE_LEFT || c.id === VOLTAGE_DIFF || isLapMetric(c.id))].filter(c => chartHasData(c, channels));
+}
+
+export function chartHasData(channel: GreenpowerChannel, channels: GreenpowerChannel[]) {
+  return !!channel.points.length || isVehicleSpeed(channel.id) && channels.some(item => item.id === MOTOR_DERIVED_SPEED && item.points.length);
 }

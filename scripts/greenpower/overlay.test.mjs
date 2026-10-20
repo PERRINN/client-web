@@ -1,19 +1,19 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { BehaviorSubject, Subject, Subscription } from 'rxjs';
-import { load, data, dayData, gps, recordings } from './load.mjs';
+import { load, data, dayData, gps, tracks, lapMetrics, motorSpeed, recordings } from './load.mjs';
 
 const sessions = load('../../src/app/greenpower-telemetry/greenpowerSessions.ts', {
   './greenpowerDay': dayData, './greenpowerData': data, './greenpowerGps': gps
 });
 const overlay = load('../../src/app/greenpower-telemetry/greenpowerOverlay.ts', {
-  './greenpowerData': data, './greenpowerDay': dayData, './greenpowerSessions': sessions
+  './greenpowerData': data, './greenpowerDay': dayData, './greenpowerSessions': sessions, './greenpowerGps': gps, './greenpowerTracks': tracks, './greenpowerLapMetrics': lapMetrics, './greenpowerSpeed': motorSpeed
 });
 const { GreenpowerOverlayService } = load('../../src/app/greenpower-telemetry/greenpowerOverlay.service.ts', {
   '@angular/core': { Injectable: () => target => target }, rxjs: { Subject },
   'firebase/compat/app': { default: { firestore: { FieldPath: { documentId: () => '__name__' } } } },
   'firebase/compat/firestore': {}, './greenpowerData': data, './greenpowerDay': dayData,
-  './greenpowerRecording': recordings, './greenpowerOverlay': overlay
+  './greenpowerRecording': recordings, './greenpowerTracks': tracks, './greenpowerOverlay': overlay
 });
 const { GreenpowerOverlayComponent } = load('../../src/app/greenpower-telemetry/greenpower-overlay.component.ts', {
   '@angular/core': { Component: () => target => target, Input: () => () => {} }, rxjs: { Subscription }, './greenpowerData': data
@@ -201,4 +201,64 @@ test('main list exclusion and graph hiding are independent and reuse loaded data
   assert.equal(h.service.sessions[0].colour, first.colour);
   assert.equal(h.calls.length, before, 'toggles never fetch data');
   component.ngOnDestroy(); h.service.ngOnDestroy();
+});
+
+
+test('overlay track reads are exact, cached across sessions and pages, and cleared with the comparison', async () => {
+  const h = fixture(31);
+  h.records.get(`${ROOT}/days/${date}`).trackId = 'venue';
+  h.records.set(`${ROOT}/tracks/venue`, { name: 'Venue', line: null, bounds: null, cells: [], revision: 1, updatedBy: 'admin' });
+  await h.service.load(true); await h.service.load();
+  const reads = () => h.calls.filter(call => call.path === `${ROOT}/tracks/venue`);
+  assert.equal(reads().length, 1, 'one definition read serves all 31 sessions');
+  assert.equal(h.service.tracks.size, 1);
+  h.service.toggleInclusion(h.service.sessions[0].id);
+  h.service.toggleVisibility(h.service.sessions[1].id);
+  assert.equal(reads().length, 1);
+  h.service.clear();
+  assert.equal(h.service.tracks.size, 0);
+  await h.service.load(true);
+  assert.equal(reads().length, 2, 'new comparison refreshes the definition');
+  h.service.ngOnDestroy();
+});
+
+test('overlay lap summaries match normal session analysis before rebasing to elapsed time', () => {
+  const metre = 180 / (Math.PI * 6371000), start = Date.parse(date + 'T08:00:00Z');
+  const fix = (time, x, y) => ({ time: start + time, lat: 50 + y * metre, lon: x * metre / Math.cos(50 * Math.PI / 180) });
+  const fixes = [[0,0,-30],[3000,0,15],[6000,40,30],[10000,60,0],[14000,40,-30],[18000,0,-30],
+    [24000,0,15],[28000,40,30],[32000,60,0],[36000,40,-30],[38000,0,-30],[44000,0,15]].map(v => fix(...v));
+  const line = { a: fix(0,-10,0), b: fix(0,10,0), direction: 1 };
+  const bounds = { south: 49.99, north: 50.01, west: -.01, east: .01 };
+  const track = { line, bounds };
+  const event = dayData.emptyDay(date), session = { id: 'race', type: 'race', startAt: start, endAt: start + 44000, overrides: {} };
+  const samples = fixes.map((fix,i) => ({ id: String(i), receivedAt: fix.time, source: '424-phone',
+    raw: JSON.stringify({ Lat: fix.lat, Lon: fix.lon, A: 12, Spd: 10 }) }));
+  const raw = data.channelsFor(samples, samples.at(-1));
+  const analysis = sessions.sessionLapAnalysis(gps.gpsAnalysis(fixes, line, raw, session.endAt), sessions.sessionIntervals(event, [session]),
+    { channels: raw, fixes, end: session.endAt, configured: true });
+  const expected = lapMetrics.lapMetricChannels(analysis.laps);
+  const result = overlay.overlayChannels(samples, session, event, track);
+  for (const channel of expected) {
+    const shifted = result.find(item => item.id === channel.id);
+    assert.deepEqual(shifted.points, channel.points.map(point => ({ ...point, time: point.time - start })));
+    assert.ok(shifted.points.every(point => point.time < 43000), 'last incomplete lap adds no point');
+    assert.ok(shifted.points.length > 0);
+  }
+  assert.ok(Math.abs(result.find(item => item.id === 'computed:lap-average-speed').points[0].value - 10 / .44704) < 1e-8);
+  assert.equal(result.find(item => item.id === 'computed:lap-average-amps').points[0].value, 12);
+  for (const missing of [null, { line, bounds: { south: 0, north: 1, west: 0, east: 1 } }]) {
+    assert.ok(overlay.overlayChannels(samples, session, event, missing).filter(item => data.isLapMetric(item.id)).every(item => !item.points.length));
+  }
+});
+
+
+test('a session without complete lap data never masks another session’s metric graphs', () => {
+  const h = fixture();
+  const completed = lapMetrics.lapMetricChannels([{ time: 0, end: 1000, complete: true, current: 12, speed: 20 }]);
+  const empty = lapMetrics.lapMetricChannels([]);
+  h.service.sessions = [{ channels: completed }, { channels: empty }];
+  assert.ok(h.service.channels.every(channel => channel.points.length > 0));
+  h.service.sessions.reverse();
+  assert.ok(h.service.channels.every(channel => channel.points.length > 0));
+  h.service.ngOnDestroy();
 });

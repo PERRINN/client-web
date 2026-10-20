@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, ViewChild } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { Subscription } from 'rxjs';
-import { GreenpowerChannel, VOLTAGE_LEFT, VOLTAGE_RIGHT, londonDay, sampleTime } from './greenpowerData';
+import { GreenpowerChannel, isVehicleSpeed, MOTOR_DERIVED_SPEED, VOLTAGE_LEFT, VOLTAGE_RIGHT, londonDay, sampleTime } from './greenpowerData';
 import { ChartWindow, scalarValue } from './greenpowerChart';
 import { GreenpowerLapService } from './greenpowerLap.service';
 import { FinishLine, GpsLap } from './greenpowerGps';
@@ -15,6 +15,8 @@ import { GreenpowerEventEditService } from './greenpowerEventEdit.service';
 import { DaySession, RecordedEvent } from './greenpowerDay';
 import { SessionInterval, sessionIntervals, sessionLapAnalysis, sessionAmpHours, savedGear } from './greenpowerSessions';
 import { GreenpowerOverlayService } from './greenpowerOverlay.service';
+import { withMotorDerivedSpeed } from './greenpowerSpeed';
+import { lapMetricChannels } from './greenpowerLapMetrics';
 import { recordingHeader } from './greenpowerContext';
 
 @Component({
@@ -51,12 +53,15 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   get dataset() { return this.telemetry.day + ':' + this.telemetry.live + ':' + this.telemetry.recordingKey; }
   scalars: GreenpowerChannel[] = [];
   charts: GreenpowerChannel[] = [];
+  isVehicleSpeed = isVehicleSpeed;
+  motorDerivedSpeed?: GreenpowerChannel;
   readonly voltageLeftId = VOLTAGE_LEFT;
   voltageRight?: GreenpowerChannel;
   laps: GpsLap[] = [];
   private rawLaps?: GpsLap[];
   private lapSessions?: SessionInterval[];
   private lapChannel?: GreenpowerChannel;
+  private lapMetrics: GreenpowerChannel[] = [];
   available: GreenpowerChannel[] = [];
   editorKind: ViewKind = 'scalars';
   selectedCount = 0;
@@ -136,11 +141,14 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
       });
       this.rawLaps = analysis.laps; this.lapSessions = this.sessions;
       this.laps = numbered.laps; this.lapChannel = numbered.channel;
+      this.lapMetrics = lapMetricChannels(this.laps);
     }
     const latestTime = this.telemetry.latest ? sampleTime(this.telemetry.latest) : undefined;
-    this.channels = savedGear([...this.telemetry.channels.map(channel => sessionAmpHours(channel, this.recordingSessions, latestTime)), this.lapChannel!],
+    this.channels = savedGear([...this.telemetry.channels.map(channel => sessionAmpHours(channel, this.recordingSessions, latestTime)), this.lapChannel!, ...this.lapMetrics],
       this.loadedEvent, this.recordingSessions, this.telemetry.start, Math.max(this.telemetry.end, latestTime ?? 0), latestTime,
       !this.sessionsLoading && !this.sessionsMore && !this.sessionsError);
+    this.channels = withMotorDerivedSpeed(this.channels, this.loadedEvent, latestTime);
+    this.motorDerivedSpeed = this.channels.find(channel => channel.id === MOTOR_DERIVED_SPEED);
     this.voltageRight = this.channels.find(channel => channel.id === VOLTAGE_RIGHT);
     this.scalars = this.view.scalars(this.channels);
     this.charts = this.view.charts(this.channels);

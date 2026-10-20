@@ -5,8 +5,9 @@ import 'firebase/compat/firestore';
 import { Subject, Subscription } from 'rxjs';
 import { PermissionsService } from '../permissions.service';
 import { DaySession, RecordedEvent, SESSION_SCOPE, validDaySession, validRecordedEvent } from './greenpowerDay';
-import { GreenpowerChunk, MAX_CHUNK_WIRE_BYTES, PAGE_SIZE } from './greenpowerData';
+import { GreenpowerChannel, GreenpowerChunk, MAX_CHUNK_WIRE_BYTES, PAGE_SIZE } from './greenpowerData';
 import { recordingBudget, RecordingReader } from './greenpowerRecording';
+import { TrackDefinition, TRACKS_PATH, validTrack } from './greenpowerTracks';
 import { OverlaySession, overlayChannels, overlayColour, overlayLabel } from './greenpowerOverlay';
 
 @Injectable()
@@ -21,6 +22,7 @@ export class GreenpowerOverlayService implements OnDestroy {
   private queue: OverlaySession[] = [];
   private reader?: RecordingReader;
   private parents = new Map<string, RecordedEvent>();
+  private tracks = new Map<string, TrackDefinition | null>();
   private cache = new Map<string, GreenpowerChunk>();
   private colourIndex = 0;
   private account = '';
@@ -35,7 +37,11 @@ export class GreenpowerOverlayService implements OnDestroy {
     });
   }
   get channels() {
-    const channels = new Map(this.sessions.flatMap(session => session.channels.map(channel => [channel.id, channel] as const)));
+    const channels = new Map<string, GreenpowerChannel>();
+    for (const session of this.sessions) for (const channel of session.channels) {
+      // A later session without a completed lap must not remove an earlier session's graph.
+      if (!channels.get(channel.id)?.points.length) channels.set(channel.id, channel);
+    }
     return [...channels.values()];
   }
   get end() { return Math.max(1, ...this.sessions.filter(item => item.loaded).map(item => item.session.endAt - item.session.startAt)); }
@@ -46,7 +52,7 @@ export class GreenpowerOverlayService implements OnDestroy {
   clear() {
     this.generation++; this.active = this.loading = this.more = false; this.error = '';
     this.sessions = []; this.queue = []; this.cursor = undefined; this.reader = undefined;
-    this.parents.clear(); this.cache.clear(); this.colourIndex = 0; this.changed.next();
+    this.parents.clear(); this.tracks.clear(); this.cache.clear(); this.colourIndex = 0; this.changed.next();
   }
   get visibleSessions() { return this.sessions.filter(item => item.loaded && !item.hidden && !item.excluded); }
   toggleInclusion(id: string) {
@@ -89,6 +95,13 @@ export class GreenpowerOverlayService implements OnDestroy {
             if (!validRecordedEvent(value) || value.date !== date) throw new Error('Invalid event metadata.');
             event = value; this.parents.set(date, event);
           }
+          if (event.trackId && !this.tracks.has(event.trackId)) {
+            // At most one exact track read per parent on this 30-session page; no listeners or lookup scans.
+            const snapshot = await this.db.collection(TRACKS_PATH).doc(event.trackId).get({ source: 'server' });
+            if (!current()) return;
+            const value = snapshot.data();
+            this.tracks.set(event.trackId, validTrack(value) ? value : null);
+          }
           page.push({ id: doc.ref.path, date, session, colour: overlayColour(this.colourIndex++),
             label: overlayLabel(event, session), channels: [], loaded: false, hidden: false, excluded: false });
         }
@@ -107,7 +120,7 @@ export class GreenpowerOverlayService implements OnDestroy {
           if (this.cache.size > PAGE_SIZE) this.cache.delete(this.cache.keys().next().value!);
         }
         if (this.reader.more) break;
-        item.channels = overlayChannels(this.reader.entries.map(entry => entry.sample), item.session, this.parents.get(item.date));
+        item.channels = overlayChannels(this.reader.entries.map(entry => entry.sample), item.session, this.parents.get(item.date), this.tracks.get(this.parents.get(item.date)?.trackId ?? ''));
         item.loaded = true; this.queue.shift(); this.reader = undefined; this.sessions = [...this.sessions];
         this.changed.next();
       }

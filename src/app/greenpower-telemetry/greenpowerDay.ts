@@ -4,6 +4,7 @@ export const DAY_SESSION_TYPES = [
   { id: 'race', label: 'Race' }, { id: 'practice', label: 'Practice' },
   { id: 'battery_dyno', label: 'Battery dyno' }, { id: 'motor_dyno', label: 'Motor dyno' }
 ];
+export const DEFAULT_WHEEL_CIRCUMFERENCE_M = 1.29;
 export const MAX_DAY_BYTES = 8 * 1024;
 export const SESSION_SCOPE = 'GreenpowerTelemetry/424';
 export interface EventDefaults {
@@ -17,7 +18,7 @@ export interface DaySession {
 }
 export interface DayMetadata {
   date: string; eventName: string; trackId: string | null; result: string;
-  defaults: EventDefaults;
+  defaults: EventDefaults; wheelCircumferenceM?: number;
 }
 export interface RecordedEvent extends DayMetadata {
   schemaVersion: 2; revision: number; updatedBy: string; updatedAt?: unknown;
@@ -28,9 +29,10 @@ export type DayEditRequest = { schemaVersion: 2; requestId: string; date: string
   { kind: 'event'; data: DayMetadata } | { kind: 'session'; expectedSessionRevision: number; session: DaySession });
 export interface DayEditResult { date: string; revision: number; changeId: string; sessionId?: string; sessionRevision?: number; sessionTypeCounts?: SessionTypeCounts; }
 export function emptyDay(date: string): RecordedEvent {
-  return { date, eventName: '', trackId: null, result: '', defaults: {},
+  return { date, eventName: '', trackId: null, result: '', defaults: {}, wheelCircumferenceM: DEFAULT_WHEEL_CIRCUMFERENCE_M,
     schemaVersion: 2, revision: 0, updatedBy: 'ingestion' };
 }
+export function wheelCircumference(event: DayMetadata) { return event.wheelCircumferenceM ?? DEFAULT_WHEEL_CIRCUMFERENCE_M; }
 export function effectiveDefaults(event: DayMetadata, session?: DaySession): EventDefaults {
   return { ...event.defaults, ...session?.overrides };
 }
@@ -73,6 +75,8 @@ export function dayMetadataError(value: DayMetadata): string {
   if (!value || !validDate(value.date) || typeof value.eventName !== 'string' || typeof value.result !== 'string'
     || new TextEncoder().encode(value.eventName).length > 120 || new TextEncoder().encode(value.result).length > 120
     || value.trackId !== null && (typeof value.trackId !== 'string' || !value.trackId || value.trackId.length > 128 || value.trackId.includes('/'))) return 'Invalid event details.';
+  if (value.wheelCircumferenceM !== undefined && (typeof value.wheelCircumferenceM !== 'number'
+    || !Number.isFinite(value.wheelCircumferenceM) || value.wheelCircumferenceM <= 0)) return 'Enter a positive wheel circumference.';
   const error = defaultsError(value.defaults); if (error) return error;
   if (new TextEncoder().encode(JSON.stringify(value)).length > MAX_DAY_BYTES - 512) return 'Event metadata exceeds 8 KiB.';
   return '';
@@ -106,5 +110,5 @@ export function validRecordedEvent(value: unknown): value is RecordedEvent {
 }
 export function editableDay(event: RecordedEvent): DayMetadata {
   const { date, eventName, trackId, result, defaults } = event;
-  return JSON.parse(JSON.stringify({ date, eventName, trackId, result, defaults }));
+  return JSON.parse(JSON.stringify({ date, eventName, trackId, result, defaults, wheelCircumferenceM: wheelCircumference(event) }));
 }

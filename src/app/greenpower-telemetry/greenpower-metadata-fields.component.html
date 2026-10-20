@@ -5,6 +5,7 @@
       <label [for]="prefix + '-date'">Date · UK<input [id]="prefix + '-date'" type="date" [value]="data.date" readonly></label>
       <label [for]="prefix + '-result'">Result<input [id]="prefix + '-result'" [(ngModel)]="data.result" [ngModelOptions]="{standalone:true}" maxlength="120"></label>
       <label class="wide" [for]="prefix + '-track'">Track<select [id]="prefix + '-track'" [(ngModel)]="data.trackId" [ngModelOptions]="{standalone:true}"><option [ngValue]="null">No track</option>@for (track of events.tracks; track track.id) { <option [value]="track.id">{{ track.name }}</option> }</select></label>
+      <label [for]="prefix + '-circumference'">Wheel circumference · m<input [id]="prefix + '-circumference'" type="number" min="0" step="any" required [(ngModel)]="data.wheelCircumferenceM" [ngModelOptions]="{standalone:true}"></label>
       <div class="wide track-actions">
         @if (events.moreTracks) { <button type="button" [disabled]="events.loadingTracks" (click)="events.loadTracks()">More tracks</button> }
         <button type="button" [disabled]="events.loadingTracks" (click)="addingTrack = !addingTrack">{{ addingTrack ? 'Cancel new track' : 'Add track' }}</button>

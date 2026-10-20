@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, Input, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ChartWindow } from './greenpowerChart';
-import { GreenpowerChannel, VOLTAGE_LEFT, VOLTAGE_RIGHT } from './greenpowerData';
+import { GreenpowerChannel, isVehicleSpeed, MOTOR_DERIVED_SPEED, VOLTAGE_LEFT, VOLTAGE_RIGHT } from './greenpowerData';
 import { OverlayTrace } from './greenpowerOverlay';
 import { GreenpowerOverlayService } from './greenpowerOverlay.service';
 import { GreenpowerViewService } from './greenpowerView.service';
@@ -36,9 +36,11 @@ export class GreenpowerOverlayComponent implements OnDestroy {
     this.charts = this.view.charts(this.overlay.channels).map(channel => ({ channel,
       heading: channel.id === VOLTAGE_LEFT ? 'Voltage left / right' : '',
       traces: this.overlay.sessions.filter(session => session.loaded).flatMap(session => session.channels.filter(item =>
-        item.id === channel.id || channel.id === VOLTAGE_LEFT && item.id === VOLTAGE_RIGHT).filter(item => item.points.length)
+        item.id === channel.id || channel.id === VOLTAGE_LEFT && item.id === VOLTAGE_RIGHT
+          || isVehicleSpeed(channel.id) && item.id === MOTOR_DERIVED_SPEED).filter(item => item.points.length)
         .map(item => ({ id: session.id + ':' + item.id, label: session.label,
-          sessionId: session.id, hidden: session.hidden || session.excluded, excluded: session.excluded, colour: session.colour, channel: item, dashed: item.id === VOLTAGE_RIGHT })))
+          sessionId: session.id, hidden: session.hidden || session.excluded, excluded: session.excluded, colour: session.colour, channel: item, dashed: item.id === VOLTAGE_RIGHT || item.id === MOTOR_DERIVED_SPEED,
+          detail: isVehicleSpeed(channel.id) ? item.id === MOTOR_DERIVED_SPEED ? 'Motor-derived' : 'Recorded' : undefined })))
     })).filter(chart => chart.traces.length);
   }
   ngOnDestroy() { this.changes.unsubscribe(); }

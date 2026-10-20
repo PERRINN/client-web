@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { load, data, dayData, gps } from './load.mjs';
+import { load, data, dayData, gps, tracks, lapMetrics, motorSpeed } from './load.mjs';
 
 const sessions = load('../../src/app/greenpower-telemetry/greenpowerSessions.ts', {
   './greenpowerDay': dayData, './greenpowerData': data, './greenpowerGps': gps
@@ -11,7 +11,7 @@ const chart = load('../../src/app/greenpower-telemetry/greenpowerChart.ts', {
   './greenpowerData': data, '../telemetry/verticalAxis': vertical, '../telemetry/sessionHistory': history
 });
 const overlay = load('../../src/app/greenpower-telemetry/greenpowerOverlay.ts', {
-  './greenpowerData': data, './greenpowerDay': dayData, './greenpowerSessions': sessions
+  './greenpowerData': data, './greenpowerDay': dayData, './greenpowerSessions': sessions, './greenpowerGps': gps, './greenpowerTracks': tracks, './greenpowerLapMetrics': lapMetrics, './greenpowerSpeed': motorSpeed
 });
 const event = { ...dayData.emptyDay('2026-06-14'), defaults: { motorGearTeeth: 12, wheelGearTeeth: 60 } };
 const race = { id: 'race', type: 'race', startAt: 20, endAt: 40, overrides: { motorGearTeeth: 15 } };

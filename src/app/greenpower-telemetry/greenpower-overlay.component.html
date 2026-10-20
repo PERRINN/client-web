@@ -22,7 +22,7 @@
 }
 @if (overlay.active) {
   <div class="overlay-summary" aria-label="Overlay legend">
-    <span class="axis-label" role="status">@if (allHidden) { All sessions hidden. } @else { Elapsed time · @if (hasVoltage) { solid left / dashed right } }</span>
+    <span class="axis-label" role="status">@if (allHidden) { All sessions hidden. } @else { Elapsed time@if (hasVoltage) { · solid left / dashed right } }</span>
     @if (!panelOpen) {
       @for (session of overlay.sessions; track session.id) {
         @if (session.loaded && !session.excluded && !session.hidden) { <span class="session-key" [title]="session.label"><i [style.background]="session.colour"></i>{{ session.label }}</span> }

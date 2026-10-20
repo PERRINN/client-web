@@ -27,3 +27,7 @@ export const sample = (index, receivedAt = Date.UTC(2026, 9, 19) + index * 3000)
 export const dayData = load('../../src/app/greenpower-telemetry/greenpowerDay.ts', { './greenpowerEvents': eventData });
 export const gps = load('../../src/app/greenpower-telemetry/greenpowerGps.ts', { './greenpowerData': data });
 export const tracks = load('../../src/app/greenpower-telemetry/greenpowerTracks.ts', { './greenpowerGps': gps });
+
+export const lapMetrics = load('../../src/app/greenpower-telemetry/greenpowerLapMetrics.ts', { './greenpowerData': data });
+
+export const motorSpeed = load('../../src/app/greenpower-telemetry/greenpowerSpeed.ts', { './greenpowerData': data, './greenpowerDay': dayData });

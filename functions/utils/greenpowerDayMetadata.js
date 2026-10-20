@@ -35,7 +35,9 @@ function validRange(range, day) {
   check(range.source === 'echook-history' ? id(range.importId) : range.importId === undefined, 'Invalid import reference.');
 }
 function validateDay(data) {
-  keys(data, ['date', 'eventName', 'trackId', 'result', 'defaults']);
+  keys(data, ['date', 'eventName', 'trackId', 'result', 'defaults', 'wheelCircumferenceM'], ['date', 'eventName', 'trackId', 'result', 'defaults']);
+  check(data.wheelCircumferenceM === undefined || typeof data.wheelCircumferenceM === 'number'
+    && Number.isFinite(data.wheelCircumferenceM) && data.wheelCircumferenceM > 0, 'Invalid wheel circumference.');
   check(date(data.date) && text(data.eventName, 120, true) && text(data.result, 120, true) && (data.trackId === null || typeof data.trackId === 'string' && data.trackId.length > 0 && data.trackId.length <= 128 && !data.trackId.includes('/')), 'Invalid event.');
   defaults(data.defaults);
   check(Buffer.byteLength(JSON.stringify(data)) <= MAX_BYTES - 512, 'Event exceeds 8 KiB.');
@@ -57,7 +59,7 @@ function validateSession(session, day) {
   return session;
 }
 function emptyDay(day, timestamp) {
-  return { date: day, eventName: '', trackId: null, result: '', defaults: {}, sessionTypeCounts: {},
+  return { date: day, eventName: '', trackId: null, result: '', defaults: {}, wheelCircumferenceM: 1.29, sessionTypeCounts: {},
     schemaVersion: 2, revision: 0, updatedBy: 'ingestion', updatedAt: timestamp() };
 }
 async function editDayMetadata(db, auth, input, { timestamp, dryRun = false } = {}) {
@@ -124,7 +126,7 @@ async function editDayMetadata(db, auth, input, { timestamp, dryRun = false } = 
       ...(range.importId ? [db.doc(ROOT + '/imports/' + range.importId)] : [])]));
     for (const range of ranges) await verifySegment(db, get, range);
     const after = input.kind === 'event'
-      ? { ...input.data, ...(sessionTypeCounts === undefined ? {} : { sessionTypeCounts }), schemaVersion: 2, revision: before.revision + 1, updatedBy: auth.uid, updatedAt: timestamp() }
+      ? { ...input.data, wheelCircumferenceM: input.data.wheelCircumferenceM ?? before.wheelCircumferenceM ?? 1.29, ...(sessionTypeCounts === undefined ? {} : { sessionTypeCounts }), schemaVersion: 2, revision: before.revision + 1, updatedBy: auth.uid, updatedAt: timestamp() }
       : { ...input.session, telemetryRoot: ROOT, schemaVersion: 2, revision: input.expectedSessionRevision + 1, updatedBy: auth.uid, updatedAt: timestamp() };
     check(Buffer.byteLength(JSON.stringify(after)) <= (sessionRef ? 16 * 1024 : MAX_BYTES), 'Metadata exceeds its size limit.');
     const target = sessionRef || dayRef;

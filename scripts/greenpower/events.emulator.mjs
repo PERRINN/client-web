@@ -218,3 +218,30 @@ test('session-count backfill and concurrent type edits keep one exact summary wi
   await assert.rejects(invoke({ ...inputs[0], requestId: 'viewer-count-edit' }, { uid: 'viewer', token: {} }), error => error.code === 'permission-denied');
   assert.ok((await rawRef.get()).updateTime.isEqual(rawBefore.updateTime));
 });
+
+
+test('event circumference uses the real callable with audited, revisioned saves and unchanged access rules', async () => {
+  const date = '2026-06-25', rec = recording(date), parentRef = db.doc(ROOT + '/days/' + date);
+  const batch = db.batch(); rec.records.forEach(([path, value]) => batch.set(db.doc(path), value));
+  const parent = dayData.emptyDay(date);
+  batch.set(parentRef, parent); batch.set(db.doc(parentRef.path + '/live/latest'), { count: 4, activeChunk: 0 });
+  await batch.commit();
+  const rawRef = db.doc(rec.records[1][0]), rawBefore = await rawRef.get();
+  const input = { schemaVersion: 2, kind: 'event', requestId: 'circumference-edit', date, expectedRevision: 0,
+    data: { ...dayData.editableDay(parent), wheelCircumferenceM: 1.36 } };
+  await assert.rejects(invoke(input, null), error => error.code === 'unauthenticated');
+  await assert.rejects(invoke(input, { uid: 'alice', token: {} }), error => error.code === 'permission-denied');
+  const saved = await invoke(input);
+  assert.equal((await parentRef.get()).data().wheelCircumferenceM, 1.36);
+  assert.equal((await invoke(input)).writes, 0);
+  const audit = (await db.doc(ROOT + '/metadataChanges/' + saved.changeId).get()).data();
+  assert.equal(audit.records.days[parentRef.path].after.wheelCircumferenceM, 1.36);
+  const legacy = { ...input, requestId: 'old-circumference-client', expectedRevision: saved.revision, data: { ...input.data } };
+  delete legacy.data.wheelCircumferenceM;
+  await invoke(legacy);
+  assert.equal((await parentRef.get()).data().wheelCircumferenceM, 1.36);
+  assert.ok((await rawRef.get()).updateTime.isEqual(rawBefore.updateTime));
+  assert.equal((await access(parentRef.path)).status, 403);
+  for (const uid of ['alice', 'bob']) assert.equal((await access(parentRef.path, uid)).status, 200);
+  assert.equal((await access(parentRef.path, 'admin', 'PATCH', { perrinnAdmin: true })).status, 403);
+});

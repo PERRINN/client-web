@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, NgZone, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
 import type { GreenpowerChannel } from './greenpowerData';
-import { londonTime, pointIndex } from './greenpowerData';
+import { isLapMetric, londonTime, pointIndex } from './greenpowerData';
 import { ChartWindow, elapsedTime, chartY, channelReading, clockTicks, formatAxisValue, formatTelemetryValue, channelLimit, nearestPoint, plotFor } from './greenpowerChart';
 import { SessionInterval, visibleSessions } from './greenpowerSessions';
 import { ChartDoubleTap } from '../telemetry/chartDoubleTap';
@@ -33,7 +33,14 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   sessionBands = visibleSessions([], 0, 0);
   get limit() { return channelLimit(this.channel); }
   get limitY() { return chartY(this.limit!, this.model.axis); }
-  get cursorLap() { return this.cursor === undefined ? undefined : lapAt(this.laps, this.cursor); }
+  get cursorLap() {
+    if (isLapMetric(this.channel.id)) {
+      const point = this.reading;
+      const lap = point && this.laps[pointIndex(this.laps, point.time) - 1];
+      return lap?.end === point?.time ? lap?.lap : undefined;
+    }
+    return this.cursor === undefined ? undefined : lapAt(this.laps, this.cursor);
+  }
   comparisonY(value: number) { return chartY(value, this.model.axis); }
   formatAxis = formatAxisValue;
   time(value: number) { return this.overlays.length ? elapsedTime(value) : londonTime(value); }
@@ -44,6 +51,11 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
       ? undefined : channelReading(trace.channel, this.cursor, this.start, this.end);
     return point ? formatTelemetryValue(point.value, this.model.axis.min, this.model.axis.max) : '—';
   }
+  lapDots: { time: number; value: number }[] = [];
+  overlayDots: { time: number; value: number }[][] = [];
+  get dotRadiusX() { return 3 * 800 / Math.max(1, this.width); }
+  get dotRadiusY() { return this.overlays.length ? 1.2 : 2.4; }
+  dotX(time: number) { return (time - this.start) / Math.max(1, this.end - this.start) * 800; }
   private width = 300;
   private renderPending = false;
   private observer?: ResizeObserver;
@@ -58,7 +70,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   private drag?: { id: number; x: number; y: number; anchor: number; position: number; mode: 'pending' | 'zoom' | 'cursor'; range: ChartWindow };
   constructor(private change: ChangeDetectorRef, private zone: NgZone) {}
   get cursorPosition() {
-    const point = this.reading;
+    const point = this.reading ?? this.comparisonReading;
     return point ? (point.time - this.start) / Math.max(1, this.end - this.start) * 800 : undefined;
   }
   get markerY() {
@@ -104,6 +116,10 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   }
   private render() {
     this.model = plotFor(this.overlays.length ? [] : this.channel.points, this.start, this.end, this.width, this.limit, this.comparison?.points, this.overlays.map(trace => trace.hidden ? [] : trace.channel.points));
+    const dots = (channel: GreenpowerChannel) => isLapMetric(channel.id)
+      ? channel.points.slice(pointIndex(channel.points, this.start), pointIndex(channel.points, this.end, true)) : [];
+    this.lapDots = this.overlays.length ? [] : dots(this.channel);
+    this.overlayDots = this.overlays.map(trace => trace.hidden ? [] : dots(trace.channel));
     this.ticks = clockTicks(this.start, this.end, this.width);
     if (this.overlays.length) this.ticks = this.ticks.map(tick => ({ ...tick, label: elapsedTime(this.start + tick.position / 100 * (this.end - this.start)) }));
     this.sessionBands = visibleSessions(this.sessions, this.start, this.end, this.width);
@@ -142,7 +158,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   }
   private inspect(position: number, range: ChartWindow = { start: this.start, end: this.end }) {
     const time = range.start + position * (range.end - range.start);
-    this.cursorChange.emit(this.overlays.length ? time : nearestPoint(this.channel.points, time, range.start, range.end)?.time);
+    this.cursorChange.emit(this.overlays.length ? time : nearestPoint(this.channel.points.length ? this.channel.points : this.comparison?.points ?? [], time, range.start, range.end)?.time);
   }
   up(event: PointerEvent) {
     this.move(event);
@@ -173,7 +189,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
     else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
       event.preventDefault();
       const points = this.overlays.length ? this.overlays.filter(trace => !trace.hidden).reduce((longest, trace) =>
-        (trace.channel.points.at(-1)?.time ?? 0) > (longest.at(-1)?.time ?? 0) ? trace.channel.points : longest, [] as typeof this.channel.points) : this.channel.points;
+        (trace.channel.points.at(-1)?.time ?? 0) > (longest.at(-1)?.time ?? 0) ? trace.channel.points : longest, [] as typeof this.channel.points) : this.channel.points.length ? this.channel.points : this.comparison?.points ?? [];
       const first = pointIndex(points, this.start), last = pointIndex(points, this.end, true) - 1;
       if (first > last) { this.cursorChange.emit(undefined); return; }
       const index = this.cursor === undefined

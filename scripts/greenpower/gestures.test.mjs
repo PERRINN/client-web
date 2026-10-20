@@ -261,3 +261,18 @@ test('hidden overlay traces do not affect scaling, readings or keyboard stepping
   assert.equal(c.cursorChange.values.at(-1),undefined);
   c.ngOnDestroy();
 });
+
+
+test('RPM-only comparison retains keyboard cursor and never labels derived speed as recorded', () => {
+  const { component } = fixture();
+  component.channel = { id: data.VEHICLE_SPEED, label: 'Vehicle speed', unit: 'mph', value: '—', points: [] };
+  component.comparison = { id: data.MOTOR_DERIVED_SPEED, label: 'Motor-derived speed', unit: 'mph', value: '25', points: [{ time: 0, value: 20 }, { time: 1000, value: 25 }] };
+  component.ngOnChanges({ channel: {} });
+  component.key({ key: 'ArrowRight', preventDefault() {} });
+  component.cursor = component.cursorChange.values.at(-1);
+  assert.equal(typeof component.cursor, 'number');
+  assert.equal(typeof component.cursorPosition, 'number');
+  assert.equal(component.cursorLabel, '—');
+  assert.equal(component.reading, undefined);
+  assert.match(component.comparisonLabel, /mph/);
+});

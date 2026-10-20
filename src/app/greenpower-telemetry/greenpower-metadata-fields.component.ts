@@ -1,5 +1,6 @@
 import { Component, ElementRef, Input, ViewChild } from '@angular/core';
-import { DAY_SESSION_TYPES, DayMetadata, DaySession, EventDefaults } from './greenpowerDay';
+import type { DayMetadata, DaySession, EventDefaults } from './greenpowerDay';
+import { DAY_SESSION_TYPES } from './greenpowerDay';
 import { GreenpowerEventsService } from './greenpowerEvents.service';
 
 @Component({ selector: 'app-greenpower-metadata-fields', standalone: false,

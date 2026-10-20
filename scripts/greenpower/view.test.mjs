@@ -208,12 +208,12 @@ test('combined view/track Save retries are bounded to six client document reads'
 
 test('voltage plots follow saved charts without requiring a shared-view migration or duplicate plots', () => {
   const channels=data.channelsFor([{source:'424-phone',receivedAt:1,raw:'{"Vt":25,"V1":12}'}]);
-  const plots=view.voltageCharts(channels,channels);
+  const plots=view.telemetryCharts(channels,channels);
   assert.equal(plots.filter(c=>c.id===data.VOLTAGE_LEFT).length,1);
   assert.equal(plots.filter(c=>c.id===data.VOLTAGE_DIFF).length,1);
   assert.equal(plots.filter(c=>c.id===data.VOLTAGE_RIGHT).length,0);
-  assert.deepEqual(view.voltageCharts(channels,[]).map(c=>c.id),[data.VOLTAGE_LEFT,data.VOLTAGE_DIFF]);
+  assert.deepEqual(view.telemetryCharts(channels,[]).map(c=>c.id),[data.VOLTAGE_LEFT,data.VOLTAGE_DIFF]);
   assert.equal(view.selectionFor(channels).charts[data.VOLTAGE_LEFT],undefined);
   assert.equal(view.selectionFor(channels).scalars[data.VOLTAGE_RIGHT],true);
-  assert.deepEqual(view.voltageCharts([],[]),[]);
+  assert.deepEqual(view.telemetryCharts([],[]),[]);
 });

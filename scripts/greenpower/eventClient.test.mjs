@@ -175,10 +175,12 @@ test('metadata save patches one cached event, never refreshes the year, and retr
     if (unknown) { unknown = false; throw { code: 'functions/unavailable' }; } return result;
   }) };
   const editor = new GreenpowerEventEditService(h.service, { day, range: () => [rec.segment()] }, functions);
-  const reads = h.calls.length; editor.event(); editor.draft.eventName = 'Updated';
+  const reads = h.calls.length; editor.event(); editor.draft.eventName = 'Updated'; editor.draft.wheelCircumferenceM = 1.37;
   await editor.save(); assert.equal(editor.uncertain, true); assert.equal(editor.locked, true);
   editor.cancel(); assert.equal(editor.locked, true); await editor.save();
   assert.deepEqual(calls[0], calls[1]); assert.equal(h.service.selectedEvent.eventName, 'Updated');
+  assert.equal(calls[0].data.wheelCircumferenceM, 1.37);
+  assert.equal(h.service.selectedEvent.wheelCircumferenceM, 1.37);
   assert.equal(h.calls.filter(call => call.path.endsWith('/days')).length, 1);
   assert.equal(h.calls.length, reads + 1, 'only the initial track catalogue query is added');
   assert.equal(editor.notice, 'Saved'); editor.ngOnDestroy(); h.service.ngOnDestroy();

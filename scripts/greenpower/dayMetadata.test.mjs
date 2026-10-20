@@ -114,3 +114,33 @@ test('missing, corrupt, underflowing and overflowing counts cannot produce parti
   await editDayMetadata(legacy.db, adminAuth, legacy.request, options);
   assert.equal(legacy.db.records.get(ROOT + '/days/' + legacy.day).sessionTypeCounts, undefined);
 });
+
+test('circumference defaults to 1.29, validates before reads, persists edits, audits and replays', async () => {
+  const h = fixture();
+  assert.equal(emptyDay(h.day, options.timestamp).wheelCircumferenceM, 1.29);
+  assert.equal(dayData.emptyDay(h.day).wheelCircumferenceM, 1.29);
+  for (const value of [0, -1, null, '1.29', NaN, Infinity]) {
+    const bad = fixture(); bad.request.data.wheelCircumferenceM = value;
+    assert.ok(dayData.dayMetadataError(bad.request.data));
+    await assert.rejects(editDayMetadata(bad.db, adminAuth, bad.request, options), error => error.code === 'invalid-argument');
+    assert.equal(bad.db.counts.reads, 0);
+  }
+  h.request.data.wheelCircumferenceM = 1.35;
+  const result = await editDayMetadata(h.db, adminAuth, h.request, options);
+  assert.equal(result.reads, 3); assert.equal(result.writes, 3);
+  assert.equal(h.db.records.get(ROOT + '/days/' + h.day).wheelCircumferenceM, 1.35);
+  const audit = h.db.records.get(ROOT + '/metadataChanges/' + result.changeId).records.days[ROOT + '/days/' + h.day];
+  assert.equal(audit.before.wheelCircumferenceM, 1.29); assert.equal(audit.after.wheelCircumferenceM, 1.35);
+  assert.equal((await editDayMetadata(h.db, adminAuth, h.request, options)).writes, 0);
+  const legacy = { ...h.request, requestId: 'older-client', expectedRevision: 1, data: { ...h.request.data } };
+  delete legacy.data.wheelCircumferenceM;
+  await editDayMetadata(h.db, adminAuth, legacy, options);
+  assert.equal(h.db.records.get(ROOT + '/days/' + h.day).wheelCircumferenceM, 1.35, 'older clients preserve custom circumference');
+  const oldEvent = { ...dayData.emptyDay(h.day) }; delete oldEvent.wheelCircumferenceM;
+  assert.equal(dayData.validRecordedEvent(oldEvent), true);
+  assert.equal(dayData.editableDay(oldEvent).wheelCircumferenceM, 1.29);
+  const old = fixture(); delete old.request.data.wheelCircumferenceM;
+  delete old.db.records.get(ROOT + '/days/' + old.day).wheelCircumferenceM;
+  await editDayMetadata(old.db, adminAuth, old.request, options);
+  assert.equal(old.db.records.get(ROOT + '/days/' + old.day).wheelCircumferenceM, 1.29);
+});
