@@ -1,0 +1,28 @@
+{
+  "checkedAt": "2026-10-20T09:44:21.339Z",
+  "projectId": "perrinn-d5fc1",
+  "functions": [
+    {
+      "name": "greenpowerEventEdit",
+      "state": "ACTIVE",
+      "updateTime": "2026-10-20T09:43:40.113843907Z",
+      "runtime": "nodejs20",
+      "revision": "greenpowereventedit-00004-mus",
+      "uri": "https://greenpowereventedit-4lvuo66zya-uc.a.run.app"
+    },
+    {
+      "name": "greenpowerTelemetry",
+      "state": "ACTIVE",
+      "updateTime": "2026-10-20T09:43:33.896784334Z",
+      "runtime": "nodejs20",
+      "revision": "greenpowertelemetry-00004-rul",
+      "uri": "https://greenpowertelemetry-4lvuo66zya-uc.a.run.app"
+    }
+  ],
+  "unauthenticated": {
+    "ingestion": 401,
+    "metadataEdit": 401
+  },
+  "rawReads": 0,
+  "rawWrites": 0
+}

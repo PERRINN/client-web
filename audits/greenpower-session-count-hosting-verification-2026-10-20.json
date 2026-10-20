@@ -1,0 +1,44 @@
+{
+  "checkedAt": "2026-10-20T09:46:38.815Z",
+  "url": "https://perrinn.com/424-greenpower-telemetry",
+  "assets": [
+    {
+      "path": "index.html",
+      "bytes": 6400,
+      "sha256": "bff038d2e59aafddf47e173ad6c7b6634b59bfc05fa59a0cb6dde9e712cccde5"
+    },
+    {
+      "path": "styles.741a5d395620a72c.css",
+      "bytes": 7268,
+      "sha256": "a4260be6f0837edb48ff1da44b492eeea2be1278a902f885db1b33af89dd4f9a"
+    },
+    {
+      "path": "runtime.7339bf73001721a5.js",
+      "bytes": 1237,
+      "sha256": "b389ba1b9ca0198b4dcef02f15cddc00f296fa835a7add6cb3f9a192741a83c7"
+    },
+    {
+      "path": "polyfills.ff949e78317c6088.js",
+      "bytes": 55671,
+      "sha256": "04fef1f0461829089121b6d132059ea42c7ed6f48641abf39dc1d92e88da2e1d"
+    },
+    {
+      "path": "scripts.080fb4e6ab918a9d.js",
+      "bytes": 1343,
+      "sha256": "fe73b98a1bcc59c30cbacdb7644fef5049456a68482e8ff94bfd2953375dac27"
+    },
+    {
+      "path": "main.f50c7e1f0b7533a4.js",
+      "bytes": 2721458,
+      "sha256": "2e20276ebe0a347a0f406029e5b136f3a1d17671a798c4eeb332295bfb803af2"
+    },
+    {
+      "path": "ngsw.json",
+      "bytes": 5408,
+      "sha256": "5302cb0ca008afa06bb671835457675e01f8e2f79c5a9096a1b159798dac0692"
+    }
+  ],
+  "requests": 7,
+  "bytes": 2798785,
+  "match": true
+}

@@ -1,0 +1,259 @@
+{
+  "projectId": "perrinn-d5fc1",
+  "dryRun": false,
+  "runId": "0155a759-6e83-40d7-b968-b9023cdf7a94",
+  "results": [
+    {
+      "date": "2026-06-21",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "787e28634816f1673ea6d440d15f3d0dc02f5cbf12ecab990f68bcf0ea4b20f9"
+    },
+    {
+      "date": "2026-06-22",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "9d7b348368c7e474a2912db5bd87ff85009ee8f33aebc9d76fbd57a552776279"
+    },
+    {
+      "date": "2026-06-23",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "c8be2896e9bc4e4c283b50083e9cbf9267fa9fb74ec1017c977b1552569042f4"
+    },
+    {
+      "date": "2026-06-24",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "9a130c04bc901021df74f79ebcc20bfc5b47a2a3272834c7b13e265958dbd2c8"
+    },
+    {
+      "date": "2026-06-25",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "664b558c4747b9e1e6c4d1ab5593f916ab32a10d8ad96aa361fab0f3c316b42f"
+    },
+    {
+      "date": "2026-06-26",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "568335a3e758b2694e6594b7dab86aacc80dc34c0de3f1000d4d07336b9cc817"
+    },
+    {
+      "date": "2026-06-29",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "fcf2b047fb978bc01b7a6ba5f27e7a6b6050c14e6f0371016d5bfe33eefaefa1"
+    },
+    {
+      "date": "2026-06-30",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "c272eb02d71dd5b72146b30fc194b0b61f744aaf2baae862ecebb56be38e11f3"
+    },
+    {
+      "date": "2026-07-01",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "e6e52d7f18c9929fee31bb3dfde7ebf70df6267422afdf909ae6814d0eab114e"
+    },
+    {
+      "date": "2026-07-02",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "98d647959a477d7784365b4800d768a75c3f06186510a0acdd5592035966798a"
+    },
+    {
+      "date": "2026-07-03",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "949c47fbf214a1b4b94a6649c2fb100e41ea53893eddf158469242e5bcafdd50"
+    },
+    {
+      "date": "2026-07-04",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "ec7f71d8310afbce45ce036cde921939395b5f15b01335cb0913f5780321018e"
+    },
+    {
+      "date": "2026-07-06",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "89f192cffa89ac6add941d8ffb827a8474636968cc1bb41784d4a6a57ae06742"
+    },
+    {
+      "date": "2026-07-07",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "a9275085bdd1c652fbbf3cdf685759b6332280dc1540820f38052722547aeaf8"
+    },
+    {
+      "date": "2026-07-11",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "939afd18b50e624b1693dd2472a00530954d4bb03da4e6c57a824de137755b7a"
+    },
+    {
+      "date": "2026-07-12",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "07bc60785d42dda4358d674419b79e5994b5622bbcb4113d11f30fe3b1e49fb7"
+    },
+    {
+      "date": "2026-07-13",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "a1e5e8cf95734bb082cad55dd147954be29a39223bbccef9f1f959006b1e1480"
+    },
+    {
+      "date": "2026-07-14",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "0a8806045f77530054a7905ee8aadc9668f1f502768815309e3372f973b71a95"
+    },
+    {
+      "date": "2026-07-18",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "977dce2679c34890e29cb9c19f38934d370748cb02618aed3d8276549ea0f4b0"
+    },
+    {
+      "date": "2026-07-20",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "8e0d529baa54d3c70e5208280b2248e206d50cb7bf4eaf4a755dff5116546b1e"
+    },
+    {
+      "date": "2026-07-21",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "dba5a7225eb00c7992adad75574380bbff1bd5fd27659a0808b0c398989a210f"
+    },
+    {
+      "date": "2026-07-22",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "b7946edf83ce751843867d86b861b8d6d1b18a2ee3c836f52447fadc7447c13e"
+    },
+    {
+      "date": "2026-07-23",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "a811daa3d7d9d4ada48a7feb90a9929ed61b6d56f27919afa4279e9140b57767"
+    },
+    {
+      "date": "2026-07-24",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "21ba67cc7715a9abfb5f61cbb130ae6ad0dbb4f05911752c67bc5d1dafa7c608"
+    },
+    {
+      "date": "2026-08-09",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "b26fe3e3ea9c1c17ff9da49bcbf6650ffea38945b0691eb087a20d2717b1992a"
+    },
+    {
+      "date": "2026-08-14",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "f0f59b8d6f45ccee4e4e2061450be00d7786ed0102c492ce15a14081deec632e"
+    },
+    {
+      "date": "2026-08-15",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "c44821e3b5b99b72edc01f57e4a9119f8e9a08bde66d0cbee332eaf08a678d59"
+    },
+    {
+      "date": "2026-08-17",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "4f8243ead48fe7fa91ceba341b96dcaa69b069fd4703fd99c7e1fe4c3670aef3"
+    },
+    {
+      "date": "2026-08-19",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "810d88dc07889c5e40a14cc08d46a740d7cb07711f3dfc8ee4b923bbf52eb0f1"
+    },
+    {
+      "date": "2026-08-22",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "c0cb0313274094287d51ab8ed5a940c80b4923f4e24711c882e5785cfc20cf81"
+    }
+  ],
+  "bounds": {
+    "days": 30,
+    "sessionsPerDay": 200,
+    "queryLimit": 201,
+    "concurrency": 1,
+    "attemptsPerDay": 3,
+    "maximumDocumentReads": 18180,
+    "maximumWrites": 60,
+    "rawReads": 0,
+    "rawWrites": 0
+  },
+  "reviewSha256": "a6668aeca8e9dbef7e61b429c9e852f97ea85bd7e33cdca62b856a182efaf94a"
+}

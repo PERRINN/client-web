@@ -1,0 +1,27 @@
+{
+  "checkedAt": "2026-10-20T09:46:14.737Z",
+  "projectId": "perrinn-d5fc1",
+  "daysVerified": 74,
+  "summaryWrites": 74,
+  "auditWrites": 74,
+  "savedSessions": 2,
+  "nonemptyDays": [
+    {
+      "date": "2026-05-24",
+      "eventName": "Goodwood race",
+      "sessionTypeCounts": {
+        "race": 1
+      }
+    },
+    {
+      "date": "2026-06-07",
+      "eventName": "Bedford race",
+      "sessionTypeCounts": {
+        "race": 1
+      }
+    }
+  ],
+  "dateNameAndRevisionPreserved": true,
+  "rawReads": 0,
+  "rawWrites": 0
+}

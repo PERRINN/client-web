@@ -1,0 +1,131 @@
+{
+  "projectId": "perrinn-d5fc1",
+  "dryRun": false,
+  "runId": "d0c51e35-374b-458a-8a71-9259b16dc0ba",
+  "results": [
+    {
+      "date": "2026-08-24",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "61e858bde69222d32c8a2268ce4b3165a904fe0b52ead4cf3591b42690c793b9"
+    },
+    {
+      "date": "2026-09-10",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "406119a73cfba62eab7712e84f2fedf86a5d01caa9405270dd6408e975bf9a48"
+    },
+    {
+      "date": "2026-09-12",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "4e0055e351557030c255493bb204cdf33e9e4e4c51ff8bef888c3ed2d1dd980b"
+    },
+    {
+      "date": "2026-09-17",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "eae9dabbddab4244c62d08eddb6369c826e271b3e2bea62e622ea0522e81ec1c"
+    },
+    {
+      "date": "2026-09-18",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "98cf45dad1fd727da9d6a64c1f85488fdd781240274efe24f026191ffa249b52"
+    },
+    {
+      "date": "2026-09-19",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "17a8032147e26675ed623a26fecb916841f2382b73ea19ba9ac2a842a348a954"
+    },
+    {
+      "date": "2026-09-20",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "6dc25e7410200506072f6c8113a594401b6e68fa39d1ffe4ec3bda349a7d9865"
+    },
+    {
+      "date": "2026-09-24",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "cb753f074888e7928f82384a795d901894dc2b508a32d81725a41fc5515c85d8"
+    },
+    {
+      "date": "2026-09-25",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "21f183ce3444fab2f242b83c382a830a7d26a2902d5ca89b967339ac96833684"
+    },
+    {
+      "date": "2026-09-27",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "1a0dc3c655f112b8ead1c3d7d4e3e979f5546769f35447a4577f7864d6b50542"
+    },
+    {
+      "date": "2026-09-28",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "b3effd11cb7c03a20f8930e53f529671e3cca5742ab9d22fde9ee576f80f894f"
+    },
+    {
+      "date": "2026-09-29",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "f2b9af56385ae760a4391ffb7c66e450a1d8006261d054f5fd1089d2aa12c5e1"
+    },
+    {
+      "date": "2026-10-18",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "3cb3a81e8581d748c37e2e506145407d14b2dca44eab67de3857eb3390eb72aa"
+    },
+    {
+      "date": "2026-10-19",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 2,
+      "changeId": "ddfc9b6971efe6e6ac780b23e1cd2020f09606fe16095ae1ef5ba5ebe8a02ff3"
+    }
+  ],
+  "bounds": {
+    "days": 30,
+    "sessionsPerDay": 200,
+    "queryLimit": 201,
+    "concurrency": 1,
+    "attemptsPerDay": 3,
+    "maximumDocumentReads": 18180,
+    "maximumWrites": 60,
+    "rawReads": 0,
+    "rawWrites": 0
+  },
+  "reviewSha256": "8d2f36e9f24bf0f364ec9723e6a13564ba92bab0a9c8653c5d5d133cfce771b6"
+}
