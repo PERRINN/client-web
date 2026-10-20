@@ -2,11 +2,12 @@ import { GreenpowerChannel, channelsFor, sampleTime } from './greenpowerData';
 import { DaySession, RecordedEvent, effectiveDefaults } from './greenpowerDay';
 import { sessionAmpHours, savedGear } from './greenpowerSessions';
 
+// Local display state only: hidden retains graph rows; excluded removes them.
 export interface OverlaySession {
   id: string; label: string; colour: string; session: DaySession;
-  date: string; channels: GreenpowerChannel[]; loaded: boolean; hidden: boolean;
+  date: string; channels: GreenpowerChannel[]; loaded: boolean; hidden: boolean; excluded: boolean;
 }
-export interface OverlayTrace { id: string; label: string; colour: string; channel: GreenpowerChannel; dashed?: boolean; sessionId?: string; hidden?: boolean; }
+export interface OverlayTrace { id: string; label: string; colour: string; channel: GreenpowerChannel; dashed?: boolean; sessionId?: string; hidden?: boolean; excluded?: boolean; }
 export function overlayColour(index: number) { return `hsl(${(205 + index * 137.508) % 360} 60% 72%)`; }
 export function overlayLabel(event: RecordedEvent, session: DaySession) {
   return [event.date, event.eventName, effectiveDefaults(event, session).driver].filter(Boolean).join(' · ');

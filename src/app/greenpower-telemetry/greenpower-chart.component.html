@@ -15,7 +15,9 @@
     <div class="overlay-readout" aria-label="Session readings">
       <span class="overlay-time">{{ cursor === undefined ? 'Elapsed time' : time(cursor) }}</span>
       @for (trace of overlays; track trace.id) {
-        <div class="overlay-entry" [class.hidden-session]="trace.hidden" [title]="trace.label + ' · ' + trace.channel.label" [attr.aria-label]="trace.label + ' · ' + trace.channel.label + ': ' + overlayValue(trace)"><span class="overlay-name">{{ trace.label }}{{ trace.dashed ? ' · Right' : heading ? ' · Left' : '' }}</span><span class="overlay-value">{{ overlayValue(trace) }}</span>@if (trace.sessionId) { <button type="button" class="overlay-visibility" [style.color]="trace.colour" [attr.title]="(trace.hidden ? 'Show ' : 'Hide ') + trace.label" [attr.aria-label]="(trace.hidden ? 'Show ' : 'Hide ') + trace.label" [attr.aria-pressed]="!trace.hidden" (click)="overlayVisibilityChange.emit(trace.sessionId)"></button> }</div>
+        @if (!trace.excluded) {
+          <div class="overlay-entry" [class.hidden-session]="trace.hidden" [title]="trace.label + ' · ' + trace.channel.label" [attr.aria-label]="trace.label + ' · ' + trace.channel.label + ': ' + overlayValue(trace)"><span class="overlay-name">{{ trace.label }}{{ trace.dashed ? ' · Right' : heading ? ' · Left' : '' }}</span><span class="overlay-value">{{ overlayValue(trace) }}</span>@if (trace.sessionId) { <button type="button" class="overlay-visibility" [style.color]="trace.colour" [attr.title]="(trace.hidden ? 'Show ' : 'Hide ') + trace.label" [attr.aria-label]="(trace.hidden ? 'Show ' : 'Hide ') + trace.label" [attr.aria-pressed]="!trace.hidden" (click)="overlayVisibilityChange.emit(trace.sessionId)"></button> }</div>
+        }
       }
     </div>
   } @else {

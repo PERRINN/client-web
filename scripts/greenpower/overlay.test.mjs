@@ -144,6 +144,8 @@ test('account changes discard pending reads and errors can retry without duplica
   assert.ok(h.service.error); assert.equal(h.service.sessions.filter(item => item.loaded).length, 0);
   h.service.toggleVisibility(h.service.sessions[0].id);
   assert.equal(h.service.sessions[0].hidden, false, 'pending sessions cannot be toggled');
+  h.service.toggleInclusion(h.service.sessions[0].id);
+  assert.equal(h.service.sessions[0].excluded, false, 'pending sessions cannot be excluded');
   h.fail(false); await h.service.load();
   assert.equal(h.service.error, ''); assert.equal(h.service.sessions[0].channels[0].points.length, 3);
   h.service.clear();
@@ -170,5 +172,33 @@ test('visibility changes preserve zoom, cursor and loaded data even when every s
   h.service.toggleVisibility(h.service.sessions[0].id);
   assert.equal(component.allHidden, false); assert.equal(component.charts[0].traces.filter(trace => !trace.hidden).length, 1);
   assert.equal(component.window, window); assert.equal(component.cursor, 1000);
+  component.ngOnDestroy(); h.service.ngOnDestroy();
+});
+
+
+test('main list exclusion and graph hiding are independent and reuse loaded data', async () => {
+  const h = fixture(3, 3);
+  const component = new GreenpowerOverlayComponent(h.service, { changed: new Subject(), charts: channels => channels }, { markForCheck() {} });
+  await h.service.load(true);
+  const first = h.service.sessions[0], before = h.calls.length;
+  const window = { start: 500, end: 1500 };
+  component.zoom(window); component.cursor = 1000;
+  h.service.toggleVisibility(first.id);
+  h.service.toggleInclusion(first.id);
+  assert.ok(component.charts.every(chart => chart.traces.filter(trace => trace.sessionId === first.id).every(trace => trace.hidden && trace.excluded)));
+  h.service.toggleInclusion(first.id);
+  assert.equal(h.service.sessions[0].hidden, true, 'restoring inclusion preserves graph hiding');
+  assert.ok(component.charts.every(chart => chart.traces.filter(trace => trace.sessionId === first.id).every(trace => trace.hidden && !trace.excluded)));
+  h.service.toggleVisibility(first.id);
+  for (const session of h.service.sessions) h.service.toggleInclusion(session.id);
+  assert.equal(component.allHidden, true);
+  assert.ok(component.charts.length > 0);
+  assert.ok(component.charts.every(chart => chart.traces.every(trace => trace.hidden && trace.excluded)));
+  assert.equal(component.window, window); assert.equal(component.cursor, 1000);
+  h.service.toggleInclusion(first.id);
+  assert.equal(component.allHidden, false);
+  assert.equal(h.service.sessions[0].channels, first.channels);
+  assert.equal(h.service.sessions[0].colour, first.colour);
+  assert.equal(h.calls.length, before, 'toggles never fetch data');
   component.ngOnDestroy(); h.service.ngOnDestroy();
 });

@@ -10,7 +10,7 @@
     @if (overlay.sessions.length) {
       <ul class="session-list" aria-label="Loaded and pending sessions">
         @for (session of overlay.sessions; track session.id) {
-          <li><span class="session-label">{{ session.label }}@if (!session.loaded) { <span class="pending"> · Pending</span> }</span><button type="button" class="visibility-toggle" [style.color]="session.colour" [attr.title]="(session.hidden ? 'Show ' : 'Hide ') + session.label" [disabled]="!session.loaded" [attr.aria-label]="(session.hidden ? 'Show ' : 'Hide ') + session.label" [attr.aria-pressed]="!session.hidden" (click)="overlay.toggleVisibility(session.id)"></button></li>
+          <li><span class="session-label">{{ session.label }}@if (!session.loaded) { <span class="pending"> · Pending</span> }</span><button type="button" class="visibility-toggle" [style.color]="session.colour" [attr.title]="(session.excluded ? 'Show ' : 'Hide ') + session.label" [disabled]="!session.loaded" [attr.aria-label]="(session.excluded ? 'Show ' : 'Hide ') + session.label" [attr.aria-pressed]="!session.excluded" (click)="overlay.toggleInclusion(session.id)"></button></li>
         }
       </ul>
     }
@@ -25,7 +25,7 @@
     <span class="axis-label" role="status">@if (allHidden) { All sessions hidden. } @else { Elapsed time · @if (hasVoltage) { solid left / dashed right } }</span>
     @if (!panelOpen) {
       @for (session of overlay.sessions; track session.id) {
-        @if (session.loaded && !session.hidden) { <span class="session-key" [title]="session.label"><i [style.background]="session.colour"></i>{{ session.label }}</span> }
+        @if (session.loaded && !session.excluded && !session.hidden) { <span class="session-key" [title]="session.label"><i [style.background]="session.colour"></i>{{ session.label }}</span> }
       }
     }
   </div>

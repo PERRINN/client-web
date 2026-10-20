@@ -36,11 +36,12 @@ const channels=(offset=0)=>['Current','Voltage left','Voltage right','Voltage di
  points:Array.from({length:200},(_,i)=>({time:i*30000,value:(index===0?20:index===3?1:12)+Math.sin(i/15+offset)*(index===0?4:.5)}))
 }));
 const overlay:any={active:false,loading:false,more:false,error:'',sessions:[],changed:new Subject(),end:5970000,hasMore:false,
- get channels(){return channels()},get visibleSessions(){return this.sessions.filter(s=>s.loaded&&!s.hidden)},get status(){return this.loading?'Loading race sessions…':this.sessions.length+' sessions'},
+ get channels(){return channels()},get visibleSessions(){return this.sessions.filter(s=>s.loaded&&!s.hidden&&!s.excluded)},get status(){return this.loading?'Loading race sessions…':this.sessions.length+' sessions'},
  async load(reset=false){this.active=true;this.loading=true;this.changed.next();await new Promise(r=>setTimeout(r,80));
-  this.sessions=Array.from({length:6},(_,i)=>({id:'session-'+i,label:'2026-06-'+(14+i)+' · '+(i%2?'Goodwood':'Dunsfold')+' · Driver '+(i+1),colour:overlayColour(i),loaded:true,hidden:false,channels:channels(i),session:{startAt:0,endAt:this.end}}));
+  this.sessions=Array.from({length:6},(_,i)=>({id:'session-'+i,label:'2026-06-'+(14+i)+' · '+(i%2?'Goodwood':'Dunsfold')+' · Driver '+(i+1),colour:overlayColour(i),loaded:true,hidden:false,excluded:false,channels:channels(i),session:{startAt:0,endAt:this.end}}));
   this.loading=false;this.changed.next()},
- toggleVisibility(id){this.sessions=this.sessions.map(s=>s.id===id?{...s,hidden:!s.hidden}:s);this.changed.next()},
+ toggleVisibility:GreenpowerOverlayService.prototype.toggleVisibility,
+ toggleInclusion:GreenpowerOverlayService.prototype.toggleInclusion,
  clear(){this.active=false;this.sessions=[];this.loading=false;this.error='';this.changed.next()}
 };
 let record={...selectionFor(channels()),revision:1,updatedBy:'admin'};
@@ -115,15 +116,20 @@ try {
   assert.notEqual(await toggle.evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)');
   const buttonBefore=await toggle.boundingBox();
   const cursorBefore=await chart.locator('.overlay-time').textContent();
+  const plotHeightBefore=(await plot.boundingBox()).height;
   await toggle.click();
   const show=page.locator('.session-list').getByRole('button',{name:'Show '+keysBefore[0],exact:true});
   assert.deepEqual(await show.boundingBox(),buttonBefore,'Hide/Show retains button geometry');
   assert.equal(await show.evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)','hidden list square is empty');
   assert.deepEqual(await page.locator('.session-list .session-label').allTextContents(),keysBefore,'hidden session stays loaded in list');
   assert.equal(await chart.locator('svg .trace').count(),5,'hidden session leaves chart');
+  assert.equal(await chart.locator('.overlay-entry').count(),5,'main list removes the reading row');
+  assert.equal(await page.locator('app-greenpower-chart').nth(2).locator('.overlay-entry').count(),10,'both voltage rows are removed');
+  assert.equal((await plot.boundingBox()).height,plotHeightBefore,'plot height stays stable');
   assert.equal(await chart.locator('.overlay-time').textContent(),cursorBefore,'visibility preserves cursor');
   await show.click();
   assert.equal(await chart.locator('svg .trace').count(),6,'shown session returns without loading');
+  assert.deepEqual(await chart.locator('.overlay-name').allTextContents(),keysBefore,'restoring returns rows in original order');
   const chartToggle=chart.getByRole('button',{name:'Hide '+keysBefore[0],exact:true});
   await chartToggle.scrollIntoViewIfNeeded();
   assert.deepEqual(await chartToggle.evaluate(el=>({width:el.offsetWidth,height:el.offsetHeight,radius:getComputedStyle(el).borderRadius,text:el.textContent})),{width:14,height:14,radius:'0px',text:''},'compact square without visible text');
@@ -143,7 +149,12 @@ try {
   assert.deepEqual(await chart.locator('.overlay-entry').first().boundingBox(),rowBefore,'hidden row stays in place');
   assert.deepEqual(await plot.boundingBox(),plotBefore,'toggle preserves plot geometry');
   assert.equal(await chart.locator('.overlay-time').textContent(),cursorBefore);
-  await chartShow.press('Space');
+  assert.equal(await page.locator('.session-list').getByRole('button',{name:'Hide '+keysBefore[0],exact:true}).getAttribute('aria-pressed'),'true','graph hiding preserves main list inclusion');
+  await page.locator('.session-list').getByRole('button',{name:'Hide '+keysBefore[0],exact:true}).click();
+  assert.equal(await chart.locator('.overlay-entry').count(),5);
+  await page.locator('.session-list').getByRole('button',{name:'Show '+keysBefore[0],exact:true}).click();
+  assert.equal(await chartShow.count(),1,'restoring inclusion preserves graph hiding');
+  await chartShow.focus();await chartShow.press('Space');
   assert.equal(await chart.locator('svg .trace').count(),6);
 
   await page.evaluate(()=>{for(const session of window.overlayHarness.overlay.sessions)window.overlayHarness.overlay.toggleVisibility(session.id)});
@@ -154,6 +165,15 @@ try {
   await page.evaluate(()=>{for(const session of window.overlayHarness.overlay.sessions)window.overlayHarness.overlay.toggleVisibility(session.id)});
   assert.equal(await chart.locator('svg .trace').count(),6);
 
+  await page.evaluate(()=>{for(const session of window.overlayHarness.overlay.sessions)window.overlayHarness.overlay.toggleInclusion(session.id)});
+  assert.equal(await chart.locator('.overlay-entry').count(),0,'all excluded rows disappear');
+  assert.equal(await chart.locator('svg .trace').count(),0,'all excluded traces disappear');
+  assert.equal(await page.locator('app-greenpower-chart').count(),4,'empty chart frames remain');
+  assert.equal(await page.getByText('All sessions hidden.',{exact:true}).count(),1);
+  assert.equal((await plot.boundingBox()).height,300);
+  await page.screenshot({path:output+'/'+name+'-excluded.png',fullPage:true});
+  await page.evaluate(()=>{for(const session of window.overlayHarness.overlay.sessions)window.overlayHarness.overlay.toggleInclusion(session.id)});
+  assert.deepEqual(await chart.locator('.overlay-name').allTextContents(),keysBefore);
   assert.equal((await plot.boundingBox()).height,300,'overlay plot height doubles');
   await page.evaluate(()=>window.scrollTo(0,0));
   const beforeEditing=await toolbar.boundingBox();

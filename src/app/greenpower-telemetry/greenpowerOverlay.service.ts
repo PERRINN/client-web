@@ -48,7 +48,12 @@ export class GreenpowerOverlayService implements OnDestroy {
     this.sessions = []; this.queue = []; this.cursor = undefined; this.reader = undefined;
     this.parents.clear(); this.cache.clear(); this.colourIndex = 0; this.changed.next();
   }
-  get visibleSessions() { return this.sessions.filter(item => item.loaded && !item.hidden); }
+  get visibleSessions() { return this.sessions.filter(item => item.loaded && !item.hidden && !item.excluded); }
+  toggleInclusion(id: string) {
+    if (!this.sessions.some(item => item.id === id && item.loaded)) return;
+    this.sessions = this.sessions.map(item => item.id === id ? { ...item, excluded: !item.excluded } : item);
+    this.changed.next();
+  }
   toggleVisibility(id: string) {
     if (!this.sessions.some(item => item.id === id && item.loaded)) return;
     this.sessions = this.sessions.map(item => item.id === id ? { ...item, hidden: !item.hidden } : item);
@@ -85,7 +90,7 @@ export class GreenpowerOverlayService implements OnDestroy {
             event = value; this.parents.set(date, event);
           }
           page.push({ id: doc.ref.path, date, session, colour: overlayColour(this.colourIndex++),
-            label: overlayLabel(event, session), channels: [], loaded: false, hidden: false });
+            label: overlayLabel(event, session), channels: [], loaded: false, hidden: false, excluded: false });
         }
         this.queue = page; this.sessions = [...this.sessions, ...page];
         this.cursor = snapshot.docs.at(-1) || this.cursor; this.more = snapshot.size === 30;
