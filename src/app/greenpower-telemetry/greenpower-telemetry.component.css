@@ -82,3 +82,7 @@ select { border-color: var(--color-border); }
 @media (max-width: 520px) { .editor-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 .compact-action[aria-pressed="true"] { background: var(--color-selected); }
+@media (max-width: 380px) {
+  .actions { overflow-x: auto; scrollbar-width: none; }
+  .view-navigation { flex-shrink: 0; }
+}

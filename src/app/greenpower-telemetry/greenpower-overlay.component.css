@@ -1,0 +1,27 @@
+:host { display: block; min-width: 0; }
+.overlay-panel { padding: 14px; margin: 12px 0; background: var(--color-surface); }
+.overlay-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+button, select { font: inherit; font-size: 16px; line-height: 1.45; min-height: 44px; padding: 8px 12px; border: 1px solid transparent; border-radius: 6px; background: var(--color-raised); color: var(--color-text); margin: 0; }
+select { border-color: var(--color-border); max-width: 100%; min-width: 0; flex: 1; }
+button:disabled, select:disabled { opacity: .6; }
+button:focus-visible, select:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.session-list { list-style: none; margin: 10px 0; padding: 0; max-height: 260px; overflow-y: auto; }
+li { display: grid; grid-template-columns: minmax(0, 1fr) 14px; gap: 8px; align-items: center; min-height: 22px; }
+.session-label { font-size: 15px; line-height: 1.45; overflow-wrap: anywhere; }
+.pending, p, .axis-label { color: var(--color-text-secondary); }
+.pending { font: inherit; }
+p { font-size: 15px; line-height: 1.45; margin: 8px 0; }
+.error { color: var(--color-danger-text); }
+.overlay-summary { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 12px 0; max-height: 130px; overflow-y: auto; }
+.session-key, .axis-label { font-size: 13px; line-height: 1.45; }
+.session-key { display: inline-flex; align-items: center; gap: 6px; overflow-wrap: anywhere; }
+.session-key i { flex: 0 0 14px; height: 2px; }
+.axis-label { flex-basis: 100%; }
+.charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 900px) { .charts { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 520px) { .overlay-controls select { flex: 1; } }
+
+.visibility-toggle { display: block; width: 14px; height: 14px; min-height: 0; padding: 0; margin: 0; border: 1px solid currentColor; border-radius: 0; background: transparent; transition: none; cursor: pointer; }
+.visibility-toggle[aria-pressed="true"] { background: currentColor; }
+.visibility-toggle:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+@media (hover: hover) and (pointer: fine) { .visibility-toggle:hover:not(:disabled) { outline: 1px solid var(--color-text-secondary); outline-offset: -2px; } }

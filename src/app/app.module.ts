@@ -1,4 +1,5 @@
 import { ImageViewerComponent } from './image-viewer/image-viewer.component';
+import { GreenpowerOverlayComponent } from './greenpower-telemetry/greenpower-overlay.component';
 import { GreenpowerTelemetryComponent } from './greenpower-telemetry/greenpower-telemetry.component';
 import { GreenpowerMapComponent } from './greenpower-telemetry/greenpower-map.component';
 import { GreenpowerLapListComponent } from './greenpower-telemetry/greenpower-lap-list.component';
@@ -73,6 +74,7 @@ export const firebaseConfig = {
 
 @NgModule({ declarations: [
         GreenpowerTelemetryComponent,
+        GreenpowerOverlayComponent,
         GreenpowerChartComponent,
         GreenpowerEventSelectorComponent,
         GreenpowerEventEditorComponent,

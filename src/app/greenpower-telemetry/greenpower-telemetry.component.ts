@@ -14,18 +14,20 @@ import { GreenpowerEventsService } from './greenpowerEvents.service';
 import { GreenpowerEventEditService } from './greenpowerEventEdit.service';
 import { DaySession, RecordedEvent } from './greenpowerDay';
 import { SessionInterval, sessionIntervals, sessionLapAnalysis, sessionAmpHours, savedGear } from './greenpowerSessions';
+import { GreenpowerOverlayService } from './greenpowerOverlay.service';
 import { recordingHeader } from './greenpowerContext';
 
 @Component({
   selector: 'app-greenpower-telemetry', standalone: false,
   templateUrl: './greenpower-telemetry.component.html', styleUrls: ['./greenpower-telemetry.component.css'],
-  providers: [GreenpowerTelemetryService, GreenpowerViewService, GreenpowerLapService, GreenpowerEventsService, GreenpowerEventEditService]
+  providers: [GreenpowerTelemetryService, GreenpowerViewService, GreenpowerLapService, GreenpowerEventsService, GreenpowerEventEditService, GreenpowerOverlayService]
 })
 export class GreenpowerTelemetryComponent implements OnDestroy {
   @ViewChild('historyButton') private historyButton?: ElementRef<HTMLButtonElement>;
   @ViewChild(GreenpowerMapComponent) private map?: GreenpowerMapComponent;
   channels: GreenpowerChannel[] = [];
   historyOpen = false;
+  overlayOpen = false;
   activeView: 'data' | 'track' | 'laps' = 'data';
   editorPanel: 'view' | 'event' | 'sessions' = 'view';
   metadataEditing = false;
@@ -43,7 +45,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
       start: data.start, end: data.end, lastReceived: data.latest?.receivedAt, liveStatus: this.liveStatus,
       event: this.loadedEvent });
   }
-  get heading() { return this.header.title; }
+  get heading() { return this.overlay.active ? '2026 race sessions' : this.header.title; }
   get wholeEventLoaded() { return !!this.loadedEvent && !this.telemetry.live; }
   get editing() { return this.view.editing || this.metadataEditing; }
   get dataset() { return this.telemetry.day + ':' + this.telemetry.live + ':' + this.telemetry.recordingKey; }
@@ -68,14 +70,14 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   private context = '';
   get start() { return this.window?.start ?? this.telemetry.start; }
   get end() { return this.window?.end ?? this.telemetry.end; }
-  selectView(view: 'data' | 'track' | 'laps') { this.drag.cancel(); this.activeView = view; }
+  selectView(view: 'data' | 'track' | 'laps') { this.drag.cancel(); if (!this.overlay.active || view === 'data') this.activeView = view; }
   selectLap(window: ChartWindow) { this.zoom(window); this.selectView('data'); }
   zoom(window?: ChartWindow) { this.window = window; this.cursor = undefined; }
   now = Date.now();
   private readonly previousTitle: string;
   private readonly changes: Subscription;
   private readonly clock: ReturnType<typeof setInterval>;
-  constructor(public telemetry: GreenpowerTelemetryService, change: ChangeDetectorRef, private title: Title, public view: GreenpowerViewService, public lapConfig: GreenpowerLapService, public events: GreenpowerEventsService, public eventEdit: GreenpowerEventEditService) {
+  constructor(public telemetry: GreenpowerTelemetryService, change: ChangeDetectorRef, private title: Title, public view: GreenpowerViewService, public lapConfig: GreenpowerLapService, public events: GreenpowerEventsService, public eventEdit: GreenpowerEventEditService, public overlay: GreenpowerOverlayService) {
     this.drag = new ChannelDrag({
       valid: () => this.activeView === 'data' && this.editorPanel === 'view' && view.editing && view.canEdit && !view.saving && this.editorKind === this.dragKind,
       reorder: (id, index) => view.reorder(this.dragKind, id, index),
@@ -90,6 +92,12 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
       if (this.context !== context || !telemetry.channels.length) { this.zoom(); this.context = context; }
       this.refreshView(); this.syncHeader(); change.markForCheck();
     });
+    let comparing = overlay.active;
+    this.changes.add(overlay.changed.subscribe(() => {
+      if (comparing !== overlay.active) { comparing = overlay.active; this.drag.cancel(); this.view.cancel(); }
+      if (overlay.active) this.activeView = 'data';
+      this.refreshEditor(); this.syncHeader(); change.markForCheck();
+    }));
     this.changes.add(view.changed.subscribe(() => { this.refreshView(); change.markForCheck(); }));
     this.changes.add(lapConfig.changed.subscribe(() => { this.refreshView(); change.markForCheck(); }));
     this.changes.add(events.changed.subscribe(() => {
@@ -117,9 +125,8 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   private refreshView() {
     if ((!this.view.editing || !this.view.canEdit || this.view.saving) && this.drag.pending) this.drag.cancel();
     if (!this.view.editing) this.orderNotice = '';
-    this.selectedCount = Object.keys(this.view.draft[this.editorKind]).length;
     this.lapConfig.select(this.dataset);
-    this.lapConfig.syncEditing(this.view.editing);
+    this.lapConfig.syncEditing(this.view.editing && !this.overlay.active);
     this.lapConfig.update(this.telemetry.channels, this.telemetry.end);
     const analysis = this.lapConfig.analysis;
     if (this.rawLaps !== analysis.laps || this.lapSessions !== this.sessions) {
@@ -137,10 +144,20 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     this.voltageRight = this.channels.find(channel => channel.id === VOLTAGE_RIGHT);
     this.scalars = this.view.scalars(this.channels);
     this.charts = this.view.charts(this.channels);
-    this.available = this.view.editing ? this.view.available(this.channels, this.editorKind) : [];
+    this.refreshEditor();
   }
-  saveView() { void this.view.save(this.lapConfig.selectionWrite()); }
+  private get editorChannels() { return this.overlay.active ? this.overlay.channels : this.channels; }
+  private refreshEditor() {
+    this.selectedCount = Object.keys(this.view.draft[this.editorKind]).length;
+    this.available = this.view.editing ? this.view.available(this.editorChannels, this.editorKind) : [];
+  }
+  saveView() { void this.view.save(this.overlay.active ? undefined : this.lapConfig.selectionWrite()); }
+  toggleOverlay() {
+    this.drag.cancel(); this.historyOpen = false; this.overlayOpen = !this.overlayOpen; this.activeView = 'data';
+  }
   toggleEditing() {
+    if (this.overlay.active && !this.view.canEdit) return;
+    if (!this.overlay.active) this.overlayOpen = false;
     if (this.activeView === 'laps' && (!this.events.canEdit || !this.eventEdit.canEditSessions) || this.eventEdit.locked || this.view.saving || this.lapConfig.saving) return;
     if (this.historyOpen) {
       this.historyOpen = false;
@@ -149,7 +166,10 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     if (this.editing) { this.view.cancel(); this.eventEdit.cancel(); this.metadataEditing = false; }
     else {
       if (this.activeView === 'laps') { this.metadataEditing = true; this.editorPanel = 'sessions'; }
-      else if (this.view.canEdit) this.view.edit(this.channels);
+      else if (this.view.canEdit) {
+        if (this.overlay.active) { this.editorPanel = 'view'; this.editorKind = 'charts'; }
+        this.view.edit(this.editorChannels);
+      }
       else { this.metadataEditing = true; this.editorPanel = 'event'; }
     }
   }
@@ -168,6 +188,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   }
   loadSelectedRecording() {
     if (!this.events.eventReady || !this.events.selectedEvent || this.eventEdit.locked || this.telemetry.loading) return;
+    this.overlay.clear(); this.overlayOpen = false;
     this.loadedEvent = JSON.parse(JSON.stringify(this.events.selectedEvent));
     this.eventEdit.cancel();
     this.eventEdit.recordingEvent = this.events.migrated ? this.loadedEvent : undefined;
@@ -246,9 +267,10 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   async history() {
     if (this.eventEdit.locked || this.view.saving || this.lapConfig.saving) return;
     this.drag.cancel();
+    this.overlayOpen = false;
     this.historyOpen = !this.historyOpen;
     if (this.historyOpen && !this.events.loadedEvents && !this.events.loadingEvents) await this.events.loadEvents();
   }
-  live() { if (!this.eventEdit.locked) { this.loadedEvent = undefined; this.eventEdit.cancel(); this.eventEdit.recordingEvent = undefined; this.clearSessions(); this.historyOpen = false; void this.telemetry.select(londonDay(), true); } }
+  live() { if (!this.eventEdit.locked) { this.overlay.clear(); this.overlayOpen = false; this.loadedEvent = undefined; this.eventEdit.cancel(); this.eventEdit.recordingEvent = undefined; this.clearSessions(); this.historyOpen = false; void this.telemetry.select(londonDay(), true); } }
   ngOnDestroy() { this.loadedEvent = undefined; this.clearSessions(); this.changes.unsubscribe(); this.drag.cancel(); clearInterval(this.clock); this.title.setTitle(this.previousTitle); }
 }

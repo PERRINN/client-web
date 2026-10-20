@@ -4,19 +4,22 @@ import { formatAxisValue, formatTelemetryValue } from '../telemetry/sessionHisto
 
 export interface ChartWindow { start: number; end: number; }
 export type ChartPoint = { time: number; value: number };
-export const CURRENT_LIMIT_AMPS = 24;
-export function isCurrentChannel(channel: GreenpowerChannel) { return channel.id === '["A"]:A'; }
+export function channelLimit(channel: GreenpowerChannel) {
+  if (channel.id === '["A"]:A' || channel.id === '["AH"]:Ah') return 24;
+  return undefined;
+}
 
 export function chartY(value: number, axis: { min: number; max: number }) {
   const scale = Math.max(1, Math.abs(axis.min), Math.abs(axis.max));
   return 110 - (value / scale - axis.min / scale) / (axis.max / scale - axis.min / scale || 1) * 100;
 }
 export { formatAxisValue, formatTelemetryValue };
-export function plotFor(points: ChartPoint[], start: number, end: number, width: number, limit?: number, comparison: ChartPoint[] = []) {
+export function plotFor(points: ChartPoint[], start: number, end: number, width: number, limit?: number, comparison: ChartPoint[] = [], overlays: ChartPoint[][] = []) {
   const visible = points.slice(pointIndex(points, start), pointIndex(points, end, true));
   let min = Infinity, max = -Infinity;
   const other = comparison.slice(pointIndex(comparison, start), pointIndex(comparison, end, true));
-  for (const series of [visible, other]) for (const point of series) { min = Math.min(min, point.value); max = Math.max(max, point.value); }
+  const extra = overlays.map(series => series.slice(pointIndex(series, start), pointIndex(series, end, true)));
+  for (const series of [visible, other, ...extra]) for (const point of series) { min = Math.min(min, point.value); max = Math.max(max, point.value); }
   if (limit !== undefined) { min = Math.min(min, limit); max = Math.max(max, limit); }
   // Normalize only extreme magnitudes so the shared rounding algorithm cannot overflow.
   const scale = Math.max(Math.abs(min), Math.abs(max));
@@ -28,7 +31,8 @@ export function plotFor(points: ChartPoint[], start: number, end: number, width:
   const magnitude = Math.max(1, Math.abs(axis.min), Math.abs(axis.max));
   axis.ticks.forEach(tick => tick.y = 110 - (tick.value / magnitude - axis.min / magnitude) / (axis.max / magnitude - axis.min / magnitude || 1) * 100);
   const bins = Math.max(1, Math.ceil(width));
-  return { axis, trace: chartTrace(visible, start, end, bins, axis), comparison: chartTrace(other, start, end, bins, axis), empty: !visible.length && !other.length };
+  return { axis, trace: chartTrace(visible, start, end, bins, axis), comparison: chartTrace(other, start, end, bins, axis),
+    overlays: extra.map(series => chartTrace(series, start, end, bins, axis)), empty: !visible.length && !other.length && !extra.some(series => series.length) };
 }
 export function nearestPoint(points: ChartPoint[], time: number, start: number, end: number) {
   const index = pointIndex(points, time);
@@ -56,4 +60,9 @@ export function clockTicks(start: number, end: number, width: number) {
     ticks.push({ position: (time - start) / (end - start) * 100, label: londonTime(time) + (step < 1000 ? '.' + String(time % 1000).padStart(3, '0') : '') });
   }
   return ticks;
+}
+
+export function elapsedTime(time: number) {
+  const seconds = Math.max(0, Math.floor(Math.round(time) / 1000));
+  return `${Math.floor(seconds / 3600)}:${String(Math.floor(seconds / 60) % 60).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
 }

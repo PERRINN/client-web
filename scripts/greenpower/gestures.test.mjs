@@ -33,7 +33,7 @@ test('current chart updates measured values and keeps its limit through zoom and
   c.channel = {id:'["A"]:A',label:'Current',unit:'A',value:'20',points:[{time:0,value:100},{time:150,value:20},{time:159,value:20}]};
   c.start = 150; c.end = 159;
   c.ngOnChanges({channel:{}});
-  assert.equal(c.hasCurrentLimit, true);
+  assert.equal(c.limit, 24);
   assert.equal(c.model.trace.max, 20);
   assert.ok(c.model.axis.max >= 24 && c.model.axis.max < 100);
   c.cursor = 159;
@@ -44,7 +44,27 @@ test('current chart updates measured values and keeps its limit through zoom and
   assert.ok(c.limitY >= 10 && c.limitY <= 110);
   c.channel = {...c.channel,id:'["Vt"]:V'};
   c.ngOnChanges({channel:{}});
-  assert.equal(c.hasCurrentLimit, false);
+  assert.equal(c.limit, undefined);
+  c.ngOnDestroy();
+});
+test('amp-hour limit remains visible below and above 24 Ah, including empty windows', () => {
+  const {component:c} = fixture();
+  for (const values of [[0, 10], [25, 30], []]) {
+    c.channel = {id:'["AH"]:Ah',label:'Amp hours used',unit:'Ah',value:'10',points:values.map((value, i)=>({time:i*1000,value}))};
+    c.ngOnChanges({channel:{}});
+    assert.equal(c.limit, 24);
+    assert.ok(c.model.axis.min <= 24 && c.model.axis.max >= 24);
+    assert.ok(c.limitY >= 10 && c.limitY <= 110);
+    if (values.length) assert.equal(c.model.trace.max, Math.max(...values));
+    c.start = 500;
+    c.ngOnChanges({start:{}});
+    assert.equal(c.limit, 24);
+    assert.ok(c.limitY >= 10 && c.limitY <= 110);
+    c.start = 0;
+  }
+  c.channel = {...c.channel, id:'["Vt"]:V', unit:'V'};
+  c.ngOnChanges({channel:{}});
+  assert.equal(c.limit, undefined);
   c.ngOnDestroy();
 });
 test('zoom stays locked through a held drag and live updates for touch and mouse', async () => {
@@ -197,5 +217,47 @@ test('ordinary double click still resets zoom and cursor', () => {
   c.down(p(20,'mouse')); c.up(p(20,'mouse')); c.doubleClick();
   assert.deepEqual(c.windowChange.values,[undefined]);
   assert.deepEqual(c.cursorChange.values,[undefined]);
+  c.ngOnDestroy();
+});
+
+test('overlay cursor uses elapsed time, can inspect the longer session and leaves ended sessions blank', () => {
+  const { component: c } = fixture();
+  const short = { id: 'first', label: 'First', colour: 'blue', channel: c.channel };
+  const long = { ...short, id: 'second', channel: { ...c.channel, points: [{ time: 0, value: 10 }, { time: 2000, value: 20 }] } };
+  c.overlays = [short, long]; c.end = 2000;
+  c.ngOnChanges({ overlays: {}, end: {} });
+  c.down({pointerId:1,pointerType:'mouse',button:0,isPrimary:true,clientX:20,clientY:0,timeStamp:Date.now()});
+  c.overlays = [...c.overlays, { ...long, id: 'third' }];
+  c.ngOnChanges({ overlays: {} });
+  assert.equal(c.drag, undefined, 'a changed session set cancels the previous gesture');
+  assert.equal(c.model.overlays.length, 3, 'new trace paths render immediately during a session load');
+  c.inspect(.75); assert.equal(c.cursorChange.values.at(-1), 1500);
+  c.cursor = 1500;
+  assert.equal(c.overlayValue(short), '—'); assert.equal(Number(c.overlayValue(long)), 20);
+  const key = key => { c.key({ key, preventDefault() {} }); c.cursor = c.cursorChange.values.at(-1); };
+  key('ArrowRight'); assert.equal(c.cursor, 2000);
+  assert.equal(c.time(2000), '0:00:02');
+  c.reset(); assert.equal(c.windowChange.values.at(-1), undefined); assert.equal(c.cursorChange.values.at(-1), undefined);
+  c.ngOnDestroy();
+});
+
+test('hidden overlay traces do not affect scaling, readings or keyboard stepping', () => {
+  const {component:c} = fixture();
+  const channel = (value, time) => ({id:'["A"]:A',label:'Current',unit:'A',value:String(value),points:[{time,value}]});
+  c.channel = channel(1000,1000);
+  c.overlays = [{id:'hidden',sessionId:'hidden-session',label:'Hidden',colour:'red',hidden:true,channel:c.channel},
+    {id:'visible',sessionId:'visible-session',label:'Visible',colour:'blue',channel:channel(10,500)}];
+  c.ngOnChanges({overlays:{}});
+  assert.ok(c.model.axis.max < 1000);
+  assert.equal(c.model.overlays[0].path,'');
+  c.cursor=1000;
+  assert.equal(c.overlayValue(c.overlays[0]),'—');
+  c.key({key:'ArrowRight',preventDefault(){}});
+  assert.equal(c.cursorChange.values.at(-1),500);
+  c.overlays = c.overlays.map(trace=>({...trace,hidden:true}));
+  c.ngOnChanges({overlays:{}});
+  assert.ok(c.model.empty);
+  c.key({key:'ArrowRight',preventDefault(){}});
+  assert.equal(c.cursorChange.values.at(-1),undefined);
   c.ngOnDestroy();
 });

@@ -7,34 +7,38 @@
   } @else {
     <div class="controls">
       <div class="actions">
-        <button type="button" [class.primary]="telemetry.live" [attr.aria-pressed]="telemetry.live" [disabled]="eventEdit.locked" (click)="live()">Live</button>
+        <button type="button" [class.primary]="telemetry.live && !overlay.active" [attr.aria-pressed]="telemetry.live && !overlay.active" [disabled]="eventEdit.locked" (click)="live()">Live</button>
         <button #historyButton type="button" class="compact-action" aria-label="Load history" title="Load history" [attr.aria-expanded]="historyOpen" aria-controls="history-picker" [disabled]="eventEdit.locked || view.saving || lapConfig.saving" (click)="history()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7M12 7v5l3 2" /></svg><span>Load history</span></button>
-        @if (view.canEdit || events.canEdit) {
+        <button type="button" class="compact-action" aria-label="Overlay" title="Overlay" [attr.aria-expanded]="overlayOpen" [attr.aria-pressed]="overlay.active" aria-controls="telemetry-overlay-panel" [disabled]="editing || eventEdit.locked || view.saving || lapConfig.saving" (click)="toggleOverlay()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17 8 8l5 6 8-10M3 21l5-8 5 7 8-9" /></svg><span>Overlay</span></button>
+        @if (overlay.active ? view.canEdit : (view.canEdit || events.canEdit)) {
           <button type="button" class="compact-action edit-mode" [title]="editing && !historyOpen ? 'Done editing' : 'Edit view'" [attr.aria-label]="editing && !historyOpen ? 'Done editing' : 'Edit view'" [attr.aria-expanded]="editing && !historyOpen" [attr.aria-pressed]="editing && !historyOpen" [attr.aria-controls]="activeView === 'laps' ? 'telemetry-lap-list' : 'view-editor'" [disabled]="(activeView === 'laps' && (!events.canEdit || !eventEdit.canEditSessions)) || view.saving || eventEdit.locked || lapConfig.saving" (click)="toggleEditing()"><svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="editing && !historyOpen ? 'm5 12 4 4L19 6' : 'm4 16-1 5 5-1L21 7l-4-4ZM14 6l4 4'" /></svg><span>{{ editing && !historyOpen ? 'Done' : 'Edit' }}</span></button>
         }
         <div class="view-navigation" role="group" aria-label="Telemetry views">
           <button type="button" class="view-button" aria-label="Data" title="Data" [attr.aria-pressed]="activeView === 'data'" aria-controls="telemetry-data" (click)="selectView('data')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18M6 15l4-5 4 3 6-8" /></svg></button>
-          <button type="button" class="view-button" aria-label="Track map" title="Track map" [attr.aria-pressed]="activeView === 'track'" aria-controls="telemetry-track-map" (click)="selectView('track')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2ZM9 3v16M15 5v16" /></svg></button>
-          <button type="button" class="view-button" aria-label="Lap list" title="Lap list" [attr.aria-pressed]="activeView === 'laps'" aria-controls="telemetry-lap-list" (click)="selectView('laps')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12M3 6h1M3 12h1M3 18h1" /></svg></button>
+          <button type="button" class="view-button" aria-label="Track map" title="Track map" [attr.aria-pressed]="activeView === 'track'" aria-controls="telemetry-track-map" [disabled]="overlay.active" (click)="selectView('track')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2ZM9 3v16M15 5v16" /></svg></button>
+          <button type="button" class="view-button" aria-label="Lap list" title="Lap list" [attr.aria-pressed]="activeView === 'laps'" aria-controls="telemetry-lap-list" [disabled]="overlay.active" (click)="selectView('laps')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12M3 6h1M3 12h1M3 18h1" /></svg></button>
         </div>
       </div>
-      <span class="day" [title]="header.date + ' · UK time'">{{ header.date }} · UK time</span>
+      <span class="day" [title]="header.date + ' · UK time'">{{ overlay.active ? '2026' : header.date + ' · UK time' }}</span>
     </div>
     <div class="status" role="status" aria-label="Loaded recording">
+      @if (overlay.active) { <span>{{ overlay.status }}</span> }
+      @else {
       @if (header.scope || header.state) { <span class="recording-scope" [title]="header.scope || header.state">{{ header.scope || header.state }}</span> }
       <span class="recording-range" [title]="header.range">{{ header.range }}</span>
+      }
     </div>
     @if (editing && (activeView !== 'laps' || eventEdit.mode === 'session')) {
       <section id="view-editor" class="view-editor" [hidden]="historyOpen" aria-label="Edit shared telemetry view">
         <div class="editor-actions">
           <h2>{{ activeView === 'track' ? 'Track map' : editorPanel === 'event' ? 'Event' : editorPanel === 'sessions' ? 'Sessions' : 'Shared view' }}</h2>
           @if (activeView === 'track' || editorPanel === 'view') {
-            <button type="button" class="primary" [disabled]="eventEdit.locked || view.saving || drag.pending || lapConfig.saving || lapConfig.creating || !lapConfig.selectionReady || !lapConfig.ready || lapConfig.searching" (click)="saveView()">{{ view.saving ? 'Saving' : 'Save' }}</button>
+            <button type="button" class="primary" [disabled]="eventEdit.locked || view.saving || drag.pending || lapConfig.saving || (!overlay.active && (lapConfig.creating || !lapConfig.selectionReady || !lapConfig.ready || lapConfig.searching))" (click)="saveView()">{{ view.saving ? 'Saving' : 'Save' }}</button>
             <button type="button" [disabled]="view.saving || eventEdit.locked" (click)="toggleEditing()">Cancel</button>
           }
         </div>
         @if (activeView !== 'track') {
-          @if (activeView !== 'laps') {
+          @if (activeView !== 'laps' && !overlay.active) {
           <div class="editor-tabs" role="group" aria-label="View section">
             <button type="button" [disabled]="!view.canEdit || !!eventEdit.mode" [attr.aria-pressed]="editorPanel === 'view' && editorKind === 'scalars'" (click)="selectEditor('scalars')">Scalars</button>
             <button type="button" [disabled]="!view.canEdit || !!eventEdit.mode" [attr.aria-pressed]="editorPanel === 'view' && editorKind === 'charts'" (click)="selectEditor('charts')">Charts</button>
@@ -67,6 +71,8 @@
     @if (historyOpen) {
       <app-greenpower-event-selector [locked]="eventEdit.locked || !!eventEdit.mode" [loading]="telemetry.loading" (loadRecording)="loadSelectedRecording()" />
     }
+    <app-greenpower-overlay [panelOpen]="overlayOpen" />
+    @if (!overlay.active) {
     @if (telemetry.error) {
       <div class="error" role="alert">{{ telemetry.error }} <button type="button" (click)="retryRecording()">Retry</button></div>
     }
@@ -97,8 +103,9 @@
       <app-greenpower-map [fixes]="lapConfig.fixes" [line]="lapConfig.line" [name]="lapConfig.name" [mismatch]="lapConfig.mismatch" [editing]="view.editing && lapConfig.canEdit" [saving]="lapConfig.saving" [ready]="lapConfig.ready" [revision]="lapConfig.revision" [context]="dataset + telemetry.access + lapConfig.selectedId + lapConfig.creating" [cursor]="cursor" [end]="telemetry.end" (cursorChange)="cursor = $event" (lineChange)="saveFinish($event)" />
       @if (lapConfig.error) { <div class="error" role="alert">{{ lapConfig.error }} @if (!lapConfig.ready) { <button type="button" (click)="lapConfig.retry()">Retry tracks</button> }</div> }
     </div>
+    }
     <div id="telemetry-data" class="view-panel" [hidden]="activeView !== 'data'" role="region" aria-label="Data view">
-      @if (activeView === 'data') {
+      @if (activeView === 'data' && !overlay.active) {
         @if (scalars.length) {
           <section class="values" [attr.aria-label]="cursor === undefined ? 'Latest values' : 'Cursor values'">
             @for (channel of scalars; track channel.id) {

@@ -73,11 +73,11 @@ test('scalars follow the nearest visible cursor sample and restore latest values
 });
 
 test('current chart fits measured readings and the 24 A limit', () => {
-  assert.equal(chart.isCurrentChannel({id: '["A"]:A'}), true);
-  assert.equal(chart.isCurrentChannel({id: '["AH"]:Ah'}), false);
-  assert.equal(chart.isCurrentChannel({id: '["A"]:mA'}), false);
+  assert.equal(chart.channelLimit({id: '["A"]:A'}), 24);
+  assert.equal(chart.channelLimit({id: '["AH"]:Ah'}), 24);
+  assert.equal(chart.channelLimit({id: '["A"]:mA'}), undefined);
   const points = Array.from({length: 160}, (_, time) => ({time, value: time < 149 ? 100 : 10}));
-  const model = chart.plotFor(points, 150, 159, 300, chart.CURRENT_LIMIT_AMPS);
+  const model = chart.plotFor(points, 150, 159, 300, chart.channelLimit({id: '["A"]:A'}));
   assert.equal(model.trace.min, 10);
   assert.equal(model.trace.max, 10);
   assert.ok(model.axis.min <= 10 && model.axis.max >= 24 && model.axis.max < 100);
@@ -93,4 +93,18 @@ test('comparison traces share an axis spanning both visible series', () => {
   assert.equal(model.trace.min,11); assert.equal(model.comparison.max,15);
   assert.doesNotMatch(model.comparison.path,/NaN|Infinity/);
   assert.equal(chart.plotFor([],0,1,320,undefined,right).empty,false);
+});
+
+test('overlay traces share an axis across every visible session without off-window extrema', () => {
+  const series = [[{ time: 0, value: 1000 }, { time: 100, value: 5 }, { time: 200, value: 8 }],
+    [{ time: 100, value: -12 }, { time: 200, value: 40 }]];
+  const model = chart.plotFor([], 100, 200, 300, 24, [], series);
+  assert.equal(model.overlays.length, 2);
+  assert.ok(model.axis.min <= -12 && model.axis.max >= 40 && model.axis.max < 1000);
+  assert.equal(model.overlays[0].max, 8);
+  assert.ok(model.overlays.every(trace => !/NaN|Infinity/.test(trace.path)));
+  assert.equal(model.empty, false);
+  assert.equal(chart.elapsedTime(0), '0:00:00');
+  assert.equal(chart.elapsedTime(3661000), '1:01:01');
+  assert.equal(chart.elapsedTime(3599999.9999999995), '1:00:00');
 });

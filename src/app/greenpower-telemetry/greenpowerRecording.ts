@@ -27,6 +27,9 @@ export function recordingRange(entries: LocatedSample[], start: number, end: num
   return ranges;
 }
 
+export interface RecordingBudget { pages: number; bytes: number; }
+export function recordingBudget(): RecordingBudget { return { pages: MAX_PAGES, bytes: MAX_LOAD_BYTES }; }
+
 /** One explicit load action shares its query/byte budget across every segment. */
 export class RecordingReader {
   readonly entries: LocatedSample[] = [];
@@ -39,13 +42,13 @@ export class RecordingReader {
     for (const [key, chunk] of seed) if (segments.some(segment => key.startsWith(segment.day + '/') && key.slice(11) >= segment.firstChunk && key.slice(11) <= segment.lastChunk)) this.chunks.set(key, chunk);
   }
   cachedChunks(): ReadonlyMap<string, GreenpowerChunk> { return this.chunks; }
-  async load(current: () => boolean) {
-    let bytes = 0;
-    for (let page = 0; page < MAX_PAGES && this.segment < this.segments.length; page++) {
+  async load(current: () => boolean, budget = recordingBudget()) {
+    while (budget.pages > 0 && this.segment < this.segments.length) {
       if (!current()) return;
       const segment = this.segments[this.segment];
-      const limit = Math.min(PAGE_SIZE, Math.floor((MAX_LOAD_BYTES - bytes) / MAX_CHUNK_WIRE_BYTES));
+      const limit = Math.min(PAGE_SIZE, Math.floor(budget.bytes / MAX_CHUNK_WIRE_BYTES));
       if (limit < 1) break;
+      budget.pages--;
       // A shared boundary chunk can serve two disjoint ranges without another read.
       const next = this.cursor ? String(Number(this.cursor) + 1).padStart(10, '0') : segment.firstChunk;
       const cached = this.chunks.has(`${segment.day}/${next}`);
@@ -69,7 +72,7 @@ export class RecordingReader {
       for (const doc of docs) {
         const chunk = doc.data(), key = `${segment.day}/${doc.id}`;
         if (!Array.isArray(chunk.samples) || chunk.samples.length > 32 || new TextEncoder().encode(JSON.stringify(chunk)).length > MAX_CHUNK_WIRE_BYTES) throw new Error('Recording chunk is invalid.');
-        bytes += new TextEncoder().encode(JSON.stringify(chunk)).length;
+        budget.bytes -= new TextEncoder().encode(JSON.stringify(chunk)).length;
         const expected = this.cursor ? String(Number(this.cursor) + 1).padStart(10, '0') : segment.firstChunk;
         if (doc.id !== expected) throw new Error('Recording chunks are missing.');
         const first = doc.id === segment.firstChunk ? segment.firstIndex : 0;

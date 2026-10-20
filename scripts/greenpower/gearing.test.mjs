@@ -10,6 +10,9 @@ const history = load('../../src/app/telemetry/sessionHistory.ts', { './verticalA
 const chart = load('../../src/app/greenpower-telemetry/greenpowerChart.ts', {
   './greenpowerData': data, '../telemetry/verticalAxis': vertical, '../telemetry/sessionHistory': history
 });
+const overlay = load('../../src/app/greenpower-telemetry/greenpowerOverlay.ts', {
+  './greenpowerData': data, './greenpowerDay': dayData, './greenpowerSessions': sessions
+});
 const event = { ...dayData.emptyDay('2026-06-14'), defaults: { motorGearTeeth: 12, wheelGearTeeth: 60 } };
 const race = { id: 'race', type: 'race', startAt: 20, endAt: 40, overrides: { motorGearTeeth: 15 } };
 const raw = data.channelsFor([0, 100].map(receivedAt => ({ receivedAt, source: 'echook-history', raw: '{"gear":99}' })));
@@ -46,4 +49,12 @@ test('missing, partial and ambiguous metadata never fall back to recorded gear o
   }
   const incomplete = gear({ ...event, defaults: {} });
   assert.equal(chart.scalarValue(incomplete, 30, 0, 100), '—');
+});
+
+test('overlays inherit event teeth and apply session overrides before shifting to elapsed time', () => {
+  const samples = [20, 30, 40].map(receivedAt => ({ id: String(receivedAt), receivedAt, source: '424-phone', raw: '{"Gear":99}' }));
+  const result = overlay.overlayChannels(samples, race, event)[0];
+  assert.equal(result.value, '4');
+  assert.deepEqual(result.points, [{ time: 0, value: 4 }, { time: 20, value: 4 }]);
+  assert.equal(chart.channelReading(result, 10, 0, 20).value, 4);
 });

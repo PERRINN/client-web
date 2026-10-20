@@ -1,0 +1,37 @@
+@if (panelOpen) {
+  <section id="telemetry-overlay-panel" class="overlay-panel" aria-label="Overlay sessions">
+    <div class="overlay-controls">
+      <select id="overlay-source" aria-label="Overlay sessions" [disabled]="overlay.loading" (change)="choose($any($event.target).value); $any($event.target).value = ''">
+        <option value="">Sessions</option>
+        <option value="2026-race">2026 race sessions</option>
+      </select>
+      @if (overlay.active) { <button type="button" (click)="overlay.clear()">Exit overlay</button> }
+    </div>
+    @if (overlay.sessions.length) {
+      <ul class="session-list" aria-label="Loaded and pending sessions">
+        @for (session of overlay.sessions; track session.id) {
+          <li><span class="session-label">{{ session.label }}@if (!session.loaded) { <span class="pending"> · Pending</span> }</span><button type="button" class="visibility-toggle" [style.color]="session.colour" [attr.title]="(session.hidden ? 'Show ' : 'Hide ') + session.label" [disabled]="!session.loaded" [attr.aria-label]="(session.hidden ? 'Show ' : 'Hide ') + session.label" [attr.aria-pressed]="!session.hidden" (click)="overlay.toggleVisibility(session.id)"></button></li>
+        }
+      </ul>
+    }
+    @if (overlay.loading) { <p role="status">Loading race sessions…</p> }
+    @else if (overlay.active && !overlay.sessions.length && !overlay.hasMore && !overlay.error) { <p role="status">No race sessions loaded.</p> }
+    @if (overlay.error) { <p class="error" role="alert">{{ overlay.error }}</p> }
+    @if (!overlay.loading && (overlay.hasMore || overlay.error)) { <button type="button" (click)="overlay.load()">{{ overlay.error ? 'Retry' : 'Load more' }}</button> }
+  </section>
+}
+@if (overlay.active) {
+  <div class="overlay-summary" aria-label="Overlay legend">
+    <span class="axis-label" role="status">@if (allHidden) { All sessions hidden. } @else { Elapsed time · @if (hasVoltage) { solid left / dashed right } }</span>
+    @if (!panelOpen) {
+      @for (session of overlay.sessions; track session.id) {
+        @if (session.loaded && !session.hidden) { <span class="session-key" [title]="session.label"><i [style.background]="session.colour"></i>{{ session.label }}</span> }
+      }
+    }
+  </div>
+  <div class="charts">
+    @for (chart of charts; track chart.channel.id) {
+      <app-greenpower-chart [channel]="chart.channel" [heading]="chart.heading" [overlays]="chart.traces" [start]="start" [end]="end" [cursor]="cursor" [context]="'overlay'" (overlayVisibilityChange)="overlay.toggleVisibility($event)" (windowChange)="zoom($event)" (cursorChange)="cursor = $event" />
+    }
+  </div>
+}

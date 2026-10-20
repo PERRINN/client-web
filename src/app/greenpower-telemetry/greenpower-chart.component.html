@@ -6,39 +6,54 @@
       <span class="comparison-key">{{ comparison.label }}<span class="legend-value">{{ cursor === undefined ? comparison.value + ' ' + comparison.unit : comparisonLabel }}</span></span>
     </div>
   }
-  @if (hasCurrentLimit) {
-    <div class="current-legend" aria-label="Current chart legend">
-      <span class="raw-key">Current</span><span class="limit-key">{{ currentLimit }} A limit</span>
+  @if (limit !== undefined) {
+    <div class="current-legend" [attr.aria-label]="channel.label + ' chart legend'">
+      @if (!overlays.length) { <span class="raw-key">{{ channel.label }}</span> }<span class="limit-key">{{ limit }} {{ channel.unit }} limit</span>
     </div>
   }
-  <div class="readout"><span>{{ cursorLap !== undefined ? 'Lap ' + cursorLap + ' · ' : '' }}{{ reading ? time(reading!.time) : 'Cursor —' }}</span><span>{{ cursor === undefined ? '—' : cursorLabel }}</span></div>
+  @if (overlays.length) {
+    <div class="overlay-readout" aria-label="Session readings">
+      <span class="overlay-time">{{ cursor === undefined ? 'Elapsed time' : time(cursor) }}</span>
+      @for (trace of overlays; track trace.id) {
+        <div class="overlay-entry" [class.hidden-session]="trace.hidden" [title]="trace.label + ' · ' + trace.channel.label" [attr.aria-label]="trace.label + ' · ' + trace.channel.label + ': ' + overlayValue(trace)"><span class="overlay-name">{{ trace.label }}{{ trace.dashed ? ' · Right' : heading ? ' · Left' : '' }}</span><span class="overlay-value">{{ overlayValue(trace) }}</span>@if (trace.sessionId) { <button type="button" class="overlay-visibility" [style.color]="trace.colour" [attr.title]="(trace.hidden ? 'Show ' : 'Hide ') + trace.label" [attr.aria-label]="(trace.hidden ? 'Show ' : 'Hide ') + trace.label" [attr.aria-pressed]="!trace.hidden" (click)="overlayVisibilityChange.emit(trace.sessionId)"></button> }</div>
+      }
+    </div>
+  } @else {
+    <div class="readout"><span>{{ cursorLap !== undefined ? 'Lap ' + cursorLap + ' · ' : '' }}{{ reading ? time(reading!.time) : 'Cursor —' }}</span><span>{{ cursor === undefined ? '—' : cursorLabel }}</span></div>
+  }
   <div class="plot">
     <div class="scale">
       @for (tick of model.axis.ticks; track tick.y) {
-        @if (!hasCurrentLimit || tick.y < limitY - 14 || tick.y > limitY + 14) { <span [style.top.%]="tick.y / 120 * 100">{{ formatAxis(tick.value, model.axis.step) }}</span> }
+        @if (limit === undefined || tick.y < limitY - 14 || tick.y > limitY + 14) { <span [style.top.%]="tick.y / 120 * 100">{{ formatAxis(tick.value, model.axis.step) }}</span> }
       }
-      @if (hasCurrentLimit) { <span class="limit-label" [style.top.%]="limitY / 120 * 100">{{ currentLimit }} A</span> }
+      @if (limit !== undefined) { <span class="limit-label" [style.top.%]="limitY / 120 * 100">{{ limit }} {{ channel.unit }}</span> }
     </div>
-    <svg #plot viewBox="0 0 800 120" preserveAspectRatio="none" role="group" tabindex="0"
-      [attr.aria-label]="(heading || channel.label) + (hasCurrentLimit ? ' chart with ' + currentLimit + ' amp limit. ' : ' chart. ') + 'Drag to zoom; long press to inspect; double click or press Home to reset. Arrow keys step through data points; Escape clears the cursor.'"
+    <svg #plot [class.overlay-plot]="overlays.length > 0" viewBox="0 0 800 120" preserveAspectRatio="none" role="group" tabindex="0"
+      [attr.aria-label]="(heading || channel.label) + (limit !== undefined ? ' chart with ' + limit + ' ' + channel.unit + ' limit. ' : ' chart. ') + 'Drag to zoom; long press to inspect; double click or press Home to reset. Arrow keys step through data points; Escape clears the cursor.'"
       (pointerdown)="down($event)" (pointermove)="move($event)" (pointerup)="up($event)" (pointercancel)="cancel($event)"
       (lostpointercapture)="cancel($event)" (dblclick)="doubleClick()" (keydown)="key($event)" (blur)="cancel()" (contextmenu)="$event.preventDefault()">
       @for (lap of lapBands; track lap.time) {
         <rect class="lap-band" [class.alternate]="lap.alternate" [attr.x]="lap.x * 8" y="0" [attr.width]="lap.width * 8" height="120"><title>Lap {{ lap.lap }}{{ lap.sessionLabel ? ' · ' + lap.sessionLabel : '' }} · {{ time(lap.time) }}–{{ time(lap.end) }}</title></rect>
       }
       @for (tick of model.axis.ticks; track tick.y) { <path class="grid" [attr.d]="'M0 ' + tick.y + 'H800'" /> }
-      @if (hasCurrentLimit) { <path class="current-limit" [attr.d]="'M0 ' + limitY + 'H800'" /> }
+      @if (limit !== undefined) { <path class="current-limit" [attr.d]="'M0 ' + limitY + 'H800'" /> }
       @for (session of sessionBands; track session.id) {
         @if (session.starts) { <path class="session-boundary" [attr.d]="'M' + session.x * 8 + ' 0V120'"><title>{{ session.label }} · Start {{ time(session.start) }}</title></path> }
         @if (session.ends) { <path class="session-boundary session-finish" [attr.d]="'M' + (session.x + session.width) * 8 + ' 0V120'"><title>{{ session.label }} · End {{ time(session.end) }}</title></path> }
       }
-      <path class="trace" transform="matrix(1.0204081633 0 0 1 -8.1632653061 0)" [attr.d]="model.trace.path" />
+      @for (trace of overlays; track trace.id; let index = $index) {
+        @if (!trace.hidden) {
+        <path class="trace" [style.stroke]="trace.colour" [style.stroke-dasharray]="trace.dashed ? '6 4' : null" transform="matrix(1.0204081633 0 0 1 -8.1632653061 0)" [attr.d]="model.overlays[index].path"><title>{{ trace.label }} · {{ trace.channel.label }}</title></path>
+        }
+      }
+      @if (!overlays.length) { <path class="trace" transform="matrix(1.0204081633 0 0 1 -8.1632653061 0)" [attr.d]="model.trace.path" /> }
       @if (comparison) { <path class="trace comparison-trace" transform="matrix(1.0204081633 0 0 1 -8.1632653061 0)" [attr.d]="model.comparison.path" /> }
       @if (band; as selection) { <rect class="selection" [attr.x]="selection.x" y="0" [attr.width]="selection.width" height="120" /> }
       @if (comparisonReading; as point) {
         <ellipse class="cursor-point comparison-point" [attr.cx]="(point.time - start) / (end - start || 1) * 800" [attr.cy]="comparisonY(point.value)" [attr.rx]="markerRadiusX" ry="3.2" />
       }
-      @if (cursorPosition !== undefined) {
+      @if (overlays.length && cursor !== undefined) { <path class="cursor" [attr.d]="'M' + (cursor - start) / (end - start || 1) * 800 + ' 0V120'" /> }
+      @if (!overlays.length && cursorPosition !== undefined) {
         <path class="cursor" [attr.d]="'M' + cursorPosition + ' 0V120'" />
         <ellipse class="cursor-point" [attr.cx]="cursorPosition" [attr.cy]="markerY" [attr.rx]="markerRadiusX" ry="3.2" />
       }
