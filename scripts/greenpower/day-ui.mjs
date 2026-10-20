@@ -109,17 +109,23 @@ try {
     await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Workshop · Sam · P3');
     assert.equal(await page.locator('h1').innerText(), 'Workshop · Sam · P3'); assert.match(await page.locator('[aria-label="Loaded recording"]').innerText(), /Race/);
     assert.deepEqual(await page.locator('.controls').boundingBox(), origin, 'driver and result preserve control geometry');
+    assert.equal(await page.evaluate(()=>document.activeElement?.getAttribute('aria-label')),'Load history');
     const heading = page.locator('h1');
     if (await heading.evaluate(el => el.scrollWidth > el.clientWidth)) {
       await heading.focus(); await page.keyboard.press('End');
       await heading.evaluate(el => el.scrollLeft = el.scrollWidth);
       assert.ok(await heading.evaluate(el => el.scrollLeft > 0), 'long heading remains scrollable on mobile');
     }
+    await page.locator('app-greenpower-event-selector').waitFor({state:'detached'});
+    assert.equal(await page.getByRole('button',{name:'Load history',exact:true}).getAttribute('aria-expanded'),'false');
     await page.screenshot({ path: output + '/event-summary-' + width + '.png', fullPage: true });
+    await page.getByRole('button',{name:'Load history',exact:true}).click();
     await page.locator('#history-event').selectOption('2026-06-15');
     assert.equal(await page.locator('h1').innerText(), 'Workshop · Sam · P3'); assert.match(await page.locator('[aria-label="Loaded recording"]').innerText(), /Race/);
     await page.getByRole('button', { name: 'Load', exact: true }).click(); await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Circuit test'); assert.equal(await page.locator('h1').innerText(), 'Circuit test');
     assert.equal(await page.evaluate(() => window.dayHarness.stats().dayLoads), 1);
+    await page.locator('app-greenpower-event-selector').waitFor({state:'detached'});
+    await page.getByRole('button',{name:'Load history',exact:true}).click();
     await page.locator('#history-event').selectOption('2026-06-14'); await page.locator('#history-session option[value="s1"]').waitFor({ state: 'attached' });
     await page.evaluate(() => window.dayHarness.admin()); await page.getByRole('button', { name: 'Edit view', exact: true }).click();
     await page.getByRole('button', { name: 'Edit event', exact: true }).click();
@@ -145,7 +151,6 @@ try {
     await page.getByRole('button', { name: 'Load history', exact: true }).click();
     await page.getByRole('button', { name: 'Load', exact: true }).click();
     await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Workshop · Alex · P3');
-    await page.getByRole('button', { name: 'Edit view', exact: true }).click();
     await page.getByRole('button', { name: 'Add session', exact: true }).click();
     const fields = page.locator('app-greenpower-metadata-fields');
     await fields.getByLabel('Session type', { exact: true }).selectOption('practice');

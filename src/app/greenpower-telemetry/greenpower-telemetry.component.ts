@@ -22,6 +22,7 @@ import { recordingHeader } from './greenpowerContext';
   providers: [GreenpowerTelemetryService, GreenpowerViewService, GreenpowerLapService, GreenpowerEventsService, GreenpowerEventEditService]
 })
 export class GreenpowerTelemetryComponent implements OnDestroy {
+  @ViewChild('historyButton') private historyButton?: ElementRef<HTMLButtonElement>;
   @ViewChild(GreenpowerMapComponent) private map?: GreenpowerMapComponent;
   channels: GreenpowerChannel[] = [];
   historyOpen = false;
@@ -132,7 +133,9 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     if (!this.events.eventReady || !this.events.selectedEvent || this.events.sessionId && !this.events.sessionReady || this.eventEdit.locked || this.telemetry.loading) return;
     this.loadedEvent = JSON.parse(JSON.stringify(this.events.selectedEvent));
     this.loadedSession = this.events.selectedSession ? JSON.parse(JSON.stringify(this.events.selectedSession)) : undefined;
+    this.historyOpen = false;
     this.fetchLoadedRecording();
+    this.historyButton?.nativeElement.focus({ preventScroll: true });
   }
   private fetchLoadedRecording() {
     const event = this.loadedEvent, session = this.loadedSession;
