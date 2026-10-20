@@ -134,8 +134,8 @@ try {
     assert.deepEqual(await page.evaluate(() => [window.dayHarness.stats().dayLoads, window.dayHarness.stats().sessionLoads]), [0, 0]);
     assert.equal(await page.locator('h1').innerText(), originalHeader); assert.deepEqual(await page.locator('.controls').boundingBox(), origin);
     await page.getByRole('button', { name: 'Load', exact: true }).click(); assert.deepEqual(await page.evaluate(() => [window.dayHarness.stats().dayLoads, window.dayHarness.stats().sessionLoads]), [0, 1]);
-    await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Workshop · Sam · P3');
-    assert.equal(await page.locator('h1').innerText(), 'Workshop · Sam · P3'); assert.match(await page.locator('[aria-label="Loaded recording"]').innerText(), /Race/);
+    await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Workshop · Race · Sam · P3');
+    assert.equal(await page.locator('h1').innerText(), 'Workshop · Race · Sam · P3'); assert.match(await page.locator('[aria-label="Loaded recording"]').innerText(), /Race/);
     assert.deepEqual(await page.locator('.controls').boundingBox(), origin, 'driver and result preserve control geometry');
     assert.equal(await page.evaluate(()=>document.activeElement?.getAttribute('aria-label')),'Load history');
     const heading = page.locator('h1');
@@ -149,7 +149,7 @@ try {
     await page.screenshot({ path: output + '/event-summary-' + width + '.png', fullPage: true });
     await page.getByRole('button',{name:'Load history',exact:true}).click();
     await page.locator('#history-event').selectOption('2026-06-15');
-    assert.equal(await page.locator('h1').innerText(), 'Workshop · Sam · P3'); assert.match(await page.locator('[aria-label="Loaded recording"]').innerText(), /Race/);
+    assert.equal(await page.locator('h1').innerText(), 'Workshop · Race · Sam · P3'); assert.match(await page.locator('[aria-label="Loaded recording"]').innerText(), /Race/);
     await page.getByRole('button', { name: 'Load', exact: true }).click(); await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Circuit test'); assert.equal(await page.locator('h1').innerText(), 'Circuit test');
     assert.equal(await page.evaluate(() => window.dayHarness.stats().dayLoads), 1);
     await page.locator('app-greenpower-event-selector').waitFor({state:'detached'});
