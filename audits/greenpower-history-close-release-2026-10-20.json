@@ -1,0 +1,92 @@
+{
+  "checkedAt": "2026-10-20T09:31:05.265Z",
+  "status": "deployed_verified",
+  "codeCommit": "d266b1f",
+  "deploymentScope": [
+    "hosting"
+  ],
+  "url": "https://perrinn.com/424-greenpower-telemetry",
+  "changes": [
+    "Close history picker on Load and return focus to Load history"
+  ],
+  "validation": {
+    "greenpowerTestsPassed": 144,
+    "build": "passed",
+    "buildHash": "4bcdcc761785ca50",
+    "lintErrors": 0,
+    "existingLintWarnings": 64,
+    "syntheticBrowserWidths": [
+      1440,
+      390,
+      320
+    ],
+    "syntheticBrowserStatus": "passed"
+  },
+  "indexComparison": {
+    "checkedAt": "2026-10-20T09:30:05.350Z",
+    "project": "perrinn-d5fc1",
+    "repositoryIndexes": 27,
+    "liveIndexes": 27,
+    "repositoryOnly": [],
+    "liveOnly": [],
+    "notReady": [],
+    "deploymentScope": "hosting_only"
+  },
+  "hostingVerification": {
+    "checkedAt": "2026-10-20T09:31:05.265Z",
+    "projectId": "perrinn-d5fc1",
+    "status": "hosting_and_rules_verified",
+    "url": "https://perrinn.com/424-greenpower-telemetry",
+    "pageStatus": 200,
+    "mainBundle": "main.adecdabcb10e419a.js",
+    "bundleStatus": 200,
+    "bundleSha256": "9fd55caca0f4d19df781f77496d95533118c993596d04871c253c579acdb7768",
+    "bundleMatchesApprovedBuild": true,
+    "serviceWorkerManifestMatchesApprovedBuild": true,
+    "hostingRelease": "sites/perrinn-d5fc1/releases/1792488639283000",
+    "hostingVersion": "sites/perrinn-d5fc1/versions/6fe7af2e957f9353",
+    "firestoreRules": {
+      "release": "projects/perrinn-d5fc1/releases/cloud.firestore",
+      "ruleset": "projects/perrinn-d5fc1/rulesets/1ac68503-e755-4d9d-bc2e-3be8846c8644",
+      "updatedAt": "2026-10-20T08:48:16.927280Z",
+      "sourceMatchesRepository": true,
+      "sourceSha256": "75d7ea343ae1b5787fe1e6c5848f2abbc9db9786bf89773b82297f362458d343"
+    },
+    "productionWrites": 0,
+    "chunkReads": 0,
+    "chunkWrites": 0
+  },
+  "liveBrowser": {
+    "checkedAt": "2026-10-20T09:31:18.245Z",
+    "status": "passed",
+    "results": [
+      {
+        "width": 1440,
+        "pageStatus": 200,
+        "signInVisible": true,
+        "horizontalOverflow": false
+      },
+      {
+        "width": 390,
+        "pageStatus": 200,
+        "signInVisible": true,
+        "horizontalOverflow": false
+      },
+      {
+        "width": 320,
+        "pageStatus": 200,
+        "signInVisible": true,
+        "horizontalOverflow": false
+      }
+    ],
+    "errors": [],
+    "scope": "Fresh signed-out browsers; no telemetry reads or metadata writes"
+  },
+  "limitations": [
+    "Authenticated history loading and focus return verified with synthetic browser tests; no live telemetry reads or metadata writes."
+  ],
+  "issueClosure": {
+    "closed": [],
+    "note": "No issue linked to this history-picker change."
+  }
+}
