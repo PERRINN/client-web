@@ -21,10 +21,12 @@ export interface DayMetadata {
 }
 export interface RecordedEvent extends DayMetadata {
   schemaVersion: 2; revision: number; updatedBy: string; updatedAt?: unknown;
+  sessionTypeCounts?: SessionTypeCounts;
 }
+export type SessionTypeCounts = Partial<Record<'race' | 'practice' | 'battery_dyno' | 'motor_dyno', number>>;
 export type DayEditRequest = { schemaVersion: 2; requestId: string; date: string; expectedRevision: number } & (
   { kind: 'event'; data: DayMetadata } | { kind: 'session'; expectedSessionRevision: number; session: DaySession });
-export interface DayEditResult { date: string; revision: number; changeId: string; sessionId?: string; sessionRevision?: number; }
+export interface DayEditResult { date: string; revision: number; changeId: string; sessionId?: string; sessionRevision?: number; sessionTypeCounts?: SessionTypeCounts; }
 export function emptyDay(date: string): RecordedEvent {
   return { date, eventName: '', trackId: null, result: '', defaults: {},
     schemaVersion: 2, revision: 0, updatedBy: 'ingestion' };
@@ -35,6 +37,18 @@ export function effectiveDefaults(event: DayMetadata, session?: DaySession): Eve
 export function eventSummary(event: DayMetadata, session?: DaySession): string {
   const driver = effectiveDefaults(event, session).driver;
   return [event.eventName, driver, event.result].filter(Boolean).join(' · ');
+}
+export function validSessionTypeCounts(value: unknown): value is SessionTypeCounts {
+  return !!value && typeof value === 'object' && !Array.isArray(value) && Object.entries(value).every(([type, count]) =>
+    DAY_SESSION_TYPES.some(item => item.id === type) && Number.isSafeInteger(count) && count > 0);
+}
+export function eventListSummary(event: RecordedEvent): string {
+  const counts = event.sessionTypeCounts;
+  const sessions = counts && validSessionTypeCounts(counts) ? DAY_SESSION_TYPES.map(({ id, label }) => {
+    const count = counts[id as keyof SessionTypeCounts];
+    return count ? label + (count > 1 ? ` ×${count}` : '') : '';
+  }).filter(Boolean).join(', ') : '';
+  return [[event.eventName, sessions ? `(${sessions})` : ''].filter(Boolean).join(' '), event.defaults.driver, event.result].filter(Boolean).join(' · ');
 }
 export function gearingRatio(event: DayMetadata, session?: DaySession): number | undefined {
   const values = effectiveDefaults(event, session);
@@ -86,7 +100,8 @@ export function editableSession(session: DaySession): DaySession {
 }
 export function validRecordedEvent(value: unknown): value is RecordedEvent {
   const event = value as RecordedEvent;
-  try { return event?.schemaVersion === 2 && Number.isSafeInteger(event.revision) && event.revision >= 0 && typeof event.updatedBy === 'string' && !dayMetadataError(event); }
+  try { return event?.schemaVersion === 2 && Number.isSafeInteger(event.revision) && event.revision >= 0 && typeof event.updatedBy === 'string' && !dayMetadataError(event)
+    && (event.sessionTypeCounts === undefined || validSessionTypeCounts(event.sessionTypeCounts)); }
   catch { return false; }
 }
 export function editableDay(event: RecordedEvent): DayMetadata {

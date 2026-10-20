@@ -40,6 +40,7 @@ test('migration uses four writes per day plus copied sessions, moves current liv
   assert.deepEqual(h.db.records.get(h.rec.records[1][0]), chunkBefore);
   assert.equal(h.db.records.get(ROOT + '/days/' + h.day + '/live/latest').count, 5);
   assert.equal(h.db.records.get(ROOT + '/days/' + h.day).count, undefined);
+  assert.deepEqual(h.db.records.get(ROOT + '/days/' + h.day).sessionTypeCounts, { motor_dyno: 1 });
   assert.equal(h.db.records.get(ROOT + '/events/historical-dyno').notes, 'Keep the original');
   h.db.records.get(ROOT + '/days/' + h.day).eventName = 'Later edit';
   const replay = await applyMetadataMigration(h.db, adminAuth, plan, { ...options, dryRun: false }); assert.equal(replay.writes, 0);

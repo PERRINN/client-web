@@ -11,6 +11,11 @@ function date(value) { return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/
 function text(value, max, empty = false) { return typeof value === 'string' && (empty || value.length > 0) && value === value.trim() && Buffer.byteLength(value) <= max; }
 function canonical(value) { return JSON.stringify(value && typeof value === 'object' ? Array.isArray(value) ? value.map(item => JSON.parse(canonical(item))) : Object.fromEntries(Object.keys(value).sort().map(key => [key, JSON.parse(canonical(value[key]))])) : value); }
 const hash = value => createHash('sha256').update(canonical(value)).digest('hex');
+function validateSessionTypeCounts(value) {
+  keys(value, TYPES, []);
+  check(Object.values(value).every(count => Number.isSafeInteger(count) && count > 0), 'Invalid session counts.', 'failed-precondition');
+  return value;
+}
 function defaults(value) {
   keys(value, ['driver', 'motorGearTeeth', 'wheelGearTeeth', 'motorId', 'generatorId', 'carMassKg', 'driverMassKg'], []);
   for (const [key, item] of Object.entries(value)) {
@@ -52,7 +57,7 @@ function validateSession(session, day) {
   return session;
 }
 function emptyDay(day, timestamp) {
-  return { date: day, eventName: '', trackId: null, result: '', defaults: {},
+  return { date: day, eventName: '', trackId: null, result: '', defaults: {}, sessionTypeCounts: {},
     schemaVersion: 2, revision: 0, updatedBy: 'ingestion', updatedAt: timestamp() };
 }
 async function editDayMetadata(db, auth, input, { timestamp, dryRun = false } = {}) {
@@ -99,24 +104,47 @@ async function editDayMetadata(db, auth, input, { timestamp, dryRun = false } = 
     const previousSession = sessionRef ? (await get(sessionRef)).data() : undefined;
     if (previousSession) check(previousSession.schemaVersion === 2 && previousSession.telemetryRoot === ROOT && previousSession.id === input.session.id && Number.isSafeInteger(previousSession.revision) && previousSession.revision > 0, 'Stored session is invalid.', 'failed-precondition');
     if (sessionRef) check((previousSession?.revision || 0) === input.expectedSessionRevision, 'Session changed. Reload before saving.', 'failed-precondition');
+    let sessionTypeCounts = before.sessionTypeCounts;
+    if (sessionTypeCounts !== undefined) validateSessionTypeCounts(sessionTypeCounts);
+    const countsChanged = !!sessionRef && previousSession?.type !== input.session.type;
+    if (sessionRef) {
+      check(sessionTypeCounts !== undefined, 'Session counts need initialisation before editing sessions.', 'failed-precondition');
+      sessionTypeCounts = { ...sessionTypeCounts };
+      if (countsChanged) {
+        if (previousSession) {
+          check(TYPES.includes(previousSession.type) && sessionTypeCounts[previousSession.type] > 0, 'Session counts need repair.', 'failed-precondition');
+          if (--sessionTypeCounts[previousSession.type] === 0) delete sessionTypeCounts[previousSession.type];
+        }
+        sessionTypeCounts[input.session.type] = (sessionTypeCounts[input.session.type] || 0) + 1;
+        validateSessionTypeCounts(sessionTypeCounts);
+      }
+    }
     const ranges = input.kind === 'session' && canonical(input.session.ranges) !== canonical(previousSession?.ranges || []) ? input.session.ranges : [];
     await preload(ranges.flatMap(range => [db.doc(dayRef.path + '/chunks/' + range.firstChunk), db.doc(dayRef.path + '/chunks/' + range.lastChunk),
       ...(range.importId ? [db.doc(ROOT + '/imports/' + range.importId)] : [])]));
     for (const range of ranges) await verifySegment(db, get, range);
     const after = input.kind === 'event'
-      ? { ...input.data, schemaVersion: 2, revision: before.revision + 1, updatedBy: auth.uid, updatedAt: timestamp() }
+      ? { ...input.data, ...(sessionTypeCounts === undefined ? {} : { sessionTypeCounts }), schemaVersion: 2, revision: before.revision + 1, updatedBy: auth.uid, updatedAt: timestamp() }
       : { ...input.session, telemetryRoot: ROOT, schemaVersion: 2, revision: input.expectedSessionRevision + 1, updatedBy: auth.uid, updatedAt: timestamp() };
     check(Buffer.byteLength(JSON.stringify(after)) <= (sessionRef ? 16 * 1024 : MAX_BYTES), 'Metadata exceeds its size limit.');
     const target = sessionRef || dayRef;
     const result = { date: input.date, revision: sessionRef ? before.revision : after.revision, changeId,
+      ...(sessionTypeCounts === undefined ? {} : { sessionTypeCounts }),
       ...(sessionRef ? { sessionId: input.session.id, sessionRevision: after.revision } : {}) };
+    const records = { [sessionRef ? 'sessions' : 'days']: { [target.path]: { before: (sessionRef ? previousSession : before) || null, after } } };
+    const parentAfter = countsChanged ? { ...before, sessionTypeCounts } : undefined;
+    if (parentAfter) {
+      check(Buffer.byteLength(JSON.stringify(parentAfter)) <= MAX_BYTES, 'Event exceeds 8 KiB.');
+      records.days = { [dayRef.path]: { before, after: parentAfter } };
+    }
     if (!dryRun) {
       transaction.set(target, after);
+      if (parentAfter) transaction.set(dayRef, parentAfter);
       transaction.create(db.doc(ROOT + '/metadataChanges/' + changeId), { actor: auth.uid, action: sessionRef ? 'edit-session' : 'edit-day', requestId: input.requestId,
-        requestSha256: checksum, createdAt: timestamp(), records: { [sessionRef ? 'sessions' : 'days']: { [target.path]: { before: (sessionRef ? previousSession : before) || null, after } } } });
+        requestSha256: checksum, createdAt: timestamp(), records });
       transaction.create(requestRef, { actor: auth.uid, requestSha256: checksum, result, createdAt: timestamp() });
     }
-    return { ...result, reads, writes: dryRun ? 0 : 3 };
+    return { ...result, reads, writes: dryRun ? 0 : countsChanged ? 4 : 3 };
   }, { maxAttempts: 3 });
 }
-module.exports = { validateDay, validateSession, emptyDay, editDayMetadata, hash, canonical, ROOT, TYPES };
+module.exports = { validateDay, validateSession, validateSessionTypeCounts, emptyDay, editDayMetadata, hash, canonical, ROOT, TYPES };

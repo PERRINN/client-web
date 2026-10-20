@@ -193,8 +193,10 @@ test('track catalogue pagination is explicit and name-only tracks can be created
 });
 test('session pages are limited to thirty, only load more on action, and discard stale filter results', async () => {
   const { value, session } = migrated(), h = client(new Map([[ROOT + '/days/' + day, value]]));
+  value.sessionTypeCounts = { practice: 35 }; h.records.set(ROOT + '/days/' + day, value);
   for (let i = 0; i < 35; i++) h.records.set(ROOT + '/days/' + day + '/sessions/s' + String(i).padStart(2, '0'), { ...session, id: 's' + String(i).padStart(2, '0') });
   h.service.selectEvent(day); await flush(); assert.equal(h.service.sessions.length, 30); assert.equal(h.service.moreSessions, true);
+  assert.match(h.service.eventLabel(day), /\(Practice ×35\)/);
   assert.equal(h.calls.length, 1); await flush(); assert.equal(h.calls.length, 1);
   await h.service.loadSessions(); assert.equal(h.service.sessions.length, 35); assert.equal(h.service.moreSessions, false);
   let release; h.delay(() => new Promise(resolve => release = resolve)); const old = h.service.loadSessions(true); await flush();
@@ -237,4 +239,25 @@ test('cursor boundary edits preserve the opposite boundary and reject inverted, 
   editor.reviewing=false; editor.saving=true; editor.setBoundary('end',end);
   assert.equal(ranges.length,count);
   editor.ngOnDestroy();h.service.ngOnDestroy();
+});
+
+test('history labels show complete stored counts without per-event reads or changing loaded summaries', async () => {
+  const value = { ...dayData.emptyDay(day), eventName: 'Goodwood', defaults: { driver: 'Alex' }, result: 'P3', sessionTypeCounts: { race: 2, practice: 1 } };
+  const h = client(new Map([[ROOT + '/days/' + day, value]]));
+  await h.service.loadEvents(true, filters());
+  assert.equal(h.service.eventLabel(day), day + ' · Goodwood (Race ×2, Practice) · Alex · P3');
+  assert.equal(dayData.eventSummary(value), 'Goodwood · Alex · P3');
+  assert.equal(h.calls.length, 1); assert.equal(h.listeners.length, 0);
+  for (const counts of [undefined, {}]) assert.equal(dayData.eventListSummary({ ...value, sessionTypeCounts: counts }), 'Goodwood · Alex · P3');
+  assert.equal(dayData.eventListSummary({ ...value, eventName: '', defaults: {}, result: '', sessionTypeCounts: { motor_dyno: 1, battery_dyno: 3 } }), '(Battery dyno ×3, Motor dyno)');
+  for (const counts of [{ race: 0 }, { race: -1 }, { race: 1.5 }, { race: Number.MAX_SAFE_INTEGER + 1 }, { retired: 1 }, []]) {
+    assert.equal(dayData.validRecordedEvent({ ...value, sessionTypeCounts: counts }), false);
+  }
+  h.service.selectEvent(day); await flush();
+  const reads = h.calls.length;
+  h.publish(ROOT + '/days/' + day, { ...value, sessionTypeCounts: { practice: 1 } });
+  assert.equal(h.service.eventLabel(day), day + ' · Goodwood (Practice) · Alex · P3'); assert.equal(h.calls.length, reads);
+  h.publish(ROOT + '/days/' + day, { ...value, sessionTypeCounts: {} });
+  assert.equal(h.service.eventLabel(day), day + ' · Goodwood · Alex · P3');
+  h.service.ngOnDestroy();
 });

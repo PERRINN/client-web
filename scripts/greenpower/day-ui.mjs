@@ -39,7 +39,7 @@ const state = new BehaviorSubject({ ready:true, uid:'viewer', isAdmin:false });
 const permissions = { state, get current(){return state.value;} };
 const records = new Map(), calls = [], listeners = []; let fail = false, saveFail = false;
 const date='2026-06-14', first=Date.parse(date+'T08:00:00Z');
-const event=emptyDay(date); event.eventName='Workshop'; event.result='P3'; event.trackId='workshop'; event.defaults={driver:'Alex',motorGearTeeth:12,wheelGearTeeth:60};
+const event=emptyDay(date); event.eventName='Workshop'; event.sessionTypeCounts={practice:1,race:1}; event.result='P3'; event.trackId='workshop'; event.defaults={driver:'Alex',motorGearTeeth:12,wheelGearTeeth:60};
 for(let i=0;i<2;i++){const id='s'+i, startAt=first+i*3600000,endAt=startAt+1800000; records.set('GreenpowerTelemetry/424/days/'+date+'/sessions/'+id,{id,type:i?'race':'practice',startAt,endAt,batteryIds:['A','B'],overrides:i?{driver:'Sam'}:{},ranges:[{day:date,source:'424-phone',firstChunk:'0000000000',lastChunk:'0000000000',firstIndex:0,lastIndex:1,firstSampleId:'a',lastSampleId:'b',firstAt:startAt,lastAt:endAt}],schemaVersion:2,telemetryRoot:'GreenpowerTelemetry/424',revision:1,updatedBy:'viewer'});}
 records.set('GreenpowerTelemetry/424/days/'+date,event);
 records.set('GreenpowerTelemetry/424/days/2026-06-15',{...emptyDay('2026-06-15'),eventName:'Circuit test'});
@@ -76,7 +76,7 @@ TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTe
 TestBed.configureTestingModule({imports:[CommonModule,FormsModule,RouterModule.forRoot([])],declarations:[GreenpowerTelemetryComponent,GreenpowerEventSelectorComponent,GreenpowerEventEditorComponent,GreenpowerMetadataFieldsComponent,GreenpowerChartComponent,GreenpowerMapComponent,GreenpowerLapListComponent],providers:[{provide:PermissionsService,useValue:permissions},{provide:AngularFirestore,useValue:{firestore:db}},{provide:AngularFireFunctions,useValue:functions}]});
 TestBed.overrideComponent(GreenpowerTelemetryComponent,{set:{providers:[{provide:GreenpowerTelemetryService,useValue:telemetry},{provide:GreenpowerViewService,useValue:view},{provide:GreenpowerLapService,useValue:laps},GreenpowerEventsService,GreenpowerEventEditService]}});
 const fixture=TestBed.createComponent(GreenpowerTelemetryComponent);document.querySelector('.contentCard').append(fixture.nativeElement);fixture.autoDetectChanges();
-window.dayHarness={stats:()=>({cursor:fixture.componentInstance.cursor,sessionDraft:fixture.componentInstance.eventEdit.sessionDraft,dayLoads:telemetry.dayLoads,sessionLoads:telemetry.sessionLoads,calls:[...calls]}),admin(){state.next({ready:true,uid:'viewer',isAdmin:true});fixture.detectChanges();},empty(){records.clear();fixture.componentInstance.events.loadEvents(true);},failure(value){fail=value;},saveFailure(value){saveFail=value;},error(){telemetry.error='Synthetic load failure';telemetry.changed.next();},loading(value){telemetry.loading=value;telemetry.changed.next();},logout(){telemetry.access='signed-out';state.next({ready:true,uid:'',isAdmin:false});telemetry.changed.next();}};
+window.dayHarness={sessionCounts(counts){records.get('GreenpowerTelemetry/424/days/'+date).sessionTypeCounts=counts;notify();fixture.detectChanges();},stats:()=>({cursor:fixture.componentInstance.cursor,sessionDraft:fixture.componentInstance.eventEdit.sessionDraft,dayLoads:telemetry.dayLoads,sessionLoads:telemetry.sessionLoads,calls:[...calls]}),admin(){state.next({ready:true,uid:'viewer',isAdmin:true});fixture.detectChanges();},empty(){records.clear();fixture.componentInstance.events.loadEvents(true);},failure(value){fail=value;},saveFailure(value){saveFail=value;},error(){telemetry.error='Synthetic load failure';telemetry.changed.next();},loading(value){telemetry.loading=value;telemetry.changed.next();},logout(){telemetry.access='signed-out';state.next({ready:true,uid:'',isAdmin:false});telemetry.changed.next();}};
 `);
 await build({ entryPoints: [output + '/entry.ts'], outfile: output + '/bundle.js', bundle: true, platform: 'browser', format: 'iife', nodePaths: [root + '/node_modules'], tsconfigRaw: { compilerOptions: { experimentalDecorators: true } }, plugins: [{ name: 'angular-resources', setup(plugin) {
   plugin.onLoad({ filter: /\.component\.ts$/ }, async args => {
@@ -111,12 +111,25 @@ try {
       assert.equal(eventLabel.y - yearLabel.y - yearLabel.height, 12, 'mobile fields use the shared gap');
     }
     await page.screenshot({ path: output + '/history-unselected-' + width + '.png', fullPage: true });
+    assert.equal(await page.locator('#history-event option[value="2026-06-14"]').innerText(), '2026-06-14 · Workshop (Race, Practice) · Alex · P3');
+    assert.equal(await page.locator('#history-event option[value="2026-06-15"]').innerText(), '2026-06-15 · Circuit test');
     await page.locator('#history-event').selectOption('2026-06-14'); await page.locator('#history-session option[value="s1"]').waitFor({ state: 'attached' });
     const eventBox = await page.locator('#history-event').boundingBox();
     assert.deepEqual(eventBox, initialEventBox, 'session appearance preserves event position');
     const sessionLabel = await page.locator('label[for="history-session"]').boundingBox();
     assert.equal(sessionLabel.y - eventBox.y - eventBox.height, 12, 'no empty status row between choices');
+    const summaryScroll = await page.locator('#main_container').evaluate(el => el.scrollTop);
+    const summaryReads = await page.evaluate(() => window.dayHarness.stats().calls.length);
+    await page.evaluate(() => window.dayHarness.sessionCounts({practice:1,race:2}));
+    assert.equal(await page.locator('#history-event option[value="2026-06-14"]').innerText(), '2026-06-14 · Workshop (Race ×2, Practice) · Alex · P3');
+    await page.evaluate(() => window.dayHarness.sessionCounts({}));
     assert.equal(await page.locator('#history-event option[value="2026-06-14"]').innerText(), '2026-06-14 · Workshop · Alex · P3');
+    assert.deepEqual(await page.locator('#history-event').boundingBox(), eventBox);
+    assert.deepEqual(await page.locator('.controls').boundingBox(), origin);
+    assert.equal(await page.locator('#main_container').evaluate(el => el.scrollTop), summaryScroll);
+    assert.equal(await page.evaluate(() => window.dayHarness.stats().calls.length), summaryReads);
+    await page.evaluate(() => window.dayHarness.sessionCounts({practice:1,race:1}));
+    await page.screenshot({ path: output + '/history-session-counts-' + width + '.png', fullPage: true });
     await page.locator('#history-session').selectOption('s1');
     assert.deepEqual(await page.evaluate(() => [window.dayHarness.stats().dayLoads, window.dayHarness.stats().sessionLoads]), [0, 0]);
     assert.equal(await page.locator('h1').innerText(), originalHeader); assert.deepEqual(await page.locator('.controls').boundingBox(), origin);

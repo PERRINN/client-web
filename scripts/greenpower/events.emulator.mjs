@@ -69,7 +69,7 @@ test('concurrent identical creates replay once and stale revisions cannot duplic
 });
 
 test('ordinary signed-in client discovers day events and session subcollections, filters sessions and clears on logout', async () => {
-  const metadata = dayData.emptyDay(day); metadata.eventName = 'Workshop';
+  const metadata = dayData.emptyDay(day); metadata.eventName = 'Workshop'; metadata.sessionTypeCounts = { practice: 1, race: 1 };
   for (const [index, type] of ['practice', 'race'].entries()) {
     const range = fixture.segment(index * 2, index * 2 + 1);
     await db.doc(ROOT + '/days/' + day + '/sessions/' + type).set({ id: type, type, startAt: range.firstAt, endAt: range.lastAt, batteryIds: [], overrides: {}, ranges: [range], schemaVersion: 2, telemetryRoot: ROOT, revision: 1, updatedBy: 'admin' });
@@ -183,4 +183,38 @@ test('scoped collection-group queries retrieve race sessions across days for sig
     }
   }
   for (const uid of [undefined, 'alice', 'admin']) assert.equal((await access(path, uid, 'PATCH', { perrinnAdmin: true })).status, 403);
+});
+
+test('session-count backfill and concurrent type edits keep one exact summary with no raw changes', async () => {
+  const { backfillSessionCounts } = await import('./sessionCountsBackfill.mjs');
+  const date = '2026-06-20', rec = recording(date), parentRef = db.doc(ROOT + '/days/' + date);
+  const metadata = dayData.emptyDay(date);
+  const batch = db.batch(); rec.records.forEach(([path, value]) => batch.set(db.doc(path), value));
+  batch.set(parentRef, metadata);
+  batch.set(db.doc(parentRef.path + '/live/latest'), { count: 4, activeChunk: 0 });
+  for (const index of [0, 1]) {
+    const range = rec.segment(index * 2, index * 2 + 1);
+    batch.set(db.doc(parentRef.path + '/sessions/s' + index), { id: 's' + index, type: 'practice', startAt: range.firstAt, endAt: range.lastAt,
+      ranges: [range], batteryIds: [], overrides: {}, schemaVersion: 2, telemetryRoot: ROOT, revision: 1, updatedBy: adminAuth.uid });
+  }
+  await batch.commit();
+  const rawRef = db.doc(rec.records[1][0]), rawBefore = await rawRef.get();
+  const settings = { timestamp: () => admin.firestore.FieldValue.serverTimestamp() };
+  const review = { version: 1, projectId: 'perrinn-d5fc1', dates: [date] };
+  const preview = await backfillSessionCounts(db, adminAuth, review, settings);
+  assert.deepEqual(preview.results[0].sessionTypeCounts, { practice: 2 });
+  assert.equal((await parentRef.get()).data().sessionTypeCounts, undefined);
+  await backfillSessionCounts(db, adminAuth, review, { ...settings, dryRun: false });
+  assert.equal((await backfillSessionCounts(db, adminAuth, review, { ...settings, dryRun: false })).results[0].writes, 0);
+  const inputs = await Promise.all(['race', 'battery_dyno'].map(async (type, index) => {
+    const session = (await db.doc(parentRef.path + '/sessions/s' + index).get()).data();
+    return { schemaVersion: 2, kind: 'session', requestId: 'count-type-' + index, date, expectedRevision: 0,
+      expectedSessionRevision: 1, session: { ...dayData.editableSession(session), type } };
+  }));
+  await Promise.all(inputs.map(input => invoke(input)));
+  assert.deepEqual((await parentRef.get()).data().sessionTypeCounts, { race: 1, battery_dyno: 1 });
+  assert.equal((await parentRef.get()).data().revision, 0);
+  assert.equal((await invoke(inputs[0])).writes, 0);
+  await assert.rejects(invoke({ ...inputs[0], requestId: 'viewer-count-edit' }, { uid: 'viewer', token: {} }), error => error.code === 'permission-denied');
+  assert.ok((await rawRef.get()).updateTime.isEqual(rawBefore.updateTime));
 });

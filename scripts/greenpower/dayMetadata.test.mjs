@@ -8,7 +8,7 @@ const { emptyDay, validateDay, validateSession, editDayMetadata } = require('../
 function fixture(settings = {}) {
   const rec = recording(), day = '2026-06-14', parent = emptyDay(day, options.timestamp);
   const db = memoryDb([...rec.records, [ROOT + '/days/' + day, parent], [ROOT + '/days/' + day + '/live/latest', { date: day, count: 4, activeChunk: 0 }]], settings);
-  const { schemaVersion, revision, updatedBy, updatedAt, ...data } = parent;
+  const { schemaVersion, revision, updatedBy, updatedAt, sessionTypeCounts, ...data } = parent;
   const request = { schemaVersion: 2, requestId: 'save', date: day, expectedRevision: 0, kind: 'event', data };
   return { rec, db, request, day };
 }
@@ -17,7 +17,7 @@ test('event metadata saves require admin authorization and exact field allowlist
     const h = fixture(); await assert.rejects(editDayMetadata(h.db, auth, h.request, options), error => ['unauthenticated', 'permission-denied'].includes(error.code)); assert.equal(h.db.counts.reads, 0);
   }
   for (const mutate of [data => data.notes = 'retired', data => data.defaults.motorGearTeeth = 1.5, data => data.defaults.carMassKg = -1,
-    data => data.defaults.unknown = 1, data => data.result = 'x'.repeat(121), data => data.sessions = new Array(21).fill({})]) {
+    data => data.sessionTypeCounts = { race: 9 }, data => data.defaults.unknown = 1, data => data.result = 'x'.repeat(121), data => data.sessions = new Array(21).fill({})]) {
     const h = fixture(); mutate(h.request.data); await assert.rejects(editDayMetadata(h.db, adminAuth, h.request, options), error => error.code === 'invalid-argument'); assert.equal(h.db.counts.reads, 0);
   }
 });
@@ -37,15 +37,15 @@ function sessionRequest(h, id = 'race') {
   return { schemaVersion: 2, kind: 'session', requestId: 'save-' + id, date: h.day, expectedRevision: 0, expectedSessionRevision: 0,
     session: { id, type: 'race', startAt: range.firstAt, endAt: range.lastAt, batteryIds: ['A', 'B'], overrides: { driver: 'Sam' }, ranges: [range] } };
 }
-test('session edits write their own document and never rewrite the parent or raw chunks', async () => {
+test('session creation updates counts atomically while same-type edits leave the parent untouched', async () => {
   const h = fixture(), input = sessionRequest(h), parent = structuredClone(h.db.records.get(ROOT + '/days/' + h.day));
   const result = await editDayMetadata(h.db, adminAuth, input, options);
-  assert.equal(result.writes, 3); assert.equal(result.sessionRevision, 1); assert.equal(result.revision, 0);
-  assert.deepEqual(h.db.records.get(ROOT + '/days/' + h.day), parent);
+  assert.equal(result.writes, 4); assert.equal(result.sessionRevision, 1); assert.equal(result.revision, 0);
+  assert.deepEqual(h.db.records.get(ROOT + '/days/' + h.day), { ...parent, sessionTypeCounts: { race: 1 } });
   const after = h.db.records.get(ROOT + '/days/' + h.day + '/sessions/race');
   assert.equal(after.telemetryRoot, ROOT); assert.equal(after.revision, 1);
   const changed = { ...input, requestId: 'rename-driver', expectedSessionRevision: 1, session: { ...input.session, overrides: { driver: 'Jamie' } } };
-  const update = await editDayMetadata(h.db, adminAuth, changed, options); assert.equal(update.reads, 4);
+  const update = await editDayMetadata(h.db, adminAuth, changed, options); assert.equal(update.reads, 4); assert.equal(update.writes, 3);
   const bad = structuredClone(changed); bad.requestId = 'wrong-boundary'; bad.expectedSessionRevision = 2; bad.session.ranges[0].firstSampleId = 'wrong';
   const writes = h.db.counts.writes; await assert.rejects(editDayMetadata(h.db, adminAuth, bad, options)); assert.equal(h.db.counts.writes, writes);
 });
@@ -82,4 +82,35 @@ test('teeth overrides derive the ratio without storing it, and existing track ID
   assert.equal(dayData.gearingRatio(h.request.data), 5);
   assert.equal(dayData.gearingRatio(h.request.data, { overrides: { motorGearTeeth: 15 } }), 4);
   assert.equal(dayData.gearingRatio({ ...h.request.data, defaults: {} }), undefined);
+});
+
+test('type changes move counts, remove zero entries, preserve event revision and are replay-safe', async () => {
+  const h = fixture({ retryOnce: true }), input = sessionRequest(h);
+  await editDayMetadata(h.db, adminAuth, input, options);
+  const changed = { ...input, requestId: 'change-type', expectedSessionRevision: 1, session: { ...input.session, type: 'practice' } };
+  const result = await editDayMetadata(h.db, adminAuth, changed, options);
+  assert.equal(result.writes, 4); assert.deepEqual(result.sessionTypeCounts, { practice: 1 });
+  const parent = h.db.records.get(ROOT + '/days/' + h.day);
+  assert.equal(parent.revision, 0); assert.deepEqual(parent.sessionTypeCounts, { practice: 1 });
+  const audit = h.db.records.get(ROOT + '/metadataChanges/' + result.changeId);
+  assert.deepEqual(audit.records.days[ROOT + '/days/' + h.day].before.sessionTypeCounts, { race: 1 });
+  assert.deepEqual(audit.records.days[ROOT + '/days/' + h.day].after.sessionTypeCounts, { practice: 1 });
+  assert.equal((await editDayMetadata(h.db, adminAuth, changed, options)).writes, 0);
+  h.request.data.eventName = 'Renamed'; await editDayMetadata(h.db, adminAuth, h.request, options);
+  assert.deepEqual(h.db.records.get(ROOT + '/days/' + h.day).sessionTypeCounts, { practice: 1 });
+});
+test('missing, corrupt, underflowing and overflowing counts cannot produce partial session writes', async () => {
+  for (const counts of [undefined, { race: -1 }, { other: 1 }, { race: Number.MAX_SAFE_INTEGER }]) {
+    const h = fixture(); h.db.records.get(ROOT + '/days/' + h.day).sessionTypeCounts = counts;
+    await assert.rejects(editDayMetadata(h.db, adminAuth, sessionRequest(h), options));
+    assert.equal(h.db.counts.writes, 0);
+  }
+  const h = fixture(), input = sessionRequest(h); await editDayMetadata(h.db, adminAuth, input, options);
+  h.db.records.get(ROOT + '/days/' + h.day).sessionTypeCounts = {};
+  const writes = h.db.counts.writes;
+  await assert.rejects(editDayMetadata(h.db, adminAuth, { ...input, requestId: 'underflow', expectedSessionRevision: 1, session: { ...input.session, type: 'practice' } }, options));
+  assert.equal(h.db.counts.writes, writes);
+  const legacy = fixture(); delete legacy.db.records.get(ROOT + '/days/' + legacy.day).sessionTypeCounts;
+  await editDayMetadata(legacy.db, adminAuth, legacy.request, options);
+  assert.equal(legacy.db.records.get(ROOT + '/days/' + legacy.day).sessionTypeCounts, undefined);
 });

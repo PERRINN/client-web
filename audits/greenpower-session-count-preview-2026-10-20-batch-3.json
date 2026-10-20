@@ -1,0 +1,117 @@
+{
+  "projectId": "perrinn-d5fc1",
+  "dryRun": true,
+  "runId": "784255a1-7f11-4326-a503-f9d3c6565ae1",
+  "results": [
+    {
+      "date": "2026-08-24",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-09-10",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-09-12",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-09-17",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-09-18",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-09-19",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-09-20",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-09-24",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-09-25",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-09-27",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-09-28",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-09-29",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-10-18",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-10-19",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    }
+  ],
+  "bounds": {
+    "days": 30,
+    "sessionsPerDay": 200,
+    "queryLimit": 201,
+    "concurrency": 1,
+    "attemptsPerDay": 3,
+    "maximumDocumentReads": 18180,
+    "maximumWrites": 60,
+    "rawReads": 0,
+    "rawWrites": 0
+  },
+  "reviewSha256": "8d2f36e9f24bf0f364ec9723e6a13564ba92bab0a9c8653c5d5d133cfce771b6"
+}

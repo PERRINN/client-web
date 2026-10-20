@@ -5,7 +5,7 @@ import 'firebase/compat/firestore';
 import { Subject, Subscription } from 'rxjs';
 import { PermissionsService } from '../permissions.service';
 import { defaultEventFilters, EVENT_ROOT, EventFilters, validDate, validId } from './greenpowerEvents';
-import { DayEditRequest, DayEditResult, DaySession, emptyDay, eventSummary, RecordedEvent, validRecordedEvent, validDaySession, SESSION_SCOPE } from './greenpowerDay';
+import { DayEditRequest, DayEditResult, DaySession, emptyDay, eventListSummary, RecordedEvent, validRecordedEvent, validDaySession, SESSION_SCOPE } from './greenpowerDay';
 import { TrackChoice, TRACKS_PATH, validTrack } from './greenpowerTracks';
 
 @Injectable()
@@ -89,7 +89,7 @@ export class GreenpowerEventsService implements OnDestroy {
   }
   eventLabel(date: string) {
     const event = this.selectedEvent?.date === date ? this.selectedEvent : this.events.find(event => event.date === date);
-    return [date, event ? eventSummary(event) : ''].filter(Boolean).join(' · ');
+    return [date, event ? eventListSummary(event) : ''].filter(Boolean).join(' · ');
   }
   clear() {
     this.sessionsGeneration++; this.sessionSelection++; this.sessionOff?.(); this.sessionOff = undefined;
@@ -166,7 +166,7 @@ export class GreenpowerEventsService implements OnDestroy {
   acknowledge(request: DayEditRequest, result: DayEditResult) {
     if (this.eventId !== result.date) return;
     if (request.kind === 'event' && (!this.selectedEvent || this.selectedEvent.revision < result.revision)) {
-      this.accept({ ...request.data, schemaVersion: 2, revision: result.revision, updatedBy: this.account });
+      this.accept({ ...request.data, ...(result.sessionTypeCounts === undefined ? {} : { sessionTypeCounts: result.sessionTypeCounts }), schemaVersion: 2, revision: result.revision, updatedBy: this.account });
     } else if (request.kind === 'session') {
       const saved = { ...request.session, schemaVersion: 2 as const, telemetryRoot: SESSION_SCOPE, revision: result.sessionRevision!, updatedBy: this.account };
       const previous = this.sessions.find(item => item.id === saved.id);

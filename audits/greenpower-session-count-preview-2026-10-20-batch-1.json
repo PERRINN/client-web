@@ -1,0 +1,233 @@
+{
+  "projectId": "perrinn-d5fc1",
+  "dryRun": true,
+  "runId": "5fb72d94-9503-4ed0-93ad-59e60eb11343",
+  "results": [
+    {
+      "date": "2026-04-18",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-04-29",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-04-30",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-05-01",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-05-02",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-05-03",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-05-04",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-05-06",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-05-08",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-05-10",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-05-11",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-05-15",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-05-17",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-05-18",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-05-24",
+      "sessionTypeCounts": {
+        "race": 1
+      },
+      "changed": true,
+      "reads": 2,
+      "writes": 0
+    },
+    {
+      "date": "2026-05-26",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-05-27",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-05-31",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-06-04",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-06-07",
+      "sessionTypeCounts": {
+        "race": 1
+      },
+      "changed": true,
+      "reads": 2,
+      "writes": 0
+    },
+    {
+      "date": "2026-06-11",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-06-12",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-06-13",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-06-14",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-06-15",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-06-16",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-06-17",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-06-18",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-06-19",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    },
+    {
+      "date": "2026-06-20",
+      "sessionTypeCounts": {},
+      "changed": true,
+      "reads": 1,
+      "writes": 0
+    }
+  ],
+  "bounds": {
+    "days": 30,
+    "sessionsPerDay": 200,
+    "queryLimit": 201,
+    "concurrency": 1,
+    "attemptsPerDay": 3,
+    "maximumDocumentReads": 18180,
+    "maximumWrites": 60,
+    "rawReads": 0,
+    "rawWrites": 0
+  },
+  "reviewSha256": "5747009cc314ed6bba88d0c8d32a81d349b2413a129f6a6f8549572f49842ead"
+}

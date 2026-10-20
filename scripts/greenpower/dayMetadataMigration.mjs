@@ -119,7 +119,9 @@ export async function applyMetadataMigration(db, auth, plan, { timestamp, dryRun
       if (record.data.trackId) check(await get(db.doc(ROOT + '/tracks/' + record.data.trackId)), 'Track disappeared.');
       for (const session of record.sessions) check(!await get(db.doc(dayRef.path + '/sessions/' + session.id)), 'Target session already exists.');
       const sessionRecords = Object.fromEntries(record.sessions.map(session => [dayRef.path + '/sessions/' + session.id, { before: null, after: { ...session, telemetryRoot: ROOT, schemaVersion: 2, revision: 1, updatedBy: auth.uid, updatedAt: timestamp() } }]));
-      const after = { ...record.data, schemaVersion: 2, revision: 1, updatedBy: auth.uid, updatedAt: timestamp() };
+      const sessionTypeCounts = {};
+      for (const session of record.sessions) sessionTypeCounts[session.type] = (sessionTypeCounts[session.type] || 0) + 1;
+      const after = { ...record.data, sessionTypeCounts, schemaVersion: 2, revision: 1, updatedBy: auth.uid, updatedAt: timestamp() };
       const audit = { actor: auth.uid, action: 'migrate-day', requestSha256: planHash, createdAt: timestamp(),
         records: { days: { [record.date]: { before, after } }, sessions: sessionRecords }, migrationSources: record.sources };
       check(Buffer.byteLength(JSON.stringify(audit)) <= 512 * 1024, 'Migration audit exceeds 512 KiB; review source metadata.');
