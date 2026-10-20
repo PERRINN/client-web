@@ -137,6 +137,22 @@ export class GreenpowerEventsService implements OnDestroy {
     } catch { if (current()) this.sessionError = 'Could not load sessions. Try again.'; }
     finally { if (current()) { this.loadingSessions = false; this.changed.next(); } }
   }
+  /** One unfiltered metadata page per action, independent of pending history filters. */
+  async recordingSessionPage(date: string, after?: { start: number; id: string }) {
+    if (!this.account || !validDate(date)) throw new Error('Unavailable event');
+    const generation = this.generation;
+    let query = this.db.collection(EVENT_ROOT + '/days/' + date + '/sessions')
+      .orderBy('startAt').orderBy(firebase.firestore.FieldPath.documentId()).limit(30);
+    if (after) query = query.startAfter(after.start, after.id);
+    const snapshot = await query.get({ source: 'server' });
+    if (!this.valid(generation)) throw new Error('Account changed');
+    const sessions = snapshot.docs.map(doc => {
+      const value = doc.data();
+      if (value.id !== doc.id || !validDaySession(value, date)) throw new Error('Invalid session');
+      return value;
+    });
+    return { sessions, more: snapshot.size === 30 };
+  }
   selectSession(id: string) {
     if (!this.eventReady || id && !validId(id)) return;
     this.sessionSelection++; this.sessionOff?.(); this.sessionOff = undefined;

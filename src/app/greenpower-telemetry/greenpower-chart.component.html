@@ -28,6 +28,10 @@
       }
       @for (tick of model.axis.ticks; track tick.y) { <path class="grid" [attr.d]="'M0 ' + tick.y + 'H800'" /> }
       @if (hasCurrentLimit) { <path class="current-limit" [attr.d]="'M0 ' + limitY + 'H800'" /> }
+      @for (session of sessionBands; track session.id) {
+        @if (session.starts) { <path class="session-boundary" [attr.d]="'M' + session.x * 8 + ' 0V120'"><title>{{ session.label }} · Start {{ time(session.start) }}</title></path> }
+        @if (session.ends) { <path class="session-boundary session-finish" [attr.d]="'M' + (session.x + session.width) * 8 + ' 0V120'"><title>{{ session.label }} · End {{ time(session.end) }}</title></path> }
+      }
       <path class="trace" transform="matrix(1.0204081633 0 0 1 -8.1632653061 0)" [attr.d]="model.trace.path" />
       @if (comparison) { <path class="trace comparison-trace" transform="matrix(1.0204081633 0 0 1 -8.1632653061 0)" [attr.d]="model.comparison.path" /> }
       @if (band; as selection) { <rect class="selection" [attr.x]="selection.x" y="0" [attr.width]="selection.width" height="120" /> }
@@ -39,6 +43,14 @@
         <ellipse class="cursor-point" [attr.cx]="cursorPosition" [attr.cy]="markerY" [attr.rx]="markerRadiusX" ry="3.2" />
       }
     </svg>
+    <div class="session-labels" aria-label="Sessions">
+      @for (session of sessionBands; track session.id) {
+        @if (session.showLabel) {
+          <span [style.left.%]="session.x" [style.width.%]="session.width"
+            [title]="session.label + ' · ' + time(session.start) + '–' + time(session.end)">{{ session.label }}</span>
+        }
+      }
+    </div>
     <div class="lap-labels">
       @for (lap of lapBands; track lap.time) {
         @if (lap.label) { <span [style.left.%]="lap.x" [style.width.%]="lap.width"><button type="button" [attr.aria-label]="'Zoom all graphs to ' + lap.label.toLowerCase()" (click)="zoomLap(lap)">{{ lap.label }}</button></span> }

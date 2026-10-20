@@ -26,7 +26,7 @@ function client(records = new Map()) {
       where: (field, op, value) => ref(path, { ...spec, filters: [...spec.filters, [field, op, value]] }),
       orderBy: (field, direction = 'asc') => ref(path, { ...spec, order: [...spec.order, [field, direction]] }),
       limit: limit => ref(path, { ...spec, limit }), startAt: first => ref(path, { ...spec, first }), endAt: end => ref(path, { ...spec, end }),
-      startAfter: cursor => ref(path, { ...spec, after: typeof cursor === 'string' ? cursor : cursor.id }),
+      startAfter: (cursor, id) => ref(path, { ...spec, after: id || (typeof cursor === 'string' ? cursor : cursor.id) }),
       async get(source) {
         assert.equal(source.source, 'server');
         if (path.split('/').length % 2 === 0) { calls.push({ path, direct: true }); return snapshot(path); }
@@ -260,4 +260,25 @@ test('history labels show complete stored counts without per-event reads or chan
   h.publish(ROOT + '/days/' + day, { ...value, sessionTypeCounts: {} });
   assert.equal(h.service.eventLabel(day), day + ' · Goodwood · Alex · P3');
   h.service.ngOnDestroy();
+});
+
+test('recording session pages ignore picker type, use one query per action and reject stale account results', async () => {
+  const h = client(), { session } = migrated();
+  for (let i = 0; i < 31; i++) {
+    const id = 'session-' + String(i).padStart(2, '0');
+    h.records.set(ROOT + '/days/' + day + '/sessions/' + id, { ...session, id, type: i % 2 ? 'race' : 'practice' });
+  }
+  h.service.filters.type = 'race';
+  const first = await h.service.recordingSessionPage(day);
+  assert.equal(first.sessions.length, 30); assert.equal(first.more, true);
+  assert.equal(h.calls.length, 1); assert.equal(h.calls[0].limit, 30); assert.deepEqual(h.calls[0].filters, []);
+  assert.equal(first.sessions[0].type, 'practice');
+  const last = first.sessions.at(-1);
+  const second = await h.service.recordingSessionPage(day, { start: last.startAt, id: last.id });
+  assert.equal(second.sessions.length, 1); assert.equal(second.more, false); assert.equal(h.calls.length, 2);
+  let finish;
+  h.delay(() => new Promise(resolve => { finish = resolve; }));
+  const stale = h.service.recordingSessionPage(day);
+  h.state.next({ ready: true, uid: '', isAdmin: false }); finish({ docs: [], size: 0 });
+  await assert.rejects(stale, /Account changed/); h.service.ngOnDestroy();
 });

@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
+import { SessionInterval, sessionLapGroups } from './greenpowerSessions';
+import { londonTime } from './greenpowerData';
 import { GpsLap } from './greenpowerGps';
 import { ChartWindow } from './greenpowerChart';
 
@@ -7,7 +9,11 @@ import { ChartWindow } from './greenpowerChart';
   templateUrl: './greenpower-lap-list.component.html', styleUrls: ['./greenpower-lap-list.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class GreenpowerLapListComponent {
+export class GreenpowerLapListComponent implements OnChanges {
+  @Input() sessions: SessionInterval[] = [];
+  groups = sessionLapGroups([], []);
+  time = londonTime;
+  ngOnChanges() { this.groups = sessionLapGroups(this.laps, this.sessions); }
   @Input() laps: GpsLap[] = [];
   @Input() configured = false;
   @Input() loading = false;

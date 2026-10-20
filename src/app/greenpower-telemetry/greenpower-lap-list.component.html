@@ -7,11 +7,19 @@
     <div class="table-scroll">
       <table>
         <thead><tr><th scope="col">Lap</th><th scope="col">Time</th><th scope="col">Avg current · A</th><th scope="col">Avg speed · mph</th></tr></thead>
+        @for (group of groups; track group.key) {
         <tbody>
-          @for (lap of laps; track lap.time) {
+            @if (sessions.length) {
+              <tr class="session-heading"><th colspan="4" scope="rowgroup">
+                @if (group.session; as session) { <span>{{ session.label }}</span><span>{{ time(session.start) }}–{{ time(session.end) }}</span> }
+                @else { <span>Outside a single session</span> }
+              </th></tr>
+            }
+          @for (lap of group.laps; track lap.time) {
             <tr><th scope="row"><button type="button" [attr.aria-label]="'Zoom all graphs to GPS lap ' + lap.lap" [disabled]="lap.end <= lap.time" (click)="lapSelect.emit({start: lap.time, end: lap.end})">{{ lap.lap }}</button></th><td>{{ duration(lap) }}</td><td>{{ reading(lap.current) }}</td><td>{{ reading(lap.speed) }}</td></tr>
           }
         </tbody>
+        }
       </table>
     </div>
   }

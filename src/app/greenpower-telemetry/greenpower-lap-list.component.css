@@ -15,3 +15,7 @@ button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2p
 button:disabled { opacity: .5; }
 
 @media (hover: hover) and (pointer: fine) { button:hover { background: var(--color-raised); } }
+
+.session-heading th { padding: 12px 8px 6px; text-align: left; white-space: normal; }
+.session-heading span { display: block; font: inherit; overflow-wrap: anywhere; }
+.session-heading span + span { color: var(--color-text-secondary); font-weight: 500; }

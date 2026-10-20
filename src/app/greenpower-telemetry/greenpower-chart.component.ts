@@ -1,6 +1,7 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, NgZone, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { GreenpowerChannel, londonTime, pointIndex } from './greenpowerData';
 import { ChartWindow, chartY, clockTicks, CURRENT_LIMIT_AMPS, formatAxisValue, formatTelemetryValue, isCurrentChannel, nearestPoint, plotFor } from './greenpowerChart';
+import { SessionInterval, visibleSessions } from './greenpowerSessions';
 import { ChartDoubleTap } from '../telemetry/chartDoubleTap';
 import { lapAt, LapInterval, visibleLaps } from './greenpowerLaps';
 
@@ -17,6 +18,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   @Input() end = 0;
   @Input() cursor?: number;
   @Input() laps: LapInterval[] = [];
+  @Input() sessions: SessionInterval[] = [];
   @Input() context = '';
   @Output() windowChange = new EventEmitter<ChartWindow | undefined>();
   @Output() cursorChange = new EventEmitter<number | undefined>();
@@ -24,6 +26,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   model = plotFor([], 0, 0, 300);
   ticks = clockTicks(0, 0, 300);
   lapBands = visibleLaps([], 0, 0, 300);
+  sessionBands = visibleSessions([], 0, 0);
   readonly currentLimit = CURRENT_LIMIT_AMPS;
   get hasCurrentLimit() { return isCurrentChannel(this.channel); }
   get limitY() { return chartY(this.currentLimit, this.model.axis); }
@@ -77,7 +80,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   }
   ngOnChanges(changes: SimpleChanges) {
     if (changes['context']) this.cancel();
-    if (changes['channel'] || changes['comparison'] || changes['start'] || changes['end'] || changes['laps']) {
+    if (changes['channel'] || changes['comparison'] || changes['start'] || changes['end'] || changes['laps'] || changes['sessions']) {
       if (this.drag) this.renderPending = true;
       else this.render();
     }
@@ -92,6 +95,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   private render() {
     this.model = plotFor(this.channel.points, this.start, this.end, this.width, this.hasCurrentLimit ? this.currentLimit : undefined, this.comparison?.points);
     this.ticks = clockTicks(this.start, this.end, this.width);
+    this.sessionBands = visibleSessions(this.sessions, this.start, this.end, this.width);
     this.lapBands = visibleLaps(this.laps, this.start, this.end, this.width);
   }
   private fraction(event: PointerEvent) {

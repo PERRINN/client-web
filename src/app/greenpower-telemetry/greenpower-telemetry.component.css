@@ -74,3 +74,5 @@ select { border-color: var(--color-border); }
   .compact-action span { display: none; }
   .view-navigation { margin-left: auto; gap: 2px; }
 }
+
+.session-status { display: flex; align-items: center; gap: 8px; margin-top: 8px; }

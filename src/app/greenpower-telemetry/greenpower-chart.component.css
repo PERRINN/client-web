@@ -39,3 +39,9 @@ svg:focus-visible { outline: 1px solid var(--color-text-secondary); outline-offs
 .comparison-legend > span { display: block; min-width: 0; white-space: nowrap; }
 .comparison-legend > span::before { display: inline-block; margin-right: 5px; vertical-align: middle; }
 .comparison-legend .legend-value { display: block; padding-left: 19px; font: inherit; }
+
+/* Session details share the plot canvas; zoom never changes chart height. */
+.session-labels { position: absolute; bottom: 3px; left: 73px; right: 0; height: 19px; pointer-events: none; }
+.session-labels span { position: absolute; text-align: center; white-space: nowrap; font-size: 13px; line-height: 19px; color: var(--color-text-secondary); }
+.session-boundary { stroke: var(--color-text-muted); stroke-opacity: .6; stroke-width: 1; fill: none; vector-effect: non-scaling-stroke; }
+.session-finish { stroke-dasharray: 3 3; }

@@ -76,7 +76,7 @@ TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTe
 TestBed.configureTestingModule({imports:[CommonModule,FormsModule,RouterModule.forRoot([])],declarations:[GreenpowerTelemetryComponent,GreenpowerEventSelectorComponent,GreenpowerEventEditorComponent,GreenpowerMetadataFieldsComponent,GreenpowerChartComponent,GreenpowerMapComponent,GreenpowerLapListComponent],providers:[{provide:PermissionsService,useValue:permissions},{provide:AngularFirestore,useValue:{firestore:db}},{provide:AngularFireFunctions,useValue:functions}]});
 TestBed.overrideComponent(GreenpowerTelemetryComponent,{set:{providers:[{provide:GreenpowerTelemetryService,useValue:telemetry},{provide:GreenpowerViewService,useValue:view},{provide:GreenpowerLapService,useValue:laps},GreenpowerEventsService,GreenpowerEventEditService]}});
 const fixture=TestBed.createComponent(GreenpowerTelemetryComponent);document.querySelector('.contentCard').append(fixture.nativeElement);fixture.autoDetectChanges();
-window.dayHarness={sessionCounts(counts){records.get('GreenpowerTelemetry/424/days/'+date).sessionTypeCounts=counts;notify();fixture.detectChanges();},stats:()=>({cursor:fixture.componentInstance.cursor,sessionDraft:fixture.componentInstance.eventEdit.sessionDraft,dayLoads:telemetry.dayLoads,sessionLoads:telemetry.sessionLoads,calls:[...calls]}),admin(){state.next({ready:true,uid:'viewer',isAdmin:true});fixture.detectChanges();},empty(){records.clear();fixture.componentInstance.events.loadEvents(true);},failure(value){fail=value;},saveFailure(value){saveFail=value;},error(){telemetry.error='Synthetic load failure';telemetry.changed.next();},loading(value){telemetry.loading=value;telemetry.changed.next();},logout(){telemetry.access='signed-out';state.next({ready:true,uid:'',isAdmin:false});telemetry.changed.next();}};
+window.dayHarness={sessionLaps(){laps.line={a:{lat:52,lon:-1},b:{lat:52,lon:-0.9999},direction:1};laps.analysis.laps=[{time:first+300000,end:first+900000,lap:1,complete:true},{time:first+3600000,end:first+4200000,lap:2,complete:true}];laps.changed.next();fixture.detectChanges();},sessionCounts(counts){records.get('GreenpowerTelemetry/424/days/'+date).sessionTypeCounts=counts;notify();fixture.detectChanges();},stats:()=>({cursor:fixture.componentInstance.cursor,sessionDraft:fixture.componentInstance.eventEdit.sessionDraft,dayLoads:telemetry.dayLoads,sessionLoads:telemetry.sessionLoads,calls:[...calls]}),admin(){state.next({ready:true,uid:'viewer',isAdmin:true});fixture.detectChanges();},empty(){records.clear();fixture.componentInstance.events.loadEvents(true);},failure(value){fail=value;},saveFailure(value){saveFail=value;},error(){telemetry.error='Synthetic load failure';telemetry.changed.next();},loading(value){telemetry.loading=value;telemetry.changed.next();},logout(){telemetry.access='signed-out';state.next({ready:true,uid:'',isAdmin:false});telemetry.changed.next();}};
 `);
 await build({ entryPoints: [output + '/entry.ts'], outfile: output + '/bundle.js', bundle: true, platform: 'browser', format: 'iife', nodePaths: [root + '/node_modules'], tsconfigRaw: { compilerOptions: { experimentalDecorators: true } }, plugins: [{ name: 'angular-resources', setup(plugin) {
   plugin.onLoad({ filter: /\.component\.ts$/ }, async args => {
@@ -179,6 +179,33 @@ try {
     await page.getByRole('button', { name: 'Load history', exact: true }).click();
     await page.getByRole('button', { name: 'Load', exact: true }).click();
     await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Workshop · Alex · P3');
+    assert.equal(await page.locator('.session-strip, .session-key, .session-range').count(), 0);
+    assert.equal(await page.locator('.session-labels span').count(), 0, 'overview hides labels that cannot fit');
+    assert.equal(await page.locator('.session-boundary').count(), 4);
+    assert.deepEqual(await page.locator('.controls').boundingBox(), origin);
+    await page.screenshot({ path: output + '/session-graphs-' + width + '.png', fullPage: true });
+    const sessionReads = await page.evaluate(() => window.dayHarness.stats().calls.length);
+    await page.evaluate(() => window.dayHarness.sessionLaps());
+    await page.getByRole('button', { name: 'Lap list', exact: true }).click();
+    assert.match(await page.locator('.session-heading').first().innerText(), /Practice · Alex/);
+    assert.match(await page.locator('.session-heading').nth(1).innerText(), /Race · Sam/);
+    await page.screenshot({ path: output + '/session-laps-' + width + '.png', fullPage: true });
+    await page.getByRole('button', { name: 'Data', exact: true }).click();
+    const overviewPlot = await page.locator('app-greenpower-chart .plot').boundingBox();
+    const overviewChart = await page.locator('app-greenpower-chart').boundingBox();
+    await page.getByRole('button', { name: 'Lap list', exact: true }).click();
+    await page.getByRole('button', { name: 'Zoom all graphs to GPS lap 1', exact: true }).click();
+    assert.equal(await page.locator('.session-boundary').count(), 0);
+    assert.equal(await page.locator('.session-labels span').innerText(), 'Practice · Alex');
+    assert.deepEqual(await page.locator('app-greenpower-chart .plot').boundingBox(), overviewPlot);
+    assert.deepEqual(await page.locator('app-greenpower-chart').boundingBox(), overviewChart);
+    await page.screenshot({path: output + '/session-zoom-' + width + '.png', fullPage: true});
+    await page.locator('app-greenpower-chart svg').first().focus();
+    await page.keyboard.press('Home');
+    await page.locator('.session-labels span').waitFor({state: 'detached'});
+    assert.equal(await page.locator('.session-labels span').count(), 0);
+    assert.deepEqual(await page.locator('app-greenpower-chart .plot').boundingBox(), overviewPlot);
+    assert.equal(await page.evaluate(() => window.dayHarness.stats().calls.length), sessionReads, 'views and zoom reuse session metadata');
     await page.getByRole('button', { name: 'Add session', exact: true }).click();
     const fields = page.locator('app-greenpower-metadata-fields');
     await fields.getByLabel('Session type', { exact: true }).selectOption('practice');

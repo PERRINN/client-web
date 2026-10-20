@@ -70,6 +70,13 @@
     @if (telemetry.more) {
       <div class="continuation"><span>{{ telemetry.recordingKey ? 'More data is available for this session.' : 'More data is available for this day.' }}</span><button type="button" (click)="telemetry.loadMore()">Load remaining data</button></div>
     } @else if (!telemetry.loading && !telemetry.channels.length && !telemetry.error && !(historyOpen && events.eventId)) { <p class="state">No telemetry recorded for this day.</p> }
+    @if (activeView !== 'track' && (sessionsLoading || sessionsError || sessionsMore)) {
+      <div class="session-status" role="status">
+        @if (sessionsLoading) { <span>Loading sessions…</span> }
+        @else if (sessionsError) { <span>{{ sessionsError }}</span><button type="button" (click)="loadRecordingSessions()">Retry sessions</button> }
+        @else { <button type="button" (click)="loadRecordingSessions()">More sessions</button> }
+      </div>
+    }
     <div id="telemetry-track-map" class="view-panel" [hidden]="activeView !== 'track' || (historyOpen && editing)" role="region" aria-label="Track map view">
       @if (view.editing && view.canEdit) {
         @if (!lapConfig.eventTrack) { <div class="track-selection" aria-label="Track selection">
@@ -98,13 +105,13 @@
         }
         <div class="charts">
           @for (channel of charts; track channel.id) {
-            @if (channel.points.length) { <app-greenpower-chart [channel]="channel" [comparison]="channel.id === voltageLeftId ? voltageRight : undefined" [heading]="channel.id === voltageLeftId ? 'Voltage left / right' : ''" [laps]="laps" [start]="start" [end]="end" [cursor]="cursor" [context]="dataset" (windowChange)="zoom($event)" (cursorChange)="cursor = $event" /> }
+            @if (channel.points.length) { <app-greenpower-chart [channel]="channel" [comparison]="channel.id === voltageLeftId ? voltageRight : undefined" [heading]="channel.id === voltageLeftId ? 'Voltage left / right' : ''" [laps]="laps" [sessions]="sessions" [start]="start" [end]="end" [cursor]="cursor" [context]="dataset" (windowChange)="zoom($event)" (cursorChange)="cursor = $event" /> }
           }
         </div>
       }
     </div>
     <div id="telemetry-lap-list" class="view-panel" [hidden]="activeView !== 'laps'" role="region" aria-label="Lap list view">
-      <app-greenpower-lap-list [laps]="lapConfig.analysis.laps" [configured]="!!lapConfig.line" [loading]="telemetry.loading || lapConfig.searching || (!lapConfig.ready && !!lapConfig.selectedId)" [partial]="telemetry.more" (lapSelect)="selectLap($event)" />
+      <app-greenpower-lap-list [laps]="lapConfig.analysis.laps" [sessions]="sessions" [configured]="!!lapConfig.line" [loading]="telemetry.loading || lapConfig.searching || (!lapConfig.ready && !!lapConfig.selectedId)" [partial]="telemetry.more" (lapSelect)="selectLap($event)" />
     </div>
   }
 </main>

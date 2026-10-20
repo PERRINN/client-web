@@ -14,6 +14,7 @@ import { GreenpowerTelemetryService } from './greenpowerTelemetry.service';
 import { GreenpowerEventsService } from './greenpowerEvents.service';
 import { GreenpowerEventEditService } from './greenpowerEventEdit.service';
 import { DaySession, RecordedEvent } from './greenpowerDay';
+import { SessionInterval, sessionIntervals } from './greenpowerSessions';
 import { recordingHeader } from './greenpowerContext';
 
 @Component({
@@ -32,6 +33,11 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   private recordingRevision = 0;
   private loadedEvent?: RecordedEvent;
   private loadedSession?: DaySession;
+  sessions: SessionInterval[] = [];
+  sessionsLoading = false;
+  sessionsMore = false;
+  sessionsError = '';
+  private sessionAfter?: { start: number; id: string };
   get header() {
     const data = this.telemetry;
     return recordingHeader({ signedIn: data.access === 'signed-in', live: data.live, day: data.day,
@@ -77,7 +83,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     this.context = this.dataset + ':' + telemetry.access;
     this.previousTitle = title.getTitle(); title.setTitle('424 Greenpower Telemetry · PERRINN');
     this.changes = telemetry.changed.subscribe(() => {
-      if (telemetry.access !== 'signed-in') { this.loadedEvent = undefined; this.loadedSession = undefined; }
+      if (telemetry.access !== 'signed-in') { this.loadedEvent = undefined; this.loadedSession = undefined; this.clearSessions(); }
       const context = this.dataset + ':' + telemetry.access;
       if (this.context !== context || !telemetry.channels.length) { this.zoom(); this.context = context; }
       this.refreshView(); this.syncHeader(); change.markForCheck();
@@ -133,9 +139,33 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     if (!this.events.eventReady || !this.events.selectedEvent || this.events.sessionId && !this.events.sessionReady || this.eventEdit.locked || this.telemetry.loading) return;
     this.loadedEvent = JSON.parse(JSON.stringify(this.events.selectedEvent));
     this.loadedSession = this.events.selectedSession ? JSON.parse(JSON.stringify(this.events.selectedSession)) : undefined;
+    this.clearSessions();
+    if (!this.loadedSession) {
+      if (!this.events.filters.type && !this.events.loadingSessions && !this.events.moreSessions && !this.events.sessionError) {
+        this.sessions = sessionIntervals(this.loadedEvent!, this.events.sessions);
+      } else void this.loadRecordingSessions();
+    }
     this.historyOpen = false;
     this.fetchLoadedRecording();
     this.historyButton?.nativeElement.focus({ preventScroll: true });
+  }
+  private clearSessions() {
+    this.sessions = []; this.sessionAfter = undefined;
+    this.sessionsLoading = this.sessionsMore = false; this.sessionsError = '';
+  }
+  async loadRecordingSessions() {
+    const event = this.loadedEvent;
+    if (!event || this.loadedSession || this.sessionsLoading) return;
+    this.sessionsLoading = true; this.sessionsError = '';
+    try {
+      const page = await this.events.recordingSessionPage(event.date, this.sessionAfter);
+      if (this.loadedEvent !== event) return;
+      this.sessions = [...this.sessions, ...sessionIntervals(event, page.sessions)];
+      const last = page.sessions.at(-1);
+      if (last) this.sessionAfter = { start: last.startAt, id: last.id };
+      this.sessionsMore = page.more;
+    } catch { if (this.loadedEvent === event) this.sessionsError = 'Could not load session details.'; }
+    finally { if (this.loadedEvent === event) this.sessionsLoading = false; }
   }
   private fetchLoadedRecording() {
     const event = this.loadedEvent, session = this.loadedSession;
@@ -192,6 +222,6 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     this.historyOpen = !this.historyOpen;
     if (this.historyOpen && !this.events.loadedEvents && !this.events.loadingEvents) await this.events.loadEvents();
   }
-  live() { if (!this.eventEdit.locked) { this.loadedEvent = undefined; this.loadedSession = undefined; this.historyOpen = false; void this.telemetry.select(londonDay(), true); } }
-  ngOnDestroy() { this.changes.unsubscribe(); this.drag.cancel(); clearInterval(this.clock); this.title.setTitle(this.previousTitle); }
+  live() { if (!this.eventEdit.locked) { this.loadedEvent = undefined; this.loadedSession = undefined; this.clearSessions(); this.historyOpen = false; void this.telemetry.select(londonDay(), true); } }
+  ngOnDestroy() { this.loadedEvent = undefined; this.clearSessions(); this.changes.unsubscribe(); this.drag.cancel(); clearInterval(this.clock); this.title.setTitle(this.previousTitle); }
 }
