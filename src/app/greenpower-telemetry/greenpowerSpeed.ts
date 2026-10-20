@@ -1,7 +1,8 @@
+import { GpsLap, timeAverage } from './greenpowerGps';
 import { DayMetadata, wheelCircumference } from './greenpowerDay';
 import { channelDetails, displayValue, GreenpowerChannel, isVehicleSpeed, MOTOR_DERIVED_SPEED, pointIndex, VEHICLE_SPEED } from './greenpowerData';
 
-/** Compare motor RPM with recorded speed without changing raw channels or lap averages. */
+/** Derive road speed from saved gearing without changing recorded speed channels. */
 export function withMotorDerivedSpeed(channels: GreenpowerChannel[], event?: DayMetadata, latestTime?: number): GreenpowerChannel[] {
   const motor = channels.find(channel => channel.id === '["RPM"]:rpm');
   if (!motor) return channels;
@@ -28,4 +29,10 @@ export function withMotorDerivedSpeed(channels: GreenpowerChannel[], event?: Day
     result.push({ id: VEHICLE_SPEED, ...channelDetails(VEHICLE_SPEED), points: [], value: '—' });
   }
   return result;
+}
+
+/** One source for lap-list and graph speed summaries, with no recorded-speed fallback. */
+export function motorLapSpeeds(laps: GpsLap[], channels: GreenpowerChannel[]): GpsLap[] {
+  const points = channels.find(channel => channel.id === MOTOR_DERIVED_SPEED)?.points ?? [];
+  return laps.map(lap => ({ ...lap, speed: lap.complete ? timeAverage(points, lap.time, lap.end) : undefined }));
 }

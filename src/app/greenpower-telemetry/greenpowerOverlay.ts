@@ -2,7 +2,7 @@ import { GreenpowerChannel, channelsFor, sampleTime } from './greenpowerData';
 import { DaySession, RecordedEvent, effectiveDefaults } from './greenpowerDay';
 import { gpsAnalysis, gpsFixes } from './greenpowerGps';
 import { contains, TrackDefinition } from './greenpowerTracks';
-import { withMotorDerivedSpeed } from './greenpowerSpeed';
+import { motorLapSpeeds, withMotorDerivedSpeed } from './greenpowerSpeed';
 import { lapMetricChannels } from './greenpowerLapMetrics';
 import { sessionLapAnalysis, sessionIntervals, sessionAmpHours, savedGear } from './greenpowerSessions';
 
@@ -25,8 +25,10 @@ export function overlayChannels(samples: Parameters<typeof channelsFor>[0], sess
   const numbered = sessionLapAnalysis(analysis, event ? sessionIntervals(event, [session]) : [], {
     channels, fixes, end: session.endAt, configured: !!line
   });
-  const projected = savedGear([...channels, ...lapMetricChannels(numbered.laps)], event, [session], session.startAt, session.endAt, latest && sampleTime(latest));
-  return withMotorDerivedSpeed(projected, event, latest && sampleTime(latest)).map(channel => {
+  const projected = withMotorDerivedSpeed(savedGear(channels, event, [session], session.startAt, session.endAt,
+    latest && sampleTime(latest)), event, latest && sampleTime(latest));
+  const metrics = lapMetricChannels(motorLapSpeeds(numbered.laps, projected));
+  return [...projected, ...metrics].map(channel => {
     const adjusted = sessionAmpHours(channel, [session], latest && sampleTime(latest));
     return { ...adjusted,
       ...(adjusted.valueAt ? { valueAt: (time: number) => adjusted.valueAt!(time + session.startAt) } : {}),

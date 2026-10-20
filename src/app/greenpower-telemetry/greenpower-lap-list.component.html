@@ -33,7 +33,7 @@
   @if (configured && laps.length) {
     <div class="table-scroll">
       <table>
-        <thead><tr><th scope="col">Lap</th><th scope="col">Time</th><th scope="col">Avg current · A</th><th scope="col">Avg speed · mph</th></tr></thead>
+        <thead><tr><th scope="col">Lap</th><th scope="col">Time</th><th scope="col">Avg current · A</th><th scope="col">Avg speed · from motor · mph</th></tr></thead>
         @for (group of groups; track group.key) {
         <tbody>
             @if (sessions.length) {

@@ -28,7 +28,7 @@ test('finite directed crossings interpolate time, start lap 1 and complete only 
   assert.ok(Math.abs(result.laps[0].time-2000)<.01);
   assert.ok(Math.abs(result.laps[0].end-22000)<.01);
   assert.ok(Math.abs(result.laps[0].current-12)<1e-8);
-  assert.ok(Math.abs(result.laps[0].speed-10/0.44704)<1e-8);
+  assert.equal(result.laps[0].speed, undefined, 'GPS detection does not infer speed from the recorded channel');
   assert.equal(result.channel.value,'3');
   assert.equal(result.channel.id,'computed:gps-lap');
   assert.deepEqual(gps.gpsAnalysis(fixes,null,channels,44000).laps,[]);

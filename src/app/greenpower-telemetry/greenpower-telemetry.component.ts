@@ -15,7 +15,7 @@ import { GreenpowerEventEditService } from './greenpowerEventEdit.service';
 import { DaySession, RecordedEvent } from './greenpowerDay';
 import { SessionInterval, sessionIntervals, sessionLapAnalysis, sessionAmpHours, savedGear } from './greenpowerSessions';
 import { GreenpowerOverlayService } from './greenpowerOverlay.service';
-import { withMotorDerivedSpeed } from './greenpowerSpeed';
+import { motorLapSpeeds, withMotorDerivedSpeed } from './greenpowerSpeed';
 import { lapMetricChannels } from './greenpowerLapMetrics';
 import { recordingHeader } from './greenpowerContext';
 
@@ -58,10 +58,10 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   readonly voltageLeftId = VOLTAGE_LEFT;
   voltageRight?: GreenpowerChannel;
   laps: GpsLap[] = [];
+  private numberedLaps: GpsLap[] = [];
   private rawLaps?: GpsLap[];
   private lapSessions?: SessionInterval[];
   private lapChannel?: GreenpowerChannel;
-  private lapMetrics: GreenpowerChannel[] = [];
   available: GreenpowerChannel[] = [];
   editorKind: ViewKind = 'scalars';
   selectedCount = 0;
@@ -140,14 +140,15 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
         configured: !!this.lapConfig.line && !this.lapConfig.mismatch
       });
       this.rawLaps = analysis.laps; this.lapSessions = this.sessions;
-      this.laps = numbered.laps; this.lapChannel = numbered.channel;
-      this.lapMetrics = lapMetricChannels(this.laps);
+      this.numberedLaps = numbered.laps; this.lapChannel = numbered.channel;
     }
     const latestTime = this.telemetry.latest ? sampleTime(this.telemetry.latest) : undefined;
-    this.channels = savedGear([...this.telemetry.channels.map(channel => sessionAmpHours(channel, this.recordingSessions, latestTime)), this.lapChannel!, ...this.lapMetrics],
+    this.channels = savedGear(this.telemetry.channels.map(channel => sessionAmpHours(channel, this.recordingSessions, latestTime)),
       this.loadedEvent, this.recordingSessions, this.telemetry.start, Math.max(this.telemetry.end, latestTime ?? 0), latestTime,
       !this.sessionsLoading && !this.sessionsMore && !this.sessionsError);
     this.channels = withMotorDerivedSpeed(this.channels, this.loadedEvent, latestTime);
+    this.laps = motorLapSpeeds(this.numberedLaps, this.channels);
+    this.channels = [...this.channels, this.lapChannel!, ...lapMetricChannels(this.laps)];
     this.motorDerivedSpeed = this.channels.find(channel => channel.id === MOTOR_DERIVED_SPEED);
     this.voltageRight = this.channels.find(channel => channel.id === VOLTAGE_RIGHT);
     this.scalars = this.view.scalars(this.channels);

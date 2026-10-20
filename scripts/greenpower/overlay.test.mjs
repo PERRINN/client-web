@@ -230,13 +230,14 @@ test('overlay lap summaries match normal session analysis before rebasing to ela
   const line = { a: fix(0,-10,0), b: fix(0,10,0), direction: 1 };
   const bounds = { south: 49.99, north: 50.01, west: -.01, east: .01 };
   const track = { line, bounds };
-  const event = dayData.emptyDay(date), session = { id: 'race', type: 'race', startAt: start, endAt: start + 44000, overrides: {} };
+  const event = { ...dayData.emptyDay(date), defaults: { motorGearTeeth: 12, wheelGearTeeth: 60 } }, session = { id: 'race', type: 'race', startAt: start, endAt: start + 44000, overrides: {} };
   const samples = fixes.map((fix,i) => ({ id: String(i), receivedAt: fix.time, source: '424-phone',
-    raw: JSON.stringify({ Lat: fix.lat, Lon: fix.lon, A: 12, Spd: 10 }) }));
+    raw: JSON.stringify({ Lat: fix.lat, Lon: fix.lon, A: 12, Spd: 10, RPM: 3000 }) }));
   const raw = data.channelsFor(samples, samples.at(-1));
   const analysis = sessions.sessionLapAnalysis(gps.gpsAnalysis(fixes, line, raw, session.endAt), sessions.sessionIntervals(event, [session]),
     { channels: raw, fixes, end: session.endAt, configured: true });
-  const expected = lapMetrics.lapMetricChannels(analysis.laps);
+  const projected = motorSpeed.withMotorDerivedSpeed(sessions.savedGear(raw, event, [session], session.startAt, session.endAt), event);
+  const expected = lapMetrics.lapMetricChannels(motorSpeed.motorLapSpeeds(analysis.laps, projected));
   const result = overlay.overlayChannels(samples, session, event, track);
   for (const channel of expected) {
     const shifted = result.find(item => item.id === channel.id);
@@ -244,7 +245,7 @@ test('overlay lap summaries match normal session analysis before rebasing to ela
     assert.ok(shifted.points.every(point => point.time < 43000), 'last incomplete lap adds no point');
     assert.ok(shifted.points.length > 0);
   }
-  assert.ok(Math.abs(result.find(item => item.id === 'computed:lap-average-speed').points[0].value - 10 / .44704) < 1e-8);
+  assert.ok(Math.abs(result.find(item => item.id === 'computed:lap-average-speed').points[0].value - 12.9 / .44704) < 1e-8);
   assert.equal(result.find(item => item.id === 'computed:lap-average-amps').points[0].value, 12);
   for (const missing of [null, { line, bounds: { south: 0, north: 1, west: 0, east: 1 } }]) {
     assert.ok(overlay.overlayChannels(samples, session, event, missing).filter(item => data.isLapMetric(item.id)).every(item => !item.points.length));

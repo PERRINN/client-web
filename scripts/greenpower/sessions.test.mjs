@@ -80,7 +80,7 @@ test('Lap 1 runs from session start to first crossing throughout list, chart lab
     {time:10000,end:12000,lap:2,complete:true},
     {time:12000,end:14000,lap:3,complete:false}
   ]);
-  assert.equal(result.laps[0].current,10); assert.equal(result.laps[0].speed,20);
+  assert.equal(result.laps[0].current,10); assert.equal(result.laps[0].speed,undefined);
   assert.equal(lapHelpers.lapAt(result.laps,1000),1);
   assert.equal(lapHelpers.lapAt(result.laps,2000),2);
   assert.equal(lapHelpers.lapAt(result.laps,9000),1);

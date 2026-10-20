@@ -30,4 +30,4 @@ export const tracks = load('../../src/app/greenpower-telemetry/greenpowerTracks.
 
 export const lapMetrics = load('../../src/app/greenpower-telemetry/greenpowerLapMetrics.ts', { './greenpowerData': data });
 
-export const motorSpeed = load('../../src/app/greenpower-telemetry/greenpowerSpeed.ts', { './greenpowerData': data, './greenpowerDay': dayData });
+export const motorSpeed = load('../../src/app/greenpower-telemetry/greenpowerSpeed.ts', { './greenpowerData': data, './greenpowerDay': dayData, './greenpowerGps': gps });

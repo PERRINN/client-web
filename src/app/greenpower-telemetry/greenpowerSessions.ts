@@ -99,14 +99,13 @@ export function sessionLapAnalysis(analysis: { laps: GpsLap[]; channel: Greenpow
     other !== session && other.start < session.end && other.end > session.start)).sort((a, b) => a.start - b.start);
   if (!usable.length) return analysis;
   const current = channels.find(channel => channel.id === '["A"]:A')?.points || [];
-  const speed = channels.find(channel => channel.id === '["Spd"]:m/s')?.points || [];
   const lastFix = fixes.at(-1)!;
   const laps: GpsLap[] = [];
   const add = (time: number, end: number, lap: number, complete: boolean, session?: SessionInterval) => {
     if (end <= time) return;
     laps.push({ time, end, lap, alternate: !!((lap - 1) % 2), complete,
       ...(session ? { sessionLabel: session.label } : {}),
-      ...(complete ? { current: timeAverage(current, time, end), speed: timeAverage(speed, time, end) } : {}) });
+      ...(complete ? { current: timeAverage(current, time, end) } : {}) });
   };
   for (const session of usable) {
     let count = 0;

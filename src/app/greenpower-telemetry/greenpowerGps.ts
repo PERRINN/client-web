@@ -68,7 +68,6 @@ export function gpsAnalysis(fixes: GpsFix[], line: FinishLine | null | undefined
   let armed = false, departure = true, active: GpsLap | undefined, count = 0;
   let candidate: number | undefined;
   const current = channels.find(c => c.id === '["A"]:A')?.points ?? [];
-  const speed = channels.find(c => c.id === '["Spd"]:m/s')?.points ?? [];
   for (let i = 0; i < fixes.length; i++) {
     const b = fixes[i], a = fixes[i - 1];
     if (a && !validSegment(a, b)) {
@@ -89,7 +88,6 @@ export function gpsAnalysis(fixes: GpsFix[], line: FinishLine | null | undefined
     if (active) {
       active.end = time; active.complete = true;
       active.current = timeAverage(current, active.time, time);
-      active.speed = timeAverage(speed, active.time, time);
     }
     active = { time, end, lap: ++count, alternate: !!((count - 1) % 2), complete: false };
     laps.push(active);

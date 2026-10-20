@@ -82,7 +82,9 @@ window.overlayHarness={speed(mode,recorded=true,circumference=1.29){
 },metadata(){const editor=metadataFixture;const old={...emptyDay('2026-10-20')};delete old.wheelCircumferenceM;editor.componentRef.setInput('data',editableDay(old));editor.changeDetectorRef.reattach();document.body.append(editor.nativeElement);editor.detectChanges();this.metadataFixture=editor;return editor.componentInstance.data},metadataError(){return dayMetadataError(this.metadataFixture.componentInstance.data)},removeMetadata(){this.metadataFixture.changeDetectorRef.detach();this.metadataFixture.nativeElement.remove()},metrics(mode){
  const laps=[{time:0,end:120000,lap:1,complete:true,speed:25,current:20},{time:120000,end:240000,lap:2,complete:false},{time:240000,end:390000,lap:3,complete:true,speed:26,current:21}];
  if(mode==='overlay') {overlay.active=true;overlay.sessions=Array.from({length:3},(_,i)=>({id:'metric-'+i,label:'Driver '+(i+1),colour:overlayColour(i),loaded:true,hidden:false,excluded:false,channels:lapMetricChannels(laps),session:{startAt:0,endAt:390000}}));overlay.end=390000;overlay.changed.next()}
- else {overlay.clear();telemetry.channels=channels();lapConfig.analysis={...lapConfig.analysis,laps};telemetry.start=0;telemetry.end=390000;telemetry.changed.next()}
+ else {overlay.clear();const event={...emptyDay('2026-10-20'),defaults:{motorGearTeeth:12,wheelGearTeeth:60}};fixture.componentInstance['loadedEvent']=event;telemetry.live=false;
+ const samples=Array.from({length:131},(_,i)=>({id:String(i),source:'424-phone',receivedAt:i*3000,raw:JSON.stringify({RPM:(i*3000<240000?25:26)*.44704*60*5/1.29,A:20,Spd:99})}));
+ telemetry.channels=channelsFor(samples,samples.at(-1));telemetry.latest=samples.at(-1);lapConfig.analysis={...lapConfig.analysis,laps};telemetry.start=0;telemetry.end=390000;telemetry.changed.next()}
  detect();
 },fixture,overlay,view,writes,lapConfig,comparison:fixture.debugElement.query(By.directive(GreenpowerOverlayComponent)).componentInstance,async detect(){detect()},set(state){Object.assign(overlay,state);overlay.changed.next();detect()}};
 `);
@@ -257,7 +259,7 @@ try {
   await page.evaluate(()=>window.overlayHarness.set({error:'',hasMore:false}));assert.equal(await page.getByText('No race sessions loaded.',{exact:true}).count(),1);
   await page.evaluate(()=>{window.overlayHarness.view.permissions.current.isAdmin=true;window.overlayHarness.detect()});
   await page.evaluate(()=>window.overlayHarness.metrics('normal'));
-  for(const label of ['Lap time · s','Lap average speed · mph','Lap average amps · A']) {
+  for(const label of ['Lap time · s','Lap average speed · from motor · mph','Lap average amps · A']) {
    const metric=page.locator('app-greenpower-chart').filter({has:page.getByRole('heading',{name:label,exact:true})});
    assert.equal(await metric.count(),1,'normal metric '+label);
    assert.equal((await metric.locator('svg').boundingBox()).height,150);
@@ -269,6 +271,10 @@ try {
   assert.match(await normalMetric.locator('.readout').textContent(),/Lap 1.*120/,'finish reading identifies the completed lap');
   assert.ok((await normalMetric.locator('svg .trace').getAttribute('d')).includes('L'),'zoom retains connecting line');
   await page.screenshot({path:output+'/'+name+'-lap-metrics-normal.png',fullPage:true});
+  const motorAverage=page.locator('app-greenpower-chart').filter({has:page.getByRole('heading',{name:'Lap average speed · from motor · mph',exact:true})});
+  assert.match(await motorAverage.locator('.readout').textContent(),/25.0 mph/,'normal average uses motor speed despite recorded 99 m/s');
+  await page.evaluate(()=>{const h=window.overlayHarness;h.fixture.componentInstance['loadedEvent'].wheelCircumferenceM=1.4;h.fixture.componentInstance.telemetry.changed.next();h.detect()});
+  assert.match(await motorAverage.locator('.readout').textContent(),/27.1 mph/,'metadata-only changes recalculate the lap average');
   await page.evaluate(()=>window.overlayHarness.metrics('overlay'));
   assert.equal(await page.locator('app-greenpower-chart').count(),3,'all three overlay metric charts');
   const metric=page.locator('app-greenpower-chart').first();

@@ -13,7 +13,7 @@ const view = load('../../src/app/greenpower-telemetry/greenpowerView.ts', { './g
 test('lap metrics reuse completed times and averages with seconds, mph and amps', () => {
   const channels = lapMetrics.lapMetricChannels(laps);
   assert.deepEqual(channels.map(channel => [channel.label, channel.unit]), [
-    ['Lap time', 's'], ['Lap average speed', 'mph'], ['Lap average amps', 'A']
+    ['Lap time', 's'], ['Lap average speed · from motor', 'mph'], ['Lap average amps', 'A']
   ]);
   assert.deepEqual(channels[0].points, [{ time: 60000, value: 60 }, { time: 155000, value: 65 }]);
   assert.deepEqual(channels[1].points, [{ time: 60000, value: 25 }, { time: 155000, value: 26 }]);
