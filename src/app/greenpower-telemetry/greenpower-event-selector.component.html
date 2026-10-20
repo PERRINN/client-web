@@ -1,26 +1,29 @@
 <section id="history-picker" aria-label="Telemetry history">
-  <div class="filters">
+  <div class="event-filters">
     <label for="event-year-filter">Year<select id="event-year-filter" [ngModel]="year" [disabled]="locked" (ngModelChange)="selectYear($event)">@for (value of years; track value) { <option [ngValue]="value">{{ value }}</option> }</select></label>
+    <label for="history-event">Event
+      <select id="history-event" [ngModel]="events.eventId" [ngModelOptions]="{standalone:true}" [disabled]="locked" (ngModelChange)="events.selectEvent($event)">
+        <option value="" disabled>Select event</option>
+        @if (selectedOutsidePage) { <option [value]="events.eventId">{{ events.eventLabel(events.eventId) }}</option> }
+        @for (event of events.events; track event.date) { <option [value]="event.date">{{ events.eventLabel(event.date) }}</option> }
+      </select>
+    </label>
   </div>
-  <label for="history-event">Event</label>
-  <select id="history-event" [ngModel]="events.eventId" [ngModelOptions]="{standalone:true}" [disabled]="locked" (ngModelChange)="events.selectEvent($event)">
-    <option value="" disabled>Select event</option>
-    @if (selectedOutsidePage) { <option [value]="events.eventId">{{ events.eventLabel(events.eventId) }}</option> }
-    @for (event of events.events; track event.date) { <option [value]="event.date">{{ events.eventLabel(event.date) }}</option> }
-  </select>
   <div class="feedback" aria-live="polite">@if (events.loadingEvents) { <span>Loading</span> } @else if (events.listError) { <span class="error" role="alert">{{ events.listError }}</span><button type="button" [disabled]="locked" (click)="events.loadEvents()">Retry</button> } @else if (events.loadedEvents && !events.events.length) { <span>No events.</span> }</div>
-  <div class="recording-choice">
-    <label for="history-session">Session<select id="history-session" [ngModel]="events.sessionId" [ngModelOptions]="{standalone:true}" [disabled]="locked || !events.eventReady" (ngModelChange)="events.selectSession($event)">
-      <option value="">Whole event</option>
-      @if (events.selectedSession && !sessionInPage) { <option [value]="events.sessionId">{{ sessionLabel(events.selectedSession) }}</option> }
-      @for (session of events.sessions; track session.id) { <option [value]="session.id">{{ sessionLabel(session) }}</option> }
-    </select></label>
-    <button type="button" class="primary" [disabled]="locked || loading || !events.eventReady || !!events.error || !!events.sessionId && !events.sessionReady" (click)="loadRecording.emit()">{{ loading ? 'Loading' : 'Load' }}</button>
-  </div>
-  <div class="feedback" aria-live="polite">
-    @if (events.loadingSessions || events.eventId && !events.eventReady && !events.error || events.sessionId && !events.sessionReady && !events.error) { <span>Loading</span> }
-    @else if (events.sessionError) { <span class="error" role="alert">{{ events.sessionError }}</span> }
-    @if (events.moreSessions) { <button type="button" [disabled]="locked || events.loadingSessions" (click)="events.loadSessions()">More sessions</button> }
-  </div>
+  @if (events.eventId) {
+    <div class="recording-choice">
+      <label for="history-session">Session<select id="history-session" [ngModel]="events.sessionId" [ngModelOptions]="{standalone:true}" [disabled]="locked || !events.eventReady" (ngModelChange)="events.selectSession($event)">
+        <option value="">Whole event</option>
+        @if (events.selectedSession && !sessionInPage) { <option [value]="events.sessionId">{{ sessionLabel(events.selectedSession) }}</option> }
+        @for (session of events.sessions; track session.id) { <option [value]="session.id">{{ sessionLabel(session) }}</option> }
+      </select></label>
+      <button type="button" class="primary" [disabled]="locked || loading || !events.eventReady || !!events.error || !!events.sessionId && !events.sessionReady" (click)="loadRecording.emit()">{{ loading ? 'Loading' : 'Load' }}</button>
+    </div>
+    <div class="feedback" aria-live="polite">
+      @if (events.loadingSessions || events.eventId && !events.eventReady && !events.error || events.sessionId && !events.sessionReady && !events.error) { <span>Loading</span> }
+      @else if (events.sessionError) { <span class="error" role="alert">{{ events.sessionError }}</span> }
+      @if (events.moreSessions) { <button type="button" [disabled]="locked || events.loadingSessions" (click)="events.loadSessions()">More sessions</button> }
+    </div>
+  }
   @if (events.error) { <p class="error" role="alert">{{ events.error }} <button type="button" [disabled]="locked" (click)="events.selectEvent(events.eventId)">Retry</button></p> }
 </section>

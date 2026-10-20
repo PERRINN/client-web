@@ -100,7 +100,22 @@ try {
     const origin = await page.locator('.controls').boundingBox(); const originalHeader = await page.locator('h1').innerText();
     await page.getByRole('button', { name: 'Load history', exact: true }).click();
     await page.locator('#history-event option[value="2026-06-14"]').waitFor({ state: 'attached' });
+    assert.equal(await page.locator('#history-session').count(), 0, 'sessions stay hidden until event selection');
+    assert.equal(await page.getByRole('button', { name: 'Load', exact: true }).count(), 0);
+    const yearBox = await page.locator('#event-year-filter').boundingBox();
+    const initialEventBox = await page.locator('#history-event').boundingBox();
+    if (width > 600) assert.equal(yearBox.y, initialEventBox.y, 'desktop fields align');
+    else {
+      const yearLabel = await page.locator('label[for="event-year-filter"]').boundingBox();
+      const eventLabel = await page.locator('label[for="history-event"]').boundingBox();
+      assert.equal(eventLabel.y - yearLabel.y - yearLabel.height, 12, 'mobile fields use the shared gap');
+    }
+    await page.screenshot({ path: output + '/history-unselected-' + width + '.png', fullPage: true });
     await page.locator('#history-event').selectOption('2026-06-14'); await page.locator('#history-session option[value="s1"]').waitFor({ state: 'attached' });
+    const eventBox = await page.locator('#history-event').boundingBox();
+    assert.deepEqual(eventBox, initialEventBox, 'session appearance preserves event position');
+    const sessionLabel = await page.locator('label[for="history-session"]').boundingBox();
+    assert.equal(sessionLabel.y - eventBox.y - eventBox.height, 12, 'no empty status row between choices');
     assert.equal(await page.locator('#history-event option[value="2026-06-14"]').innerText(), '2026-06-14 · Workshop · Alex · P3');
     await page.locator('#history-session').selectOption('s1');
     assert.deepEqual(await page.evaluate(() => [window.dayHarness.stats().dayLoads, window.dayHarness.stats().sessionLoads]), [0, 0]);
