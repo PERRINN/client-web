@@ -16,6 +16,7 @@ svg { display: block; width: 100%; height: 150px; overflow: visible; touch-actio
 svg.overlay-plot { height: 300px; }
 svg:focus-visible { outline: 1px solid var(--color-text-secondary); outline-offset: 2px; }
 .grid { stroke: var(--color-raised); stroke-width: 1; fill: none; }
+.time-grid { stroke: color-mix(in srgb, var(--color-border) 18%, transparent); stroke-width: 1; fill: none; vector-effect: non-scaling-stroke; pointer-events: none; }
 .trace { stroke: var(--color-data-comparison); stroke-width: 1.5; fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; }
 .selection { fill: var(--color-data-comparison); fill-opacity: .2; pointer-events: none; }
 .cursor { stroke: var(--color-text); stroke-width: 1; vector-effect: non-scaling-stroke; pointer-events: none; }

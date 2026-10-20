@@ -38,6 +38,7 @@
         <rect class="lap-band" [class.alternate]="lap.alternate" [attr.x]="lap.x * 8" y="0" [attr.width]="lap.width * 8" height="120"><title>Lap {{ lap.lap }}{{ lap.sessionLabel ? ' · ' + lap.sessionLabel : '' }} · {{ time(lap.time) }}–{{ time(lap.end) }}</title></rect>
       }
       @for (tick of model.axis.ticks; track tick.y) { <path class="grid" [attr.d]="'M0 ' + tick.y + 'H800'" /> }
+      @for (tick of ticks; track tick.position) { <path class="time-grid" [attr.d]="'M' + tick.position * 8 + ' 0V120'" aria-hidden="true" /> }
       @if (limit !== undefined) { <path class="current-limit" [attr.d]="'M0 ' + limitY + 'H800'" /> }
       @for (session of sessionBands; track session.id) {
         @if (session.starts) { <path class="session-boundary" [attr.d]="'M' + session.x * 8 + ' 0V120'"><title>{{ session.label }} · Start {{ time(session.start) }}</title></path> }
