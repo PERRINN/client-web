@@ -4,7 +4,7 @@ import { gpsAnalysis, gpsFixes } from './greenpowerGps';
 import { contains, TrackDefinition } from './greenpowerTracks';
 import { motorLapSpeeds, withMotorDerivedSpeed } from './greenpowerSpeed';
 import { lapMetricChannels } from './greenpowerLapMetrics';
-import { sessionLapAnalysis, sessionIntervals, sessionAmpHours, savedGear, withEnergy } from './greenpowerSessions';
+import { sessionLapAnalysis, sessionIntervals, sessionAmpHours, savedGear, withEnergy, withDistance } from './greenpowerSessions';
 
 // Local display state only: hidden retains graph rows; excluded removes them.
 export interface OverlaySession {
@@ -36,7 +36,7 @@ export function overlayChannels(samples: Parameters<typeof channelsFor>[0], sess
   const projected = withMotorDerivedSpeed(savedGear(channels, event, [session], session.startAt, session.endAt,
     latest && sampleTime(latest)), event, latest && sampleTime(latest));
   const metrics = lapMetricChannels(motorLapSpeeds(numbered.laps, projected));
-  return [...projected, ...metrics].map(channel => {
+  return [...withDistance(projected, [session], latest && sampleTime(latest)), ...metrics].map(channel => {
     const adjusted = sessionAmpHours(channel, [session], latest && sampleTime(latest));
     return { ...adjusted,
       ...(adjusted.valueAt ? { valueAt: (time: number) => adjusted.valueAt!(time + session.startAt) } : {}),

@@ -77,6 +77,7 @@ export const LAP_METRICS: Record<string, { label: string; unit: string }> = {
 export const isLapMetric = (id: string) => Object.hasOwn(LAP_METRICS, id);
 export const POWER = 'computed:power';
 export const ENERGY = 'computed:energy';
+export const DISTANCE = 'computed:distance-travelled';
 export const isElectricalMetric = (id: string) => id === POWER || id === ENERGY;
 export const VOLTAGE_LEFT = 'computed:voltage-left';
 export const VOLTAGE_RIGHT = 'computed:voltage-right';
@@ -184,6 +185,7 @@ export function pointIndex(points: { time: number }[], time: number, after = fal
 export function channelDetails(id: string): { label: string; unit: string } {
   if (id === POWER) return { label: 'Power', unit: 'W' };
   if (id === ENERGY) return { label: 'Energy', unit: 'Wh' };
+  if (id === DISTANCE) return { label: 'Distance travelled', unit: 'mi' };
   if (id === MOTOR_DERIVED_SPEED) return { label: 'Motor-derived speed', unit: 'mph' };
   if (isLapMetric(id)) return LAP_METRICS[id];
   if (Object.hasOwn(voltageLabels, id)) return { label: voltageLabels[id], unit: 'V' };

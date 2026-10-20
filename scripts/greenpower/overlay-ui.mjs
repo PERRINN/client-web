@@ -75,7 +75,15 @@ const metadataFixture=TestBed.createComponent(GreenpowerMetadataFieldsComponent)
 const fixture=TestBed.createComponent(GreenpowerTelemetryComponent);const detect=()=>{fixture.changeDetectorRef.markForCheck();fixture.detectChanges()};document.body.append(fixture.nativeElement);detect();
 overlay.changed.subscribe(detect);view.changed.subscribe(detect);
 let electricalSaved;
-window.overlayHarness={electrical(mode){
+window.overlayHarness={distance(mode){
+ const event={...emptyDay('2026-10-20'),defaults:{motorGearTeeth:12,wheelGearTeeth:60}};
+ const session={id:'distance',type:'race',startAt:6000,endAt:30000,overrides:{},batteryIds:[]};
+ const samples=Array.from({length:11},(_,i)=>({id:String(i),source:'424-phone',receivedAt:i*3000,raw:JSON.stringify({RPM:30*.44704*60*5/1.29,Spd:99})}));
+ fixture.componentInstance.window=undefined;fixture.componentInstance.cursor=undefined;
+ if(mode==='overlay'){overlay.active=true;overlay.end=24000;overlay.sessions=[{id:'distance',label:'Distance driver',colour:overlayColour(0),loaded:true,hidden:false,excluded:false,session,channels:overlayChannels(samples.filter(row=>row.receivedAt>=session.startAt),session as any,event)}];overlay.changed.next()}
+ else{overlay.clear();fixture.componentInstance['loadedEvent']=event;fixture.componentInstance.recordingSessions=[session as any];telemetry.live=false;telemetry.channels=channelsFor(samples,samples.at(-1));telemetry.latest=samples.at(-1);telemetry.start=0;telemetry.end=30000;telemetry.changed.next()}
+ detect();
+},electrical(mode){
  if(mode==='restore'){view['saved']=electricalSaved;electricalSaved=undefined;fixture.componentInstance.recordingSessions=[];overlay.clear();view.changed.next();detect();return}
  electricalSaved ??= view['saved'];
  const samples=Array.from({length:11},(_,i)=>({id:String(i),source:'424-phone',receivedAt:i*3000,raw:JSON.stringify({Vt:24,A:20,AH:10+i/60})}));
@@ -397,6 +405,30 @@ try {
    await page.screenshot({path:output+'/'+name+'-electrical-'+mode+'.png',fullPage:true});
   }
   await page.evaluate(()=>window.overlayHarness.electrical('restore'));
+  for(const mode of ['normal','overlay']) {
+   await page.evaluate(mode=>window.overlayHarness.distance(mode),mode);
+   const chart=page.locator('app-greenpower-chart').filter({has:page.getByRole('heading',{name:'Distance travelled · mi',exact:true})});
+   assert.equal(await chart.count(),1);
+   assert.ok((await chart.locator('svg .trace').first().getAttribute('d')).length>0);
+   const toolbarGeometry=()=>page.locator('.controls').evaluate(el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y+scrollY,width:r.width,height:r.height}});
+   const controls=await toolbarGeometry();
+   if(mode==='normal') {
+    await page.evaluate(()=>{const h=window.overlayHarness;h.fixture.componentInstance.window={start:18000,end:30000};h.fixture.componentInstance.cursor=30000;h.detect()});
+    assert.match(await chart.locator('.readout').textContent(),/0\.20\s*mi/,'zoom retains race distance origin');
+    await chart.locator('svg').focus();await chart.locator('svg').press('ArrowLeft');
+    assert.equal(await chart.locator('.cursor').count(),1);
+   } else {
+    await page.evaluate(()=>{const h=window.overlayHarness;h.comparison.cursor=24000;h.detect()});
+    assert.match(await chart.locator('.overlay-readout').textContent(),/0\.2/,'elapsed overlay uses the same race baseline');
+    await chart.getByRole('button',{name:'Hide Distance driver',exact:true}).click();
+    assert.equal(await chart.locator('svg .trace').count(),0);
+    assert.equal(await chart.count(),1,'Hide retains distance chart frame');
+   }
+   assert.deepEqual(await toolbarGeometry(),controls,'cursor and Hide preserve toolbar geometry while focus can scroll the document');
+   assert.equal(await page.locator('body').evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+   await page.screenshot({path:output+'/'+name+'-distance-'+mode+'.png',fullPage:true});
+  }
+
   await page.evaluate(()=>{const h=window.overlayHarness;h.removeMetadata();const t=h.fixture.componentInstance.telemetry;t.channels=[];t.latest=undefined;t.live=true;t.start=0;t.end=1000;h.fixture.componentInstance['loadedEvent']=undefined;t.changed.next();h.detect()});
 
 

@@ -1,5 +1,5 @@
 import { DAY_SESSION_TYPES, DaySession, RecordedEvent, effectiveDefaults, gearingRatio } from './greenpowerDay';
-import { channelDetails, displayValue, ENERGY, GreenpowerChannel, pointIndex, POWER } from './greenpowerData';
+import { channelDetails, displayValue, DISTANCE, ENERGY, MOTOR_DERIVED_SPEED, GreenpowerChannel, pointIndex, POWER } from './greenpowerData';
 import { GpsFix, GpsLap, MAX_GPS_GAP, timeAverage, validSegment } from './greenpowerGps';
 
 export interface SessionInterval { id: string; start: number; end: number; label: string; gearRatio?: number; gearChanged?: boolean; }
@@ -59,19 +59,28 @@ function consumptionSessions(sessions: DaySession[]) {
       && other.startAt < session.endAt && other.endAt > session.startAt));
 }
 
-/** Integrate loaded power samples once per projection, independently of chart zoom. */
+/** Integrate loaded samples once per projection, independently of chart zoom. */
 export function withEnergy(channels: GreenpowerChannel[], sessions: DaySession[], latestTime?: number): GreenpowerChannel[] {
-  const source = channels.filter(channel => channel.id !== ENERGY);
-  const power = source.find(channel => channel.id === POWER);
-  if (!power?.points.length) return source;
+  return withSessionIntegral(channels, sessions, POWER, ENERGY, latestTime);
+}
+
+export function withDistance(channels: GreenpowerChannel[], sessions: DaySession[], latestTime?: number): GreenpowerChannel[] {
+  return withSessionIntegral(channels, sessions, MOTOR_DERIVED_SPEED, DISTANCE, latestTime);
+}
+
+/** Both W → Wh and mph → miles integrate over hours and share reset/gap semantics. */
+function withSessionIntegral(channels: GreenpowerChannel[], sessions: DaySession[], input: string, output: string, latestTime?: number): GreenpowerChannel[] {
+  const source = channels.filter(channel => channel.id !== output);
+  const signal = source.find(channel => channel.id === input);
+  if (!signal?.points.length) return source;
   const windows = consumptionSessions(sessions).sort((a, b) => a.startAt - b.startAt);
   const values: (number | undefined)[] = [], points: GreenpowerChannel['points'] = [];
   let window = 0, previousSession: DaySession | undefined;
   let total: number | undefined = 0, used: number | undefined = 0;
   const accumulate = (value: number | undefined, area: number | undefined) =>
     value !== undefined && area !== undefined && Number.isFinite(value + area) ? value + area : undefined;
-  for (let index = 0; index < power.points.length; index++) {
-    const point = power.points[index], previous = power.points[index - 1];
+  for (let index = 0; index < signal.points.length; index++) {
+    const point = signal.points[index], previous = signal.points[index - 1];
     const span = previous ? point.time - previous.time : 0;
     const area = previous && span > 0 && span <= MAX_GPS_GAP
       ? (previous.value / 2 + point.value / 2) * (span / 3600000) : undefined;
@@ -87,13 +96,13 @@ export function withEnergy(channels: GreenpowerChannel[], sessions: DaySession[]
     previousSession = session;
   }
   const valueAt = (time: number) => {
-    if (time < power.points[0].time || time > power.points.at(-1)!.time) return undefined;
-    const after = pointIndex(power.points, time), before = Math.max(0, after - 1);
-    const index = after < power.points.length && power.points[after].time - time < time - power.points[before].time ? after : before;
-    return Math.abs(power.points[index].time - time) <= MAX_GPS_GAP ? values[index] : undefined;
+    if (time < signal.points[0].time || time > signal.points.at(-1)!.time) return undefined;
+    const after = pointIndex(signal.points, time), before = Math.max(0, after - 1);
+    const index = after < signal.points.length && signal.points[after].time - time < time - signal.points[before].time ? after : before;
+    return Math.abs(signal.points[index].time - time) <= MAX_GPS_GAP ? values[index] : undefined;
   };
-  const latest = latestTime !== undefined && power.value !== '—' ? valueAt(latestTime) : undefined;
-  return [...source, { id: ENERGY, ...channelDetails(ENERGY), points, valueAt,
+  const latest = latestTime !== undefined && signal.value !== '—' ? valueAt(latestTime) : undefined;
+  return [...source, { id: output, ...channelDetails(output), points, valueAt,
     value: latest === undefined ? '—' : displayValue(latest) }];
 }
 export function sessionIntervals(event: RecordedEvent, sessions: DaySession[]): SessionInterval[] {

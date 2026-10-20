@@ -13,7 +13,7 @@ import { GreenpowerTelemetryService } from './greenpowerTelemetry.service';
 import { GreenpowerEventsService } from './greenpowerEvents.service';
 import { GreenpowerEventEditService } from './greenpowerEventEdit.service';
 import { DaySession, RecordedEvent } from './greenpowerDay';
-import { SessionInterval, sessionIntervals, sessionLapAnalysis, sessionAmpHours, savedGear, withEnergy } from './greenpowerSessions';
+import { SessionInterval, sessionIntervals, sessionLapAnalysis, sessionAmpHours, savedGear, withEnergy, withDistance } from './greenpowerSessions';
 import { GreenpowerOverlayService } from './greenpowerOverlay.service';
 import { motorLapSpeeds, withMotorDerivedSpeed } from './greenpowerSpeed';
 import { lapMetricChannels } from './greenpowerLapMetrics';
@@ -147,7 +147,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     this.channels = savedGear(electrical.map(channel => sessionAmpHours(channel, this.recordingSessions, latestTime)),
       this.loadedEvent, this.recordingSessions, this.telemetry.start, Math.max(this.telemetry.end, latestTime ?? 0), latestTime,
       !this.sessionsLoading && !this.sessionsMore && !this.sessionsError);
-    this.channels = withMotorDerivedSpeed(this.channels, this.loadedEvent, latestTime);
+    this.channels = withDistance(withMotorDerivedSpeed(this.channels, this.loadedEvent, latestTime), this.recordingSessions, latestTime);
     this.laps = motorLapSpeeds(this.numberedLaps, this.channels);
     this.channels = [...this.channels, this.lapChannel!, ...lapMetricChannels(this.laps)];
     this.motorDerivedSpeed = this.channels.find(channel => channel.id === MOTOR_DERIVED_SPEED);

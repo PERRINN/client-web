@@ -1,4 +1,4 @@
-import { isVehicleSpeed, MOTOR_DERIVED_SPEED, isElectricalMetric, POWER, ENERGY, isLapMetric, isVoltageChannel, VOLTAGE_LEFT, VOLTAGE_DIFF, channelDetails, GreenpowerChannel } from './greenpowerData';
+import { isVehicleSpeed, MOTOR_DERIVED_SPEED, isElectricalMetric, POWER, ENERGY, DISTANCE, isLapMetric, isVoltageChannel, VOLTAGE_LEFT, VOLTAGE_DIFF, channelDetails, GreenpowerChannel } from './greenpowerData';
 export type ViewKind = 'scalars' | 'charts';
 export interface ViewSelection {
   scalars: Record<string, true>; charts: Record<string, true>;
@@ -43,7 +43,7 @@ export function editorChannels(channels: GreenpowerChannel[], selection: ViewSel
   return [...channels, ...absent.map(id => ({ id, ...channelDetails(id), value: '—', points: [] }))].sort((a, b) => a.label.localeCompare(b.label) || a.id.localeCompare(b.id));
 }
 
-export function configurableCharts(channels: GreenpowerChannel[]) { return channels.filter(c => !isVoltageChannel(c.id) && !isLapMetric(c.id) && !isElectricalMetric(c.id) && c.id !== MOTOR_DERIVED_SPEED); }
+export function configurableCharts(channels: GreenpowerChannel[]) { return channels.filter(c => !isVoltageChannel(c.id) && !isLapMetric(c.id) && !isElectricalMetric(c.id) && c.id !== DISTANCE && c.id !== MOTOR_DERIVED_SPEED); }
 export function telemetryCharts(channels: GreenpowerChannel[], selected: GreenpowerChannel[]) {
   const charts = configurableCharts(selected).filter(c => chartHasData(c, channels));
   for (const [id, anchor] of [[POWER, '["A"]:A'], [ENERGY, '["AH"]:Ah']]) {
@@ -51,6 +51,11 @@ export function telemetryCharts(channels: GreenpowerChannel[], selected: Greenpo
     if (!channel) continue;
     const index = charts.findIndex(c => c.id === anchor);
     charts.splice(index < 0 ? charts.length : index + 1, 0, channel);
+  }
+  const distance = channels.find(c => c.id === DISTANCE && chartHasData(c, channels));
+  if (distance) {
+    const speed = charts.findIndex(c => isVehicleSpeed(c.id));
+    charts.splice(speed < 0 ? charts.length : speed + 1, 0, distance);
   }
   return [...charts, ...channels.filter(c => c.id === VOLTAGE_LEFT || c.id === VOLTAGE_DIFF || isLapMetric(c.id))].filter(c => chartHasData(c, channels));
 }
