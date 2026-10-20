@@ -1,8 +1,34 @@
 import { DAY_SESSION_TYPES, DaySession, RecordedEvent, effectiveDefaults, gearingRatio } from './greenpowerDay';
-import { GreenpowerChannel, pointIndex } from './greenpowerData';
+import { displayValue, GreenpowerChannel, pointIndex } from './greenpowerData';
 import { GpsFix, GpsLap, MAX_GPS_GAP, timeAverage, validSegment } from './greenpowerGps';
 
 export interface SessionInterval { id: string; start: number; end: number; label: string; gearRatio?: number; gearChanged?: boolean; }
+
+/** Rebase display readings only; zoom and view changes never alter the baseline. */
+export function sessionAmpHours(channel: GreenpowerChannel, sessions: DaySession[], latestTime?: number): GreenpowerChannel {
+  if (channel.id !== '["AH"]:Ah' || !channel.points.length) return channel;
+  const windows = sessions.filter(session => ['race', 'battery_dyno', 'motor_dyno'].includes(session.type)
+    && session.endAt > session.startAt && !sessions.some(other => other !== session
+      && other.startAt < session.endAt && other.endAt > session.startAt));
+  if (!windows.length) return channel;
+  const points = channel.points.slice();
+  let value = channel.value;
+  for (const session of windows) {
+    const first = pointIndex(channel.points, session.startAt);
+    const end = pointIndex(channel.points, session.endAt, true);
+    if (first === end) continue;
+    const baseline = channel.points[first].value;
+    for (let index = first; index < end; index++) {
+      const point = channel.points[index];
+      points[index] = { time: point.time, value: point.value - baseline };
+    }
+    if (latestTime !== undefined && latestTime >= channel.points[first].time && latestTime <= session.endAt
+      && channel.value !== '—' && Number.isFinite(Number(channel.value))) {
+      value = displayValue(Number(channel.value) - baseline);
+    }
+  }
+  return { ...channel, points, value };
+}
 export function sessionIntervals(event: RecordedEvent, sessions: DaySession[]): SessionInterval[] {
   const intervals = sessions.map(session => ({ id: session.id, start: session.startAt, end: session.endAt,
     gearRatio: gearingRatio(event, session),

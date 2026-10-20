@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, ViewChild } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { Subscription } from 'rxjs';
-import { GreenpowerChannel, VOLTAGE_LEFT, VOLTAGE_RIGHT, londonDay } from './greenpowerData';
+import { GreenpowerChannel, VOLTAGE_LEFT, VOLTAGE_RIGHT, londonDay, sampleTime } from './greenpowerData';
 import { ChartWindow, scalarValue } from './greenpowerChart';
 import { GreenpowerLapService } from './greenpowerLap.service';
 import { FinishLine, GpsLap } from './greenpowerGps';
@@ -13,7 +13,7 @@ import { GreenpowerTelemetryService } from './greenpowerTelemetry.service';
 import { GreenpowerEventsService } from './greenpowerEvents.service';
 import { GreenpowerEventEditService } from './greenpowerEventEdit.service';
 import { DaySession, RecordedEvent } from './greenpowerDay';
-import { SessionInterval, sessionIntervals, sessionLapAnalysis } from './greenpowerSessions';
+import { SessionInterval, sessionIntervals, sessionLapAnalysis, sessionAmpHours } from './greenpowerSessions';
 import { recordingHeader } from './greenpowerContext';
 
 @Component({
@@ -130,7 +130,8 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
       this.rawLaps = analysis.laps; this.lapSessions = this.sessions;
       this.laps = numbered.laps; this.lapChannel = numbered.channel;
     }
-    this.channels = [...this.telemetry.channels, this.lapChannel!];
+    const latestTime = this.telemetry.latest ? sampleTime(this.telemetry.latest) : undefined;
+    this.channels = [...this.telemetry.channels.map(channel => sessionAmpHours(channel, this.recordingSessions, latestTime)), this.lapChannel!];
     this.voltageRight = this.channels.find(channel => channel.id === VOLTAGE_RIGHT);
     this.scalars = this.view.scalars(this.channels);
     this.charts = this.view.charts(this.channels);
