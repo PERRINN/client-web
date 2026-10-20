@@ -132,6 +132,35 @@ test('battery dyno overlay labels include saved batteries and omit empty battery
   assert.equal(overlay.overlayLabel({ ...event, eventName: '', defaults: {} }, session), date + ' · Battery A');
 });
 
+test('battery dyno labels use the maximum finite computed Wh, including zero, rather than the last reading', () => {
+  const event = dayData.emptyDay(date), session = { type: 'battery_dyno', batteryIds: [], overrides: {} };
+  const channels = [{ id: data.ENERGY, value: '2', points: [
+    { time: 0, value: 0 }, { time: 1, value: 12.345 }, { time: 2, value: 2 },
+    { time: 3, value: NaN }, { time: 4, value: Infinity }
+  ] }];
+  assert.equal(overlay.overlayLabel(event, session, channels), date + ' · 12.3 Wh');
+  assert.equal(overlay.overlayLabel(event, session, [{ ...channels[0], points: [{ time: 0, value: 0 }] }]), date + ' · 0.0 Wh');
+  assert.equal(overlay.overlayLabel(event, session, [{ ...channels[0], points: [] }]), date);
+  assert.equal(overlay.overlayLabel(event, { ...session, type: 'race' }, channels), date);
+});
+
+test('loading a battery dyno adds computed maximum Wh to shared session and chart labels', async () => {
+  const h = fixture(1, 3);
+  h.records.get(`${ROOT}/days/${date}/sessions/race-0`).type = 'battery_dyno';
+  for (const [path, record] of h.records) if (path.includes('/chunks/')) {
+    for (const sample of record.samples) sample.raw = JSON.stringify({ Vt: 24, A: 20 });
+  }
+  const component = new GreenpowerOverlayComponent(h.service, { changed: new Subject(), charts: channels => channels }, { markForCheck() {} });
+  const labels = [];
+  const subscription = h.service.changed.subscribe(() => labels.push(h.service.sessions[0]?.label));
+  await h.service.load(true, 'battery_dyno');
+  assert.ok(labels.includes(date + ' · Goodwood · Default driver'), 'pending label has no energy');
+  assert.equal(h.service.sessions[0].label, date + ' · Goodwood · Default driver · 0.3 Wh');
+  assert.ok(component.charts.every(chart => chart.traces.every(trace => trace.label === h.service.sessions[0].label)));
+  assert.equal(h.calls.length, 3, 'one metadata, one parent and one chunk request');
+  subscription.unsubscribe(); component.ngOnDestroy(); h.service.ngOnDestroy();
+});
+
 test('battery dyno preset filters the year and type, retains its filter on pagination and retry, and resets when switching', async () => {
   const h = fixture(31);
   for (const [path, value] of h.records) if (path.includes('/sessions/')) value.type = 'battery_dyno';

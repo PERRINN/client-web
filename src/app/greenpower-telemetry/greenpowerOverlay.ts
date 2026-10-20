@@ -1,4 +1,4 @@
-import { GreenpowerChannel, channelsFor, sampleTime } from './greenpowerData';
+import { ENERGY, GreenpowerChannel, channelsFor, sampleTime } from './greenpowerData';
 import { DaySession, RecordedEvent, effectiveDefaults } from './greenpowerDay';
 import { gpsAnalysis, gpsFixes } from './greenpowerGps';
 import { contains, TrackDefinition } from './greenpowerTracks';
@@ -13,9 +13,16 @@ export interface OverlaySession {
 }
 export interface OverlayTrace { id: string; label: string; colour: string; channel: GreenpowerChannel; dashed?: boolean; detail?: string; sessionId?: string; hidden?: boolean; excluded?: boolean; }
 export function overlayColour(index: number) { return `hsl(${(205 + index * 137.508) % 360} 60% 72%)`; }
-export function overlayLabel(event: RecordedEvent, session: DaySession) {
+export function overlayLabel(event: RecordedEvent, session: DaySession, channels: GreenpowerChannel[] = []) {
+  let maximum: number | undefined;
+  if (session.type === 'battery_dyno') {
+    for (const point of channels.find(channel => channel.id === ENERGY)?.points ?? []) {
+      if (Number.isFinite(point.value) && (maximum === undefined || point.value > maximum)) maximum = point.value;
+    }
+  }
   return [event.date, event.eventName, effectiveDefaults(event, session).driver,
-    session.type === 'battery_dyno' ? session.batteryIds.join(', ') : ''].filter(Boolean).join(' · ');
+    session.type === 'battery_dyno' ? session.batteryIds.join(', ') : '',
+    maximum === undefined ? '' : `${maximum.toFixed(1)} Wh`].filter(Boolean).join(' · ');
 }
 export function overlayChannels(samples: Parameters<typeof channelsFor>[0], session: DaySession, event?: RecordedEvent, track?: TrackDefinition | null) {
   const ordered = [...samples].sort((a, b) => sampleTime(a) - sampleTime(b) || a.id.localeCompare(b.id));

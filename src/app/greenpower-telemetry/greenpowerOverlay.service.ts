@@ -123,6 +123,7 @@ export class GreenpowerOverlayService implements OnDestroy {
         }
         if (this.reader.more) break;
         item.channels = overlayChannels(this.reader.entries.map(entry => entry.sample), item.session, this.parents.get(item.date), this.tracks.get(this.parents.get(item.date)?.trackId ?? ''));
+        item.label = overlayLabel(this.parents.get(item.date)!, item.session, item.channels);
         item.loaded = true; this.queue.shift(); this.reader = undefined; this.sessions = [...this.sessions];
         this.changed.next();
       }

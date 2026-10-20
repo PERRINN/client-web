@@ -83,7 +83,7 @@ window.overlayHarness={electrical(mode){
  const rows=channelsFor(samples,samples.at(-1));
  view['saved']={...selectionFor(rows),charts:{'["A"]:A':true,'["AH"]:Ah':true},chartOrder:['["A"]:A','["AH"]:Ah'],revision:1,updatedBy:'admin'};
  fixture.componentInstance.window=undefined;fixture.componentInstance.cursor=undefined;
- if(mode==='overlay'){overlay.sessionType='battery_dyno';overlay.active=true;overlay.end=24000;overlay.sessions=[{id:'battery',label:overlayLabel(event,session as any),colour:overlayColour(0),loaded:true,hidden:false,excluded:false,session,channels:overlayChannels(samples,session as any,event)}];overlay.changed.next()}
+ if(mode==='overlay'){overlay.sessionType='battery_dyno';overlay.active=true;overlay.end=24000;overlay.sessions=[{id:'battery',label:overlayLabel(event,session as any,overlayChannels(samples,session as any,event)),colour:overlayColour(0),loaded:true,hidden:false,excluded:false,session,channels:overlayChannels(samples,session as any,event)}];overlay.changed.next()}
  else{overlay.clear();fixture.componentInstance['loadedEvent']=mode==='live'?undefined:event;fixture.componentInstance.recordingSessions=mode==='live'?[]:[session as any];telemetry.live=mode==='live';telemetry.channels=rows;telemetry.latest=samples.at(-1);telemetry.start=0;telemetry.end=30000;telemetry.changed.next()}
  detect();
 },speed(mode,recorded=true,circumference=1.29){
@@ -386,6 +386,11 @@ try {
     assert.match(await energy.locator('.readout').textContent(),/4\.0\s*Wh/,'live energy starts at recording origin');
    } else {
     assert.equal(await page.getByRole('heading',{name:'2026 battery dyno tests',exact:true}).count(),1);
+    assert.match(await energy.locator('.overlay-readout').textContent(),/3\.2 Wh/,'computed maximum appears in chart session labels');
+    if(!await page.locator('#telemetry-overlay-panel').count()) {await overlayButton.click();await page.evaluate(()=>window.overlayHarness.detect())}
+    assert.match(await page.locator('.session-list .session-label').textContent(),/3\.2 Wh/,'maximum appears in the main session list');
+    await overlayButton.click();await page.evaluate(()=>window.overlayHarness.detect());
+    assert.match(await page.locator('.session-key').textContent(),/3\.2 Wh/,'maximum remains in the collapsed-panel legend');
     await page.evaluate(()=>{const h=window.overlayHarness;h.comparison.cursor=24000;h.detect()});
     assert.match(await energy.locator('.overlay-readout').textContent(),/3\.2/,'overlay uses the same session energy');
    }
