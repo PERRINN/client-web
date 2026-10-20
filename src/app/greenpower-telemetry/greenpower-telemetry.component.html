@@ -76,8 +76,8 @@
     @if (telemetry.error) {
       <div class="error" role="alert">{{ telemetry.error }} <button type="button" (click)="retryRecording()">Retry</button></div>
     }
-    @if (telemetry.more) {
-      <div class="continuation"><span>{{ telemetry.recordingKey ? 'More data is available for this session.' : 'More data is available for this day.' }}</span><button type="button" (click)="telemetry.loadMore()">Load remaining data</button></div>
+    @if (telemetry.more && !telemetry.error) {
+      <div class="continuation"><button type="button" [disabled]="telemetry.loading" (click)="telemetry.loadMore()">Load more</button></div>
     } @else if (!telemetry.loading && !telemetry.channels.length && !telemetry.error && !(historyOpen && events.eventId)) { <p class="state">No telemetry recorded for this day.</p> }
     @if (activeView === 'data' && (sessionsLoading || sessionsError || sessionsMore)) {
       <div class="session-status" role="status">

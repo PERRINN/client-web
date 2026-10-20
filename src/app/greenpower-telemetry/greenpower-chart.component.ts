@@ -140,7 +140,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
     this.timer = setTimeout(() => {
       if (this.drag !== gesture || gesture.mode !== 'pending') return;
       gesture.mode = 'cursor'; this.inspect(anchor, gesture.range); this.change.markForCheck();
-    }, 500);
+    }, 300);
   }
   move(event: PointerEvent) {
     this.taps.move(event);
