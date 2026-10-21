@@ -135,3 +135,10 @@
 :host .sidebarShell .greenpowerLive:hover,:host .sidebarShell .greenpowerLive.activeNav{background:var(--color-selected)}
 :host .liveBadge{display:inline-flex;align-items:center;gap:6px;margin-left:auto;color:var(--color-text)}
 :host .liveDot{flex:0 0 8px;width:8px;height:8px;border-radius:50%;background:var(--color-success)}
+
+/* The public Greenpower letter has its own minimal navigation; retain shell scroll ownership. */
+:host .sidebarShell.editorialShell { display: block; }
+:host .editorialShell .shellSidebar, :host .editorialShell .mobileShellHeader, :host .editorialShell .shellBackdrop { display: none; }
+:host .sidebarShell.editorialShell #main_container { height: 100%; padding: 0; }
+:host .sidebarShell.editorialShell .contentWrap { max-width: none; }
+:host .sidebarShell.editorialShell .contentCard { border-radius: 0; }

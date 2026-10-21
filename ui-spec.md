@@ -182,11 +182,15 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 - On tablet, choose columns and navigation based on actual content fit. On desktop, use additional width for useful comparison or workspace layouts, not decorative empty space.
 - Preserve readable text, usable controls, and clear scroll ownership at every size.
 
+## Greenpower editorial letter
+
+`/424-greenpower-2027` is the approved standalone editorial exception to the app-shell and default typography rules. Use a minimal PERRINN home link, full-width authentic racing photography, larger responsive headlines and a readable article column, retaining Night Signal Dark tokens. The shell still owns scrolling through `#main_container`; hide its sidebar/mobile header only on this route and restore them on exit. Apps groups the letter and telemetry under Greenpower. Preserve the telemetry sign-in requirement. Caption all article images, reserve image dimensions and show failures within that space. All other pages retain the existing shell and type scales.
+
 ## Prototypes
 
 - Every prototype listed in the gallery must include a subject-specific graphic preview in its grid tile. Add the corresponding preview case in `prototype-gallery.component.html` and any scoped styles in `prototype-gallery.component.css` alongside the gallery entry. Prefer lightweight inline SVG or CSS using shared colour tokens; keep decorative previews hidden from assistive technology through the existing `aria-hidden` preview stage. Verify that the tile renders a graphic and opens the intended route; never leave its preview stage empty.
 
-- Give every standalone prototype page a visible, keyboard-accessible link back to `/prototypes`, following the existing “← Prototyping” pattern. Production chat is outside the prototype gallery; old Bubbles bookmarks redirect to `/chat`.
+- Give every standalone prototype page a visible, keyboard-accessible link back to `/prototypes`, following the existing “← Prototyping” pattern. Team Radio is listed under Apps → Greenpower and returns to Apps, retaining its legacy `/prototypes/team-radio` route. Production chat is outside the prototype gallery; old Bubbles bookmarks redirect to `/chat`.
 - Do not add design question prompts or sections to prototypes unless the user explicitly requests them.
 - Layout prototypes are structural wireframes, not populated product mockups. Label only key regions with standard UI terms (for example, Primary Navigation, Search, Page Title, Content Panel, Feed Item, and Composer); use simple placeholder shapes instead of realistic names, copy, metrics, dates, or records. Do not add responsive behavior descriptions: users inspect responsiveness by resizing the preview width. Give each layout prototype a draggable right-edge width control, keyboard adjustment, and a width-constrained container so its own breakpoints respond independently of the browser window. Keep the wireframe visually clear and quiet, using the app UI specification's dark page, surface, and raised-surface contrast. Prefer surface contrast, spacing, and alignment over borders; keep labels sparse so the component hierarchy is immediately legible.
 

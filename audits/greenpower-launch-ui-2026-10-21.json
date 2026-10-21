@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-21",
+  "issue": 98,
+  "route": "/424-greenpower-2027",
+  "navigation": "Apps > Greenpower > 2027 open letter / existing telemetry",
+  "sources": "src/assets/greenpower-2027/sources.json",
+  "validation": {
+    "productionBuild": "Passed; retry with network access was needed for configured Google font inlining.",
+    "metadataTests": "2 passed: route metadata/default restoration data and safe JSON serialization.",
+    "builtEntry": "Verified unique social metadata, root base URL, retained Angular scripts and matching Hosting rewrite.",
+    "lint": "Passed with 50 pre-existing warnings; focused lint on changed client components passed without warnings.",
+    "diffWhitespace": "Passed.",
+    "browser": {
+      "harness": "scripts/greenpower/launch-preview.mjs; actual article, Apps and App shell templates, mocked account/sidebar services; no Firebase initialization.",
+      "widths": [
+        1440,
+        1280,
+        390,
+        320
+      ],
+      "images": "All 8 images loaded; captions and alt text present. Hero failure and recovery retained identical frame geometry at 320px.",
+      "layout": "No horizontal overflow at tested widths. Main container retained scroll ownership. Desktop/mobile Apps and standalone letter returned correctly.",
+      "keyboard": "Visible focus and keyboard activation of return-to-Apps verified at 320px.",
+      "conditionalControls": "Live/radio appearance and removal retained exact main container geometry on desktop and 320px mobile.",
+      "metadata": "Article title/social tags applied; previous title/description restored and added social tags removed on return to Apps."
+    }
+  },
+  "performance": {
+    "newArticleQueries": 0,
+    "newArticleListeners": 0,
+    "backendWrites": 0,
+    "images": "8 static images with 2 responsive variants each; browser lazy-loads below the hero. Total image asset directory approximately 1.3 MiB including both variants and provenance. Existing shell services retain their existing lifetimes.",
+    "research": "Two approved subject lookups with a five-result cap each returned no exact matches. User supplied the discussion URL. One selected Midlands event was loaded through existing signed-in telemetry UI; no backend data was changed."
+  },
+  "limitations": [
+    "No production deployment or live Hosting rewrite verification performed.",
+    "Mocked shell verification does not test real account authentication or sidebar data.",
+    "Two full-resolution Discover component photos returned HTTP 403; verified public alternatives were used, without enlarging thumbnails."
+  ],
+  "deployment": "Development validation snapshot before the subsequently authorized Hosting deployment.",
+  "invitationDestination": "/home",
+  "invitationRevision": "User requested Home instead of the Greenpower chat. Both primary invitation hrefs verified as /home in the rendered preview."
+}

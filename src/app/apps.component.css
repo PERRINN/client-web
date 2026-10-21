@@ -1,26 +1,59 @@
 :host { display: block; color: var(--color-text); font-family: var(--font-family-ui); }
 :host h1, :host h2, :host h3 { overflow: visible; line-height: 1.35; font-family: inherit; }
-:host p, :host a, :host div, :host span:not(.material-icons-outlined) { overflow: visible; line-height: 1.5; font-family: inherit; }
+:host p, :host a, :host div, :host header, :host section, :host span:not(.material-icons-outlined) { overflow: visible; line-height: 1.5; font-family: inherit; }
 .apps-page { padding: 20px 12px; }
 .page-header { margin-bottom: 24px; }
-h1 { color: var(--color-text); font-size: 25px; font-weight: 600; margin-bottom: 6px; }
-.page-header p { color: var(--color-text-secondary); font-size: 15px; }
-.apps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 12px; }
-.app-card { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; min-width: 0; padding: 20px; border-radius: 10px; background: var(--color-surface); color: var(--color-text); text-decoration: none; }
-.app-card:hover { background: var(--color-raised); }
+h1 { color: var(--color-text); font-size: 23px; font-weight: 600; }
+.app-section { padding: 20px; border-radius: 12px; background: var(--color-surface); }
+.app-section + .app-section { margin-top: 24px; }
+.section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.section-icon { display: grid; place-items: center; width: 36px; height: 36px; flex: 0 0 36px; font-size: 23px; border-radius: 8px; background: var(--color-raised); color: var(--color-text-secondary); }
+h2 { font-size: 17px; font-weight: 600; }
+h3 { font-size: 16px; font-weight: 600; }
+.apps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 10px; }
+.app-card { display: grid; grid-template-columns: 48px minmax(0, 1fr) 20px; align-items: center; gap: 12px; min-width: 0; min-height: 88px; padding: 16px; border-radius: 8px; background: var(--color-raised); color: var(--color-text); text-decoration: none; }
 .app-card:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
-.app-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 8px; background: var(--color-raised); color: var(--color-text-secondary); font-size: 23px; }
-h2 { margin-bottom: 5px; font-size: 17px; font-weight: 600; }
-.app-details p { color: var(--color-text-secondary); font-size: 14px; }
-.link-hint { display: flex; align-items: center; gap: 8px; margin-top: auto; color: var(--color-text-muted); font-size: 13px; }
-.link-hint .material-icons-outlined { font-size: 16px; }
+.app-icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 12px; background: var(--color-page); color: var(--color-text-secondary); }
+.app-icon svg { width: 28px; height: 28px; overflow: visible; }
+.featured-app .icon-accent { stroke: var(--color-accent); }
+.app-details { min-width: 0; }
+.app-details p { margin-top: 4px; color: var(--color-text-secondary); font-size: 15px; }
+.link-arrow { color: var(--color-text-muted); font-size: 20px; }
+:host .greenpower-section { display: grid; grid-template-columns: minmax(0, 1fr) 240px; align-items: start; gap: 20px; overflow: hidden; }
+:host .greenpower-image { position: relative; min-width: 0; width: 100%; aspect-ratio: 16 / 10; border-radius: 12px; overflow: hidden; background: var(--color-raised); }
+.greenpower-image img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 60%; border-radius: inherit; }
+.greenpower-image img[hidden] { display: none; }
+.image-unavailable { display: grid; place-items: center; position: absolute; inset: 0; padding: 20px; font-size: 15px; color: var(--color-text-secondary); }
+.greenpower-heading .section-icon { color: var(--color-accent); }
+.letter-preview { margin: 0; }
+.letter-label { color: var(--color-text-muted); font-size: 14px; }
+.letter-link { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--color-text); font-size: 16px; font-weight: 600; text-decoration: underline; text-underline-offset: 5px; }
+.letter-link .material-icons-outlined { flex-shrink: 0; font-size: 18px; }
+.letter-link:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
+.greenpower-links { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.featured-app { display: flex; flex-direction: column; justify-content: center; gap: 12px; min-height: 132px; padding: 16px 12px; text-align: center; border-radius: 12px; }
+.featured-app .app-icon { width: 64px; height: 64px; border-radius: 16px; }
+.featured-app .app-icon svg { width: 36px; height: 36px; }
 :host .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-@media (max-width: 540px) {
+@media (hover: hover) and (pointer: fine) { .app-card:hover { background: var(--color-selected); } }
+@media (max-width: 600px) {
   .apps-page { padding: 12px 4px; }
-  .page-header { margin-bottom: 16px; }
-  .apps-grid { grid-template-columns: 1fr; gap: 8px; }
-  .app-card { display: grid; grid-template-columns: 32px minmax(0, 1fr); align-items: start; gap: 6px 10px; padding: 12px; }
-  .app-icon { width: 32px; height: 32px; font-size: 20px; }
-  h2 { margin-bottom: 2px; }
-  .link-hint { grid-column: 2; margin-top: 0; }
+  .page-header { margin-bottom: 18px; }
+  .app-section { padding: 16px; }
+  .app-section + .app-section { margin-top: 20px; }
+  .section-header { margin-bottom: 14px; }
+  .greenpower-heading .section-icon { display: none; }
+  .greenpower-heading { display: contents; }
+  .greenpower-heading .section-header { grid-column: 1; grid-row: 1; align-self: center; margin-bottom: 0; }
+  .greenpower-image { grid-column: 2; grid-row: 1; }
+  .letter-preview { grid-column: 1 / -1; grid-row: 2; }
+  .greenpower-links { grid-row: 3; }
+  .apps-grid { grid-template-columns: 1fr; }
+  :host .greenpower-section { grid-template-columns: minmax(0, 1fr) 120px; gap: 16px; }
+  .app-card { grid-template-columns: 40px minmax(0, 1fr) 20px; gap: 10px; padding: 12px; }
+  .app-icon { width: 40px; height: 40px; border-radius: 10px; }
+  .app-icon svg { width: 25px; height: 25px; }
+  .featured-app { display: flex; gap: 12px; padding: 16px 10px; }
+  .featured-app .app-icon { width: 64px; height: 64px; border-radius: 16px; }
+  .featured-app .app-icon svg { width: 36px; height: 36px; }
 }

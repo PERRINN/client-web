@@ -22,8 +22,10 @@ import { ChatComponent } from './chat/chat.component';
 import { AppMapComponent } from './prototypes/app-map/app-map.component';
 import { ImageMosaicComponent } from './prototypes/image-mosaic/image-mosaic.component';
 import { HomeComponent } from './home.component';
+import { GreenpowerLaunchComponent } from './greenpower-launch/greenpower-launch.component';
 
 const appRoutes: Routes = [
+  { path: '424-greenpower-2027', component: GreenpowerLaunchComponent, data: { editorial: true } },
   { path: '424-greenpower-telemetry', component: GreenpowerTelemetryComponent },
   { path: 'prototypes/team-radio', component: TeamRadioComponent },
   { path: 'prototypes/rear-wing-pilot', component: RearWingPilotComponent },

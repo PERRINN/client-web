@@ -8,6 +8,10 @@
     ],
     "rewrites": [
       {
+        "source": "/424-greenpower-2027",
+        "destination": "/424-greenpower-2027.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
@@ -15,6 +19,12 @@
     "headers": [
       {
         "source": "/index.html",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        ]
+      },
+      {
+        "source": "/424-greenpower-2027{,.html}",
         "headers": [
           { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
         ]

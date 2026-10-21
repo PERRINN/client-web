@@ -10,7 +10,7 @@
     "ng": "ng",
     "start": "ng serve --configuration dev",
     "start:prod": "ng serve --configuration production",
-    "build": "ng build --configuration production",
+    "build": "ng build --configuration production && node scripts/greenpower/article-entry.mjs",
     "lint": "ng lint",
     "test:rear-wing": "node --test scripts/rear-wing.test.mjs",
     "test:avatars": "node --test scripts/user-avatar.test.mjs",

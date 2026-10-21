@@ -1,0 +1,124 @@
+<main class="launch-page" aria-labelledby="launch-title">
+  <nav class="editorial-nav" aria-label="Article navigation">
+    <a class="wordmark" routerLink="/home">PERRINN</a>
+  </nav>
+  <article>
+    <header class="opening">
+      <div class="opening-copy">
+        <p class="eyebrow">424 Greenpower / 2027</p>
+        <h1 id="launch-title">An open invitation to build a championship-winning racing car.</h1>
+        <p class="standfirst">One car. An open team. A new season to find out what we can achieve together.</p>
+        <a class="primary" [routerLink]="links.home">Join the development</a>
+        <p class="byline">An open letter from Nico Perrin</p>
+      </div>
+      <app-greenpower-photo class="hero-photo" [photo]="photos['racing']" [eager]="true" />
+    </header>
+
+    <section class="story-section" aria-labelledby="season-title">
+      <div class="section-heading"><p class="eyebrow">01 / A season to build on</p><h2 id="season-title">Our first year. A serious starting point.</h2></div>
+      <div class="prose">
+        <p>In 2026, we took Baby 424 into its first Greenpower F24+ season. We finished as vice-champions, with four podiums. PERRINN Limited invested £27,000 to turn the design into a car, take it racing and learn what it could do.</p>
+        <p>I’m proud of that beginning. Now I want to open the next chapter to more people: companies, universities, students, independent engineers, manufacturers and contributors with skills beyond engineering.</p>
+      </div>
+      <dl class="season-facts">
+        <div><dt>2026 F24+</dt><dd>Vice-champions</dd></div>
+        <div><dt>Podiums</dt><dd>4</dd></div>
+        <div><dt>PERRINN Limited investment</dt><dd>£27,000</dd></div>
+        <div><dt>Current average race speed</dt><dd>36 mph</dd></div>
+      </dl>
+      <div class="photo-pair">
+        <app-greenpower-photo [photo]="photos['paddock']" />
+        <app-greenpower-photo class="portrait-photo" [photo]="photos['workshop']" />
+      </div>
+      <a class="text-link" [href]="links.retrospective" target="_blank" rel="noopener noreferrer">Read the 2026 design, build and racing story ↗<span class="sr-only"> (opens in a new tab)</span></a>
+    </section>
+
+    <section class="ambition story-section" aria-labelledby="ambition-title">
+      <div class="section-heading"><p class="eyebrow">02 / The ambition</p><h2 id="ambition-title">A faster car. A wider team.</h2></div>
+      <div class="speed-target" aria-label="Average race speed: 36 miles per hour currently; 40 miles per hour is the 2027 target">
+        <div><span>2026 baseline</span><strong>36 mph</strong></div><span class="target-arrow" aria-hidden="true">→</span><div><span>2027 target</span><strong>40 mph</strong></div>
+      </div>
+      <div class="prose">
+        <p>For 2027, our goal is to reach an average race speed of 40 mph and contend for the championship. That is a target we have to earn through engineering, testing and reliable race execution.</p>
+        <p>I also want us to demonstrate something larger: that a coordinated, open network can achieve top-level motorsport engineering, while giving more people meaningful access to a racing team.</p>
+      </div>
+    </section>
+
+    <section class="story-section" aria-labelledby="engineering-title">
+      <div class="section-heading"><p class="eyebrow">03 / Where we can improve</p><h2 id="engineering-title">Real engineering. Open challenges.</h2></div>
+      <div class="engineering-row">
+        <div class="prose">
+          <h3>Make every kilogram count.</h3>
+          <p>Our car is currently 67 kg. I want us to work towards the low-60-kg range, examining the structure, components and manufacturing choices without compromising safety or reliability.</p>
+          <h3>A lighter steering assembly.</h3>
+          <p>We already have a scheme for a much lighter steering assembly. It needs further development, manufacturing and validation to take it from a promising design to a working assembly on the car.</p>
+        </div>
+        <app-greenpower-photo [photo]="photos['structure']" />
+      </div>
+      <div class="engineering-row reverse">
+        <app-greenpower-photo [photo]="photos['chassis-design']" />
+        <div class="prose"><h3>Find more in the motor.</h3><p>Reversing the motor’s rotation offers a power and efficiency opportunity. We need to engineer the necessary changes, make the parts and validate the result. An opportunity becomes useful only when it works on the car.</p></div>
+      </div>
+      <div class="engineering-row">
+        <div class="prose">
+          <h3>Stronger wheels. A more reliable car.</h3>
+          <p>A weakness in our wheel design led to a crash during the Goodwood heat in May 2026. It was an important lesson: making the car more robust and reliable is a central part of our development work.</p>
+          <p>We have a new solid-wheel design ready for refinement and manufacturing. I’m looking for contributors to help develop it, make the parts and validate the assembly before it goes racing.</p>
+        </div>
+        <app-greenpower-photo [photo]="photos['assembly']" />
+      </div>
+      <div class="engineering-row">
+        <div class="prose">
+          <h3>Take the pipeline to the car.</h3>
+          <p>Several developments are already in the pipeline. They need people to take responsibility for progressing them through refinement, manufacturing, assembly and workshop validation, so the car is ready when testing starts.</p>
+          <p>A hardware proposal needs a practical manufacturing plan: who will build it, and who will deliver ready-to-assemble parts? If you have an idea but no fabrication access, partner with someone who does.</p>
+        </div>
+        <div class="prose">
+          <h3>Help from the driving seat.</h3>
+          <p>I’m looking for lighter drivers aged 18–23. The F24+ category has a maximum age of 25, and candidates must meet the competition’s eligibility requirements.</p>
+          <p>Our races are primarily in the south of the UK. Goodwood and Castle Combe are key venues, along with Mallory Park in the Midlands. Drivers must be able to travel independently to the selected races.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="story-section" aria-labelledby="data-title">
+      <div class="section-heading"><p class="eyebrow">04 / Work in the open</p><h2 id="data-title">Start with what we already know.</h2></div>
+      <div class="prose"><p>Our existing designs and 2026 race data are public. I want you to use that foundation: examine the design, challenge our assumptions and bring evidence to the discussion.</p></div>
+      <app-greenpower-photo class="analysis-photo" [photo]="photos['midlands-race']" />
+      <div class="article-links">
+        <a class="text-link" [routerLink]="links.telemetry">Explore the 2026 telemetry →</a>
+        <span class="access-note">Sign-in required in the telemetry app.</span>
+        <a class="text-link" [href]="links.retrospective" target="_blank" rel="noopener noreferrer">Explore the open design story ↗<span class="sr-only"> (opens in a new tab)</span></a>
+      </div>
+    </section>
+
+    <section class="story-section" aria-labelledby="working-title">
+      <div class="section-heading"><p class="eyebrow">05 / How we will work</p><h2 id="working-title">Bring an idea. Build it together.</h2></div>
+      <ol class="workflow" aria-label="Development workflow">
+        <li>Discuss</li><li>Develop</li><li>Manufacture</li><li>Nico approval</li><li>Validate</li><li>Race</li>
+      </ol>
+      <div class="prose">
+        <p>We will discuss and coordinate every initiative through PERRINN.com, supported by online meetings. I will oversee the initiatives and approve parts before we use them. Bring proposals into the discussion early so we can agree the direction before manufacturing.</p>
+        <p>Contributions of time, materials and manufacturing capacity are voluntary and in kind. PERRINN will not fund manufacturing of new development parts. The invitation is to contribute what you can, and to collaborate where a project needs more than one set of skills.</p>
+        <p>Our workshop near Bath and Bristol will remain the base for assembly, motor and battery testing, and validation. PERRINN will handle event logistics and race organisation.</p>
+        <p>We will record each contribution on PERRINN.com and recognise participating companies and universities on the car. Contributors are welcome at races: I want the people who help develop this car to be part of its story.</p>
+      </div>
+      <app-greenpower-photo class="team-photo" [photo]="photos['team']" />
+    </section>
+
+    <section class="story-section closing" aria-labelledby="invitation-title">
+      <p class="eyebrow">06 / The next chapter starts now</p>
+      <h2 id="invitation-title">Let’s build the 2027 car.</h2>
+      <div class="prose"><p>Join us now, while the development choices are still open. Whether you can contribute engineering, manufacturing, testing, organisation or another useful skill, there is room to start a conversation.</p></div>
+      <ol class="season-plan" aria-label="Planned 2027 season timeline">
+        <li><strong>November–March</strong><span>Winter development</span></li>
+        <li><strong>March 2027</strong><span>Testing expected</span></li>
+        <li><strong>April 2027</strong><span>Racing expected</span></li>
+        <li><strong>Throughout the season</strong><span>Keep developing</span></li>
+      </ol>
+      <div class="join-actions"><a class="primary" [routerLink]="links.home">Join on PERRINN.com</a><a class="text-link" [href]="links.whatsapp" target="_blank" rel="noopener noreferrer">Join on WhatsApp ↗<span class="sr-only"> (opens in a new tab)</span></a></div>
+      <p class="signature">Nico Perrin<span>PERRINN · We are a team.</span></p>
+    </section>
+  </article>
+  <footer><span>424 Greenpower / 2027</span></footer>
+</main>

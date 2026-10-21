@@ -1,0 +1,10 @@
+<figure>
+  <div class="image-frame" [style.aspect-ratio]="photo.width + ' / ' + photo.height">
+    <img [src]="src" [srcset]="srcset" sizes="(max-width: 700px) 100vw, 75vw"
+      [width]="photo.width" [height]="photo.height" [alt]="photo.alt"
+      [attr.loading]="eager ? 'eager' : 'lazy'" [attr.fetchpriority]="eager ? 'high' : 'auto'"
+      decoding="async" [hidden]="failed" (error)="failed = true">
+    @if (failed) { <span class="unavailable" role="status">Image unavailable</span> }
+  </div>
+  <figcaption>{{ photo.caption }}</figcaption>
+</figure>

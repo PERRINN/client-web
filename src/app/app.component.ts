@@ -49,6 +49,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private radioSubscription: Subscription;
 
   get activeSidebarChatId(): string | null { return activeChatChain(this.router.url); }
+  get editorialPage(): boolean { return this.router.routerState.root.firstChild?.snapshot.data['editorial'] === true; }
 
   openSidebarChat(chain?: string): void {
     if (!chain) return;

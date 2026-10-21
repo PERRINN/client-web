@@ -1,5 +1,5 @@
 <main class="radio">
-  <a class="back" routerLink="/prototypes">← Prototyping</a>
+  <a class="back" routerLink="/apps" fragment="greenpower">← Apps</a>
   <header><h1>Team Radio</h1><span>{{ radio.seats.length }}/10</span></header>
   @if (!radio.user) {
     <a class="primary link-button" routerLink="/login" [queryParams]="{returnUrl: '/prototypes/team-radio'}">Sign in</a>

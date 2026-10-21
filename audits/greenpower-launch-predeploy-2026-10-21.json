@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-21",
+  "issue": 98,
+  "status": "validated_for_authorized_hosting_release",
+  "branch": "master",
+  "remote": "origin (https://github.com/PERRINN/client-web.git)",
+  "project": "perrinn-d5fc1",
+  "deploymentScope": "hosting only",
+  "checks": {
+    "productionBuild": "passed",
+    "lint": "passed with 50 existing warnings",
+    "metadataTests": 2,
+    "radioTests": 42,
+    "diffWhitespace": "passed",
+    "hostingEmulator": "12 bounded static requests; exact article rewrite, Apps/Home entry, main JS hash and all 8 article images matched dist",
+    "productionUI": "Actual compiled client rendered final letter copy and Apps at 1440px / 320px without horizontal overflow; existing signed-out sign-in behavior retained",
+    "indexes": "31 live/repository composite definitions and four field overrides equivalent after normalizing implicit/default values; no index mutation"
+  },
+  "artifact": {
+    "main": "main.bd7852a795598fe3.js",
+    "sha256": "e979c68f656bb3210708aa345af0dcc39bfad067893ba8306d567f17cab22aec"
+  },
+  "acceptedScope": {
+    "letter": "Public editorial route /424-greenpower-2027; Home invitations; no Apps/chat links in letter navigation",
+    "content": "2026 results, 2027 target, wheel/crash lesson, solid wheels, lighter steering, delivery before testing, 18\u201323 driver invitation and independent travel to Goodwood, Castle Combe and Mallory Park",
+    "images": "Seven public Discover photos/CAD views plus explicitly approved Midlands Heat race chart screenshot",
+    "apps": "Four grouped sections, modest rounded car image, editorial letter link and SVG Telemetry/Team Radio tiles",
+    "radio": "Moved from gallery into Greenpower; original route and session behavior retained"
+  },
+  "unchanged": [
+    "Functions",
+    "Firebase authorization/rules",
+    "Persisted data shapes",
+    "Firestore indexes"
+  ],
+  "liveVerification": "Pending deployment; not claimed by this predeployment snapshot."
+}

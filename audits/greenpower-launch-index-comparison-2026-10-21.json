@@ -1,0 +1,10 @@
+{
+  "project": "perrinn-d5fc1",
+  "liveCount": 31,
+  "repositoryCount": 31,
+  "normalization": "Add Firestore implicit __name__ ordering when omitted. Ignore default false TTL flags and field-override array ordering.",
+  "repositoryOnly": [],
+  "liveOnly": [],
+  "fieldOverridesMatch": true,
+  "deploymentScope": "Hosting only; no indexes deployed or deleted."
+}

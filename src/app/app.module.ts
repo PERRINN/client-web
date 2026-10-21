@@ -1,4 +1,6 @@
 import { GreenpowerChannelOptionComponent } from './greenpower-telemetry/greenpower-channel-option.component';
+import { GreenpowerLaunchComponent } from './greenpower-launch/greenpower-launch.component';
+import { GreenpowerPhotoComponent } from './greenpower-launch/greenpower-photo.component';
 import { ImageViewerComponent } from './image-viewer/image-viewer.component';
 import { GreenpowerOverlayComponent } from './greenpower-telemetry/greenpower-overlay.component';
 import { GreenpowerTelemetryComponent } from './greenpower-telemetry/greenpower-telemetry.component';
@@ -74,6 +76,8 @@ export const firebaseConfig = {
 };
 
 @NgModule({ declarations: [
+        GreenpowerLaunchComponent,
+        GreenpowerPhotoComponent,
         GreenpowerTelemetryComponent,
         GreenpowerChannelOptionComponent,
         GreenpowerOverlayComponent,

@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-21",
+  "scope": "Redesign the existing Apps listing; preserve all items and routes.",
+  "sections": [
+    "Greenpower",
+    "424 N\u00fcrburgring",
+    "Team resources",
+    "Prototyping"
+  ],
+  "image": "Existing public racing photo; 240px desktop / 120px mobile header image with 12px rounded corners and reserved dimensions.",
+  "validation": {
+    "build": "npm run build passed; existing unused environment.dev.ts warning.",
+    "lint": "npm run lint passed with 50 existing warnings; focused Apps lint passed.",
+    "browserWidths": [
+      1440,
+      900,
+      768,
+      600,
+      390,
+      320
+    ],
+    "overflow": "No horizontal overflow at tested widths. Mobile places the full-width editorial link below the Greenpower heading/photo and above two SVG app tiles.",
+    "items": "Ten destinations including the editorial letter, Team Radio moved from the gallery, and conditional Google Drive; nine links when Drive is absent.",
+    "navigation": "Greenpower letter and telemetry links opened their existing routes. Telemetry destination uses a placeholder in this no-Firebase harness.",
+    "imageFailure": "Fallback and recovery verified on desktop and 320px mobile, with identical Greenpower section geometry.",
+    "conditionalControls": "Live/radio appearance and removal retained exact mobile main-container geometry.",
+    "accessibility": "Named section landmarks and heading hierarchy, descriptive image alt text, visible keyboard focus, existing external new-tab announcements retained.",
+    "harness": "scripts/greenpower/launch-preview.mjs with mocked account/sidebar services; no Firebase initialization or production writes. Test-only state changes refresh the routed component directly.",
+    "productionBuildUI": "Final actual production bundle verified at 1440px and 320px through the Hosting emulator; app icons, letter separation, photo sizing/corners and navigation preserved."
+  },
+  "performance": "One responsive image added to Apps using existing local assets and browser caching. No new data queries, subscriptions or dependencies.",
+  "deployment": "Development validation snapshot before the subsequently authorized Hosting deployment."
+}
