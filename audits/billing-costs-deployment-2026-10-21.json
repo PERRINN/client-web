@@ -1,0 +1,31 @@
+{
+  "verifiedAt": "2026-10-21T08:06:50.699Z",
+  "commit": "06a2719",
+  "function": "projects/perrinn-d5fc1/locations/us-central1/functions/scheduledDailyMembership",
+  "state": "ACTIVE",
+  "updateTime": "2026-10-21T08:06:16.792639479Z",
+  "revision": "scheduleddailymembership-00063-suj",
+  "runtime": "nodejs20",
+  "entryPoint": "scheduledDailyMembership",
+  "serviceAccount": "44958643568-compute@developer.gserviceaccount.com",
+  "configuration": {
+    "BILLING_EXPORT_TABLE": "perrinn-d5fc1.billing_export.gcp_billing_export_v1_006A37_57ED1D_5E4A00",
+    "BILLING_EXPORT_LOCATION": "EU"
+  },
+  "scheduler": {
+    "name": "projects/perrinn-d5fc1/locations/us-central1/jobs/firebase-schedule-scheduledDailyMembership-us-central1",
+    "state": "ENABLED",
+    "schedule": "every 24 hours",
+    "timeZone": "Etc/UTC",
+    "nextScheduledTime": "2026-10-21T14:21:00.817568Z",
+    "httpTargetUri": "https://scheduleddailymembership-4lvuo66zya-uc.a.run.app/"
+  },
+  "verificationRequests": 2,
+  "accountingInvocations": 0,
+  "syntheticMessages": 0,
+  "remainingGaps": [
+    "Runtime identity could not be impersonated; inherited IAM was inspected instead.",
+    "Reporting dates had no billing rows in the initial backfill.",
+    "The next normal scheduled message has not been observed."
+  ]
+}
