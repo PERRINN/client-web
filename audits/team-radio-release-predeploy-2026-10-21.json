@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-21T16:21:17.567Z",
+  "project": "perrinn-d5fc1",
+  "branch": "master",
+  "scope": "Hosting only: radio recovery and explicit same-account device selection",
+  "checks": {
+    "radioTests": 64,
+    "productionBuild": "pass",
+    "lint": {
+      "errors": 0,
+      "existingWarnings": 50
+    },
+    "diffCheck": "pass"
+  },
+  "indexes": {
+    "liveCount": 31,
+    "repositoryCount": 31,
+    "repositoryOnly": [],
+    "liveOnly": [],
+    "fieldOverridesMatch": true,
+    "normalization": "Implicit __name__ ordering, default density, false TTL and field-override ordering normalized",
+    "deployment": "No indexes deployed or deleted"
+  },
+  "artifact": {
+    "main": "main.a1da0173ca0c214d.js",
+    "sha256": "3d779a1616c164601dcab27c0f06781135c5703c4ae9a047cb3df809055940e1"
+  },
+  "firebaseChanges": {
+    "hosting": true,
+    "functions": false,
+    "rules": false,
+    "indexes": false,
+    "persistedShapes": false
+  },
+  "remaining": "Real phone/desktop and mobile-network extended validation; leave issue #92 open."
+}

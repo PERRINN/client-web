@@ -8,10 +8,15 @@
   } @else {
     <section class="controls" aria-label="Radio controls">
       @if (!radio.joined || (radio.error && radio.connected) || !radio.connected || radio.reconnecting) {
-        <div class="actions">
+        <div class="actions" [class.admission]="!radio.joined">
           @if (!radio.joined) {
-            @if (radio.connected && !radio.error) { <span role="status">{{ radio.seat === undefined && radio.seats.length >= 10 ? 'Room full' : 'Connecting' }}</span> }
-            @if (radio.connected && radio.error) { <button [disabled]="busy" (click)="run(radio.reconnect.bind(radio))">Retry</button> }
+            @if (radio.connected && radio.reservedElsewhere) {
+              <span role="status">On another device</span>
+              <button [disabled]="busy" (click)="run(radio.reconnect.bind(radio))">Use here</button>
+            } @else {
+              @if (radio.connected && !radio.error) { <span role="status">{{ radio.seat === undefined && radio.seats.length >= 10 ? 'Room full' : 'Connecting' }}</span> }
+              @if (radio.connected && radio.error) { <button [disabled]="busy" (click)="run(radio.reconnect.bind(radio))">Retry</button> }
+            }
           }
           @if (radio.joined && radio.error && radio.connected && !radio.reconnecting) {
             <button [disabled]="busy" (click)="run(radio.reconnect.bind(radio))">Reconnect</button>
@@ -44,7 +49,7 @@
         }
       }
     </section>
-    @if (radio.error) { <p class="error" role="alert">{{ radio.error }}</p> }
+    @if (radio.error && !radio.reservedElsewhere) { <p class="error" role="alert">{{ radio.error }}</p> }
     <section class="participants" aria-label="Participants">
       @if (!radio.seats.length) { <p>No participants</p> }
       @for (person of radio.seats; track person.id) {

@@ -118,14 +118,14 @@ export class RadioLifecycleService implements OnDestroy {
   }
 
   private autoJoin(radio: RadioRoomService) {
-    if (this.joining || (radio.seat === undefined && radio.seats.length >= 10)) return;
+    if (this.joining || radio.reservedElsewhere || (radio.seat === undefined && radio.seats.length >= 10)) return;
     // Retry a lost capacity race only when the roster changes, not every clock tick.
     const attempt = JSON.stringify([radio.user.uid, radio.seats.map(seat => [seat.id, seat.uid])]);
     if (attempt === this.joinAttempt) return;
     this.joinAttempt = attempt; this.joining = radio;
     void Promise.resolve().then(() => {
       if (this.radio === radio && this.pageAttached && !document.hidden && !this.pageHidden && this.focused
-        && !radio.joined && radio.user && radio.connected && !radio.loading && !radio.error) return radio.join();
+        && !radio.joined && !radio.reservedElsewhere && radio.user && radio.connected && !radio.loading && !radio.error) return radio.join();
       if (this.radio === radio) this.joinAttempt = '';
     }).catch(error => {
       if (this.radio === radio && error?.message !== 'Room full. All 10 places are taken.') radio.showError(error);

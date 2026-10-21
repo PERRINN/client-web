@@ -17,7 +17,8 @@ function load(path, imports = {}) {
 }
 const core = { Injectable: () => target => target, runInInjectionContext: (_, fn) => fn() };
 const state = load('../src/app/prototypes/team-radio/radioState.ts');
-const { RadioAudioService } = load('../src/app/prototypes/team-radio/radioAudio.service.ts', { '@angular/core': core });
+const diagnostics = load('../src/app/prototypes/team-radio/radioDiagnostics.ts');
+const { RadioAudioService } = load('../src/app/prototypes/team-radio/radioAudio.service.ts', { '@angular/core': core, './radioDiagnostics': diagnostics });
 const { RadioRoomService } = load('../src/app/prototypes/team-radio/radioRoom.service.ts', {
   '@angular/core': core,
   rxjs: { firstValueFrom, Subject },
@@ -215,7 +216,8 @@ test('answering peers negotiate sending as well as receiving before a listener b
   const fake = fakeContext(); audio.context = fake.context; audio.output = fake.context.createMediaStreamDestination();
   let track; let published = false;
   const transceiver = { direction: 'recvonly', sender: { replaceTrack: async value => track = value } };
-  const peer = { session: 'remote', offerId: '', queue: Promise.resolve(), pc: {
+  const peer = { session: 'remote', offerId: '', retries: 0, offers: new Set(), queue: Promise.resolve(), pc: {
+    signalingState: 'stable',
     setRemoteDescription: async () => {}, getTransceivers: () => [transceiver],
     setLocalDescription: async () => {}, createAnswer: async () => ({ type: 'answer' })
   } };
@@ -223,6 +225,7 @@ test('answering peers negotiate sending as well as receiving before a listener b
   audio.receive('0', { fromSession: 'remote', toSession: 'local', offerId: 'offer', type: 'offer', sdp: 'sdp' });
   await peer.queue;
   assert.equal(transceiver.direction, 'sendrecv'); assert.equal(track.kind, 'audio'); assert.equal(published, true);
+  clearTimeout(peer.watchdog);
 });
 
 test('radio avatars reuse the real current profile, bound other lookups and release subscriptions', () => {
@@ -573,6 +576,91 @@ test('capacity contention does not retry every clock tick but retries after a ro
     f.radio.seats.push({ id: '2', uid: 'other' }); f.radio.changed.next(); await settle(); assert.equal(attempts, 2);
   } finally { f.close(); }
 });
+test('opening, refocusing and reopening the radio never admits over another device reservation', async () => {
+  const f = lifecycleFixture(undefined, { reservedElsewhere: true });
+  try {
+    f.lifecycle.enterPage(); await settle();
+    for (let turn = 0; turn < 5; turn++) {
+      f.win.dispatchEvent(new Event('blur')); f.win.dispatchEvent(new Event('focus'));
+      f.doc.hidden = true; f.doc.dispatchEvent(new Event('visibilitychange'));
+      f.doc.hidden = false; f.doc.dispatchEvent(new Event('visibilitychange'));
+      f.radio.changed.next(); await settle();
+    }
+    assert.equal(f.calls.joins, 0);
+    f.lifecycle.leavePage(); f.lifecycle.enterPage(); await settle();
+    assert.equal(f.calls.joins, 0);
+    f.radio.reservedElsewhere = false; f.radio.changed.next(); await settle();
+    assert.equal(f.calls.joins, 1, 'a released reservation allows normal automatic admission');
+  } finally { f.close(); }
+});
+test('a queued admission is canceled if another device appears before the claim starts', async () => {
+  const f = lifecycleFixture();
+  try {
+    f.lifecycle.enterPage(); f.radio.reservedElsewhere = true;
+    await settle(); assert.equal(f.calls.joins, 0);
+  } finally { f.close(); }
+});
+test('a superseded reload ticket cannot fall through into automatic takeover', async () => {
+  const ticket = { uid: 'b', seat: '1', session: 'old-phone', until: Date.now() + 120000 };
+  const f = lifecycleFixture(ticket, { reservedElsewhere: true, recover: async () => {} });
+  try {
+    f.lifecycle.enterPage(); await settle(); f.win.dispatchEvent(new Event('focus')); await settle();
+    assert.equal(f.calls.joins, 0); assert.equal(f.radio.joined, false);
+    assert.equal(f.values.has(returnKey), false);
+  } finally { f.close(); }
+});
+test('automatic join respects live and recently offline own-account reservations without media or writes', async () => {
+  const f = service(); f.radio.joined = false; f.radio.session = '';
+  try {
+    for (const online of [true, false]) {
+      f.radio.room.presence[1] = { ...f.radio.room.presence[1], session: 'desktop', online, at: Date.now() };
+      assert.equal(f.radio.reservedElsewhere, true);
+      await f.radio.join(); assert.equal(f.writes.length, 0);
+    }
+    f.radio.room.presence[1].at = Date.now() - 180001;
+    assert.equal(f.radio.reservedElsewhere, false, 'an expired reservation is not a live device');
+  } finally { f.radio.ngOnDestroy(); }
+});
+test('automatic admission rechecks reservations after an asynchronous profile lookup', async () => {
+  const f = service({ seats: {}, speakers: {}, presence: {} }); const { radio } = f; let finish;
+  radio.joined = false; radio.session = ''; radio.reclaimStale = async () => {};
+  radio.audio.resume = async () => {};
+  radio.resolveName = () => new Promise(resolve => finish = resolve);
+  try {
+    const joining = radio.join(); await settle();
+    radio.room = { seats: { 1: { uid: 'b', name: 'Blair' } }, presence: { 1: { session: 'desktop', online: true, at: Date.now() } } };
+    finish('Blair'); await joining;
+    assert.equal(f.writes.length, 0); assert.equal(radio.joined, false);
+  } finally { radio.ngOnDestroy(); }
+});
+test('explicit Reconnect can move the radio here through the existing session-bound claim', async () => {
+  const f = service(); const { radio } = f; radio.joined = false; radio.session = '';
+  radio.reclaimStale = async () => {}; radio.resolveName = async () => 'Blair'; radio.audio.resume = async () => {};
+  f.ref.update = async patch => {
+    f.writes.push(patch);
+    for (const [path, value] of Object.entries(patch)) {
+      const [group, key] = path.split('/');
+      if (group === 'seats' || group === 'presence') (radio.room[group] ||= {})[key] = group === 'presence' ? { ...value, at: Date.now() } : value;
+    }
+  };
+  try {
+    await radio.reconnect();
+    assert.equal(radio.joined, true); assert.notEqual(radio.session, 'bSession');
+    assert.equal(f.writes[0]['seats/1'].uid, 'b');
+    assert.equal(f.writes[0]['presence/1'].session, radio.session);
+  } finally { radio.ngOnDestroy(); }
+});
+test('a replaced device reports handoff before teardown notifies automatic admission', () => {
+  const f = service(); const observedErrors = [];
+  f.radio.room.presence[1] = { ...f.radio.room.presence[1], at: Date.now(), session: 'phone' };
+  const subscription = f.radio.changed.subscribe(() => { if (!f.radio.joined) observedErrors.push(f.radio.error); });
+  try {
+    f.radio.sync();
+    assert.equal(f.radio.joined, false); assert.equal(f.radio.reservedElsewhere, true);
+    assert.ok(observedErrors.length > 0);
+    assert.ok(observedErrors.every(error => error === 'Radio moved to another device.'));
+  } finally { subscription.unsubscribe(); f.radio.ngOnDestroy(); }
+});
 test('autoplay waiting for a gesture does not block listener admission or request a microphone', async () => {
   const f = service({ seats: {}, speakers: {}, presence: {} }); const { radio } = f; let microphoneRequests = 0;
   radio.joined = false; radio.resolveName = async () => 'Blair'; radio.reclaimStale = async () => {};
@@ -618,4 +706,326 @@ test('expiry stops a captured microphone even while the audio context awaits a g
     const pending = audio.enableMicrophone(); await settle();
     audio.close(); assert.equal(track.readyState, 'ended'); resume(); await assert.rejects(pending, /cancelled/);
   } finally { if (original) Object.defineProperty(globalThis, 'navigator', original); else delete globalThis.navigator; }
+});
+
+// Issue #92: transport identity and retry regressions, with a controlled clock.
+function auditAudio() {
+  const audio = new RadioAudioService();
+  const created = [];
+  const original = globalThis.RTCPeerConnection;
+  const originalSetTimeout = globalThis.setTimeout;
+  const originalClearTimeout = globalThis.clearTimeout;
+  const timers = new Map(); let clock = 0; let nextTimer = 0;
+  globalThis.setTimeout = (callback, delay) => { const id = ++nextTimer; timers.set(id, { callback, at: clock + delay }); return id; };
+  globalThis.clearTimeout = id => timers.delete(id);
+  globalThis.RTCPeerConnection = class {
+    connectionState = 'new';
+    signalingState = 'stable';
+    iceGatheringState = 'complete';
+    descriptions = []; offerOptions = [];
+    transceiver = { direction: 'sendrecv', sender: { replaceTrack: async () => {} } };
+    constructor() { created.push(this); }
+    close() { this.connectionState = 'closed'; this.signalingState = 'closed'; }
+    addTransceiver() { return this.transceiver; }
+    getTransceivers() { return [this.transceiver]; }
+    async createOffer(options) { this.offerOptions.push(options); return { type: 'offer', sdp: `offer-${this.offerOptions.length}` }; }
+    async createAnswer() { return { type: 'answer', sdp: `answer-${this.descriptions.length}` }; }
+    async setLocalDescription(description) {
+      this.descriptions.push(description); this.localDescription = description;
+      this.signalingState = description.type === 'offer' ? 'have-local-offer' : 'stable';
+    }
+    async setRemoteDescription(description) { this.descriptions.push(description); this.signalingState = description.type === 'offer' ? 'have-remote-offer' : 'stable'; }
+  };
+  // Isolate connection ownership from browser SDP, media and network behavior.
+  audio.offer = async () => {};
+  return { audio, created, timers,
+    async advance(ms) {
+      const until = clock + ms;
+      for (;;) {
+        const next = [...timers].filter(([, timer]) => timer.at <= until).sort((a, b) => a[1].at - b[1].at)[0];
+        if (!next) break;
+        clock = next[1].at; timers.delete(next[0]); next[1].callback(); await settle();
+      }
+      clock = until; await settle();
+    },
+    restore() {
+      audio.close(); globalThis.setTimeout = originalSetTimeout; globalThis.clearTimeout = originalClearTimeout;
+      if (original) globalThis.RTCPeerConnection = original; else delete globalThis.RTCPeerConnection;
+    } };
+}
+
+test('radio audit: roster additions and removals preserve unaffected peer objects', () => {
+  const f = auditAudio();
+  const first = { seat: '0', session: 'remote-zero', speaker: true };
+  const second = { seat: '2', session: 'remote-two', speaker: true };
+  try {
+    f.audio.reconcile('1', 'local', true, [first]);
+    const retained = f.audio.peers.get('0');
+    retained.pc.connectionState = 'connected';
+    f.audio.reconcile('1', 'local', true, [first, second]);
+    assert.equal(f.audio.peers.get('0'), retained);
+    f.audio.reconcile('1', 'local', true, [first]);
+    assert.equal(f.audio.peers.get('0'), retained);
+    assert.equal(retained.pc.connectionState, 'connected');
+    assert.equal(f.created.length, 2);
+    assert.equal(f.created[1].connectionState, 'closed');
+  } finally { f.restore(); }
+});
+
+test('failed peers stay in the roster through clock ticks, then stop after three delayed retries', async () => {
+  const f = auditAudio();
+  const peers = [{ seat: '0', session: 'unchanged-remote', speaker: true }];
+  try {
+    let attempts = 0; let errors = 0;
+    f.audio.offer = async () => { attempts++; };
+    f.audio.onError = () => errors++;
+    // Each reconciliation represents a room tick (normally every 250 ms).
+    for (let tick = 0; tick < 20; tick++) {
+      f.audio.reconcile('1', 'local', true, peers);
+      const pc = f.audio.peers.get('0').pc;
+      pc.onicecandidateerror({ errorCode: 701, address: 'private-address', errorText: 'private-details' });
+      pc.connectionState = 'failed'; pc.onconnectionstatechange();
+      assert.equal(f.audio.peerCount, 1);
+    }
+    assert.equal(f.created.length, 1); assert.equal(attempts, 0);
+    await f.advance(999); assert.equal(attempts, 0);
+    await f.advance(1); assert.equal(attempts, 1);
+    f.created[0].onconnectionstatechange();
+    await f.advance(2999); assert.equal(attempts, 1);
+    await f.advance(1); assert.equal(attempts, 2);
+    f.created[0].onconnectionstatechange();
+    await f.advance(7999); assert.equal(attempts, 2);
+    await f.advance(1); assert.equal(attempts, 3);
+    f.created[0].onconnectionstatechange();
+    await f.advance(100000);
+    assert.equal(attempts, 3); assert.equal(errors, 1); assert.equal(f.timers.size, 0);
+    for (let tick = 0; tick < 20; tick++) f.audio.reconcile('1', 'local', true, peers);
+    assert.equal(f.created.length, 1); assert.equal(f.audio.peers.get('0').exhausted, true);
+    assert.equal(f.created[0].connectionState, 'closed');
+    assert.equal(f.created[0].onicecandidateerror, null);
+    assert.equal(f.audio.diagnostics.snapshot().filter(entry => entry.event === 'peer-connection' && entry.connection === 'failed').length, 23);
+    const iceError = f.audio.diagnostics.snapshot().find(entry => entry.event === 'peer-ice-error');
+    assert.equal(iceError.reason, '701');
+    assert.equal('address' in iceError, false); assert.equal('errorText' in iceError, false);
+  } finally { f.restore(); }
+});
+
+test('failed answering peers retain consumed offer identities and never replay the old mailbox', async () => {
+  const f = auditAudio(); let answers = 0;
+  const peers = [{ seat: '0', session: 'unchanged-remote', speaker: true }];
+  const signal = { fromSession: 'unchanged-remote', toSession: 'local', offerId: 'retained-offer', type: 'offer', sdp: 'retained-sdp' };
+  f.audio.attachTrack = async () => {};
+  f.audio.publish = async () => { answers++; };
+  function receiveOffer() {
+    const peer = f.audio.peers.get('0');
+    Object.assign(peer.pc, {
+      setRemoteDescription: async () => {}, getTransceivers: () => [],
+      setLocalDescription: async () => {}, createAnswer: async () => ({ type: 'answer' })
+    });
+    f.audio.receive('0', signal);
+    return peer.queue;
+  }
+  try {
+    f.audio.reconcile('1', 'local', true, peers); await receiveOffer();
+    f.audio.receive('0', signal); await f.audio.peers.get('0').queue;
+    assert.equal(answers, 1, 'same peer suppresses the duplicate');
+    const pc = f.audio.peers.get('0').pc;
+    pc.connectionState = 'failed'; pc.onconnectionstatechange();
+    f.audio.reconcile('1', 'local', true, peers); await receiveOffer();
+    assert.equal(answers, 1, 'failure must not forget a consumed offer');
+  } finally { f.restore(); }
+});
+
+test('radio audit: a stable initiating peer ignores a replacement answer for its old offer', async () => {
+  const audio = new RadioAudioService(); let applied = 0;
+  audio.localSeat = '0'; audio.localSession = 'local';
+  const peer = { session: 'remote', offerId: 'old-offer', remoteSdp: 'original-answer', queue: Promise.resolve(),
+    pc: { signalingState: 'stable', setRemoteDescription: async () => { applied++; } } };
+  audio.peers.set('1', peer);
+  audio.receive('1', { fromSession: 'remote', toSession: 'local', offerId: 'old-offer', type: 'answer', sdp: 'replacement-answer' });
+  await peer.queue;
+  assert.equal(applied, 0);
+  assert.equal(audio.peers.get('1'), peer);
+});
+
+function negotiatedPeer(f, seat = '1', remoteSeat = '0') {
+  delete f.audio.offer;
+  const fake = fakeContext(); f.audio.context = fake.context; f.audio.output = fake.context.createMediaStreamDestination();
+  f.audio.reconcile(seat, 'local', true, [{ seat: remoteSeat, session: 'remote', speaker: true }]);
+  return f.audio.peers.get(remoteSeat);
+}
+const offerSignal = (id, sdp = id) => ({ fromSession: 'remote', toSession: 'local', offerId: id, type: 'offer', sdp });
+
+test('either side can recover: an answering peer sends a fresh ICE restart offer after failure', async () => {
+  const f = auditAudio(); const signals = []; f.audio.onSignal = async (_, signal) => signals.push(signal);
+  try {
+    const peer = negotiatedPeer(f);
+    f.audio.receive('0', offerSignal('initial')); await peer.queue;
+    const previousId = peer.offerId;
+    peer.pc.connectionState = 'failed'; peer.pc.onconnectionstatechange();
+    await f.advance(1000); await peer.queue;
+    assert.equal(f.created.length, 1);
+    assert.notEqual(peer.offerId, previousId);
+    assert.equal(signals.at(-1).type, 'offer'); assert.equal(signals.at(-1).offerId, peer.offerId);
+    assert.deepEqual(peer.pc.offerOptions, [{ iceRestart: true }]);
+    f.audio.receive('0', { ...offerSignal(previousId), type: 'answer', sdp: 'late-answer' }); await peer.queue;
+    assert.equal(peer.pc.signalingState, 'have-local-offer', 'late answer cannot resolve the new offer');
+    f.audio.receive('0', { ...offerSignal(peer.offerId), type: 'answer', sdp: 'fresh-answer' }); await peer.queue;
+    assert.equal(peer.pc.signalingState, 'stable');
+  } finally { f.restore(); }
+});
+
+test('a lower-seat peer accepts a fresh offer from its recovering answering peer', async () => {
+  const f = auditAudio(); const signals = []; f.audio.onSignal = async (_, signal) => signals.push(signal);
+  try {
+    const peer = negotiatedPeer(f, '0', '1'); await peer.queue;
+    peer.pc.signalingState = 'stable'; peer.pc.connectionState = 'connected';
+    f.audio.receive('1', offerSignal('remote-recovery')); await peer.queue;
+    assert.equal(signals.at(-1).type, 'answer'); assert.equal(signals.at(-1).offerId, 'remote-recovery');
+    assert.equal(f.audio.peers.get('1'), peer);
+  } finally { f.restore(); }
+});
+
+test('colliding offers are deterministic: the higher seat rolls back, the lower seat retains its offer', async () => {
+  for (const seat of ['0', '1']) {
+    const f = auditAudio(); const remoteSeat = seat === '0' ? '1' : '0'; const signals = [];
+    f.audio.onSignal = async (_, signal) => signals.push(signal);
+    try {
+      const peer = negotiatedPeer(f, seat, remoteSeat); await peer.queue;
+      peer.offerId = 'own-offer'; peer.pc.signalingState = 'have-local-offer';
+      f.audio.receive(remoteSeat, offerSignal('colliding-offer')); await peer.queue;
+      const rollback = peer.pc.descriptions.some(description => description.type === 'rollback');
+      assert.equal(rollback, seat === '1');
+      assert.equal(peer.offerId, seat === '1' ? 'colliding-offer' : 'own-offer');
+      assert.equal(signals.at(-1)?.type, seat === '1' ? 'answer' : 'offer');
+    } finally { f.restore(); }
+  }
+});
+
+test('incoming offers are deduplicated by identity and bounded even when SDP changes', async () => {
+  const f = auditAudio(); let answers = 0;
+  f.audio.onSignal = async (_, signal) => { if (signal.type === 'answer') answers++; };
+  try {
+    const peer = negotiatedPeer(f);
+    f.audio.receive('0', offerSignal('one')); await peer.queue;
+    f.audio.receive('0', offerSignal('one', 'changed-sdp')); await peer.queue;
+    assert.equal(answers, 1);
+    for (const id of ['two', 'three', 'four', 'five', 'six']) { f.audio.receive('0', offerSignal(id)); await peer.queue; }
+    assert.equal(answers, 4); assert.equal(peer.offers.size, 4);
+    f.audio.receive('0', { ...offerSignal('wrong-session'), fromSession: 'other-session' }); await peer.queue;
+    assert.equal(peer.offers.size, 4);
+  } finally { f.restore(); }
+});
+
+test('brief disconnects recover without an offer; successful connections do not reset the retry budget', async () => {
+  const f = auditAudio(); let attempts = 0;
+  f.audio.offer = async () => attempts++;
+  try {
+    f.audio.reconcile('1', 'local', true, [{ seat: '0', session: 'remote', speaker: true }]);
+    const peer = f.audio.peers.get('0');
+    peer.pc.connectionState = 'disconnected'; peer.pc.onconnectionstatechange();
+    await f.advance(4999); assert.equal(attempts, 0);
+    peer.pc.connectionState = 'connected'; peer.pc.onconnectionstatechange();
+    await f.advance(1); assert.equal(attempts, 0);
+    peer.pc.connectionState = 'failed'; peer.pc.onconnectionstatechange();
+    await f.advance(1000); assert.equal(attempts, 1);
+    peer.pc.connectionState = 'connected'; peer.pc.onconnectionstatechange();
+    peer.pc.connectionState = 'failed'; peer.pc.onconnectionstatechange();
+    await f.advance(1000); assert.equal(attempts, 1);
+    await f.advance(2000); assert.equal(attempts, 2); assert.equal(peer.retries, 2);
+  } finally { f.restore(); }
+});
+
+test('negotiation stalls exhaust their watchdog budget instead of waiting or retrying forever', async () => {
+  const f = auditAudio(); let attempts = 0;
+  f.audio.offer = async () => attempts++;
+  try {
+    f.audio.reconcile('1', 'local', true, [{ seat: '0', session: 'remote', speaker: true }]);
+    await f.advance(112000);
+    assert.equal(attempts, 3); assert.equal(f.audio.peers.get('0').exhausted, true);
+    assert.equal(f.timers.size, 0);
+  } finally { f.restore(); }
+});
+
+test('departure cancels recovery while a healthy neighboring transport stays intact', async () => {
+  const f = auditAudio(); let attempts = 0;
+  f.audio.offer = async () => attempts++;
+  const peers = [{ seat: '0', session: 'remote', speaker: true }, { seat: '2', session: 'other', speaker: true }];
+  try {
+    f.audio.reconcile('1', 'local', true, peers); await settle();
+    const failed = f.audio.peers.get('0'); const healthy = f.audio.peers.get('2');
+    healthy.pc.connectionState = 'connected'; healthy.pc.onconnectionstatechange();
+    attempts = 0;
+    failed.pc.connectionState = 'failed'; failed.pc.onconnectionstatechange();
+    f.audio.reconcile('1', 'local', true, [peers[1]]);
+    await f.advance(100000);
+    assert.equal(attempts, 0); assert.equal(f.audio.peers.get('2'), healthy);
+    assert.equal(healthy.pc.connectionState, 'connected'); assert.equal(f.timers.size, 0);
+  } finally { f.restore(); }
+});
+
+test('session replacement cancels pending retries and makes delayed negotiation work inert', async () => {
+  const f = auditAudio(); const signals = []; let finish;
+  f.audio.onSignal = async (_, signal) => signals.push(signal);
+  try {
+    const peer = negotiatedPeer(f); f.audio.attachTrack = () => new Promise(resolve => finish = resolve);
+    peer.pc.connectionState = 'failed'; peer.pc.onconnectionstatechange();
+    await f.advance(1000);
+    const pending = peer.queue;
+    f.audio.reconcile('1', 'replacement-local', true, []);
+    finish(); await pending; await f.advance(100000);
+    assert.equal(signals.length, 0); assert.equal(f.timers.size, 0); assert.equal(f.audio.peerCount, 0);
+  } finally { f.restore(); }
+});
+
+test('temporary presence gaps cannot renew retries or repeatedly create exhausted transports', async () => {
+  const f = auditAudio(); let offers = 0; f.audio.offer = async () => offers++;
+  const remote = { seat: '0', session: 'remote', speaker: true };
+  try {
+    f.audio.reconcile('1', 'local', true, [remote]);
+    for (let gap = 0; gap < 20; gap++) {
+      f.audio.reconcile('1', 'local', true, []);
+      f.audio.reconcile('1', 'local', true, [remote]);
+    }
+    await f.advance(100000);
+    assert.equal(f.created.length, 4, 'initial transport plus at most three recovery transports');
+    assert.equal(offers, 0, 'canceled retries cannot publish after departure');
+    assert.equal(f.audio.peers.get('0').exhausted, true);
+    assert.equal(f.audio.history.size, 1); assert.equal(f.timers.size, 0);
+    f.audio.reconcile('1', 'local', true, [{ ...remote, session: 'new-remote' }]);
+    assert.equal(f.created.length, 5); assert.equal(f.audio.peers.get('0').retries, 0);
+    assert.equal(f.audio.history.size, 1, 'only latest session per fixed seat is retained');
+  } finally { f.restore(); }
+});
+
+test('radio diagnostics retain only 200 local metadata events and return detached snapshots', () => {
+  const log = new diagnostics.RadioDiagnostics();
+  for (let index = 0; index < 205; index++) log.record('peer-connection', { peerSeat: String(index) });
+  const snapshot = log.snapshot();
+  assert.equal(snapshot.length, 200);
+  assert.equal(snapshot[0].peerSeat, '5');
+  assert.equal(snapshot.at(-1).peerSeat, '204');
+  assert.ok(Number.isFinite(Date.parse(snapshot[0].at)));
+  snapshot[0].peerSeat = 'changed'; snapshot.pop();
+  assert.equal(log.snapshot()[0].peerSeat, '5'); assert.equal(log.snapshot().length, 200);
+});
+
+test('radio diagnostic console capture is opt-in and limited to 200 events per instance', () => {
+  const original = Object.getOwnPropertyDescriptor(globalThis, 'sessionStorage');
+  const info = console.info; const output = [];
+  console.info = (...args) => output.push(args);
+  try {
+    Object.defineProperty(globalThis, 'sessionStorage', { configurable: true, value: { getItem: () => null } });
+    new diagnostics.RadioDiagnostics().record('disabled');
+    assert.equal(output.length, 0);
+    Object.defineProperty(globalThis, 'sessionStorage', { configurable: true, value: { getItem: () => '1' } });
+    const log = new diagnostics.RadioDiagnostics();
+    for (let index = 0; index < 205; index++) log.record('peer-ice', { ice: 'checking' });
+    assert.equal(output.length, 200);
+    assert.equal(output[0][0], '[Team Radio]');
+    assert.deepEqual(Object.keys(output[0][1]).sort(), ['at', 'event', 'ice']);
+  } finally {
+    console.info = info;
+    if (original) Object.defineProperty(globalThis, 'sessionStorage', original); else delete globalThis.sessionStorage;
+  }
 });
