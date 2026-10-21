@@ -3,6 +3,26 @@ import { test } from 'node:test';
 import { performance } from 'node:perf_hooks';
 import { data, sample } from './load.mjs';
 
+test('race seconds display as minutes for historical, live and saved channels without changing source data', () => {
+  for (const source of ['424-phone', 'echook-history']) for (const name of ['raceseconds', 'raceSeconds']) {
+    for (const unit of ['', 's', 'seconds']) {
+      const raw = JSON.stringify({ [name]: unit ? { value: 150, unit } : 150 });
+      const first = { ...sample(0), source, raw };
+      const id = `${JSON.stringify([name])}:${unit}`;
+      const channel = data.channelsFor([first], first).find(c => c.id === id);
+      assert.deepEqual(channel, { id, label: 'Race time', unit: 'min', value: '2.5', points: [{ time: first.receivedAt, value: 2.5 }] });
+      assert.deepEqual(data.channelDetails(id), { label: 'Race time', unit: 'min' });
+      assert.deepEqual(data.mergeChannels([[channel]], first), [channel]);
+      data.updateValues([channel], { ...first, raw: JSON.stringify({ [name]: unit ? { value: 0, unit } : 0 }) });
+      assert.equal(channel.value, '0');
+      data.updateValues([channel], { ...first, raw: JSON.stringify({ [name]: unit ? { value: null, unit } : null }) });
+      assert.equal(channel.value, '—');
+      assert.equal(first.raw, raw);
+    }
+  }
+  assert.equal(data.channelsFor([{ ...sample(0), raw: '{"other":150}' }])[0].value, '150');
+});
+
 test('live and historical speed projections use mph without changing raw values or saved IDs', () => {
   for (const [source, raw] of [['424-phone', '{"Spd":10,"RPM":1000}'], ['echook-history', '{"speed":10,"rpm":1000}']]) {
     const first = { ...sample(0), source, raw };

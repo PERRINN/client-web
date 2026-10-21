@@ -6,6 +6,9 @@ export interface GreenpowerChannel { id: string; label: string; unit: string; va
 const speedFactors: Record<string, number> = { 'm/s': 1 / 0.44704, 'km/h': 1 / 1.609344, kph: 1 / 1.609344, mph: 1 };
 function speedFactor(unit: string) { return Object.hasOwn(speedFactors, unit) ? speedFactors[unit] : undefined; }
 function displayUnit(unit: string) { return speedFactor(unit) === undefined ? unit : 'mph'; }
+function isRaceSeconds(id: string, unit: string) {
+  return /^\["raceseconds"\]$/i.test(id) && ['', 's', 'seconds'].includes(unit);
+}
 export const PAGE_SIZE = 100;
 export const MAX_PAGES = 50;
 export const MAX_LOAD_BYTES = 64 * 1024 * 1024;
@@ -111,10 +114,11 @@ export function channelsFor(samples: GreenpowerSample[], latest?: GreenpowerSamp
     const source = fields(sample.raw, sample.source === 'echook-history');
     for (const field of [...source, ...electricalFields(source)]) {
       const key = field.id.startsWith('computed:') ? field.id : `${field.id}:${field.unit}`;
-      const factor = speedFactor(field.unit);
+      const raceTime = isRaceSeconds(field.id, field.unit);
+      const factor = raceTime ? 1 / 60 : speedFactor(field.unit);
       const value = factor !== undefined && typeof field.value === 'number' ? field.value * factor : field.value;
       let channel = channels.get(key);
-      if (!channel) { channel = { id: key, label: field.label, unit: displayUnit(field.unit), value: '—', points: [] }; channels.set(key, channel); }
+      if (!channel) { channel = { id: key, label: raceTime ? 'Race time' : field.label, unit: raceTime ? 'min' : displayUnit(field.unit), value: '—', points: [] }; channels.set(key, channel); }
       readings.set(key, value);
       if (plot && typeof value === 'number' && Number.isFinite(value)) channel.points.push({ time: sampleTime(sample), value });
     }
@@ -194,6 +198,7 @@ export function channelDetails(id: string): { label: string; unit: string } {
     try {
       const path: unknown = JSON.parse(id.slice(0, at + 1));
       if (Array.isArray(path) && path.every(part => typeof part === 'string')) {
+        if (isRaceSeconds(id.slice(0, at + 1), id.slice(at + 2))) return { label: 'Race time', unit: 'min' };
         return { label: (path.length === 1 && known[path[0]]?.[0]) || path.join(' / ') || 'Value', unit: displayUnit(id.slice(at + 2)) };
       }
     } catch { /* A channel key can itself contain ]:. Continue to the JSON boundary. */ }
