@@ -204,6 +204,49 @@ test('a late Talk rejection cannot overwrite a newer session error', async () =>
   } finally { f.radio.ngOnDestroy(); }
 });
 
+test('Enable talking identifies microphone, speaking-slot and disconnect-hook failures', async () => {
+  for (const phase of ['microphone', 'speaker-claim', 'disconnect-hook']) {
+    const f = service(); f.radio.room.speakers = {};
+    let disabled = 0;
+    f.radio.audio.enableMicrophone = async () => {
+      if (phase === 'microphone') throw Object.assign(new Error('private browser message'), { name: 'NotAllowedError' });
+    };
+    f.radio.audio.disableMicrophone = () => disabled++;
+    f.ref.transaction = async update => {
+      if (phase === 'speaker-claim') throw new Error('permission_denied');
+      return { committed: true, snapshot: { val: () => update(null) } };
+    };
+    f.radio.armCleanup = async () => { throw new Error('permission_denied'); };
+    try {
+      await assert.rejects(f.radio.enableTalking());
+      const events = f.radio.audio.diagnostics.snapshot();
+      const failure = events.find(event => event.event === 'enable-talking-rejected');
+      assert.equal(failure.kind, phase);
+      assert.equal(failure.reason, phase === 'microphone' ? 'microphone-permission-denied' : 'permission-denied');
+      assert.ok(failure.elapsedMs >= 0);
+      assert.equal(disabled, phase === 'disconnect-hook' ? 0 : 1);
+      assert.equal(f.radio.joined, phase !== 'disconnect-hook');
+      assert.equal(JSON.stringify(events).includes('private browser message'), false);
+      assert.equal(events.some(event => event.event === 'speaker-claim-start'), phase !== 'microphone');
+    } finally { f.radio.ngOnDestroy(); }
+  }
+});
+
+test('capture includes current listener state even without a Talk attempt', () => {
+  const f = service(); f.radio.room.speakers = {}; f.radio.error = 'private error';
+  f.radio.audio.canTransmit = false;
+  try {
+    const events = f.radio.captureDiagnostics();
+    assert.equal(events.length, 1);
+    assert.equal(events[0].event, 'diagnostics-capture');
+    assert.equal(events[0].kind, 'joined-listener');
+    assert.equal(events[0].microphoneReady, false);
+    assert.equal(events[0].errorPresent, true);
+    assert.equal(events[0].connection, 'connected');
+    assert.equal(JSON.stringify(events).includes('private error'), false);
+  } finally { f.radio.ngOnDestroy(); }
+});
+
 test('Copy diagnostics exports the current bounded trace and preserves the original error when clipboard fails', async () => {
   const { TeamRadioComponent } = load('../src/app/prototypes/team-radio/team-radio.component.ts', {
     '@angular/core': { Component: () => target => target, HostListener: () => () => {} },

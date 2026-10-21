@@ -24,6 +24,8 @@ export interface RadioDiagnosticDetails {
   observedServerNow?: number;
   requestedStartAt?: number;
   requestedExpiresAt?: number;
+  microphoneReady?: boolean;
+  errorPresent?: boolean;
 }
 
 export function isRadioPermissionDenied(error: unknown) {

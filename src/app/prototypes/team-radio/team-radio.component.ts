@@ -37,7 +37,7 @@ export class TeamRadioComponent implements OnDestroy {
   }
   async copyDiagnostics() {
     try {
-      const trace = { version: 1, capturedAt: new Date().toISOString(), events: this.radio.audio.diagnostics.snapshot() };
+      const trace = { version: 1, capturedAt: new Date().toISOString(), events: this.radio.captureDiagnostics() };
       await navigator.clipboard.writeText(JSON.stringify(trace, null, 2));
       this.diagnosticsCopyLabel = 'Copied';
     } catch { this.diagnosticsCopyLabel = 'Copy failed'; }

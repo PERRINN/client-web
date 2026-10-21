@@ -178,31 +178,58 @@ export class RadioRoomService implements OnDestroy {
   async reconnect() { this.stopSession(); await this.join(true); }
 
   async enableTalking() {
+    this.recordTalk('enable-talking-start');
     if (!this.joined || !this.activePresence) throw new Error('Join the radio first.');
     const uid = this.user.uid;
     const session = this.session;
     const seat = this.seat;
     let claimed = false;
+    let phase = 'microphone';
+    const started = performance.now();
     try {
       await this.audio.enableMicrophone();
+      this.recordTalk('enable-talking-microphone-ready', undefined, { session });
       if (this.destroyed || !this.joined || !this.activePresence || this.session !== session || this.user?.uid !== uid) return;
       if (this.speakingPlace !== undefined) return;
+      phase = 'stale-cleanup';
       await this.reclaimStale();
       if (this.destroyed || !this.joined || !this.activePresence || this.session !== session) return;
       for (let index = 0; index < 3; index++) {
+        phase = 'speaker-claim';
+        this.recordTalk('speaker-claim-start', undefined, { session, attempt: index + 1 });
         const result = await this.root.child(`speakers/${index}`).transaction(current => this.activePresence && this.session === session && current === null ? { uid, seat } : undefined, undefined, false);
+        this.recordTalk(result.committed ? 'speaker-claim-committed' : 'speaker-claim-skipped', undefined, { session, attempt: index + 1 });
         if (result.committed) {
           // Include the new role in normal-exit cleanup; abrupt loss uses grace recovery.
           const cleanup = this.releasePatch(seat, session, String(index));
           if (session !== this.session || !this.joined) {
+            phase = 'late-cleanup';
             await this.root.update(cleanup).catch(() => {}); return;
           }
           claimed = true; this.cleanup = cleanup;
+          phase = 'disconnect-hook';
           await this.armCleanup(); return;
         }
       }
+      phase = 'speaker-capacity';
       throw new Error('All 3 speaking places are taken.');
-    } catch (error) { if (session === this.session) { if (claimed) this.stopSession(); else this.audio.disableMicrophone(); } throw error; }
+    } catch (error) {
+      const name = (error as Error)?.name;
+      this.recordTalk('enable-talking-rejected', undefined, { session, kind: phase,
+        reason: this.permissionDenied(error) ? 'permission-denied' : name === 'NotAllowedError' ? 'microphone-permission-denied' : name === 'NotFoundError' ? 'no-microphone' : 'other',
+        elapsedMs: Math.round(performance.now() - started) });
+      if (session === this.session) { if (claimed) this.stopSession(); else this.audio.disableMicrophone(); }
+      throw error;
+    }
+  }
+
+  captureDiagnostics() {
+    this.recordTalk('diagnostics-capture', undefined, {
+      kind: !this.joined ? 'not-joined' : this.speakingPlace === undefined ? 'joined-listener' : 'joined-speaker',
+      connection: this.connected ? 'connected' : 'disconnected',
+      microphoneReady: this.audio.canTransmit, errorPresent: !!this.error
+    });
+    return this.audio.diagnostics.snapshot();
   }
 
   exit() { this.stopSession(); this.changed.next(); }
