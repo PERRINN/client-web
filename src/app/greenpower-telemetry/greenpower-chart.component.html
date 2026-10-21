@@ -2,8 +2,8 @@
   <h2>{{ heading || channel.label }}{{ channel.unit ? ' · ' + channel.unit : '' }}</h2>
   @if (comparison) {
     <div class="current-legend comparison-legend" [attr.aria-label]="(heading || channel.label) + ' chart legend'">
-      <span class="raw-key">{{ channel.label }}<span class="legend-value">{{ cursor === undefined ? channel.value + ' ' + channel.unit : cursorLabel }}</span></span>
-      <span class="comparison-key">{{ comparison.label }}<span class="legend-value">{{ cursor === undefined ? comparison.value + ' ' + comparison.unit : comparisonLabel }}</span></span>
+      <span class="raw-key">{{ channel.label }}<span class="legend-value">{{ cursor === undefined && !live ? channel.value + ' ' + channel.unit : cursorLabel }}</span></span>
+      <span class="comparison-key">{{ comparison.label }}<span class="legend-value">{{ cursor === undefined && !live ? comparison.value + ' ' + comparison.unit : comparisonLabel }}</span></span>
     </div>
   }
   @if (limit !== undefined) {
@@ -21,7 +21,7 @@
       }
     </div>
   } @else {
-    <div class="readout"><span>{{ cursorLap !== undefined ? 'Lap ' + cursorLap + ' · ' : '' }}{{ reading ? time(reading!.time) : 'Cursor —' }}</span><span>{{ cursor === undefined ? '—' : cursorLabel }}</span></div>
+    <div class="readout"><span>{{ cursorLap !== undefined ? 'Lap ' + cursorLap + ' · ' : '' }}{{ reading ? time(reading!.time) : 'Cursor —' }}</span><span>{{ cursorLabel }}</span></div>
   }
   <div class="plot">
     <div class="scale">

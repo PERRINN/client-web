@@ -306,3 +306,33 @@ test('RPM-only comparison retains keyboard cursor and never labels derived speed
   assert.equal(component.reading, undefined);
   assert.match(component.comparisonLabel, /mph/);
 });
+
+test('live readers follow actual latest visible samples and resume after clearing a sticky cursor', () => {
+  const {component:c} = fixture();
+  c.live = true; c.end = 1200;
+  c.comparison = {...c.channel, points:[{time:0,value:2},{time:900,value:4}]};
+  c.ngOnChanges({channel:{}});
+  assert.equal(c.reading, c.channel.points[1]);
+  assert.equal(c.comparisonReading, c.comparison.points[1]);
+  assert.match(c.cursorLabel, /5.* A/);
+  assert.equal(c.cursorPosition, 1000 / 1200 * 800);
+  assert.deepEqual(c.cursorChange.values, [], 'following never makes the cursor sticky');
+  c.cursor = 0;
+  c.channel = {...c.channel, points:[...c.channel.points,{time:1200,value:8}]};
+  c.ngOnChanges({channel:{}});
+  assert.equal(c.reading.time, 0, 'new arrivals preserve sticky selection');
+  c.key({key:'Escape'}); c.cursor = c.cursorChange.values.at(-1);
+  assert.equal(c.reading.time, 1200);
+  assert.match(c.cursorLabel, /8.* A/);
+  c.end = 950;
+  assert.equal(c.reading.time, 0, 'zoom uses the latest visible sample');
+  assert.equal(c.comparisonReading.time, 900);
+  c.start = 100;
+  assert.equal(c.reading, undefined, 'empty visible channels stay blank');
+  c.live = false;
+  assert.equal(c.comparisonReading, undefined, 'history keeps its existing cursor behavior');
+  c.channel = {...c.channel, points:[]}; c.live = true; c.end = 1200;
+  assert.equal(c.reading, undefined);
+  assert.equal(c.cursorPosition, (900 - 100) / 1100 * 800, 'comparison-only charts follow live data');
+  c.ngOnDestroy();
+});

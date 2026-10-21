@@ -110,6 +110,11 @@ try {
     const expectBounds=async(start,end)=>{const actual=await page.evaluate(()=>window.dayHarness.bounds());assert.ok(Math.abs(actual.start-start)<.01);assert.equal(actual.end,end);assert.equal(actual.cursor,undefined);};
     const rect=await plot.boundingBox();
     const geometry=await page.locator('app-greenpower-chart').first().boundingBox();
+    const reader=page.locator('app-greenpower-chart .readout').first();
+    const initialReading=await reader.innerText();
+    assert.ok(!initialReading.includes('Cursor —') && !initialReading.endsWith('—'), 'live reader starts at the latest sample');
+    assert.equal(await plot.locator('.cursor-point').count(),1);
+
     await page.mouse.move(rect.x+rect.width*.4,rect.y+rect.height/2);
     await page.mouse.down();await page.mouse.move(rect.x+rect.width,rect.y+rect.height/2);
     await page.evaluate(()=>window.dayHarness.append(1200));
@@ -118,6 +123,8 @@ try {
     const trace=plot.locator('.trace').first(),before=await trace.getAttribute('d');
     await page.evaluate(()=>window.dayHarness.append(1500));
     await expectBounds(400,1500);
+    assert.notEqual(await reader.innerText(),initialReading,'reader follows live arrivals');
+
     assert.notEqual(await trace.getAttribute('d'),before,'live arrival updates the zoomed trace');
     await page.screenshot({path:output+'/live-zoom-'+width+'.png',fullPage:true});
     assert.deepEqual(await page.locator('app-greenpower-chart').first().boundingBox(),geometry,'zoom and live arrivals preserve chart geometry');
@@ -130,6 +137,17 @@ try {
     await expectBounds(0,1800);
     await page.evaluate(()=>window.dayHarness.append(2000));
     await expectBounds(0,2000);
+    await page.mouse.move(rect.x+rect.width*.5,rect.y+rect.height/2);
+    await page.mouse.down(); await page.waitForTimeout(350); await page.mouse.up();
+    const stickyReading=await reader.innerText();
+    await page.evaluate(()=>window.dayHarness.append(2500));
+    assert.equal(await reader.innerText(),stickyReading,'sticky reader survives live arrival');
+    await plot.focus(); await page.keyboard.press('Escape');
+    await page.waitForFunction(()=>window.dayHarness.bounds().cursor === undefined);
+    await page.waitForFunction(()=>document.querySelector('app-greenpower-chart .readout').textContent.includes('30'));
+    assert.notEqual(await reader.innerText(),stickyReading,'Escape resumes latest live reading');
+    assert.deepEqual(await page.locator('app-greenpower-chart').first().boundingBox(),geometry,'reader updates preserve chart geometry');
+
     await page.close();
   }
   for (const width of [1440, 390, 320]) {

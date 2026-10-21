@@ -40,7 +40,8 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
       const lap = point && this.laps[pointIndex(this.laps, point.time) - 1];
       return lap?.end === point?.time ? lap?.lap : undefined;
     }
-    return this.cursor === undefined ? undefined : lapAt(this.laps, this.cursor);
+    const time = this.cursor ?? this.reading?.time ?? this.comparisonReading?.time;
+    return time === undefined ? undefined : lapAt(this.laps, time);
   }
   comparisonY(value: number) { return chartY(value, this.model.axis); }
   formatAxis = formatAxisValue;
@@ -81,8 +82,14 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   }
   // The SVG stretches horizontally; compensate to keep the marker circular in CSS pixels.
   get markerRadiusX() { return 4 * 800 / Math.max(1, this.width); }
-  get reading() { return this.cursor === undefined ? undefined : channelReading(this.channel, this.cursor, this.start, this.end); }
-  get comparisonReading() { return this.cursor === undefined || !this.comparison ? undefined : nearestPoint(this.comparison.points, this.cursor, this.start, this.end); }
+  get reading() {
+    if (this.cursor !== undefined) return channelReading(this.channel, this.cursor, this.start, this.end);
+    return this.live ? nearestPoint(this.channel.points, this.end, this.start, this.end) : undefined;
+  }
+  get comparisonReading() {
+    if (!this.comparison || (this.cursor === undefined && !this.live)) return undefined;
+    return nearestPoint(this.comparison.points, this.cursor ?? this.end, this.start, this.end);
+  }
   get comparisonLabel() {
     const point = this.comparisonReading;
     return point ? formatTelemetryValue(point.value, this.model.axis.min, this.model.axis.max) + ' ' + this.comparison!.unit : '—';
