@@ -10,6 +10,26 @@ export interface RadioDiagnosticDetails {
   ice?: string;
   gathering?: string;
   signaling?: string;
+  attempt?: number;
+  elapsedMs?: number;
+  serverOffsetMs?: number;
+  presenceAgeMs?: number;
+  seatOwned?: boolean;
+  speakerReserved?: boolean;
+  sessionMatches?: boolean;
+  presenceOnline?: boolean;
+  floorAvailable?: boolean;
+  floorOwned?: boolean;
+  floorSessionMatches?: boolean;
+  observedServerNow?: number;
+  requestedStartAt?: number;
+  requestedExpiresAt?: number;
+}
+
+export function isRadioPermissionDenied(error: unknown) {
+  const { code, message, name } = (error || {}) as { code?: unknown; message?: unknown; name?: unknown };
+  if (name === 'NotAllowedError') return false;
+  return [code, message].some(value => typeof value === 'string' && /permission[\s_/-]*denied/i.test(value));
 }
 
 /** Local, bounded metadata only: never include SDP, candidates, names or account IDs. */

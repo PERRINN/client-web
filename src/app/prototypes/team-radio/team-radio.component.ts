@@ -13,6 +13,7 @@ import { acceptsTalkKey } from './radioState';
 export class TeamRadioComponent implements OnDestroy {
   radio: RadioRoomService;
   busy = false;
+  diagnosticsCopyLabel = 'Copy details';
   private pointer?: number;
   private destroyed = false;
   private changes: Subscription;
@@ -33,6 +34,14 @@ export class TeamRadioComponent implements OnDestroy {
     this.busy = true; this.radio.error = '';
     try { await action(); } catch (error) { this.radio.showError(error); }
     finally { if (!this.destroyed) { this.busy = false; this.changeDetector.markForCheck(); } }
+  }
+  async copyDiagnostics() {
+    try {
+      const trace = { version: 1, capturedAt: new Date().toISOString(), events: this.radio.audio.diagnostics.snapshot() };
+      await navigator.clipboard.writeText(JSON.stringify(trace, null, 2));
+      this.diagnosticsCopyLabel = 'Copied';
+    } catch { this.diagnosticsCopyLabel = 'Copy failed'; }
+    if (!this.destroyed) this.changeDetector.markForCheck();
   }
   pointerDown(event: PointerEvent) {
     if (event.button !== 0 || this.busy) return;

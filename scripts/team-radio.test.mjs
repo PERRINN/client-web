@@ -23,7 +23,7 @@ const { RadioRoomService } = load('../src/app/prototypes/team-radio/radioRoom.se
   '@angular/core': core,
   rxjs: { firstValueFrom, Subject },
   'firebase/compat/app': { default: { database: { ServerValue: { TIMESTAMP: { '.sv': 'timestamp' } } } } },
-  'firebase/compat/database': {}, './radioState': state
+  'firebase/compat/database': {}, './radioState': state, './radioDiagnostics': diagnostics
 });
 const now = Date.now();
 function room() {
@@ -81,6 +81,7 @@ function service(data = room()) {
     }
   };
   const audio = { onSignal() {}, onChange() {}, onError() {}, onEnded() {}, canTransmit: true,
+    diagnostics: new diagnostics.RadioDiagnostics(),
     stop() {}, close() {}, reconcile() {}, setFloor() {}, transmit() { transmitted++; } };
   const radio = new RadioRoomService({ authState }, { database: { ref: () => ref } }, audio, { run: fn => fn() });
   radio.room = data; radio.user = { uid: 'b' }; radio.seat = '1'; radio.session = 'bSession';
@@ -114,12 +115,121 @@ test('releasing while acquisition is pending never beeps or transmits, and clear
     release(); await pending;
     assert.equal(fixture.transmitted, 0);
     assert.equal(fixture.storedFloor, null);
+    assert.equal(fixture.radio.error, '', 'a canceled press is not channel contention');
   } finally { fixture.radio.ngOnDestroy(); }
 });
 test('cleanup of an old transmission cannot erase a newer token', async () => {
   const fixture = service();
   try { await fixture.radio.clearFloor('old-token'); assert.equal(fixture.storedFloor.token, 'one'); }
   finally { fixture.radio.ngOnDestroy(); }
+});
+
+test('permission errors normalize SDK transaction messages and coded errors without masking microphone errors', () => {
+  const f = service();
+  try {
+    for (const error of [new Error('permission_denied'), { code: 'PERMISSION_DENIED' }, { code: 'database/permission-denied' }]) {
+      assert.equal(diagnostics.isRadioPermissionDenied(error), true);
+      f.radio.showError(error); assert.equal(f.radio.error, 'Radio request denied. Try Reconnect.');
+    }
+    const microphone = Object.assign(new Error('Permission denied'), { name: 'NotAllowedError' });
+    assert.equal(diagnostics.isRadioPermissionDenied(microphone), false);
+    f.radio.showError(microphone); assert.match(f.radio.error, /^Microphone permission denied/);
+  } finally { f.radio.ngOnDestroy(); }
+});
+
+test('a rejected Talk acquisition records sanitized request timing and session checks with no transmission', async () => {
+  const f = service(); f.setFloor(null); let requests = 0;
+  f.ref.transaction = async update => {
+    requests++;
+    const candidate = update(null);
+    if (candidate) throw new Error('permission_denied');
+    return { committed: false };
+  };
+  try {
+    await f.radio.talk();
+    assert.equal(f.transmitted, 0); assert.equal(requests, 2, 'existing acquisition and token cleanup only');
+    assert.equal(f.radio.error, 'Talk was rejected. Reconnect and enable talking again.');
+    const events = f.radio.audio.diagnostics.snapshot();
+    const attempt = events.find(event => event.event === 'talk-acquire-attempt');
+    const rejected = events.find(event => event.event === 'talk-acquire-rejected');
+    assert.equal(attempt.requestedExpiresAt - attempt.requestedStartAt, 30000);
+    assert.equal(rejected.reason, 'permission-denied'); assert.equal(rejected.attempt, 1);
+    assert.equal(rejected.seatOwned, true); assert.equal(rejected.speakerReserved, true);
+    assert.equal(rejected.sessionMatches, true); assert.equal(rejected.presenceOnline, true);
+    assert.equal(rejected.floorAvailable, true); assert.equal(rejected.serverOffsetMs, 0);
+    assert.ok(rejected.elapsedMs >= 0); assert.ok(rejected.presenceAgeMs >= 0);
+    for (const event of events) for (const forbidden of ['uid', 'name', 'token', 'sdp', 'error', 'message']) assert.equal(forbidden in event, false);
+  } finally { f.radio.ngOnDestroy(); }
+});
+
+test('release rejection is distinct from acquisition rejection and outgoing audio stops immediately', async () => {
+  const f = service(); f.setFloor(null); let stopped = 0;
+  f.radio.audio.stop = () => stopped++;
+  try {
+    await f.radio.talk();
+    f.ref.transaction = async update => { assert.equal(update(f.storedFloor), null); throw new Error('permission_denied'); };
+    const releasing = f.radio.releaseTalk();
+    assert.equal(stopped, 1); assert.equal(f.radio.speakingToken, undefined);
+    await releasing;
+    assert.equal(f.radio.error, 'Couldn’t release Talk. Try Reconnect.');
+    const events = f.radio.audio.diagnostics.snapshot();
+    assert.ok(events.some(event => event.event === 'talk-acquire-committed'));
+    assert.ok(events.some(event => event.event === 'talk-release-rejected' && event.reason === 'permission-denied'));
+    assert.equal(events.some(event => event.event === 'talk-acquire-rejected'), false);
+  } finally { f.radio.ngOnDestroy(); }
+});
+
+test('diagnostic snapshots expose stale heartbeat and replaced session observations without pretending server confirmation', () => {
+  const f = service();
+  try {
+    f.radio.room.presence[1] = { session: 'another-device', online: false, at: Date.now() - 21000 };
+    f.radio.recordTalk('talk-test');
+    const event = f.radio.audio.diagnostics.snapshot().at(-1);
+    assert.equal(event.sessionMatches, false); assert.equal(event.presenceOnline, false);
+    assert.ok(event.presenceAgeMs >= 21000);
+  } finally { f.radio.ngOnDestroy(); }
+});
+
+test('a late Talk rejection cannot overwrite a newer session error', async () => {
+  const f = service(); f.setFloor(null); let reject;
+  f.ref.transaction = update => { update(null); return new Promise((_, fail) => reject = fail); };
+  try {
+    const pending = f.radio.talk();
+    f.radio.session = 'replacement'; f.radio.error = 'Radio moved to another device.';
+    // Cleanup must settle without replacing the newer error.
+    f.ref.transaction = async () => ({ committed: false });
+    reject(new Error('permission_denied')); await pending;
+    assert.equal(f.radio.error, 'Radio moved to another device.');
+    assert.equal(f.transmitted, 0);
+  } finally { f.radio.ngOnDestroy(); }
+});
+
+test('Copy diagnostics exports the current bounded trace and preserves the original error when clipboard fails', async () => {
+  const { TeamRadioComponent } = load('../src/app/prototypes/team-radio/team-radio.component.ts', {
+    '@angular/core': { Component: () => target => target, HostListener: () => () => {} },
+    './radioAvatars.service': { RadioAvatarsService: class {} }, './radioState': state
+  });
+  const f = service(); const original = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  let copied; let failed = false;
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { clipboard: {
+    writeText: async text => { if (failed) throw new Error('Blocked'); copied = text; }
+  } } });
+  const component = new TeamRadioComponent({ enterPage: () => f.radio, leavePage() {} }, { markForCheck() {} }, { sync() {} });
+  try {
+    f.radio.error = 'Talk was rejected. Reconnect and enable talking again.';
+    f.radio.recordTalk('talk-acquire-rejected', undefined, { reason: 'permission-denied' });
+    await component.copyDiagnostics();
+    const exported = JSON.parse(copied);
+    assert.equal(exported.version, 1); assert.ok(Number.isFinite(Date.parse(exported.capturedAt)));
+    assert.deepEqual(exported.events, JSON.parse(JSON.stringify(f.radio.audio.diagnostics.snapshot())));
+    assert.equal(component.diagnosticsCopyLabel, 'Copied');
+    failed = true; await component.copyDiagnostics();
+    assert.equal(component.diagnosticsCopyLabel, 'Copy failed');
+    assert.equal(f.radio.error, 'Talk was rejected. Reconnect and enable talking again.');
+  } finally {
+    component.ngOnDestroy(); f.radio.ngOnDestroy();
+    if (original) Object.defineProperty(globalThis, 'navigator', original); else delete globalThis.navigator;
+  }
 });
 
 function fakeContext() {

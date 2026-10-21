@@ -1,0 +1,80 @@
+{
+  "date": "2026-10-21T16:38:16.064620+00:00",
+  "issue": "https://github.com/PERRINN/client-web/issues/92",
+  "scope": "Talk rejection diagnostics and useful error handling; underlying denial not yet diagnosed",
+  "baseCommit": "48c9b1c",
+  "changes": [
+    "Distinguish acquisition, release, cleanup, outgoing-media and heartbeat failures using local metadata.",
+    "Copy details exports version 1 of the current 200-event ring buffer only on an explicit clipboard action.",
+    "Normalize uncoded permission_denied transaction errors while preserving microphone errors.",
+    "Canceled presses do not report Channel busy; old transaction and heartbeat failures do not overwrite a newer session error."
+  ],
+  "dataAndSecurity": {
+    "rulesChanged": false,
+    "persistedShapesChanged": false,
+    "functionsChanged": false,
+    "newDatabaseQueries": 0,
+    "newListeners": 0,
+    "newAutomaticRetries": 0,
+    "automaticUploads": 0,
+    "excludedFromTrace": [
+      "account IDs",
+      "names",
+      "tokens",
+      "SDP",
+      "candidate IPs",
+      "audio",
+      "credentials",
+      "raw errors"
+    ]
+  },
+  "validation": {
+    "radioTests": {
+      "passed": 70,
+      "description": "Isolated diagnostic patch, including acquisition/release denials, metadata sanitization, microphone error discrimination, stale-session errors and clipboard success/failure."
+    },
+    "build": "pass",
+    "lint": {
+      "errors": 0,
+      "existingWarnings": 50
+    },
+    "layout": {
+      "fixture": "Actual global/component CSS and corresponding control markup, not full authenticated app",
+      "widths": [
+        1100,
+        390,
+        320
+      ],
+      "states": [
+        "Copy details",
+        "Copied",
+        "Copy failed",
+        "control removal and reappearance"
+      ],
+      "desktopControlHeight": 76,
+      "mobileControlHeight": 68,
+      "positionChangeWithinEachWidth": 0,
+      "horizontalOverflow": false
+    },
+    "rules": "Deployed RTDB rules matched repository in the read-only investigation. Emulator not available locally: Java runtime and RTDB emulator absent.",
+    "fieldFailure": "Not reproduced on a real authenticated device; synthetic rejection tests do not identify which live server condition failed."
+  },
+  "indexes": {
+    "liveCount": 31,
+    "repositoryCount": 31,
+    "liveOnly": [],
+    "repositoryOnly": [],
+    "fieldOverridesMatch": true
+  },
+  "isolation": {
+    "reason": "Concurrent unrelated background-listening edits share the workspace.",
+    "method": "Build base commit plus seven diagnostic-only source/document/test changes in a temporary checkout; no branch or shared-worktree reset.",
+    "buildPreparation": "Reuse existing ignored public browser environment files, normalize historical prototype directory casing only in the temporary copy and fetch existing Google font stylesheet."
+  },
+  "artifact": {
+    "main": "main.09373af8a0909d15.js",
+    "sha256": "c2cc6ad9858f227898ac5c1a09019357ed8da0f215ac4c793cfdc426ccd8ff06"
+  },
+  "deployment": "Hosting only, after scoped commit and push. Keep #92 open.",
+  "next": "Refresh the radio, reproduce one failed press/release, Copy details before Reconnect, and share the trace to choose a targeted fix. Cached client observations cannot establish the exact server rule failure."
+}

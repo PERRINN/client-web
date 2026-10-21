@@ -8,6 +8,7 @@ header>span,:host small,.status{font-size:14px;color:var(--color-text-muted)}
 .controls,.participants{padding:16px;background:var(--color-surface);border-radius:var(--radius-md)}
 .controls{display:grid;gap:12px}.actions{flex-wrap:wrap}
 .actions.admission{min-height:44px}.admission>[role=status]{font-size:15px}
+.copy-diagnostics{min-width:118px;padding-inline:12px}
 button,.link-button{margin:0;transition:none;min-height:44px;padding:9px 14px;border:0;border-radius:var(--radius-sm);background:var(--color-raised);color:var(--color-text);cursor:pointer;font-weight:550;text-decoration:none}
 button:hover{background:var(--color-selected)}button:disabled{opacity:.5;cursor:default}
 .primary{background:var(--color-accent);color:var(--color-accent-ink)}.primary:hover{background:var(--color-accent)}

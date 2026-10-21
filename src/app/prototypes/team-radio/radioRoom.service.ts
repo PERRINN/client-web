@@ -7,7 +7,8 @@ import firebase from 'firebase/compat/app';
 import 'firebase/compat/database';
 import { firstValueFrom, Subject, Subscription } from 'rxjs';
 import { RadioAudioService, RadioSignal } from './radioAudio.service';
-import { activeFloor, connectionFor, RadioRoom, RECONNECT_GRACE_MS, ROOM_PATH, seatFor, speakerFor } from './radioState';
+import { isRadioPermissionDenied, RadioDiagnosticDetails } from './radioDiagnostics';
+import { activeFloor, connectionFor, RadioFloor, RadioRoom, RECONNECT_GRACE_MS, ROOM_PATH, seatFor, speakerFor } from './radioState';
 
 export interface RadioReturnSession { uid: string; seat: string; session: string; until: number }
 
@@ -213,21 +214,47 @@ export class RadioRoomService implements OnDestroy {
     this.error = '';
     if (this.speakingPlace === undefined || !this.audioReady) { this.error = 'Audio is not ready.'; return; }
     const token = crypto.randomUUID();
+    const started = performance.now();
+    const session = this.session;
+    let attempt = 0;
+    let candidate: RadioFloor | undefined;
+    let phase = 'acquire';
+    this.recordTalk('talk-acquire-start');
     try {
       const result = await this.root.child('floor').transaction(current => {
         if (press !== this.press || !this.held || !this.audioReady) return;
         const room = { ...this.room, floor: current };
         if (activeFloor(room, Date.now() + this.offset)) return;
         const now = Date.now() + this.offset;
-        return { uid: this.user.uid, seat: this.seat, session: this.session, token, startedAt: now, expiresAt: now + 30000 };
+        candidate = { uid: this.user.uid, seat: this.seat, session: this.session, token, startedAt: now, expiresAt: now + 30000 };
+        this.recordTalk('talk-acquire-attempt', current, { attempt: ++attempt,
+          requestedStartAt: candidate.startedAt, requestedExpiresAt: candidate.expiresAt });
+        return candidate;
       }, undefined, false);
-      if (!result.committed) { this.error = 'Channel busy'; return; }
+      if (!result.committed) {
+        this.recordTalk('talk-acquire-aborted', undefined, { attempt, elapsedMs: Math.round(performance.now() - started) });
+        if (press === this.press && this.held && session === this.session) this.error = 'Channel busy';
+        return;
+      }
+      this.recordTalk('talk-acquire-committed', result.snapshot.val(), { attempt, elapsedMs: Math.round(performance.now() - started) });
+      phase = 'late-release';
       if (press !== this.press || !this.held || !this.audioReady) { await this.clearFloor(token); return; }
       const floor = result.snapshot.val();
       this.speakingToken = token;
+      phase = 'transmit';
       this.audio.transmit(floor, floor.expiresAt - Date.now() - this.offset);
       this.changed.next();
-    } catch (error) { await this.clearFloor(token).catch(() => {}); this.showError(error); }
+    } catch (error) {
+      this.recordTalk(`talk-${phase}-rejected`, undefined, { session, attempt, elapsedMs: Math.round(performance.now() - started),
+        requestedStartAt: candidate?.startedAt, requestedExpiresAt: candidate?.expiresAt,
+        reason: this.permissionDenied(error) ? 'permission-denied' : 'other' });
+      await this.clearFloor(token).catch(() => {});
+      if (session !== this.session || this.destroyed) return;
+      if (this.permissionDenied(error)) this.error = phase === 'acquire'
+        ? 'Talk was rejected. Reconnect and enable talking again.' : 'Couldn’t release Talk. Try Reconnect.';
+      else this.showError(error);
+      this.changed.next();
+    }
   }
 
   async releaseTalk() {
@@ -235,6 +262,7 @@ export class RadioRoomService implements OnDestroy {
     this.audio.stop();
     const token = this.speakingToken;
     const uid = this.user?.uid;
+    const session = this.session;
     this.speakingToken = undefined;
     this.changed.next();
     if (!token || this.releasing) return;
@@ -242,8 +270,14 @@ export class RadioRoomService implements OnDestroy {
     try {
       // Let the buffered final syllable drain before receivers close their audio gates.
       await new Promise(resolve => setTimeout(resolve, 200));
-      if (this.connected && this.user?.uid === uid) await this.clearFloor(token);
-    } catch (error) { this.showError(error); }
+      if (this.connected && this.user?.uid === uid && this.session === session) await this.clearFloor(token);
+    } catch (error) {
+      if (session === this.session && !this.destroyed) {
+        if (this.permissionDenied(error)) this.error = 'Couldn’t release Talk. Try Reconnect.';
+        else this.showError(error);
+        this.changed.next();
+      }
+    }
     finally { this.releasing = false; }
   }
 
@@ -256,8 +290,7 @@ export class RadioRoomService implements OnDestroy {
   }
   isSpeaker(uid: string) { return speakerFor(this.room, uid) !== undefined; }
   showError(error: unknown) {
-    const code = (error as { code?: string })?.code || '';
-    if (code.includes('permission') || code.includes('PERMISSION')) this.error = 'Radio access denied.';
+    if (this.permissionDenied(error)) this.error = 'Radio request denied. Try Reconnect.';
     else if ((error as Error)?.name === 'NotAllowedError') this.error = 'Microphone permission denied. Allow it in your browser and try again.';
     else if ((error as Error)?.name === 'NotFoundError') this.error = 'No microphone found.';
     else this.error = error instanceof Error ? error.message : 'Radio connection failed. Try Reconnect.';
@@ -283,7 +316,39 @@ export class RadioRoomService implements OnDestroy {
     return (user.displayName || `Contributor ${user.uid.slice(0, 6)}`).slice(0, 80);
   }
   private async clearFloor(token: string) {
-    await this.root.child('floor').transaction(current => current?.token === token ? null : undefined, undefined, false);
+    const started = performance.now();
+    let attempt = 0;
+    this.recordTalk('talk-release-start');
+    try {
+      const result = await this.root.child('floor').transaction(current => {
+        if (current?.token !== token) return;
+        this.recordTalk('talk-release-attempt', current, { attempt: ++attempt });
+        return null;
+      }, undefined, false);
+      this.recordTalk(result.committed ? 'talk-release-committed' : 'talk-release-skipped', undefined,
+        { attempt, elapsedMs: Math.round(performance.now() - started) });
+    } catch (error) {
+      this.recordTalk('talk-release-rejected', undefined, { attempt, elapsedMs: Math.round(performance.now() - started),
+        reason: this.permissionDenied(error) ? 'permission-denied' : 'other' });
+      throw error;
+    }
+  }
+  private recordTalk(event: string, floor: RadioFloor = this.room.floor, details: RadioDiagnosticDetails = {}) {
+    const now = Date.now() + this.offset;
+    const session = details.session || this.session;
+    const presence = this.room.presence?.[this.seat];
+    const owner = floor && this.room.presence?.[floor.seat];
+    this.audio.diagnostics?.record(event, {
+      seat: this.seat, session, observedServerNow: now, serverOffsetMs: this.offset,
+      presenceAgeMs: presence ? now - presence.at : undefined,
+      seatOwned: !!this.user && this.room.seats?.[this.seat]?.uid === this.user.uid,
+      speakerReserved: this.speakingPlace !== undefined,
+      sessionMatches: presence?.session === session, presenceOnline: presence?.online === true,
+      floorAvailable: !floor || floor.expiresAt <= now || owner?.session !== floor.session || !owner?.online || owner.at <= now - 20000,
+      floorOwned: !!floor && floor.uid === this.user?.uid,
+      floorSessionMatches: !!floor && owner?.session === floor.session,
+      ...details
+    });
   }
   private releasePatch(seat: string, session: string, speakingPlace?: string): Record<string, unknown> {
     const patch: Record<string, unknown> = {
@@ -306,7 +371,7 @@ export class RadioRoomService implements OnDestroy {
     if (generation === this.generation) await presence.onDisconnect().set(offline);
   }
 
-  private permissionDenied(error: unknown) { return /permission.denied/i.test((error as { code?: string })?.code || ''); }
+  private permissionDenied(error: unknown) { return isRadioPermissionDenied(error); }
 
   private async reclaimStale() {
     if (!this.user || !this.connected || this.reclaiming || this.destroyed) return;
@@ -339,7 +404,11 @@ export class RadioRoomService implements OnDestroy {
     this.lastPresence = key;
     // A superseded tab must never revive itself through a late heartbeat.
     void this.presenceRef.transaction(current => current?.session === data.session ? data : undefined, undefined, false)
-      .catch(error => this.zone.run(() => this.showError(error)));
+      .catch(error => this.zone.run(() => {
+        this.audio.diagnostics?.record('presence-refresh-rejected', { seat: this.seat, session: data.session,
+          reason: this.permissionDenied(error) ? 'permission-denied' : 'other' });
+        if (data.session === this.session && !this.destroyed) { this.showError(error); this.changed.next(); }
+      }));
   }
   private connectionChanged(connected: boolean) {
     this.audio.diagnostics?.record('database-connection', { connection: connected ? 'connected' : 'disconnected', seat: this.seat, session: this.session });

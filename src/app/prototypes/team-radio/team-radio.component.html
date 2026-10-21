@@ -23,6 +23,9 @@
           }
           @if (radio.reconnecting) { <span role="status">Reconnecting</span> }
           @else if (!radio.connected) { <span role="status">Offline</span> }
+          @if (radio.error && !radio.reservedElsewhere && !radio.reconnecting) {
+            <button class="copy-diagnostics" (click)="copyDiagnostics()">{{ diagnosticsCopyLabel }}</button>
+          }
         </div>
       }
       @if (radio.joined) {
