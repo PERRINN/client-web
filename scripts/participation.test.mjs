@@ -155,7 +155,7 @@ test('active UI has no membership status, threshold controls or funding gate', (
   }
 });
 
-for (const pageCount of [1, 3]) test(`daily refresh reads ${pageCount} Authentication page(s) and publishes no membership data`, async () => {
+for (const pageCount of [1, 3]) for (const costText of ['Cloud cost unavailable.', 'Cloud cost: £2.35 on 2026-10-18 UTC · provisional, after credits.']) test(`daily refresh reads ${pageCount} Authentication page(s) and retains accounting with ${costText}`, async () => {
   const calls = [], queries = [], verified = [], messages = [], errors = [];
   const admin = {
     initializeApp: () => {},
@@ -177,6 +177,8 @@ for (const pageCount of [1, 3]) test(`daily refresh reads ${pageCount} Authentic
   const backend = load('../functions/scheduledDailyMembership.f.js', {
     'firebase-admin': admin,
     'firebase-functions/v2/scheduler': { onSchedule: (_, handler) => handler },
+    'firebase-functions/params': { defineString: () => ({ value: () => '' }) },
+    './utils/billingCosts': { dailyCloudCostText: async () => costText },
     './utils/verifyMessage': { verifyMessage: async (id, data) => { verified.push(id); return { user: data.user, wallet: { balance: 10 }, membership: { isMember: true } }; } },
     './utils/createMessage': { createMessageAFS: async message => messages.push(message) }
   }, { console: { log: () => {}, error: (...args) => errors.push(args) } });
@@ -191,6 +193,7 @@ for (const pageCount of [1, 3]) test(`daily refresh reads ${pageCount} Authentic
   assert.equal(messages[0].statistics.userCount, pageCount);
   assert.equal(messages[0].statistics.wallet.balance, pageCount * 10);
   assert.equal(messages[0].statistics.membersCount, undefined);
+  assert.equal(messages[0].text, `${pageCount} people. ${pageCount * 10} total PRN balance.\n${costText}`);
   assert.doesNotMatch(messages[0].text, /member|threshold|invested/i);
 });
 

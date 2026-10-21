@@ -1,0 +1,216 @@
+{
+  "checkedAt": "2026-10-21T08:02:33.573Z",
+  "table": "perrinn-d5fc1.billing_export.gcp_billing_export_v1_006A37_57ED1D_5E4A00",
+  "location": "EU",
+  "numRows": "18269",
+  "numBytes": "10796634",
+  "timePartitioning": {
+    "type": "DAY"
+  },
+  "runtime": "44958643568-compute@developer.gserviceaccount.com",
+  "tableFields": [
+    {
+      "name": "usage_start_time",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "project",
+      "type": "RECORD",
+      "mode": "NULLABLE",
+      "fields": [
+        {
+          "name": "id",
+          "type": "STRING",
+          "mode": "NULLABLE"
+        },
+        {
+          "name": "number",
+          "type": "STRING",
+          "mode": "NULLABLE"
+        },
+        {
+          "name": "name",
+          "type": "STRING",
+          "mode": "NULLABLE"
+        },
+        {
+          "name": "labels",
+          "type": "RECORD",
+          "mode": "REPEATED",
+          "fields": [
+            {
+              "name": "key",
+              "type": "STRING",
+              "mode": "NULLABLE"
+            },
+            {
+              "name": "value",
+              "type": "STRING",
+              "mode": "NULLABLE"
+            }
+          ]
+        },
+        {
+          "name": "ancestry_numbers",
+          "type": "STRING",
+          "mode": "NULLABLE"
+        },
+        {
+          "name": "ancestors",
+          "type": "RECORD",
+          "mode": "REPEATED",
+          "fields": [
+            {
+              "name": "resource_name",
+              "type": "STRING",
+              "mode": "NULLABLE"
+            },
+            {
+              "name": "display_name",
+              "type": "STRING",
+              "mode": "NULLABLE"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cost",
+      "type": "FLOAT",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "currency",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "credits",
+      "type": "RECORD",
+      "mode": "REPEATED",
+      "fields": [
+        {
+          "name": "name",
+          "type": "STRING",
+          "mode": "NULLABLE"
+        },
+        {
+          "name": "amount",
+          "type": "FLOAT",
+          "mode": "NULLABLE"
+        },
+        {
+          "name": "full_name",
+          "type": "STRING",
+          "mode": "NULLABLE"
+        },
+        {
+          "name": "id",
+          "type": "STRING",
+          "mode": "NULLABLE"
+        },
+        {
+          "name": "type",
+          "type": "STRING",
+          "mode": "NULLABLE"
+        }
+      ]
+    }
+  ],
+  "functionBefore": {
+    "updateTime": "2026-10-16T12:44:59.134265550Z",
+    "revision": "scheduleddailymembership-00062-jeg"
+  },
+  "requests": {
+    "tableListings": 1,
+    "metadataReads": 3,
+    "dryRuns": 1,
+    "liveQueries": 1
+  },
+  "firebaseDataWrites": 0,
+  "iamChanges": 0,
+  "fullDailyFunctionInvocations": 0,
+  "queryIdentity": "operator Firebase CLI account",
+  "impersonationUnavailable": {
+    "status": 403,
+    "message": "Permission 'iam.serviceAccounts.getAccessToken' denied; no IAM changes made."
+  },
+  "dryRun": {
+    "totalBytesProcessed": "683429",
+    "errors": []
+  },
+  "live": {
+    "jobComplete": true,
+    "totalBytesProcessed": "683429",
+    "totalBytesBilled": "10485760",
+    "totalRows": "0",
+    "errors": [],
+    "jobReference": {
+      "projectId": "perrinn-d5fc1",
+      "jobId": "job_sF-cn3C7E5tkQlxzmNDGMOX2JxoL",
+      "location": "EU"
+    },
+    "summaryText": "Cloud cost unavailable."
+  },
+  "query": {
+    "maximumBytesBilled": "104857600",
+    "queryParameters": [
+      {
+        "name": "project",
+        "parameterType": {
+          "type": "STRING"
+        },
+        "parameterValue": {
+          "value": "perrinn-d5fc1"
+        }
+      },
+      {
+        "name": "start",
+        "parameterType": {
+          "type": "DATE"
+        },
+        "parameterValue": {
+          "value": "2026-10-18"
+        }
+      },
+      {
+        "name": "end",
+        "parameterType": {
+          "type": "DATE"
+        },
+        "parameterValue": {
+          "value": "2026-10-20"
+        }
+      }
+    ],
+    "maxResults": 3,
+    "jobTimeoutMs": "20000"
+  },
+  "datasetAccess": [
+    {
+      "role": "WRITER",
+      "specialGroup": "projectWriters"
+    },
+    {
+      "role": "OWNER",
+      "specialGroup": "projectOwners"
+    },
+    {
+      "role": "READER",
+      "specialGroup": "projectReaders"
+    }
+  ],
+  "runtimeProjectRoles": [
+    "roles/editor",
+    "roles/eventarc.eventReceiver",
+    "roles/iam.serviceAccountTokenCreator",
+    "roles/run.invoker"
+  ],
+  "runtimeAccessValidation": "Inherited project Editor and dataset projectWriters ACL inspected; runtime identity could not be impersonated, so no runtime-authenticated query was executed.",
+  "datasetSettings": {
+    "location": "EU",
+    "defaultTableExpirationMs": null,
+    "defaultPartitionExpirationMs": null
+  }
+}

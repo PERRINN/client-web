@@ -3,6 +3,10 @@ const admin = require('firebase-admin')
 try { admin.initializeApp() } catch (e) {}
 const verifyMessageUtils = require('./utils/verifyMessage')
 const createMessageUtils = require('./utils/createMessage')
+const { defineString } = require('firebase-functions/params')
+const { dailyCloudCostText } = require('./utils/billingCosts')
+const BILLING_EXPORT_TABLE = defineString('BILLING_EXPORT_TABLE', { default: '' })
+const BILLING_EXPORT_LOCATION = defineString('BILLING_EXPORT_LOCATION', { default: '' })
 
 exports.scheduledDailyMembership = onSchedule(
   {
@@ -61,10 +65,13 @@ exports.scheduledDailyMembership = onSchedule(
       const investedAmount=((statistics.wallet||{}).balance)||0
       const investedAmountRounded=Math.round(Number(investedAmount||0)*1000)/1000
       const statisticsSummaryText=`${usersCount} people. ${investedAmountRounded} total PRN balance.`
+      const cloudCostText = await dailyCloudCostText({
+        table: BILLING_EXPORT_TABLE.value(), location: BILLING_EXPORT_LOCATION.value(),
+      })
   
       await createMessageUtils.createMessageAFS({
         user:adminUserId,
-        text:statisticsSummaryText,
+        text:`${statisticsSummaryText}\n${cloudCostText}`,
         statistics:statistics,
         chain:"Daily-updates"
       })
