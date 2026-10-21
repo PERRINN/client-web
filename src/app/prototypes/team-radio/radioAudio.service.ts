@@ -50,8 +50,8 @@ export class RadioAudioService {
   onChange: () => void = () => {};
   onError: (message: string) => void = () => {};
   onEnded: () => void = () => {};
-  get ready() { return this.context?.state === 'running' && [...this.peers.values()].every(peer => !peer.exhausted && peer.playbackReady && !peer.blocked); }
-  get needsSound() { return this.context?.state !== 'running' || [...this.peers.values()].some(peer => peer.blocked); }
+  get ready() { return this.context?.state === 'running' && [...this.peers.values()].every(peer => !peer.exhausted && peer.playbackReady && !peer.blocked && !peer.audio?.paused); }
+  get needsSound() { return this.context?.state !== 'running' || [...this.peers.values()].some(peer => peer.blocked || peer.audio?.paused); }
   get microphoneReady() { return !!this.mic?.getAudioTracks().some(track => track.readyState === 'live'); }
   get connectedCount() { return [...this.peers.values()].filter(peer => peer.pc.connectionState === 'connected').length; }
   get peerCount() { return this.peers.size; }
@@ -354,9 +354,13 @@ export class RadioAudioService {
     await this.onSignal(seat, { fromSession: this.localSession, toSession: peer.session, offerId: peer.offerId, type: description.type as 'offer' | 'answer', sdp: description.sdp });
   }
   private async play(peer: Peer) {
-    if (!peer.audio) return;
-    try { await peer.audio.play(); peer.blocked = false; peer.playbackReady = true; }
-    catch { peer.blocked = true; peer.playbackReady = false; }
+    const audio = peer.audio;
+    if (!audio) return;
+    let blocked = false;
+    try { await audio.play(); blocked = audio.paused === true; }
+    catch { blocked = true; }
+    if (peer.audio !== audio) return;
+    peer.blocked = blocked; peer.playbackReady = !blocked;
     this.onChange();
   }
   private updateGates() {

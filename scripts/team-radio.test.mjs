@@ -522,6 +522,28 @@ test('autoplay rejection is surfaced through audio readiness and can recover on 
   allowed = true; await audio.play(peer); assert.equal(audio.ready, true);
 });
 
+test('a browser pause after play resolves stays visible as disabled sound', async () => {
+  const audio = new RadioAudioService(); audio.context = fakeContext().context;
+  const peer = { audio: { paused: true, play: async () => {} } };
+  audio.peers.set('0', peer);
+  await audio.play(peer);
+  assert.equal(audio.ready, false); assert.equal(audio.needsSound, true);
+  peer.audio.play = async () => { peer.audio.paused = false; };
+  await audio.resume(); await settle();
+  assert.equal(audio.ready, true); assert.equal(audio.needsSound, false);
+  peer.audio.paused = true;
+  assert.equal(audio.ready, false); assert.equal(audio.needsSound, true, 'detect pause before its event arrives');
+});
+
+test('an old playback rejection cannot block a replacement audio element', async () => {
+  const audio = new RadioAudioService(); let reject;
+  const peer = { audio: { play: () => new Promise((_, fail) => reject = fail) } };
+  const pending = audio.play(peer);
+  peer.audio = { paused: false, play: async () => {} };
+  await audio.play(peer); reject(new Error('Old playback interrupted')); await pending;
+  assert.equal(peer.blocked, false); assert.equal(peer.playbackReady, true);
+});
+
 
 test('names reuse only a profile belonging to the real account; fallback lookup is bounded', async () => {
   const fixture = service(); const radio = fixture.radio; const calls = [];
@@ -752,7 +774,7 @@ function lifecycleFixture(ticket, overrides = {}) {
   const values = new Map(ticket ? [[returnKey, JSON.stringify(ticket)]] : []);
   globalThis.window = win; globalThis.document = doc;
   globalThis.sessionStorage = { getItem: key => values.get(key), setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
-  const calls = { scopes: 0, disposed: 0, recover: [], active: [], suspended: 0, resumed: 0, exits: 0, joins: 0 };
+  const calls = { scopes: 0, disposed: 0, recover: [], active: [], suspended: 0, pageResumed: 0, resumed: 0, exits: 0, joins: 0 };
   const radio = {
     changed: new Subject(), joined: false, connected: true, authResolved: true, loading: false,
     user: { uid: 'b' }, seat: '1', session: 'bSession', reconnecting: false, seats: [], error: '',
@@ -761,7 +783,7 @@ function lifecycleFixture(ticket, overrides = {}) {
     setPageActive: active => calls.active.push(active),
     recover: async saved => { calls.recover.push(saved); radio.joined = true; },
     exit: () => { calls.exits++; radio.joined = false; radio.changed.next(); },
-    suspendPage: () => { calls.suspended++; }, resumePage: () => { calls.resumed++; },
+    suspendPage: () => { calls.suspended++; }, resumePage: () => { calls.pageResumed++; },
     audio: { resume: async () => { calls.resumed++; } },
     ...overrides
   };
@@ -855,7 +877,7 @@ test('pagehide preserves a bounded return reference and suspends media; pageshow
     assert.equal(calls.suspended, 1); assert.equal(calls.exits, 0);
     assert.equal(JSON.parse(fixture.values.get(returnKey)).session, 'bSession');
     win.dispatchEvent(new Event('pageshow'));
-    assert.equal(calls.resumed, 1); assert.equal(calls.active.at(-1), true);
+    assert.equal(calls.pageResumed, 1); assert.equal(calls.resumed, 1); assert.equal(calls.active.at(-1), true);
   } finally { fixture.close(); }
 });
 test('away mode forbids transmission without closing listening audio', async () => {
@@ -886,6 +908,85 @@ test('returning to a visible joined radio retries blocked audio without admittin
     assert.equal(f.calls.resumed, 0);
     f.doc.hidden = false; f.doc.dispatchEvent(new Event('visibilitychange')); await settle();
     assert.equal(f.calls.resumed, 1); assert.equal(f.calls.joins, 1);
+  } finally { f.close(); }
+});
+
+function lifecycleAudioFixture() {
+  const f = lifecycleFixture();
+  const originalSet = globalThis.setTimeout; const originalClear = globalThis.clearTimeout;
+  const timers = new Map(); let id = 0;
+  globalThis.setTimeout = (fn, delay) => { timers.set(++id, { fn, delay }); return id; };
+  globalThis.clearTimeout = key => timers.delete(key);
+  f.radio.joined = true; f.radio.audio.needsSound = true;
+  return { ...f, timers, retry() {
+    for (const [key, timer] of [...timers]) { timers.delete(key); assert.equal(timer.delay, 500); timer.fn(); }
+  }, close() { f.close(); globalThis.setTimeout = originalSet; globalThis.clearTimeout = originalClear; } };
+}
+
+test('foreground events share two playback attempts and catch a late interruption without rejoining', async () => {
+  const f = lifecycleAudioFixture();
+  try {
+    f.lifecycle.enterPage();
+    f.win.dispatchEvent(new Event('focus')); f.doc.dispatchEvent(new Event('visibilitychange'));
+    f.win.dispatchEvent(new Event('pageshow'));
+    assert.equal(f.calls.resumed, 1); assert.equal(f.calls.pageResumed, 1);
+    assert.equal(f.timers.size, 1);
+    f.retry(); await settle();
+    assert.equal(f.calls.resumed, 2); assert.equal(f.calls.joins, 0);
+    assert.equal(f.timers.size, 0, 'no polling after the follow-up');
+    f.lifecycle.leavePage(); f.lifecycle.enterPage();
+    assert.equal(f.calls.resumed, 3, 'in-app return also resumes sound');
+  } finally { f.close(); }
+});
+
+test('a healthy foreground return needs no follow-up playback attempt', () => {
+  const f = lifecycleAudioFixture();
+  try {
+    f.lifecycle.enterPage(); f.radio.audio.needsSound = false; f.retry();
+    assert.equal(f.calls.resumed, 1); assert.equal(f.timers.size, 0);
+  } finally { f.close(); }
+});
+
+test('backgrounding, leaving, reconnecting and disposal cannot run a pending playback retry', () => {
+  for (const action of ['blur', 'hidden', 'pagehide', 'stop', 'reconnect', 'destroy']) {
+    const f = lifecycleAudioFixture();
+    try {
+      f.lifecycle.enterPage(); const before = f.calls.resumed;
+      if (action === 'blur') f.win.dispatchEvent(new Event('blur'));
+      if (action === 'hidden') { f.doc.hidden = true; f.doc.dispatchEvent(new Event('visibilitychange')); }
+      if (action === 'pagehide') f.win.dispatchEvent(new Event('pagehide'));
+      if (action === 'stop') f.lifecycle.stopListening();
+      if (action === 'reconnect') f.radio.reconnecting = true;
+      if (action === 'destroy') f.lifecycle.ngOnDestroy();
+      f.retry(); assert.equal(f.calls.resumed, before, action);
+    } finally { f.close(); }
+  }
+});
+
+test('trusted foreground taps retry blocked playback directly; synthetic and background events do not', () => {
+  const f = lifecycleAudioFixture();
+  try {
+    f.lifecycle.enterPage();
+    const tap = f.lifecycle.handlers.find(([, name]) => name === 'pointerup')[2];
+    tap({ isTrusted: false }); assert.equal(f.calls.resumed, 1);
+    tap({ isTrusted: true }); assert.equal(f.calls.resumed, 2);
+    f.radio.audio.needsSound = false; tap({ isTrusted: true }); assert.equal(f.calls.resumed, 2);
+    f.radio.audio.needsSound = true; f.doc.hidden = true;
+    tap({ isTrusted: true }); assert.equal(f.calls.resumed, 2);
+    f.doc.hidden = false; f.radio.reconnecting = true;
+    tap({ isTrusted: true }); assert.equal(f.calls.resumed, 2);
+    f.radio.reconnecting = false; f.lifecycle.stopListening();
+    tap({ isTrusted: true }); assert.equal(f.calls.resumed, 2);
+  } finally { f.close(); }
+});
+
+test('an autoplay promise awaiting a gesture cannot block the bounded retry or the next tap', () => {
+  const f = lifecycleAudioFixture();
+  f.radio.audio.resume = () => { f.calls.resumed++; return new Promise(() => {}); };
+  try {
+    f.lifecycle.enterPage(); f.retry(); assert.equal(f.calls.resumed, 2);
+    f.lifecycle.handlers.find(([, name]) => name === 'pointerup')[2]({ isTrusted: true });
+    assert.equal(f.calls.resumed, 3); assert.equal(f.timers.size, 0);
   } finally { f.close(); }
 });
 

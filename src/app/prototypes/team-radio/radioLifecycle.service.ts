@@ -26,6 +26,7 @@ export class RadioLifecycleService implements OnDestroy {
   private updating = false;
   private joining?: RadioRoomService;
   private joinAttempt = '';
+  private audioRetry?: ReturnType<typeof setTimeout>;
   private handlers: [EventTarget, string, EventListener][] = [];
 
   get returnLabel() { return this.label; }
@@ -38,15 +39,25 @@ export class RadioLifecycleService implements OnDestroy {
   }
 
   constructor(private parent: EnvironmentInjector) {
-    this.listen(window, 'blur', () => { this.focused = false; this.update(); });
+    this.listen(window, 'blur', () => { this.focused = false; this.cancelAudioRetry(); this.update(); });
     this.listen(window, 'focus', () => { this.focused = true; this.update(); this.resumeAudio(); });
-    this.listen(document, 'visibilitychange', () => { if (!document.hidden) this.focused = true; this.update(); if (!document.hidden) this.resumeAudio(); });
+    this.listen(document, 'visibilitychange', () => {
+      if (!document.hidden) this.focused = true;
+      else this.cancelAudioRetry();
+      this.update(); if (!document.hidden) this.resumeAudio();
+    });
+    // Resume inside the gesture: autoplay may reject a foreground-only retry.
+    const unlockAudio = (event: Event) => {
+      if (event.isTrusted && this.radio?.audio.needsSound) this.tryResumeAudio();
+    };
+    this.listen(document, 'pointerup', unlockAudio);
+    this.listen(document, 'keydown', unlockAudio);
     this.listen(window, 'pagehide', () => {
-      this.pageHidden = true; this.update();
+      this.pageHidden = true; this.cancelAudioRetry(); this.update();
       this.radio?.suspendPage();
     });
     this.listen(window, 'pageshow', () => {
-      this.pageHidden = false; this.focused = true; this.update(); this.radio?.resumePage();
+      this.pageHidden = false; this.focused = true; this.update(); this.radio?.resumePage(); this.resumeAudio();
     });
     try {
       const value = JSON.parse(sessionStorage.getItem(RETURN_KEY) || 'null');
@@ -57,7 +68,7 @@ export class RadioLifecycleService implements OnDestroy {
 
   enterPage() {
     this.pageAttached = true;
-    this.ensureRadio(); this.update();
+    this.ensureRadio(); this.update(); this.resumeAudio();
     return this.radio;
   }
 
@@ -65,7 +76,7 @@ export class RadioLifecycleService implements OnDestroy {
 
   get listeningStopped() { return this.stopped; }
 
-  stopListening() { this.stopped = true; this.radio?.exit(); }
+  stopListening() { this.stopped = true; this.cancelAudioRetry(); this.radio?.exit(); }
 
   startListening() {
     this.stopped = false; this.joinAttempt = ''; this.ensureRadio();
@@ -73,11 +84,30 @@ export class RadioLifecycleService implements OnDestroy {
   }
 
   private resumeAudio() {
-    if (this.radio?.joined && !this.radio.reconnecting) {
+    if (!this.canResumeAudio() || this.audioRetry !== undefined) return;
+    // Coalesce focus/visibility/pageshow. One follow-up catches media paused
+    // after the foreground event; never poll or wait indefinitely for resume().
+    const radio = this.radio;
+    this.audioRetry = setTimeout(() => {
+      this.audioRetry = undefined;
+      if (this.radio === radio && radio.audio.needsSound) this.tryResumeAudio();
+    }, 500);
+    this.tryResumeAudio();
+  }
+
+  private canResumeAudio() {
+    return this.radio?.joined && !this.radio.reconnecting && !this.stopped
+      && !document.hidden && !this.pageHidden && this.focused;
+  }
+
+  private tryResumeAudio() {
+    if (this.canResumeAudio()) {
       const radio = this.radio;
       void radio.audio.resume().catch(() => radio.changed.next());
     }
   }
+
+  private cancelAudioRetry() { clearTimeout(this.audioRetry); this.audioRetry = undefined; }
 
   ngOnDestroy() {
     this.handlers.forEach(([target, name, handler]) => target.removeEventListener(name, handler));
@@ -161,13 +191,14 @@ export class RadioLifecycleService implements OnDestroy {
   }
 
   private dispose() {
+    this.cancelAudioRetry();
     this.changes?.unsubscribe(); this.changes = undefined;
     const scope = this.scope; this.scope = undefined; this.radio = undefined;
     this.joining = undefined; this.joinAttempt = '';
     scope?.destroy();
   }
 
-  private listen(target: EventTarget, name: string, handler: () => void) {
+  private listen(target: EventTarget, name: string, handler: (event: Event) => void) {
     target.addEventListener(name, handler); this.handlers.push([target, name, handler]);
   }
 }
