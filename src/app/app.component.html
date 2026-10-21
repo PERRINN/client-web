@@ -90,7 +90,7 @@
 
 <ng-template #radioReturn>
   @if (radioLifecycle.returnLabel; as radioLabel) {
-    <a class="radioReturn" routerLink="/prototypes/team-radio" [attr.aria-label]="'Return to radio, ' + radioLabel.slice(8) + ' remaining'">{{ radioLabel }}</a>
+    <a class="radioReturn" routerLink="/prototypes/team-radio" aria-label="Return to radio">{{ radioLabel }}</a>
   }
 </ng-template>
 

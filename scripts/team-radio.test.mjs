@@ -520,6 +520,7 @@ function lifecycleFixture(ticket, overrides = {}) {
     recover: async saved => { calls.recover.push(saved); radio.joined = true; },
     exit: () => { calls.exits++; radio.joined = false; radio.changed.next(); },
     suspendPage: () => { calls.suspended++; }, resumePage: () => { calls.resumed++; },
+    audio: { resume: async () => { calls.resumed++; } },
     ...overrides
   };
   const parent = { get: () => ({}), createScope: () => { calls.scopes++; return { get: () => radio, destroy: () => { calls.disposed++; } }; } };
@@ -536,40 +537,50 @@ test('the app radio lifecycle opens no Firebase scope until its page is visited 
     fixture.lifecycle.leavePage(); assert.equal(fixture.calls.disposed, 1);
   } finally { fixture.close(); }
 });
-test('leaving retains listening and both places; returning cancels the three-minute away window', () => {
-  const fixture = lifecycleFixture(); const { lifecycle, radio, calls } = fixture;
+test('connected listening survives navigation and more than three minutes in the background', () => {
+  const f = lifecycleFixture(); const originalNow = Date.now; const base = Date.now();
   try {
-    lifecycle.enterPage(); radio.joined = true; radio.changed.next(); lifecycle.leavePage();
-    assert.match(lifecycle.returnLabel, /^Radio · [23]:/);
-    assert.equal(calls.exits, 0); assert.equal(calls.disposed, 0); assert.equal(calls.active.at(-1), false);
-    const saved = JSON.parse(fixture.values.get(returnKey)); assert.equal(saved.session, 'bSession');
-    lifecycle.enterPage(); assert.equal(lifecycle.returnLabel, ''); assert.equal(lifecycle.awayUntil, 0);
-    assert.equal(calls.active.at(-1), true); assert.equal(calls.scopes, 1);
-  } finally { fixture.close(); }
+    f.lifecycle.enterPage(); f.radio.joined = true; f.lifecycle.leavePage();
+    assert.equal(f.lifecycle.returnLabel, 'Radio');
+    f.win.dispatchEvent(new Event('blur')); f.doc.hidden = true;
+    f.doc.dispatchEvent(new Event('visibilitychange'));
+    const firstTicket = JSON.parse(f.values.get(returnKey));
+    Date.now = () => base + 600000; f.radio.changed.next();
+    assert.equal(f.calls.exits, 0); assert.equal(f.calls.disposed, 0);
+    assert.equal(f.calls.suspended, 0); assert.equal(f.calls.active.at(-1), false);
+    assert.equal(f.lifecycle.returnLabel, 'Radio');
+    assert.ok(JSON.parse(f.values.get(returnKey)).until > firstTicket.until);
+    f.doc.hidden = false; f.doc.dispatchEvent(new Event('visibilitychange'));
+    f.lifecycle.enterPage(); assert.equal(f.lifecycle.returnLabel, '');
+    assert.equal(f.calls.active.at(-1), true); assert.equal(f.calls.scopes, 1);
+  } finally { Date.now = originalNow; f.close(); }
 });
-test('focus and page visibility start an away window; subsequent network loss cannot extend it', () => {
-  const fixture = lifecycleFixture(); const { lifecycle, radio, win, doc } = fixture;
+test('background disconnect tickets retain the room recovery deadline without extending it', () => {
+  const deadline = Date.now() + 120000;
+  const f = lifecycleFixture(undefined, { get returnUntil() { return deadline; } });
   try {
-    lifecycle.enterPage(); radio.joined = true;
-    win.dispatchEvent(new Event('blur'));
-    lifecycle.awayUntil = Date.now() + 120000; const deadline = lifecycle.awayUntil;
-    doc.hidden = true; doc.dispatchEvent(new Event('visibilitychange'));
-    radio.reconnecting = true; radio.changed.next();
-    assert.equal(lifecycle.awayUntil, deadline);
-    assert.equal(JSON.parse(fixture.values.get(returnKey)).until, deadline);
-    doc.hidden = false; doc.dispatchEvent(new Event('visibilitychange'));
-    assert.equal(lifecycle.awayUntil, 0);
-  } finally { fixture.close(); }
+    f.lifecycle.enterPage(); f.radio.joined = true; f.lifecycle.leavePage();
+    f.radio.reconnecting = true; f.radio.changed.next();
+    f.win.dispatchEvent(new Event('blur'));
+    f.doc.hidden = true; f.doc.dispatchEvent(new Event('visibilitychange'));
+    assert.equal(JSON.parse(f.values.get(returnKey)).until, deadline);
+    assert.match(f.lifecycle.returnLabel, /^Radio · [12]:/);
+    f.doc.hidden = false; f.doc.dispatchEvent(new Event('visibilitychange'));
+    assert.equal(JSON.parse(f.values.get(returnKey)).until, deadline);
+  } finally { f.close(); }
 });
-test('expiry clears the session and its per-tab return reference; a late return does not renew it', () => {
-  const fixture = lifecycleFixture(); const { lifecycle, radio, calls } = fixture;
+test('Leave ends listening without automatic readmission; Listen explicitly admits again', async () => {
+  const f = lifecycleFixture();
   try {
-    lifecycle.enterPage(); radio.joined = true; radio.changed.next(); lifecycle.leavePage();
-    lifecycle.awayUntil = Date.now() - 1;
-    lifecycle.enterPage();
-    assert.equal(calls.exits, 1); assert.equal(radio.joined, false); assert.equal(fixture.values.has(returnKey), false);
-    lifecycle.leavePage(); assert.equal(calls.disposed, 1);
-  } finally { fixture.close(); }
+    f.lifecycle.enterPage(); await settle(); assert.equal(f.calls.joins, 1);
+    f.lifecycle.stopListening(); await settle();
+    assert.equal(f.calls.exits, 1); assert.equal(f.radio.joined, false);
+    assert.equal(f.values.has(returnKey), false); assert.equal(f.lifecycle.listeningStopped, true);
+    f.win.dispatchEvent(new Event('focus')); f.radio.changed.next(); await settle();
+    assert.equal(f.calls.joins, 1);
+    f.lifecycle.startListening(); await settle();
+    assert.equal(f.calls.joins, 2); assert.equal(f.lifecycle.listeningStopped, false);
+  } finally { f.close(); }
 });
 test('reload recovery waits for real authentication and the complete roster before restoring', () => {
   const ticket = { uid: 'b', seat: '1', session: 'bSession', until: Date.now() + 120000 };
@@ -579,7 +590,7 @@ test('reload recovery waits for real authentication and the complete roster befo
     fixture.radio.authResolved = true; fixture.radio.changed.next(); assert.equal(fixture.calls.recover.length, 0);
     fixture.radio.loading = false; fixture.radio.changed.next();
     assert.deepEqual(fixture.calls.recover, [ticket]);
-    assert.equal(fixture.lifecycle.awayUntil, ticket.until);
+    assert.equal(fixture.radio.joined, true);
   } finally { fixture.close(); }
 });
 test('a return reference cannot restore another account, a signed-out user or an expired session', () => {
@@ -602,7 +613,7 @@ test('pagehide preserves a bounded return reference and suspends media; pageshow
     assert.equal(calls.suspended, 1); assert.equal(calls.exits, 0);
     assert.equal(JSON.parse(fixture.values.get(returnKey)).session, 'bSession');
     win.dispatchEvent(new Event('pageshow'));
-    assert.equal(calls.resumed, 1); assert.equal(lifecycle.awayUntil, 0);
+    assert.equal(calls.resumed, 1); assert.equal(calls.active.at(-1), true);
   } finally { fixture.close(); }
 });
 test('away mode forbids transmission without closing listening audio', async () => {
@@ -614,6 +625,28 @@ test('away mode forbids transmission without closing listening audio', async () 
     assert.equal(radio.joined, true); assert.equal(radio.audioReady, false);
   } finally { radio.ngOnDestroy(); }
 });
+test('backgrounding an active transmission closes its microphone gate before floor cleanup finishes', async () => {
+  const f = service(); let stopped = 0;
+  f.radio.audio.stop = () => stopped++;
+  try {
+    f.setFloor(null); await f.radio.talk(); assert.equal(f.transmitted, 1);
+    f.radio.setPageActive(false);
+    assert.ok(stopped > 0); assert.equal(f.radio.transmitting, false);
+    assert.equal(f.radio.joined, true); assert.equal(f.radio.audioReady, false);
+    await f.radio.talk(); assert.equal(f.transmitted, 1);
+  } finally { f.radio.ngOnDestroy(); }
+});
+test('returning to a visible joined radio retries blocked audio without admitting a new session', async () => {
+  const f = lifecycleFixture();
+  try {
+    f.lifecycle.enterPage(); await settle();
+    f.doc.hidden = true; f.doc.dispatchEvent(new Event('visibilitychange'));
+    assert.equal(f.calls.resumed, 0);
+    f.doc.hidden = false; f.doc.dispatchEvent(new Event('visibilitychange')); await settle();
+    assert.equal(f.calls.resumed, 1); assert.equal(f.calls.joins, 1);
+  } finally { f.close(); }
+});
+
 test('real session recovery keeps the existing place and speaking role but confirms ownership before renewing', async () => {
   const fixture = service(); const { radio } = fixture;
   radio.joined = false; radio.loading = false; radio.authResolved = true; radio.audio.resume = async () => {};
@@ -633,10 +666,12 @@ test('real session recovery keeps the existing place and speaking role but confi
   } finally { radio.ngOnDestroy(); }
 });
 
-test('the return countdown stays stable during rendering and updates on the radio clock', () => {
+test('the disconnect countdown stays stable during rendering and updates on the radio clock', () => {
   const fixture = lifecycleFixture(); const { lifecycle, radio } = fixture; const originalNow = Date.now;
   try {
     lifecycle.enterPage(); radio.joined = true; lifecycle.leavePage();
+    radio.reconnecting = true; const deadline = Date.now() + 120000;
+    Object.defineProperty(radio, 'returnUntil', { get: () => deadline }); radio.changed.next();
     const initial = lifecycle.returnLabel; const base = Date.now();
     Date.now = () => base + 1500;
     assert.equal(lifecycle.returnLabel, initial, 'rendering alone must not mutate a binding');
@@ -803,6 +838,33 @@ test('microphone acquisition is shared, starts in the gesture and reuses a live 
     await audio.enableMicrophone(); assert.equal(requests, 1); assert.equal(audio.microphoneReady, true);
     audio.disableMicrophone(); assert.equal(track.readyState, 'ended');
   } finally { audio.close(); if (original) Object.defineProperty(globalThis, 'navigator', original); else delete globalThis.navigator; }
+});
+
+test('audio-session hints follow listening and microphone capture, then restore on close', async () => {
+  const audio = new RadioAudioService(); const fake = fakeContext();
+  audio.context = fake.context; audio.output = fake.context.createMediaStreamDestination();
+  const original = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  const session = { type: 'auto' };
+  const track = { readyState: 'live', stop() { this.readyState = 'ended'; } };
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: {
+    audioSession: session,
+    mediaDevices: { getUserMedia: async () => ({ getTracks: () => [track], getAudioTracks: () => [track] }) }
+  } });
+  try {
+    await audio.resume(); assert.equal(session.type, 'playback');
+    await audio.enableMicrophone(); assert.equal(session.type, 'play-and-record');
+    audio.disableMicrophone(); assert.equal(session.type, 'playback');
+    audio.close(); assert.equal(session.type, 'auto');
+  } finally { audio.close(); if (original) Object.defineProperty(globalThis, 'navigator', original); else delete globalThis.navigator; }
+});
+test('unsupported audio-session policies never prevent playback or cleanup', async () => {
+  const audio = new RadioAudioService(); audio.context = fakeContext().context;
+  const original = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: {
+    audioSession: { get type() { return 'auto'; }, set type(_) { throw new Error('Unsupported'); } }
+  } });
+  try { await audio.resume(); audio.close(); }
+  finally { if (original) Object.defineProperty(globalThis, 'navigator', original); else delete globalThis.navigator; }
 });
 
 test('expiry stops a captured microphone even while the audio context awaits a gesture', async () => {

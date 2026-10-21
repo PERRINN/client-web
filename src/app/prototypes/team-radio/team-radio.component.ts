@@ -17,7 +17,7 @@ export class TeamRadioComponent implements OnDestroy {
   private pointer?: number;
   private destroyed = false;
   private changes: Subscription;
-  constructor(private lifecycle: RadioLifecycleService, private changeDetector: ChangeDetectorRef, public avatars: RadioAvatarsService) {
+  constructor(public lifecycle: RadioLifecycleService, private changeDetector: ChangeDetectorRef, public avatars: RadioAvatarsService) {
     const radio = this.radio = lifecycle.enterPage();
     avatars.sync(radio.seats.map(person => person.uid), radio.user?.uid);
     this.changes = radio.changed.subscribe(() => {

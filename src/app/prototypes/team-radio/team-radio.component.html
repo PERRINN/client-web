@@ -7,6 +7,9 @@
     <p role="status">Loading</p>
   } @else {
     <section class="controls" aria-label="Radio controls">
+      <div class="actions">
+        <button (click)="radio.joined ? lifecycle.stopListening() : lifecycle.startListening()" [disabled]="busy || (!radio.joined && !lifecycle.listeningStopped)">{{ radio.joined ? 'Leave' : 'Listen' }}</button>
+      </div>
       @if (!radio.joined || (radio.error && radio.connected) || !radio.connected || radio.reconnecting) {
         <div class="actions" [class.admission]="!radio.joined">
           @if (!radio.joined) {
@@ -14,7 +17,7 @@
               <span role="status">On another device</span>
               <button [disabled]="busy" (click)="run(radio.reconnect.bind(radio))">Use here</button>
             } @else {
-              @if (radio.connected && !radio.error) { <span role="status">{{ radio.seat === undefined && radio.seats.length >= 10 ? 'Room full' : 'Connecting' }}</span> }
+              @if (radio.connected && !radio.error && !lifecycle.listeningStopped) { <span role="status">{{ radio.seat === undefined && radio.seats.length >= 10 ? 'Room full' : 'Connecting' }}</span> }
               @if (radio.connected && radio.error) { <button [disabled]="busy" (click)="run(radio.reconnect.bind(radio))">Retry</button> }
             }
           }

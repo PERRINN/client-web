@@ -38,6 +38,7 @@ export class RadioAudioService {
   private activeToken?: string;
   private microphoneVersion = 0;
   private microphoneRequest?: Promise<void>;
+  private previousAudioType?: string;
   private stopTimer?: ReturnType<typeof setTimeout>;
   private iceServers: RTCIceServer[] = [{ urls: 'stun:stun.l.google.com:19302' }];
   onSignal: (seat: string, signal: RadioSignal) => Promise<void> = async () => {};
@@ -52,6 +53,7 @@ export class RadioAudioService {
   get canTransmit() { return this.microphoneReady && this.ready && this.connectedCount === this.peerCount; }
 
   async resume() {
+    this.setAudioType(this.microphoneReady ? 'play-and-record' : 'playback');
     if (!this.context || this.context.state === 'closed') {
       this.context = new AudioContext();
       this.output = this.context.createMediaStreamDestination();
@@ -91,6 +93,7 @@ export class RadioAudioService {
     // Own the stream while audio resumes so expiry/sign-out can stop it even
     // when the browser keeps its audio context suspended.
     this.mic = stream;
+    this.setAudioType('play-and-record');
     try { await resumed; } catch (error) {
       stream.getTracks().forEach(track => track.stop());
       if (this.mic === stream) this.mic = undefined;
@@ -119,6 +122,7 @@ export class RadioAudioService {
     this.mic?.getTracks().forEach(track => { track.onended = null; track.stop(); });
     this.micSource?.disconnect(); this.micGate?.disconnect(); this.delay?.disconnect();
     this.mic = undefined; this.micGate = undefined;
+    if (this.context && this.context.state !== 'closed') this.setAudioType('playback');
     this.onChange();
   }
 
@@ -258,6 +262,20 @@ export class RadioAudioService {
   close() {
     this.disableMicrophone(); this.resetPeers();
     this.context?.close().catch(() => {}); this.context = undefined;
+    if (this.previousAudioType !== undefined) {
+      this.setAudioType(this.previousAudioType);
+      this.previousAudioType = undefined;
+    }
+  }
+
+  private setAudioType(type: string) {
+    // Optional browser hint, not a background-execution guarantee.
+    try {
+      const session = (navigator as Navigator & { audioSession?: { type: string } }).audioSession;
+      if (!session || session.type === type) return;
+      this.previousAudioType ??= session.type;
+      session.type = type;
+    } catch { /* Unsupported audio-session policies must not block the radio. */ }
   }
 
   private async offer(seat: string, peer: Peer, restart = false) {
