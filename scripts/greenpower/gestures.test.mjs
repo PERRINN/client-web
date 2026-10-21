@@ -94,6 +94,18 @@ test('stationary touch hold still enters cursor mode and never zooms on release'
     assert.deepEqual(c.windowChange.values,[]);
   } finally { c.ngOnDestroy(); }
 });
+test('live right-edge zoom includes arrivals during either drag direction; history stays fixed', () => {
+  for (const live of [true, false]) for (const type of ['touch', 'mouse']) for (const reverse of [true, false]) {
+    const {component:c,pointer:p}=fixture();
+    try {
+      c.live=live;
+      c.down(p(reverse ? 200 : 40,type)); c.move(p(reverse ? 40 : 200,type));
+      c.end=1200; c.ngOnChanges({end:{},channel:{}});
+      c.up(p(reverse ? 40 : 200,type));
+      assert.deepEqual(c.windowChange.values,[{start:200,end:live ? 1200 : 1000}]);
+    } finally { c.ngOnDestroy(); }
+  }
+});
 test('changing chart context cancels an in-progress gesture and its hold timer', async () => {
   const {component:c,pointer:p}=fixture();
   try {

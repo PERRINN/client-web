@@ -18,6 +18,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   @Input() heading = '';
   @Input() start = 0;
   @Input() end = 0;
+  @Input() live = false;
   @Input() cursor?: number;
   @Input() laps: LapInterval[] = [];
   @Input() sessions: SessionInterval[] = [];
@@ -176,7 +177,10 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
     this.cancel();
     if (double) this.reset();
     else if (band && Math.abs(d.position - d.anchor) >= .005) {
-      this.windowChange.emit({ start: d.range.start + band.x / 800 * (d.range.end - d.range.start), end: d.range.start + (band.x + band.width) / 800 * (d.range.end - d.range.start) });
+      // Reaching the right edge includes points received during the gesture too.
+      const end = this.live && Math.max(d.anchor, d.position) === 1 ? Math.max(d.range.end, this.end)
+        : d.range.start + (band.x + band.width) / 800 * (d.range.end - d.range.start);
+      this.windowChange.emit({ start: d.range.start + band.x / 800 * (d.range.end - d.range.start), end });
     }
   }
   cancel(event?: PointerEvent) {

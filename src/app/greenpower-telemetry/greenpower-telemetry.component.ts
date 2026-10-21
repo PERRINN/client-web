@@ -70,14 +70,21 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   private dragKind: ViewKind = 'scalars';
   @ViewChild('channelOptions') private channelOptions?: ElementRef<HTMLElement>;
   window?: ChartWindow;
+  private followLatest = false;
   cursor?: number;
   scalarValue = scalarValue;
   private context = '';
   get start() { return this.window?.start ?? this.telemetry.start; }
-  get end() { return this.window?.end ?? this.telemetry.end; }
+  get end() {
+    if (!this.window) return this.telemetry.end;
+    return this.followLatest && this.telemetry.live ? Math.max(this.window.end, this.telemetry.end) : this.window.end;
+  }
   selectView(view: 'data' | 'track' | 'laps') { this.drag.cancel(); if (!this.overlay.active || view === 'data') this.activeView = view; }
   selectLap(window: ChartWindow) { this.zoom(window); this.selectView('data'); }
-  zoom(window?: ChartWindow) { this.window = window; this.cursor = undefined; }
+  zoom(window?: ChartWindow) {
+    this.followLatest = !!window && this.telemetry.live && window.end >= this.telemetry.end;
+    this.window = window; this.cursor = undefined;
+  }
   now = Date.now();
   private readonly previousTitle: string;
   private readonly changes: Subscription;

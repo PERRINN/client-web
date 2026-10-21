@@ -77,7 +77,12 @@ TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTe
 TestBed.configureTestingModule({imports:[CommonModule,FormsModule,RouterModule.forRoot([])],declarations:[GreenpowerTelemetryComponent,GreenpowerEventSelectorComponent,GreenpowerEventEditorComponent,GreenpowerMetadataFieldsComponent,GreenpowerChartComponent,GreenpowerMapComponent,GreenpowerLapListComponent],providers:[{provide:PermissionsService,useValue:permissions},{provide:AngularFirestore,useValue:{firestore:db}},{provide:AngularFireFunctions,useValue:functions}]});
 TestBed.overrideComponent(GreenpowerTelemetryComponent,{set:{providers:[{provide:GreenpowerTelemetryService,useValue:telemetry},{provide:GreenpowerViewService,useValue:view},{provide:GreenpowerLapService,useValue:laps},GreenpowerEventsService,GreenpowerEventEditService,{provide:GreenpowerOverlayService,useValue:{active:false,changed:new Subject(),clear(){}}}]}});
 const fixture=TestBed.createComponent(GreenpowerTelemetryComponent);document.querySelector('.contentCard').append(fixture.nativeElement);fixture.autoDetectChanges();
-window.dayHarness={sessionLaps(){laps.line={a:{lat:52,lon:-1},b:{lat:52,lon:-0.9999},direction:1};laps.fixes=Array.from({length:1801},(_,i)=>({time:first+i*3000,lat:52,lon:-1}));laps.analysis.laps=[{time:first+300000,end:first+900000,lap:1,complete:true},{time:first+900000,end:first+1800000,lap:2,complete:false},{time:first+3900000,end:first+4500000,lap:3,complete:true},{time:first+4500000,end:first+5400000,lap:4,complete:false}];laps.changed.next();fixture.detectChanges();},sessionCounts(counts){records.get('GreenpowerTelemetry/424/days/'+date).sessionTypeCounts=counts;notify();fixture.detectChanges();},stats:()=>({window:fixture.componentInstance.window,cursor:fixture.componentInstance.cursor,sessionDraft:fixture.componentInstance.eventEdit.sessionDraft,dayLoads:telemetry.dayLoads,sessionLoads:telemetry.sessionLoads,calls:[...calls]}),viewer(){state.next({ready:true,uid:'viewer',isAdmin:false});fixture.detectChanges();},noLaps(){laps.analysis.laps=[];laps.changed.next();fixture.detectChanges();},admin(){state.next({ready:true,uid:'viewer',isAdmin:true});fixture.detectChanges();},empty(){records.clear();fixture.componentInstance.events.loadEvents(true);},failure(value){fail=value;},saveFailure(value){saveFail=value;},error(){telemetry.error='Synthetic load failure';telemetry.changed.next();},loading(value){telemetry.loading=value;telemetry.changed.next();},logout(){telemetry.access='signed-out';state.next({ready:true,uid:'',isAdmin:false});telemetry.changed.next();}};
+window.dayHarness={
+ liveSeed(){telemetry.live=true;telemetry.seed(0,1000);telemetry.changed.next();fixture.detectChanges();},
+ zoom(range){fixture.componentInstance.zoom(range);fixture.changeDetectorRef.markForCheck();fixture.detectChanges();},
+ append(end){telemetry.end=end;telemetry.latest={...telemetry.latest,id:'live'+end,receivedAt:end,raw:JSON.stringify({Vt:30,Spd:12})};const added=channelsFor([telemetry.latest],telemetry.latest);telemetry.channels=telemetry.channels.map(channel=>{const next=added.find(item=>item.id===channel.id);return next?{...next,points:[...channel.points,...next.points]}:channel;});telemetry.changed.next();fixture.detectChanges();},
+ bounds(){const c=fixture.componentInstance;return {start:c.start,end:c.end,cursor:c.cursor};},
+ sessionLaps(){laps.line={a:{lat:52,lon:-1},b:{lat:52,lon:-0.9999},direction:1};laps.fixes=Array.from({length:1801},(_,i)=>({time:first+i*3000,lat:52,lon:-1}));laps.analysis.laps=[{time:first+300000,end:first+900000,lap:1,complete:true},{time:first+900000,end:first+1800000,lap:2,complete:false},{time:first+3900000,end:first+4500000,lap:3,complete:true},{time:first+4500000,end:first+5400000,lap:4,complete:false}];laps.changed.next();fixture.detectChanges();},sessionCounts(counts){records.get('GreenpowerTelemetry/424/days/'+date).sessionTypeCounts=counts;notify();fixture.detectChanges();},stats:()=>({window:fixture.componentInstance.window,cursor:fixture.componentInstance.cursor,sessionDraft:fixture.componentInstance.eventEdit.sessionDraft,dayLoads:telemetry.dayLoads,sessionLoads:telemetry.sessionLoads,calls:[...calls]}),viewer(){state.next({ready:true,uid:'viewer',isAdmin:false});fixture.detectChanges();},noLaps(){laps.analysis.laps=[];laps.changed.next();fixture.detectChanges();},admin(){state.next({ready:true,uid:'viewer',isAdmin:true});fixture.detectChanges();},empty(){records.clear();fixture.componentInstance.events.loadEvents(true);},failure(value){fail=value;},saveFailure(value){saveFail=value;},error(){telemetry.error='Synthetic load failure';telemetry.changed.next();},loading(value){telemetry.loading=value;telemetry.changed.next();},logout(){telemetry.access='signed-out';state.next({ready:true,uid:'',isAdmin:false});telemetry.changed.next();}};
 `);
 await build({ entryPoints: [output + '/entry.ts'], outfile: output + '/bundle.js', bundle: true, platform: 'browser', format: 'iife', nodePaths: [root + '/node_modules'], tsconfigRaw: { compilerOptions: { experimentalDecorators: true } }, plugins: [{ name: 'angular-resources', setup(plugin) {
   plugin.onLoad({ filter: /\.component\.ts$/ }, async args => {
@@ -95,6 +100,38 @@ await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 const errors = [];
 try {
+  for (const width of [1440, 390, 320]) {
+    const page=await browser.newPage({viewport:{width,height:900}});
+    page.on('pageerror',error=>errors.push(error.message));
+    await page.goto('http://127.0.0.1:'+server.address().port);
+    await page.locator('.telemetry-page h1').waitFor();
+    await page.evaluate(()=>window.dayHarness.liveSeed());
+    const plot=page.locator('app-greenpower-chart svg').first();
+    const expectBounds=async(start,end)=>{const actual=await page.evaluate(()=>window.dayHarness.bounds());assert.ok(Math.abs(actual.start-start)<.01);assert.equal(actual.end,end);assert.equal(actual.cursor,undefined);};
+    const rect=await plot.boundingBox();
+    const geometry=await page.locator('app-greenpower-chart').first().boundingBox();
+    await page.mouse.move(rect.x+rect.width*.4,rect.y+rect.height/2);
+    await page.mouse.down();await page.mouse.move(rect.x+rect.width,rect.y+rect.height/2);
+    await page.evaluate(()=>window.dayHarness.append(1200));
+    await page.mouse.up();
+    await expectBounds(400,1200);
+    const trace=plot.locator('.trace').first(),before=await trace.getAttribute('d');
+    await page.evaluate(()=>window.dayHarness.append(1500));
+    await expectBounds(400,1500);
+    assert.notEqual(await trace.getAttribute('d'),before,'live arrival updates the zoomed trace');
+    await page.screenshot({path:output+'/live-zoom-'+width+'.png',fullPage:true});
+    assert.deepEqual(await page.locator('app-greenpower-chart').first().boundingBox(),geometry,'zoom and live arrivals preserve chart geometry');
+    await page.evaluate(()=>window.dayHarness.zoom({start:400,end:1000}));
+    const fixed=await trace.getAttribute('d');
+    await page.evaluate(()=>window.dayHarness.append(1800));
+    await expectBounds(400,1000);
+    assert.equal(await trace.getAttribute('d'),fixed,'an earlier interval stays fixed');
+    await plot.focus();await page.keyboard.press('Home');
+    await expectBounds(0,1800);
+    await page.evaluate(()=>window.dayHarness.append(2000));
+    await expectBounds(0,2000);
+    await page.close();
+  }
   for (const width of [1440, 390, 320]) {
     const page = await browser.newPage({ viewport: { width, height: 900 }, hasTouch: width < 500 }); page.setDefaultTimeout(10000); page.on('pageerror', error => { errors.push(error.message); console.error(error.message); });
     await page.goto('http://127.0.0.1:' + server.address().port); await page.locator('.telemetry-page h1').waitFor();
