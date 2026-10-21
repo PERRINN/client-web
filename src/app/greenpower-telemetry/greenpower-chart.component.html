@@ -1,4 +1,4 @@
-<section class="chart" [attr.aria-label]="(heading || channel.label) + ' over time'">
+<section class="chart" [class.race-time]="raceTime" [attr.aria-label]="(heading || channel.label) + ' over time'">
   <h2>{{ heading || channel.label }}{{ channel.unit ? ' · ' + channel.unit : '' }}</h2>
   @if (comparison) {
     <div class="current-legend comparison-legend" [attr.aria-label]="(heading || channel.label) + ' chart legend'">

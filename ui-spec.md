@@ -113,7 +113,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 
 - **Greenpower chart limits:** Current, Amp hours used and Energy show dashed reference lines at 24 A, 24 Ah and 550 Wh respectively, with matching legend and axis labels in normal and overlay charts. Keep the limit and measured values visible through zoom and updates without clipping readings above the limit.
 
-- **Greenpower race time:** display the `raceseconds` telemetry channel as Race time · min, converting seconds to minutes for plots and readouts while retaining raw values and saved channel IDs.
+- **Greenpower race time:** display the `raceseconds` telemetry channel as Race time · min, converting seconds to minutes for plots while retaining raw values and saved channel IDs. Format scalar, live, cursor and overlay readouts as whole minutes and seconds, such as `23m 34s`, rounded to the nearest second; keep numeric chart axes in minutes.
 
 - **Greenpower live zoom:** a zoom including the latest data keeps its selected start and extends its end as live samples arrive, across all ordinary charts. A zoom ending before the latest data stays fixed. Reaching the chart's right edge includes samples received during the drag. Reset restores the full live range; historical and overlay zooms retain their selected intervals.
 

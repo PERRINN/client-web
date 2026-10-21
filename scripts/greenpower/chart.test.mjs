@@ -6,6 +6,21 @@ const history = load('../../src/app/telemetry/sessionHistory.ts', { './verticalA
 const chart = load('../../src/app/greenpower-telemetry/greenpowerChart.ts', {
   './greenpowerData': data, '../telemetry/verticalAxis': vertical, '../telemetry/sessionHistory': history
 });
+test('race time readouts use minutes and seconds while plotted values retain minutes', () => {
+  const samples = [0, 59.6, 1414, 3600].map((raceseconds, receivedAt) => ({ source: '424-phone', receivedAt, raw: JSON.stringify({ raceseconds }) }));
+  const channel = data.channelsFor(samples, samples[2])[0];
+  assert.equal(chart.scalarReadout(channel, undefined, 0, 3), '23m 34s');
+  for (const [cursor, expected] of [[0, '0m 0s'], [1, '1m 0s'], [2, '23m 34s'], [3, '60m 0s']]) {
+    assert.equal(chart.scalarReadout(channel, cursor, 0, 3), expected);
+    assert.equal(chart.channelReadout(channel, channel.points[cursor].value, 0, 60), expected);
+    assert.equal(chart.channelReadout(channel, channel.points[cursor].value, 0, 60, false), expected);
+  }
+  assert.equal(chart.scalarReadout(channel, 10, 5, 10), '—');
+  assert.equal(chart.scalarReadout({ ...channel, value: '—' }, undefined, 0, 3), '—');
+  assert.equal(chart.channelReadout(channel, NaN, 0, 60), '—');
+  assert.equal(channel.points[2].value, 1414 / 60);
+  assert.equal(chart.scalarReadout({ id: 'other', unit: 'A', value: '12', points: [] }, undefined, 0, 3), '12 A');
+});
 test('speed axes, cursor and latest scalar share mph values', () => {
   const samples = [0, 10].map((Spd, receivedAt) => ({ source: '424-phone', receivedAt, raw: JSON.stringify({ Spd }) }));
   const channel = data.channelsFor(samples, samples[1])[0];

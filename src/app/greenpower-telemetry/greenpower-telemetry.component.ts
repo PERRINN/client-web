@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, View
 import { Title } from '@angular/platform-browser';
 import { Subscription } from 'rxjs';
 import { GreenpowerChannel, isVehicleSpeed, MOTOR_DERIVED_SPEED, VOLTAGE_LEFT, VOLTAGE_RIGHT, londonDay, sampleTime } from './greenpowerData';
-import { ChartWindow, scalarValue } from './greenpowerChart';
+import { ChartWindow, scalarReadout } from './greenpowerChart';
 import { GreenpowerLapService } from './greenpowerLap.service';
 import { FinishLine, GpsLap } from './greenpowerGps';
 import { GreenpowerMapComponent } from './greenpower-map.component';
@@ -72,7 +72,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   window?: ChartWindow;
   private followLatest = false;
   cursor?: number;
-  scalarValue = scalarValue;
+  scalarReadout = scalarReadout;
   private context = '';
   get start() { return this.window?.start ?? this.telemetry.start; }
   get end() {

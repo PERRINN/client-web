@@ -74,8 +74,19 @@ TestBed.overrideComponent(GreenpowerTelemetryComponent,{set:{providers:[
 const metadataFixture=TestBed.createComponent(GreenpowerMetadataFieldsComponent);metadataFixture.componentInstance.data=editableDay(emptyDay('2026-10-20'));metadataFixture.detectChanges();metadataFixture.changeDetectorRef.detach();metadataFixture.nativeElement.remove();
 const fixture=TestBed.createComponent(GreenpowerTelemetryComponent);const detect=()=>{fixture.changeDetectorRef.markForCheck();fixture.detectChanges()};document.body.append(fixture.nativeElement);detect();
 overlay.changed.subscribe(detect);view.changed.subscribe(detect);
-let electricalSaved;
-window.overlayHarness={distance(mode){
+let electricalSaved, raceTimeSaved;
+window.overlayHarness={raceTime(mode){
+ if(mode==='restore'){view['saved']=raceTimeSaved;raceTimeSaved=undefined;overlay.clear();view.changed.next();detect();return}
+ raceTimeSaved ??= view['saved'];
+ const samples=[1414,1415].map((raceseconds,receivedAt)=>({id:String(receivedAt),source:'424-phone',receivedAt:receivedAt*1000,raw:JSON.stringify({raceseconds})}));
+ const rows=channelsFor(samples,samples.at(-1));
+ const comparison=fixture.debugElement.query(By.directive(GreenpowerOverlayComponent)).componentInstance;comparison.window=undefined;comparison.cursor=undefined;
+ overlay.clear();fixture.componentInstance.window=undefined;fixture.componentInstance.cursor=mode==='normal'?0:undefined;
+ view['saved']={...selectionFor(rows),revision:1,updatedBy:'admin'};view.changed.next();
+ telemetry.live=mode==='live';telemetry.channels=rows;telemetry.latest=samples.at(-1);telemetry.start=0;telemetry.end=1000;telemetry.changed.next();
+ if(mode==='overlay'){overlay.active=true;overlay.end=1000;overlay.sessions=[{id:'race-time',label:'Race driver',colour:overlayColour(0),loaded:true,hidden:false,excluded:false,channels:rows,session:{startAt:0,endAt:1000}}];overlay.changed.next();}
+ detect();
+},distance(mode){
  const event={...emptyDay('2026-10-20'),defaults:{motorGearTeeth:12,wheelGearTeeth:60}};
  const session={id:'distance',type:'race',startAt:6000,endAt:30000,overrides:{},batteryIds:[]};
  const samples=Array.from({length:11},(_,i)=>({id:String(i),source:'424-phone',receivedAt:i*3000,raw:JSON.stringify({RPM:30*.44704*60*5/1.29,Spd:99})}));
@@ -432,6 +443,27 @@ try {
    await page.screenshot({path:output+'/'+name+'-distance-'+mode+'.png',fullPage:true});
   }
 
+  for(const mode of ['normal','live','overlay']) {
+   await page.evaluate(mode=>window.overlayHarness.raceTime(mode),mode);
+   const race=page.locator('app-greenpower-chart').filter({has:page.getByRole('heading',{name:'Race time · min',exact:true})});
+   assert.equal(await race.count(),1);
+   if(mode==='overlay') {
+    await race.locator('svg').focus();await race.locator('svg').press('ArrowLeft');await page.evaluate(()=>window.overlayHarness.detect());
+    assert.equal(await race.locator('.overlay-value').textContent(),'23m 34s');
+    assert.equal(await race.locator('.overlay-value').evaluate(el=>el.scrollWidth<=el.clientWidth),true,'duration fits reserved value column');
+    const before=await race.boundingBox();
+    await race.getByRole('button',{name:'Hide Race driver',exact:true}).click();
+    assert.equal(await race.locator('.overlay-value').textContent(),'—');
+    const after=await race.boundingBox();
+    assert.deepEqual({width:after.width,height:after.height},{width:before.width,height:before.height},'hiding readout retains chart dimensions');
+   } else {
+    assert.match(await race.locator('.readout').textContent(),mode==='live'?/23m 35s/:/23m 34s/);
+    assert.match(await page.locator('.reading').textContent(),mode==='live'?/23m 35s/:/23m 34s/);
+   }
+   assert.equal(await page.locator('body').evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+   await page.screenshot({path:output+'/'+name+'-race-time-'+mode+'.png',fullPage:true});
+  }
+  await page.evaluate(()=>window.overlayHarness.raceTime('restore'));
   await page.evaluate(()=>{const h=window.overlayHarness;h.removeMetadata();const t=h.fixture.componentInstance.telemetry;t.channels=[];t.latest=undefined;t.live=true;t.start=0;t.end=1000;h.fixture.componentInstance['loadedEvent']=undefined;t.changed.next();h.detect()});
 
 

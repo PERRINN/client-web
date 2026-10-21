@@ -9,6 +9,12 @@ function displayUnit(unit: string) { return speedFactor(unit) === undefined ? un
 function isRaceSeconds(id: string, unit: string) {
   return /^\["raceseconds"\]$/i.test(id) && ['', 's', 'seconds'].includes(unit);
 }
+export function isRaceTime(channel: GreenpowerChannel) { return /^\["raceseconds"\]:/i.test(channel.id) && channel.unit === 'min'; }
+export function formatRaceTime(minutes: number) {
+  if (!Number.isFinite(minutes)) return '—';
+  const seconds = Math.round(Math.abs(minutes) * 60);
+  return `${minutes < 0 ? '−' : ''}${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+}
 export const PAGE_SIZE = 100;
 export const MAX_PAGES = 50;
 export const MAX_LOAD_BYTES = 64 * 1024 * 1024;

@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, NgZone, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
 import type { GreenpowerChannel } from './greenpowerData';
-import { isLapMetric, londonTime, pointIndex } from './greenpowerData';
-import { ChartWindow, elapsedTime, chartY, channelReading, clockTicks, formatAxisValue, formatTelemetryValue, channelLimit, nearestPoint, plotFor } from './greenpowerChart';
+import { isLapMetric, isRaceTime, londonTime, pointIndex } from './greenpowerData';
+import { ChartWindow, elapsedTime, chartY, channelReading, channelReadout, clockTicks, formatAxisValue, channelLimit, nearestPoint, plotFor } from './greenpowerChart';
 import { SessionInterval, visibleSessions } from './greenpowerSessions';
 import { ChartDoubleTap } from '../telemetry/chartDoubleTap';
 import { lapAt, LapInterval, visibleLaps } from './greenpowerLaps';
@@ -33,6 +33,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   lapBands = visibleLaps([], 0, 0, 300);
   sessionBands = visibleSessions([], 0, 0);
   get limit() { return channelLimit(this.channel); }
+  get raceTime() { return isRaceTime(this.channel); }
   get limitY() { return chartY(this.limit!, this.model.axis); }
   get cursorLap() {
     if (isLapMetric(this.channel.id)) {
@@ -51,7 +52,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
     const points = trace.channel.points;
     const point = this.cursor === undefined || this.cursor < (points[0]?.time ?? Infinity) || this.cursor > (points.at(-1)?.time ?? -Infinity)
       ? undefined : channelReading(trace.channel, this.cursor, this.start, this.end);
-    return point ? formatTelemetryValue(point.value, this.model.axis.min, this.model.axis.max) : '—';
+    return point ? channelReadout(trace.channel, point.value, this.model.axis.min, this.model.axis.max, false) : '—';
   }
   lapDots: { time: number; value: number }[] = [];
   overlayDots: { time: number; value: number }[][] = [];
@@ -92,11 +93,11 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   }
   get comparisonLabel() {
     const point = this.comparisonReading;
-    return point ? formatTelemetryValue(point.value, this.model.axis.min, this.model.axis.max) + ' ' + this.comparison!.unit : '—';
+    return point ? channelReadout(this.comparison!, point.value, this.model.axis.min, this.model.axis.max) : '—';
   }
   get cursorLabel() {
     const point = this.reading;
-    return point ? formatTelemetryValue(point.value, this.model.axis.min, this.model.axis.max) + (this.channel.unit ? ' ' + this.channel.unit : '') : '—';
+    return point ? channelReadout(this.channel, point.value, this.model.axis.min, this.model.axis.max) : '—';
   }
   get band() {
     const d = this.drag;

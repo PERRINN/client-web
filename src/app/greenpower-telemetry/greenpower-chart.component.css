@@ -2,6 +2,7 @@
 .overlay-readout { display: grid; gap: 4px; margin-bottom: 6px; }
 .overlay-readout span { min-width: 0; font-size: 13px; line-height: 1.45; }
 .overlay-entry { display: grid; grid-template-columns: minmax(0, 1fr) 64px 14px; align-items: center; gap: 6px; }
+.race-time .overlay-entry { grid-template-columns: minmax(0, 1fr) 104px 14px; }
 .overlay-name { overflow-wrap: anywhere; overflow: visible; }
 .overlay-value { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .chart { padding: 14px; background: var(--color-surface); }

@@ -1,4 +1,4 @@
-import { chartTrace, displayValue, ENERGY, GreenpowerChannel, londonTime, pointIndex } from './greenpowerData';
+import { chartTrace, displayValue, ENERGY, formatRaceTime, GreenpowerChannel, isRaceTime, londonTime, pointIndex } from './greenpowerData';
 import { verticalAxis } from '../telemetry/verticalAxis';
 import { formatAxisValue, formatTelemetryValue } from '../telemetry/sessionHistory';
 
@@ -45,6 +45,14 @@ export function scalarValue(channel: GreenpowerChannel, cursor: number | undefin
   if (cursor === undefined) return channel.value;
   const point = channelReading(channel, cursor, start, end);
   return point ? displayValue(point.value) : '—';
+}
+export function scalarReadout(channel: GreenpowerChannel, cursor: number | undefined, start: number, end: number) {
+  const value = scalarValue(channel, cursor, start, end);
+  return isRaceTime(channel) ? formatRaceTime(Number(value)) : value + (channel.unit ? ' ' + channel.unit : '');
+}
+export function channelReadout(channel: GreenpowerChannel, value: number, min: number, max: number, withUnit = true) {
+  return isRaceTime(channel) ? formatRaceTime(value)
+    : formatTelemetryValue(value, min, max) + (withUnit && channel.unit ? ' ' + channel.unit : '');
 }
 export function channelReading(channel: GreenpowerChannel, time: number, start: number, end: number) {
   if (!channel.valueAt) return nearestPoint(channel.points, time, start, end);

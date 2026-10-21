@@ -109,7 +109,7 @@
         @if (scalars.length) {
           <section class="values" [attr.aria-label]="cursor === undefined ? 'Latest values' : 'Cursor values'">
             @for (channel of scalars; track channel.id) {
-              <div class="reading"><span>{{ channel.label }}</span><strong>{{ scalarValue(channel, cursor, start, end) }}{{ channel.unit ? ' ' + channel.unit : '' }}</strong></div>
+              <div class="reading"><span>{{ channel.label }}</span><strong>{{ scalarReadout(channel, cursor, start, end) }}</strong></div>
             }
           </section>
         }
