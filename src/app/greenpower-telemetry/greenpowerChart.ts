@@ -1,15 +1,13 @@
-import { chartTrace, displayValue, ENERGY, formatRaceTime, GreenpowerChannel, isRaceTime, londonTime, pointIndex, POWER, VOLTAGE_LEFT, VOLTAGE_RIGHT } from './greenpowerData';
+import { ChartMarker, defaultMarker } from './greenpowerMarkers';
+import { chartTrace, displayValue, formatChannelNumber, formatRaceTime, GreenpowerChannel, isRaceTime, londonTime, pointIndex } from './greenpowerData';
 import { verticalAxis } from '../telemetry/verticalAxis';
 import { formatAxisValue, formatTelemetryValue } from '../telemetry/sessionHistory';
 
 export interface ChartWindow { start: number; end: number; }
 export type ChartPoint = { time: number; value: number };
-export function channelLimit(channel: GreenpowerChannel) {
-  if (channel.id === '["Vt"]:V') return 21;
-  if (channel.id === VOLTAGE_LEFT || channel.id === VOLTAGE_RIGHT) return 10;
-  if (channel.id === '["A"]:A' || channel.id === '["AH"]:Ah' || channel.id === 'computed:lap-average-amps') return 24;
-  if (channel.id === POWER || channel.id === ENERGY || channel.id === 'computed:lap-average-power') return 550;
-  return undefined;
+export function channelMarker(channel: GreenpowerChannel, setting?: ChartMarker) {
+  const marker = setting ?? defaultMarker(channel.id);
+  return marker.enabled && marker.value !== null ? marker.value : undefined;
 }
 
 export function chartY(value: number, axis: { min: number; max: number }) {
@@ -17,13 +15,13 @@ export function chartY(value: number, axis: { min: number; max: number }) {
   return 110 - (value / scale - axis.min / scale) / (axis.max / scale - axis.min / scale || 1) * 100;
 }
 export { formatAxisValue, formatTelemetryValue };
-export function plotFor(points: ChartPoint[], start: number, end: number, width: number, limit?: number, comparison: ChartPoint[] = [], overlays: ChartPoint[][] = []) {
+export function plotFor(points: ChartPoint[], start: number, end: number, width: number, marker?: number, comparison: ChartPoint[] = [], overlays: ChartPoint[][] = []) {
   const visible = points.slice(pointIndex(points, start), pointIndex(points, end, true));
   let min = Infinity, max = -Infinity;
   const other = comparison.slice(pointIndex(comparison, start), pointIndex(comparison, end, true));
   const extra = overlays.map(series => series.slice(pointIndex(series, start), pointIndex(series, end, true)));
   for (const series of [visible, other, ...extra]) for (const point of series) { min = Math.min(min, point.value); max = Math.max(max, point.value); }
-  if (limit !== undefined) { min = Math.min(min, limit); max = Math.max(max, limit); }
+  if (marker !== undefined) { min = Math.min(min, marker); max = Math.max(max, marker); }
   // Normalize only extreme magnitudes so the shared rounding algorithm cannot overflow.
   const scale = Math.max(Math.abs(min), Math.abs(max));
   const factor = Number.isFinite(scale) && scale > 1e100 ? scale : scale > 0 && scale < 1e-100 ? scale : 1;
@@ -50,11 +48,13 @@ export function scalarValue(channel: GreenpowerChannel, cursor: number | undefin
 }
 export function scalarReadout(channel: GreenpowerChannel, cursor: number | undefined, start: number, end: number) {
   const value = scalarValue(channel, cursor, start, end);
-  return isRaceTime(channel) ? formatRaceTime(Number(value)) : value + (channel.unit ? ' ' + channel.unit : '');
+  if (isRaceTime(channel)) return formatRaceTime(Number(value));
+  const formatted = value.trim() && Number.isFinite(Number(value)) ? formatChannelNumber(channel, Number(value)) : value;
+  return formatted + (channel.unit ? ' ' + channel.unit : '');
 }
-export function channelReadout(channel: GreenpowerChannel, value: number, min: number, max: number, withUnit = true) {
+export function channelReadout(channel: GreenpowerChannel, value: number, _min: number, _max: number, withUnit = true) {
   return isRaceTime(channel) ? formatRaceTime(value)
-    : formatTelemetryValue(value, min, max) + (withUnit && channel.unit ? ' ' + channel.unit : '');
+    : formatChannelNumber(channel, value) + (withUnit && channel.unit ? ' ' + channel.unit : '');
 }
 export function channelReading(channel: GreenpowerChannel, time: number, start: number, end: number) {
   if (!channel.valueAt) return nearestPoint(channel.points, time, start, end);

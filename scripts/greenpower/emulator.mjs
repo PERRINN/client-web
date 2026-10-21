@@ -7,7 +7,7 @@ import { BehaviorSubject, Subject } from 'rxjs';
 import { createServer } from 'node:http';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { data, load, recordings } from './load.mjs';
+import { data, load, recordings, markers } from './load.mjs';
 const host = process.env.FIRESTORE_EMULATOR_HOST;
 assert.match(host || '', /^(127\.0\.0\.1|localhost):\d+$/, 'A local Firestore emulator is required; production is never allowed.');
 const projectId = 'demo-greenpower';
@@ -62,7 +62,7 @@ test('existing public collection and nested document reads remain available', as
 test('real client listeners recover every sample after a network interruption and clear on logout', async () => {
   const { GreenpowerTelemetryService } = load('../../src/app/greenpower-telemetry/greenpowerTelemetry.service.ts', {
     '@angular/core': { Injectable: () => target => target, runInInjectionContext: (_, callback) => callback() },
-    'firebase/compat/app': { default: firebase }, 'firebase/compat/firestore': {}, rxjs: { Subject }, './greenpowerData': data, './greenpowerRecording': recordings
+    'firebase/compat/app': { default: firebase }, 'firebase/compat/firestore': {}, rxjs: { Subject }, './greenpowerMarkers': markers, './greenpowerData': data, './greenpowerRecording': recordings
   });
   const clientApp = firebase.initializeApp({ projectId, apiKey: 'demo-key' }, `greenpower-client-${process.pid}`);
   const client = clientApp.firestore(), [hostname, port] = host.split(':');
@@ -159,9 +159,9 @@ test('shared view is signed-in readable and only exact admin claims can save val
 });
 
 test('real admin saves are synchronized to another signed-in viewer without changing telemetry', async () => {
-  const viewHelpers=load('../../src/app/greenpower-telemetry/greenpowerView.ts',{'./greenpowerData':data});
+  const viewHelpers=load('../../src/app/greenpower-telemetry/greenpowerView.ts',{'./greenpowerMarkers':markers,'./greenpowerData':data});
   const {GreenpowerViewService}=load('../../src/app/greenpower-telemetry/greenpowerView.service.ts',{
-    '@angular/core':{Injectable:()=>target=>target},'firebase/compat/app':{default:firebase},'firebase/compat/firestore':{},rxjs:{Subject},'./greenpowerView':viewHelpers,'./greenpowerDatasetTrack':load('../../src/app/greenpower-telemetry/greenpowerDatasetTrack.ts')
+    '@angular/core':{Injectable:()=>target=>target},'firebase/compat/app':{default:firebase},'firebase/compat/firestore':{},rxjs:{Subject},'./greenpowerMarkers':markers,'./greenpowerData':data,'./greenpowerView':viewHelpers,'./greenpowerDatasetTrack':load('../../src/app/greenpower-telemetry/greenpowerDatasetTrack.ts')
   });
   const apps=[],services=[],clients=[];
   function connect(uid,isAdmin) {
@@ -182,11 +182,11 @@ test('real admin saves are synchronized to another signed-in viewer without chan
   try {
     const editor=connect('editor',true),viewer=connect('viewer',false);
     await Promise.all([until(editor.service,()=>editor.service.ready),until(viewer.service,()=>viewer.service.ready)]);
-    editor.service.edit(channels);editor.service.toggle('scalars',channels[0].id,false);await editor.service.save();
+    editor.service.edit(channels);editor.service.toggle('scalars',channels[0].id,false);editor.service.setMarker(data.POWER,{enabled:true,value:510});await editor.service.save();
     assert.equal(editor.service.error,'');
-    await until(viewer.service,()=>viewer.service.scalars(channels).length===1);
+    await until(viewer.service,()=>viewer.service.scalars(channels).length===channels.length-1 && viewer.service.marker(data.POWER).value===510);
     assert.equal(viewer.service.canEdit,false);assert.equal(viewer.service.scalars(channels)[0].label,'Current');
-    assert.equal(viewer.service.charts(channels).length,2,'chart selection remains independent');
+    assert.equal(viewer.service.charts(channels).length,channels.length,'chart selection remains independent');
     // Re-enable the hidden scalar, then save different orders through a second real transaction.
     editor.service.edit(channels);editor.service.toggle('scalars',channels[0].id,true);
     const helperOrder=viewHelpers.orderFor(editor.service.draft,'scalars');
@@ -194,7 +194,7 @@ test('real admin saves are synchronized to another signed-in viewer without chan
     assert.notDeepEqual(editor.service.draft.scalarOrder,editor.service.draft.chartOrder,'two sections can have different orders');
     const expected=viewHelpers.copySelection(editor.service.draft);
     await editor.service.save();assert.equal(editor.service.error,'');
-    await until(viewer.service,()=>viewer.service.scalars(channels).length===2 && viewer.service.scalars(channels)[0].id===expected.scalarOrder[0]);
+    await until(viewer.service,()=>viewer.service.scalars(channels).length===channels.length && viewer.service.scalars(channels)[0].id===expected.scalarOrder[0]);
     assert.deepEqual(viewer.service.scalars(channels).map(c=>c.id),expected.scalarOrder);
     assert.deepEqual(viewer.service.charts(channels).map(c=>c.id),expected.chartOrder);
     viewer.state.next({uid:'',isAdmin:false,ready:true});assert.deepEqual(viewer.service.scalars(channels),[]);
@@ -284,8 +284,8 @@ test('Edit Save atomically publishes the dataset choice to another real signed-i
   const gps=load('../../src/app/greenpower-telemetry/greenpowerGps.ts',{'./greenpowerData':data});
   const tracks=load('../../src/app/greenpower-telemetry/greenpowerTracks.ts',{'./greenpowerGps':gps});
   const datasetTrack=load('../../src/app/greenpower-telemetry/greenpowerDatasetTrack.ts');
-  const viewHelpers=load('../../src/app/greenpower-telemetry/greenpowerView.ts',{'./greenpowerData':data});
-  const imports={'@angular/core':{Injectable:()=>target=>target},'firebase/compat/app':{default:firebase},'firebase/compat/firestore':{},rxjs:{Subject},'./greenpowerGps':gps,'./greenpowerTracks':tracks,'./greenpowerDatasetTrack':datasetTrack,'./greenpowerView':viewHelpers};
+  const viewHelpers=load('../../src/app/greenpower-telemetry/greenpowerView.ts',{'./greenpowerMarkers':markers,'./greenpowerData':data});
+  const imports={'@angular/core':{Injectable:()=>target=>target},'firebase/compat/app':{default:firebase},'firebase/compat/firestore':{},rxjs:{Subject},'./greenpowerGps':gps,'./greenpowerTracks':tracks,'./greenpowerDatasetTrack':datasetTrack,'./greenpowerMarkers':markers,'./greenpowerData':data,'./greenpowerView':viewHelpers};
   const {GreenpowerLapService}=load('../../src/app/greenpower-telemetry/greenpowerLap.service.ts',imports);
   const {GreenpowerViewService}=load('../../src/app/greenpower-telemetry/greenpowerView.service.ts',imports);
   const channels=data.channelsFor(Array.from({length:10},(_,i)=>({id:String(i),receivedAt:i*3000,source:'demo',raw:JSON.stringify({Lat:50+i*.00001,Lon:0,A:25,Spd:10})})));
@@ -339,4 +339,38 @@ test('name-only tracks retain admin-only writes and reject partial or inconsiste
   for (const uid of ['alice', 'bob']) assert.equal((await request(path, uid)).status, 200);
   assert.equal((await request(path)).status, 403);
   await db.doc(path).delete();
+});
+
+test('marker settings stay shared, admin-only, bounded and protected from legacy overwrites', async () => {
+  const path = 'GreenpowerTelemetry/424/config/view', ref = db.doc(path);
+  await ref.delete();
+  const encode = value => value === null ? {nullValue:null}
+    : typeof value === 'boolean' ? {booleanValue:value}
+    : typeof value === 'number' ? Number.isSafeInteger(value) ? {integerValue:String(value)} : {doubleValue:value}
+    : typeof value === 'string' ? {stringValue:value}
+    : {mapValue:{fields:Object.fromEntries(Object.entries(value).map(([key,item])=>[key,encode(item)]))}};
+  const write = async (uid, claims, revision, markers, includeMarkers = true) => fetch(`http://${host}/v1/projects/${projectId}/databases/(default)/documents:commit`, {
+    method:'POST',headers:{'Content-Type':'application/json',...(uid?{Authorization:`Bearer ${token(uid,claims)}`}:{})},
+    body:JSON.stringify({writes:[{update:{name:`projects/${projectId}/databases/(default)/documents/${path}`,fields:
+      Object.fromEntries(Object.entries({scalars:{},charts:{},revision,updatedBy:uid || 'admin',...(includeMarkers?{markers}:{})}).map(([key,value])=>[key,encode(value)]))},
+      updateTransforms:[{fieldPath:'updatedAt',setToServerValue:'REQUEST_TIME'}]}]})
+  });
+  const settings = {[data.POWER]:{enabled:true,value:525}};
+  for(const [uid,claims] of [[undefined,{}],['viewer',{}],['admin',{perrinnAdmin:'true'}]]) {
+    assert.equal((await write(uid,claims,1,settings)).status,403);
+  }
+  const adminClaims={perrinnAdmin:true};
+  assert.equal((await write('admin',adminClaims,1,settings)).status,200);
+  assert.equal((await request(path)).status,403);
+  for(const uid of ['alice','bob']) {
+    const response=await request(path,uid);assert.equal(response.status,200);
+    assert.equal((await response.json()).fields.markers.mapValue.fields[data.POWER].mapValue.fields.value.integerValue,'525');
+    assert.equal((await write(uid,{},2,settings)).status,403);
+  }
+  assert.equal((await write('admin',adminClaims,2,{},false)).status,403,'older clients cannot erase markers by omitting the field');
+  assert.equal((await write('admin',adminClaims,2,'invalid')).status,403);
+  assert.equal((await write('admin',adminClaims,2,Object.fromEntries(Array.from({length:513},(_,i)=>[i,{enabled:false,value:0}])))).status,403);
+  assert.equal((await write('admin',adminClaims,2,{[data.POWER]:{enabled:false,value:525}})).status,200);
+  assert.equal((await write('admin',adminClaims,2,settings)).status,403,'stale revisions cannot undo a marker edit');
+  await ref.delete();
 });

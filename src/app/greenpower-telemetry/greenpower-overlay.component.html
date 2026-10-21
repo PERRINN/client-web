@@ -32,7 +32,7 @@
   </div>
   <div class="charts">
     @for (chart of charts; track chart.channel.id) {
-      <app-greenpower-chart [(legendHighlight)]="legendHighlight" [channel]="chart.channel" [heading]="chart.heading" [overlays]="chart.traces" [start]="start" [end]="end" [cursor]="cursor" [context]="'overlay'" (overlayVisibilityChange)="overlay.toggleVisibility($event)" (windowChange)="zoom($event)" (cursorChange)="cursor = $event" />
+      <app-greenpower-chart [(legendHighlight)]="legendHighlight" [channel]="chart.channel" [markerSetting]="view.marker(chart.channel.id)" [heading]="chart.heading" [overlays]="chart.traces" [start]="start" [end]="end" [cursor]="cursor" [context]="'overlay'" (overlayVisibilityChange)="overlay.toggleVisibility($event)" (windowChange)="zoom($event)" (cursorChange)="cursor = $event" />
     }
   </div>
 }

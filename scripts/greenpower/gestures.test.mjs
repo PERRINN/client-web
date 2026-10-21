@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { data, dayData, gps, load } from './load.mjs';
+import { data, dayData, gps, load, markers } from './load.mjs';
 const decorate = () => () => {};
 class Emitter {
   values = [];
@@ -10,13 +10,13 @@ const taps = load('../../src/app/telemetry/chartDoubleTap.ts');
 const vertical = load('../../src/app/telemetry/verticalAxis.ts');
 const history = load('../../src/app/telemetry/sessionHistory.ts', { './verticalAxis': vertical });
 const chart = load('../../src/app/greenpower-telemetry/greenpowerChart.ts', {
-  './greenpowerData': data, '../telemetry/verticalAxis': vertical, '../telemetry/sessionHistory': history
+  './greenpowerMarkers': markers, './greenpowerData': data, '../telemetry/verticalAxis': vertical, '../telemetry/sessionHistory': history
 });
 const { GreenpowerChartComponent } = load('../../src/app/greenpower-telemetry/greenpower-chart.component.ts', {
   '@angular/core': { Component: decorate, Input: decorate, Output: decorate, ViewChild: decorate, EventEmitter: Emitter, ChangeDetectionStrategy: {} },
-  './greenpowerSessions': load('../../src/app/greenpower-telemetry/greenpowerSessions.ts', { './greenpowerDay': dayData, './greenpowerData': data, './greenpowerGps': gps }),
-  './greenpowerData': data, './greenpowerChart': chart, '../telemetry/chartDoubleTap': taps,
-  './greenpowerLaps': load('../../src/app/greenpower-telemetry/greenpowerLaps.ts', { './greenpowerData': data })
+  './greenpowerSessions': load('../../src/app/greenpower-telemetry/greenpowerSessions.ts', { './greenpowerDay': dayData, './greenpowerMarkers': markers, './greenpowerData': data, './greenpowerGps': gps }),
+  './greenpowerMarkers': markers, './greenpowerData': data, './greenpowerChart': chart, '../telemetry/chartDoubleTap': taps,
+  './greenpowerLaps': load('../../src/app/greenpower-telemetry/greenpowerLaps.ts', { './greenpowerMarkers': markers, './greenpowerData': data })
 });
 function fixture() {
   const component = new GreenpowerChartComponent({ markForCheck() {} }, { run(fn) { fn(); } });
@@ -28,12 +28,12 @@ function fixture() {
   const pointer=(x,type='touch') => ({pointerId:1,pointerType:type,button:0,isPrimary:true,clientX:x,clientY:0,currentTarget:svg,timeStamp:Date.now()});
   return {component,pointer};
 }
-test('current chart updates measured values and keeps its limit through zoom and channel changes', () => {
+test('current chart updates measured values and keeps its marker through zoom and channel changes', () => {
   const {component:c} = fixture();
   c.channel = {id:'["A"]:A',label:'Current',unit:'A',value:'20',points:[{time:0,value:100},{time:150,value:20},{time:159,value:20}]};
   c.start = 150; c.end = 159;
   c.ngOnChanges({channel:{}});
-  assert.equal(c.limit, 24);
+  assert.equal(c.marker, 24);
   assert.equal(c.model.trace.max, 20);
   assert.ok(c.model.axis.max >= 24 && c.model.axis.max < 100);
   c.cursor = 159;
@@ -41,30 +41,30 @@ test('current chart updates measured values and keeps its limit through zoom and
   c.channel = {...c.channel,points:c.channel.points.map(p=>({...p,value:28}))};
   c.ngOnChanges({channel:{}});
   assert.equal(c.model.trace.max, 28);
-  assert.ok(c.limitY >= 10 && c.limitY <= 110);
+  assert.ok(c.markerY >= 10 && c.markerY <= 110);
   c.channel = {...c.channel,id:'["V1"]:V'};
   c.ngOnChanges({channel:{}});
-  assert.equal(c.limit, undefined);
+  assert.equal(c.marker, undefined);
   c.ngOnDestroy();
 });
-test('amp-hour limit remains visible below and above 24 Ah, including empty windows', () => {
+test('amp-hour marker remains visible below and above 24 Ah, including empty windows', () => {
   const {component:c} = fixture();
   for (const values of [[0, 10], [25, 30], []]) {
     c.channel = {id:'["AH"]:Ah',label:'Amp hours used',unit:'Ah',value:'10',points:values.map((value, i)=>({time:i*1000,value}))};
     c.ngOnChanges({channel:{}});
-    assert.equal(c.limit, 24);
+    assert.equal(c.marker, 24);
     assert.ok(c.model.axis.min <= 24 && c.model.axis.max >= 24);
-    assert.ok(c.limitY >= 10 && c.limitY <= 110);
+    assert.ok(c.markerY >= 10 && c.markerY <= 110);
     if (values.length) assert.equal(c.model.trace.max, Math.max(...values));
     c.start = 500;
     c.ngOnChanges({start:{}});
-    assert.equal(c.limit, 24);
-    assert.ok(c.limitY >= 10 && c.limitY <= 110);
+    assert.equal(c.marker, 24);
+    assert.ok(c.markerY >= 10 && c.markerY <= 110);
     c.start = 0;
   }
   c.channel = {...c.channel, id:'["V1"]:V', unit:'V'};
   c.ngOnChanges({channel:{}});
-  assert.equal(c.limit, undefined);
+  assert.equal(c.marker, undefined);
   c.ngOnDestroy();
 });
 test('zoom stays locked through a held drag and live updates for touch and mouse', async () => {
@@ -143,12 +143,12 @@ test('cursor snaps line and marker to original samples, including synchronized c
   c.cursor=800; // Another channel can have a different sample cadence.
   assert.equal(c.reading,c.channel.points[1]);
   assert.equal(c.cursorPosition,800);
-  assert.ok(Math.abs(c.markerY-(110-(5-c.model.axis.min)/(c.model.axis.max-c.model.axis.min)*100))<1e-10);
+  assert.ok(Math.abs(c.cursorY-(110-(5-c.model.axis.min)/(c.model.axis.max-c.model.axis.min)*100))<1e-10);
   c.cursor=100;
   assert.equal(c.cursorPosition,0);
   c.start=200;c.end=800;
   assert.equal(c.cursorPosition,undefined);
-  assert.equal(c.markerY,undefined);
+  assert.equal(c.cursorY,undefined);
   c.inspect(.5);
   assert.equal(c.cursorChange.values.at(-1),undefined,'empty window has no invented sample');
   c.ngOnDestroy();
@@ -433,5 +433,17 @@ test('overlay readings use each trace’s nearest visible point even outside its
   assert.deepEqual(values().map(Number),[4,10],'zoom limits the available samples for each trace');
   c.start=1500;c.end=3000;c.ngOnChanges({start:{},end:{}});
   assert.equal(values()[0],'—','no point in the visible window stays blank');
+  c.ngOnDestroy();
+});
+
+test('shared marker changes rerender the axis without changing zoom, cursor or trace readings', () => {
+  const {component:c}=fixture();c.cursor=0;
+  c.markerSetting={enabled:true,value:42};c.ngOnChanges({markerSetting:{}});
+  assert.equal(c.marker,42);assert.ok(c.model.axis.max>=42);assert.equal(c.cursor,0);
+  c.markerSetting={enabled:false,value:42};c.ngOnChanges({markerSetting:{}});
+  assert.equal(c.marker,undefined);assert.ok(c.model.axis.max<42);assert.equal(c.reading.time,0);
+  c.markerSetting={enabled:true,value:0};c.ngOnChanges({markerSetting:{}});
+  assert.equal(c.marker,0);assert.ok(c.model.axis.min<=0);
+  assert.equal(c.start,0);assert.equal(c.end,1000);assert.deepEqual(c.cursorChange.values,[]);
   c.ngOnDestroy();
 });

@@ -19,7 +19,7 @@ export class GreenpowerOverlayComponent implements OnDestroy {
   legendHighlight?: LegendHighlight;
   private membership = '';
   private changes = new Subscription();
-  constructor(public overlay: GreenpowerOverlayService, private view: GreenpowerViewService, change: ChangeDetectorRef) {
+  constructor(public overlay: GreenpowerOverlayService, public view: GreenpowerViewService, change: ChangeDetectorRef) {
     const update = () => { this.refresh(); change.markForCheck(); };
     this.changes.add(overlay.changed.subscribe(update));
     this.changes.add(view.changed.subscribe(update));

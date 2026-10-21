@@ -1,10 +1,10 @@
-import { ENERGY, GreenpowerChannel, channelsFor, sampleTime } from './greenpowerData';
+import { ENERGY, formatChannelNumber, GreenpowerChannel, channelsFor, sampleTime } from './greenpowerData';
 import { DaySession, RecordedEvent, effectiveDefaults } from './greenpowerDay';
 import { gpsAnalysis, gpsFixes } from './greenpowerGps';
 import { contains, TrackDefinition } from './greenpowerTracks';
 import { motorLapSpeeds, withMotorDerivedSpeed } from './greenpowerSpeed';
 import { lapMetricChannels } from './greenpowerLapMetrics';
-import { sessionLapAnalysis, sessionIntervals, sessionAmpHours, savedGear, withEnergy, withDistance } from './greenpowerSessions';
+import { sessionLapAnalysis, sessionIntervals, sessionAmpHours, savedGear, withEnergy, withDistance, withRaceTime } from './greenpowerSessions';
 
 // Local display state only: hidden retains graph rows; excluded removes them.
 export interface OverlaySession {
@@ -22,12 +22,14 @@ export function overlayLabel(event: RecordedEvent, session: DaySession, channels
   }
   return [event.date, event.eventName, effectiveDefaults(event, session).driver,
     session.type === 'battery_dyno' ? session.batteryIds.join(', ') : '',
-    maximum === undefined ? '' : `${maximum.toFixed(1)} Wh`].filter(Boolean).join(' · ');
+    maximum === undefined ? '' : `${formatChannelNumber({ id: ENERGY, unit: 'Wh' }, maximum)} Wh`].filter(Boolean).join(' · ');
 }
 export function overlayChannels(samples: Parameters<typeof channelsFor>[0], session: DaySession, event?: RecordedEvent, track?: TrackDefinition | null) {
   const ordered = [...samples].sort((a, b) => sampleTime(a) - sampleTime(b) || a.id.localeCompare(b.id));
   const latest = ordered.at(-1);
-  const channels = withEnergy(channelsFor(ordered, latest), [session], latest && sampleTime(latest)), fixes = gpsFixes(channels);
+  const timed = withRaceTime(channelsFor(ordered, latest), [session],
+    ordered.length ? sampleTime(ordered[0]) : session.startAt, latest ? sampleTime(latest) : session.endAt, latest && sampleTime(latest));
+  const channels = withEnergy(timed, [session], latest && sampleTime(latest)), fixes = gpsFixes(channels);
   const line = track?.line && fixes.every(fix => contains(track.bounds, fix)) ? track.line : null;
   const analysis = gpsAnalysis(fixes, line, channels, session.endAt);
   const numbered = sessionLapAnalysis(analysis, event ? sessionIntervals(event, [session]) : [], {

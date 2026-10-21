@@ -138,8 +138,8 @@ test('battery dyno labels use the maximum finite computed Wh, including zero, ra
     { time: 0, value: 0 }, { time: 1, value: 12.345 }, { time: 2, value: 2 },
     { time: 3, value: NaN }, { time: 4, value: Infinity }
   ] }];
-  assert.equal(overlay.overlayLabel(event, session, channels), date + ' · 12.3 Wh');
-  assert.equal(overlay.overlayLabel(event, session, [{ ...channels[0], points: [{ time: 0, value: 0 }] }]), date + ' · 0.0 Wh');
+  assert.equal(overlay.overlayLabel(event, session, channels), date + ' · 12 Wh');
+  assert.equal(overlay.overlayLabel(event, session, [{ ...channels[0], points: [{ time: 0, value: 0 }] }]), date + ' · 0 Wh');
   assert.equal(overlay.overlayLabel(event, session, [{ ...channels[0], points: [] }]), date);
   assert.equal(overlay.overlayLabel(event, { ...session, type: 'race' }, channels), date);
 });
@@ -155,7 +155,7 @@ test('loading a battery dyno adds computed maximum Wh to shared session and char
   const subscription = h.service.changed.subscribe(() => labels.push(h.service.sessions[0]?.label));
   await h.service.load(true, 'battery_dyno');
   assert.ok(labels.includes(date + ' · Goodwood · Default driver'), 'pending label has no energy');
-  assert.equal(h.service.sessions[0].label, date + ' · Goodwood · Default driver · 0.3 Wh');
+  assert.equal(h.service.sessions[0].label, date + ' · Goodwood · Default driver · 0 Wh');
   assert.ok(component.charts.every(chart => chart.traces.every(trace => trace.label === h.service.sessions[0].label)));
   assert.equal(h.calls.length, 3, 'one metadata, one parent and one chunk request');
   subscription.unsubscribe(); component.ngOnDestroy(); h.service.ngOnDestroy();

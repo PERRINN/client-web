@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { data, dayData, gps, load, motorSpeed } from './load.mjs';
+import { data, dayData, gps, load, motorSpeed, markers } from './load.mjs';
 
 const sessions = load('../../src/app/greenpower-telemetry/greenpowerSessions.ts', {
   './greenpowerData': data, './greenpowerDay': dayData, './greenpowerGps': gps
 });
-const view = load('../../src/app/greenpower-telemetry/greenpowerView.ts', { './greenpowerData': data });
+const view = load('../../src/app/greenpower-telemetry/greenpowerView.ts', { './greenpowerMarkers': markers, './greenpowerData': data });
 const window = (type, startAt, endAt) => ({ id: `${type}-${startAt}`, type, startAt, endAt, overrides: {} });
 const signal = (points, value = String(points.at(-1)?.value ?? '—')) => ({
   id: data.MOTOR_DERIVED_SPEED, ...data.channelDetails(data.MOTOR_DERIVED_SPEED), points, value

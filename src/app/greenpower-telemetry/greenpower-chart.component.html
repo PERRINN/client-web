@@ -21,12 +21,12 @@
   <div class="plot">
     <div class="scale">
       @for (tick of model.axis.ticks; track tick.y) {
-        @if (limit === undefined || tick.y < limitY - 14 || tick.y > limitY + 14) { <span [style.top.%]="tick.y / 120 * 100">{{ formatAxis(tick.value, model.axis.step) }}</span> }
+        @if (marker === undefined || tick.y < markerY - 14 || tick.y > markerY + 14) { <span [style.top.%]="tick.y / 120 * 100">{{ formatAxis(tick.value, model.axis.step) }}</span> }
       }
-      @if (limit !== undefined) { <span class="limit-label" [style.top.%]="limitY / 120 * 100">{{ limit }} {{ channel.unit }}</span> }
+      @if (marker !== undefined) { <span class="marker-label" [style.top.%]="markerY / 120 * 100">{{ formatAxis(marker!, model.axis.step) }}</span> }
     </div>
     <svg #plot [class.overlay-plot]="overlays.length > 0" viewBox="0 0 800 120" preserveAspectRatio="none" role="group" tabindex="0"
-      [attr.aria-label]="(heading || channel.label) + (limit !== undefined ? ' chart with ' + limit + ' ' + channel.unit + ' limit. ' : ' chart. ') + 'Drag to zoom; long press to inspect; double click or press Home to reset. Arrow keys step through data points; Escape clears the cursor.'"
+      [attr.aria-label]="(heading || channel.label) + (marker !== undefined ? ' chart with ' + formatAxis(marker!, model.axis.step) + ' ' + channel.unit + ' marker. ' : ' chart. ') + 'Drag to zoom; long press to inspect; double click or press Home to reset. Arrow keys step through data points; Escape clears the cursor.'"
       (pointerdown)="down($event)" (pointermove)="move($event)" (pointerup)="up($event)" (pointercancel)="cancel($event)"
       (lostpointercapture)="cancel($event)" (dblclick)="doubleClick()" (keydown)="key($event)" (blur)="cancel()" (contextmenu)="$event.preventDefault()">
       @for (lap of lapBands; track lap.time) {
@@ -34,7 +34,7 @@
       }
       @for (tick of model.axis.ticks; track tick.y) { <path class="grid" [attr.d]="'M0 ' + tick.y + 'H800'" /> }
       @for (tick of ticks; track tick.position) { <path class="time-grid" [attr.d]="'M' + tick.position * 8 + ' 0V120'" aria-hidden="true" /> }
-      @if (limit !== undefined) { <path class="current-limit" [attr.d]="'M0 ' + limitY + 'H800'" /> }
+      @if (marker !== undefined) { <path class="chart-marker" [attr.d]="'M0 ' + markerY + 'H800'" /> }
       @for (session of sessionBands; track session.id) {
         @if (session.starts) { <path class="session-boundary" [attr.d]="'M' + session.x * 8 + ' 0V120'"><title>{{ session.label }} · Start {{ time(session.start) }}</title></path> }
         @if (session.ends) { <path class="session-boundary session-finish" [attr.d]="'M' + (session.x + session.width) * 8 + ' 0V120'"><title>{{ session.label }} · End {{ time(session.end) }}</title></path> }
@@ -43,23 +43,23 @@
         @if (!trace.hidden) {
         <path class="trace" [class.trace-dimmed]="dimmed(trace.channel.id, trace.sessionId)" [style.stroke]="trace.colour" [style.stroke-dasharray]="trace.dashed ? '6 4' : null" transform="matrix(1.0204081633 0 0 1 -8.1632653061 0)" [attr.d]="model.overlays[index].path"><title>{{ trace.label }} · {{ trace.channel.label }}</title></path>
         @for (point of overlayDots[index]; track point.time) {
-          <ellipse class="lap-dot" [class.trace-dimmed]="dimmed(trace.channel.id, trace.sessionId)" [style.fill]="trace.colour" [attr.cx]="dotX(point.time)" [attr.cy]="comparisonY(point.value)" [attr.rx]="dotRadiusX" [attr.ry]="dotRadiusY"><title>{{ trace.label }} · {{ time(point.time) }} · {{ point.value }} {{ trace.channel.unit }}</title></ellipse>
+          <ellipse class="lap-dot" [class.trace-dimmed]="dimmed(trace.channel.id, trace.sessionId)" [style.fill]="trace.colour" [attr.cx]="dotX(point.time)" [attr.cy]="comparisonY(point.value)" [attr.rx]="dotRadiusX" [attr.ry]="dotRadiusY"><title>{{ trace.label }} · {{ time(point.time) }} · {{ formatNumber(trace.channel, point.value) }} {{ trace.channel.unit }}</title></ellipse>
         }
         }
       }
       @if (!overlays.length) { <path class="trace" [class.trace-dimmed]="dimmed(channel.id)" transform="matrix(1.0204081633 0 0 1 -8.1632653061 0)" [attr.d]="model.trace.path" /> }
       @for (point of lapDots; track point.time) {
-        <ellipse class="lap-dot" [class.trace-dimmed]="dimmed(channel.id)" [attr.cx]="dotX(point.time)" [attr.cy]="comparisonY(point.value)" [attr.rx]="dotRadiusX" [attr.ry]="dotRadiusY"><title>{{ time(point.time) }} · {{ point.value }} {{ channel.unit }}</title></ellipse>
+        <ellipse class="lap-dot" [class.trace-dimmed]="dimmed(channel.id)" [attr.cx]="dotX(point.time)" [attr.cy]="comparisonY(point.value)" [attr.rx]="dotRadiusX" [attr.ry]="dotRadiusY"><title>{{ time(point.time) }} · {{ formatNumber(channel, point.value) }} {{ channel.unit }}</title></ellipse>
       }
       @if (comparison) { <path class="trace comparison-trace" [class.trace-dimmed]="dimmed(comparison.id)" transform="matrix(1.0204081633 0 0 1 -8.1632653061 0)" [attr.d]="model.comparison.path" /> }
       @if (band; as selection) { <rect class="selection" [attr.x]="selection.x" y="0" [attr.width]="selection.width" height="120" /> }
       @if (comparisonReading; as point) {
-        <ellipse class="cursor-point comparison-point" [class.trace-dimmed]="dimmed(comparison!.id)" [attr.cx]="(point.time - start) / (end - start || 1) * 800" [attr.cy]="comparisonY(point.value)" [attr.rx]="markerRadiusX" ry="3.2" />
+        <ellipse class="cursor-point comparison-point" [class.trace-dimmed]="dimmed(comparison!.id)" [attr.cx]="(point.time - start) / (end - start || 1) * 800" [attr.cy]="comparisonY(point.value)" [attr.rx]="cursorRadiusX" ry="3.2" />
       }
       @if (overlays.length && overlayCursor !== undefined) { <path class="cursor" [attr.d]="'M' + (overlayCursor! - start) / (end - start || 1) * 800 + ' 0V120'" /> }
       @if (!overlays.length && cursorPosition !== undefined) {
         <path class="cursor" [attr.d]="'M' + cursorPosition + ' 0V120'" />
-        @if (reading) { <ellipse class="cursor-point" [class.trace-dimmed]="dimmed(channel.id)" [attr.cx]="cursorPosition" [attr.cy]="markerY" [attr.rx]="markerRadiusX" ry="3.2" /> }
+        @if (reading) { <ellipse class="cursor-point" [class.trace-dimmed]="dimmed(channel.id)" [attr.cx]="cursorPosition" [attr.cy]="cursorY" [attr.rx]="cursorRadiusX" ry="3.2" /> }
       }
     </svg>
     <div class="session-labels" aria-label="Sessions">

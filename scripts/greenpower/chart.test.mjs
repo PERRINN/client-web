@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { data, load } from './load.mjs';
+import { data, load, markers } from './load.mjs';
 const vertical = load('../../src/app/telemetry/verticalAxis.ts');
 const history = load('../../src/app/telemetry/sessionHistory.ts', { './verticalAxis': vertical });
 const chart = load('../../src/app/greenpower-telemetry/greenpowerChart.ts', {
-  './greenpowerData': data, '../telemetry/verticalAxis': vertical, '../telemetry/sessionHistory': history
+  './greenpowerMarkers': markers, './greenpowerData': data, '../telemetry/verticalAxis': vertical, '../telemetry/sessionHistory': history
 });
 test('race time readouts use minutes and seconds while plotted values retain minutes', () => {
   const samples = [0, 59.6, 1414, 3600].map((raceseconds, receivedAt) => ({ source: '424-phone', receivedAt, raw: JSON.stringify({ raceseconds }) }));
@@ -19,7 +19,7 @@ test('race time readouts use minutes and seconds while plotted values retain min
   assert.equal(chart.scalarReadout({ ...channel, value: '—' }, undefined, 0, 3), '—');
   assert.equal(chart.channelReadout(channel, NaN, 0, 60), '—');
   assert.equal(channel.points[2].value, 1414 / 60);
-  assert.equal(chart.scalarReadout({ id: 'other', unit: 'A', value: '12', points: [] }, undefined, 0, 3), '12 A');
+  assert.equal(chart.scalarReadout({ id: 'other', unit: 'A', value: '12', points: [] }, undefined, 0, 3), '12.0 A');
 });
 test('speed axes, cursor and latest scalar share mph values', () => {
   const samples = [0, 10].map((Spd, receivedAt) => ({ source: '424-phone', receivedAt, raw: JSON.stringify({ Spd }) }));
@@ -87,12 +87,12 @@ test('scalars follow the nearest visible cursor sample and restore latest values
   assert.equal(chart.scalarValue(channel, undefined, 0, 6), '100');
 });
 
-test('current chart fits measured readings and the 24 A limit', () => {
-  assert.equal(chart.channelLimit({id: '["A"]:A'}), 24);
-  assert.equal(chart.channelLimit({id: '["AH"]:Ah'}), 24);
-  assert.equal(chart.channelLimit({id: '["A"]:mA'}), undefined);
+test('current chart fits measured readings and the 24 A marker', () => {
+  assert.equal(chart.channelMarker({id: '["A"]:A'}), 24);
+  assert.equal(chart.channelMarker({id: '["AH"]:Ah'}), 24);
+  assert.equal(chart.channelMarker({id: '["A"]:mA'}), undefined);
   const points = Array.from({length: 160}, (_, time) => ({time, value: time < 149 ? 100 : 10}));
-  const model = chart.plotFor(points, 150, 159, 300, chart.channelLimit({id: '["A"]:A'}));
+  const model = chart.plotFor(points, 150, 159, 300, chart.channelMarker({id: '["A"]:A'}));
   assert.equal(model.trace.min, 10);
   assert.equal(model.trace.max, 10);
   assert.ok(model.axis.min <= 10 && model.axis.max >= 24 && model.axis.max < 100);
@@ -101,35 +101,35 @@ test('current chart fits measured readings and the 24 A limit', () => {
   assert.ok(chart.chartY(24, high.axis) >= 10 && chart.chartY(24, high.axis) <= 110);
 });
 
-test('total voltage limit stays visible across readings, zoom and empty overlays', () => {
+test('total voltage marker stays visible across readings, zoom and empty overlays', () => {
   const samples = [19, 21, 25].map((Vt, receivedAt) => ({ source: '424-phone', receivedAt, raw: JSON.stringify({ Vt }) }));
   const channel = data.channelsFor(samples, samples.at(-1))[0];
-  const limit = chart.channelLimit(channel);
-  assert.equal(limit, 21);
-  assert.equal(chart.channelLimit({ id: '["V1"]:V' }), undefined);
-  assert.equal(chart.channelLimit({ id: '["Vt"]:mV' }), undefined);
+  const marker = chart.channelMarker(channel);
+  assert.equal(marker, 21);
+  assert.equal(chart.channelMarker({ id: '["V1"]:V' }), undefined);
+  assert.equal(chart.channelMarker({ id: '["Vt"]:mV' }), undefined);
   for (const width of [200, 1000]) {
     for (const [start, end] of [[0, 2], [0, 0], [2, 2], [3, 4]]) {
       for (const overlay of [false, true]) {
-        const model = chart.plotFor(overlay ? [] : channel.points, start, end, width, limit, [], overlay ? [channel.points] : []);
+        const model = chart.plotFor(overlay ? [] : channel.points, start, end, width, marker, [], overlay ? [channel.points] : []);
         const values = channel.points.filter(p => p.time >= start && p.time <= end).map(p => p.value);
-        assert.ok(model.axis.min <= Math.min(limit, ...values));
-        assert.ok(model.axis.max >= Math.max(limit, ...values));
-        assert.ok(chart.chartY(limit, model.axis) >= 10 && chart.chartY(limit, model.axis) <= 110);
+        assert.ok(model.axis.min <= Math.min(marker, ...values));
+        assert.ok(model.axis.max >= Math.max(marker, ...values));
+        assert.ok(chart.chartY(marker, model.axis) >= 10 && chart.chartY(marker, model.axis) <= 110);
       }
     }
   }
 });
 
-test('paired battery voltages keep the 10 V limit and both traces visible through zoom', () => {
+test('paired battery voltages keep the 10 V marker and both traces visible through zoom', () => {
   const samples = [[18, 8], [22, 12], [24, 11]].map(([Vt, V1], receivedAt) =>
     ({ source: '424-phone', receivedAt, raw: JSON.stringify({ Vt, V1 }) }));
   const channels = data.channelsFor(samples, samples.at(-1));
   const left = channels.find(c => c.id === data.VOLTAGE_LEFT);
   const right = channels.find(c => c.id === data.VOLTAGE_RIGHT);
-  assert.equal(chart.channelLimit(left), 10);
-  assert.equal(chart.channelLimit(right), 10);
-  assert.equal(chart.channelLimit(channels.find(c => c.id === data.VOLTAGE_DIFF)), undefined);
+  assert.equal(chart.channelMarker(left), 10);
+  assert.equal(chart.channelMarker(right), 10);
+  assert.equal(chart.channelMarker(channels.find(c => c.id === data.VOLTAGE_DIFF)), undefined);
   for (const width of [200, 1000]) {
     for (const [start, end] of [[0, 2], [0, 0], [2, 2], [3, 4]]) {
       for (const overlay of [false, true]) {
@@ -144,20 +144,20 @@ test('paired battery voltages keep the 10 V limit and both traces visible throug
   }
 });
 
-test('energy limit stays visible below and above 550 Wh, through zoom and empty overlays', () => {
-  const limit = chart.channelLimit({ id: data.ENERGY });
-  assert.equal(limit, 550);
+test('energy marker stays visible below and above 550 Wh, through zoom and empty overlays', () => {
+  const marker = chart.channelMarker({ id: data.ENERGY });
+  assert.equal(marker, 550);
   for (const values of [[0, 100], [600, 800], []]) {
     const points = values.map((value, time) => ({ time, value }));
     for (const overlay of [false, true]) {
-      const model = chart.plotFor(overlay ? [] : points, 0, 1, 300, limit, [], overlay ? [points] : []);
-      assert.ok(model.axis.min <= Math.min(limit, ...values));
-      assert.ok(model.axis.max >= Math.max(limit, ...values));
-      assert.ok(chart.chartY(limit, model.axis) >= 10 && chart.chartY(limit, model.axis) <= 110);
+      const model = chart.plotFor(overlay ? [] : points, 0, 1, 300, marker, [], overlay ? [points] : []);
+      assert.ok(model.axis.min <= Math.min(marker, ...values));
+      assert.ok(model.axis.max >= Math.max(marker, ...values));
+      assert.ok(chart.chartY(marker, model.axis) >= 10 && chart.chartY(marker, model.axis) <= 110);
     }
   }
-  const zoomed = chart.plotFor([{ time: 0, value: 2000 }, { time: 1, value: 100 }], 1, 1, 300, limit);
-  assert.ok(zoomed.axis.min <= 100 && zoomed.axis.max >= limit && zoomed.axis.max < 2000);
+  const zoomed = chart.plotFor([{ time: 0, value: 2000 }, { time: 1, value: 100 }], 1, 1, 300, marker);
+  assert.ok(zoomed.axis.min <= 100 && zoomed.axis.max >= marker && zoomed.axis.max < 2000);
 });
 
 test('comparison traces share an axis spanning both visible series', () => {
@@ -184,16 +184,117 @@ test('overlay traces share an axis across every visible session without off-wind
 });
 
 test('power and lap average limits remain visible across widths, zoom and overlays', () => {
-  for (const [id, limit] of [[data.POWER, 550], ['computed:lap-average-amps', 24], ['computed:lap-average-power', 550]]) {
-    assert.equal(chart.channelLimit({ id }), limit);
-    const points = [{ time: 1000, value: limit / 2 }, { time: 2000, value: limit * 2 }];
+  for (const [id, marker] of [[data.POWER, 550], ['computed:lap-average-amps', 24], ['computed:lap-average-power', 550]]) {
+    assert.equal(chart.channelMarker({ id }), marker);
+    const points = [{ time: 1000, value: marker / 2 }, { time: 2000, value: marker * 2 }];
     for (const width of [200, 1000]) for (const [start, end] of [[0, 1500], [1500, 2500], [3000, 4000]]) {
       for (const overlay of [false, true]) {
-        const model = chart.plotFor(overlay ? [] : points, start, end, width, limit, [], overlay ? [points] : []);
-        assert.ok(model.axis.min <= limit && model.axis.max >= limit);
-        assert.ok(chart.chartY(limit, model.axis) >= 10 && chart.chartY(limit, model.axis) <= 110);
+        const model = chart.plotFor(overlay ? [] : points, start, end, width, marker, [], overlay ? [points] : []);
+        assert.ok(model.axis.min <= marker && model.axis.max >= marker);
+        assert.ok(chart.chartY(marker, model.axis) >= 10 && chart.chartY(marker, model.axis) <= 110);
         assert.doesNotMatch(model.trace.path, /NaN|Infinity/);
       }
+    }
+  }
+});
+
+test('measurement precision stays consistent across latest scalars, cursors, charts and overlays', () => {
+  const cases = [
+    ['["Spd"]:m/s', 'mph', 22.3693629, '22.4'],
+    [data.MOTOR_DERIVED_SPEED, 'mph', 22.3693629, '22.4'],
+    ['["A"]:A', 'A', -12.345678, '-12.3'],
+    [data.VOLTAGE_LEFT, 'V', 12.345678, '12.3'],
+    [data.POWER, 'W', 456.789, '457'],
+    [data.ENERGY, 'Wh', 123.456789, '123'],
+    ['["Tmp1"]:°C', '°C', 20.123456, '20.1'],
+    ['["Thrtl"]:%', '%', 67.891, '67.9'],
+    ['["AH"]:Ah', 'Ah', 1.234567, '1.2'],
+    [data.DISTANCE, 'mi', 1.234567, '1.23'],
+    ['["RPM"]:rpm', 'rpm', 1234.567, '1235'],
+    ['computed:gps-lap', '', 2, '2'],
+    ['["Gear"]:', '', 57 / 17, '3.353'],
+    ['computed:lap-time', 's', 123.456789, '123.457'],
+    ['["Lat"]:°', '°', 52.123456789, '52.123457'],
+    ['custom', 'widgets', 8.123456789, '8.123']
+  ];
+  for (const [id, unit, value, expected] of cases) {
+    const channel = { id, unit, label: id, value: String(value), points: [{ time: 1, value }] };
+    const before = structuredClone(channel);
+    const readout = expected + (unit ? ' ' + unit : '');
+    assert.equal(chart.scalarReadout(channel, undefined, 0, 2), readout);
+    assert.equal(chart.scalarReadout(channel, 1, 0, 2), readout);
+    assert.equal(chart.channelReadout(channel, value, 0, 10000), readout);
+    assert.equal(chart.channelReadout(channel, value, value - .001, value + .001), readout, 'zoom does not alter measurement precision');
+    assert.equal(chart.channelReadout(channel, value, 0, 100, false), expected);
+    assert.deepEqual(channel, before);
+  }
+});
+
+test('readouts retain fixed decimals and suppress negative zero while preserving missing and text values', () => {
+  const channel = { id: '["Spd"]:m/s', label: 'Vehicle speed', unit: 'mph', value: '0', points: [] };
+  assert.equal(chart.scalarReadout({ ...channel, value: '-0.00001' }, undefined, 0, 1), '0.0 mph');
+  assert.equal(chart.scalarReadout({ ...channel, value: '20.000000' }, undefined, 0, 1), '20.0 mph');
+  assert.equal(chart.scalarReadout({ ...channel, value: '—' }, undefined, 0, 1), '— mph');
+  assert.equal(chart.scalarReadout({ ...channel, unit: '', value: 'running' }, undefined, 0, 1), 'running');
+  assert.equal(data.formatChannelNumber({ id: 'custom', unit: '' }, 1e-12), '1.00e-12');
+  assert.equal(data.formatChannelNumber(channel, 1e12), '1.00e+12');
+  assert.equal(data.formatChannelNumber(channel, NaN), '—');
+});
+
+
+test('decimal places stay fixed as each measurement crosses whole and fractional values', () => {
+  for (const [id, unit, decimals] of [
+    [data.VOLTAGE_LEFT, 'V', 1], [data.VEHICLE_SPEED, 'mph', 1],
+    [data.POWER, 'W', 0], [data.ENERGY, 'Wh', 0], ['["A"]:A', 'A', 1],
+    ['["Tmp1"]:°C', '°C', 1], ['["Thrtl"]:%', '%', 1],
+    ['["AH"]:Ah', 'Ah', 1], [data.DISTANCE, 'mi', 2],
+    ['["Gear"]:', '', 3], ['computed:lap-time', 's', 3], ['["Lat"]:°', '°', 6],
+    ['["RPM"]:rpm', 'rpm', 0], ['computed:gps-lap', '', 0]
+  ]) {
+    for (const value of [0, 24, 23.9, 24.001]) {
+      const channel = { id, unit, label: id, value: String(value), points: [{ time: 1, value }] };
+      const expected = value.toFixed(decimals), suffix = unit ? ' ' + unit : '';
+      assert.equal(chart.scalarReadout(channel, undefined, 0, 2), expected + suffix);
+      assert.equal(chart.scalarReadout(channel, 1, 0, 2), expected + suffix);
+      assert.equal(chart.channelReadout(channel, value, 0, 100, false), expected);
+    }
+  }
+});
+
+test('unitless ActualThrtl and named throttle channels use one fixed decimal in every readout', () => {
+  for (const name of ['ActualThrtl', 'InputThrtl', 'inputthrtl', 'actualthrtl', 'actualthro', 'actualThro', 'actualThrottle', 'throttle', 'Thrtl', 'targetthro', 'requestedthrottle']) {
+    for (const path of [[name], ['controller', name]]) {
+      for (const value of [0, 24, 23.94]) {
+        const sample = { source: '424-phone', receivedAt: 1,
+          raw: JSON.stringify(path.length === 1 ? { [name]: value } : { controller: { [name]: value } }) };
+        const channel = data.channelsFor([sample], sample)[0];
+        const expected = value.toFixed(1), suffix = channel.unit ? ' ' + channel.unit : '';
+        assert.equal(chart.scalarReadout(channel, undefined, 0, 2), expected + suffix);
+        assert.equal(chart.scalarReadout(channel, 1, 0, 2), expected + suffix);
+        assert.equal(chart.channelReadout(channel, value, 0, 100, false), expected);
+        assert.equal(channel.points[0].value, value, 'formatting never changes the raw reading');
+      }
+    }
+  }
+  assert.equal(data.formatChannelNumber({ id: '["actualthroError"]:', unit: '' }, 1), '1.000');
+});
+
+
+test('acceleration and altitude use fixed one decimal', () => {
+  for (const [name, unit, decimals] of [
+    ['AccelX', '', 1], ['AccelY', '', 1], ['AccelZ', '', 1],
+    ['acceleration', '', 1], ['lateralAccel', '', 1], ['longitudinalAcceleration', '', 1],
+    ['ax', '', 1], ['ay', '', 1], ['az', '', 1],
+    ['sensor', 'g', 1], ['sensor', 'm/s²', 1], ['sensor', 'm/s^2', 1],
+    ['alt', '', 1], ['Alt', 'm', 1], ['altitude', 'm', 1], ['gpsAltitude', 'm', 1]
+  ]) {
+    for (const value of [0, 24, 23.947, -1.234]) {
+      const channel = { id: JSON.stringify([name]) + ':' + unit, label: name, unit,
+        value: String(value), points: [{ time: 1, value }] };
+      const expected = value.toFixed(decimals), suffix = unit ? ' ' + unit : '';
+      assert.equal(chart.scalarReadout(channel, undefined, 0, 2), expected + suffix, name);
+      assert.equal(chart.scalarReadout(channel, 1, 0, 2), expected + suffix, name);
+      assert.equal(chart.channelReadout(channel, value, 0, 100, false), expected, name);
     }
   }
 });

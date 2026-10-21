@@ -5,7 +5,21 @@ export interface GreenpowerChannel { id: string; label: string; unit: string; va
 // Display speeds in mph; retain source units in channel IDs for saved selections.
 const speedFactors: Record<string, number> = { 'm/s': 1 / 0.44704, 'km/h': 1 / 1.609344, kph: 1 / 1.609344, mph: 1 };
 function speedFactor(unit: string) { return Object.hasOwn(speedFactors, unit) ? speedFactors[unit] : undefined; }
-function displayUnit(unit: string) { return speedFactor(unit) === undefined ? unit : 'mph'; }
+const accelerationFactors: Record<string, number> = {
+  'm/s²': 1 / 9.80665, 'm/s^2': 1 / 9.80665, 'm/s2': 1 / 9.80665, 'm/s/s': 1 / 9.80665, g: 1, G: 1
+};
+function channelName(id: string) { return id.match(/"([^"]+)"\](?::|$)/)?.[1].replace(/[\s_-]/g, '').toLowerCase() ?? ''; }
+function accelerationName(name: string) {
+  return /^(?:(?:x|y|z|lat|long|vert|lateral|longitudinal|vertical)?(?:acc|accel|acceleration)(?:x|y|z|lat|long|vert|lateral|longitudinal|vertical)?|a[xyz])$/.test(name);
+}
+function accelerationFactor(id: string, unit: string) {
+  // Unitless named acceleration channels use the source m/s² units confirmed for Greenpower.
+  return Object.hasOwn(accelerationFactors, unit) ? accelerationFactors[unit]
+    : !unit && accelerationName(channelName(id)) ? 1 / 9.80665 : undefined;
+}
+function displayUnit(unit: string, id = '') {
+  return speedFactor(unit) !== undefined ? 'mph' : accelerationFactor(id, unit) !== undefined ? 'g' : unit;
+}
 function isRaceSeconds(id: string, unit: string) {
   return /^\["raceseconds"\]$/i.test(id) && ['', 's', 'seconds'].includes(unit);
 }
@@ -34,6 +48,26 @@ export function displayValue(value: unknown): string {
   if (typeof value === 'number') return value && (Math.abs(value) >= 1e9 || Math.abs(value) < 1e-6)
     ? value.toExponential(5) : valueFormat.format(value);
   return typeof value === 'object' ? JSON.stringify(value) : String(value);
+}
+
+const readoutFormats = Array.from({ length: 7 }, (_, maximumFractionDigits) =>
+  new Intl.NumberFormat('en-GB', { minimumFractionDigits: maximumFractionDigits, maximumFractionDigits, useGrouping: false }));
+/** Presentation precision only; channel samples and calculation inputs stay untouched. */
+export function formatChannelNumber(channel: Pick<GreenpowerChannel, 'id' | 'unit'>, value: number) {
+  if (!Number.isFinite(value)) return '—';
+  const name = channelName(channel.id);
+  const throttle = /^(?:actual|input|target|requested|demand|commanded)?(?:thrtl|thro(?:ttle)?)$/.test(name);
+  const acceleration = accelerationName(name) || Object.hasOwn(accelerationFactors, channel.unit);
+  const altitude = /^(?:gps)?alt(?:itude)?$/.test(name);
+  const decimals = throttle || altitude || acceleration ? 1 : channel.id.startsWith('["Gear"]:') ? 3
+    : ['computed:gps-lap', '["Lap"]:'].includes(channel.id) || ['rpm', 'W', 'Wh'].includes(channel.unit) ? 0
+    : channel.id === 'computed:lap-time' ? 3
+    : channel.unit === '°' ? 6
+    : channel.unit === 'mi' ? 2
+    : ['mph', 'A', 'Ah', 'V', '°C', '%'].includes(channel.unit) ? 1 : 3;
+  if (Math.abs(value) >= 1e9 || decimals === 3 && value !== 0 && Math.abs(value) < .001) return value.toExponential(2);
+  const rounded = Number(value.toFixed(decimals));
+  return readoutFormats[decimals].format(rounded === 0 ? 0 : rounded);
 }
 
 // Units are eChook's documented native units. Unknown channels are never inferred
@@ -122,10 +156,10 @@ export function channelsFor(samples: GreenpowerSample[], latest?: GreenpowerSamp
     for (const field of [...source, ...electricalFields(source)]) {
       const key = field.id.startsWith('computed:') ? field.id : `${field.id}:${field.unit}`;
       const raceTime = isRaceSeconds(field.id, field.unit);
-      const factor = raceTime ? 1 / 60 : speedFactor(field.unit);
+      const factor = raceTime ? 1 / 60 : speedFactor(field.unit) ?? accelerationFactor(field.id, field.unit);
       const value = factor !== undefined && typeof field.value === 'number' ? field.value * factor : field.value;
       let channel = channels.get(key);
-      if (!channel) { channel = { id: key, label: raceTime ? 'Race time' : field.label, unit: raceTime ? 'min' : displayUnit(field.unit), value: '—', points: [] }; channels.set(key, channel); }
+      if (!channel) { channel = { id: key, label: raceTime ? 'Race time' : field.label, unit: raceTime ? 'min' : displayUnit(field.unit, field.id), value: '—', points: [] }; channels.set(key, channel); }
       readings.set(key, value);
       if (plot && typeof value === 'number' && Number.isFinite(value)) channel.points.push({ time: sampleTime(sample), value });
     }
@@ -206,7 +240,7 @@ export function channelDetails(id: string): { label: string; unit: string } {
       const path: unknown = JSON.parse(id.slice(0, at + 1));
       if (Array.isArray(path) && path.every(part => typeof part === 'string')) {
         if (isRaceSeconds(id.slice(0, at + 1), id.slice(at + 2))) return { label: 'Race time', unit: 'min' };
-        return { label: (path.length === 1 && known[path[0]]?.[0]) || path.join(' / ') || 'Value', unit: displayUnit(id.slice(at + 2)) };
+        return { label: (path.length === 1 && known[path[0]]?.[0]) || path.join(' / ') || 'Value', unit: displayUnit(id.slice(at + 2), id.slice(0, at + 1)) };
       }
     } catch { /* A channel key can itself contain ]:. Continue to the JSON boundary. */ }
   }

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { load, data, dayData, gps, tracks, lapMetrics, motorSpeed } from './load.mjs';
+import { load, data, dayData, gps, tracks, lapMetrics, motorSpeed, markers } from './load.mjs';
 
 const sessions = load('../../src/app/greenpower-telemetry/greenpowerSessions.ts', {
   './greenpowerDay': dayData, './greenpowerData': data, './greenpowerGps': gps
@@ -8,7 +8,7 @@ const sessions = load('../../src/app/greenpower-telemetry/greenpowerSessions.ts'
 const vertical = load('../../src/app/telemetry/verticalAxis.ts');
 const history = load('../../src/app/telemetry/sessionHistory.ts', { './verticalAxis': vertical });
 const chart = load('../../src/app/greenpower-telemetry/greenpowerChart.ts', {
-  './greenpowerData': data, '../telemetry/verticalAxis': vertical, '../telemetry/sessionHistory': history
+  './greenpowerMarkers': markers, './greenpowerData': data, '../telemetry/verticalAxis': vertical, '../telemetry/sessionHistory': history
 });
 const overlay = load('../../src/app/greenpower-telemetry/greenpowerOverlay.ts', {
   './greenpowerData': data, './greenpowerDay': dayData, './greenpowerSessions': sessions, './greenpowerGps': gps, './greenpowerTracks': tracks, './greenpowerLapMetrics': lapMetrics, './greenpowerSpeed': motorSpeed

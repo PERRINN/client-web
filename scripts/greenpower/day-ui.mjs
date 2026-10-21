@@ -33,6 +33,7 @@ import { GreenpowerViewService } from '${folder}/greenpowerView.service';
 import { GreenpowerLapService } from '${folder}/greenpowerLap.service';
 import { GreenpowerMapComponent } from '${folder}/greenpower-map.component';
 import { GreenpowerLapListComponent } from '${folder}/greenpower-lap-list.component';
+import { GreenpowerChannelOptionComponent } from '${folder}/greenpower-channel-option.component';
 import { GreenpowerChartComponent } from '${folder}/greenpower-chart.component';
 import { channelsFor } from '${folder}/greenpowerData';
 import { emptyDay } from '${folder}/greenpowerDay';
@@ -60,7 +61,7 @@ const telemetry={changed:new Subject(),access:'signed-in',live:false,day:'2026-0
  async selectRecording(key,ranges){this.sessionLoads++;this.day=ranges[0].day;this.live=false;this.recordingKey=key;this.seed(ranges[0].firstAt,ranges.at(-1).lastAt);this.changed.next();},
  range(start,end){return [{day:this.day,source:'424-phone',firstChunk:'0000000000',lastChunk:'0000000000',firstIndex:0,lastIndex:1,firstSampleId:'a',lastSampleId:'b',firstAt:Math.round(start),lastAt:Math.round(end)}];},tick(){},loadMore(){}};
 telemetry.seed(Date.parse('2026-06-13T08:00:00Z'),Date.parse('2026-06-13T09:00:00Z'));
-const view={changed:new Subject(),ready:true,editing:false,canEdit:false,saving:false,error:'',draft:{scalars:{},charts:{}},scalars:channels=>channels.slice(0,1),charts:channels=>channels.slice(0,1),available:()=>[],cancel(){this.editing=false;},save(){}};
+const view={marker:()=>({enabled:false,value:0}),draftMarker:()=>({enabled:false,value:0}),setMarker(){},changed:new Subject(),ready:true,editing:false,canEdit:false,saving:false,error:'',draft:{scalars:{},charts:{}},scalars:channels=>channels.slice(0,1),charts:channels=>channels.slice(0,1),available:()=>[],cancel(){this.editing=false;},save(){}};
 const laps={changed:new Subject(),eventTrack:true,ready:true,selectionReady:true,canEdit:false,candidates:[],fixes:[],analysis:{channel:{id:'lap',label:'Lap',unit:'',points:[]},laps:[]},select(){},syncEditing(){},update(){},line:null,name:'',revision:0,mismatch:false};
 const functions={httpsCallable:()=>input=>defer(async()=>{if(saveFail)throw {code:'functions/failed-precondition'};
 const parentPath='GreenpowerTelemetry/424/days/'+input.date;
@@ -74,7 +75,7 @@ GreenpowerEventEditorComponent.ctorParameters=()=>[{type:GreenpowerEventEditServ
 GreenpowerMetadataFieldsComponent.ctorParameters=()=>[{type:GreenpowerEventsService}];
 GreenpowerMapComponent.ctorParameters=()=>[{type:ChangeDetectorRef}];GreenpowerChartComponent.ctorParameters=()=>[{type:ChangeDetectorRef},{type:NgZone}];
 TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTesting());
-TestBed.configureTestingModule({imports:[CommonModule,FormsModule,RouterModule.forRoot([])],declarations:[GreenpowerTelemetryComponent,GreenpowerEventSelectorComponent,GreenpowerEventEditorComponent,GreenpowerMetadataFieldsComponent,GreenpowerChartComponent,GreenpowerMapComponent,GreenpowerLapListComponent],providers:[{provide:PermissionsService,useValue:permissions},{provide:AngularFirestore,useValue:{firestore:db}},{provide:AngularFireFunctions,useValue:functions}]});
+TestBed.configureTestingModule({imports:[CommonModule,FormsModule,RouterModule.forRoot([])],declarations:[GreenpowerChannelOptionComponent,GreenpowerTelemetryComponent,GreenpowerEventSelectorComponent,GreenpowerEventEditorComponent,GreenpowerMetadataFieldsComponent,GreenpowerChartComponent,GreenpowerMapComponent,GreenpowerLapListComponent],providers:[{provide:PermissionsService,useValue:permissions},{provide:AngularFirestore,useValue:{firestore:db}},{provide:AngularFireFunctions,useValue:functions}]});
 TestBed.overrideComponent(GreenpowerTelemetryComponent,{set:{providers:[{provide:GreenpowerTelemetryService,useValue:telemetry},{provide:GreenpowerViewService,useValue:view},{provide:GreenpowerLapService,useValue:laps},GreenpowerEventsService,GreenpowerEventEditService,{provide:GreenpowerOverlayService,useValue:{active:false,changed:new Subject(),clear(){}}}]}});
 const fixture=TestBed.createComponent(GreenpowerTelemetryComponent);document.querySelector('.contentCard').append(fixture.nativeElement);fixture.autoDetectChanges();
 window.dayHarness={
@@ -347,7 +348,7 @@ try {
     assert.match(await page.locator('.session-heading').nth(1).innerText(), /Race · Sam/);
     assert.deepEqual(await page.locator('[aria-label="GPS laps"] tbody button').allTextContents(),['1','2','3','1','2','3'],'each session includes the run from session start to its first crossing');
     await page.screenshot({ path: output + '/session-laps-' + width + '.png', fullPage: true });
-    assert.match(await page.locator('.gearing').nth(1).innerText(), /3\.8:1 · changed/);
+    assert.match(await page.locator('.gearing').nth(1).innerText(), /3\.800:1 · changed/);
     await page.getByRole('button', {name:'Zoom all graphs to GPS lap 1 · Race · Sam',exact:true}).click();
     await page.getByRole('button', {name:'Zoom all graphs to lap 1 · Race · Sam',exact:true}).waitFor();
     assert.equal(await page.locator('.lap-band title').first().textContent(),'Lap 1 · Race · Sam · 10:00:00–10:05:00');

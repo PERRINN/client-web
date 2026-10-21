@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { data, dayData, gps, load } from './load.mjs';
+import { data, dayData, gps, load, markers } from './load.mjs';
 
 const { withEnergy } = load('../../src/app/greenpower-telemetry/greenpowerSessions.ts', {
   './greenpowerData': data, './greenpowerDay': dayData, './greenpowerGps': gps
 });
-const view = load('../../src/app/greenpower-telemetry/greenpowerView.ts', { './greenpowerData': data });
+const view = load('../../src/app/greenpower-telemetry/greenpowerView.ts', { './greenpowerMarkers': markers, './greenpowerData': data });
 const sample = (time, payload = { Vt: 24, A: 20, AH: 10 + time / 3600000 * 20 }) => ({
   id: String(time), receivedAt: time, source: '424-phone', raw: JSON.stringify(payload)
 });

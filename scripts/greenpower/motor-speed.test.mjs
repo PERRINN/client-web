@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { data, dayData, gps, load, motorSpeed } from './load.mjs';
+import { data, dayData, gps, load, motorSpeed, markers } from './load.mjs';
 
 const sessions = load('../../src/app/greenpower-telemetry/greenpowerSessions.ts', {
   './greenpowerDay': dayData, './greenpowerData': data, './greenpowerGps': gps
 });
-const view = load('../../src/app/greenpower-telemetry/greenpowerView.ts', { './greenpowerData': data });
+const view = load('../../src/app/greenpower-telemetry/greenpowerView.ts', { './greenpowerMarkers': markers, './greenpowerData': data });
 const event = { ...dayData.emptyDay('2026-06-14'), defaults: { motorGearTeeth: 12, wheelGearTeeth: 60 } };
 const samples = (recorded = true, source = '424-phone') => [0, 20, 30, 40, 60, 80, 100].map(receivedAt => ({
   id: String(receivedAt), source, receivedAt,

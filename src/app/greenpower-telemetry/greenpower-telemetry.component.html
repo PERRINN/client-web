@@ -55,11 +55,10 @@
           }
           <div #channelOptions class="channel-options" (pointermove)="drag.move($event)" (pointerup)="drag.finish($event)" (pointercancel)="drag.cancel($event)" (lostpointercapture)="drag.cancel($event)" role="group" [attr.aria-label]="editorKind === 'scalars' ? 'Scalar visibility and order' : 'Chart visibility and order'">
             @for (channel of available; track channel.id; let index = $index) {
-              <div class="channel-option" [class.dragging]="drag.channel === channel.id" [attr.data-channel]="channel.id">
-                <input type="checkbox" [attr.aria-description]="channel.id.startsWith('computed:') || (editorKind === 'charts' && isVehicleSpeed(channel.id)) ? 'Calculated in the UI' : null" [attr.aria-label]="channel.label + (editorKind === 'scalars' ? ' scalar' : ' chart')" [checked]="!!view.draft[editorKind][channel.id]" [disabled]="view.saving" (change)="view.toggle(editorKind, channel.id, $any($event.target).checked)">
-                <span class="channel-label" [attr.aria-description]="channel.id.startsWith('computed:') || (editorKind === 'charts' && isVehicleSpeed(channel.id)) ? 'Calculated in the UI' : null">{{ channel.label }}@if (channel.id.startsWith('computed:') || (editorKind === 'charts' && isVehicleSpeed(channel.id))) { <span class="math-channel-icon" aria-hidden="true" title="Calculated in the UI"></span> }{{ channel.unit ? ' · ' + channel.unit : '' }}</span>
-                <button type="button" class="drag-handle" [attr.aria-label]="'Reorder ' + channel.label + (editorKind === 'scalars' ? ' scalar' : ' chart')" aria-description="Drag to reorder. Use Up and Down arrow keys, or Escape to cancel a drag." [disabled]="view.saving || index >= selectedCount" (pointerdown)="startDrag($event, channel, channelOptions)" (keydown)="handleKey($event, channel)" (contextmenu)="$event.preventDefault()"><span aria-hidden="true">⠿</span></button>
-              </div>
+              <app-greenpower-channel-option class="channel-option" [class.dragging]="drag.channel === channel.id" [attr.data-channel]="channel.id"
+                [channel]="channel" [kind]="editorKind" [selected]="!!view.draft[editorKind][channel.id]" [saving]="view.saving" [reorderDisabled]="index >= selectedCount"
+                [marker]="editorKind === 'charts' ? view.draftMarker(channel.id) : undefined" (markerChange)="view.setMarker(channel.id, $event)"
+                (selectionChange)="view.toggle(editorKind, channel.id, $event)" (dragStart)="startDrag($event, channel, channelOptions)" (reorderKey)="handleKey($event, channel)" />
             } @empty { <p class="state">No channels in loaded telemetry.</p> }
           </div>
           }
@@ -115,7 +114,7 @@
         }
         <div class="charts">
           @for (channel of charts; track channel.id) {
-            @if (channel.points.length || (isVehicleSpeed(channel.id) && motorDerivedSpeed?.points?.length)) { <app-greenpower-chart [(legendHighlight)]="legendHighlight" [channel]="channel" [comparison]="channel.id === voltageLeftId ? voltageRight : isVehicleSpeed(channel.id) ? motorDerivedSpeed : undefined" [heading]="channel.id === voltageLeftId ? 'Voltage left / right' : ''" [laps]="laps" [sessions]="sessions" [start]="start" [end]="end" [live]="telemetry.live" [cursor]="cursor" [context]="dataset" (windowChange)="zoom($event)" (cursorChange)="cursor = $event" /> }
+            @if (channel.points.length || (isVehicleSpeed(channel.id) && motorDerivedSpeed?.points?.length)) { <app-greenpower-chart [(legendHighlight)]="legendHighlight" [channel]="channel" [markerSetting]="view.marker(channel.id)" [comparison]="channel.id === voltageLeftId ? voltageRight : isVehicleSpeed(channel.id) ? motorDerivedSpeed : undefined" [heading]="channel.id === voltageLeftId ? 'Voltage left / right' : ''" [laps]="laps" [sessions]="sessions" [start]="start" [end]="end" [live]="telemetry.live" [cursor]="cursor" [context]="dataset" (windowChange)="zoom($event)" (cursorChange)="cursor = $event" /> }
           }
         </div>
       }

@@ -14,7 +14,7 @@ import { GreenpowerTelemetryService } from './greenpowerTelemetry.service';
 import { GreenpowerEventsService } from './greenpowerEvents.service';
 import { GreenpowerEventEditService } from './greenpowerEventEdit.service';
 import { DaySession, RecordedEvent } from './greenpowerDay';
-import { SessionInterval, sessionIntervals, sessionLapAnalysis, sessionAmpHours, savedGear, withEnergy, withDistance } from './greenpowerSessions';
+import { SessionInterval, sessionIntervals, sessionLapAnalysis, sessionAmpHours, savedGear, withEnergy, withDistance, withRaceTime } from './greenpowerSessions';
 import { GreenpowerOverlayService } from './greenpowerOverlay.service';
 import { motorLapSpeeds, withMotorDerivedSpeed } from './greenpowerSpeed';
 import { lapMetricChannels } from './greenpowerLapMetrics';
@@ -152,7 +152,8 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
       this.numberedLaps = numbered.laps; this.lapChannel = numbered.channel;
     }
     const latestTime = this.telemetry.latest ? sampleTime(this.telemetry.latest) : undefined;
-    const electrical = withEnergy(this.telemetry.channels, this.recordingSessions, latestTime);
+    const timed = withRaceTime(this.telemetry.channels, this.recordingSessions, this.telemetry.start, this.telemetry.end, latestTime);
+    const electrical = withEnergy(timed, this.recordingSessions, latestTime);
     this.channels = savedGear(electrical.map(channel => sessionAmpHours(channel, this.recordingSessions, latestTime)),
       this.loadedEvent, this.recordingSessions, this.telemetry.start, Math.max(this.telemetry.end, latestTime ?? 0), latestTime,
       !this.sessionsLoading && !this.sessionsMore && !this.sessionsError);

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { data, load, lapMetrics } from './load.mjs';
+import { data, load, lapMetrics, markers } from './load.mjs';
 
 const laps = [
   { time: 0, end: 60000, complete: true, speed: 25, current: 21, lap: 1 },
@@ -8,7 +8,7 @@ const laps = [
   { time: 90000, end: 155000, complete: true, speed: 26, lap: 3 },
   { time: 155000, end: 180000, complete: false, lap: 4 }
 ];
-const view = load('../../src/app/greenpower-telemetry/greenpowerView.ts', { './greenpowerData': data });
+const view = load('../../src/app/greenpower-telemetry/greenpowerView.ts', { './greenpowerMarkers': markers, './greenpowerData': data });
 
 test('lap metrics reuse completed times and averages with seconds, mph and amps', () => {
   const channels = lapMetrics.lapMetricChannels(laps);

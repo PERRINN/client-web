@@ -15,6 +15,7 @@ export function load(relative, imports = {}) {
   return exports;
 }
 export const data = load('../../src/app/greenpower-telemetry/greenpowerData.ts');
+export const markers = load('../../src/app/greenpower-telemetry/greenpowerMarkers.ts', { './greenpowerData': data });
 export const eventData = load('../../src/app/greenpower-telemetry/greenpowerEvents.ts');
 export const recordings = load('../../src/app/greenpower-telemetry/greenpowerRecording.ts', {
   'firebase/compat/app': { default: firebase }, 'firebase/compat/firestore': {}, './greenpowerData': data, './greenpowerEvents': eventData

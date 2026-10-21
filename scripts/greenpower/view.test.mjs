@@ -1,15 +1,15 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { BehaviorSubject, Subject, combineLatest } from 'rxjs';
-import { data, load, sample } from './load.mjs';
+import { data, load, sample, markers } from './load.mjs';
 import { setAdminRole } from '../admin/set-admin-role.mjs';
 const datasetTrack=load('../../src/app/greenpower-telemetry/greenpowerDatasetTrack.ts');
 const angular = { Injectable: () => target => target, runInInjectionContext: (_, callback) => callback() };
-const view = load('../../src/app/greenpower-telemetry/greenpowerView.ts', { './greenpowerData': data });
+const view = load('../../src/app/greenpower-telemetry/greenpowerView.ts', { './greenpowerMarkers': markers, './greenpowerData': data });
 const { PermissionsService } = load('../../src/app/permissions.service.ts', { '@angular/core': angular, rxjs: { BehaviorSubject, combineLatest } });
 const { GreenpowerViewService } = load('../../src/app/greenpower-telemetry/greenpowerView.service.ts', {
   '@angular/core': angular, rxjs: { Subject }, 'firebase/compat/app': { default: { firestore: { FieldValue: {serverTimestamp:()=> 'server-time'} } } },
-  'firebase/compat/firestore': {}, './greenpowerView': view, './greenpowerData': data, './greenpowerDatasetTrack': datasetTrack
+  'firebase/compat/firestore': {}, './greenpowerView': view, './greenpowerMarkers': markers, './greenpowerData': data, './greenpowerDatasetTrack': datasetTrack
 });
 const channels = data.channelsFor([sample(0), sample(1)]);
 const saved = { ...view.selectionFor(channels), revision: 1, updatedBy: 'admin' };
@@ -258,5 +258,53 @@ test('calculated selections save independently, retain missing slots and follow 
   assert.ok(h.service.scalars(loaded).some(c=>c.id===data.POWER));
   assert.ok(h.service.charts(loaded).some(c=>c.id===data.ENERGY));
   assert.ok(!h.service.scalars(loaded).some(c=>c.id===data.ENERGY));
+  h.service.ngOnDestroy();
+});
+
+test('markers preserve legacy defaults, stay private until Save and propagate through the existing listener', async () => {
+  const admin=harness(), viewer=harness();admin.signIn();viewer.signIn(false,'viewer');
+  admin.emit(saved);viewer.emit(saved);
+  assert.deepEqual(admin.service.marker(data.POWER),{enabled:true,value:550});
+  assert.equal(admin.service.marker(data.POWER),admin.service.marker(data.POWER),'clock checks reuse the default object');
+  assert.equal(admin.service.marker('new'),admin.service.marker('new'),'unknown channels share a stable disabled setting');
+  assert.deepEqual(admin.service.marker('new'),{enabled:false,value:0});
+  assert.deepEqual(admin.service.marker('toString'),{enabled:false,value:0});
+  admin.service.edit(channels);admin.service.setMarker(data.POWER,{enabled:true,value:525});
+  assert.equal(admin.service.marker(data.POWER).value,550,'draft never changes published charts');
+  assert.equal(admin.writes,0);assert.equal(viewer.service.marker(data.POWER).value,550);
+  await admin.service.save();assert.equal(admin.writes,1);assert.equal(admin.attempts,1);
+  assert.equal(admin.service.marker(data.POWER).value,525,'acknowledgement updates the saving viewer');
+  viewer.emit(admin.record);assert.equal(viewer.service.marker(data.POWER).value,525);
+  assert.equal(admin.listeners.length,1);assert.equal(viewer.listeners.length,1);
+  admin.service.edit(channels);admin.service.setMarker(data.POWER,{enabled:false,value:525});
+  await admin.service.save();viewer.emit(admin.record);
+  assert.deepEqual(viewer.service.marker(data.POWER),{enabled:false,value:525});
+  assert.deepEqual(viewer.service.marker('["A"]:A'),{enabled:true,value:24},'unspecified legacy markers survive');
+  admin.service.edit(channels);admin.service.draft.markers[data.POWER].value=100;admin.service.cancel();
+  assert.equal(admin.service.marker(data.POWER).value,525,'draft entries are copied deeply');
+  admin.service.ngOnDestroy();viewer.service.ngOnDestroy();
+});
+
+test('marker validation rejects invalid enabled values, excess entries and unauthorized or conflicting saves', async () => {
+  for(const invalid of [[],null,{x:{enabled:'yes',value:2}},{x:{enabled:true,value:null}},
+    {x:{enabled:true,value:NaN}},{x:{enabled:true,value:Infinity}},{x:{enabled:true,value:'2'}},
+    {x:{enabled:false,value:0,extra:true}},Object.fromEntries(Array.from({length:513},(_,i)=>[i,{enabled:true,value:0}]))]) {
+    assert.equal(view.validSelection({...saved,markers:invalid}),false);
+  }
+  assert.equal(view.validSelection({...saved,markers:{x:{enabled:false,value:null},y:{enabled:true,value:-1.5},z:{enabled:true,value:0}}}),true);
+  const h=harness();h.signIn();h.emit(saved);h.service.edit(channels);
+  h.service.setMarker(data.POWER,{enabled:true,value:null});await h.service.save();
+  assert.equal(h.writes,0);assert.match(h.service.error,/number/);
+  h.service.setMarker(data.POWER,{enabled:true,value:0});h.emit({...saved,revision:2});await h.service.save();
+  assert.equal(h.writes,0);assert.match(h.service.error,/changed elsewhere/);
+  h.signIn(false);h.service.setMarker(data.POWER,{enabled:true,value:10});await h.service.save();assert.equal(h.writes,0);
+  h.service.ngOnDestroy();
+});
+
+test('stored markers remain editable when their raw channel is absent from the recording', () => {
+  const h=harness();h.signIn();h.emit({...saved,markers:{'["old"]:W':{enabled:false,value:100}}});
+  h.service.edit([]);
+  assert.ok(h.service.available([],'charts').some(channel=>channel.id==='["old"]:W'));
+  assert.deepEqual(h.service.draftMarker('["old"]:W'),{enabled:false,value:100});
   h.service.ngOnDestroy();
 });

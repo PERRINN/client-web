@@ -200,9 +200,9 @@ Admin edit controls follow the active view: Data contains channel/event controls
 
 Chart cursors snap to the nearest original sample in the visible window on hover or touch hold, with a circular point marker and matching sample time/value. Left/Right arrow keys step through sample timestamps; synchronized charts select their own nearest visible sample.
 
-The Current (A) chart shows measured current and a labelled dashed 24 A limit on the same Y axis. `CURRENT_LIMIT_AMPS` in `greenpowerChart.ts` defines the limit. Time-weighted average current appears per lap in the lap list.
+Each graph supports a shared horizontal **Marker**. In **Edit → Charts**, admins can enable/disable its marker and set its numeric value, then Save for all viewers or Cancel. Existing markers keep their current defaults; other graphs start disabled. Settings apply across Live, History and overlays. Disabled markers retain their value. See [data-model.md](data-model.md) for the persisted contract and rule/client rollout requirements.
 
-Dates and chart times use `Europe/London`, including GMT/BST. Live timelines use **server receipt time**; imported history uses the preserved **source timestamp**, with import receipt time stored separately. Numeric display rounds to six decimal places, while storage preserves the original JSON. Plot rendering preserves per-bin minima/maxima; the full samples remain loaded and stored. See [data-model.md → Greenpower telemetry](data-model.md#greenpower-telemetry) for the contract, work budgets and deployment considerations.
+Dates and chart times use `Europe/London`, including GMT/BST. Live timelines use **server receipt time**; imported history uses the preserved **source timestamp**, with import receipt time stored separately. Readouts use fixed decimal precision by measurement, and chart markers follow Y-axis tick precision; see [Greenpower number precision](ui-spec.md). Storage preserves the original JSON. Plot rendering preserves per-bin minima/maxima; the full samples remain loaded and stored. See [data-model.md → Greenpower telemetry](data-model.md#greenpower-telemetry) for the contract, work budgets and deployment considerations.
 
 #### Phone setup and workshop verification
 

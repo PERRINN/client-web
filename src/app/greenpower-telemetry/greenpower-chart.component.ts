@@ -1,8 +1,9 @@
+import type { ChartMarker } from './greenpowerMarkers';
 import type { LegendHighlight } from './greenpowerChart';
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, NgZone, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
 import type { GreenpowerChannel } from './greenpowerData';
-import { isLapMetric, isRaceTime, londonTime, pointIndex } from './greenpowerData';
-import { ChartWindow, elapsedTime, chartY, channelReading, channelReadout, clockTicks, formatAxisValue, channelLimit, nearestPoint, plotFor } from './greenpowerChart';
+import { formatChannelNumber, isLapMetric, isRaceTime, londonTime, pointIndex } from './greenpowerData';
+import { ChartWindow, elapsedTime, chartY, channelReading, channelReadout, clockTicks, formatAxisValue, channelMarker, nearestPoint, plotFor } from './greenpowerChart';
 import { SessionInterval, visibleSessions } from './greenpowerSessions';
 import { ChartDoubleTap } from '../telemetry/chartDoubleTap';
 import { lapAt, LapInterval, visibleLaps } from './greenpowerLaps';
@@ -15,6 +16,7 @@ import type { OverlayTrace } from './greenpowerOverlay';
 })
 export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDestroy {
   @Input({ required: true }) channel!: GreenpowerChannel;
+  @Input() markerSetting?: ChartMarker;
   @Input() comparison?: GreenpowerChannel;
   @Input() heading = '';
   @Input() start = 0;
@@ -61,9 +63,9 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   ticks = clockTicks(0, 0, 300);
   lapBands = visibleLaps([], 0, 0, 300);
   sessionBands = visibleSessions([], 0, 0);
-  get limit() { return channelLimit(this.channel); }
+  get marker() { return channelMarker(this.channel, this.markerSetting); }
   get raceTime() { return isRaceTime(this.channel); }
-  get limitY() { return chartY(this.limit!, this.model.axis); }
+  get markerY() { return chartY(this.marker!, this.model.axis); }
   get cursorLap() {
     if (isLapMetric(this.channel.id)) {
       const point = this.reading;
@@ -75,6 +77,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   }
   comparisonY(value: number) { return chartY(value, this.model.axis); }
   formatAxis = formatAxisValue;
+  formatNumber = formatChannelNumber;
   time(value: number) { return this.overlays.length ? elapsedTime(value) : londonTime(value); }
   private latestOverlayTime?: number;
   get overlayCursor() { return this.cursor ?? this.latestOverlayTime; }
@@ -105,13 +108,13 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
     const point = this.reading ?? this.comparisonReading;
     return point ? (point.time - this.start) / Math.max(1, this.end - this.start) * 800 : undefined;
   }
-  get markerY() {
+  get cursorY() {
     const point = this.reading, axis = this.model.axis;
     if (!point) return undefined;
     return chartY(point.value, axis);
   }
-  // The SVG stretches horizontally; compensate to keep the marker circular in CSS pixels.
-  get markerRadiusX() { return 4 * 800 / Math.max(1, this.width); }
+  // The SVG stretches horizontally; compensate to keep the cursor point circular in CSS pixels.
+  get cursorRadiusX() { return 4 * 800 / Math.max(1, this.width); }
   get reading() {
     if (this.cursor !== undefined) return channelReading(this.channel, this.cursor, this.start, this.end);
     return nearestPoint(this.channel.points, this.end, this.start, this.end);
@@ -147,7 +150,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   ngOnChanges(changes: SimpleChanges) {
     if (!this.legendHighlight || changes['context']) this.hoveredLegend = this.focusedLegend = undefined;
     if (changes['context'] || changes['overlays']) this.cancel();
-    if (changes['channel'] || changes['comparison'] || changes['overlays'] || changes['start'] || changes['end'] || changes['laps'] || changes['sessions']) {
+    if (changes['markerSetting'] || changes['channel'] || changes['comparison'] || changes['overlays'] || changes['start'] || changes['end'] || changes['laps'] || changes['sessions']) {
       if (this.drag) this.renderPending = true;
       else this.render();
     }
@@ -166,7 +169,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
       const point = nearestPoint(trace.channel.points, this.end, this.start, this.end);
       if (point && (this.latestOverlayTime === undefined || point.time > this.latestOverlayTime)) this.latestOverlayTime = point.time;
     }
-    this.model = plotFor(this.overlays.length ? [] : this.channel.points, this.start, this.end, this.width, this.limit, this.comparison?.points, this.overlays.map(trace => trace.hidden ? [] : trace.channel.points));
+    this.model = plotFor(this.overlays.length ? [] : this.channel.points, this.start, this.end, this.width, this.marker, this.comparison?.points, this.overlays.map(trace => trace.hidden ? [] : trace.channel.points));
     const dots = (channel: GreenpowerChannel) => isLapMetric(channel.id)
       ? channel.points.slice(pointIndex(channel.points, this.start), pointIndex(channel.points, this.end, true)) : [];
     this.lapDots = this.overlays.length ? [] : dots(this.channel);

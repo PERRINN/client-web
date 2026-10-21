@@ -1,5 +1,5 @@
 import { DAY_SESSION_TYPES, DaySession, RecordedEvent, effectiveDefaults, gearingRatio } from './greenpowerDay';
-import { channelDetails, displayValue, DISTANCE, ENERGY, MOTOR_DERIVED_SPEED, GreenpowerChannel, pointIndex, POWER } from './greenpowerData';
+import { channelDetails, displayValue, DISTANCE, ENERGY, isRaceTime, MOTOR_DERIVED_SPEED, GreenpowerChannel, pointIndex, POWER } from './greenpowerData';
 import { GpsFix, GpsLap, MAX_GPS_GAP, timeAverage, validSegment } from './greenpowerGps';
 
 export interface SessionInterval { id: string; start: number; end: number; label: string; gearRatio?: number; gearChanged?: boolean; }
@@ -57,6 +57,33 @@ function consumptionSessions(sessions: DaySession[]) {
   return sessions.filter(session => ['race', 'battery_dyno', 'motor_dyno'].includes(session.type)
     && session.endAt > session.startAt && !sessions.some(other => other !== session
       && other.startAt < session.endAt && other.endAt > session.startAt));
+}
+
+/** Use elapsed timestamps only when the recording has no numeric race-time readings. */
+export function withRaceTime(channels: GreenpowerChannel[], sessions: DaySession[], start: number, end: number, latestTime?: number): GreenpowerChannel[] {
+  if (!channels.length || !Number.isFinite(start) || !Number.isFinite(end) || end < start
+    || channels.some(channel => isRaceTime(channel) && channel.points.length)) return channels;
+  const windows = consumptionSessions(sessions).sort((a, b) => a.startAt - b.startAt);
+  const starts = windows.map(session => ({ time: session.startAt }));
+  const valueAt = (time: number) => {
+    if (!Number.isFinite(time) || time < start || time > end) return undefined;
+    const index = pointIndex(starts, time, true) - 1;
+    const session = windows[index];
+    return (time - (session && time <= session.endAt ? session.startAt : start)) / 60000;
+  };
+  const times = new Set([start, end]);
+  const timeline = channels.reduce((longest, channel) => channel.points.length > longest.length ? channel.points : longest,
+    [] as GreenpowerChannel['points']);
+  for (const point of timeline) if (point.time >= start && point.time <= end) times.add(point.time);
+  for (const session of windows) for (const time of [session.startAt, session.endAt + .001]) {
+    if (time > start && time <= end) { times.add(time - .001); times.add(time); }
+  }
+  const previous = channels.find(isRaceTime);
+  const latest = latestTime === undefined ? undefined : valueAt(latestTime);
+  const channel: GreenpowerChannel = { id: previous?.id ?? '["raceseconds"]:', label: 'Race time', unit: 'min',
+    points: [...times].sort((a, b) => a - b).map(time => ({ time, value: valueAt(time)! })), valueAt,
+    value: latest === undefined ? '—' : displayValue(latest) };
+  return [...channels.filter(item => !isRaceTime(item)), channel];
 }
 
 /** Integrate loaded samples once per projection, independently of chart zoom. */

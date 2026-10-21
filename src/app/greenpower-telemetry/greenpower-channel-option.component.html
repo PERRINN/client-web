@@ -1,0 +1,11 @@
+<input type="checkbox" [attr.aria-description]="calculated ? 'Calculated in the UI' : null" [attr.aria-label]="channel.label + (kind === 'scalars' ? ' scalar' : ' chart')" [checked]="selected" [disabled]="saving" (change)="selectionChange.emit($any($event.target).checked)">
+<span class="channel-label" [attr.aria-description]="calculated ? 'Calculated in the UI' : null">{{ channel.label }}@if (calculated) { <span class="math-channel-icon" aria-hidden="true" title="Calculated in the UI"></span> }{{ channel.unit ? ' · ' + channel.unit : '' }}</span>
+<button type="button" class="drag-handle" [attr.aria-label]="'Reorder ' + channel.label + (kind === 'scalars' ? ' scalar' : ' chart')" aria-description="Drag to reorder. Use Up and Down arrow keys, or Escape to cancel a drag." [disabled]="saving || reorderDisabled" (pointerdown)="dragStart.emit($event)" (keydown)="reorderKey.emit($event)" (contextmenu)="$event.preventDefault()"><span aria-hidden="true">⠿</span></button>
+@if (marker; as setting) {
+  <div class="marker-controls">
+    <label><input type="checkbox" [attr.aria-label]="channel.label + ' marker'" [checked]="setting.enabled" [disabled]="saving" (change)="enableMarker($any($event.target).checked)">Marker</label>
+    <input class="marker-value" type="number" step="any" [attr.aria-label]="channel.label + ' marker value'" [attr.aria-invalid]="!validValue" [ngModel]="setting.value" (ngModelChange)="setMarkerValue($event)" [disabled]="saving || !setting.enabled">
+    <span>{{ channel.unit }}</span>
+    @if (!validValue) { <span class="marker-error" role="alert">Enter a number.</span> }
+  </div>
+}

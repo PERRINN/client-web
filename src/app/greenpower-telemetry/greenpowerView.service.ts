@@ -1,3 +1,4 @@
+import { ChartMarker, markerFor } from './greenpowerMarkers';
 import { Injectable, OnDestroy } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import firebase from 'firebase/compat/app';
@@ -45,8 +46,15 @@ export class GreenpowerViewService implements OnDestroy {
   available(channels: GreenpowerChannel[], kind: ViewKind) {
     const chosen = selectedChannels(channels, this.draft[kind], orderFor(this.draft, kind));
     const other = editorChannels(channels, this.draft).filter(c => !this.draft[kind][c.id] &&
-      (kind === 'scalars' || COMPUTED_CHANNEL_IDS.includes(c.id) || isVehicleSpeed(c.id) || chartHasData(c, channels)));
+      (kind === 'scalars' || Object.hasOwn(this.draft.markers ?? {}, c.id) || COMPUTED_CHANNEL_IDS.includes(c.id) || isVehicleSpeed(c.id) || chartHasData(c, channels)));
     return kind === 'scalars' ? [...chosen, ...other] : configurableCharts([...chosen, ...other]).map(chartOption);
+  }
+  marker(id: string) { return markerFor(id, this.saved?.markers); }
+  draftMarker(id: string) { return markerFor(id, this.draft.markers); }
+  setMarker(id: string, marker: ChartMarker) {
+    if (!this.editing || this.saving || !this.canEdit) return;
+    this.draft = { ...this.draft, markers: { ...this.draft.markers, [id]: { ...marker } } };
+    this.error = ''; this.changed.next();
   }
   private listen() {
     const generation = ++this.generation;
@@ -98,7 +106,7 @@ export class GreenpowerViewService implements OnDestroy {
   async save(track?: DatasetTrackWrite) {
     if (!this.canEdit || !this.editing || this.saving) return;
     if (track && (!/^\d{4}-\d{2}-\d{2}$/.test(track.day) || !validTrackId(track.trackId) || !track.current())) return;
-    if (!validSelection(this.draft)) { this.error = 'Choose up to 512 channels per view with a valid order.'; this.changed.next(); return; }
+    if (!validSelection(this.draft)) { this.error = 'Choose up to 512 channels per view and enter a number for each enabled marker.'; this.changed.next(); return; }
     const generation = this.generation, uid = this.account, revision = this.baseRevision;
     const selection = copySelection(this.draft);
     this.saving = true; this.error = ''; this.changed.next();

@@ -28,6 +28,7 @@ import {GreenpowerEventsService} from '${folder}/greenpowerEvents.service';
 import {GreenpowerEventEditService} from '${folder}/greenpowerEventEdit.service';
 import {selectionFor} from '${folder}/greenpowerView';
 import {GreenpowerOverlayComponent} from '${folder}/greenpower-overlay.component';
+import {GreenpowerChannelOptionComponent} from '${folder}/greenpower-channel-option.component';
 import {GreenpowerChartComponent} from '${folder}/greenpower-chart.component';
 import {GreenpowerOverlayService} from '${folder}/greenpowerOverlay.service';
 import {GreenpowerViewService} from '${folder}/greenpowerView.service';
@@ -65,7 +66,7 @@ const lapConfig:any={changed:new Subject(),saving:false,line:null,fixes:[],ready
 const events:any={changed:new Subject(),canEdit:true};
 const eventEdit:any={changed:new Subject(),saved:new Subject(),locked:false,mode:'',canEditSessions:true,cancel(){}};
 TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTesting());
-TestBed.configureTestingModule({declarations:[GreenpowerTelemetryComponent,GreenpowerOverlayComponent,GreenpowerChartComponent,GreenpowerMetadataFieldsComponent],imports:[CommonModule,FormsModule],providers:[{provide:GreenpowerEventsService,useValue:{tracks:[],loadingTracks:false}}],schemas:[NO_ERRORS_SCHEMA]});
+TestBed.configureTestingModule({declarations:[GreenpowerChannelOptionComponent,GreenpowerTelemetryComponent,GreenpowerOverlayComponent,GreenpowerChartComponent,GreenpowerMetadataFieldsComponent],imports:[CommonModule,FormsModule],providers:[{provide:GreenpowerEventsService,useValue:{tracks:[],loadingTracks:false}}],schemas:[NO_ERRORS_SCHEMA]});
 TestBed.overrideComponent(GreenpowerTelemetryComponent,{set:{providers:[
  {provide:GreenpowerOverlayService,useValue:overlay},{provide:GreenpowerViewService,useValue:view},
  {provide:GreenpowerTelemetryService,useValue:telemetry},{provide:GreenpowerLapService,useValue:lapConfig},
@@ -125,11 +126,11 @@ window.overlayHarness={resetView(){overlay.end=5970000;lapConfig.ready=false;lap
 `);
 await build({entryPoints:[output+'/entry.ts'],outfile:output+'/bundle.js',bundle:true,format:'esm',platform:'browser',
  nodePaths:[root+'/node_modules'],logLevel:'silent',tsconfigRaw:{compilerOptions:{experimentalDecorators:true}},
- plugins:[{name:'angular-jit',setup(builder){builder.onLoad({filter:/greenpower-(telemetry|overlay|chart|metadata-fields)\.component\.ts$/},async args=>{
+ plugins:[{name:'angular-jit',setup(builder){builder.onLoad({filter:/greenpower-(telemetry|overlay|chart|metadata-fields|channel-option)\.component\.ts$/},async args=>{
   let source=await readFile(args.path,'utf8');
   source=source.replace(/templateUrl: '([^']+)'/,(_,name)=>'template: '+JSON.stringify(require('node:fs').readFileSync(resolve(dirname(args.path),name),'utf8')))
    .replace(/styleUrls: \[([^\]]+)\]/,(_,names)=>'styles: '+JSON.stringify([...names.matchAll(/'([^']+)'/g)].map(([,name])=>require('node:fs').readFileSync(resolve(dirname(args.path),name),'utf8'))));
-  source += args.path.includes('greenpower-telemetry.component')
+  source += args.path.includes('channel-option') ? '' : args.path.includes('greenpower-telemetry.component')
    ? '\n(GreenpowerTelemetryComponent as any).ctorParameters = () => [{type:GreenpowerTelemetryService},{type:ChangeDetectorRef},{type:Title},{type:GreenpowerViewService},{type:GreenpowerLapService},{type:GreenpowerEventsService},{type:GreenpowerEventEditService},{type:GreenpowerOverlayService}];'
    : args.path.includes('metadata-fields') ? '\n(GreenpowerMetadataFieldsComponent as any).ctorParameters = () => [{type:GreenpowerEventsService}];' : args.path.includes('greenpower-overlay') ? '\n(GreenpowerOverlayComponent as any).ctorParameters = () => [{type:GreenpowerOverlayService},{type:GreenpowerViewService},{type:ChangeDetectorRef}];' : '\n(GreenpowerChartComponent as any).ctorParameters = () => [{type:ChangeDetectorRef},{type:NgZone}];';
   return {contents:ts.transpileModule(source,{compilerOptions:{experimentalDecorators:true,emitDecoratorMetadata:true,target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText,loader:'js'};
@@ -305,6 +306,39 @@ try {
   assert.ok((await marker.boundingBox()).width<=14,'marker remains compact');
   assert.equal(await page.locator('.channel-option[data-channel=\'["A"]:A\'] .math-channel-icon').count(),0);
   await page.screenshot({path:output+'/'+name+'-editor.png',fullPage:true});
+  const markerToggle=page.getByRole('checkbox',{name:'Current marker',exact:true});
+  const markerValue=page.getByRole('spinbutton',{name:'Current marker value',exact:true});
+  assert.equal(await markerToggle.isChecked(),true);assert.equal(await markerValue.inputValue(),'24');
+  const markerRow=page.locator('.channel-option').filter({has:markerToggle});
+  const markerHeight=(await markerRow.boundingBox()).height;
+  await markerToggle.uncheck();assert.equal(await markerValue.isDisabled(),true);
+  assert.equal((await markerRow.boundingBox()).height,markerHeight,'marker toggles preserve row height');
+  await markerToggle.check();await markerValue.fill('');
+  assert.equal(await markerValue.getAttribute('aria-invalid'),'true');
+  await page.getByRole('button',{name:'Save',exact:true}).click();
+  assert.equal(await page.evaluate(()=>window.overlayHarness.view.editing),true,'invalid marker preserves the draft');
+  assert.equal(await page.getByText('Enter a number.',{exact:true}).count(),1);
+  await markerValue.fill('26.5');
+  assert.equal(await chart.locator('.marker-label').textContent(),'24','draft is private');
+  await page.getByRole('button',{name:'Cancel',exact:true}).click();
+  await page.getByRole('button',{name:'Edit view',exact:true}).click();
+  assert.equal(await markerValue.inputValue(),'24','cancel restores the saved marker');
+  await markerValue.fill('26.5');
+  await page.getByRole('button',{name:'Save',exact:true}).click();
+  await page.waitForFunction(()=>!window.overlayHarness.view.editing);
+  assert.equal(await chart.locator('.marker-label').textContent(),'27');
+  await page.getByRole('button',{name:'Edit view',exact:true}).click();await markerToggle.uncheck();
+  await page.getByRole('button',{name:'Save',exact:true}).click();
+  await page.waitForFunction(()=>!window.overlayHarness.view.editing);
+  assert.equal(await chart.locator('.marker-label').count(),0,'disabled marker disappears');
+  await page.getByRole('button',{name:'Edit view',exact:true}).click();
+  assert.equal(await markerValue.inputValue(),'26.5','disabled markers retain their value');
+  await markerToggle.check();await markerValue.fill('24');
+  await page.getByRole('button',{name:'Save',exact:true}).click();
+  await page.waitForFunction(()=>!window.overlayHarness.view.editing);
+  assert.equal(await chart.locator('.marker-label').textContent(),'24');
+  await page.getByRole('button',{name:'Edit view',exact:true}).click();
+  await page.screenshot({path:output+'/'+name+'-marker-editor.png',fullPage:true});
   const scalarSettings=await page.evaluate(()=>JSON.stringify(window.overlayHarness.view.draft.scalars));
   await page.evaluate(()=>{const h=window.overlayHarness;h.comparison.window={start:1000,end:100000};h.detect()});
   const originalOrder=await page.locator('app-greenpower-chart h2').allTextContents();
@@ -498,27 +532,27 @@ try {
    const power=page.locator('app-greenpower-chart').nth(1),energy=page.locator('app-greenpower-chart').nth(3);
    assert.equal(await page.locator('app-greenpower-chart .limit-key').count(),0,'limits are omitted from legends');
    assert.equal(await page.locator('app-greenpower-chart .current-legend').count(),0,'single traces have no redundant legend');
-   assert.equal(await energy.locator('.limit-label').textContent(),'550 Wh');
-   assert.equal(await energy.locator('svg .current-limit').count(),1);
+   assert.equal(await energy.locator('.marker-label').textContent(),'550');
+   assert.equal(await energy.locator('svg .chart-marker').count(),1);
    assert.ok((await power.locator('svg .trace').first().getAttribute('d')).length>0);
    assert.ok((await energy.locator('svg .trace').first().getAttribute('d')).length>0);
    if(mode==='normal') {
     await page.evaluate(()=>{const h=window.overlayHarness;h.fixture.componentInstance.window={start:18000,end:30000};h.fixture.componentInstance.cursor=30000;h.detect()});
-    assert.match(await energy.locator('.readout').textContent(),/3\.2\s*Wh/,'zoom retains session energy baseline');
+    assert.match(await energy.locator('.readout').textContent(),/3\s*Wh/,'zoom retains session energy baseline');
     await energy.locator('svg').focus();await energy.locator('svg').press('ArrowLeft');
     assert.equal(await energy.locator('.cursor').count(),1,'energy chart supports keyboard inspection');
    } else if(mode==='live') {
     await page.evaluate(()=>{const h=window.overlayHarness;h.fixture.componentInstance.cursor=30000;h.detect()});
-    assert.match(await energy.locator('.readout').textContent(),/4\.0\s*Wh/,'live energy starts at recording origin');
+    assert.match(await energy.locator('.readout').textContent(),/4\s*Wh/,'live energy starts at recording origin');
    } else {
     assert.equal(await page.getByRole('heading',{name:'2026 battery dyno tests',exact:true}).count(),1);
-    assert.match(await energy.locator('.overlay-readout').textContent(),/3\.2 Wh/,'computed maximum appears in chart session labels');
+    assert.match(await energy.locator('.overlay-readout').textContent(),/3 Wh/,'computed maximum appears in chart session labels');
     if(!await page.locator('#telemetry-overlay-panel').count()) {await overlayButton.click();await page.evaluate(()=>window.overlayHarness.detect())}
-    assert.match(await page.locator('.session-list .session-label').textContent(),/3\.2 Wh/,'maximum appears in the main session list');
+    assert.match(await page.locator('.session-list .session-label').textContent(),/3 Wh/,'maximum appears in the main session list');
     await overlayButton.click();await page.evaluate(()=>window.overlayHarness.detect());
-    assert.match(await page.locator('.session-key').textContent(),/3\.2 Wh/,'maximum remains in the collapsed-panel legend');
+    assert.match(await page.locator('.session-key').textContent(),/3 Wh/,'maximum remains in the collapsed-panel legend');
     await page.evaluate(()=>{const h=window.overlayHarness;h.comparison.cursor=24000;h.detect()});
-    assert.match(await energy.locator('.overlay-readout').textContent(),/3\.2/,'overlay uses the same session energy');
+    assert.match(await energy.locator('.overlay-readout').textContent(),/3/,'overlay uses the same session energy');
    }
    await page.screenshot({path:output+'/'+name+'-electrical-'+mode+'.png',fullPage:true});
   }
@@ -528,8 +562,8 @@ try {
    const voltage=page.locator('app-greenpower-chart').filter({has:page.getByRole('heading',{name:/^Voltage left \/ right/})});
    assert.equal(await voltage.count(),1);
    assert.equal(await voltage.locator('.limit-key').count(),0,'voltage limit is omitted from the legend');
-   assert.equal(await voltage.locator('.limit-label').textContent(),'10 V');
-   assert.equal(await voltage.locator('svg .current-limit').count(),1);
+   assert.equal(await voltage.locator('.marker-label').textContent(),'10');
+   assert.equal(await voltage.locator('svg .chart-marker').count(),1);
    assert.equal(await voltage.locator('svg .trace').count(),2);
    assert.equal(await voltage.locator('.current-legend').count(),mode==='overlay'?0:1,'only measured comparison traces retain a legend');
    if(mode!=='overlay')assert.equal(await voltage.locator('.comparison-legend .legend-value').count(),2,'both measured readings remain');
@@ -538,8 +572,8 @@ try {
    await page.evaluate(()=>window.overlayHarness.detect());
    assert.equal((await voltage.boundingBox()).height,geometry.height,'cursor retains chart height');
    await page.evaluate(mode=>{const h=window.overlayHarness;if(mode==='overlay')h.comparison.zoom({start:18000,end:24000});else h.fixture.componentInstance.zoom({start:18000,end:24000});h.detect()},mode);
-   assert.equal(await voltage.locator('.limit-label').textContent(),'10 V','zoom retains the limit');
-   assert.doesNotMatch(await voltage.locator('svg .current-limit').getAttribute('d'),/NaN|Infinity/);
+   assert.equal(await voltage.locator('.marker-label').textContent(),'10','zoom retains the limit');
+   assert.doesNotMatch(await voltage.locator('svg .chart-marker').getAttribute('d'),/NaN|Infinity/);
    assert.equal((await voltage.boundingBox()).height,geometry.height,'zoom retains chart height');
    await page.screenshot({path:output+'/'+name+'-voltage-limit-'+mode+'.png',fullPage:true});
   }
