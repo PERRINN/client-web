@@ -8,7 +8,7 @@
   }
   @if (limit !== undefined) {
     <div class="current-legend" [attr.aria-label]="channel.label + ' chart legend'">
-      @if (!overlays.length) { <span class="raw-key" [attr.aria-description]="channel.id.startsWith('computed:') ? 'Calculated in the UI' : null">{{ channel.label }}@if (channel.id.startsWith('computed:')) { <span class="math-channel-icon" aria-hidden="true" title="Calculated in the UI"></span> }</span> }<span class="limit-key">{{ limit }} {{ channel.unit }} limit</span>
+      @if (!overlays.length && !comparison) { <span class="raw-key" [attr.aria-description]="channel.id.startsWith('computed:') ? 'Calculated in the UI' : null">{{ channel.label }}@if (channel.id.startsWith('computed:')) { <span class="math-channel-icon" aria-hidden="true" title="Calculated in the UI"></span> }</span> }<span class="limit-key">{{ limit }} {{ channel.unit }} limit</span>
     </div>
   }
   @if (overlays.length) {

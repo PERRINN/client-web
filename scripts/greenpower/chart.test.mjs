@@ -121,6 +121,29 @@ test('total voltage limit stays visible across readings, zoom and empty overlays
   }
 });
 
+test('paired battery voltages keep the 10 V limit and both traces visible through zoom', () => {
+  const samples = [[18, 8], [22, 12], [24, 11]].map(([Vt, V1], receivedAt) =>
+    ({ source: '424-phone', receivedAt, raw: JSON.stringify({ Vt, V1 }) }));
+  const channels = data.channelsFor(samples, samples.at(-1));
+  const left = channels.find(c => c.id === data.VOLTAGE_LEFT);
+  const right = channels.find(c => c.id === data.VOLTAGE_RIGHT);
+  assert.equal(chart.channelLimit(left), 10);
+  assert.equal(chart.channelLimit(right), 10);
+  assert.equal(chart.channelLimit(channels.find(c => c.id === data.VOLTAGE_DIFF)), undefined);
+  for (const width of [200, 1000]) {
+    for (const [start, end] of [[0, 2], [0, 0], [2, 2], [3, 4]]) {
+      for (const overlay of [false, true]) {
+        const model = chart.plotFor(overlay ? [] : left.points, start, end, width, 10,
+          overlay ? [] : right.points, overlay ? [left.points, right.points] : []);
+        const values = [...left.points, ...right.points].filter(p => p.time >= start && p.time <= end).map(p => p.value);
+        assert.ok(model.axis.min <= Math.min(10, ...values));
+        assert.ok(model.axis.max >= Math.max(10, ...values));
+        assert.ok(chart.chartY(10, model.axis) >= 10 && chart.chartY(10, model.axis) <= 110);
+      }
+    }
+  }
+});
+
 test('energy limit stays visible below and above 550 Wh, through zoom and empty overlays', () => {
   const limit = chart.channelLimit({ id: data.ENERGY });
   assert.equal(limit, 550);

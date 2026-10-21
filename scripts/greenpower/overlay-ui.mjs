@@ -96,13 +96,14 @@ window.overlayHarness={resetView(){lapConfig.ready=false;lapConfig.selectionRead
  if(mode==='overlay'){overlay.active=true;overlay.end=24000;overlay.sessions=[{id:'distance',label:'Distance driver',colour:overlayColour(0),loaded:true,hidden:false,excluded:false,session,channels:overlayChannels(samples.filter(row=>row.receivedAt>=session.startAt),session as any,event)}];overlay.changed.next()}
  else{overlay.clear();fixture.componentInstance['loadedEvent']=event;fixture.componentInstance.recordingSessions=[session as any];telemetry.live=false;telemetry.channels=channelsFor(samples,samples.at(-1));telemetry.latest=samples.at(-1);telemetry.start=0;telemetry.end=30000;telemetry.changed.next()}
  selectLoaded();detect();
-},electrical(mode){
+},electrical(mode,voltagePair=false){
  if(mode==='restore'){view['saved']=electricalSaved;electricalSaved=undefined;fixture.componentInstance.recordingSessions=[];overlay.clear();view.changed.next();detect();return}
  electricalSaved ??= view['saved'];
- const samples=Array.from({length:11},(_,i)=>({id:String(i),source:'424-phone',receivedAt:i*3000,raw:JSON.stringify({Vt:24,A:20,AH:10+i/60})}));
+ const samples=Array.from({length:11},(_,i)=>({id:String(i),source:'424-phone',receivedAt:i*3000,raw:JSON.stringify({Vt:24,A:20,AH:10+i/60,...(voltagePair?{V1:i<5?9:13}:{})})}));
  const event=emptyDay('2026-10-20'),session={id:'battery',type:'battery_dyno',startAt:6000,endAt:30000,overrides:{},batteryIds:['A','B']};
  const rows=channelsFor(samples,samples.at(-1));
  view['saved']={...selectionFor(rows),charts:{'["A"]:A':true,'computed:power':true,'["AH"]:Ah':true,'computed:energy':true},chartOrder:['["A"]:A','computed:power','["AH"]:Ah','computed:energy'],revision:1,updatedBy:'admin'};
+ if(voltagePair)view['saved']={...view['saved'],charts:{'computed:voltage-left':true},chartOrder:['computed:voltage-left']};
  fixture.componentInstance.window=undefined;fixture.componentInstance.cursor=undefined;
  if(mode==='overlay'){overlay.sessionType='battery_dyno';overlay.active=true;overlay.end=24000;overlay.sessions=[{id:'battery',label:overlayLabel(event,session as any,overlayChannels(samples,session as any,event)),colour:overlayColour(0),loaded:true,hidden:false,excluded:false,session,channels:overlayChannels(samples,session as any,event)}];overlay.changed.next()}
  else{overlay.clear();fixture.componentInstance['loadedEvent']=mode==='live'?undefined:event;fixture.componentInstance.recordingSessions=mode==='live'?[]:[session as any];telemetry.live=mode==='live';telemetry.channels=rows;telemetry.latest=samples.at(-1);telemetry.start=0;telemetry.end=30000;telemetry.changed.next()}
@@ -468,6 +469,26 @@ try {
     assert.match(await energy.locator('.overlay-readout').textContent(),/3\.2/,'overlay uses the same session energy');
    }
    await page.screenshot({path:output+'/'+name+'-electrical-'+mode+'.png',fullPage:true});
+  }
+  await page.evaluate(()=>window.overlayHarness.electrical('restore'));
+  for(const mode of ['normal','live','overlay']) {
+   await page.evaluate(mode=>window.overlayHarness.electrical(mode,true),mode);
+   const voltage=page.locator('app-greenpower-chart').filter({has:page.getByRole('heading',{name:/^Voltage left \/ right/})});
+   assert.equal(await voltage.count(),1);
+   assert.equal(await voltage.locator('.limit-key').textContent(),'10 V limit');
+   assert.equal(await voltage.locator('.limit-label').textContent(),'10 V');
+   assert.equal(await voltage.locator('svg .current-limit').count(),1);
+   assert.equal(await voltage.locator('svg .trace').count(),2);
+   if(mode!=='overlay')assert.equal(await voltage.locator('.current-legend:not(.comparison-legend) .raw-key').count(),0,'limit legend does not repeat the left voltage');
+   const geometry=await voltage.boundingBox();
+   await voltage.locator('svg').focus();await voltage.locator('svg').press('ArrowLeft');
+   await page.evaluate(()=>window.overlayHarness.detect());
+   assert.equal((await voltage.boundingBox()).height,geometry.height,'cursor retains chart height');
+   await page.evaluate(mode=>{const h=window.overlayHarness;if(mode==='overlay')h.comparison.zoom({start:18000,end:24000});else h.fixture.componentInstance.zoom({start:18000,end:24000});h.detect()},mode);
+   assert.equal(await voltage.locator('.limit-label').textContent(),'10 V','zoom retains the limit');
+   assert.doesNotMatch(await voltage.locator('svg .current-limit').getAttribute('d'),/NaN|Infinity/);
+   assert.equal((await voltage.boundingBox()).height,geometry.height,'zoom retains chart height');
+   await page.screenshot({path:output+'/'+name+'-voltage-limit-'+mode+'.png',fullPage:true});
   }
   await page.evaluate(()=>window.overlayHarness.electrical('restore'));
   for(const mode of ['normal','overlay']) {
