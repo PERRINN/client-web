@@ -36,7 +36,6 @@ svg:focus-visible { outline: 1px solid var(--color-text-secondary); outline-offs
 .current-legend span { font-size: 13px; line-height: 1.45; }
 .current-legend span { display: inline-flex; align-items: center; gap: 5px; }
 .current-legend span::before { content: ''; width: 14px; border-top: 2px solid var(--color-data-comparison); }
-.current-legend .limit-key::before { border-top: 1px dashed var(--color-text-secondary); }
 .current-limit { stroke: var(--color-text-secondary); stroke-dasharray: 5 4; stroke-width: 1; fill: none; vector-effect: non-scaling-stroke; pointer-events: none; }
 .scale .limit-label { color: var(--color-text); background: var(--color-raised); padding: 0 4px; border-radius: 2px; }
 

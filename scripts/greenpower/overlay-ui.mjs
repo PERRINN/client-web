@@ -445,7 +445,8 @@ try {
    assert.deepEqual(await page.locator('app-greenpower-chart h2').allTextContents(),electricalHeadings);
    assert.equal(await page.locator('body').evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
    const power=page.locator('app-greenpower-chart').nth(1),energy=page.locator('app-greenpower-chart').nth(3);
-   assert.equal(await energy.locator('.limit-key').textContent(),'550 Wh limit');
+   assert.equal(await page.locator('app-greenpower-chart .limit-key').count(),0,'limits are omitted from legends');
+   assert.equal(await page.locator('app-greenpower-chart .current-legend').count(),0,'single traces have no redundant legend');
    assert.equal(await energy.locator('.limit-label').textContent(),'550 Wh');
    assert.equal(await energy.locator('svg .current-limit').count(),1);
    assert.ok((await power.locator('svg .trace').first().getAttribute('d')).length>0);
@@ -475,11 +476,12 @@ try {
    await page.evaluate(mode=>window.overlayHarness.electrical(mode,true),mode);
    const voltage=page.locator('app-greenpower-chart').filter({has:page.getByRole('heading',{name:/^Voltage left \/ right/})});
    assert.equal(await voltage.count(),1);
-   assert.equal(await voltage.locator('.limit-key').textContent(),'10 V limit');
+   assert.equal(await voltage.locator('.limit-key').count(),0,'voltage limit is omitted from the legend');
    assert.equal(await voltage.locator('.limit-label').textContent(),'10 V');
    assert.equal(await voltage.locator('svg .current-limit').count(),1);
    assert.equal(await voltage.locator('svg .trace').count(),2);
-   if(mode!=='overlay')assert.equal(await voltage.locator('.current-legend:not(.comparison-legend) .raw-key').count(),0,'limit legend does not repeat the left voltage');
+   assert.equal(await voltage.locator('.current-legend').count(),mode==='overlay'?0:1,'only measured comparison traces retain a legend');
+   if(mode!=='overlay')assert.equal(await voltage.locator('.comparison-legend .legend-value').count(),2,'both measured readings remain');
    const geometry=await voltage.boundingBox();
    await voltage.locator('svg').focus();await voltage.locator('svg').press('ArrowLeft');
    await page.evaluate(()=>window.overlayHarness.detect());

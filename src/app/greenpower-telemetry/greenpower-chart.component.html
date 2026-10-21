@@ -6,11 +6,6 @@
       <span class="comparison-key" [attr.aria-description]="comparison.id.startsWith('computed:') ? 'Calculated in the UI' : null">{{ comparison.label }}@if (comparison.id.startsWith('computed:')) { <span class="math-channel-icon" aria-hidden="true" title="Calculated in the UI"></span> }<span class="legend-value">{{ cursor === undefined && !live ? comparison.value + ' ' + comparison.unit : comparisonLabel }}</span></span>
     </div>
   }
-  @if (limit !== undefined) {
-    <div class="current-legend" [attr.aria-label]="channel.label + ' chart legend'">
-      @if (!overlays.length && !comparison) { <span class="raw-key" [attr.aria-description]="channel.id.startsWith('computed:') ? 'Calculated in the UI' : null">{{ channel.label }}@if (channel.id.startsWith('computed:')) { <span class="math-channel-icon" aria-hidden="true" title="Calculated in the UI"></span> }</span> }<span class="limit-key">{{ limit }} {{ channel.unit }} limit</span>
-    </div>
-  }
   @if (overlays.length) {
     <div class="overlay-readout" aria-label="Session readings">
       <span class="overlay-time">{{ cursor === undefined ? 'Elapsed time' : time(cursor) }}</span>
