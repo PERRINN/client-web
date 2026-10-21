@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { RadioFloor } from './radioState';
 import { RadioDiagnostics } from './radioDiagnostics';
+import { RadioLevels, SILENT_LEVELS } from './radioLevels';
 
 export interface RadioSignal {
   fromSession: string; toSession: string; offerId: string;
@@ -40,6 +41,9 @@ export class RadioAudioService {
   private microphoneRequest?: Promise<void>;
   private microphoneStarting = false;
   private previousAudioType?: string;
+  private levelMeter?: RadioLevels;
+  private levelSource?: AudioNode | MediaStream;
+  private levelSeat?: string;
   private stopTimer?: ReturnType<typeof setTimeout>;
   private iceServers: RTCIceServer[] = [{ urls: 'stun:stun.l.google.com:19302' }];
   onSignal: (seat: string, signal: RadioSignal) => Promise<void> = async () => {};
@@ -52,6 +56,30 @@ export class RadioAudioService {
   get connectedCount() { return [...this.peers.values()].filter(peer => peer.pc.connectionState === 'connected').length; }
   get peerCount() { return this.peers.size; }
   get canTransmit() { return this.microphoneReady && this.ready && this.connectedCount === this.peerCount; }
+
+  readLevels(seat: string) {
+    const own = seat === this.localSeat;
+    const peer = this.peers.get(seat);
+    const source = own ? this.micGate : peer?.audio?.srcObject as MediaStream | undefined;
+    const audible = own ? !!this.activeToken && this.microphoneReady
+      : peer?.pc.connectionState === 'connected' && !peer.blocked && !peer.audio?.muted && !peer.audio?.paused;
+    if (this.context?.state !== 'running' || this.floor?.seat !== seat || !source || !audible) {
+      this.releaseLevels(); return SILENT_LEVELS;
+    }
+    try {
+      if (source !== this.levelSource) {
+        this.releaseLevels();
+        this.levelMeter = new RadioLevels(this.context, own ? this.micGate : this.context.createMediaStreamSource(source as MediaStream));
+        this.levelSource = source; this.levelSeat = seat;
+      }
+      return this.levelMeter.read();
+    } catch { this.releaseLevels(); return SILENT_LEVELS; }
+  }
+
+  releaseLevels() {
+    try { this.levelMeter?.close(); } catch { /* Metering must never interrupt audio. */ }
+    this.levelMeter = undefined; this.levelSource = undefined; this.levelSeat = undefined;
+  }
 
   async resume() {
     this.setAudioType(this.microphoneReady || this.microphoneStarting ? 'play-and-record' : 'playback');
@@ -239,6 +267,7 @@ export class RadioAudioService {
   }
 
   setFloor(floor: RadioFloor | undefined, muted: boolean) {
+    if (floor?.seat !== this.levelSeat) this.releaseLevels();
     this.floor = floor; this.muted = muted;
     if (this.activeToken && floor?.token !== this.activeToken) this.stop();
     this.updateGates();
@@ -262,12 +291,14 @@ export class RadioAudioService {
   }
 
   stop() {
+    if (this.levelSeat === this.localSeat) this.releaseLevels();
     clearTimeout(this.stopTimer);
     this.activeToken = undefined;
     if (this.micGate && this.context) this.micGate.gain.setValueAtTime(0, this.context.currentTime);
   }
 
   close() {
+    this.releaseLevels();
     this.disableMicrophone(); this.resetPeers();
     this.context?.close().catch(() => {}); this.context = undefined;
     if (this.previousAudioType !== undefined) {
@@ -374,6 +405,7 @@ export class RadioAudioService {
     this.closePeer(seat, peer);
   }
   private closePeer(seat: string, peer: Peer) {
+    if (seat === this.levelSeat) this.releaseLevels();
     this.clearRecoveryTimers(peer); peer.cancelGathering?.();
     this.diagnostics.record('peer-removed', { seat: this.localSeat, session: this.localSession,
       peerSeat: seat, peerSession: peer.session, connection: peer.pc.connectionState });

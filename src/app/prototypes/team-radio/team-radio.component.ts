@@ -1,9 +1,10 @@
-import { ChangeDetectorRef, Component, HostListener, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, NgZone, OnDestroy } from '@angular/core';
 import { RadioAvatarsService } from './radioAvatars.service';
 import { RadioRoomService } from './radioRoom.service';
 import { RadioLifecycleService } from './radioLifecycle.service';
 import { Subscription } from 'rxjs';
 import { acceptsTalkKey } from './radioState';
+import { SILENT_LEVELS } from './radioLevels';
 
 @Component({
   selector: 'app-team-radio', standalone: false,
@@ -14,19 +15,36 @@ export class TeamRadioComponent implements OnDestroy {
   radio: RadioRoomService;
   busy = false;
   diagnosticsCopyLabel = 'Copy details';
+  levels = SILENT_LEVELS;
   private pointer?: number;
   private destroyed = false;
   private changes: Subscription;
-  constructor(public lifecycle: RadioLifecycleService, private changeDetector: ChangeDetectorRef, public avatars: RadioAvatarsService) {
+  private levelTimer?: ReturnType<typeof setInterval>;
+  constructor(public lifecycle: RadioLifecycleService, private changeDetector: ChangeDetectorRef, public avatars: RadioAvatarsService, private zone: NgZone) {
     const radio = this.radio = lifecycle.enterPage();
     avatars.sync(radio.seats.map(person => person.uid), radio.user?.uid);
     this.changes = radio.changed.subscribe(() => {
       avatars.sync(radio.seats.map(person => person.uid), radio.user?.uid);
+      this.updateLevels();
       changeDetector.markForCheck();
+    });
+    this.updateLevels();
+  }
+  private updateLevels() {
+    if (!this.radio.joined || !this.radio.floor || (typeof document !== 'undefined' && document.hidden)) {
+      clearInterval(this.levelTimer); this.levelTimer = undefined;
+      this.levels = SILENT_LEVELS; this.radio.audio.releaseLevels(); return;
+    }
+    if (this.levelTimer !== undefined) return;
+    this.zone.runOutsideAngular(() => {
+      this.levelTimer = setInterval(() => {
+        if (typeof document !== 'undefined' && document.hidden) { this.zone.run(() => this.updateLevels()); return; }
+        this.levels = this.radio.floor ? this.radio.audio.readLevels(this.radio.floor.seat) : SILENT_LEVELS;
+        this.zone.run(() => this.changeDetector.markForCheck());
+      }, 100);
     });
   }
   get talkLabel() {
-    if (this.radio.transmitting) return 'Talking';
     return this.radio.floor ? 'Channel busy' : 'Talk';
   }
   async run(action: () => Promise<unknown>) {
@@ -64,6 +82,9 @@ export class TeamRadioComponent implements OnDestroy {
   @HostListener('window:blur')
   blur() { this.pointer = undefined; void this.radio.releaseTalk(); }
   @HostListener('document:visibilitychange')
-  visibility() { if (document.hidden) this.blur(); }
-  ngOnDestroy() { this.destroyed = true; this.changes.unsubscribe(); this.lifecycle.leavePage(); }
+  visibility() { if (document.hidden) this.blur(); this.updateLevels(); }
+  ngOnDestroy() {
+    this.destroyed = true; clearInterval(this.levelTimer); this.radio.audio.releaseLevels();
+    this.changes.unsubscribe(); this.lifecycle.leavePage();
+  }
 }

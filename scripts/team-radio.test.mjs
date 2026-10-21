@@ -18,7 +18,8 @@ function load(path, imports = {}) {
 const core = { Injectable: () => target => target, runInInjectionContext: (_, fn) => fn() };
 const state = load('../src/app/prototypes/team-radio/radioState.ts');
 const diagnostics = load('../src/app/prototypes/team-radio/radioDiagnostics.ts');
-const { RadioAudioService } = load('../src/app/prototypes/team-radio/radioAudio.service.ts', { '@angular/core': core, './radioDiagnostics': diagnostics });
+const levels = load('../src/app/prototypes/team-radio/radioLevels.ts');
+const { RadioAudioService } = load('../src/app/prototypes/team-radio/radioAudio.service.ts', { '@angular/core': core, './radioDiagnostics': diagnostics, './radioLevels': levels });
 const { RadioRoomService } = load('../src/app/prototypes/team-radio/radioRoom.service.ts', {
   '@angular/core': core,
   rxjs: { firstValueFrom, Subject },
@@ -82,7 +83,7 @@ function service(data = room()) {
   };
   const audio = { onSignal() {}, onChange() {}, onError() {}, onEnded() {}, canTransmit: true,
     diagnostics: new diagnostics.RadioDiagnostics(),
-    stop() {}, close() {}, reconcile() {}, setFloor() {}, transmit() { transmitted++; } };
+    stop() {}, close() {}, reconcile() {}, setFloor() {}, releaseLevels() {}, readLevels: () => levels.SILENT_LEVELS, transmit() { transmitted++; } };
   const radio = new RadioRoomService({ authState }, { database: { ref: () => ref } }, audio, { run: fn => fn() });
   radio.room = data; radio.user = { uid: 'b' }; radio.seat = '1'; radio.session = 'bSession';
   radio.connected = true; radio.joined = true; radio.activePresence = true; radio.clock = now;
@@ -266,14 +267,14 @@ test('capture includes current listener state even without a Talk attempt', () =
 test('Copy diagnostics exports the current bounded trace and preserves the original error when clipboard fails', async () => {
   const { TeamRadioComponent } = load('../src/app/prototypes/team-radio/team-radio.component.ts', {
     '@angular/core': { Component: () => target => target, HostListener: () => () => {} },
-    './radioAvatars.service': { RadioAvatarsService: class {} }, './radioState': state
+    './radioAvatars.service': { RadioAvatarsService: class {} }, './radioState': state, './radioLevels': levels
   });
   const f = service(); const original = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
   let copied; let failed = false;
   Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { clipboard: {
     writeText: async text => { if (failed) throw new Error('Blocked'); copied = text; }
   } } });
-  const component = new TeamRadioComponent({ enterPage: () => f.radio, leavePage() {} }, { markForCheck() {} }, { sync() {} });
+  const component = new TeamRadioComponent({ enterPage: () => f.radio, leavePage() {} }, { markForCheck() {} }, { sync() {} }, { runOutsideAngular: fn => fn(), run: fn => fn() });
   try {
     f.radio.error = 'Talk was rejected. Reconnect and enable talking again.';
     f.radio.recordTalk('talk-acquire-rejected', undefined, { reason: 'permission-denied' });
@@ -289,6 +290,85 @@ test('Copy diagnostics exports the current bounded trace and preserves the origi
     component.ngOnDestroy(); f.radio.ngOnDestroy();
     if (original) Object.defineProperty(globalThis, 'navigator', original); else delete globalThis.navigator;
   }
+});
+
+test('audio bars measure signal energy, stay flat in silence and detach only their read-only tap', () => {
+  let amplitude = 0; let disconnected; let detached = false;
+  const analyser = { getFloatTimeDomainData: samples => samples.fill(amplitude), disconnect: () => detached = true };
+  const source = { connect: target => assert.equal(target, analyser), disconnect: target => disconnected = target };
+  const meter = new levels.RadioLevels({ createAnalyser: () => analyser }, source);
+  assert.equal(analyser.fftSize, 1024);
+  assert.deepEqual(meter.read(), [0, 0, 0, 0, 0]);
+  amplitude = 0.01; const quiet = meter.read();
+  amplitude = 0.5; const loud = meter.read();
+  assert.ok(quiet.every((value, index) => value > 0 && value < loud[index]));
+  amplitude = 2; assert.deepEqual(meter.read(), [1, 1, 1, 1, 1]);
+  meter.close(); assert.equal(disconnected, analyser); assert.equal(detached, true);
+});
+
+test('the visible radio samples at 10Hz only during a transmission and cancels on hide or destruction', () => {
+  const { TeamRadioComponent } = load('../src/app/prototypes/team-radio/team-radio.component.ts', {
+    '@angular/core': { Component: () => target => target, HostListener: () => () => {} },
+    './radioAvatars.service': {}, './radioState': state, './radioLevels': levels
+  });
+  const f = service(); let reads = 0; let released = 0; let next = 0;
+  const timers = new Map(); const set = globalThis.setInterval; const clear = globalThis.clearInterval;
+  const doc = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: { hidden: false } });
+  globalThis.setInterval = (fn, ms) => { assert.equal(ms, 100); timers.set(++next, fn); return next; };
+  globalThis.clearInterval = id => timers.delete(id);
+  f.radio.audio.readLevels = () => { reads++; return [0.5, 0.4, 0.3, 0.2, 0.1]; };
+  f.radio.audio.releaseLevels = () => released++;
+  const component = new TeamRadioComponent({ enterPage: () => f.radio, leavePage() {} }, { markForCheck() {} }, { sync() {} }, { runOutsideAngular: fn => fn(), run: fn => fn() });
+  try {
+    f.radio.changed.next(); f.radio.changed.next(); assert.equal(timers.size, 1);
+    timers.values().next().value(); assert.equal(reads, 1); assert.equal(component.levels[0], 0.5);
+    document.hidden = true; component.visibility(); assert.equal(timers.size, 0);
+    assert.deepEqual(component.levels, levels.SILENT_LEVELS); assert.ok(released > 0);
+    document.hidden = false; component.visibility(); assert.equal(timers.size, 1);
+    f.radio.room.floor = undefined; f.radio.changed.next(); assert.equal(timers.size, 0);
+    f.radio.room.floor = room().floor; f.radio.changed.next(); assert.equal(timers.size, 1);
+    assert.equal(f.writes.length, 0, 'meter samples never publish presence or levels');
+    component.ngOnDestroy(); assert.equal(timers.size, 0);
+  } finally {
+    globalThis.setInterval = set; globalThis.clearInterval = clear;
+    f.radio.ngOnDestroy();
+    if (doc) Object.defineProperty(globalThis, 'document', doc); else delete globalThis.document;
+  }
+});
+
+test('local bars require an authorized transmission and exclude the start beep; stopping releases the meter', () => {
+  const audio = new RadioAudioService(); const fake = fakeContext(); let tapped; let detached;
+  const analyser = { getFloatTimeDomainData: samples => samples.fill(0.1), disconnect() {} };
+  fake.context.createAnalyser = () => analyser;
+  audio.context = fake.context; audio.localSeat = '1'; audio.floor = { seat: '1' };
+  audio.mic = { getAudioTracks: () => [{ readyState: 'live' }], getTracks: () => [] };
+  audio.micGate = { gain: { setValueAtTime() {} }, connect: node => tapped = node, disconnect: node => detached = node };
+  try {
+    assert.deepEqual(audio.readLevels('1'), levels.SILENT_LEVELS);
+    audio.activeToken = 'lease';
+    assert.ok(audio.readLevels('1').every(value => value > 0));
+    assert.equal(tapped, analyser, 'tap the microphone gate, not the beep/output mix');
+    audio.stop(); assert.equal(detached, analyser);
+    assert.deepEqual(audio.readLevels('1'), levels.SILENT_LEVELS);
+  } finally { audio.micGate = undefined; audio.close(); }
+});
+
+test('received bars require connected audible playback and release on floor change', () => {
+  const audio = new RadioAudioService(); const fake = fakeContext(); let taps = 0; let released = 0;
+  const analyser = { getFloatTimeDomainData: samples => samples.fill(0.2), disconnect: () => released++ };
+  fake.context.createAnalyser = () => { taps++; return analyser; };
+  audio.context = fake.context; audio.localSeat = '0'; audio.floor = { seat: '1' };
+  const peer = { pc: { connectionState: 'connected' }, audio: { srcObject: {}, muted: true, paused: false } };
+  audio.peers.set('1', peer);
+  try {
+    assert.deepEqual(audio.readLevels('1'), levels.SILENT_LEVELS); assert.equal(taps, 0);
+    peer.audio.muted = false;
+    assert.ok(audio.readLevels('1').every(value => value > 0));
+    audio.readLevels('1'); assert.equal(taps, 1, 'reuse one analyser');
+    audio.setFloor(undefined, false); assert.equal(released, 1);
+    assert.deepEqual(audio.readLevels('1'), levels.SILENT_LEVELS);
+  } finally { audio.peers.clear(); audio.close(); }
 });
 
 function fakeContext() {

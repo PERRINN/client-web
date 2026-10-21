@@ -19,5 +19,8 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--color-focus);outlin
 .person{padding:10px 0;min-width:0}.person:first-child{padding-top:0}.person:last-child{padding-bottom:0}
 app-user-avatar{flex:0 0 36px;width:36px;height:36px}
 .identity{display:grid;flex:1;min-width:0;gap:2px}.identity>a{overflow-wrap:anywhere;color:inherit;text-decoration:none}.identity>a:hover{text-decoration:underline}
-.status{flex-shrink:0}.status.talking{color:var(--color-success)}
+.status{flex-shrink:0;min-width:94px;text-align:right}.status.talking{color:var(--color-success)}
+.level-bars{display:inline-flex;align-items:center;justify-content:center;gap:4px;width:52px;height:32px;vertical-align:middle}
+.level-bars>i{display:block;flex:0 0 5px;background:currentColor;border-radius:2px;transition:none}
+.status .level-bars{height:24px}
 @media(max-width:600px){.radio{padding:16px 12px}.controls,.participants{padding:12px}.person{gap:8px}.status{font-size:14px}}

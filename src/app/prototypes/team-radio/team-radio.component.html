@@ -50,7 +50,11 @@
             (pointerdown)="pointerDown($event)" (pointerup)="pointerUp($event)" (pointercancel)="pointerUp($event)" (lostpointercapture)="pointerUp($event)"
             (keydown.space)="$event.preventDefault(); !$event.repeat && radio.talk()" (keyup.space)="$event.preventDefault(); radio.releaseTalk()"
             (keydown.enter)="$event.preventDefault(); !$event.repeat && radio.talk()" (keyup.enter)="$event.preventDefault(); radio.releaseTalk()"
-            (contextmenu)="$event.preventDefault()">{{ talkLabel }}</button>
+            (contextmenu)="$event.preventDefault()">
+            @if (radio.transmitting) {
+              <span class="level-bars" aria-hidden="true">@for (level of levels; track $index) { <i [style.height.px]="3 + level * 29"></i> }</span>
+            } @else { {{ talkLabel }} }
+          </button>
           @if (radio.connected && !radio.reconnecting && radio.audio.microphoneReady && !radio.audioReady) { <p role="status">Connecting audio</p> }
         }
       }
@@ -62,7 +66,12 @@
         <div class="person">
           <app-user-avatar [name]="person.name" [sources]="avatars.sources(person.uid)"></app-user-avatar>
           <div class="identity"><a [routerLink]="['/profile', person.uid]">{{ person.name }}{{ person.uid === radio.user.uid ? ' (you)' : '' }}</a><small>{{ radio.isSpeaker(person.uid) ? 'Speaker' : 'Listener' }}</small></div>
-          <span class="status" [class.talking]="radio.status(person.id) === 'Talking'">{{ radio.status(person.id) }}</span>
+          <span class="status" [class.talking]="radio.status(person.id) === 'Talking'" [attr.role]="radio.status(person.id) === 'Talking' ? 'img' : null"
+            [attr.aria-label]="radio.status(person.id) === 'Talking' ? 'Transmitting audio level' : null">
+            @if (radio.status(person.id) === 'Talking') {
+              <span class="level-bars" aria-hidden="true">@for (level of levels; track $index) { <i [style.height.px]="3 + level * 21"></i> }</span>
+            } @else { {{ radio.status(person.id) }} }
+          </span>
         </div>
       }
     </section>
