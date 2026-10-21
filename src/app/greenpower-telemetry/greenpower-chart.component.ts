@@ -1,3 +1,4 @@
+import type { LegendHighlight } from './greenpowerChart';
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, NgZone, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
 import type { GreenpowerChannel } from './greenpowerData';
 import { isLapMetric, isRaceTime, londonTime, pointIndex } from './greenpowerData';
@@ -24,6 +25,34 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   @Input() sessions: SessionInterval[] = [];
   @Input() context = '';
   @Input() overlays: OverlayTrace[] = [];
+  @Input() legendHighlight?: LegendHighlight;
+  @Output() legendHighlightChange = new EventEmitter<LegendHighlight | undefined>();
+  protected hoveredLegend?: LegendHighlight;
+  private focusedLegend?: LegendHighlight;
+  legendEnter(channelId: string, sessionId?: string, event?: PointerEvent) {
+    if (event?.pointerType === 'touch' || !this.legendAvailable(channelId, sessionId)) return;
+    this.hoveredLegend = { channelId, sessionId };
+    this.legendHighlightChange.emit(this.hoveredLegend);
+  }
+  legendLeave() {
+    this.hoveredLegend = undefined;
+    this.legendHighlightChange.emit(this.focusedLegend);
+  }
+  legendFocus(channelId?: string, sessionId?: string) {
+    this.focusedLegend = channelId && this.legendAvailable(channelId, sessionId) ? { channelId, sessionId } : undefined;
+    this.legendHighlightChange.emit(this.hoveredLegend ?? this.focusedLegend);
+  }
+  private legendAvailable(channelId: string, sessionId?: string) {
+    return !this.overlays.length || this.overlays.some(trace => trace.channel.id === channelId && trace.sessionId === sessionId && !trace.hidden && !trace.excluded);
+  }
+  dimmed(channelId: string, sessionId?: string) {
+    const highlight = this.legendHighlight;
+    if (!highlight) return false;
+    if (highlight.sessionId !== sessionId) return true;
+    // Follow the session across metrics; distinguish paired traces where available.
+    const hasChannel = !this.overlays.length || this.overlays.some(trace => !trace.hidden && trace.channel.id === highlight.channelId);
+    return hasChannel && !!highlight.channelId && highlight.channelId !== channelId;
+  }
   @Output() overlayVisibilityChange = new EventEmitter<string>();
   @Output() windowChange = new EventEmitter<ChartWindow | undefined>();
   @Output() cursorChange = new EventEmitter<number | undefined>();
@@ -116,6 +145,7 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
     this.windowChange.emit(range);
   }
   ngOnChanges(changes: SimpleChanges) {
+    if (!this.legendHighlight || changes['context']) this.hoveredLegend = this.focusedLegend = undefined;
     if (changes['context'] || changes['overlays']) this.cancel();
     if (changes['channel'] || changes['comparison'] || changes['overlays'] || changes['start'] || changes['end'] || changes['laps'] || changes['sessions']) {
       if (this.drag) this.renderPending = true;

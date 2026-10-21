@@ -115,7 +115,7 @@
         }
         <div class="charts">
           @for (channel of charts; track channel.id) {
-            @if (channel.points.length || (isVehicleSpeed(channel.id) && motorDerivedSpeed?.points?.length)) { <app-greenpower-chart [channel]="channel" [comparison]="channel.id === voltageLeftId ? voltageRight : isVehicleSpeed(channel.id) ? motorDerivedSpeed : undefined" [heading]="channel.id === voltageLeftId ? 'Voltage left / right' : ''" [laps]="laps" [sessions]="sessions" [start]="start" [end]="end" [live]="telemetry.live" [cursor]="cursor" [context]="dataset" (windowChange)="zoom($event)" (cursorChange)="cursor = $event" /> }
+            @if (channel.points.length || (isVehicleSpeed(channel.id) && motorDerivedSpeed?.points?.length)) { <app-greenpower-chart [(legendHighlight)]="legendHighlight" [channel]="channel" [comparison]="channel.id === voltageLeftId ? voltageRight : isVehicleSpeed(channel.id) ? motorDerivedSpeed : undefined" [heading]="channel.id === voltageLeftId ? 'Voltage left / right' : ''" [laps]="laps" [sessions]="sessions" [start]="start" [end]="end" [live]="telemetry.live" [cursor]="cursor" [context]="dataset" (windowChange)="zoom($event)" (cursorChange)="cursor = $event" /> }
           }
         </div>
       }

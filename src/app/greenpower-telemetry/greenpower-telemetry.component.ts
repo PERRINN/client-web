@@ -1,3 +1,4 @@
+import type { LegendHighlight } from './greenpowerChart';
 import { ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, ViewChild } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { Subscription } from 'rxjs';
@@ -72,6 +73,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
   window?: ChartWindow;
   private followLatest = false;
   cursor?: number;
+  legendHighlight?: LegendHighlight;
   scalarReadout = scalarReadout;
   private context = '';
   get start() { return this.window?.start ?? this.telemetry.start; }
@@ -79,7 +81,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     if (!this.window) return this.telemetry.end;
     return this.followLatest && this.telemetry.live ? Math.max(this.window.end, this.telemetry.end) : this.window.end;
   }
-  selectView(view: 'data' | 'track' | 'laps') { this.drag.cancel(); if (!this.overlay.active || view === 'data') this.activeView = view; }
+  selectView(view: 'data' | 'track' | 'laps') { this.legendHighlight = undefined; this.drag.cancel(); if (!this.overlay.active || view === 'data') this.activeView = view; }
   selectLap(window: ChartWindow) { this.zoom(window); this.selectView('data'); }
   zoom(window?: ChartWindow) {
     this.followLatest = !!window && this.telemetry.live && window.end >= this.telemetry.end;
@@ -101,12 +103,12 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     this.changes = telemetry.changed.subscribe(() => {
       if (telemetry.access !== 'signed-in') { this.loadedEvent = undefined; this.eventEdit.cancel(); this.eventEdit.recordingEvent = undefined; this.clearSessions(); }
       const context = this.dataset + ':' + telemetry.access;
-      if (this.context !== context || !telemetry.channels.length) { this.zoom(); this.context = context; }
+      if (this.context !== context || !telemetry.channels.length) { this.legendHighlight = undefined; this.zoom(); this.context = context; }
       this.refreshView(); this.syncHeader(); change.markForCheck();
     });
     let comparing = overlay.active;
     this.changes.add(overlay.changed.subscribe(() => {
-      if (comparing !== overlay.active) { comparing = overlay.active; this.drag.cancel(); this.view.cancel(); }
+      if (comparing !== overlay.active) { comparing = overlay.active; this.legendHighlight = undefined; this.drag.cancel(); this.view.cancel(); }
       if (overlay.active) this.activeView = 'data';
       this.refreshEditor(); this.syncHeader(); change.markForCheck();
     }));
@@ -161,6 +163,9 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     this.voltageRight = this.channels.find(channel => channel.id === VOLTAGE_RIGHT);
     this.scalars = this.view.scalars(this.channels);
     this.charts = this.view.charts(this.channels);
+    if (this.legendHighlight && !this.charts.some(channel => channel.id === this.legendHighlight!.channelId
+      || channel.id === VOLTAGE_LEFT && this.legendHighlight!.channelId === this.voltageRight?.id
+      || isVehicleSpeed(channel.id) && this.legendHighlight!.channelId === this.motorDerivedSpeed?.id)) this.legendHighlight = undefined;
     this.refreshEditor();
   }
   private get editorChannels() { return this.overlay.active ? this.overlay.channels : this.channels; }

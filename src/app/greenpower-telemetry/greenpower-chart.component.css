@@ -61,3 +61,14 @@ svg:focus-visible { outline: 1px solid var(--color-text-secondary); outline-offs
 @media (hover: hover) and (pointer: fine) { .overlay-visibility:hover { outline: 1px solid var(--color-text-secondary); outline-offset: 2px; } }
 
 .lap-dot { fill: var(--color-data-comparison); }
+
+/* Emphasis changes paint only, preserving legend and plot geometry. */
+.trace, .lap-dot, .cursor-point, .legend-entry { transition: opacity 120ms ease; }
+.trace-dimmed { opacity: .35; }
+.legend-entry { border-radius: 2px; }
+.legend-entry:focus-within { background: var(--color-raised); }
+.legend-entry:focus-visible { outline: 1px solid var(--color-focus); outline-offset: 2px; }
+.legend-entry.legend-hovered { background: var(--color-raised); }
+@media (prefers-reduced-motion: reduce) {
+  .trace, .lap-dot, .cursor-point, .legend-entry { transition: none; }
+}

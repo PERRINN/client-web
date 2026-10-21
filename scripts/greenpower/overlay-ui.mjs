@@ -77,7 +77,7 @@ overlay.changed.subscribe(detect);view.changed.subscribe(detect);
 const selectLoaded=()=>{const selection=selectionFor(overlay.active?overlay.channels:fixture.componentInstance.channels);record={...selection,chartOrder:Object.keys(selection.charts),revision:1,updatedBy:'admin'};view['saved']=record;view.changed.next()};
 
 let electricalSaved, raceTimeSaved;
-window.overlayHarness={resetView(){lapConfig.ready=false;lapConfig.selectionReady=false;record={...selectionFor(channels()),chartOrder:['["A"]:A','["Spd"]:m/s','computed:voltage-left','computed:voltage-diff'],revision:1,updatedBy:'admin'};view['saved']=record;view.changed.next();detect()},raceTime(mode){
+window.overlayHarness={resetView(){overlay.end=5970000;lapConfig.ready=false;lapConfig.selectionReady=false;record={...selectionFor(channels()),chartOrder:['["A"]:A','["Spd"]:m/s','computed:voltage-left','computed:voltage-diff'],revision:1,updatedBy:'admin'};view['saved']=record;view.changed.next();detect()},raceTime(mode){
  if(mode==='restore'){view['saved']=raceTimeSaved;raceTimeSaved=undefined;overlay.clear();view.changed.next();detect();return}
  raceTimeSaved ??= view['saved'];
  const samples=[1414,1415].map((raceseconds,receivedAt)=>({id:String(receivedAt),source:'424-phone',receivedAt:receivedAt*1000,raw:JSON.stringify({raceseconds})}));
@@ -181,6 +181,45 @@ try {
   assert.ok((await chart.locator('svg .trace title').allTextContents()).every((text,index)=>text.startsWith(names[index])),'trace labels use session names');
   const readout=await chart.locator('.overlay-readout').boundingBox();await plot.press('ArrowRight');
   assert.deepEqual(await chart.locator('.overlay-readout').boundingBox(),readout,'readout updates preserve geometry');
+  await chart.locator('.overlay-entry').first().scrollIntoViewIfNeeded();
+  const geometryBefore=await plot.boundingBox();
+  const cursorAtHover=await chart.locator('.overlay-time').textContent();
+  await chart.locator('.overlay-entry').first().hover();
+  await page.waitForTimeout(160);
+  for (const graph of await page.locator('app-greenpower-chart').all()) {
+    const paths=graph.locator('svg .trace');
+    assert.equal(await paths.first().evaluate(el=>getComputedStyle(el).opacity),'1');
+    assert.equal(await paths.last().evaluate(el=>getComputedStyle(el).opacity),'0.35','other sessions fade across every chart');
+  }
+  assert.deepEqual(await plot.boundingBox(),geometryBefore,'hover preserves graph geometry');
+  assert.equal(await chart.locator('.overlay-time').textContent(),cursorAtHover,'hover preserves cursor');
+  // Cross the actual inter-row gap slowly: it must never restore all traces.
+  const firstLegend=await chart.locator('.overlay-entry').first().boundingBox();
+  const secondLegend=await chart.locator('.overlay-entry').nth(1).boundingBox();
+  await page.mouse.move(firstLegend.x+10,(firstLegend.y+firstLegend.height+secondLegend.y)/2);
+  await page.waitForTimeout(180);
+  assert.equal(await page.evaluate(()=>window.overlayHarness.comparison.legendHighlight?.sessionId),'session-0','gap retains the previous session');
+  assert.equal(await chart.locator('.legend-hovered').count(),1,'legend background persists through the gap');
+  assert.equal(await chart.locator('svg .trace').last().evaluate(el=>getComputedStyle(el).opacity),'0.35','unrelated traces never flash in the gap');
+  await chart.locator('.overlay-entry').nth(1).hover();await page.waitForTimeout(160);
+  assert.equal(await page.evaluate(()=>window.overlayHarness.comparison.legendHighlight?.sessionId),'session-1','next row directly replaces emphasis');
+  for (const graph of await page.locator('app-greenpower-chart').all()) {
+    assert.equal(await graph.locator('svg .trace').last().evaluate(el=>getComputedStyle(el).opacity),'0.35','unrelated traces stay dim during handoff');
+  }
+  await chart.locator('.overlay-entry').first().hover();await page.waitForTimeout(160);
+  await page.screenshot({path:output+'/'+name+'-legend-hover.png',fullPage:true});
+  await page.mouse.move(0,0);await page.waitForTimeout(160);
+  assert.equal(await page.locator('svg .trace.trace-dimmed').count(),0,'pointer exit restores all traces');
+  const voltage=page.locator('app-greenpower-chart').nth(2);
+  await voltage.locator('.overlay-entry').nth(1).hover();await page.waitForTimeout(160);
+  assert.equal(await voltage.locator('svg .trace').nth(0).evaluate(el=>getComputedStyle(el).opacity),'0.35');
+  assert.equal(await voltage.locator('svg .trace').nth(1).evaluate(el=>getComputedStyle(el).opacity),'1','paired trace is isolated');
+  assert.equal(await chart.locator('svg .trace').first().evaluate(el=>getComputedStyle(el).opacity),'1','session stays visible in another metric');
+  await page.mouse.move(0,0);
+  await chart.locator('.overlay-visibility').nth(1).focus();await page.waitForTimeout(160);
+  assert.equal(await chart.locator('svg .trace').first().evaluate(el=>getComputedStyle(el).opacity),'0.35','keyboard focus also dims other traces');
+  await plot.focus();await page.waitForTimeout(160);
+  assert.equal(await page.locator('svg .trace.trace-dimmed').count(),0);
   await page.screenshot({path:output+'/'+name+'.png',fullPage:true});
   const keysBefore=await page.locator('.session-list .session-label').allTextContents();
   const toggle=page.locator('.session-list').getByRole('button',{name:'Hide '+keysBefore[0],exact:true});
@@ -401,6 +440,18 @@ try {
   assert.equal(await speedChart.locator('h2 .math-channel-icon').count(),0,'recorded speed heading stays raw');
   assert.equal(await speedChart.locator('.comparison-key .math-channel-icon').count(),1,'derived speed trace marked');
   assert.equal(await speedChart.locator('.raw-key .math-channel-icon').count(),0);
+  await speedChart.locator('.comparison-key').hover();await page.waitForTimeout(160);
+  assert.equal(await speedChart.locator('.trace:not(.comparison-trace)').evaluate(el=>getComputedStyle(el).opacity),'0.35');
+  assert.equal(await speedChart.locator('.comparison-trace').evaluate(el=>getComputedStyle(el).opacity),'1');
+  const rawLegend=await speedChart.locator('.raw-key').boundingBox();
+  const derivedLegend=await speedChart.locator('.comparison-key').boundingBox();
+  await page.mouse.move((rawLegend.x+rawLegend.width+derivedLegend.x)/2,derivedLegend.y+5);
+  await page.waitForTimeout(180);
+  assert.equal(await speedChart.locator('.trace:not(.comparison-trace)').evaluate(el=>getComputedStyle(el).opacity),'0.35','comparison column gap retains emphasis');
+  await speedChart.locator('.raw-key').hover();await page.waitForTimeout(160);
+  assert.equal(await speedChart.locator('.comparison-trace').evaluate(el=>getComputedStyle(el).opacity),'0.35','comparison handoff selects the next trace');
+  await page.mouse.move(0,0);await page.waitForTimeout(160);
+  assert.equal(await speedChart.locator('.trace-dimmed').count(),0,'ordinary comparison legends restore on exit');
   const initialPath=await speedChart.locator('.comparison-trace').getAttribute('d');
   await speedChart.locator('svg').focus();await speedChart.locator('svg').press('ArrowRight');
   assert.notEqual(await speedChart.locator('.comparison-legend .legend-value').last().textContent(),'—');
@@ -542,5 +593,5 @@ try {
 
 
  }
- assert.deepEqual(errors,[]);console.log(JSON.stringify({output,widths:[1440,390,320],checks:['toolbar stability','touch targets','no page overflow','loading/error/empty','Hide/Show retains data, identity, geometry and cursor','panel collapse retains charts','voltage pairs','keyboard cursor','readout stability','map/laps disabled and restored','chart editing, keyboard order, save, cancel, exit and permissions','calculated scalar catalogue, visibility and unavailable values','calculated chart visibility and saved order','300px overlay plots']}));
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({output,widths:[1440,390,320],checks:['synchronized legend hover, paired traces, keyboard focus and reset','hover preserves geometry and cursor','toolbar stability','touch targets','no page overflow','loading/error/empty','Hide/Show retains data, identity, geometry and cursor','panel collapse retains charts','voltage pairs','keyboard cursor','readout stability','map/laps disabled and restored','chart editing, keyboard order, save, cancel, exit and permissions','calculated scalar catalogue, visibility and unavailable values','calculated chart visibility and saved order','300px overlay plots']}));
 } finally {await browser.close();await new Promise(done=>server.close(done))}

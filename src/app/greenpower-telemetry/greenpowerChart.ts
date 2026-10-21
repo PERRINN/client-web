@@ -77,3 +77,6 @@ export function elapsedTime(time: number) {
   const seconds = Math.max(0, Math.floor(Math.round(time) / 1000));
   return `${Math.floor(seconds / 3600)}:${String(Math.floor(seconds / 60) % 60).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
 }
+
+// Transient legend emphasis, shared by the charts in the current view.
+export interface LegendHighlight { channelId?: string; sessionId?: string; }

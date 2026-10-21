@@ -336,3 +336,40 @@ test('live readers follow actual latest visible samples and resume after clearin
   assert.equal(c.cursorPosition, (900 - 100) / 1100 * 800, 'comparison-only charts follow live data');
   c.ngOnDestroy();
 });
+
+
+test('legend emphasis follows sessions across charts and distinguishes paired channels', () => {
+  const {component:c} = fixture();
+  c.overlays = ['s1', 's2'].flatMap(sessionId => ['left', 'right'].map(id => ({id:sessionId+id, sessionId, channel:{...c.channel,id}})));
+  c.legendHighlight = {sessionId:'s1', channelId:'right'};
+  assert.equal(c.dimmed('left','s1'),true);
+  assert.equal(c.dimmed('right','s1'),false);
+  assert.equal(c.dimmed('right','s2'),true);
+  c.overlays = ['s1', 's2'].map(sessionId => ({id:sessionId, sessionId, channel:c.channel}));
+  assert.equal(c.dimmed('a','s1'),false,'another metric follows the selected session');
+  assert.equal(c.dimmed('a','s2'),true);
+  c.legendHighlight=undefined;
+  assert.equal(c.dimmed('a','s2'),false);
+  c.ngOnDestroy();
+});
+test('legend hover restores keyboard focus, ignores touch and clears when the parent resets it', () => {
+  const {component:c} = fixture();
+  c.legendFocus('a');
+  c.legendEnter('b');
+  assert.equal(c.legendHighlightChange.values.at(-1).channelId,'b');
+  c.legendLeave();
+  assert.equal(c.legendHighlightChange.values.at(-1).channelId,'a');
+  c.legendFocus();
+  c.legendEnter('b',undefined,{pointerType:'touch'});
+  assert.equal(c.legendHighlightChange.values.at(-1),undefined);
+  c.overlays = [{id:'s1a',sessionId:'s1',channel:c.channel}];
+  c.legendEnter('a','s1');
+  c.overlays = c.overlays.map(trace=>({...trace,hidden:true}));
+  c.legendHighlight = undefined;
+  c.ngOnChanges({overlays:{},legendHighlight:{}});
+  c.legendLeave();
+  assert.equal(c.legendHighlightChange.values.at(-1),undefined);
+  c.legendEnter('a','s1');
+  assert.equal(c.legendHighlightChange.values.at(-1),undefined,'hidden traces cannot retain emphasis');
+  c.ngOnDestroy();
+});

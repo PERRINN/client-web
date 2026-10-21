@@ -1,3 +1,4 @@
+import type { LegendHighlight } from './greenpowerChart';
 import { ChangeDetectorRef, Component, Input, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ChartWindow } from './greenpowerChart';
@@ -15,6 +16,7 @@ export class GreenpowerOverlayComponent implements OnDestroy {
   charts: { channel: GreenpowerChannel; traces: OverlayTrace[]; heading: string }[] = [];
   window?: ChartWindow;
   cursor?: number;
+  legendHighlight?: LegendHighlight;
   private membership = '';
   private changes = new Subscription();
   constructor(public overlay: GreenpowerOverlayService, private view: GreenpowerViewService, change: ChangeDetectorRef) {
@@ -45,6 +47,8 @@ export class GreenpowerOverlayComponent implements OnDestroy {
           sessionId: session.id, hidden: session.hidden || session.excluded, excluded: session.excluded, colour: session.colour, channel: item, dashed: item.id === VOLTAGE_RIGHT || item.id === MOTOR_DERIVED_SPEED,
           detail: isVehicleSpeed(channel.id) ? item.id === MOTOR_DERIVED_SPEED ? 'Motor-derived' : 'Recorded' : undefined })))
     })).filter(chart => chart.traces.length);
+    if (!this.overlay.active || this.legendHighlight && !this.charts.some(chart => chart.traces.some(trace =>
+      !trace.hidden && !trace.excluded && trace.sessionId === this.legendHighlight!.sessionId && trace.channel.id === this.legendHighlight!.channelId))) this.legendHighlight = undefined;
   }
   ngOnDestroy() { this.changes.unsubscribe(); }
 }
