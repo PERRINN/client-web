@@ -430,7 +430,14 @@ export class RadioRoomService implements OnDestroy {
     if (!force && key === this.lastPresence) return;
     this.lastPresence = key;
     // A superseded tab must never revive itself through a late heartbeat.
-    void this.presenceRef.transaction(current => current?.session === data.session ? data : undefined, undefined, false)
+    let skippedReason = 'session-mismatch';
+    void this.presenceRef.transaction(current => {
+      if (!current) { skippedReason = 'cache-empty'; return; }
+      return current.session === data.session ? data : undefined;
+    }, undefined, false)
+      .then(result => {
+        if (!result.committed) this.recordTalk('presence-refresh-skipped', undefined, { session: data.session, reason: skippedReason });
+      })
       .catch(error => this.zone.run(() => {
         this.audio.diagnostics?.record('presence-refresh-rejected', { seat: this.seat, session: data.session,
           reason: this.permissionDenied(error) ? 'permission-denied' : 'other' });
@@ -533,10 +540,12 @@ export class RadioRoomService implements OnDestroy {
     if (this.joined) this.audio.diagnostics?.record('session-stopped', { seat: this.seat, session: this.session });
     ++this.generation; this.disconnectDeadline = 0;
     const cleanup = this.cleanup; this.cleanup = undefined;
-    if (cleanup) void this.root.update(cleanup).catch(() => { /* Server disconnect or stale-place recovery is the fallback. */ });
+    // RTDB updates notify local listeners synchronously. End local ownership
+    // before cleanup can make sync() mistake an intentional exit for an outage.
     this.joined = false; this.activePresence = false; void this.releaseTalk();
     this.mailbox?.(); this.mailbox = undefined; this.signals = {};
     this.presenceRef = undefined;
     this.audio.close(); this.session = '';
+    if (cleanup) void this.root.update(cleanup).catch(() => { /* Server disconnect or stale-place recovery is the fallback. */ });
   }
 }

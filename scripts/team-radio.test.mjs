@@ -190,6 +190,22 @@ test('diagnostic snapshots expose stale heartbeat and replaced session observati
   } finally { f.radio.ngOnDestroy(); }
 });
 
+test('heartbeat diagnostics distinguish an empty transaction cache from a superseded session without reviving either', async () => {
+  for (const [current, reason] of [[null, 'cache-empty'], [{ session: 'new-device' }, 'session-mismatch']]) {
+    const f = service(); let proposed;
+    f.radio.presenceRef = { transaction: async update => {
+      proposed = update(current); return { committed: false };
+    } };
+    try {
+      f.radio.refreshPresence(true); await settle();
+      assert.equal(proposed, undefined);
+      const event = f.radio.audio.diagnostics.snapshot().find(entry => entry.event === 'presence-refresh-skipped');
+      assert.equal(event.reason, reason);
+      assert.equal(f.writes.length, 0);
+    } finally { f.radio.ngOnDestroy(); }
+  }
+});
+
 test('a late Talk rejection cannot overwrite a newer session error', async () => {
   const f = service(); f.setFloor(null); let reject;
   f.ref.transaction = update => { update(null); return new Promise((_, fail) => reject = fail); };
@@ -420,6 +436,25 @@ test('exit stops media immediately and releases listener, speaker and signaling 
     assert.equal(patch['signals/1'], null); assert.equal(patch['signals/9/1'], null);
     assert.equal('floor' in patch, false, 'disconnect must not clear another sender floor');
     radio.exit(); assert.equal(fixture.writes.length, 1);
+  } finally { radio.ngOnDestroy(); }
+});
+test('exit ends local ownership before synchronous cleanup listeners can start recovery', () => {
+  const f = service(); const { radio } = f; let recoveries = 0; let cleanups = 0; let observed;
+  radio.cleanup = radio.releasePatch('1', 'bSession', '1');
+  radio.restoreSession = async () => { recoveries++; };
+  f.ref.update = async patch => {
+    cleanups++;
+    radio.room.presence[1] = { ...radio.room.presence[1], online: false };
+    // Firebase dispatches optimistic local events before update() returns.
+    radio.sync();
+    observed = { joined: radio.joined, session: radio.session, cleanupSession: patch['presence/1'].session };
+  };
+  try {
+    radio.exit();
+    assert.equal(recoveries, 0);
+    assert.equal(cleanups, 1);
+    assert.deepEqual(observed, { joined: false, session: '', cleanupSession: 'bSession' });
+    assert.equal(radio.audio.diagnostics.snapshot().filter(event => event.event === 'session-stopped').length, 1);
   } finally { radio.ngOnDestroy(); }
 });
 test('disconnect fallback registers only the session tombstone, not unsafe partial place deletes', async () => {
