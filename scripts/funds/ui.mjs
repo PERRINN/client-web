@@ -12,8 +12,9 @@ const root=resolve(import.meta.dirname,'../..'), output=await mkdtemp(resolve(tm
 const templates={},styles={};
 for(const name of ['home','profile','buy-prn']) {
  const source=await readFile(root+'/src/app/'+name+'.component.html','utf8');
- const marker=name==='home'?'<section class="panel funds-panel"':name==='profile'?'<section class="profile-funds-item"':'<h2 class="funds-heading">';
- const start=source.indexOf(marker),end=name==='buy-prn'?source.indexOf('\n    </div>\n    <br/>',start):source.indexOf('</section>',start)+10;
+ const marker=name==='home'?'@if (funds.length || loadingFunds || fundError || fundHasMore)':name==='profile'?'<section class="profile-funds-item"':'<h2 class="funds-heading">';
+ const start=source.indexOf(marker);let end=name==='buy-prn'?source.indexOf('\n    </div>\n    <br/>',start):source.indexOf('</section>',start)+10;
+ if(name==='home')end=source.indexOf('}',end)+1;
  assert.ok(start>=0&&end>start);templates[name]=source.slice(start,end);styles[name]=await readFile(root+'/src/app/'+name+'.component.css','utf8');
 }
 await writeFile(output+'/entry.ts',`
@@ -73,7 +74,10 @@ try {
   await row.getByText('424 Nürburgring testing',{exact:true}).waitFor();
   await page.screenshot({path:output+'/'+name+'-'+width+'.png'});
   for(const state of ['loading','error','empty']){await page.evaluate(state=>window.fundsUI.set(state),state);assert.deepEqual(await page.locator('#main_container').boundingBox(),geometry);}
-  await page.getByText('No active funds.',{exact:true}).waitFor();
+  if(name==='home'){
+   assert.equal(await page.getByText('No active funds.',{exact:true}).count(),0);
+   assert.equal(await page.getByRole('region',{name:'Funds',exact:true}).count(),0);
+  } else await page.getByText('No active funds.',{exact:true}).waitFor();
   await page.evaluate(()=>window.fundsUI.set('sparse'));assert.equal(await page.getByText('No active funds.',{exact:true}).count(),0);await page.getByRole('button',{name:'Load more',exact:true}).waitFor();
   await page.evaluate(()=>window.fundsUI.set('ready'));
   if(name==='buy-prn'){
