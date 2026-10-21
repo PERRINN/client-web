@@ -1,23 +1,23 @@
-import { Component, NgZone, OnDestroy, OnInit, EnvironmentInjector, runInInjectionContext } from '@angular/core';
+import { Component, HostListener, NgZone, OnDestroy, OnInit, EnvironmentInjector, runInInjectionContext } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Subscription, of, switchMap } from 'rxjs';
 import { UserInterfaceService } from './userInterface.service';
 import { ImageUploadService, imageUploadState } from './imageUpload.service';
-import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
-import firebase from 'firebase/compat/app';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { AccountEmailService } from './accountEmail.service';
 
 @Component({
     selector: 'settings',
     templateUrl: './settings.component.html',
     styleUrls: ['./settings.component.css', './upload-progress.css'],
+    providers: [AccountEmailService],
     standalone: false
 })
 export class SettingsComponent implements OnInit, OnDestroy {
   profileUpload = imageUploadState();
   name:string
   userPresentation:string
-  emailsAuth:string
+  private profileSubscription?: Subscription;
   contract:any
   searchFilter:string
   publicLink:any
@@ -28,21 +28,18 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private uploads: ImageUploadService,
     public UI:UserInterfaceService,
     private injector: EnvironmentInjector,
-    private zone: NgZone
+    private zone: NgZone,
+    public email: AccountEmailService
   ) {
     this.contract={}
     this.name=(this.UI.currentUserLastMessageObj||{}).name||null
     this.userPresentation=(this.UI.currentUserLastMessageObj||{}).userPresentation||null
     this.publicLink=(this.UI.currentUserLastMessageObj||{}).publicLink||null
-    this.emailsAuth=((this.UI.currentUserLastMessageObj||{}).emails||{}).auth||null
     this.contract.level=((this.UI.currentUserLastMessageObj||{}).contract||{}).level||null
   }
 
   ngOnInit() {
-    this.afAuth.user.subscribe((auth) => {
-      if (!auth) return;
-
-      runInInjectionContext(this.injector, () =>
+    this.profileSubscription = this.afAuth.authState.pipe(switchMap(auth => auth ? runInInjectionContext(this.injector, () =>
         this.afs
           .collection<any>('PERRINNMessages', (ref) =>
             ref
@@ -52,15 +49,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
               .limit(1)
           )
           .valueChanges()
-      ).subscribe((snapshot) => {
+      ) : of([]))).subscribe((snapshot) => {
         const profile = (snapshot && snapshot[0]) || {};
         this.name = profile.name || null;
         this.userPresentation = profile.userPresentation || null;
         this.publicLink = profile.publicLink || null;
-        this.emailsAuth = (profile.emails || {}).auth || null;
         this.contract.level = (profile.contract || {}).level || null;
       });
-    });
   }
 
   updateName(){
@@ -115,27 +110,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
     }
   }
 
-  updateEmails(){
-    if(this.emailsAuth!=this.UI.currentUserLastMessageObj.emails.auth){
-      this.UI.createMessage({
-        chain:this.UI.currentUser,
-        text:'Updating my email addresses.',
-        emails:{
-          auth:this.emailsAuth
-        }
-      })
-      this.UI.currentUserLastMessageObj = {
-        ...(this.UI.currentUserLastMessageObj || {}),
-        emails: {
-          ...((this.UI.currentUserLastMessageObj || {}).emails || {}),
-          auth: this.emailsAuth
-        }
-      }
-      return
-    }
-    else return
-  }
-
   updateContract(){
     const level = Number(this.contract.level);
     if(!(level >= 1 && level <= 10)) return;
@@ -155,11 +129,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
     }
   }
 
-  isValidEmail(email: string): boolean {
-    if (!email) return false;
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-  }
+  @HostListener('window:focus')
+  refreshEmail(): void { void this.email.refresh(); }
 
   onContractLevelInput(event: Event) {
     const inputElement = event.target as HTMLInputElement;
@@ -171,7 +142,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
   addChild(team){
   }
 
-  ngOnDestroy(): void { this.profileUpload = imageUploadState(); }
+  ngOnDestroy(): void {
+    this.profileSubscription?.unsubscribe();
+    this.profileUpload = imageUploadState();
+  }
 
   async onImageChange(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement, image = input.files?.[0], state = this.profileUpload;

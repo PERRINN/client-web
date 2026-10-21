@@ -42,7 +42,6 @@
 :host .settings-help-margin-top { margin: 10px 20px 0 20px; }
 :host .settings-help-margin-all { margin: 20px 20px 0 20px; }
 :host .settings-help-margin-contract { margin: 15px 20px 0 20px; }
-:host .settings-btn-email { width: 250px; }
 :host .settings-btn-centered { margin: 10px auto; display: block; }
 :host .settings-info-details { margin: 5px 10px 10px 15px; }
 
@@ -58,3 +57,12 @@
 :host .user-photo-button:disabled .settingsProfileImage { cursor: default; }
 
 :host .settingsUploadBtn:disabled { opacity: .5; cursor: default; }
+
+/* Reauthentication replaces the email input without adding a row. */
+:host .settings-email { display: block; overflow: visible; }
+:host .settings-email p { margin: 0; font-size: 15px; line-height: 1.45; overflow: visible; color: var(--color-text-muted); }
+:host .settings-email p.email-error { color: var(--color-danger-text); }
+:host .settings-email input { font-size: 16px; line-height: 1.45; }
+:host .settings-email-actions { display: flex; gap: 8px; overflow: visible; }
+:host .settings-email-actions button { margin: 0; font-size: 15px; line-height: 1.45; white-space: nowrap; transition: none; }
+:host .settings-email-actions .buttonPrimary { flex: 1; max-width: 250px; }

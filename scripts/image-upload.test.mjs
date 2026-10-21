@@ -13,7 +13,7 @@ function load(path, overrides = {}) {
 }
 const core = { Injectable: () => target => target, Component: () => target => target, ViewChild: () => () => {}, HostListener: () => () => {}, runInInjectionContext: (_, fn) => fn() };
 const uploads = load('../src/app/imageUpload.service.ts', { '@angular/core': core });
-const { SettingsComponent } = load('../src/app/settings.component.ts', { '@angular/core': core, './imageUpload.service': uploads });
+const { SettingsComponent } = load('../src/app/settings.component.ts', { '@angular/core': core, './imageUpload.service': uploads, './accountEmail.service': { AccountEmailService: class {} } });
 const zone = { run: fn => fn() };
 const input = () => ({ files: [{ name: 'Team photo.png', type: 'image/png', size: 100 }], value: 'selected' });
 const tick = () => new Promise(resolve => setImmediate(resolve));

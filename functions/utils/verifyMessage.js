@@ -85,12 +85,6 @@ module.exports = {
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{chatImageUrlMedium:chatImageData.imageUrlMedium||messageData.chatImageUrlMedium||null},{create:true})
 
       //user data
-      let emails=messageData.emails||userPreviousMessageData.emails||{}
-      if(emails.auth==undefined){
-        const userRecord=await admin.auth().getUser(user)
-        if(userRecord)emails.auth=userRecord.toJSON().email
-      }
-      if(emails.auth&&userPreviousMessageData.emails&&(emails.auth!=userPreviousMessageData.emails.auth))await admin.auth().updateUser(user,{email:emails.auth})
       messageData.createdTimestamp=messageData.createdTimestamp||userPreviousMessageData.createdTimestamp||now
       if((messageData.creatingUser!=undefined)&&(userPreviousMessageData.name)&&(userPreviousMessageData.imageUrlThumbUser)){
         messageData.text=(messageData.text||"")+" (duplicate)"
@@ -294,7 +288,6 @@ module.exports = {
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{interest:interest},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{locking:locking},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{wallet:wallet},{create:true})
-        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{emails:emails},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{fund:fund},{create:true})
         batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{currencyList:(messageData.currencyList||userPreviousMessageData.currencyList||PERRINNAdminLastMessageData.currencyList||{})},{create:true})
         //message verified

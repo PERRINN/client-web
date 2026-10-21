@@ -1,12 +1,11 @@
 import { ImageViewerService, ViewerImage } from './image-viewer/imageViewer.service'
 import { Injectable, isDevMode, EnvironmentInjector, runInInjectionContext } from '@angular/core'
 import { AngularFireAuth } from '@angular/fire/compat/auth'
-import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore'
-import { Observable } from 'rxjs'
-import { map } from 'rxjs/operators'
+import { AngularFirestore } from '@angular/fire/compat/firestore'
+import { Subscription } from 'rxjs'
 import { serverTimestamp } from 'firebase/firestore'
 import { formatNumber } from '@angular/common'
-import { Router, ActivatedRoute } from '@angular/router'
+import { Router } from '@angular/router'
 import { environment } from '../environments/environment'
 
 
@@ -26,6 +25,7 @@ export class UserInterfaceService {
   public revolutMode: 'sandbox' | 'prod' = 'sandbox'
   private authenticatedUser: string | null = null
   private authenticatedUserEmail: string | null = null
+  private currentUserMessageSubscription?: Subscription
   private profileUserId: string
   private adminUserId: string
 
@@ -79,13 +79,17 @@ export class UserInterfaceService {
     this.afAuth.user.subscribe((auth) => {
       runInInjectionContext(this.injector, () => {
         if (auth != null) {
+          const accountChanged = this.authenticatedUser !== auth.uid;
           this.authenticatedUser = auth.uid;
           this.authenticatedUserEmail = auth.email;
           if (!this.profileSimulatorLoggedOut) {
             this.currentUser = auth.uid;
             this.currentUserEmail = auth.email;
           }
-          afs
+          if (!accountChanged) return;
+          this.currentUserMessageSubscription?.unsubscribe();
+          this.currentUserLastMessageObj = null;
+          this.currentUserMessageSubscription = afs
             .collection<any>("PERRINNMessages", (ref) =>
               ref
                 .where("user", "==", auth.uid)
@@ -95,9 +99,11 @@ export class UserInterfaceService {
             )
             .valueChanges()
             .subscribe((snapshot) => {
-              this.currentUserLastMessageObj = snapshot[0];
+              if (this.authenticatedUser === auth.uid) this.currentUserLastMessageObj = snapshot[0];
             });
         } else {
+          this.currentUserMessageSubscription?.unsubscribe();
+          this.currentUserLastMessageObj = null;
           this.authenticatedUser = null;
           this.authenticatedUserEmail = null;
           this.profileSimulatorLoggedOut = false;

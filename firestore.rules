@@ -127,6 +127,7 @@ service cloud.firestore {
             && data.fund.amountGBPRaised >= 0 && data.fund.amountGBPRaised <= 90071992547409);
       }
       allow create: if request.resource.data.user==request.auth.uid
+                    && !('emails' in request.resource.data)
                     && request.resource.data.serverTimestamp==request.time
                     && request.resource.data.text.size()<=500
                     && validFundCommand() && validRaisedAmount();

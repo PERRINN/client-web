@@ -88,9 +88,22 @@
 
       <div class="island settingsSection">
         <div class="title">Email address</div>
-        <div class="settings-help-text settings-help-margin-top">Authentication address.</div>
-        <input [(ngModel)]="emailsAuth" placeholder="Enter your authentication email">
-        <button class="buttonPrimary settings-action-btn settings-btn-email" (click)="updateEmails()" [disabled]="!isValidEmail(emailsAuth) || emailsAuth == UI.currentUserLastMessageObj?.emails.auth">Update my email address</button>
+        <form class="settings-email" (ngSubmit)="email.send()" [attr.aria-busy]="email.busy">
+          <p id="email-status" [attr.role]="email.error ? 'alert' : 'status'" [class.email-error]="email.error">{{email.status}}</p>
+          @if (email.needsPassword) {
+            <input name="current-password" [(ngModel)]="email.password" type="password" autocomplete="current-password"
+              aria-label="Current password" aria-describedby="email-status" [disabled]="email.busy" placeholder="Current password">
+          } @else {
+            <input name="email" [(ngModel)]="email.address" (ngModelChange)="email.edit()" type="email" autocomplete="email"
+              aria-label="Email address" aria-describedby="email-status" [disabled]="email.busy" placeholder="Email address" maxlength="254">
+          }
+          <div class="settings-email-actions">
+            <button type="submit" class="buttonPrimary" [disabled]="!email.canSend">{{email.needsPassword ? 'Confirm and send' : 'Send verification'}}</button>
+            @if (email.needsPassword || email.sent) {
+              <button type="button" class="buttonSecondary" (click)="email.cancel()" [disabled]="email.busy">{{email.sent ? 'Done' : 'Cancel'}}</button>
+            }
+          </div>
+        </form>
       </div>
 
       <div class="island settingsSection">
