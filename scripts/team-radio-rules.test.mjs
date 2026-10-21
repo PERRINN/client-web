@@ -79,6 +79,27 @@ test('transmission requires a speaking place and live owned connection; concurre
   await allow('floor', null, 'user0');
   await allow('floor', floor(1), 'user1');
 });
+test('delayed floor requests tolerate latency without extending the lease or bypassing ownership', async () => {
+  const startedAt = Date.now() - 3000;
+  const delayed = floor(0, { startedAt, expiresAt: startedAt + 30000 });
+  await deny('floor', delayed);
+  await deny('floor', delayed, 'user1');
+  await deny('floor', { ...delayed, session: 'superseded' }, 'user0');
+  await deny('floor', { ...delayed, expiresAt: startedAt + 30001 }, 'user0');
+  await allow('floor', delayed, 'user0');
+  const saved = (await request(path('floor'), 'GET', undefined, 'user0')).data;
+  assert.equal(saved.startedAt, startedAt);
+  assert.equal(saved.expiresAt, startedAt + 30000, 'network delay must consume the existing lease');
+  await deny('floor', floor(1), 'user1');
+});
+test('floor requests older than ten seconds or dated in the future remain denied', async () => {
+  for (const age of [11000, -60000]) {
+    const startedAt = Date.now() - age;
+    await deny('floor', floor(0, { startedAt, expiresAt: startedAt + 30000 }), 'user0');
+  }
+  const startedAt = Date.now() - 8000;
+  await allow('floor', floor(0, { startedAt, expiresAt: startedAt + 30000 }), 'user0');
+});
 test('atomic exit frees both places and invalidates transmission', async () => {
   await allow('floor', floor(0), 'user0');
   await patch(cleanup('0', 'session0', '0'), 'user0');
