@@ -1100,3 +1100,14 @@ test('fund editor preserves the exact deadline across display-day changes and bl
     assert.equal(calls.length,1);assert.match(editor.error,/ended/);
   } finally {editor.ngOnDestroy();globalThis.requestAnimationFrame=oldRAF;}
 });
+
+test('conversation avatar projection retains all sizes without substituting the latest author photo', async () => {
+  const f = fixture();
+  const latest = f.rows[0].payload.doc.data();
+  Object.assign(latest, { chatProfileImageUrlThumb: 'broken-thumb', chatProfileImageUrlMedium: 'medium', chatProfileImageUrlOriginal: 'original', imageUrlThumbUser: 'author' });
+  assert.deepEqual((await firstValueFrom(f.service.watch('chat', 30))).avatarSources, ['broken-thumb', 'medium', 'original']);
+  latest.chatProfileImageUrlThumb = ''; latest.chatProfileImageUrlMedium = undefined;
+  assert.deepEqual((await firstValueFrom(f.service.watch('chat', 30))).avatarSources, ['original']);
+  latest.chatProfileImageUrlOriginal = undefined;
+  assert.deepEqual((await firstValueFrom(f.service.watch('chat', 30))).avatarSources, []);
+});

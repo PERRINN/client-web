@@ -5,7 +5,7 @@
         <header class="chat-header">
           <h1 class="chat-heading">
             <button #detailsTrigger type="button" class="chat-identity-button" (click)="toggleDetails()" [disabled]="state === 'loading' || !chain || savingDetails || eventSaving || fundSaving || transferBusy" [attr.aria-expanded]="detailsOpen" aria-controls="chat-details" [attr.aria-label]="'Chat details: ' + title">
-              <span class="chat-avatar" aria-hidden="true">{{ title.slice(0, 2) }}@if (avatar) { <img [src]="avatar" alt="" (error)="hideAvatar($event)"> }</span>
+              <app-user-avatar class="chat-avatar" [name]="title" [sources]="avatarSources" aria-hidden="true"></app-user-avatar>
               <span class="chat-title"><span class="chat-subject">{{ title }}</span>@if (members.length) { <span class="chat-participants">{{ members.length }} participants</span> }</span>
             </button>
           </h1>
@@ -44,7 +44,7 @@
           <header><h2 id="details-title">Chat details</h2><button #detailsClose type="button" (click)="closeDetails()" [disabled]="savingDetails || eventSaving || fundSaving || transferBusy" aria-label="Close chat details">×</button></header>
           <div class="details-body">
             <div class="chat-identity">
-              <span class="details-avatar" aria-hidden="true">{{ (editingDetails ? subjectDraft : title).slice(0, 2) }}@if (imagePreview || avatar) { <img [src]="imagePreview || avatar" alt="" (error)="hideAvatar($event)"> }</span>
+              <app-user-avatar class="details-avatar" [name]="editingDetails ? subjectDraft : title" [sources]="imagePreview ? [imagePreview] : avatarSources" aria-hidden="true"></app-user-avatar>
               @if (!editingDetails) { <h3>{{ title }}</h3> }
             </div>
             @if (editingDetails) {
@@ -52,7 +52,7 @@
                 <label for="chat-subject">Subject</label>
                 <input #subjectInput id="chat-subject" name="subject" [(ngModel)]="subjectDraft" maxlength="60" required [disabled]="savingDetails" autocomplete="off">
                 <input #chatImagePicker class="file-input" type="file" accept="image/png,image/jpeg,image/gif,image/webp" (change)="chooseChatImage($event)" [disabled]="savingDetails" aria-label="Choose chat image">
-                <button type="button" (click)="chatImagePicker.click()" [disabled]="savingDetails">{{ imagePreview || avatar ? 'Change image' : 'Add image' }}</button>
+                <button type="button" (click)="chatImagePicker.click()" [disabled]="savingDetails">{{ imagePreview || avatarSources.length ? 'Change image' : 'Add image' }}</button>
                 @if (imagePreview) { <button type="button" (click)="clearChatImage()" [disabled]="savingDetails">Undo image change</button> }
                 @if (detailsError) { <p class="inline-error" role="alert">{{ detailsError }}</p> }
                 <div class="editor-actions"><button type="button" (click)="cancelDetailsEdit()" [disabled]="savingDetails">Cancel</button><button class="save-details" type="submit" [disabled]="savingDetails || !hasDetailsChanges || !subjectDraft.trim()">{{ savingDetails ? 'Saving' : 'Save' }}</button></div>

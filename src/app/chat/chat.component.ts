@@ -49,7 +49,7 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
   state = 'loading';
   chain = '';
   title = 'Conversation';
-  avatar = '';
+  avatarSources: string[] = [];
   detailsOpen = false;
   awayFromLatest = false;
   showLatest = false;
@@ -77,7 +77,7 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
       this.resetDetailsEditor(); this.savingDetails = false; this.detailsNotice = '';
       this.event = null; this.eventSaving = false; this.fund = null; this.fundSaving = false; this.transferBusy = false;
       this.chain = params.get('id') || ''; this.messages = []; this.members = [];
-      this.state = 'loading'; this.title = 'Conversation'; this.avatar = ''; this.unreadId = '';
+      this.state = 'loading'; this.title = 'Conversation'; this.avatarSources = []; this.unreadId = '';
       this.detailsOpen = false; this.awayFromLatest = false; this.showLatest = false; this.sendError = ''; this.loadMoreError = '';
       this.hasMore = false; this.loadingMore = false; this.pendingAnchor = undefined; this.composer?.clearDraft();
       this.scrollTarget = this.route.snapshot.queryParamMap.get('scroll') || '';
@@ -102,7 +102,7 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
     this.messageSubscription = this.data.watch(this.chain, this.limit).subscribe({
       next: chat => this.zone.run(() => {
         const stick = !this.awayFromLatest, entering = this.state === 'loading';
-        this.event = chat.event; this.fund = chat.fund; this.messages = chat.messages; this.title = chat.title; this.members = chat.members; this.avatar = chat.avatar;
+        this.event = chat.event; this.fund = chat.fund; this.messages = chat.messages; this.title = chat.title; this.members = chat.members; this.avatarSources = chat.avatarSources;
         this.unreadId = this.reads.update(this.chain, chat); this.hasMore = chat.hasMore; this.signedIn = chat.signedIn;
         if (!chat.signedIn && this.editingDetails) this.resetDetailsEditor();
         this.loadingMore = false; this.loadMoreError = ''; this.state = this.messages.length ? 'ready' : 'empty';
@@ -284,8 +284,6 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
   isContinued(index: number): boolean {
     return continuesMessageGroup(this.messages[index - 1], this.messages[index], this.unreadId);
   }
-
-  hideAvatar(event: Event): void { (event.target as HTMLImageElement).hidden = true; }
 
   openImage(message: ChatMessage): void {
     const image = (item: ChatMessage) => ({ src: item.originalImage, name: item.imageName, id: item.id, chain: this.chain, imageTimestamp: item.imageTimestamp, subject: this.title, postedAt: item.timestamp });

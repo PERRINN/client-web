@@ -35,7 +35,7 @@ export class ChatDataService {
         });
         return {
           messages, event: chatEvent(latest), fund: chatFund(latest), title: latest.chatSubject || 'Conversation', members: chatMembers(latest, user?.uid || null),
-          avatar: latest.chatProfileImageUrlThumb || latest.chatProfileImageUrlMedium || '',
+          avatarSources: [latest.chatProfileImageUrlThumb, latest.chatProfileImageUrlMedium, latest.chatProfileImageUrlOriginal].filter((url): url is string => !!url),
           unreadId: firstUnread(messages, seen?.timestamp || 0, seen?.messageId), userId: user?.uid || null, seen, cursorUnavailable: !!user && seen === null, hasMore: rows.length === limit, signedIn: !!user
         };
       }));

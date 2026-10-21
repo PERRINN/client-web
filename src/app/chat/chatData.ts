@@ -16,6 +16,7 @@ export interface ChatRecord extends EventRecord, TransferRecord, TimeCreditRecor
   chatSubject?: string;
   chatProfileImageUrlThumb?: string;
   chatProfileImageUrlMedium?: string;
+  chatProfileImageUrlOriginal?: string;
   imageUrlThumbUser?: string;
   imageUrlMedium?: string;
   imageUrlOriginal?: string;
