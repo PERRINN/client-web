@@ -42,7 +42,7 @@ test('current chart updates measured values and keeps its limit through zoom and
   c.ngOnChanges({channel:{}});
   assert.equal(c.model.trace.max, 28);
   assert.ok(c.limitY >= 10 && c.limitY <= 110);
-  c.channel = {...c.channel,id:'["Vt"]:V'};
+  c.channel = {...c.channel,id:'["V1"]:V'};
   c.ngOnChanges({channel:{}});
   assert.equal(c.limit, undefined);
   c.ngOnDestroy();
@@ -62,7 +62,7 @@ test('amp-hour limit remains visible below and above 24 Ah, including empty wind
     assert.ok(c.limitY >= 10 && c.limitY <= 110);
     c.start = 0;
   }
-  c.channel = {...c.channel, id:'["Vt"]:V', unit:'V'};
+  c.channel = {...c.channel, id:'["V1"]:V', unit:'V'};
   c.ngOnChanges({channel:{}});
   assert.equal(c.limit, undefined);
   c.ngOnDestroy();

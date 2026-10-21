@@ -101,6 +101,26 @@ test('current chart fits measured readings and the 24 A limit', () => {
   assert.ok(chart.chartY(24, high.axis) >= 10 && chart.chartY(24, high.axis) <= 110);
 });
 
+test('total voltage limit stays visible across readings, zoom and empty overlays', () => {
+  const samples = [19, 21, 25].map((Vt, receivedAt) => ({ source: '424-phone', receivedAt, raw: JSON.stringify({ Vt }) }));
+  const channel = data.channelsFor(samples, samples.at(-1))[0];
+  const limit = chart.channelLimit(channel);
+  assert.equal(limit, 21);
+  assert.equal(chart.channelLimit({ id: '["V1"]:V' }), undefined);
+  assert.equal(chart.channelLimit({ id: '["Vt"]:mV' }), undefined);
+  for (const width of [200, 1000]) {
+    for (const [start, end] of [[0, 2], [0, 0], [2, 2], [3, 4]]) {
+      for (const overlay of [false, true]) {
+        const model = chart.plotFor(overlay ? [] : channel.points, start, end, width, limit, [], overlay ? [channel.points] : []);
+        const values = channel.points.filter(p => p.time >= start && p.time <= end).map(p => p.value);
+        assert.ok(model.axis.min <= Math.min(limit, ...values));
+        assert.ok(model.axis.max >= Math.max(limit, ...values));
+        assert.ok(chart.chartY(limit, model.axis) >= 10 && chart.chartY(limit, model.axis) <= 110);
+      }
+    }
+  }
+});
+
 test('energy limit stays visible below and above 550 Wh, through zoom and empty overlays', () => {
   const limit = chart.channelLimit({ id: data.ENERGY });
   assert.equal(limit, 550);

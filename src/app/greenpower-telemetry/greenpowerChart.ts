@@ -5,6 +5,7 @@ import { formatAxisValue, formatTelemetryValue } from '../telemetry/sessionHisto
 export interface ChartWindow { start: number; end: number; }
 export type ChartPoint = { time: number; value: number };
 export function channelLimit(channel: GreenpowerChannel) {
+  if (channel.id === '["Vt"]:V') return 21;
   if (channel.id === '["A"]:A' || channel.id === '["AH"]:Ah') return 24;
   if (channel.id === ENERGY) return 550;
   return undefined;
