@@ -1,14 +1,14 @@
 <section class="chart" [class.race-time]="raceTime" [attr.aria-label]="(heading || channel.label) + ' over time'">
-  <h2>{{ heading || channel.label }}{{ channel.unit ? ' · ' + channel.unit : '' }}</h2>
+  <h2 [attr.aria-description]="channel.id.startsWith('computed:') ? 'Calculated in the UI' : null">{{ heading || channel.label }}@if (channel.id.startsWith('computed:')) { <span class="math-channel-icon" aria-hidden="true" title="Calculated in the UI"></span> }{{ channel.unit ? ' · ' + channel.unit : '' }}</h2>
   @if (comparison) {
     <div class="current-legend comparison-legend" [attr.aria-label]="(heading || channel.label) + ' chart legend'">
-      <span class="raw-key">{{ channel.label }}<span class="legend-value">{{ cursor === undefined && !live ? channel.value + ' ' + channel.unit : cursorLabel }}</span></span>
-      <span class="comparison-key">{{ comparison.label }}<span class="legend-value">{{ cursor === undefined && !live ? comparison.value + ' ' + comparison.unit : comparisonLabel }}</span></span>
+      <span class="raw-key" [attr.aria-description]="channel.id.startsWith('computed:') ? 'Calculated in the UI' : null">{{ channel.label }}@if (channel.id.startsWith('computed:')) { <span class="math-channel-icon" aria-hidden="true" title="Calculated in the UI"></span> }<span class="legend-value">{{ cursor === undefined && !live ? channel.value + ' ' + channel.unit : cursorLabel }}</span></span>
+      <span class="comparison-key" [attr.aria-description]="comparison.id.startsWith('computed:') ? 'Calculated in the UI' : null">{{ comparison.label }}@if (comparison.id.startsWith('computed:')) { <span class="math-channel-icon" aria-hidden="true" title="Calculated in the UI"></span> }<span class="legend-value">{{ cursor === undefined && !live ? comparison.value + ' ' + comparison.unit : comparisonLabel }}</span></span>
     </div>
   }
   @if (limit !== undefined) {
     <div class="current-legend" [attr.aria-label]="channel.label + ' chart legend'">
-      @if (!overlays.length) { <span class="raw-key">{{ channel.label }}</span> }<span class="limit-key">{{ limit }} {{ channel.unit }} limit</span>
+      @if (!overlays.length) { <span class="raw-key" [attr.aria-description]="channel.id.startsWith('computed:') ? 'Calculated in the UI' : null">{{ channel.label }}@if (channel.id.startsWith('computed:')) { <span class="math-channel-icon" aria-hidden="true" title="Calculated in the UI"></span> }</span> }<span class="limit-key">{{ limit }} {{ channel.unit }} limit</span>
     </div>
   }
   @if (overlays.length) {
@@ -16,7 +16,7 @@
       <span class="overlay-time">{{ cursor === undefined ? 'Elapsed time' : time(cursor) }}</span>
       @for (trace of overlays; track trace.id) {
         @if (!trace.excluded) {
-          <div class="overlay-entry" [class.hidden-session]="trace.hidden" [title]="trace.label + ' · ' + trace.channel.label" [attr.aria-label]="trace.label + ' · ' + trace.channel.label + ': ' + overlayValue(trace)"><span class="overlay-name">{{ trace.label }}{{ trace.detail ? ' · ' + trace.detail : trace.dashed ? ' · Right' : heading ? ' · Left' : '' }}</span><span class="overlay-value">{{ overlayValue(trace) }}</span>@if (trace.sessionId) { <button type="button" class="overlay-visibility" [style.color]="trace.colour" [attr.title]="(trace.hidden ? 'Show ' : 'Hide ') + trace.label" [attr.aria-label]="(trace.hidden ? 'Show ' : 'Hide ') + trace.label" [attr.aria-pressed]="!trace.hidden" (click)="overlayVisibilityChange.emit(trace.sessionId)"></button> }</div>
+          <div class="overlay-entry" [class.hidden-session]="trace.hidden" [title]="trace.label + ' · ' + trace.channel.label" [attr.aria-label]="trace.label + ' · ' + trace.channel.label + ': ' + overlayValue(trace)"><span class="overlay-name" [attr.aria-description]="trace.channel.id.startsWith('computed:') ? 'Calculated in the UI' : null">{{ trace.label }}{{ trace.detail ? ' · ' + trace.detail : trace.dashed ? ' · Right' : heading ? ' · Left' : '' }}@if (trace.channel.id.startsWith('computed:')) { <span class="math-channel-icon" aria-hidden="true" title="Calculated in the UI"></span> }</span><span class="overlay-value">{{ overlayValue(trace) }}</span>@if (trace.sessionId) { <button type="button" class="overlay-visibility" [style.color]="trace.colour" [attr.title]="(trace.hidden ? 'Show ' : 'Hide ') + trace.label" [attr.aria-label]="(trace.hidden ? 'Show ' : 'Hide ') + trace.label" [attr.aria-pressed]="!trace.hidden" (click)="overlayVisibilityChange.emit(trace.sessionId)"></button> }</div>
         }
       }
     </div>

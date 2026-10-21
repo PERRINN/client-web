@@ -21,7 +21,7 @@ import { recordingHeader } from './greenpowerContext';
 
 @Component({
   selector: 'app-greenpower-telemetry', standalone: false,
-  templateUrl: './greenpower-telemetry.component.html', styleUrls: ['./greenpower-telemetry.component.css'],
+  templateUrl: './greenpower-telemetry.component.html', styleUrls: ['./greenpower-telemetry.component.css', './math-channel.css'],
   providers: [GreenpowerTelemetryService, GreenpowerViewService, GreenpowerLapService, GreenpowerEventsService, GreenpowerEventEditService, GreenpowerOverlayService]
 })
 export class GreenpowerTelemetryComponent implements OnDestroy {

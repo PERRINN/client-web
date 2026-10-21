@@ -87,9 +87,9 @@ window.dayHarness={
 await build({ entryPoints: [output + '/entry.ts'], outfile: output + '/bundle.js', bundle: true, platform: 'browser', format: 'iife', nodePaths: [root + '/node_modules'], tsconfigRaw: { compilerOptions: { experimentalDecorators: true } }, plugins: [{ name: 'angular-resources', setup(plugin) {
   plugin.onLoad({ filter: /\.component\.ts$/ }, async args => {
     let source = await readFile(args.path, 'utf8');
-    const template = /templateUrl:\s*'([^']+)'/.exec(source), style = /styleUrls:\s*\[\s*'([^']+)'\s*\]/.exec(source);
+    const template = /templateUrl:\s*'([^']+)'/.exec(source), style = /styleUrls:\s*\[([^\]]+)\]/.exec(source);
     if (template) source = source.replace(template[0], 'template: ' + JSON.stringify(await readFile(resolve(dirname(args.path), template[1]), 'utf8')));
-    if (style) source = source.replace(style[0], 'styles: [' + JSON.stringify(await readFile(resolve(dirname(args.path), style[1]), 'utf8')) + ']');
+    if (style) source = source.replace(style[0], 'styles: ' + JSON.stringify(await Promise.all([...style[1].matchAll(/'([^']+)'/g)].map(([,name]) => readFile(resolve(dirname(args.path), name), 'utf8')))));
     return { contents: source, loader: 'ts', resolveDir: dirname(args.path) };
   });
 } }] });

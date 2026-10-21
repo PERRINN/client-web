@@ -127,7 +127,7 @@ await build({entryPoints:[output+'/entry.ts'],outfile:output+'/bundle.js',bundle
  plugins:[{name:'angular-jit',setup(builder){builder.onLoad({filter:/greenpower-(telemetry|overlay|chart|metadata-fields)\.component\.ts$/},async args=>{
   let source=await readFile(args.path,'utf8');
   source=source.replace(/templateUrl: '([^']+)'/,(_,name)=>'template: '+JSON.stringify(require('node:fs').readFileSync(resolve(dirname(args.path),name),'utf8')))
-   .replace(/styleUrls: \[\'([^']+)\'\]/,(_,name)=>'styles: ['+JSON.stringify(require('node:fs').readFileSync(resolve(dirname(args.path),name),'utf8'))+']');
+   .replace(/styleUrls: \[([^\]]+)\]/,(_,names)=>'styles: '+JSON.stringify([...names.matchAll(/'([^']+)'/g)].map(([,name])=>require('node:fs').readFileSync(resolve(dirname(args.path),name),'utf8'))));
   source += args.path.includes('greenpower-telemetry.component')
    ? '\n(GreenpowerTelemetryComponent as any).ctorParameters = () => [{type:GreenpowerTelemetryService},{type:ChangeDetectorRef},{type:Title},{type:GreenpowerViewService},{type:GreenpowerLapService},{type:GreenpowerEventsService},{type:GreenpowerEventEditService},{type:GreenpowerOverlayService}];'
    : args.path.includes('metadata-fields') ? '\n(GreenpowerMetadataFieldsComponent as any).ctorParameters = () => [{type:GreenpowerEventsService}];' : args.path.includes('greenpower-overlay') ? '\n(GreenpowerOverlayComponent as any).ctorParameters = () => [{type:GreenpowerOverlayService},{type:GreenpowerViewService},{type:ChangeDetectorRef}];' : '\n(GreenpowerChartComponent as any).ctorParameters = () => [{type:ChangeDetectorRef},{type:NgZone}];';
@@ -168,6 +168,10 @@ try {
   assert.equal(await page.getByRole('button',{name:'Track map',exact:true}).isDisabled(),true);
   assert.equal(await page.getByRole('button',{name:'Lap list',exact:true}).isDisabled(),true);
   assert.equal(await page.locator('app-greenpower-chart').count(),4);
+  assert.equal(await page.locator('app-greenpower-chart h2 .math-channel-icon').count(),2,'mark voltage charts, leave raw charts unmarked');
+  assert.equal(await page.locator('app-greenpower-chart').nth(2).locator('.overlay-name .math-channel-icon').count(),12,'both calculated voltage traces are marked');
+  assert.equal(await page.locator('app-greenpower-chart').first().locator('.math-channel-icon').count(),0,'raw current stays unmarked');
+
   assert.equal(await page.locator('app-greenpower-chart').nth(2).locator('svg .trace').count(),12,'voltage has both traces per session');
   const chart=page.locator('app-greenpower-chart').first();const plot=chart.locator('svg');await plot.focus();await plot.press('ArrowRight');
   const names=await page.locator('.session-list .session-label').allTextContents();
@@ -253,6 +257,13 @@ try {
   assert.equal(await page.getByRole('checkbox',{name:'Vehicle speed / Motor-derived speed chart',exact:true}).count(),1);
   assert.equal(await page.getByRole('button',{name:'Save',exact:true}).isEnabled(),true,'track readiness cannot block chart saving');
   assert.deepEqual(await toolbar.boundingBox(),beforeEditing,'editing preserves toolbar geometry');
+  const marker=page.locator('.channel-option[data-channel="computed:voltage-left"] .math-channel-icon');
+  assert.equal(await marker.getAttribute('title'),'Calculated in the UI');
+  assert.equal(await marker.getAttribute('aria-hidden'),'true');
+  assert.equal(await marker.evaluate(el=>getComputedStyle(el).display),'inline-block');
+  assert.equal(await marker.evaluate(el=>getComputedStyle(el).fontSize),'11px');
+  assert.ok((await marker.boundingBox()).width<=14,'marker remains compact');
+  assert.equal(await page.locator('.channel-option[data-channel=\'["A"]:A\'] .math-channel-icon').count(),0);
   await page.screenshot({path:output+'/'+name+'-editor.png',fullPage:true});
   const scalarSettings=await page.evaluate(()=>JSON.stringify(window.overlayHarness.view.draft.scalars));
   await page.evaluate(()=>{const h=window.overlayHarness;h.comparison.window={start:1000,end:100000};h.detect()});
@@ -341,6 +352,7 @@ try {
   assert.equal(await unavailable.locator('strong').textContent(),'— V','unavailable selected scalar remains labelled');
   const motorScalar=page.locator('.reading').filter({has:page.getByText('Motor-derived speed',{exact:true})});
   assert.match(await motorScalar.locator('strong').textContent(),/mph/);
+  assert.equal(await motorScalar.locator('.math-channel-icon').count(),1,'calculated scalar marked');
   await page.getByRole('button',{name:'Edit view',exact:true}).click();
   await page.getByRole('button',{name:'Charts',exact:true}).click();await page.evaluate(()=>window.overlayHarness.detect());
   assert.equal(await page.getByRole('checkbox',{name:'Voltage left / right chart',exact:true}).count(),1);
@@ -385,6 +397,9 @@ try {
   assert.equal(await speedChart.count(),1);
   assert.equal(await speedChart.locator('.comparison-trace').count(),1);
   assert.match(await speedChart.locator('.comparison-legend').textContent(),/Motor-derived speed/);
+  assert.equal(await speedChart.locator('h2 .math-channel-icon').count(),0,'recorded speed heading stays raw');
+  assert.equal(await speedChart.locator('.comparison-key .math-channel-icon').count(),1,'derived speed trace marked');
+  assert.equal(await speedChart.locator('.raw-key .math-channel-icon').count(),0);
   const initialPath=await speedChart.locator('.comparison-trace').getAttribute('d');
   await speedChart.locator('svg').focus();await speedChart.locator('svg').press('ArrowRight');
   assert.notEqual(await speedChart.locator('.comparison-legend .legend-value').last().textContent(),'—');

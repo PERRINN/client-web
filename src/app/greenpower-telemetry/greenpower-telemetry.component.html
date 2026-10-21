@@ -51,13 +51,13 @@
           } @else {
           <span class="order-notice" aria-live="polite">{{ orderNotice }}</span>
           @if (drag.preview; as preview) {
-            <div class="drag-preview" aria-hidden="true" [style.top.px]="preview.top" [style.left.px]="preview.left" [style.width.px]="preview.width">{{ preview.label }}</div>
+            <div class="drag-preview" aria-hidden="true" [style.top.px]="preview.top" [style.left.px]="preview.left" [style.width.px]="preview.width">{{ preview.label }}@if (drag.channel?.startsWith('computed:') || (editorKind === 'charts' && isVehicleSpeed(drag.channel || ''))) { <span class="math-channel-icon" aria-hidden="true" title="Calculated in the UI"></span> }</div>
           }
           <div #channelOptions class="channel-options" (pointermove)="drag.move($event)" (pointerup)="drag.finish($event)" (pointercancel)="drag.cancel($event)" (lostpointercapture)="drag.cancel($event)" role="group" [attr.aria-label]="editorKind === 'scalars' ? 'Scalar visibility and order' : 'Chart visibility and order'">
             @for (channel of available; track channel.id; let index = $index) {
               <div class="channel-option" [class.dragging]="drag.channel === channel.id" [attr.data-channel]="channel.id">
-                <input type="checkbox" [attr.aria-label]="channel.label + (editorKind === 'scalars' ? ' scalar' : ' chart')" [checked]="!!view.draft[editorKind][channel.id]" [disabled]="view.saving" (change)="view.toggle(editorKind, channel.id, $any($event.target).checked)">
-                <span class="channel-label">{{ channel.label }}{{ channel.unit ? ' · ' + channel.unit : '' }}</span>
+                <input type="checkbox" [attr.aria-description]="channel.id.startsWith('computed:') || (editorKind === 'charts' && isVehicleSpeed(channel.id)) ? 'Calculated in the UI' : null" [attr.aria-label]="channel.label + (editorKind === 'scalars' ? ' scalar' : ' chart')" [checked]="!!view.draft[editorKind][channel.id]" [disabled]="view.saving" (change)="view.toggle(editorKind, channel.id, $any($event.target).checked)">
+                <span class="channel-label" [attr.aria-description]="channel.id.startsWith('computed:') || (editorKind === 'charts' && isVehicleSpeed(channel.id)) ? 'Calculated in the UI' : null">{{ channel.label }}@if (channel.id.startsWith('computed:') || (editorKind === 'charts' && isVehicleSpeed(channel.id))) { <span class="math-channel-icon" aria-hidden="true" title="Calculated in the UI"></span> }{{ channel.unit ? ' · ' + channel.unit : '' }}</span>
                 <button type="button" class="drag-handle" [attr.aria-label]="'Reorder ' + channel.label + (editorKind === 'scalars' ? ' scalar' : ' chart')" aria-description="Drag to reorder. Use Up and Down arrow keys, or Escape to cancel a drag." [disabled]="view.saving || index >= selectedCount" (pointerdown)="startDrag($event, channel, channelOptions)" (keydown)="handleKey($event, channel)" (contextmenu)="$event.preventDefault()"><span aria-hidden="true">⠿</span></button>
               </div>
             } @empty { <p class="state">No channels in loaded telemetry.</p> }
@@ -109,7 +109,7 @@
         @if (scalars.length) {
           <section class="values" [attr.aria-label]="cursor === undefined ? 'Latest values' : 'Cursor values'">
             @for (channel of scalars; track channel.id) {
-              <div class="reading"><span>{{ channel.label }}</span><strong>{{ scalarReadout(channel, cursor, start, end) }}</strong></div>
+              <div class="reading"><span [attr.aria-description]="channel.id.startsWith('computed:') ? 'Calculated in the UI' : null">{{ channel.label }}@if (channel.id.startsWith('computed:')) { <span class="math-channel-icon" aria-hidden="true" title="Calculated in the UI"></span> }</span><strong>{{ scalarReadout(channel, cursor, start, end) }}</strong></div>
             }
           </section>
         }

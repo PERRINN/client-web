@@ -6,7 +6,7 @@ import { ChartWindow } from './greenpowerChart';
 
 @Component({
   selector: 'app-greenpower-lap-list', standalone: false,
-  templateUrl: './greenpower-lap-list.component.html', styleUrls: ['./greenpower-lap-list.component.css'],
+  templateUrl: './greenpower-lap-list.component.html', styleUrls: ['./greenpower-lap-list.component.css', './math-channel.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GreenpowerLapListComponent implements OnChanges {

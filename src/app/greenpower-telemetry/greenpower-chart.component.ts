@@ -9,7 +9,7 @@ import type { OverlayTrace } from './greenpowerOverlay';
 
 @Component({
   selector: 'app-greenpower-chart', standalone: false,
-  templateUrl: './greenpower-chart.component.html', styleUrls: ['./greenpower-chart.component.css'],
+  templateUrl: './greenpower-chart.component.html', styleUrls: ['./greenpower-chart.component.css', './math-channel.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDestroy {
