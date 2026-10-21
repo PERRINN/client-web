@@ -382,6 +382,9 @@ try {
    assert.deepEqual(await page.locator('app-greenpower-chart h2').allTextContents(),electricalHeadings);
    assert.equal(await page.locator('body').evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
    const power=page.locator('app-greenpower-chart').nth(1),energy=page.locator('app-greenpower-chart').nth(3);
+   assert.equal(await energy.locator('.limit-key').textContent(),'550 Wh limit');
+   assert.equal(await energy.locator('.limit-label').textContent(),'550 Wh');
+   assert.equal(await energy.locator('svg .current-limit').count(),1);
    assert.ok((await power.locator('svg .trace').first().getAttribute('d')).length>0);
    assert.ok((await energy.locator('svg .trace').first().getAttribute('d')).length>0);
    if(mode==='normal') {

@@ -86,6 +86,22 @@ test('current chart fits measured readings and the 24 A limit', () => {
   assert.ok(chart.chartY(24, high.axis) >= 10 && chart.chartY(24, high.axis) <= 110);
 });
 
+test('energy limit stays visible below and above 550 Wh, through zoom and empty overlays', () => {
+  const limit = chart.channelLimit({ id: data.ENERGY });
+  assert.equal(limit, 550);
+  for (const values of [[0, 100], [600, 800], []]) {
+    const points = values.map((value, time) => ({ time, value }));
+    for (const overlay of [false, true]) {
+      const model = chart.plotFor(overlay ? [] : points, 0, 1, 300, limit, [], overlay ? [points] : []);
+      assert.ok(model.axis.min <= Math.min(limit, ...values));
+      assert.ok(model.axis.max >= Math.max(limit, ...values));
+      assert.ok(chart.chartY(limit, model.axis) >= 10 && chart.chartY(limit, model.axis) <= 110);
+    }
+  }
+  const zoomed = chart.plotFor([{ time: 0, value: 2000 }, { time: 1, value: 100 }], 1, 1, 300, limit);
+  assert.ok(zoomed.axis.min <= 100 && zoomed.axis.max >= limit && zoomed.axis.max < 2000);
+});
+
 test('comparison traces share an axis spanning both visible series', () => {
   const left=[{time:0,value:11},{time:1,value:12}], right=[{time:0,value:14},{time:1,value:15},{time:2,value:1000}];
   const model=chart.plotFor(left,0,1,390,undefined,right);

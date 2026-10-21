@@ -1,4 +1,4 @@
-import { chartTrace, displayValue, GreenpowerChannel, londonTime, pointIndex } from './greenpowerData';
+import { chartTrace, displayValue, ENERGY, GreenpowerChannel, londonTime, pointIndex } from './greenpowerData';
 import { verticalAxis } from '../telemetry/verticalAxis';
 import { formatAxisValue, formatTelemetryValue } from '../telemetry/sessionHistory';
 
@@ -6,6 +6,7 @@ export interface ChartWindow { start: number; end: number; }
 export type ChartPoint = { time: number; value: number };
 export function channelLimit(channel: GreenpowerChannel) {
   if (channel.id === '["A"]:A' || channel.id === '["AH"]:Ah') return 24;
+  if (channel.id === ENERGY) return 550;
   return undefined;
 }
 
