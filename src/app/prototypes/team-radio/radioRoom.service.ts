@@ -43,6 +43,7 @@ export class RadioRoomService implements OnDestroy {
   private heartbeatTimer: ReturnType<typeof setInterval>;
   private held = false;
   private press = 0;
+  private acquiring = false;
   private releasing = false;
   private activePresence = false;
   private root: firebase.database.Reference;
@@ -239,19 +240,28 @@ export class RadioRoomService implements OnDestroy {
     this.held = true;
     const press = ++this.press;
     this.error = '';
+    // A released claim can still commit. Wait through its token cleanup;
+    // another press must never contend with our own pending transaction.
+    if (this.acquiring) {
+      this.recordTalk('talk-acquire-skipped', undefined, { reason: 'acquisition-pending' });
+      return;
+    }
     if (this.speakingPlace === undefined || !this.audioReady) { this.error = 'Audio is not ready.'; return; }
+    this.acquiring = true;
     const token = crypto.randomUUID();
     const started = performance.now();
     const session = this.session;
     let attempt = 0;
     let candidate: RadioFloor | undefined;
     let phase = 'acquire';
+    let abortedReason = 'cancelled';
     this.recordTalk('talk-acquire-start');
     try {
       const result = await this.root.child('floor').transaction(current => {
-        if (press !== this.press || !this.held || !this.audioReady) return;
+        if (press !== this.press || !this.held) { abortedReason = 'cancelled'; return; }
+        if (!this.audioReady) { abortedReason = 'audio-not-ready'; return; }
         const room = { ...this.room, floor: current };
-        if (activeFloor(room, Date.now() + this.offset)) return;
+        if (activeFloor(room, Date.now() + this.offset)) { abortedReason = 'channel-busy'; return; }
         const now = Date.now() + this.offset;
         candidate = { uid: this.user.uid, seat: this.seat, session: this.session, token, startedAt: now, expiresAt: now + 30000 };
         this.recordTalk('talk-acquire-attempt', current, { attempt: ++attempt,
@@ -259,8 +269,11 @@ export class RadioRoomService implements OnDestroy {
         return candidate;
       }, undefined, false);
       if (!result.committed) {
-        this.recordTalk('talk-acquire-aborted', undefined, { attempt, elapsedMs: Math.round(performance.now() - started) });
-        if (press === this.press && this.held && session === this.session) this.error = 'Channel busy';
+        this.recordTalk('talk-acquire-aborted', undefined, { reason: abortedReason, attempt, elapsedMs: Math.round(performance.now() - started) });
+        if (press === this.press && this.held && session === this.session) {
+          if (abortedReason === 'channel-busy') this.error = 'Channel busy';
+          if (abortedReason === 'audio-not-ready') this.error = 'Audio is not ready.';
+        }
         return;
       }
       this.recordTalk('talk-acquire-committed', result.snapshot.val(), { attempt, elapsedMs: Math.round(performance.now() - started) });
@@ -277,11 +290,12 @@ export class RadioRoomService implements OnDestroy {
         reason: this.permissionDenied(error) ? 'permission-denied' : 'other' });
       await this.clearFloor(token).catch(() => {});
       if (session !== this.session || this.destroyed) return;
+      if (phase === 'acquire' && (press !== this.press || !this.held)) return;
       if (this.permissionDenied(error)) this.error = phase === 'acquire'
         ? 'Talk was rejected. Reconnect and enable talking again.' : 'Couldn’t release Talk. Try Reconnect.';
       else this.showError(error);
       this.changed.next();
-    }
+    } finally { this.acquiring = false; }
   }
 
   async releaseTalk() {

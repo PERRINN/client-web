@@ -125,6 +125,90 @@ test('cleanup of an old transmission cannot erase a newer token', async () => {
   finally { fixture.radio.ngOnDestroy(); }
 });
 
+test('a second press cannot overlap a delayed claim or its cleanup, and never queues', async () => {
+  const f = service(); f.setFloor(null);
+  const transaction = f.ref.transaction;
+  let commit; let clean; let requests = 0; let candidate;
+  f.ref.transaction = update => {
+    requests++;
+    if (requests === 1) {
+      candidate = update(null);
+      return new Promise(resolve => commit = () => {
+        f.setFloor(candidate);
+        resolve({ committed: true, snapshot: { val: () => candidate } });
+      });
+    }
+    assert.equal(requests, 2, 'only the original claim and its cleanup may run');
+    assert.equal(update(candidate), null);
+    return new Promise(resolve => clean = () => {
+      f.setFloor(null);
+      resolve({ committed: true, snapshot: { val: () => null } });
+    });
+  };
+  try {
+    const pending = f.radio.talk();
+    await f.radio.releaseTalk();
+    await f.radio.talk();
+    assert.equal(requests, 1); assert.equal(f.radio.error, '');
+    commit(); await settle();
+    assert.equal(requests, 2); assert.equal(f.transmitted, 0);
+    await f.radio.releaseTalk(); await f.radio.talk();
+    assert.equal(requests, 2, 'cleanup must finish before accepting another claim');
+    clean(); await pending;
+    assert.equal(f.storedFloor, null); assert.equal(f.radio.error, '');
+    await f.radio.talk();
+    assert.equal(requests, 2, 'the held second press cannot transmit after cleanup');
+    const skipped = f.radio.audio.diagnostics.snapshot().filter(event => event.event === 'talk-acquire-skipped');
+    assert.equal(skipped.length, 2);
+    assert.ok(skipped.every(event => event.reason === 'acquisition-pending'));
+    f.ref.transaction = transaction;
+    await f.radio.releaseTalk(); await f.radio.talk();
+    assert.equal(f.transmitted, 1, 'a fresh press works after cleanup');
+    await f.radio.releaseTalk();
+  } finally { f.radio.ngOnDestroy(); }
+});
+
+test('a canceled acquisition rejection cannot report contention or prevent a fresh press', async () => {
+  const f = service(); f.setFloor(null);
+  const transaction = f.ref.transaction;
+  let reject; let requests = 0;
+  f.ref.transaction = update => {
+    requests++;
+    if (requests > 1) return transaction(update);
+    assert.ok(update(null));
+    return new Promise((_, fail) => reject = fail);
+  };
+  try {
+    const pending = f.radio.talk();
+    await f.radio.releaseTalk(); await f.radio.talk();
+    reject(new Error('permission_denied')); await pending;
+    assert.equal(requests, 2, 'one acquisition and existing token cleanup only');
+    assert.equal(f.radio.error, ''); assert.equal(f.transmitted, 0);
+    await f.radio.releaseTalk(); await f.radio.talk();
+    assert.equal(f.transmitted, 1);
+    await f.radio.releaseTalk();
+  } finally { f.radio.ngOnDestroy(); }
+});
+
+test('acquisition diagnostics distinguish canceled, unavailable audio and occupied floor', async () => {
+  for (const reason of ['cancelled', 'audio-not-ready', 'channel-busy']) {
+    const f = service();
+    let resume;
+    f.delay(new Promise(resolve => resume = resolve));
+    try {
+      const pending = f.radio.talk();
+      if (reason === 'cancelled') await f.radio.releaseTalk();
+      if (reason === 'audio-not-ready') f.radio.audio.canTransmit = false;
+      resume(); await pending;
+      assert.equal(f.transmitted, 0);
+      assert.equal(f.radio.error, reason === 'channel-busy' ? 'Channel busy' : reason === 'audio-not-ready' ? 'Audio is not ready.' : '');
+      const aborted = f.radio.audio.diagnostics.snapshot().find(event => event.event === 'talk-acquire-aborted');
+      assert.equal(aborted.reason, reason);
+      assert.equal(aborted.attempt, 0);
+    } finally { f.radio.ngOnDestroy(); }
+  }
+});
+
 test('permission errors normalize SDK transaction messages and coded errors without masking microphone errors', () => {
   const f = service();
   try {
