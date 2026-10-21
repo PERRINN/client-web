@@ -1,10 +1,11 @@
 const { getFirestore, FieldValue } = require('firebase-admin/firestore')
 const createMessageUtils = require('./createMessage')
 const admin = require('firebase-admin');
+const { validateFundCommand } = require('./fundCommand');
 
 module.exports = {
 
-  verifyMessage:async(messageId,messageData)=>{
+  verifyMessage:async(messageId,messageData,{ reprocessing = false } = {})=>{
 
     const firestore = getFirestore();
     const user = messageData.user;
@@ -13,6 +14,10 @@ module.exports = {
     var batch = firestore.batch();
 
     try{
+      // Only the trusted daily caller opts in; a client field cannot enable this path.
+      const correctedRaised = reprocessing && messageData.verified === true
+        ? messageData.fund?.amountGBPRaised
+        : await validateFundCommand(messageData.fund, user, admin.auth());
 
       const PERRINNAdminLastMessages=await admin.firestore().collection('PERRINNMessages').where('user','==',adminUserId).where('verified','==',true).orderBy('serverTimestamp','desc').limit(1).get()
       const PERRINNAdminLastMessageData=PERRINNAdminLastMessages.docs[0]!=undefined?(PERRINNAdminLastMessages.docs[0].data()||{}):{}
@@ -168,7 +173,7 @@ module.exports = {
       let fund={}
       fund.description=((messageData.fund||{}).description)||((chatPreviousMessageData.fund||{}).description)||"add a description"
       fund.amountGBPTarget=((messageData.fund||{}).amountGBPTarget)||((chatPreviousMessageData.fund||{}).amountGBPTarget)||0
-      fund.amountGBPRaised=((messageData.fund||{}).amountGBPRaised)||((chatPreviousMessageData.fund||{}).amountGBPRaised)||0
+      fund.amountGBPRaised=correctedRaised ?? (((chatPreviousMessageData.fund||{}).amountGBPRaised)||0)
       fund.amountGBPTargetUpdated=(fund.amountGBPTarget!=(((chatPreviousMessageData.fund||{}).amountGBPTarget)||0))?true:false
       fund.daysSinceLastVerifiedMessage=(now/1000/3600/24-(chatPreviousMessageData.verifiedTimestamp||{}).seconds/3600/24)||0
       fund.daysLeftLastVerifiedMessage=((messageData.fund||{}).daysLeft)||((chatPreviousMessageData.fund||{}).daysLeft)||30

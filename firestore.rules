@@ -104,9 +104,24 @@ service cloud.firestore {
       }
     }
     match /PERRINNMessages/{message} {
+      function validFundCommand() {
+        let data = request.resource.data;
+        return !('fund' in data) || (data.fund is map
+          && (!('amountGBPTarget' in data.fund) || (data.fund.amountGBPTarget is number
+            && (data.fund.amountGBPTarget == 0 || data.fund.amountGBPTarget >= 0.01 || isPerrinnAdmin())))
+          && (!('daysLeft' in data.fund) || (data.fund.daysLeft is number
+            && (data.fund.daysLeft == 0 || data.fund.daysLeft >= 1 || isPerrinnAdmin()))));
+      }
+      function validRaisedAmount() {
+        let data = request.resource.data;
+        return !('fund' in data) || !(data.fund is map) || !('amountGBPRaised' in data.fund)
+          || (isPerrinnAdmin() && data.fund.amountGBPRaised is number
+            && data.fund.amountGBPRaised >= 0 && data.fund.amountGBPRaised <= 90071992547409);
+      }
       allow create: if request.resource.data.user==request.auth.uid
                     && request.resource.data.serverTimestamp==request.time
-                    && request.resource.data.text.size()<=500;
+                    && request.resource.data.text.size()<=500
+                    && validFundCommand() && validRaisedAmount();
     }
   }
 }

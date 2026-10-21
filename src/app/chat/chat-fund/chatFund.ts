@@ -4,7 +4,7 @@ export interface ChatFund {
   amountGBPRaised: number;
   daysLeft: number;
 }
-export interface FundDraft { description: string; amount: number | null; days: number | null; }
+export interface FundDraft { description: string; amount: number | null; days: number | null; raised?: number | null; }
 export interface FundCurrency { code: string; perGBP: number; }
 export function fundCurrency(userCurrency?: string, rates: Record<string, { toCOIN?: number }> = {}): FundCurrency {
   const code = String(userCurrency || 'gbp').toLowerCase();
@@ -40,4 +40,12 @@ export function fundFromDraft(draft: FundDraft, currency: FundCurrency): Pick<Ch
   const daysLeft = Number(draft.days);
   if (!Number.isSafeInteger(daysLeft) || daysLeft < 1) throw new Error('Enter a whole number of days greater than zero.');
   return { description, amountGBPTarget, daysLeft };
+}
+
+export function raisedFromDraft(value: number | null, currency: FundCurrency): number {
+  if (value === null || !Number.isFinite(value) || value < 0) throw new Error('Enter a raised amount of zero or more.');
+  if (!Number.isFinite(currency.perGBP) || currency.perGBP <= 0) throw new Error('Currency rates are unavailable. Try again.');
+  const amount = Math.round(value / currency.perGBP * 100) / 100;
+  if (!Number.isFinite(amount) || amount > 90071992547409 || !Number.isSafeInteger(Math.round(amount * 100))) throw new Error('The raised amount is too large.');
+  return amount;
 }

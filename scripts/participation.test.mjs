@@ -15,7 +15,7 @@ function load(path, overrides = {}, globals = {}) {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, experimentalDecorators: true }
   }).outputText : source;
   const module = { exports: {} };
-  runInNewContext(code, { module, exports: module.exports, require: name => overrides[name] || require(name), ...globals });
+  runInNewContext(code, { module, exports: module.exports, require: name => overrides[name] || createRequire(new URL(path, import.meta.url))(name), ...globals });
   return module.exports;
 }
 const { BuyPrnComponent } = load('../src/app/buy-prn.component.ts', { '@angular/core': core });
@@ -135,7 +135,7 @@ test('verification preserves accounting with legacy membership ignored', async (
       return query;
     }
   };
-  const admin = { firestore: Object.assign(() => firestore, { FieldValue: { arrayUnion: value => [value], serverTimestamp: () => 'server-time' } }) };
+  const admin = { auth: () => ({ getUser: async () => assert.fail('ordinary verification must not look up fund admin claims') }), firestore: Object.assign(() => firestore, { FieldValue: { arrayUnion: value => [value], serverTimestamp: () => 'server-time' } }) };
   const backend = load('../functions/utils/verifyMessage.js', {
     'firebase-admin': admin, 'firebase-admin/firestore': { getFirestore: () => firestore }, './createMessage': {}
   }, { Date: class extends Date { static now() { return now; } }, console: { log: message => assert.fail(message) } });
@@ -179,7 +179,7 @@ for (const pageCount of [1, 3]) for (const costText of ['Cloud cost unavailable.
     'firebase-functions/v2/scheduler': { onSchedule: (_, handler) => handler },
     'firebase-functions/params': { defineString: () => ({ value: () => '' }) },
     './utils/billingCosts': { dailyCloudCostText: async () => costText },
-    './utils/verifyMessage': { verifyMessage: async (id, data) => { verified.push(id); return { user: data.user, wallet: { balance: 10 }, membership: { isMember: true } }; } },
+    './utils/verifyMessage': { verifyMessage: async (id, data, options) => { assert.equal(options.reprocessing, true); verified.push(id); return { user: data.user, wallet: { balance: 10 }, membership: { isMember: true } }; } },
     './utils/createMessage': { createMessageAFS: async message => messages.push(message) }
   }, { console: { log: () => {}, error: (...args) => errors.push(args) } });
   await backend.scheduledDailyMembership({});

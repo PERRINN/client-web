@@ -40,7 +40,7 @@ exports.scheduledDailyMembership = onSchedule(
       var verifyMessageBatch=[]
       lastUserMessages.forEach((lastUserMessage)=>{
         if(lastUserMessage.docs[0]!=undefined){
-          verifyMessageBatch.push(verifyMessageUtils.verifyMessage(lastUserMessage.docs[0].id,lastUserMessage.docs[0].data()))
+          verifyMessageBatch.push(verifyMessageUtils.verifyMessage(lastUserMessage.docs[0].id,lastUserMessage.docs[0].data(),{ reprocessing: true }))
         }
       })
       const results=await Promise.all(verifyMessageBatch)

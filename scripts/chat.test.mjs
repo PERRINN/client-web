@@ -31,7 +31,7 @@ function fixture(uid = 'owner') {
     { id: 'latest', data: { chain: 'chat', user: 'owner', name: 'Nico', text: 'Latest', serverTimestamp: { seconds: 30 }, lastMessage: true, chatSubject: 'Design', recipientList: ['owner', 'other'], recipients: { other: { name: 'Maya' } }, wallet: { balance: 123 }, source: 'private ledger' } },
     { id: 'earlier', data: { user: 'other', name: 'Maya', text: 'Earlier', serverTimestamp: { seconds: 10 }, chatImageUrlThumb: 'thumb', chatImageUrlOriginal: 'original' } }
   ].map(row => ({ payload: { doc: { id: row.id, data: () => row.data } } }));
-  const auth = { authState: of(uid ? { uid } : null), currentUser: Promise.resolve(uid ? { uid } : null) };
+  const auth = { authState: of(uid ? { uid } : null), currentUser: Promise.resolve(uid ? { uid, getIdTokenResult: async () => ({ claims: { sub: uid, perrinnAdmin: true } }) } : null) };
   const afs = {
     firestore: {
       doc: path => { transactionPaths.push(path); return path; },
@@ -697,10 +697,10 @@ test('user avatar projection retains stored names and photo alternatives when au
 
 const fundCore = { Component: () => target => target, Input: () => () => {}, Output: () => () => {}, ViewChild: () => () => {}, EventEmitter: class { emit() {} } };
 const { ChatFundEditorComponent } = load('../src/app/chat/chat-fund/chat-fund-editor.component.ts', {
-  '@angular/core': fundCore, './chatFund': funds
+  '@angular/core': fundCore, './chatFund': funds, '../../permissions.service': { PermissionsService: class {} }
 });
 const { ChatFundSummaryComponent } = load('../src/app/chat/chat-fund/chat-fund-summary.component.ts', {
-  '@angular/core': fundCore, './chatFund': funds
+  '@angular/core': fundCore, './chatFund': funds, '../../permissions.service': { PermissionsService: class {} }
 });
 const sampleFund = { description: 'Track testing', amountGBPTarget: 1000, amountGBPRaised: 125, daysLeft: 12.5 };
 
@@ -727,14 +727,14 @@ test('fund validation converts selected currencies to GBP and rejects invalid ta
   assert.throws(() => funds.fundFromDraft(draft, { code: 'usd', perGBP: 0 }));
 });
 
-test('fund service uses existing messages and cancellation sentinels without writing raised amounts', async () => {
+test('fund service uses existing messages and admin cancellation sentinels', async () => {
   const f = fixture(), submitted = [];
   f.UI.PERRINNAdminLastMessageObj = { currencyList: { gbp: { toCOIN: 2 }, usd: { toCOIN: 1.6 } } };
   f.UI.currentUserLastMessageObj = { userCurrency: 'usd' };
   assert.deepEqual(f.service.fundCurrency, { code: 'usd', perGBP: 1.25 });
   const subscription = f.service.submitted.subscribe(value => submitted.push(value));
   try {
-    await f.service.saveFund('chat', { ...sampleFund, daysLeft: 12, amountGBPRaised: 9999 });
+    await f.service.saveFund('chat', { description: sampleFund.description, amountGBPTarget: 1000, daysLeft: 12 });
     await f.service.cancelFund('chat', sampleFund);
     assert.deepEqual(f.writes[0].fund, { description: sampleFund.description, amountGBPTarget: 1000, daysLeft: 12 });
     assert.deepEqual(f.writes[1].fund, { description: 'add a description', amountGBPTarget: 0.0001, daysLeft: 0.1 });
@@ -762,7 +762,7 @@ test('fund editor retains failed drafts, detects changed data and requires confi
   globalThis.requestAnimationFrame = fn => fn();
   const calls = [];
   const data = { fundCurrency: { code: 'usd', perGBP: 1.25 }, saveFund: async (...args) => { calls.push(args); throw new Error('offline'); }, cancelFund: async (...args) => calls.push(args) };
-  const editor = new ChatFundEditorComponent(data, { run: fn => fn() });
+  const editor = new ChatFundEditorComponent(data, { run: fn => fn() }, { current: { ready: true, isAdmin: true } });
   Object.assign(editor, { chain: 'chat', signedIn: true, fund: sampleFund });
   editor.ngOnChanges();
   try {
@@ -788,7 +788,7 @@ test('fund edits preserve unchanged GBP targets and ignore old chat completions'
   let finish;
   const writes = [];
   const data = { fundCurrency: { code: 'usd', perGBP: 1.2345 }, saveFund: (...args) => { writes.push(args); return new Promise(resolve => finish = resolve); } };
-  const editor = new ChatFundEditorComponent(data, { run: fn => fn() });
+  const editor = new ChatFundEditorComponent(data, { run: fn => fn() }, { current: { ready: true, isAdmin: true } });
   Object.assign(editor, { chain: 'chat', signedIn: true, fund: { ...sampleFund, amountGBPTarget: 0.05 } });
   editor.ngOnChanges();
   try {
@@ -1030,4 +1030,56 @@ test('live history projects time credits without adding reads or changing ordina
   assert.equal(f.queries.filter(query => query[0] === 'limit').length, 1);
   const first = model.bubbleMessage('one', { user: 'owner', serverTimestamp: 10000, verified: true, contract: { amount: 20, hoursValidated: 2 } }, 'owner');
   assert.equal(model.continuesMessageGroup(first, { ...first, id: 'two', timestamp: 20000 }, ''), true);
+});
+
+test('raised draft conversion accepts zero and rejects blank, negative and unsafe amounts', () => {
+  const currency = { code: 'usd', perGBP: 1.25 };
+  assert.equal(funds.raisedFromDraft(125, currency), 100);
+  assert.equal(funds.raisedFromDraft(0, currency), 0);
+  for (const value of [null, undefined, '', '10', -1, NaN, Infinity, 1e20]) assert.throws(() => funds.raisedFromDraft(value, currency));
+  assert.throws(() => funds.raisedFromDraft(1, { code: 'gbp', perGBP: 0 }));
+});
+
+test('fund service protects raised corrections and cancellations with the real matching Auth token', async () => {
+  const f = fixture();
+  for (const claims of [{ sub: 'owner' }, { sub: 'owner', perrinnAdmin: 'true' }, { sub: 'other', perrinnAdmin: true }]) {
+    f.auth.currentUser = Promise.resolve({ uid: 'owner', getIdTokenResult: async () => ({ claims }) });
+    await assert.rejects(f.service.saveFund('chat', { ...sampleFund, daysLeft: 12, amountGBPRaised: 0 }), /Admin permission/);
+    await assert.rejects(f.service.cancelFund('chat', sampleFund), /Admin permission/);
+    // Ordinary fund edits remain available to signed-in participants.
+    await f.service.saveFund('chat', { description: 'Testing', amountGBPTarget: 100, daysLeft: 30 });
+    assert.equal(f.writes.at(-1).fund.amountGBPRaised, undefined);
+  }
+  f.auth.currentUser = Promise.resolve({ uid: 'owner', getIdTokenResult: async () => ({ claims: { sub: 'owner', perrinnAdmin: true } }) });
+  for (const amountGBPRaised of [125.25, 0]) {
+    await f.service.saveFund('chat', { ...sampleFund, daysLeft: 12, amountGBPRaised });
+    assert.equal(f.writes.at(-1).fund.amountGBPRaised, amountGBPRaised);
+    assert.match(f.writes.at(-1).text, new RegExp('Raised: GBP ' + amountGBPRaised.toFixed(2)));
+  }
+  const count = f.writes.length;
+  await assert.rejects(f.service.saveFund('chat', { ...sampleFund, daysLeft: 12, amountGBPRaised: -1 }));
+  assert.equal(f.writes.length, count);
+});
+
+test('admin fund editor converts corrections, preserves unchanged precision, and blocks role loss', async () => {
+  const oldRAF = globalThis.requestAnimationFrame; globalThis.requestAnimationFrame = fn => fn();
+  const calls = [], permissions = { current: { ready: true, isAdmin: true } };
+  const data = { fundCurrency: { code: 'usd', perGBP: 1.2345 }, saveFund: async (...args) => calls.push(args), cancelFund: async () => calls.push('cancel') };
+  const editor = new ChatFundEditorComponent(data, { run: fn => fn() }, permissions);
+  Object.assign(editor, { chain: 'chat', signedIn: true, fund: { ...sampleFund, amountGBPRaised: 0.05 } });
+  editor.ngOnChanges();
+  try {
+    editor.edit(); assert.equal(editor.draft.raised, 0.06);
+    editor.draft.description = 'Updated'; await editor.save();
+    assert.equal(Object.hasOwn(calls[0][1], 'amountGBPRaised'), false);
+    editor.edit(); editor.draft.raised = 123.45; await editor.save(); assert.equal(calls[1][1].amountGBPRaised, 100);
+    editor.edit(); editor.draft.raised = 0; await editor.save(); assert.equal(calls[2][1].amountGBPRaised, 0);
+    editor.edit(); editor.draft.raised = null; await editor.save(); assert.match(editor.error, /zero or more/); assert.equal(calls.length, 3);
+    editor.draft.raised = 10; permissions.current.isAdmin = false; await editor.save(); assert.match(editor.error, /Admin permission/);
+    editor.dismiss(); editor.askCancel(); assert.equal(editor.confirmingCancel, false);
+    editor.confirmingCancel = true; await editor.cancel(); assert.equal(calls.length, 3);
+    editor.edit(); assert.equal(editor.draft.raised, undefined); assert.equal(editor.isAdmin, false);
+    permissions.current = { ready: false, isAdmin: true }; assert.equal(editor.isAdmin, false);
+    permissions.current.ready = true; editor.signedIn = false; assert.equal(editor.isAdmin, false);
+  } finally { editor.ngOnDestroy(); globalThis.requestAnimationFrame = oldRAF; }
 });

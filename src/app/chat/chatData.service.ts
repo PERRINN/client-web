@@ -1,5 +1,5 @@
 import { chatEvent, ChatEvent, eventActionText, normalizeEvent } from './chat-event/chatEvent';
-import { chatFund, ChatFund, FundCurrency, fundCurrency, fundFromDraft } from './chat-fund/chatFund';
+import { chatFund, ChatFund, FundCurrency, fundCurrency, fundFromDraft, raisedFromDraft } from './chat-fund/chatFund';
 import { EnvironmentInjector, Injectable, runInInjectionContext } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
@@ -121,21 +121,32 @@ export class ChatDataService {
     return fundCurrency(this.UI.currentUserLastMessageObj?.userCurrency, this.UI.PERRINNAdminLastMessageObj?.currencyList);
   }
 
-  async saveFund(chain: string, fields: Pick<ChatFund, 'description' | 'amountGBPTarget' | 'daysLeft'>, editing = false): Promise<void> {
+  async saveFund(chain: string, fields: Pick<ChatFund, 'description' | 'amountGBPTarget' | 'daysLeft'> & { amountGBPRaised?: number }, editing = false): Promise<void> {
     const userId = await this.requireSender();
     if (!chain) throw new Error('Choose a chat.');
-    const fund = fundFromDraft({ description: fields.description, amount: fields.amountGBPTarget, days: fields.daysLeft }, { code: 'gbp', perGBP: 1 });
+    const fund: Pick<ChatFund, 'description' | 'amountGBPTarget' | 'daysLeft'> & { amountGBPRaised?: number } = fundFromDraft({ description: fields.description, amount: fields.amountGBPTarget, days: fields.daysLeft }, { code: 'gbp', perGBP: 1 });
+    if (Object.prototype.hasOwnProperty.call(fields, 'amountGBPRaised')) {
+      await this.requireFundAdmin(userId);
+      fund.amountGBPRaised = raisedFromDraft(fields.amountGBPRaised ?? null, { code: 'gbp', perGBP: 1 });
+    }
     await this.checkSender(userId);
-    await this.createMessage(userId, { chain, text: `${editing ? 'Updated' : 'Created'} fund: ${fund.description}\nTarget: GBP ${fund.amountGBPTarget.toFixed(0)}\nDays remaining: ${fund.daysLeft}`, fund });
+    await this.createMessage(userId, { chain, text: `${editing ? 'Updated' : 'Created'} fund: ${fund.description}\nTarget: GBP ${fund.amountGBPTarget.toFixed(0)}\nDays remaining: ${fund.daysLeft}${fund.amountGBPRaised === undefined ? '' : `\nRaised: GBP ${fund.amountGBPRaised.toFixed(2)}`}`, fund });
   }
 
   async cancelFund(chain: string, fund: ChatFund): Promise<void> {
     const userId = await this.requireSender();
     if (!chain) throw new Error('Choose a chat.');
+    await this.requireFundAdmin(userId);
     await this.checkSender(userId);
     // Match production: zero values are inherited by the verifier rather than clearing a fund.
     await this.createMessage(userId, { chain, text: `Cancelled fund: ${fund.description.slice(0, 200)}`,
       fund: { description: 'add a description', amountGBPTarget: 0.0001, daysLeft: 0.1 } });
+  }
+
+  private async requireFundAdmin(userId: string): Promise<void> {
+    const user = await this.auth.currentUser;
+    const token = await user?.getIdTokenResult();
+    if (user?.uid !== userId || token?.claims['sub'] !== userId || token?.claims['perrinnAdmin'] !== true) throw new Error('Admin permission is required to manage raised totals or cancel funds.');
   }
 
   private async createMessage(userId: string, message: { chain: string; text: string; [key: string]: unknown }): Promise<void> {

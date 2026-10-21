@@ -8,6 +8,9 @@
         <div><label for="fund-target">Target ({{ editCurrency.code | uppercase }})</label><input id="fund-target" name="target" type="number" inputmode="decimal" min="0.01" step="0.01" [(ngModel)]="draft.amount" required [disabled]="saving"></div>
         <div><label for="fund-days">Days remaining</label><input id="fund-days" name="days" type="number" inputmode="numeric" min="1" step="1" [(ngModel)]="draft.days" required [disabled]="saving"></div>
       </div>
+      @if (isAdmin) {
+        <div><label for="fund-raised">Amount raised ({{ editCurrency.code | uppercase }})</label><input id="fund-raised" name="raised" type="number" inputmode="decimal" min="0" step="0.01" [(ngModel)]="draft.raised" required [disabled]="saving"></div>
+      }
       @if (error) { <p class="error" role="alert">{{ error }}</p> }
       <div class="actions"><button type="button" (click)="dismiss()" [disabled]="saving">Cancel</button><button class="primary" type="submit" [disabled]="saving || !changed">{{ saving ? 'Saving' : 'Save fund' }}</button></div>
     </form>
@@ -18,10 +21,10 @@
       <progress max="100" [value]="progress(fund)" aria-label="Fund raised" [attr.aria-valuetext]="amount(fund.amountGBPRaised) + ' raised of ' + amount(fund.amountGBPTarget)"></progress>
       <p>{{ active ? (fund.daysLeft | number:'1.0-0') + ' days left' : 'Ended' }}</p>
     }
-    @if (confirmingCancel) {
+    @if (confirmingCancel && isAdmin) {
       <div class="confirmation"><p>Cancel this fund?</p><div class="actions"><button #keepFundButton type="button" (click)="dismiss()" [disabled]="saving">Keep fund</button><button type="button" (click)="cancel()" [disabled]="saving">{{ saving ? 'Cancelling' : 'Cancel fund' }}</button></div></div>
     } @else if (signedIn) {
-      <div class="actions"><button type="button" (click)="edit()">{{ active ? 'Edit fund' : 'Create fund' }}</button>@if (active) { <button type="button" (click)="askCancel()">Cancel fund</button> }</div>
+      <div class="actions"><button type="button" (click)="edit()">{{ active ? 'Edit fund' : 'Create fund' }}</button>@if (active && isAdmin) { <button type="button" (click)="askCancel()">Cancel fund</button> }</div>
     } @else { <a class="sign-in" routerLink="/login">Sign in to manage funds</a> }
     @if (error) { <p class="error" role="alert">{{ error }}</p> }
   }
