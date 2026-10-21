@@ -38,6 +38,7 @@ export class RadioAudioService {
   private activeToken?: string;
   private microphoneVersion = 0;
   private microphoneRequest?: Promise<void>;
+  private microphoneStarting = false;
   private previousAudioType?: string;
   private stopTimer?: ReturnType<typeof setTimeout>;
   private iceServers: RTCIceServer[] = [{ urls: 'stun:stun.l.google.com:19302' }];
@@ -53,7 +54,7 @@ export class RadioAudioService {
   get canTransmit() { return this.microphoneReady && this.ready && this.connectedCount === this.peerCount; }
 
   async resume() {
-    this.setAudioType(this.microphoneReady ? 'play-and-record' : 'playback');
+    this.setAudioType(this.microphoneReady || this.microphoneStarting ? 'play-and-record' : 'playback');
     if (!this.context || this.context.state === 'closed') {
       this.context = new AudioContext();
       this.output = this.context.createMediaStreamDestination();
@@ -71,9 +72,16 @@ export class RadioAudioService {
     if (this.microphoneRequest) return this.microphoneRequest;
     if (this.microphoneReady) return this.resume();
     if (!this.microphoneRequest) {
+      // WebKit rejects capture in playback mode. Keep recording mode through
+      // permission prompts and concurrent resume calls, before a stream exists.
+      this.microphoneStarting = true;
       const request = this.captureMicrophone();
       this.microphoneRequest = request;
-      void request.finally(() => { if (this.microphoneRequest === request) this.microphoneRequest = undefined; }).catch(() => {});
+      void request.finally(() => {
+        if (this.microphoneRequest !== request) return;
+        this.microphoneRequest = undefined; this.microphoneStarting = false;
+        if (this.context && this.context.state !== 'closed') this.setAudioType(this.microphoneReady ? 'play-and-record' : 'playback');
+      }).catch(() => {});
     }
     return this.microphoneRequest;
   }
@@ -93,7 +101,6 @@ export class RadioAudioService {
     // Own the stream while audio resumes so expiry/sign-out can stop it even
     // when the browser keeps its audio context suspended.
     this.mic = stream;
-    this.setAudioType('play-and-record');
     try { await resumed; } catch (error) {
       stream.getTracks().forEach(track => track.stop());
       if (this.mic === stream) this.mic = undefined;
@@ -118,6 +125,7 @@ export class RadioAudioService {
   disableMicrophone() {
     ++this.microphoneVersion;
     this.microphoneRequest = undefined;
+    this.microphoneStarting = false;
     this.stop();
     this.mic?.getTracks().forEach(track => { track.onended = null; track.stop(); });
     this.micSource?.disconnect(); this.micGate?.disconnect(); this.delay?.disconnect();

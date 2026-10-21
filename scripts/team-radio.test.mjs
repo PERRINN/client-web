@@ -891,12 +891,34 @@ test('audio-session hints follow listening and microphone capture, then restore 
   const track = { readyState: 'live', stop() { this.readyState = 'ended'; } };
   Object.defineProperty(globalThis, 'navigator', { configurable: true, value: {
     audioSession: session,
-    mediaDevices: { getUserMedia: async () => ({ getTracks: () => [track], getAudioTracks: () => [track] }) }
+    mediaDevices: { getUserMedia: async () => {
+      assert.equal(session.type, 'play-and-record', 'WebKit requires a capture-compatible session before getUserMedia');
+      return { getTracks: () => [track], getAudioTracks: () => [track] };
+    } }
   } });
   try {
     await audio.resume(); assert.equal(session.type, 'playback');
     await audio.enableMicrophone(); assert.equal(session.type, 'play-and-record');
     audio.disableMicrophone(); assert.equal(session.type, 'playback');
+    audio.close(); assert.equal(session.type, 'auto');
+  } finally { audio.close(); if (original) Object.defineProperty(globalThis, 'navigator', original); else delete globalThis.navigator; }
+});
+test('pending microphone permission keeps recording mode across resume and rejection restores listening', async () => {
+  const audio = new RadioAudioService(); const fake = fakeContext(); let reject;
+  audio.context = fake.context; audio.output = fake.context.createMediaStreamDestination();
+  const original = Object.getOwnPropertyDescriptor(globalThis, 'navigator'); const session = { type: 'auto' };
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: {
+    audioSession: session,
+    mediaDevices: { getUserMedia: () => new Promise((_, fail) => { reject = fail; }) }
+  } });
+  try {
+    await audio.resume();
+    const pending = audio.enableMicrophone();
+    assert.equal(session.type, 'play-and-record');
+    await audio.resume(); assert.equal(session.type, 'play-and-record');
+    reject(Object.assign(new Error('Permission denied'), { name: 'NotAllowedError' }));
+    await assert.rejects(pending, { name: 'NotAllowedError' });
+    assert.equal(session.type, 'playback');
     audio.close(); assert.equal(session.type, 'auto');
   } finally { audio.close(); if (original) Object.defineProperty(globalThis, 'navigator', original); else delete globalThis.navigator; }
 });
