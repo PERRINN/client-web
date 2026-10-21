@@ -18,7 +18,7 @@ export class ChatFundEditorComponent implements OnChanges, OnDestroy {
   @ViewChild('keepFundButton') keepButton?: ElementRef<HTMLButtonElement>;
   editing = false;
   saving = false;
-  confirmingCancel = false;
+  confirmation: 'end' | 'cancel' | null = null;
   error = '';
   notice = '';
   draft: FundDraft = { description: '', amount: null, days: 30 };
@@ -42,12 +42,12 @@ export class ChatFundEditorComponent implements OnChanges, OnDestroy {
     this.clock?.unsubscribe();
     this.clock = fundClock([this.fund]).subscribe(now => this.now = now);
     if (this.chain !== this.currentChain) {
-      this.generation++; this.currentChain = this.chain; this.editing = this.saving = this.confirmingCancel = false;
+      this.generation++; this.currentChain = this.chain; this.editing = this.saving = false; this.confirmation = null;
       this.error = this.notice = '';
     }
-    if (!this.signedIn) this.editing = this.confirmingCancel = false;
-    if (this.confirmingCancel && fundIdentity(this.fund) !== this.original) {
-      this.confirmingCancel = false; this.error = 'The fund changed. Review it before cancelling.';
+    if (!this.signedIn) { this.editing = false; this.confirmation = null; }
+    if (this.confirmation && fundIdentity(this.fund) !== this.original) {
+      this.confirmation = null; this.error = 'The fund changed. Review it before continuing.';
     }
   }
   focus(): void { this.section?.nativeElement.focus({ preventScroll: true }); this.section?.nativeElement.scrollIntoView({ block: 'nearest' }); }
@@ -58,14 +58,16 @@ export class ChatFundEditorComponent implements OnChanges, OnDestroy {
     this.draft = { description: this.fund?.description || '', amount: this.fund ? Math.round(this.fund.amountGBPTarget * this.editCurrency.perGBP * 100) / 100 : null,
       days: this.active ? Math.max(1, fundDays(this.fund!, this.now)) : 30 };
     if (this.isAdmin) this.draft.raised = Math.round((this.fund?.amountGBPRaised || 0) * this.editCurrency.perGBP * 100) / 100;
-    this.initialDraft = JSON.stringify(this.draft); this.error = this.notice = ''; this.confirmingCancel = false; this.editing = true;
+    this.initialDraft = JSON.stringify(this.draft); this.error = this.notice = ''; this.confirmation = null; this.editing = true;
     requestAnimationFrame(() => this.descriptionInput?.nativeElement.focus());
   }
-  dismiss(): void { if (!this.saving) { this.editing = this.confirmingCancel = false; this.error = ''; this.focus(); } }
-  escape(event: Event): void { if (this.editing || this.confirmingCancel || this.saving) { event.stopPropagation(); this.dismiss(); } }
-  askCancel(): void {
+  dismiss(): void { if (!this.saving) { this.editing = false; this.confirmation = null; this.error = ''; this.focus(); } }
+  escape(event: Event): void { if (this.editing || this.confirmation || this.saving) { event.stopPropagation(); this.dismiss(); } }
+  askCancel(): void { this.askClose('cancel'); }
+  askEnd(): void { this.askClose('end'); }
+  private askClose(action: 'end' | 'cancel'): void {
     if (!this.isAdmin || this.saving || !this.active) return;
-    this.original = fundIdentity(this.fund); this.confirmingCancel = true; this.error = this.notice = '';
+    this.original = fundIdentity(this.fund); this.confirmation = action; this.error = this.notice = '';
     requestAnimationFrame(() => this.keepButton?.nativeElement.focus());
   }
   async save(): Promise<void> {
@@ -86,17 +88,20 @@ export class ChatFundEditorComponent implements OnChanges, OnDestroy {
     const closesAt = this.active && this.draft.days === JSON.parse(this.initialDraft).days ? this.fund?.closesAt : undefined;
     await this.submit(() => this.data.saveFund(this.chain, fields, this.active, closesAt), 'Fund update sent');
   }
-  async cancel(): Promise<void> {
-    if (!this.isAdmin || this.saving || !this.confirmingCancel || !this.active || !this.fund) return;
-    if (fundIdentity(this.fund) !== this.original) { this.confirmingCancel = false; this.error = 'The fund changed. Review it before cancelling.'; return; }
-    await this.submit(() => this.data.cancelFund(this.chain, this.fund!), 'Cancellation sent');
+  async cancel(): Promise<void> { await this.closeFund('cancel'); }
+  async end(): Promise<void> { await this.closeFund('end'); }
+  private async closeFund(action: 'end' | 'cancel'): Promise<void> {
+    if (!this.isAdmin || this.saving || this.confirmation !== action || !this.active || !this.fund) return;
+    if (fundIdentity(this.fund) !== this.original) { this.confirmation = null; this.error = 'The fund changed. Review it before continuing.'; return; }
+    await this.submit(() => action === 'end' ? this.data.endFund(this.chain, this.fund!) : this.data.cancelFund(this.chain, this.fund!),
+      action === 'end' ? 'Fund ending sent' : 'Cancellation sent');
   }
   private async submit(write: () => Promise<void>, notice: string): Promise<void> {
     const generation = this.generation;
     this.saving = true; this.error = ''; this.busyChange.emit(true);
     try {
       await write();
-      this.zone.run(() => { if (generation === this.generation) { this.editing = this.confirmingCancel = false; this.notice = notice; this.focus(); } });
+      this.zone.run(() => { if (generation === this.generation) { this.editing = false; this.confirmation = null; this.notice = notice; this.focus(); } });
     } catch {
       this.zone.run(() => { if (generation === this.generation) this.error = 'Changes couldn’t save. Try again.'; });
     } finally { this.zone.run(() => { if (generation === this.generation) { this.saving = false; this.busyChange.emit(false); } }); }

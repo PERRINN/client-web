@@ -65,3 +65,10 @@ test('fixed closing-date edits are available to signed-in users; cancellation an
   }
   for(const fund of [{cancelled:'true'},{cancelled:null},{closesAt:0},{closesAt:-1},{closesAt:'tomorrow'},{closesAt:future+.5}]) assert.equal((await write(fund,'admin',{perrinnAdmin:true})).status,403);
 });
+test('end-fund deadline-only commands require an admin writing as themselves',async()=>{
+ const fund={closesAt:Date.now()-1000};
+ for(const uid of [undefined,'alice','bob'])assert.equal((await write(fund,uid)).status,403);
+ assert.equal((await write(fund,'admin',{perrinnAdmin:'true'})).status,403);
+ assert.equal((await write(fund,'admin',{perrinnAdmin:true},'alice')).status,403);
+ const allowed=await write(fund,'admin',{perrinnAdmin:true});assert.equal(allowed.status,200,allowed.body);
+});

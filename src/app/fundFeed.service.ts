@@ -4,8 +4,8 @@ import firebase from 'firebase/compat/app';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { chatFund, ChatFund, FundRecord, activeFund, fundClock } from './chat/chat-fund/chatFund';
 
-export interface FundItem { id: string; chain: string; image: string; fund: ChatFund; }
-interface FundMessage extends FundRecord { chain?: string; chatProfileImageUrlThumb?: string; chatProfileImageUrlMedium?: string; }
+export interface FundItem { id: string; chain: string; subject: string; image: string; fund: ChatFund; }
+interface FundMessage extends FundRecord { chain?: string; chatSubject?: string; chatProfileImageUrlThumb?: string; chatProfileImageUrlMedium?: string; }
 export interface FundFeedState { items: FundItem[]; loading: boolean; error: boolean; hasMore: boolean; }
 type Cursor = firebase.firestore.QueryDocumentSnapshot<FundMessage>;
 interface Page { subscription: Subscription; rows: FundItem[]; cursor?: Cursor; hasMore: boolean; signature: string; }
@@ -53,7 +53,7 @@ export class FundFeedSession {
       if (this.destroyed || this.pages[index] !== page) return;
       const signature = JSON.stringify(rows.map(doc => {
         const record = doc.data(), fund = record.fund;
-        return [doc.id, record.chain, fund?.closesAt, fund?.cancelled, fund?.description, fund?.amountGBPTarget,
+        return [doc.id, record.chain, record.chatSubject, fund?.closesAt, fund?.cancelled, fund?.description, fund?.amountGBPTarget,
           fund?.amountGBPRaised, record.chatProfileImageUrlThumb, record.chatProfileImageUrlMedium];
       }));
       if (signature !== page.signature) {
@@ -62,7 +62,8 @@ export class FundFeedSession {
       }
       page.rows = rows.slice(0, this.pageSize).flatMap(doc => {
         const record = doc.data(), fund = chatFund(record);
-        return fund && record.chain ? [{ id: doc.id, chain: record.chain, image: record.chatProfileImageUrlThumb || record.chatProfileImageUrlMedium || '', fund }] : [];
+        return fund && record.chain ? [{ id: doc.id, chain: record.chain, subject: typeof record.chatSubject === 'string' ? record.chatSubject.trim() : '',
+          image: record.chatProfileImageUrlThumb || record.chatProfileImageUrlMedium || '', fund }] : [];
       });
       this.pending = false; this.failed = false;
       page.cursor = rows[Math.min(rows.length, this.pageSize) - 1];

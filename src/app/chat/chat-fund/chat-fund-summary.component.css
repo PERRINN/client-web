@@ -9,12 +9,15 @@ button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2
 .fund-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 3px; }
 strong { font-size: 14px; font-weight: 550; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fund-copy > span { font-size: 13px; color: var(--color-text-secondary); overflow: visible; overflow-wrap: anywhere; }
+.fund-copy > .description { font-size: 14px; }
+.fund-meta { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; column-gap: 12px; row-gap: 2px; }
+.fund-meta > span { font-size: inherit; font-weight: inherit; line-height: inherit; overflow: visible; }
 .open-indicator { flex-shrink: 0; font-size: 22px; color: var(--color-text-muted); }
 progress { position: static; z-index: auto; display: block; width: 100%; height: 4px; border: 0; border-radius: 4px; appearance: none; background: var(--color-raised); }
 progress::-webkit-progress-bar { background: var(--color-raised); }
 progress::-webkit-progress-value { background: var(--color-text-secondary) !important; }
 progress::-moz-progress-bar { background: var(--color-text-secondary); }
 :host.row-layout { flex: none; width: 100%; }
-:host.row-layout button { align-items: flex-start; padding: 6px 4px; border-radius: 0; }
+:host.row-layout button { align-items: flex-start; padding: 8px 4px; border-radius: 0; }
 :host.row-layout strong { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
 img { width: 48px; height: 48px; flex: 0 0 48px; object-fit: contain; border-radius: 0; }

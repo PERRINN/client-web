@@ -198,7 +198,7 @@
               <section class="profile-funds-item" aria-label="Funds">
                 @if (fundList.state | async; as state) {
                   @for (item of state.items; track item.chain) {
-                    <app-chat-fund-summary layout="row" [fund]="item.fund" [currency]="fundDisplayCurrency" [image]="item.image" (openFund)="openListedChat(item.chain)" />
+                    <app-chat-fund-summary layout="row" [subject]="item.subject" [fund]="item.fund" [currency]="fundDisplayCurrency" [image]="item.image" (openFund)="openListedChat(item.chain)" />
                   }
                   @if (state.loading) { <p role="status">Loading</p> }
                   @else if (state.error) { <p role="alert">Funds are unavailable right now.</p> }

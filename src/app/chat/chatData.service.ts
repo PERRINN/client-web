@@ -1,5 +1,5 @@
 import { chatEvent, ChatEvent, eventActionText, normalizeEvent } from './chat-event/chatEvent';
-import { chatFund, ChatFund, FundCurrency, fundCurrency, fundFromDraft, raisedFromDraft, FUND_DAY } from './chat-fund/chatFund';
+import { activeFund, chatFund, ChatFund, FundCurrency, fundCurrency, fundFromDraft, raisedFromDraft, FUND_DAY } from './chat-fund/chatFund';
 import { EnvironmentInjector, Injectable, runInInjectionContext } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
@@ -134,6 +134,16 @@ export class ChatDataService {
     const { daysLeft, ...values } = fund;
     await this.checkSender(userId);
     await this.createMessage(userId, { chain, text: `${editing ? 'Updated' : 'Created'} fund: ${fund.description}\nTarget: GBP ${fund.amountGBPTarget.toFixed(0)}\nDays remaining: ${daysLeft}${fund.amountGBPRaised === undefined ? '' : `\nRaised: GBP ${fund.amountGBPRaised.toFixed(2)}`}`, fund: { ...values, closesAt, cancelled: false } });
+  }
+
+  async endFund(chain: string, fund: ChatFund): Promise<void> {
+    const userId = await this.requireSender();
+    if (!chain) throw new Error('Choose a chat.');
+    if (!activeFund(fund)) throw new Error('The fund has already ended.');
+    await this.requireFundAdmin(userId);
+    await this.checkSender(userId);
+    await this.createMessage(userId, { chain, text: `Ended fund: ${fund.description.slice(0, 200)}`,
+      fund: { closesAt: Date.now() - 1 } });
   }
 
   async cancelFund(chain: string, fund: ChatFund): Promise<void> {

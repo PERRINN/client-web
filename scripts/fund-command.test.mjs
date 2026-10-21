@@ -114,3 +114,15 @@ test('full verifier processes explicit cancellation while keeping inherited targ
   assert.equal(result.fund.amountGBPTarget,1000);assert.equal(result.fund.amountGBPRaised,125);
   assert.equal(result.fund.closesAt,1799999999000+30*86400000);
 });
+test('full verifier enforces admin-only ending and preserves totals without marking cancellation', async () => {
+  const closesAt=Date.now()-1000;
+  for(const previousRaised of [0,125]) {
+    const result=await verifyFixture({fund:{closesAt},previousRaised,adminClaim:true});
+    assert.deepEqual(result.logs,[]);assert.equal(result.fund.closesAt,closesAt);
+    assert.equal(result.fund.cancelled,false);assert.equal(result.fund.active,false);
+    assert.equal(result.fund.description,'Testing');assert.equal(result.fund.amountGBPTarget,1000);
+    assert.equal(result.fund.amountGBPRaised,previousRaised);assert.deepEqual(result.authCalls,['person']);
+  }
+  const denied=await verifyFixture({fund:{closesAt}});
+  assert.equal(denied.updates.length,0);assert.deepEqual(denied.authCalls,['person']);
+});

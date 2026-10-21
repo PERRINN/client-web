@@ -780,7 +780,7 @@ test('fund editor retains failed drafts, detects changed data and requires confi
     editor.edit(); editor.draft.amount = 0; await editor.save(); assert.match(editor.error, /target/); assert.equal(calls.length, 1);
     editor.dismiss(); await editor.cancel(); assert.equal(calls.length, 1);
     editor.askCancel(); editor.fund = { ...sampleFund, description: 'Changed' }; editor.ngOnChanges();
-    assert.equal(editor.confirmingCancel, false); await editor.cancel(); assert.equal(calls.length, 1);
+    assert.equal(editor.confirmation, null); await editor.cancel(); assert.equal(calls.length, 1);
     editor.askCancel(); await editor.cancel(); assert.equal(calls.length, 2); assert.equal(editor.notice, 'Cancellation sent');
     editor.signedIn = false; editor.ngOnChanges(); editor.edit(); assert.equal(editor.editing, false);
   } finally { editor.ngOnDestroy(); globalThis.requestAnimationFrame = previousRAF; }
@@ -1050,6 +1050,7 @@ test('fund service protects raised corrections and cancellations with the real m
     f.auth.currentUser = Promise.resolve({ uid: 'owner', getIdTokenResult: async () => ({ claims }) });
     await assert.rejects(f.service.saveFund('chat', { ...sampleFund, daysLeft: 12, amountGBPRaised: 0 }), /Admin permission/);
     await assert.rejects(f.service.cancelFund('chat', sampleFund), /Admin permission/);
+    await assert.rejects(f.service.endFund('chat', sampleFund), /Admin permission/);
     // Ordinary fund edits remain available to signed-in participants.
     await f.service.saveFund('chat', { description: 'Testing', amountGBPTarget: 100, daysLeft: 30 });
     assert.equal(f.writes.at(-1).fund.amountGBPRaised, undefined);
@@ -1080,8 +1081,8 @@ test('admin fund editor converts corrections, preserves unchanged precision, and
     editor.edit(); editor.draft.raised = 0; await editor.save(); assert.equal(calls[2][1].amountGBPRaised, 0);
     editor.edit(); editor.draft.raised = null; await editor.save(); assert.match(editor.error, /zero or more/); assert.equal(calls.length, 3);
     editor.draft.raised = 10; permissions.current.isAdmin = false; await editor.save(); assert.match(editor.error, /Admin permission/);
-    editor.dismiss(); editor.askCancel(); assert.equal(editor.confirmingCancel, false);
-    editor.confirmingCancel = true; await editor.cancel(); assert.equal(calls.length, 3);
+    editor.dismiss(); editor.askCancel(); assert.equal(editor.confirmation, null);
+    editor.confirmation = 'cancel'; await editor.cancel(); assert.equal(calls.length, 3);
     editor.edit(); assert.equal(editor.draft.raised, undefined); assert.equal(editor.isAdmin, false);
     permissions.current = { ready: false, isAdmin: true }; assert.equal(editor.isAdmin, false);
     permissions.current.ready = true; editor.signedIn = false; assert.equal(editor.isAdmin, false);
@@ -1110,4 +1111,36 @@ test('conversation avatar projection retains all sizes without substituting the 
   assert.deepEqual((await firstValueFrom(f.service.watch('chat', 30))).avatarSources, ['original']);
   latest.chatProfileImageUrlOriginal = undefined;
   assert.deepEqual((await firstValueFrom(f.service.watch('chat', 30))).avatarSources, []);
+});
+
+
+test('admin end-fund command changes only the deadline and rejects signed-out or already ended funds', async () => {
+  const f=fixture();
+  const before=Date.now();await f.service.endFund('chat',sampleFund);
+  assert.deepEqual(Object.keys(f.writes[0].fund),['closesAt']);
+  assert.ok(f.writes[0].fund.closesAt>=before-1&&f.writes[0].fund.closesAt<Date.now());
+  assert.equal(f.writes[0].text,'Ended fund: Track testing');
+  assert.equal(f.writes[0].chain,'chat');
+  await assert.rejects(f.service.endFund('',sampleFund));
+  await assert.rejects(f.service.endFund('chat',{...sampleFund,closesAt:Date.now()-1}));
+  await assert.rejects(fixture(null).service.endFund('chat',sampleFund));
+  assert.equal(f.writes.length,1);
+});
+
+test('end fund requires confirmation, blocks role loss and stale state, and retains a failed confirmation for retry', async () => {
+  const oldRAF=globalThis.requestAnimationFrame;globalThis.requestAnimationFrame=fn=>fn();
+  let fail=true;const calls=[],permissions={current:{ready:true,isAdmin:true}};
+  const editor=new ChatFundEditorComponent({fundCurrency:{code:'gbp',perGBP:1},endFund:async(...args)=>{calls.push(args);if(fail)throw Error('offline');}},{run:fn=>fn()},permissions);
+  Object.assign(editor,{chain:'chat',signedIn:true,fund:sampleFund});editor.ngOnChanges();
+  try {
+    await editor.end();assert.equal(calls.length,0);
+    editor.askEnd();assert.equal(editor.confirmation,'end');
+    permissions.current.isAdmin=false;await editor.end();assert.equal(calls.length,0);
+    permissions.current.isAdmin=true;editor.fund={...sampleFund,amountGBPRaised:200};await editor.end();
+    assert.equal(calls.length,0);assert.equal(editor.confirmation,null);
+    editor.askEnd();await editor.end();assert.equal(calls.length,1);assert.equal(editor.confirmation,'end');assert.match(editor.error,/Try again/);
+    fail=false;await editor.end();assert.equal(calls.length,2);assert.equal(editor.confirmation,null);assert.equal(editor.notice,'Fund ending sent');
+    editor.askEnd();editor.fund={...editor.fund,closesAt:Date.now()-1};editor.ngOnChanges();await editor.end();assert.equal(calls.length,2);
+    editor.fund=sampleFund;editor.ngOnChanges();editor.askEnd();editor.signedIn=false;editor.ngOnChanges();assert.equal(editor.confirmation,null);
+  } finally {editor.ngOnDestroy();globalThis.requestAnimationFrame=oldRAF;}
 });

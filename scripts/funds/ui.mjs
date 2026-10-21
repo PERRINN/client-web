@@ -24,25 +24,26 @@ import {CommonModule} from '@angular/common';import {BehaviorSubject} from 'rxjs
 import {ChatFundSummaryComponent} from '${root}/src/app/chat/chat-fund/chat-fund-summary.component';
 import {chatFund} from '${root}/src/app/chat/chat-fund/chatFund';
 const templates=${JSON.stringify(templates)},styles=${JSON.stringify(styles)};let fixture,opened=[],loads=0;
-const source=()=>[{chain:'testing',image:'',fund:{description:'424 Nürburgring testing',amountGBPTarget:1000,amountGBPRaised:250,closesAt:Date.now()+3*86400000,cancelled:false}},
- {chain:'battery',image:'',fund:{description:'Battery development and track testing equipment for the next shared workshop',amountGBPTarget:1000,amountGBPRaised:1500,closesAt:Date.now()+86400000,cancelled:false}}];
+const source=()=>[{chain:'testing',subject:'424 Nürburgring programme',image:'',fund:{description:'424 Nürburgring testing',amountGBPTarget:1000,amountGBPRaised:250,closesAt:Date.now()+3*86400000,cancelled:false}},
+ {chain:'battery',subject:'Battery development and track equipment for the next Nürburgring workshop',image:'',fund:{description:'Battery development and track testing equipment for the next shared workshop',amountGBPTarget:1000,amountGBPRaised:1500,closesAt:Date.now()+86400000,cancelled:false}}];
 function area(name){return Component({selector:'test-'+name,standalone:false,template:templates[name],styles:[styles[name]]})(class {
  rows=source();funds=this.rows;fundDisplayCurrency={code:'gbp',perGBP:1};loadingFunds=false;fundError=false;fundHasMore=true;showPastFunds=false;
  state=new BehaviorSubject({items:this.rows,loading:false,error:false,hasMore:true});fundList={state:this.state.asObservable(),loadMore(){loads++;}};
  openChat(chain){opened.push(chain)}openListedChat(chain){opened.push(chain)}router={navigate:args=>opened.push(args[1])};loadFunds(){loads++;}
  togglePastFunds(){this.showPastFunds=!this.showPastFunds;this.set(this.showPastFunds?'history':'ready');}
  set(kind){let rows=source();if(['loading','empty','error','sparse'].includes(kind))rows=[];
-  if(kind==='history')rows.push({chain:'old',image:'',fund:{...rows[0].fund,description:'Previous fund',closesAt:Date.now()-86400000,cancelled:true}});
-  if(kind==='history')rows.push({chain:'legacy',image:'',fund:chatFund({fund:{description:'Historical fund',amountGBPTarget:'559.6',amountGBPRaised:'559.55',closesAt:Date.now()-86400000,cancelled:false}})});
+  if(kind==='history')rows.push({chain:'old',subject:'Previous programme',image:'',fund:{...rows[0].fund,description:'Previous fund',closesAt:Date.now()-86400000,cancelled:true}});
+  if(kind==='history')rows.push({chain:'legacy',subject:'2023 track programme',image:'',fund:chatFund({fund:{description:'Historical fund',amountGBPTarget:'559.6',amountGBPRaised:'559.55',closesAt:Date.now()-86400000,cancelled:false}})});
   if(kind==='expiry')rows=[{...rows[0],fund:{...rows[0].fund,closesAt:Date.now()+150}}];
   this.funds=rows;this.loadingFunds=kind==='loading';this.fundError=kind==='error';this.fundHasMore=!['empty','expiry'].includes(kind);
   this.state.next({items:rows,loading:this.loadingFunds,error:this.fundError,hasMore:this.fundHasMore});
  }
  });}
+const Compact=Component({selector:'test-compact',standalone:false,template:'<app-chat-fund-summary [fund]="fund" subject="Existing chat subject" />'})(class {fund=source()[0].fund;});
 const areas=Object.fromEntries(Object.keys(templates).map(name=>[name,area(name)]));
 TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTesting());
-TestBed.configureTestingModule({imports:[CommonModule],declarations:[...Object.values(areas),ChatFundSummaryComponent],providers:[provideZoneChangeDetection()]});
-window.fundsUI={show(name){fixture?.destroy();fixture=TestBed.createComponent(areas[name]);document.querySelector('.contentCard').replaceChildren(fixture.nativeElement);fixture.autoDetectChanges();fixture.detectChanges();},set(kind){fixture.componentInstance.set(kind);fixture.changeDetectorRef.markForCheck();fixture.detectChanges();},stats:()=>({opened,loads})};window.fundsUI.show('home');
+TestBed.configureTestingModule({imports:[CommonModule],declarations:[...Object.values(areas),Compact,ChatFundSummaryComponent],providers:[provideZoneChangeDetection()]});
+window.fundsUI={show(name){fixture?.destroy();fixture=TestBed.createComponent(name==='compact'?Compact:areas[name]);document.querySelector('.contentCard').replaceChildren(fixture.nativeElement);fixture.autoDetectChanges();fixture.detectChanges();},set(kind){fixture.componentInstance.set(kind);fixture.changeDetectorRef.markForCheck();fixture.detectChanges();},stats:()=>({opened,loads})};window.fundsUI.show('home');
 `);
 await build({entryPoints:[output+'/entry.ts'],outfile:output+'/bundle.js',bundle:true,platform:'browser',format:'iife',nodePaths:[root+'/node_modules'],tsconfigRaw:{compilerOptions:{experimentalDecorators:true}},plugins:[{name:'resources',setup(plugin){plugin.onLoad({filter:/\.component\.ts$/},async args=>{
  let source=await readFile(args.path,'utf8');const template=/templateUrl:\s*'([^']+)'/.exec(source),style=/styleUrls:\s*\[([^\]]+)\]/.exec(source);
@@ -61,7 +62,7 @@ try {
  await page.goto('http://127.0.0.1:'+server.address().port,{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>!!window.fundsUI);
  for(const width of [1440,390,320])for(const name of Object.keys(templates)){
   await page.setViewportSize({width,height:850});await page.evaluate(name=>window.fundsUI.show(name),name);const geometry=await page.locator('#main_container').boundingBox();
-  const row=page.getByRole('button',{name:'Fund details: 424 Nürburgring testing'});await row.waitFor();
+  const row=page.getByRole('button',{name:'Fund details: 424 Nürburgring programme'});await row.waitFor();
   assert.ok(await page.getByText('£250 raised / £1,000 target',{exact:true}).isVisible());
   assert.equal(await row.locator('progress').getAttribute('value'),'25');
   assert.equal(await page.getByRole('button',{name:/Fund details: Battery/}).locator('progress').getAttribute('value'),'100');
@@ -69,6 +70,7 @@ try {
   assert.equal((await row.locator('progress').boundingBox()).height,4);
   await row.focus();await page.keyboard.press('Enter');assert.equal((await page.evaluate(()=>window.fundsUI.stats())).opened.at(-1),'testing');
   assert.equal(await page.locator('body').evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await row.getByText('424 Nürburgring testing',{exact:true}).waitFor();
   await page.screenshot({path:output+'/'+name+'-'+width+'.png'});
   for(const state of ['loading','error','empty']){await page.evaluate(state=>window.fundsUI.set(state),state);assert.deepEqual(await page.locator('#main_container').boundingBox(),geometry);}
   await page.getByText('No active funds.',{exact:true}).waitFor();
@@ -76,12 +78,19 @@ try {
   await page.evaluate(()=>window.fundsUI.set('ready'));
   if(name==='buy-prn'){
    await page.getByRole('button',{name:'Show past funds'}).click();await page.getByText('Cancelled',{exact:true}).waitFor();
-   const historical=page.getByRole('button',{name:'Fund details: Historical fund'});
+   const historical=page.getByRole('button',{name:'Fund details: 2023 track programme'});
    await historical.getByText('£560 raised / £560 target',{exact:true}).waitFor();await historical.getByText('Ended',{exact:true}).waitFor();
    assert.deepEqual(await page.locator('#main_container').boundingBox(),geometry);
+   await page.screenshot({path:output+'/history-'+width+'.png'});
    await page.getByRole('button',{name:'Hide past funds'}).click();assert.equal(await historical.count(),0);
   }
   else {await page.evaluate(()=>window.fundsUI.set('expiry'));await row.waitFor({state:'hidden'});assert.deepEqual(await page.locator('#main_container').boundingBox(),geometry);}
+ }
+ for(const width of [1440,390,320]){
+  await page.setViewportSize({width,height:850});await page.evaluate(()=>window.fundsUI.show('compact'));
+  await page.getByRole('button',{name:'Fund details: 424 Nürburgring testing'}).waitFor();
+  assert.equal(await page.getByText('Existing chat subject',{exact:true}).count(),0);
+  assert.equal(await page.locator('body').evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  }
  assert.deepEqual(errors,[]);console.log(JSON.stringify({output,widths:[1440,390,320],pages:Object.keys(templates),checks:['Shared typography/progress','Keyboard navigation','Long descriptions','Expiry','Cancelled history','Loading/error/empty','Shell stability','No overflow'],errors}));
 }finally{await browser.close();server.closeAllConnections();await new Promise(done=>server.close(done));}

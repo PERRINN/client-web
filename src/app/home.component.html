@@ -108,7 +108,7 @@
           } @else if (funds.length) {
             <div class="fund-list">
               @for (item of funds; track item.chain) {
-                <app-chat-fund-summary layout="row" [fund]="item.fund" [currency]="fundDisplayCurrency" [image]="item.image" (openFund)="openChat(item.chain)" />
+                <app-chat-fund-summary layout="row" [subject]="item.subject" [fund]="item.fund" [currency]="fundDisplayCurrency" [image]="item.image" (openFund)="openChat(item.chain)" />
               }
             </div>
           } @else if (!fundError && !fundHasMore) {

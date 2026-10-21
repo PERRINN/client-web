@@ -17,14 +17,16 @@
   } @else {
     @if (fund) {
       <strong class="description">{{ fund.description }}</strong>
-      <p>{{ amount(fund.amountGBPRaised) }} raised / {{ amount(fund.amountGBPTarget) }} target</p>
+      <p class="fund-meta"><span>{{ amount(fund.amountGBPRaised) }} raised / {{ amount(fund.amountGBPTarget) }} target</span><span>{{ status(fund, now) }}</span></p>
       <progress max="100" [value]="progress(fund)" aria-label="Fund raised" [attr.aria-valuetext]="amount(fund.amountGBPRaised) + ' raised of ' + amount(fund.amountGBPTarget)"></progress>
-      <p>{{ status(fund, now) }}</p>
     }
-    @if (confirmingCancel && isAdmin) {
-      <div class="confirmation"><p>Cancel this fund?</p><div class="actions"><button #keepFundButton type="button" (click)="dismiss()" [disabled]="saving">Keep fund</button><button type="button" (click)="cancel()" [disabled]="saving">{{ saving ? 'Cancelling' : 'Cancel fund' }}</button></div></div>
+    @if (confirmation && isAdmin && active) {
+      <div class="confirmation"><p>{{ confirmation === 'end' ? 'End this fund?' : 'Cancel this fund?' }}</p><div class="actions"><button #keepFundButton type="button" (click)="dismiss()" [disabled]="saving">Keep fund</button>
+        @if (confirmation === 'end') { <button type="button" (click)="end()" [disabled]="saving">{{ saving ? 'Ending' : 'End fund' }}</button> }
+        @else { <button type="button" (click)="cancel()" [disabled]="saving">{{ saving ? 'Cancelling' : 'Cancel fund' }}</button> }
+      </div></div>
     } @else if (signedIn) {
-      <div class="actions"><button type="button" (click)="edit()">{{ active ? 'Edit fund' : 'Create fund' }}</button>@if (active && isAdmin) { <button type="button" (click)="askCancel()">Cancel fund</button> }</div>
+      <div class="actions"><button type="button" (click)="edit()">{{ active ? 'Edit fund' : 'Create fund' }}</button>@if (active && isAdmin) { <button type="button" (click)="askEnd()">End fund</button><button type="button" (click)="askCancel()">Cancel fund</button> }</div>
     } @else { <a class="sign-in" routerLink="/login">Sign in to manage funds</a> }
     @if (error) { <p class="error" role="alert">{{ error }}</p> }
   }

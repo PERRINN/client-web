@@ -12,7 +12,7 @@ function load(path, overrides = {}) {
 }
 const model = load('../src/app/chat/chat-fund/chatFund.ts');
 const { FundFeedService } = load('../src/app/fundFeed.service.ts', { '@angular/core': { Injectable: () => target => target, runInInjectionContext: (_, fn) => fn() }, './chat/chat-fund/chatFund': model });
-const item = (id, fund = {}) => ({ payload: { doc: { id, data: () => ({ chain: id, fund: { description: id, amountGBPTarget: 1000, amountGBPRaised: 123.4,
+const item = (id, fund = {}, subject = '') => ({ payload: { doc: { id, data: () => ({ chain: id, chatSubject: subject, fund: { description: id, amountGBPTarget: 1000, amountGBPRaised: 123.4,
   closesAt: Date.now() + 86400000, cancelled: false, ...fund }, wallet: { balance: 999 } }) } } });
 function fixture() {
   const calls = [], streams = [], cursors = [];
@@ -50,6 +50,31 @@ test('history displays expired legacy text amounts after lifecycle-only migratio
     assert.equal(feed.current.hasMore, false);
     assert.equal(f.streams.length, 1);
   } finally { feed.destroy(); }
+});
+test('fund subjects reuse the current snapshot and update without another query', () => {
+  const f = fixture(), feed = f.service.create();
+  try {
+    feed.loadMore(); f.streams[0].next([item('one', {}, '  424 track programme  ')]);
+    assert.equal(feed.current.items[0].subject, '424 track programme');
+    f.streams[0].next([item('one', {}, 'Updated programme')]);
+    assert.equal(feed.current.items[0].subject, 'Updated programme');
+    assert.equal(f.streams.length, 1);
+    f.streams[0].next([item('one')]); assert.equal(feed.current.items[0].subject, '');
+  } finally { feed.destroy(); }
+});
+test('fund summaries identify the conversation outside Chat and avoid duplicate or placeholder copy', () => {
+  const { ChatFundSummaryComponent } = load('../src/app/chat/chat-fund/chat-fund-summary.component.ts', {
+    '@angular/core': { Component: () => target => target, Input: () => () => {}, Output: () => () => {}, EventEmitter: class {} }, './chatFund': model
+  });
+  const summary = new ChatFundSummaryComponent();
+  summary.fund = { description: 'Track testing' }; summary.subject = '424 programme'; summary.layout = 'row';
+  assert.equal(summary.heading, '424 programme'); assert.equal(summary.showDescription, true);
+  summary.fund.description = '  424 Programme  '; assert.equal(summary.showDescription, false);
+  summary.fund.description = 'add a description'; assert.equal(summary.showDescription, false);
+  summary.subject = ''; assert.equal(summary.heading, 'Fund');
+  summary.fund.description = 'Track testing'; assert.equal(summary.heading, 'Track testing');
+  summary.subject = '424 programme'; summary.layout = 'compact';
+  assert.equal(summary.heading, 'Track testing'); assert.equal(summary.showDescription, false);
 });
 test('profile scope is queried server-side; history includes ended and cancelled funds', () => {
   const f = fixture(), feed = f.service.create('person', true);

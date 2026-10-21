@@ -18,14 +18,14 @@ import { ChatFundEditorComponent } from '${root}/src/app/chat/chat-fund/chat-fun
 import { ChatDataService } from '${root}/src/app/chat/chatData.service';
 import { PermissionsService } from '${root}/src/app/permissions.service';
 const permissions = { current: { ready: true, isAdmin: true } }, writes = []; let finish, failing = false;
-const data = {fundCurrency:{code:'usd',perGBP:1.25},saveFund:async (...args)=>{writes.push(args);await new Promise(resolve=>finish=resolve);if(failing)throw new Error('offline');},cancelFund:async()=>{writes.push('cancel');}};
+const data = {fundCurrency:{code:'usd',perGBP:1.25},saveFund:async (...args)=>{writes.push(args);await new Promise(resolve=>finish=resolve);if(failing)throw new Error('offline');},endFund:async()=>{writes.push('end');await new Promise(resolve=>finish=resolve);if(failing)throw new Error('offline');},cancelFund:async()=>{writes.push('cancel');}};
 ChatFundEditorComponent.ctorParameters=()=>[{type:ChatDataService},{type:NgZone},{type:PermissionsService}];
 TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTesting());
 TestBed.configureTestingModule({imports:[CommonModule,FormsModule,RouterModule.forRoot([])],declarations:[ChatFundEditorComponent],providers:[provideZoneChangeDetection(),{provide:ChatDataService,useValue:data},{provide:PermissionsService,useValue:permissions}]});
 const fixture=TestBed.createComponent(ChatFundEditorComponent), c=fixture.componentInstance;
 Object.assign(c,{chain:'chat',signedIn:true,fund:{description:'Track testing',amountGBPTarget:1000,amountGBPRaised:125,daysLeft:30,closesAt:Date.now()+30*86400000,cancelled:false}});
 document.querySelector('.contentCard').append(fixture.nativeElement);c.ngOnChanges();fixture.autoDetectChanges();
-window.fundHarness={state(admin,signedIn=true){permissions.current.isAdmin=admin;c.signedIn=signedIn;c.ngOnChanges();fixture.changeDetectorRef.markForCheck();fixture.detectChanges();},async finish(fail=false){failing=fail;finish();await new Promise(resolve=>setTimeout(resolve,0));fixture.changeDetectorRef.markForCheck();fixture.detectChanges();},reset(){c.dismiss();permissions.current.isAdmin=true;c.signedIn=true;c.fund={description:'Track testing',amountGBPTarget:1000,amountGBPRaised:125,daysLeft:30,closesAt:Date.now()+30*86400000,cancelled:false};c.ngOnChanges();fixture.changeDetectorRef.markForCheck();fixture.detectChanges();},stats(){return {writes,saving:c.saving,editing:c.editing};}};
+window.fundHarness={markEnded(){c.fund={...c.fund,closesAt:Date.now()-1000};c.ngOnChanges();fixture.changeDetectorRef.markForCheck();fixture.detectChanges();},state(admin,signedIn=true){permissions.current.isAdmin=admin;c.signedIn=signedIn;c.ngOnChanges();fixture.changeDetectorRef.markForCheck();fixture.detectChanges();},async finish(fail=false){failing=fail;finish();await new Promise(resolve=>setTimeout(resolve,0));fixture.changeDetectorRef.markForCheck();fixture.detectChanges();},reset(){c.dismiss();permissions.current.isAdmin=true;c.signedIn=true;c.fund={description:'Track testing',amountGBPTarget:1000,amountGBPRaised:125,daysLeft:30,closesAt:Date.now()+30*86400000,cancelled:false};c.ngOnChanges();fixture.changeDetectorRef.markForCheck();fixture.detectChanges();},stats(){return {writes,saving:c.saving,editing:c.editing};}};
 `);
 await build({entryPoints:[output+'/entry.ts'],outfile:output+'/bundle.js',bundle:true,format:'iife',platform:'browser',nodePaths:[root+'/node_modules'],tsconfigRaw:{compilerOptions:{experimentalDecorators:true}},plugins:[{name:'angular-resources',setup(plugin){plugin.onLoad({filter:/\.component\.ts$/},async args=>{
  let source=await readFile(args.path,'utf8');
@@ -49,6 +49,7 @@ try {
   console.log('Checking width '+width);
   await page.setViewportSize({width,height:850});await page.evaluate(()=>window.fundHarness.reset());const shell=await geometry();
   assert.equal(await page.getByRole('button',{name:'Cancel fund',exact:true}).count(),1);
+  assert.equal(await page.getByRole('button',{name:'End fund',exact:true}).count(),1);
   await page.getByRole('button',{name:'Edit fund',exact:true}).click();
   const raised=page.getByLabel('Amount raised (USD)');await raised.waitFor();assert.equal(await raised.inputValue(),'156.25');
   await page.waitForFunction(()=>document.activeElement?.id==='fund-description');
@@ -64,12 +65,26 @@ try {
   await page.evaluate(()=>window.fundHarness.finish());await page.getByRole('status').waitFor();
   assert.equal((await page.evaluate(()=>window.fundHarness.stats())).writes.at(-1)[1].amountGBPRaised,0);
   assert.deepEqual(await geometry(),shell);
+  await page.getByRole('button',{name:'End fund',exact:true}).click();
+  await page.getByText('End this fund?',{exact:true}).waitFor();
+  await page.waitForFunction(()=>document.activeElement?.textContent==='Keep fund');assert.deepEqual(await geometry(),shell);
+  await page.screenshot({path:output+'/end-fund-'+width+'.png'});
+  await page.getByRole('button',{name:'End fund',exact:true}).click();await page.getByRole('button',{name:'Ending',exact:true}).waitFor();
+  assert.equal(await page.getByRole('button',{name:'Keep fund'}).isDisabled(),true);
+  await page.evaluate(()=>window.fundHarness.finish(true));await page.getByRole('alert').waitFor();await page.getByText('End this fund?',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'End fund',exact:true}).click();await page.getByRole('button',{name:'Ending',exact:true}).waitFor();
+  await page.evaluate(()=>window.fundHarness.finish());assert.equal((await page.evaluate(()=>window.fundHarness.stats())).writes.at(-1),'end');
+  await page.evaluate(()=>window.fundHarness.markEnded());await page.getByText('Ended',{exact:true}).waitFor();
+  assert.equal(await page.getByRole('button',{name:'End fund',exact:true}).count(),0);
+  assert.equal(await page.getByRole('button',{name:'Cancel fund',exact:true}).count(),0);assert.deepEqual(await geometry(),shell);
+  await page.evaluate(()=>window.fundHarness.reset());
   await page.getByRole('button',{name:'Cancel fund',exact:true}).click();await page.getByRole('button',{name:'Keep fund'}).waitFor();
   await page.evaluate(()=>window.fundHarness.state(false));assert.equal(await page.getByRole('button',{name:'Cancel fund',exact:true}).count(),0);
+  assert.equal(await page.getByRole('button',{name:'End fund',exact:true}).count(),0);
   await page.getByRole('button',{name:'Edit fund'}).click();assert.equal(await raised.count(),0);
   assert.equal(await page.locator('body').evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   assert.deepEqual(await geometry(),shell);assert.ok(saveBox.width>=44);
   await page.evaluate(()=>window.fundHarness.state(false,false));await page.getByRole('link',{name:'Sign in to manage funds'}).waitFor();
  }
- assert.deepEqual(errors,[]);console.log(JSON.stringify({output,widths:[1440,390,320],checks:['Admin-only fields and cancellation','Zero correction','Pending and failed saves','Retained drafts','Role loss','Sign-out','Focus','Shell stability','No horizontal overflow'],errors}));
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({output,widths:[1440,390,320],checks:['Admin-only fields, ending and cancellation','End confirmation/failure/retry','Ended state','Zero correction','Pending and failed saves','Retained drafts','Role loss','Sign-out','Focus','Shell stability','No horizontal overflow'],errors}));
 } finally {await browser.close();server.closeAllConnections();await new Promise(done=>server.close(done));}
