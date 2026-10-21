@@ -50,7 +50,7 @@ const overlay:any={active:false,loading:false,more:false,error:'',sessions:[],ch
  toggleInclusion:GreenpowerOverlayService.prototype.toggleInclusion,
  clear(){this.active=false;this.sessions=[];this.loading=false;this.error='';this.changed.next()}
 };
-let record={...selectionFor(channels()),revision:1,updatedBy:'admin'};
+let record={...selectionFor(channels()),chartOrder:['["A"]:A','["Spd"]:m/s','computed:voltage-left','computed:voltage-diff'],revision:1,updatedBy:'admin'};
 const writes:any[]=[];
 const ref:any={onSnapshot(options,callback){callback({exists:true,data:()=>record,metadata:{}});return ()=>{}},firestore:{
  async runTransaction(callback){await callback({get:async()=>({data:()=>record}),set:(_,value)=>{record=value;writes.push(value)}})}
@@ -60,7 +60,7 @@ const view=new GreenpowerViewService(permissions,{firestore:{doc:()=>ref}} as an
 const telemetry:any={changed:new Subject(),access:'signed-in',day:'2026-10-20',live:true,error:'',more:false,channels:[],loading:false,start:0,end:1000,tick(){},select(){},connected:true};
 const lapConfig:any={changed:new Subject(),saving:false,line:null,fixes:[],ready:false,selectionReady:false,candidates:[],
  analysis:{laps:[],channel:{id:'computed:gps-lap',label:'GPS lap',unit:'',value:'—',points:[]}},select(){},syncEditing(value){this.editing=value},update(){},
- selectionWrite(){throw new Error('Overlay must not request a track write')}
+ selectionWrite(){if(overlay.active)throw new Error('Overlay must not request a track write');return undefined}
 };
 const events:any={changed:new Subject(),canEdit:true};
 const eventEdit:any={changed:new Subject(),saved:new Subject(),locked:false,mode:'',canEditSessions:true,cancel(){}};
@@ -74,8 +74,10 @@ TestBed.overrideComponent(GreenpowerTelemetryComponent,{set:{providers:[
 const metadataFixture=TestBed.createComponent(GreenpowerMetadataFieldsComponent);metadataFixture.componentInstance.data=editableDay(emptyDay('2026-10-20'));metadataFixture.detectChanges();metadataFixture.changeDetectorRef.detach();metadataFixture.nativeElement.remove();
 const fixture=TestBed.createComponent(GreenpowerTelemetryComponent);const detect=()=>{fixture.changeDetectorRef.markForCheck();fixture.detectChanges()};document.body.append(fixture.nativeElement);detect();
 overlay.changed.subscribe(detect);view.changed.subscribe(detect);
+const selectLoaded=()=>{const selection=selectionFor(overlay.active?overlay.channels:fixture.componentInstance.channels);record={...selection,chartOrder:Object.keys(selection.charts),revision:1,updatedBy:'admin'};view['saved']=record;view.changed.next()};
+
 let electricalSaved, raceTimeSaved;
-window.overlayHarness={raceTime(mode){
+window.overlayHarness={resetView(){lapConfig.ready=false;lapConfig.selectionReady=false;record={...selectionFor(channels()),chartOrder:['["A"]:A','["Spd"]:m/s','computed:voltage-left','computed:voltage-diff'],revision:1,updatedBy:'admin'};view['saved']=record;view.changed.next();detect()},raceTime(mode){
  if(mode==='restore'){view['saved']=raceTimeSaved;raceTimeSaved=undefined;overlay.clear();view.changed.next();detect();return}
  raceTimeSaved ??= view['saved'];
  const samples=[1414,1415].map((raceseconds,receivedAt)=>({id:String(receivedAt),source:'424-phone',receivedAt:receivedAt*1000,raw:JSON.stringify({raceseconds})}));
@@ -93,14 +95,14 @@ window.overlayHarness={raceTime(mode){
  fixture.componentInstance.window=undefined;fixture.componentInstance.cursor=undefined;
  if(mode==='overlay'){overlay.active=true;overlay.end=24000;overlay.sessions=[{id:'distance',label:'Distance driver',colour:overlayColour(0),loaded:true,hidden:false,excluded:false,session,channels:overlayChannels(samples.filter(row=>row.receivedAt>=session.startAt),session as any,event)}];overlay.changed.next()}
  else{overlay.clear();fixture.componentInstance['loadedEvent']=event;fixture.componentInstance.recordingSessions=[session as any];telemetry.live=false;telemetry.channels=channelsFor(samples,samples.at(-1));telemetry.latest=samples.at(-1);telemetry.start=0;telemetry.end=30000;telemetry.changed.next()}
- detect();
+ selectLoaded();detect();
 },electrical(mode){
  if(mode==='restore'){view['saved']=electricalSaved;electricalSaved=undefined;fixture.componentInstance.recordingSessions=[];overlay.clear();view.changed.next();detect();return}
  electricalSaved ??= view['saved'];
  const samples=Array.from({length:11},(_,i)=>({id:String(i),source:'424-phone',receivedAt:i*3000,raw:JSON.stringify({Vt:24,A:20,AH:10+i/60})}));
  const event=emptyDay('2026-10-20'),session={id:'battery',type:'battery_dyno',startAt:6000,endAt:30000,overrides:{},batteryIds:['A','B']};
  const rows=channelsFor(samples,samples.at(-1));
- view['saved']={...selectionFor(rows),charts:{'["A"]:A':true,'["AH"]:Ah':true},chartOrder:['["A"]:A','["AH"]:Ah'],revision:1,updatedBy:'admin'};
+ view['saved']={...selectionFor(rows),charts:{'["A"]:A':true,'computed:power':true,'["AH"]:Ah':true,'computed:energy':true},chartOrder:['["A"]:A','computed:power','["AH"]:Ah','computed:energy'],revision:1,updatedBy:'admin'};
  fixture.componentInstance.window=undefined;fixture.componentInstance.cursor=undefined;
  if(mode==='overlay'){overlay.sessionType='battery_dyno';overlay.active=true;overlay.end=24000;overlay.sessions=[{id:'battery',label:overlayLabel(event,session as any,overlayChannels(samples,session as any,event)),colour:overlayColour(0),loaded:true,hidden:false,excluded:false,session,channels:overlayChannels(samples,session as any,event)}];overlay.changed.next()}
  else{overlay.clear();fixture.componentInstance['loadedEvent']=mode==='live'?undefined:event;fixture.componentInstance.recordingSessions=mode==='live'?[]:[session as any];telemetry.live=mode==='live';telemetry.channels=rows;telemetry.latest=samples.at(-1);telemetry.start=0;telemetry.end=30000;telemetry.changed.next()}
@@ -110,14 +112,14 @@ window.overlayHarness={raceTime(mode){
  const samples=Array.from({length:4},(_,i)=>({id:String(i),source:'424-phone',receivedAt:i*3000,raw:JSON.stringify({RPM:2000+i*200,A:20,...(recorded?{Spd:10+i}: {})})}));
  if(mode==='overlay') {overlay.active=true;overlay.sessions=Array.from({length:2},(_,i)=>{const rows=i?samples.map(row=>({...row,raw:JSON.stringify({RPM:2400,A:20})})):samples;return {id:'speed-'+i,label:'Driver '+(i+1),colour:overlayColour(i),loaded:true,hidden:false,excluded:false,channels:overlayChannels(rows,{id:'s'+i,type:'race',startAt:0,endAt:9000,overrides:{}} as any,event),session:{startAt:0,endAt:9000}}});overlay.end=9000;overlay.changed.next()}
  else {overlay.clear();fixture.componentInstance['loadedEvent']=event;telemetry.live=false;telemetry.channels=channelsFor(samples,samples.at(-1));telemetry.latest=samples.at(-1);telemetry.start=0;telemetry.end=9000;telemetry.changed.next()}
- detect();
+ selectLoaded();detect();
 },metadata(){const editor=metadataFixture;const old={...emptyDay('2026-10-20')};delete old.wheelCircumferenceM;editor.componentRef.setInput('data',editableDay(old));editor.changeDetectorRef.reattach();document.body.append(editor.nativeElement);editor.detectChanges();this.metadataFixture=editor;return editor.componentInstance.data},metadataError(){return dayMetadataError(this.metadataFixture.componentInstance.data)},removeMetadata(){this.metadataFixture.changeDetectorRef.detach();this.metadataFixture.nativeElement.remove()},metrics(mode){
  const laps=[{time:0,end:120000,lap:1,complete:true,speed:25,current:20},{time:120000,end:240000,lap:2,complete:false},{time:240000,end:390000,lap:3,complete:true,speed:26,current:21}];
  if(mode==='overlay') {overlay.active=true;overlay.sessions=Array.from({length:3},(_,i)=>({id:'metric-'+i,label:'Driver '+(i+1),colour:overlayColour(i),loaded:true,hidden:false,excluded:false,channels:lapMetricChannels(laps),session:{startAt:0,endAt:390000}}));overlay.end=390000;overlay.changed.next()}
  else {overlay.clear();const event={...emptyDay('2026-10-20'),defaults:{motorGearTeeth:12,wheelGearTeeth:60}};fixture.componentInstance['loadedEvent']=event;telemetry.live=false;
  const samples=Array.from({length:131},(_,i)=>({id:String(i),source:'424-phone',receivedAt:i*3000,raw:JSON.stringify({RPM:(i*3000<240000?25:26)*.44704*60*5/1.29,A:20,Spd:99})}));
  telemetry.channels=channelsFor(samples,samples.at(-1));telemetry.latest=samples.at(-1);lapConfig.analysis={...lapConfig.analysis,laps};telemetry.start=0;telemetry.end=390000;telemetry.changed.next()}
- detect();
+ selectLoaded();detect();
 },fixture,overlay,view,writes,lapConfig,comparison:fixture.debugElement.query(By.directive(GreenpowerOverlayComponent)).componentInstance,async detect(){detect()},set(state){Object.assign(overlay,state);overlay.changed.next();detect()}};
 `);
 await build({entryPoints:[output+'/entry.ts'],outfile:output+'/bundle.js',bundle:true,format:'esm',platform:'browser',
@@ -142,7 +144,7 @@ try {
  const page=await browser.newPage();page.setDefaultTimeout(10000);const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error(e.message)});
  await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForFunction(()=>!!window.overlayHarness);
  for(const [name,width,height] of [['desktop',1440,1000],['mobile',390,844],['small-mobile',320,740]]) {
-  await page.setViewportSize({width,height});await page.evaluate(()=>{window.overlayHarness.fixture.componentInstance.live();window.overlayHarness.detect()});
+  await page.setViewportSize({width,height});await page.evaluate(()=>window.overlayHarness.resetView());await page.evaluate(()=>{window.overlayHarness.fixture.componentInstance.live();window.overlayHarness.detect()});
   const toolbar=page.locator('.actions');const initial=await toolbar.boundingBox();
   const overlayButton=page.getByRole('button',{name:'Overlay',exact:true});await overlayButton.click();await page.evaluate(()=>window.overlayHarness.detect());
   const after=await toolbar.boundingBox();assert.deepEqual(after,initial,'opening preserves toolbar geometry at '+width);
@@ -248,20 +250,20 @@ try {
   await edit.click();
   assert.equal(await page.locator('.editor-tabs').count(),0,'overlay offers charts only');
   assert.equal(await page.getByRole('checkbox',{name:'Current chart',exact:true}).count(),1,'uses overlay channels with no underlying samples');
-  assert.equal(await page.getByRole('checkbox',{name:'Speed chart',exact:true}).count(),1);
+  assert.equal(await page.getByRole('checkbox',{name:'Vehicle speed / Motor-derived speed chart',exact:true}).count(),1);
   assert.equal(await page.getByRole('button',{name:'Save',exact:true}).isEnabled(),true,'track readiness cannot block chart saving');
   assert.deepEqual(await toolbar.boundingBox(),beforeEditing,'editing preserves toolbar geometry');
   await page.screenshot({path:output+'/'+name+'-editor.png',fullPage:true});
   const scalarSettings=await page.evaluate(()=>JSON.stringify(window.overlayHarness.view.draft.scalars));
   await page.evaluate(()=>{const h=window.overlayHarness;h.comparison.window={start:1000,end:100000};h.detect()});
   const originalOrder=await page.locator('app-greenpower-chart h2').allTextContents();
-  await page.getByRole('button',{name:'Reorder Speed chart',exact:true}).press('ArrowUp');
-  assert.equal(await page.locator('.channel-label').first().textContent(),'Speed · m/s');
+  await page.getByRole('button',{name:'Reorder Vehicle speed / Motor-derived speed chart',exact:true}).press('ArrowUp');
+  assert.equal(await page.locator('.channel-label').first().textContent(),'Vehicle speed / Motor-derived speed · m/s');
   await page.getByRole('checkbox',{name:'Current chart',exact:true}).uncheck();
   await page.getByRole('button',{name:'Cancel',exact:true}).click();
   assert.deepEqual(await page.locator('app-greenpower-chart h2').allTextContents(),originalOrder,'cancel preserves charts');
   await page.getByRole('button',{name:'Edit view',exact:true}).click();
-  await page.getByRole('button',{name:'Reorder Speed chart',exact:true}).press('ArrowUp');
+  await page.getByRole('button',{name:'Reorder Vehicle speed / Motor-derived speed chart',exact:true}).press('ArrowUp');
   const writesBefore=await page.evaluate(()=>window.overlayHarness.writes.length);
   await page.getByRole('button',{name:'Save',exact:true}).click();
   await page.waitForFunction(()=>!window.overlayHarness.view.saving&&!window.overlayHarness.view.editing);
@@ -277,7 +279,7 @@ try {
   assert.equal(await page.locator('app-greenpower-chart').count(),3,'save hides the selected chart');
   await page.getByRole('button',{name:'Edit view',exact:true}).click();
   await page.getByRole('checkbox',{name:'Current chart',exact:true}).check();
-  await page.getByRole('button',{name:'Reorder Current chart',exact:true}).press('ArrowUp');
+  for(let step=0;step<3;step++) await page.getByRole('button',{name:'Reorder Current chart',exact:true}).press('ArrowUp');
   await page.getByRole('button',{name:'Save',exact:true}).click();
   await page.waitForFunction(()=>!window.overlayHarness.view.saving&&!window.overlayHarness.view.editing);
   assert.deepEqual(await page.locator('app-greenpower-chart h2').allTextContents(),originalOrder,'re-enable and restore ordering');
@@ -322,6 +324,40 @@ try {
   assert.match(await motorAverage.locator('.readout').textContent(),/25.0 mph/,'normal average uses motor speed despite recorded 99 m/s');
   await page.evaluate(()=>{const h=window.overlayHarness;h.fixture.componentInstance['loadedEvent'].wheelCircumferenceM=1.4;h.fixture.componentInstance.telemetry.changed.next();h.detect()});
   assert.match(await motorAverage.locator('.readout').textContent(),/27.1 mph/,'metadata-only changes recalculate the lap average');
+  await page.evaluate(()=>{const h=window.overlayHarness;h.lapConfig.ready=true;h.lapConfig.selectionReady=true;h.detect()});
+  const geometry=()=>toolbar.evaluate(el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y+scrollY,width:r.width,height:r.height}});
+  const beforeCalculatedEdit=await geometry();
+  await page.getByRole('button',{name:'Edit view',exact:true}).click();
+  await page.getByRole('button',{name:'Scalars',exact:true}).click();await page.evaluate(()=>window.overlayHarness.detect());
+  for(const label of ['Motor-derived speed','Distance travelled','Power','Energy','Voltage left','Voltage right','Voltage diff','GPS lap','Lap time','Lap average speed · from motor','Lap average amps']) {
+   assert.equal(await page.getByRole('checkbox',{name:label+' scalar',exact:true}).count(),1,label+' available as scalar');
+  }
+  await page.getByRole('checkbox',{name:'Voltage right scalar',exact:true}).check();
+  await page.getByRole('checkbox',{name:'Lap time scalar',exact:true}).uncheck();
+  await page.getByRole('button',{name:'Save',exact:true}).click();
+  await page.waitForFunction(()=>!window.overlayHarness.view.editing);
+  assert.equal(await page.locator('.reading').filter({has:page.locator('span').getByText('Lap time',{exact:true})}).count(),0);
+  const unavailable=page.locator('.reading').filter({has:page.getByText('Voltage right',{exact:true})});
+  assert.equal(await unavailable.locator('strong').textContent(),'— V','unavailable selected scalar remains labelled');
+  const motorScalar=page.locator('.reading').filter({has:page.getByText('Motor-derived speed',{exact:true})});
+  assert.match(await motorScalar.locator('strong').textContent(),/mph/);
+  await page.getByRole('button',{name:'Edit view',exact:true}).click();
+  await page.getByRole('button',{name:'Charts',exact:true}).click();await page.evaluate(()=>window.overlayHarness.detect());
+  assert.equal(await page.getByRole('checkbox',{name:'Voltage left / right chart',exact:true}).count(),1);
+  assert.equal(await page.getByRole('checkbox',{name:'Vehicle speed / Motor-derived speed chart',exact:true}).count(),1);
+  await page.getByRole('checkbox',{name:'Lap time chart',exact:true}).uncheck();
+  await page.getByRole('button',{name:'Save',exact:true}).click();
+  await page.waitForFunction(()=>!window.overlayHarness.view.editing);
+  assert.equal(await normalMetric.count(),0,'calculated chart hides after save');
+  assert.deepEqual(await geometry(),beforeCalculatedEdit,'calculated settings retain toolbar geometry');
+  await page.getByRole('button',{name:'Edit view',exact:true}).click();
+  await page.getByRole('checkbox',{name:'Lap time chart',exact:true}).check();
+  const selectedCalculated=await page.evaluate(()=>window.overlayHarness.view.draft.chartOrder.length);
+  for(let step=0;step<selectedCalculated;step++) await page.getByRole('button',{name:'Reorder Lap time chart',exact:true}).press('ArrowUp');
+  await page.getByRole('button',{name:'Save',exact:true}).click();
+  await page.waitForFunction(()=>!window.overlayHarness.view.editing);
+  assert.equal(await page.locator('app-greenpower-chart h2').first().textContent(),'Lap time · s','calculated chart follows saved order');
+  await page.screenshot({path:output+'/'+name+'-calculated-settings.png',fullPage:true});
   await page.evaluate(()=>window.overlayHarness.metrics('overlay'));
   assert.equal(await page.locator('app-greenpower-chart').count(),3,'all three overlay metric charts');
   const metric=page.locator('app-greenpower-chart').first();
@@ -468,5 +504,5 @@ try {
 
 
  }
- assert.deepEqual(errors,[]);console.log(JSON.stringify({output,widths:[1440,390,320],checks:['toolbar stability','touch targets','no page overflow','loading/error/empty','Hide/Show retains data, identity, geometry and cursor','panel collapse retains charts','voltage pairs','keyboard cursor','readout stability','map/laps disabled and restored','chart editing, keyboard order, save, cancel, exit and permissions','300px overlay plots']}));
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({output,widths:[1440,390,320],checks:['toolbar stability','touch targets','no page overflow','loading/error/empty','Hide/Show retains data, identity, geometry and cursor','panel collapse retains charts','voltage pairs','keyboard cursor','readout stability','map/laps disabled and restored','chart editing, keyboard order, save, cancel, exit and permissions','calculated scalar catalogue, visibility and unavailable values','calculated chart visibility and saved order','300px overlay plots']}));
 } finally {await browser.close();await new Promise(done=>server.close(done))}

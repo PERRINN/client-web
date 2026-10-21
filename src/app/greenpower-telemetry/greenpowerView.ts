@@ -1,4 +1,4 @@
-import { isVehicleSpeed, MOTOR_DERIVED_SPEED, isElectricalMetric, POWER, ENERGY, DISTANCE, isLapMetric, isVoltageChannel, VOLTAGE_LEFT, VOLTAGE_DIFF, channelDetails, GreenpowerChannel } from './greenpowerData';
+import { isVehicleSpeed, MOTOR_DERIVED_SPEED, COMPUTED_CHANNEL_IDS, VEHICLE_SPEED, VOLTAGE_LEFT, VOLTAGE_RIGHT, channelDetails, GreenpowerChannel } from './greenpowerData';
 export type ViewKind = 'scalars' | 'charts';
 export interface ViewSelection {
   scalars: Record<string, true>; charts: Record<string, true>;
@@ -39,25 +39,22 @@ export function selectedChannels(channels: GreenpowerChannel[], selection?: Reco
 }
 export function editorChannels(channels: GreenpowerChannel[], selection: ViewSelection) {
   const existing = new Set(channels.map(c => c.id));
-  const absent = Object.keys({ ...selection.scalars, ...selection.charts }).filter(id => !existing.has(id));
+  const ids = new Set([...COMPUTED_CHANNEL_IDS, ...Object.keys({ ...selection.scalars, ...selection.charts })]);
+  // Motor-derived speed shares the Vehicle speed chart even on recordings without Spd.
+  if (!channels.some(c => isVehicleSpeed(c.id))) ids.add(VEHICLE_SPEED);
+  const absent = [...ids].filter(id => !existing.has(id));
   return [...channels, ...absent.map(id => ({ id, ...channelDetails(id), value: '—', points: [] }))].sort((a, b) => a.label.localeCompare(b.label) || a.id.localeCompare(b.id));
 }
 
-export function configurableCharts(channels: GreenpowerChannel[]) { return channels.filter(c => !isVoltageChannel(c.id) && !isLapMetric(c.id) && !isElectricalMetric(c.id) && c.id !== DISTANCE && c.id !== MOTOR_DERIVED_SPEED); }
+// These comparison traces belong to the Vehicle speed and Voltage left chart controls.
+export function configurableCharts(channels: GreenpowerChannel[]) { return channels.filter(c => c.id !== VOLTAGE_RIGHT && c.id !== MOTOR_DERIVED_SPEED); }
+export function chartOption(channel: GreenpowerChannel) {
+  const label = channel.id === VOLTAGE_LEFT ? 'Voltage left / right'
+    : isVehicleSpeed(channel.id) ? 'Vehicle speed / Motor-derived speed' : channel.label;
+  return label === channel.label ? channel : { ...channel, label };
+}
 export function telemetryCharts(channels: GreenpowerChannel[], selected: GreenpowerChannel[]) {
-  const charts = configurableCharts(selected).filter(c => chartHasData(c, channels));
-  for (const [id, anchor] of [[POWER, '["A"]:A'], [ENERGY, '["AH"]:Ah']]) {
-    const channel = channels.find(c => c.id === id && chartHasData(c, channels));
-    if (!channel) continue;
-    const index = charts.findIndex(c => c.id === anchor);
-    charts.splice(index < 0 ? charts.length : index + 1, 0, channel);
-  }
-  const distance = channels.find(c => c.id === DISTANCE && chartHasData(c, channels));
-  if (distance) {
-    const speed = charts.findIndex(c => isVehicleSpeed(c.id));
-    charts.splice(speed < 0 ? charts.length : speed + 1, 0, distance);
-  }
-  return [...charts, ...channels.filter(c => c.id === VOLTAGE_LEFT || c.id === VOLTAGE_DIFF || isLapMetric(c.id))].filter(c => chartHasData(c, channels));
+  return configurableCharts(selected).filter(c => chartHasData(c, channels));
 }
 
 export function chartHasData(channel: GreenpowerChannel, channels: GreenpowerChannel[]) {

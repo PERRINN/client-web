@@ -63,15 +63,16 @@ test('motor gearing and circumference feed distance, with missing metadata withh
   assert.deepEqual(derive(merged).points, derive(raw).points);
 });
 
-test('distance appears once after vehicle speed in saved chart layouts without modifying selections', () => {
+test('distance respects saved visibility and can be ordered before vehicle speed', () => {
   const channel = distance(points);
   const speed = { ...signal(points), id: data.VEHICLE_SPEED };
   const channels = [speed, channel], saved = { [speed.id]: true };
   const before = structuredClone(saved);
-  assert.deepEqual(view.telemetryCharts(channels, view.selectedChannels(channels, saved)).map(c => c.id), [speed.id, data.DISTANCE]);
+  assert.deepEqual(view.telemetryCharts(channels, view.selectedChannels(channels, saved)).map(c => c.id), [speed.id]);
   assert.deepEqual(view.telemetryCharts(channels, channels).map(c => c.id), [speed.id, data.DISTANCE]);
-  assert.deepEqual(view.telemetryCharts(channels, []).map(c => c.id), [data.DISTANCE]);
+  assert.deepEqual(view.telemetryCharts(channels, []).map(c => c.id), []);
   assert.deepEqual(view.telemetryCharts([], []), []);
+  assert.deepEqual(view.telemetryCharts(channels, [channel, speed]).map(c => c.id), [data.DISTANCE, speed.id]);
   assert.deepEqual(saved, before);
-  assert.equal(view.configurableCharts(channels).some(c => c.id === data.DISTANCE), false);
+  assert.equal(view.configurableCharts(channels).some(c => c.id === data.DISTANCE), true);
 });

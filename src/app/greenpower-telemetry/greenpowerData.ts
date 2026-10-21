@@ -87,11 +87,11 @@ export const isLapMetric = (id: string) => Object.hasOwn(LAP_METRICS, id);
 export const POWER = 'computed:power';
 export const ENERGY = 'computed:energy';
 export const DISTANCE = 'computed:distance-travelled';
-export const isElectricalMetric = (id: string) => id === POWER || id === ENERGY;
 export const VOLTAGE_LEFT = 'computed:voltage-left';
 export const VOLTAGE_RIGHT = 'computed:voltage-right';
 export const VOLTAGE_DIFF = 'computed:voltage-diff';
-export function isVoltageChannel(id: string) { return [VOLTAGE_LEFT, VOLTAGE_RIGHT, VOLTAGE_DIFF].includes(id); }
+export const COMPUTED_CHANNEL_IDS = [MOTOR_DERIVED_SPEED, DISTANCE, POWER, ENERGY,
+  VOLTAGE_LEFT, VOLTAGE_RIGHT, VOLTAGE_DIFF, 'computed:gps-lap', ...Object.keys(LAP_METRICS)];
 const voltageLabels: Record<string, string> = {
   [VOLTAGE_LEFT]: 'Voltage left', [VOLTAGE_RIGHT]: 'Voltage right', [VOLTAGE_DIFF]: 'Voltage diff'
 };

@@ -5,8 +5,8 @@ import 'firebase/compat/firestore';
 import { Subject, Subscription } from 'rxjs';
 import { DatasetTrackWrite, datasetTrackPath, validTrackId } from './greenpowerDatasetTrack';
 import { PermissionsService } from '../permissions.service';
-import { GreenpowerChannel } from './greenpowerData';
-import { chartHasData, telemetryCharts, configurableCharts, copySelection, editorChannels, orderField, orderFor, ViewKind, GreenpowerView, selectedChannels, selectionFor, validSelection, validView, VIEW_PATH, ViewSelection } from './greenpowerView';
+import { COMPUTED_CHANNEL_IDS, GreenpowerChannel, isVehicleSpeed } from './greenpowerData';
+import { chartHasData, chartOption, telemetryCharts, configurableCharts, copySelection, editorChannels, orderField, orderFor, ViewKind, GreenpowerView, selectedChannels, selectionFor, validSelection, validView, VIEW_PATH, ViewSelection } from './greenpowerView';
 
 @Injectable()
 export class GreenpowerViewService implements OnDestroy {
@@ -44,8 +44,9 @@ export class GreenpowerViewService implements OnDestroy {
   }
   available(channels: GreenpowerChannel[], kind: ViewKind) {
     const chosen = selectedChannels(channels, this.draft[kind], orderFor(this.draft, kind));
-    const other = editorChannels(channels, this.draft).filter(c => !this.draft[kind][c.id] && (kind === 'scalars' || chartHasData(c, channels)));
-    return kind === 'scalars' ? [...chosen, ...other] : configurableCharts([...chosen, ...other]);
+    const other = editorChannels(channels, this.draft).filter(c => !this.draft[kind][c.id] &&
+      (kind === 'scalars' || COMPUTED_CHANNEL_IDS.includes(c.id) || isVehicleSpeed(c.id) || chartHasData(c, channels)));
+    return kind === 'scalars' ? [...chosen, ...other] : configurableCharts([...chosen, ...other]).map(chartOption);
   }
   private listen() {
     const generation = ++this.generation;

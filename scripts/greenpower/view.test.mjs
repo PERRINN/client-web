@@ -9,7 +9,7 @@ const view = load('../../src/app/greenpower-telemetry/greenpowerView.ts', { './g
 const { PermissionsService } = load('../../src/app/permissions.service.ts', { '@angular/core': angular, rxjs: { BehaviorSubject, combineLatest } });
 const { GreenpowerViewService } = load('../../src/app/greenpower-telemetry/greenpowerView.service.ts', {
   '@angular/core': angular, rxjs: { Subject }, 'firebase/compat/app': { default: { firestore: { FieldValue: {serverTimestamp:()=> 'server-time'} } } },
-  'firebase/compat/firestore': {}, './greenpowerView': view, './greenpowerDatasetTrack': datasetTrack
+  'firebase/compat/firestore': {}, './greenpowerView': view, './greenpowerData': data, './greenpowerDatasetTrack': datasetTrack
 });
 const channels = data.channelsFor([sample(0), sample(1)]);
 const saved = { ...view.selectionFor(channels), revision: 1, updatedBy: 'admin' };
@@ -33,7 +33,7 @@ test('operator role assignment preserves unrelated claims and supports revocatio
 });
 test('selection validates channel bounds, keeps scalar/chart choices independent, and labels absent channels', () => {
   const selection=view.selectionFor(channels);
-  assert.equal(Object.keys(selection.scalars).length,9); assert.equal(Object.keys(selection.charts).length,7);
+  assert.equal(Object.keys(selection.scalars).length,9); assert.equal(Object.keys(selection.charts).length,8);
   const id=channels[0].id; delete selection.scalars[id];
   assert.ok(!view.selectedChannels(channels,selection.scalars).some(c=>c.id===id));
   assert.ok(view.selectedChannels(channels,selection.charts).some(c=>c.id===id));
@@ -206,14 +206,57 @@ test('combined view/track Save retries are bounded to six client document reads'
   assert.equal(reads,6);assert.equal(h.service.editing,true);h.service.ngOnDestroy();
 });
 
-test('voltage plots follow saved charts without requiring a shared-view migration or duplicate plots', () => {
+test('voltage charts respect shared visibility with one left/right control', () => {
   const channels=data.channelsFor([{source:'424-phone',receivedAt:1,raw:'{"Vt":25,"V1":12}'}]);
   const plots=view.telemetryCharts(channels,channels);
   assert.equal(plots.filter(c=>c.id===data.VOLTAGE_LEFT).length,1);
   assert.equal(plots.filter(c=>c.id===data.VOLTAGE_DIFF).length,1);
   assert.equal(plots.filter(c=>c.id===data.VOLTAGE_RIGHT).length,0);
-  assert.deepEqual(view.telemetryCharts(channels,[]).map(c=>c.id),[data.VOLTAGE_LEFT,data.VOLTAGE_DIFF]);
-  assert.equal(view.selectionFor(channels).charts[data.VOLTAGE_LEFT],undefined);
+  assert.deepEqual(view.telemetryCharts(channels,[]).map(c=>c.id),[]);
+  assert.equal(view.selectionFor(channels).charts[data.VOLTAGE_LEFT],true);
   assert.equal(view.selectionFor(channels).scalars[data.VOLTAGE_RIGHT],true);
   assert.deepEqual(view.telemetryCharts([],[]),[]);
+});
+
+
+test('all calculated channels remain selectable without samples, with combined chart controls', () => {
+  const h=harness();h.signIn();h.emit({...saved,scalars:{},charts:{}});h.service.edit([]);
+  const scalars=h.service.available([], 'scalars');
+  assert.equal(data.COMPUTED_CHANNEL_IDS.length,11);
+  for(const id of data.COMPUTED_CHANNEL_IDS) {
+    const channel=scalars.find(c=>c.id===id);
+    assert.ok(channel, id);assert.equal(channel.value,'—');assert.deepEqual(channel.points,[]);
+    assert.deepEqual({label:channel.label,unit:channel.unit},data.channelDetails(id));
+  }
+  const charts=h.service.available([], 'charts');
+  assert.equal(charts.find(c=>c.id===data.VOLTAGE_LEFT).label,'Voltage left / right');
+  assert.equal(charts.find(c=>c.id===data.VEHICLE_SPEED).label,'Vehicle speed / Motor-derived speed');
+  assert.ok(!charts.some(c=>c.id===data.MOTOR_DERIVED_SPEED||c.id===data.VOLTAGE_RIGHT));
+  for(const id of data.COMPUTED_CHANNEL_IDS.filter(id=>id!==data.MOTOR_DERIVED_SPEED&&id!==data.VOLTAGE_RIGHT)) assert.ok(charts.some(c=>c.id===id),id);
+  h.service.ngOnDestroy();
+});
+
+test('calculated selections save independently, retain missing slots and follow the shared order', async () => {
+  const h=harness();h.signIn();h.emit({...saved,scalars:{},charts:{}});h.service.edit([]);
+  const order=[...data.COMPUTED_CHANNEL_IDS].reverse();
+  for(const id of order) h.service.toggle('scalars',id,true);
+  for(const id of order.filter(id=>id!==data.MOTOR_DERIVED_SPEED&&id!==data.VOLTAGE_RIGHT)) h.service.toggle('charts',id,true);
+  h.service.reorder('charts',data.POWER,0);
+  const chartOrder=h.service.draft.chartOrder.slice();
+  assert.deepEqual(h.service.charts([]),[],'draft is private');
+  await h.service.save();assert.equal(h.writes,1);assert.equal(h.attempts,1);
+  h.emit(h.record);h.signIn(false);
+  assert.deepEqual(h.service.scalars([]).map(c=>c.id),order);
+  assert.deepEqual(h.service.charts([]),[],'no empty graphs');
+  const loaded=order.map((id,i)=>({id,...data.channelDetails(id),value:String(i),points:[{time:1000,value:i}]}));
+  assert.deepEqual(h.service.charts(loaded).map(c=>c.id),chartOrder);
+  assert.deepEqual(h.service.scalars(loaded).map(c=>c.value),loaded.map(c=>c.value));
+  h.signIn();h.service.edit(loaded);
+  h.service.toggle('charts',data.POWER,false);h.service.toggle('scalars',data.ENERGY,false);
+  await h.service.save();h.emit(h.record);
+  assert.ok(!h.service.charts(loaded).some(c=>c.id===data.POWER));
+  assert.ok(h.service.scalars(loaded).some(c=>c.id===data.POWER));
+  assert.ok(h.service.charts(loaded).some(c=>c.id===data.ENERGY));
+  assert.ok(!h.service.scalars(loaded).some(c=>c.id===data.ENERGY));
+  h.service.ngOnDestroy();
 });

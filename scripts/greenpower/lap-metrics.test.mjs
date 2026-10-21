@@ -34,13 +34,13 @@ test('completed lap finish points connect as one normal line without fabricated 
   assert.equal(data.chartTrace(channel.points, 70000, 80000, 390).path, '', 'zoom never invents lap completions');
 });
 
-test('metric plots append to explicit saved layouts once, without altering saved selection', () => {
+test('metric plots respect selected visibility and order', () => {
   const channels = lapMetrics.lapMetricChannels(laps);
   const saved = { id: 'raw', label: 'Current', unit: 'A', value: '20', points: [{ time: 0, value: 20 }] };
   assert.deepEqual(view.telemetryCharts([saved, ...channels], [saved, channels[0]]).map(channel => channel.id),
-    ['raw', ...channels.map(channel => channel.id)]);
-  assert.equal(view.configurableCharts(channels).length, 0);
-  assert.deepEqual(view.selectionFor(channels).charts, {});
+    ['raw', channels[0].id]);
+  assert.equal(view.configurableCharts(channels).length, 3);
+  assert.deepEqual(view.selectionFor(channels).charts, Object.fromEntries(channels.map(c=>[c.id,true])));
   assert.deepEqual(view.telemetryCharts(lapMetrics.lapMetricChannels([]), []), []);
 });
 

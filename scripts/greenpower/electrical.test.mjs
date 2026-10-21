@@ -87,17 +87,17 @@ test('merged chunk projections produce the same Wh as a contiguous recording wit
   assert.deepEqual(withEnergy(merged, [], samples.at(-1).receivedAt).find(channel => channel.id === data.ENERGY).points, fromChunks.points);
 });
 
-test('power and energy follow their parent charts once in saved layouts, without a settings migration', () => {
+test('power and energy respect explicit chart visibility and ordering', () => {
   const channels = withEnergy(data.channelsFor([sample(0), sample(3000)], sample(3000)), [], 3000);
   const current = channels.find(channel => channel.id === '["A"]:A');
   const ah = channels.find(channel => channel.id === '["AH"]:Ah');
   const before = structuredClone(view.selectionFor(channels));
   assert.deepEqual(view.telemetryCharts(channels, [ah, current]).map(channel => channel.id),
-    ['["AH"]:Ah', data.ENERGY, '["A"]:A', data.POWER]);
-  assert.deepEqual(view.telemetryCharts(channels, []).map(channel => channel.id), [data.POWER, data.ENERGY]);
+    ['["AH"]:Ah', '["A"]:A']);
+  assert.deepEqual(view.telemetryCharts(channels, []).map(channel => channel.id), []);
   assert.equal(view.telemetryCharts(channels, channels).filter(channel => channel.id === data.POWER).length, 1);
   assert.equal(view.telemetryCharts(channels, channels).filter(channel => channel.id === data.ENERGY).length, 1);
-  assert.equal(before.charts[data.POWER], undefined); assert.equal(before.charts[data.ENERGY], undefined);
+  assert.equal(before.charts[data.POWER], true); assert.equal(before.charts[data.ENERGY], true);
   assert.deepEqual(view.selectionFor(channels), before);
   assert.deepEqual(view.telemetryCharts([], []), []);
 });
