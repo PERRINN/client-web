@@ -39,6 +39,18 @@ test('active funds use indexed closing-date queries and one bounded request per 
   } finally { feed.destroy(); }
   assert.ok(f.streams.every(stream => !stream.observed));
 });
+test('history displays expired legacy text amounts after lifecycle-only migration', () => {
+  const f = fixture(), feed = f.service.create(undefined, true);
+  try {
+    feed.loadMore();
+    f.streams[0].next([item('historical', { amountGBPTarget: '559.6', amountGBPRaised: '559.55', closesAt: Date.now() - 86400000 })]);
+    assert.equal(feed.current.items.length, 1);
+    assert.equal(feed.current.items[0].fund.amountGBPTarget, 559.6);
+    assert.equal(feed.current.items[0].fund.amountGBPRaised, 559.55);
+    assert.equal(feed.current.hasMore, false);
+    assert.equal(f.streams.length, 1);
+  } finally { feed.destroy(); }
+});
 test('profile scope is queried server-side; history includes ended and cancelled funds', () => {
   const f = fixture(), feed = f.service.create('person', true);
   try {

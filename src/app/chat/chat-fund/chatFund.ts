@@ -20,16 +20,24 @@ export function fundCurrency(userCurrency?: string, rates: Record<string, { toCO
 }
 
 export const FUND_DAY = 86400000;
-export interface FundRecord { fund?: Partial<ChatFund>; verifiedTimestamp?: number | { seconds?: number; toMillis?: () => number }; }
+export interface FundRecord {
+  fund?: Omit<Partial<ChatFund>, 'amountGBPTarget' | 'amountGBPRaised' | 'daysLeft'> & {
+    amountGBPTarget?: number | string; amountGBPRaised?: number | string; daysLeft?: number | string;
+  };
+  verifiedTimestamp?: number | { seconds?: number; toMillis?: () => number };
+}
+const fundNumber = (value: unknown): number => typeof value === 'number' ? value
+  : typeof value === 'string' && value.trim() ? Number(value) : NaN;
 export function chatFund(record: FundRecord, now = Date.now()): ChatFund | null {
   const fund = record.fund;
-  if (!fund || !Number.isFinite(fund.amountGBPTarget) || fund.amountGBPTarget! < 0.01) return null;
+  const target = fundNumber(fund?.amountGBPTarget), raised = fundNumber(fund?.amountGBPRaised), days = fundNumber(fund?.daysLeft);
+  if (!fund || !Number.isFinite(target) || target < 0.01) return null;
   const stamp = record.verifiedTimestamp;
   const reference = typeof stamp === 'number' ? stamp : stamp?.toMillis?.() || (Number(stamp?.seconds) * 1000 || 0);
   const closesAt = Number.isSafeInteger(fund.closesAt) && fund.closesAt! > 0 ? fund.closesAt!
-    : reference > 0 && Number.isFinite(fund.daysLeft) ? Math.round(reference + fund.daysLeft! * FUND_DAY) : null;
-  return { description: typeof fund.description === 'string' ? fund.description : '', amountGBPTarget: fund.amountGBPTarget!,
-    amountGBPRaised: Number.isFinite(fund.amountGBPRaised) ? Math.max(0, fund.amountGBPRaised!) : 0,
+    : reference > 0 && Number.isFinite(days) ? Math.round(reference + days * FUND_DAY) : null;
+  return { description: typeof fund.description === 'string' ? fund.description : '', amountGBPTarget: target,
+    amountGBPRaised: Number.isFinite(raised) ? Math.max(0, raised) : 0,
     closesAt, cancelled: fund.cancelled === true, daysLeft: closesAt ? Math.max(0, (closesAt - now) / FUND_DAY) : 0 };
 }
 export const activeFund = (fund: ChatFund | null, now = Date.now()): boolean => !!fund && fund.amountGBPTarget >= 0.01 && !fund.cancelled && Number(fund.closesAt) > now;

@@ -22,6 +22,7 @@ import {Component,provideZoneChangeDetection} from '@angular/core';import {TestB
 import {BrowserDynamicTestingModule,platformBrowserDynamicTesting} from '@angular/platform-browser-dynamic/testing';
 import {CommonModule} from '@angular/common';import {BehaviorSubject} from 'rxjs';
 import {ChatFundSummaryComponent} from '${root}/src/app/chat/chat-fund/chat-fund-summary.component';
+import {chatFund} from '${root}/src/app/chat/chat-fund/chatFund';
 const templates=${JSON.stringify(templates)},styles=${JSON.stringify(styles)};let fixture,opened=[],loads=0;
 const source=()=>[{chain:'testing',image:'',fund:{description:'424 Nürburgring testing',amountGBPTarget:1000,amountGBPRaised:250,closesAt:Date.now()+3*86400000,cancelled:false}},
  {chain:'battery',image:'',fund:{description:'Battery development and track testing equipment for the next shared workshop',amountGBPTarget:1000,amountGBPRaised:1500,closesAt:Date.now()+86400000,cancelled:false}}];
@@ -32,6 +33,7 @@ function area(name){return Component({selector:'test-'+name,standalone:false,tem
  togglePastFunds(){this.showPastFunds=!this.showPastFunds;this.set(this.showPastFunds?'history':'ready');}
  set(kind){let rows=source();if(['loading','empty','error','sparse'].includes(kind))rows=[];
   if(kind==='history')rows.push({chain:'old',image:'',fund:{...rows[0].fund,description:'Previous fund',closesAt:Date.now()-86400000,cancelled:true}});
+  if(kind==='history')rows.push({chain:'legacy',image:'',fund:chatFund({fund:{description:'Historical fund',amountGBPTarget:'559.6',amountGBPRaised:'559.55',closesAt:Date.now()-86400000,cancelled:false}})});
   if(kind==='expiry')rows=[{...rows[0],fund:{...rows[0].fund,closesAt:Date.now()+150}}];
   this.funds=rows;this.loadingFunds=kind==='loading';this.fundError=kind==='error';this.fundHasMore=!['empty','expiry'].includes(kind);
   this.state.next({items:rows,loading:this.loadingFunds,error:this.fundError,hasMore:this.fundHasMore});
@@ -72,7 +74,13 @@ try {
   await page.getByText('No active funds.',{exact:true}).waitFor();
   await page.evaluate(()=>window.fundsUI.set('sparse'));assert.equal(await page.getByText('No active funds.',{exact:true}).count(),0);await page.getByRole('button',{name:'Load more',exact:true}).waitFor();
   await page.evaluate(()=>window.fundsUI.set('ready'));
-  if(name==='buy-prn'){await page.getByRole('button',{name:'Show past funds'}).click();await page.getByText('Cancelled',{exact:true}).waitFor();}
+  if(name==='buy-prn'){
+   await page.getByRole('button',{name:'Show past funds'}).click();await page.getByText('Cancelled',{exact:true}).waitFor();
+   const historical=page.getByRole('button',{name:'Fund details: Historical fund'});
+   await historical.getByText('£560 raised / £560 target',{exact:true}).waitFor();await historical.getByText('Ended',{exact:true}).waitFor();
+   assert.deepEqual(await page.locator('#main_container').boundingBox(),geometry);
+   await page.getByRole('button',{name:'Hide past funds'}).click();assert.equal(await historical.count(),0);
+  }
   else {await page.evaluate(()=>window.fundsUI.set('expiry'));await row.waitFor({state:'hidden'});assert.deepEqual(await page.locator('#main_container').boundingBox(),geometry);}
  }
  assert.deepEqual(errors,[]);console.log(JSON.stringify({output,widths:[1440,390,320],pages:Object.keys(templates),checks:['Shared typography/progress','Keyboard navigation','Long descriptions','Expiry','Cancelled history','Loading/error/empty','Shell stability','No overflow'],errors}));

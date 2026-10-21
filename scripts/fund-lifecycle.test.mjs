@@ -18,6 +18,33 @@ test('legacy conversion fixes the closing date to saved verification time, inclu
   assert.equal(storedFund({ ...previous.fund, amountGBPTarget: 0.0001 }, previous.verifiedTimestamp).cancelled, true);
   assert.throws(() => migrationFields({ fund: previous.fund }), /review required/);
 });
+test('historical numeric text remains readable without changing persisted amounts', () => {
+  const record = { ...previous, fund: { ...previous.fund, amountGBPTarget: '559.6', amountGBPRaised: '559.55', daysLeft: '-806.4' } };
+  const client = exports.chatFund(record, now);
+  assert.equal(client.amountGBPTarget, 559.6); assert.equal(client.amountGBPRaised, 559.55);
+  assert.equal(exports.fundStatus(client, now), 'Ended');
+  const fields = migrationFields(record);
+  assert.equal(fields['fund.closesAt'], Math.round(now - 806.4 * DAY));
+  assert.equal(fields['fund.cancelled'], false);
+  assert.deepEqual(Object.keys(fields).sort(), ['fund.cancelled', 'fund.closesAt']);
+  assert.equal(record.fund.amountGBPTarget, '559.6');
+  for (const target of ['', ' ', 'Infinity', 'invalid', null, true]) {
+    assert.equal(exports.chatFund({ ...record, fund: { ...record.fund, amountGBPTarget: target } }), null);
+    assert.throws(() => migrationFields({ ...record, fund: { ...record.fund, amountGBPTarget: target } }), /review required/);
+  }
+  assert.equal(migrationFields({ ...record, fund: { ...record.fund, amountGBPTarget: '0' } }), null);
+});
+test('text-target migration is a separate bounded indexed page with type-safe continuation', async () => {
+  const calls = [], record = { ...previous, fund: { ...previous.fund, amountGBPTarget: '4610' } };
+  const query = { where: (...args) => { calls.push(args); return query; }, orderBy: () => query,
+    startAfter: () => query, limit: n => { calls.push(['limit', n]); return query; },
+    get: async () => ({ docs: [{ id: 'historical', data: () => record, updateTime: { seconds: 1, nanoseconds: 0 } }] }) };
+  const result = await prepare({ collection: () => query }, 'demo', undefined, { targetType: 'string' });
+  assert.ok(calls.some(call => call[0] === 'fund.amountGBPTarget' && call[2] === ''));
+  assert.deepEqual(calls.at(-1), ['limit', 101]);
+  assert.equal(result.plan.entries.length, 1); assert.equal(result.plan.cursor.target, '4610');
+  await assert.rejects(prepare({}, 'demo', result.plan.cursor), /target type/);
+});
 test('server and client agree at exact expiry, with stale flags ignored and reaching the target independent', () => {
   const record = { ...previous, fund: { ...previous.fund, closesAt: now + 100, cancelled: false, active: false } };
   for (const at of [now, now + 99, now + 100, now + 101]) {

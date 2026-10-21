@@ -8,14 +8,21 @@ const require = createRequire(import.meta.url);
 const { storedFund } = require('../../functions/utils/fundState');
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 export function migrationFields(data) {
+  const rawTarget = data.fund?.amountGBPTarget;
+  const target = typeof rawTarget === 'number' ? rawTarget : typeof rawTarget === 'string' && rawTarget.trim() ? Number(rawTarget) : NaN;
+  if (!Number.isFinite(target)) throw new Error('Invalid legacy target; review required');
+  if (target <= 0) return null;
   if (Number.isSafeInteger(data.fund?.closesAt) && data.fund.closesAt > 0 && data.fund.closesAt <= 8640000000000000 && typeof data.fund?.cancelled === 'boolean') return null;
-  const fund = storedFund(data.fund, data.verifiedTimestamp);
+  const rawDays = data.fund?.daysLeft;
+  const daysLeft = typeof rawDays === 'string' && rawDays.trim() ? Number(rawDays) : rawDays;
+  const fund = storedFund({ ...data.fund, amountGBPTarget: target, daysLeft }, data.verifiedTimestamp);
   if (!Number.isSafeInteger(fund.closesAt) || fund.closesAt <= 0 || fund.closesAt > 8640000000000000) throw new Error('Missing valid saved verification time/remaining days; review required');
   return { 'fund.closesAt': fund.closesAt, 'fund.cancelled': fund.cancelled };
 }
-export async function prepare(db, projectId, cursor) {
+export async function prepare(db, projectId, cursor, { targetType = 'number' } = {}) {
+  if (!['number', 'string'].includes(targetType) || cursor && typeof cursor.target !== targetType) throw new Error('Invalid migration target type/cursor');
   let query = db.collection('PERRINNMessages').where('lastMessage', '==', true).where('verified', '==', true)
-    .where('fund.amountGBPTarget', '>', 0).orderBy('fund.amountGBPTarget').orderBy('__name__');
+    .where('fund.amountGBPTarget', '>', targetType === 'string' ? '' : 0).orderBy('fund.amountGBPTarget').orderBy('__name__');
   if (cursor) query = query.startAfter(cursor.target, db.doc('PERRINNMessages/' + cursor.id));
   const page = await query.limit(101).get(), entries = [], errors = [];
   for (const doc of page.docs.slice(0, 100)) {
@@ -48,7 +55,8 @@ export async function apply(db, envelope, checksum, projectId, timestamp) {
   return plan.entries.length;
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const [mode, projectId, file, argument] = process.argv.slice(2);
+  const args = process.argv.slice(2), legacyText = args.includes('--legacy-text');
+  const [mode, projectId, file, argument] = args.filter(arg => arg !== '--legacy-text');
   if (!['prepare', 'apply'].includes(mode) || !projectId || !file) throw new Error('Usage: node scripts/funds/migrate.mjs prepare PROJECT PLAN.json [CURSOR.json] | apply PROJECT PLAN.json CHECKSUM');
   const admin = require('firebase-admin');
   const app = admin.initializeApp({ projectId });
@@ -56,7 +64,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const db = app.firestore();
     if (mode === 'prepare') {
       const cursor = argument ? JSON.parse(await readFile(argument, 'utf8')) : undefined;
-      const result = await prepare(db, projectId, cursor);
+      const result = await prepare(db, projectId, cursor, { targetType: legacyText ? 'string' : 'number' });
       await writeFile(file, JSON.stringify(result, null, 2) + '\n', { flag: 'wx' });
       console.log(JSON.stringify({ entries: result.plan.entries.length, errors: result.plan.errors.length, hasMore: result.plan.hasMore, cursor: result.plan.cursor, checksum: result.checksum }));
     } else console.log(JSON.stringify({ updated: await apply(db, JSON.parse(await readFile(file, 'utf8')), argument, projectId, value => new admin.firestore.Timestamp(value.seconds ?? value._seconds, value.nanoseconds ?? value._nanoseconds)) }));
