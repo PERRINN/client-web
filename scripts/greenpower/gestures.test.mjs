@@ -201,7 +201,7 @@ test('keyboard visits distinct sample timestamps across irregular gaps and stops
   assert.equal(key('ArrowLeft'),10);
   assert.equal(key('ArrowLeft'),10);
   c.cursor=undefined;
-  assert.equal(key('ArrowRight'),10,'midpoint ties select the earlier sample');
+  assert.equal(key('ArrowRight'),900,'unpinned cursor starts from the latest visible point');
   c.start=20;c.end=800;
   assert.equal(key('ArrowRight'),undefined);
   c.ngOnDestroy();
@@ -250,7 +250,7 @@ test('ordinary double click still resets zoom and cursor', () => {
   c.ngOnDestroy();
 });
 
-test('overlay cursor uses elapsed time, can inspect the longer session and leaves ended sessions blank', () => {
+test('overlay cursor uses elapsed time and each session’s nearest visible sample', () => {
   const { component: c } = fixture();
   const short = { id: 'first', label: 'First', colour: 'blue', channel: c.channel };
   const long = { ...short, id: 'second', channel: { ...c.channel, points: [{ time: 0, value: 10 }, { time: 2000, value: 20 }] } };
@@ -263,7 +263,7 @@ test('overlay cursor uses elapsed time, can inspect the longer session and leave
   assert.equal(c.model.overlays.length, 3, 'new trace paths render immediately during a session load');
   c.inspect(.75); assert.equal(c.cursorChange.values.at(-1), 1500);
   c.cursor = 1500;
-  assert.equal(c.overlayValue(short), '—'); assert.equal(Number(c.overlayValue(long)), 20);
+  assert.equal(Number(c.overlayValue(short)), 5); assert.equal(Number(c.overlayValue(long)), 20);
   const key = key => { c.key({ key, preventDefault() {} }); c.cursor = c.cursorChange.values.at(-1); };
   key('ArrowRight'); assert.equal(c.cursor, 2000);
   assert.equal(c.time(2000), '0:00:02');
@@ -307,7 +307,7 @@ test('RPM-only comparison retains keyboard cursor and never labels derived speed
   assert.match(component.comparisonLabel, /mph/);
 });
 
-test('live readers follow actual latest visible samples and resume after clearing a sticky cursor', () => {
+test('readers follow actual latest visible samples in live and history and resume after clearing a sticky cursor', () => {
   const {component:c} = fixture();
   c.live = true; c.end = 1200;
   c.comparison = {...c.channel, points:[{time:0,value:2},{time:900,value:4}]};
@@ -330,7 +330,7 @@ test('live readers follow actual latest visible samples and resume after clearin
   c.start = 100;
   assert.equal(c.reading, undefined, 'empty visible channels stay blank');
   c.live = false;
-  assert.equal(c.comparisonReading, undefined, 'history keeps its existing cursor behavior');
+  assert.equal(c.comparisonReading.time, 900, 'history also follows the latest visible sample');
   c.channel = {...c.channel, points:[]}; c.live = true; c.end = 1200;
   assert.equal(c.reading, undefined);
   assert.equal(c.cursorPosition, (900 - 100) / 1100 * 800, 'comparison-only charts follow live data');
@@ -371,5 +371,67 @@ test('legend hover restores keyboard focus, ignores touch and clears when the pa
   assert.equal(c.legendHighlightChange.values.at(-1),undefined);
   c.legendEnter('a','s1');
   assert.equal(c.legendHighlightChange.values.at(-1),undefined,'hidden traces cannot retain emphasis');
+  c.ngOnDestroy();
+});
+
+test('history and lap charts follow the latest visible point without pinning it', () => {
+  const {component:c} = fixture();
+  c.live = false;
+  c.channel = {...c.channel, id:'computed:lap-average-amps', value:'999'};
+  c.ngOnChanges({channel:{}});
+  assert.equal(c.reading.time,1000);
+  assert.match(c.cursorLabel,/5.* A/);
+  assert.equal(c.cursor,undefined);
+  c.end=500;c.ngOnChanges({end:{}});
+  assert.equal(c.reading.time,0);
+  c.start=100;c.ngOnChanges({start:{}});
+  assert.equal(c.reading,undefined);
+  assert.equal(c.cursorPosition,undefined);
+  c.start=0;c.end=1000;
+  c.key({key:'ArrowLeft',preventDefault(){}});
+  assert.equal(c.cursorChange.values.at(-1),0,'left steps back from the default last point');
+  c.ngOnDestroy();
+});
+
+test('overlay following uses visible traces, stays within zoom and resumes after unpinning', () => {
+  const {component:c} = fixture();
+  const trace=(id,end)=>({id,label:id,colour:'blue',channel:{...c.channel,points:[{time:0,value:1},{time:end,value:5}]}});
+  c.end=2000;
+  c.overlays=[trace('short',1000),trace('long',2000),{...trace('hidden',3000),hidden:true}];
+  c.ngOnChanges({overlays:{}});
+  assert.equal(c.overlayCursor,2000);
+  assert.equal(Number(c.overlayValue(c.overlays[0])),5);
+  assert.equal(Number(c.overlayValue(c.overlays[1])),5);
+  assert.equal(c.cursor,undefined);
+  c.cursor=0;assert.equal(c.overlayCursor,0);
+  c.key({key:'Escape'});c.cursor=c.cursorChange.values.at(-1);
+  assert.equal(c.overlayCursor,2000);
+  c.end=1500;c.ngOnChanges({end:{}});assert.equal(c.overlayCursor,1000);
+  c.overlays=c.overlays.map(t=>({...t,hidden:true}));c.ngOnChanges({overlays:{}});
+  assert.equal(c.overlayCursor,undefined);
+  assert.equal(c.overlayValue(c.overlays[1]),'—');
+  c.overlays=[{...trace('excluded',1000),excluded:true}];c.ngOnChanges({overlays:{}});
+  assert.equal(c.overlayCursor,undefined);
+  c.ngOnDestroy();
+});
+
+test('overlay readings use each trace’s nearest visible point even outside its time range', () => {
+  const {component:c} = fixture();
+  c.end=3000;
+  c.overlays=[{id:'short',label:'Short',colour:'blue',channel:{...c.channel,
+    points:[{time:500,value:2},{time:1000,value:4}]}},
+    {id:'long',label:'Long',colour:'gold',channel:{...c.channel,
+    points:[{time:0,value:10},{time:2000,value:20},{time:3000,value:30}]}}];
+  c.ngOnChanges({overlays:{}});
+  const values=()=>c.overlays.map(trace=>c.overlayValue(trace));
+  assert.deepEqual(values().map(Number),[4,30],'each unpinned trace shows its own final value');
+  c.cursor=2000;
+  assert.deepEqual(values().map(Number),[4,20],'shorter traces use their nearest sample');
+  c.cursor=0;
+  assert.deepEqual(values().map(Number),[2,10],'a later-starting trace uses its first sample');
+  c.cursor=undefined;c.end=1500;c.ngOnChanges({end:{}});
+  assert.deepEqual(values().map(Number),[4,10],'zoom limits the available samples for each trace');
+  c.start=1500;c.end=3000;c.ngOnChanges({start:{},end:{}});
+  assert.equal(values()[0],'—','no point in the visible window stays blank');
   c.ngOnDestroy();
 });

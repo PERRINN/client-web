@@ -28,6 +28,6 @@ export const dayData = load('../../src/app/greenpower-telemetry/greenpowerDay.ts
 export const gps = load('../../src/app/greenpower-telemetry/greenpowerGps.ts', { './greenpowerData': data });
 export const tracks = load('../../src/app/greenpower-telemetry/greenpowerTracks.ts', { './greenpowerGps': gps });
 
-export const lapMetrics = load('../../src/app/greenpower-telemetry/greenpowerLapMetrics.ts', { './greenpowerData': data });
+export const lapMetrics = load('../../src/app/greenpower-telemetry/greenpowerLapMetrics.ts', { './greenpowerData': data, './greenpowerGps': gps });
 
 export const motorSpeed = load('../../src/app/greenpower-telemetry/greenpowerSpeed.ts', { './greenpowerData': data, './greenpowerDay': dayData, './greenpowerGps': gps });

@@ -182,3 +182,19 @@ test('overlay traces share an axis across every visible session without off-wind
   assert.equal(chart.elapsedTime(3661000), '1:01:01');
   assert.equal(chart.elapsedTime(3599999.9999999995), '1:00:00');
 });
+
+test('lap average amps and power limits remain visible across widths, zoom and overlays', () => {
+  for (const [id, limit] of [['computed:lap-average-amps', 24], ['computed:lap-average-power', 550]]) {
+    assert.equal(chart.channelLimit({ id }), limit);
+    const points = [{ time: 1000, value: limit / 2 }, { time: 2000, value: limit * 2 }];
+    for (const width of [200, 1000]) for (const [start, end] of [[0, 1500], [1500, 2500], [3000, 4000]]) {
+      for (const overlay of [false, true]) {
+        const model = chart.plotFor(overlay ? [] : points, start, end, width, limit, [], overlay ? [points] : []);
+        assert.ok(model.axis.min <= limit && model.axis.max >= limit);
+        assert.ok(chart.chartY(limit, model.axis) >= 10 && chart.chartY(limit, model.axis) <= 110);
+        assert.doesNotMatch(model.trace.path, /NaN|Infinity/);
+      }
+    }
+  }
+  assert.equal(chart.channelLimit({ id: data.POWER }), undefined);
+});

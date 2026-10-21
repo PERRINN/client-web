@@ -76,11 +76,11 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   comparisonY(value: number) { return chartY(value, this.model.axis); }
   formatAxis = formatAxisValue;
   time(value: number) { return this.overlays.length ? elapsedTime(value) : londonTime(value); }
+  private latestOverlayTime?: number;
+  get overlayCursor() { return this.cursor ?? this.latestOverlayTime; }
   overlayValue(trace: OverlayTrace) {
-    if (trace.hidden) return '—';
-    const points = trace.channel.points;
-    const point = this.cursor === undefined || this.cursor < (points[0]?.time ?? Infinity) || this.cursor > (points.at(-1)?.time ?? -Infinity)
-      ? undefined : channelReading(trace.channel, this.cursor, this.start, this.end);
+    if (trace.hidden || trace.excluded) return '—';
+    const point = nearestPoint(trace.channel.points, this.cursor ?? this.end, this.start, this.end);
     return point ? channelReadout(trace.channel, point.value, this.model.axis.min, this.model.axis.max, false) : '—';
   }
   lapDots: { time: number; value: number }[] = [];
@@ -114,10 +114,10 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   get markerRadiusX() { return 4 * 800 / Math.max(1, this.width); }
   get reading() {
     if (this.cursor !== undefined) return channelReading(this.channel, this.cursor, this.start, this.end);
-    return this.live ? nearestPoint(this.channel.points, this.end, this.start, this.end) : undefined;
+    return nearestPoint(this.channel.points, this.end, this.start, this.end);
   }
   get comparisonReading() {
-    if (!this.comparison || (this.cursor === undefined && !this.live)) return undefined;
+    if (!this.comparison) return undefined;
     return nearestPoint(this.comparison.points, this.cursor ?? this.end, this.start, this.end);
   }
   get comparisonLabel() {
@@ -160,6 +160,12 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
     this.plot!.nativeElement.addEventListener('touchmove', this.touchMove, { passive: false });
   }
   private render() {
+    this.latestOverlayTime = undefined;
+    for (const trace of this.overlays) {
+      if (trace.hidden || trace.excluded) continue;
+      const point = nearestPoint(trace.channel.points, this.end, this.start, this.end);
+      if (point && (this.latestOverlayTime === undefined || point.time > this.latestOverlayTime)) this.latestOverlayTime = point.time;
+    }
     this.model = plotFor(this.overlays.length ? [] : this.channel.points, this.start, this.end, this.width, this.limit, this.comparison?.points, this.overlays.map(trace => trace.hidden ? [] : trace.channel.points));
     const dots = (channel: GreenpowerChannel) => isLapMetric(channel.id)
       ? channel.points.slice(pointIndex(channel.points, this.start), pointIndex(channel.points, this.end, true)) : [];
@@ -236,12 +242,12 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
     else if (event.key === 'Escape') { this.cancel(); this.cursorChange.emit(undefined); }
     else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
       event.preventDefault();
-      const points = this.overlays.length ? this.overlays.filter(trace => !trace.hidden).reduce((longest, trace) =>
+      const points = this.overlays.length ? this.overlays.filter(trace => !trace.hidden && !trace.excluded).reduce((longest, trace) =>
         (trace.channel.points.at(-1)?.time ?? 0) > (longest.at(-1)?.time ?? 0) ? trace.channel.points : longest, [] as typeof this.channel.points) : this.channel.points.length ? this.channel.points : this.comparison?.points ?? [];
       const first = pointIndex(points, this.start), last = pointIndex(points, this.end, true) - 1;
       if (first > last) { this.cursorChange.emit(undefined); return; }
       const index = this.cursor === undefined
-        ? pointIndex(points, nearestPoint(points, (this.start + this.end) / 2, this.start, this.end)!.time)
+        ? event.key === 'ArrowLeft' ? pointIndex(points, points[last].time) - 1 : last
         : event.key === 'ArrowRight' ? pointIndex(points, this.cursor, true) : pointIndex(points, this.cursor) - 1;
       this.cursorChange.emit(points[Math.max(first, Math.min(last, index))].time);
     }

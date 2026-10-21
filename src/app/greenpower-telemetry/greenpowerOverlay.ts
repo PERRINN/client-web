@@ -35,7 +35,7 @@ export function overlayChannels(samples: Parameters<typeof channelsFor>[0], sess
   });
   const projected = withMotorDerivedSpeed(savedGear(channels, event, [session], session.startAt, session.endAt,
     latest && sampleTime(latest)), event, latest && sampleTime(latest));
-  const metrics = lapMetricChannels(motorLapSpeeds(numbered.laps, projected));
+  const metrics = lapMetricChannels(motorLapSpeeds(numbered.laps, projected), projected);
   return [...withDistance(projected, [session], latest && sampleTime(latest)), ...metrics].map(channel => {
     const adjusted = sessionAmpHours(channel, [session], latest && sampleTime(latest));
     return { ...adjusted,

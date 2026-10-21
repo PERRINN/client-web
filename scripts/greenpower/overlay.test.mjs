@@ -323,12 +323,12 @@ test('overlay lap summaries match normal session analysis before rebasing to ela
   const track = { line, bounds };
   const event = { ...dayData.emptyDay(date), defaults: { motorGearTeeth: 12, wheelGearTeeth: 60 } }, session = { id: 'race', type: 'race', startAt: start, endAt: start + 44000, overrides: {} };
   const samples = fixes.map((fix,i) => ({ id: String(i), receivedAt: fix.time, source: '424-phone',
-    raw: JSON.stringify({ Lat: fix.lat, Lon: fix.lon, A: 12, Spd: 10, RPM: 3000 }) }));
+    raw: JSON.stringify({ Lat: fix.lat, Lon: fix.lon, A: 12, Vt: 24, Spd: 10, RPM: 3000 }) }));
   const raw = data.channelsFor(samples, samples.at(-1));
   const analysis = sessions.sessionLapAnalysis(gps.gpsAnalysis(fixes, line, raw, session.endAt), sessions.sessionIntervals(event, [session]),
     { channels: raw, fixes, end: session.endAt, configured: true });
   const projected = motorSpeed.withMotorDerivedSpeed(sessions.savedGear(raw, event, [session], session.startAt, session.endAt), event);
-  const expected = lapMetrics.lapMetricChannels(motorSpeed.motorLapSpeeds(analysis.laps, projected));
+  const expected = lapMetrics.lapMetricChannels(motorSpeed.motorLapSpeeds(analysis.laps, projected), projected);
   const result = overlay.overlayChannels(samples, session, event, track);
   for (const channel of expected) {
     const shifted = result.find(item => item.id === channel.id);
@@ -338,6 +338,7 @@ test('overlay lap summaries match normal session analysis before rebasing to ela
   }
   assert.ok(Math.abs(result.find(item => item.id === 'computed:lap-average-speed').points[0].value - 12.9 / .44704) < 1e-8);
   assert.equal(result.find(item => item.id === 'computed:lap-average-amps').points[0].value, 12);
+  assert.equal(result.find(item => item.id === 'computed:lap-average-power').points[0].value, 288);
   for (const missing of [null, { line, bounds: { south: 0, north: 1, west: 0, east: 1 } }]) {
     assert.ok(overlay.overlayChannels(samples, session, event, missing).filter(item => data.isLapMetric(item.id)).every(item => !item.points.length));
   }
@@ -346,7 +347,8 @@ test('overlay lap summaries match normal session analysis before rebasing to ela
 
 test('a session without complete lap data never masks another session’s metric graphs', () => {
   const h = fixture();
-  const completed = lapMetrics.lapMetricChannels([{ time: 0, end: 1000, complete: true, current: 12, speed: 20 }]);
+  const completed = lapMetrics.lapMetricChannels([{ time: 0, end: 1000, complete: true, current: 12, speed: 20 }],
+    [{ id: data.POWER, points: [{ time: 0, value: 288 }, { time: 1000, value: 288 }] }]);
   const empty = lapMetrics.lapMetricChannels([]);
   h.service.sessions = [{ channels: completed }, { channels: empty }];
   assert.ok(h.service.channels.every(channel => channel.points.length > 0));

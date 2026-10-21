@@ -81,7 +81,8 @@ export const isVehicleSpeed = (id: string) => id.startsWith('["Spd"]:') && speed
 export const LAP_METRICS: Record<string, { label: string; unit: string }> = {
   'computed:lap-time': { label: 'Lap time', unit: 's' },
   'computed:lap-average-speed': { label: 'Lap average speed · from motor', unit: 'mph' },
-  'computed:lap-average-amps': { label: 'Lap average amps', unit: 'A' }
+  'computed:lap-average-amps': { label: 'Lap average amps', unit: 'A' },
+  'computed:lap-average-power': { label: 'Lap average power', unit: 'W' }
 };
 export const isLapMetric = (id: string) => Object.hasOwn(LAP_METRICS, id);
 export const POWER = 'computed:power';

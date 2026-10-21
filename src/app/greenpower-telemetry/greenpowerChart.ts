@@ -7,8 +7,8 @@ export type ChartPoint = { time: number; value: number };
 export function channelLimit(channel: GreenpowerChannel) {
   if (channel.id === '["Vt"]:V') return 21;
   if (channel.id === VOLTAGE_LEFT || channel.id === VOLTAGE_RIGHT) return 10;
-  if (channel.id === '["A"]:A' || channel.id === '["AH"]:Ah') return 24;
-  if (channel.id === ENERGY) return 550;
+  if (channel.id === '["A"]:A' || channel.id === '["AH"]:Ah' || channel.id === 'computed:lap-average-amps') return 24;
+  if (channel.id === ENERGY || channel.id === 'computed:lap-average-power') return 550;
   return undefined;
 }
 

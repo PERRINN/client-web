@@ -222,7 +222,7 @@ test('voltage charts respect shared visibility with one left/right control', () 
 test('all calculated channels remain selectable without samples, with combined chart controls', () => {
   const h=harness();h.signIn();h.emit({...saved,scalars:{},charts:{}});h.service.edit([]);
   const scalars=h.service.available([], 'scalars');
-  assert.equal(data.COMPUTED_CHANNEL_IDS.length,11);
+  assert.equal(data.COMPUTED_CHANNEL_IDS.length,12);
   for(const id of data.COMPUTED_CHANNEL_IDS) {
     const channel=scalars.find(c=>c.id===id);
     assert.ok(channel, id);assert.equal(channel.value,'—');assert.deepEqual(channel.points,[]);
