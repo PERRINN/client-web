@@ -9,8 +9,9 @@ function token(uid, claims = {}) {
 }
 function field(value) {
   if (value === null) return { nullValue: null };
+  if (typeof value === 'boolean') return { booleanValue: value };
   if (typeof value === 'string') return { stringValue: value };
-  if (typeof value === 'number') return { doubleValue: value };
+  if (typeof value === 'number') return Number.isSafeInteger(value) ? { integerValue: String(value) } : { doubleValue: value };
   return { mapValue: { fields: Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, field(entry)])) } };
 }
 let sequence = 0;
@@ -49,4 +50,18 @@ test('only admins can cancel, including equivalent target/day commands; malforme
     const result = await write(fund, 'admin', { perrinnAdmin: true }); assert.equal(result.status, 200, result.body);
   }
   for (const fund of [null, 'cancel', { amountGBPTarget: '0.0001' }, { daysLeft: '-1' }]) assert.equal((await write(fund, 'alice')).status, 403);
+});
+
+test('fixed closing-date edits are available to signed-in users; cancellation and past dates are admin-only', async () => {
+  const future=Date.now()+86400000, past=Date.now()-86400000;
+  for(const uid of ['alice','bob']) {
+    assert.equal((await write({...ordinary,closesAt:future,cancelled:false},uid)).status,200);
+    for(const fund of [{cancelled:true},{closesAt:past}]) assert.equal((await write(fund,uid)).status,403);
+  }
+  for(const fund of [{cancelled:true},{closesAt:past}]) {
+    assert.equal((await write(fund,'admin',{perrinnAdmin:true})).status,200);
+    assert.equal((await write(fund,'admin',{perrinnAdmin:'true'})).status,403);
+    assert.equal((await write(fund)).status,403);
+  }
+  for(const fund of [{cancelled:'true'},{cancelled:null},{closesAt:0},{closesAt:-1},{closesAt:'tomorrow'},{closesAt:future+.5}]) assert.equal((await write(fund,'admin',{perrinnAdmin:true})).status,403);
 });

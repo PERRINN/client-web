@@ -64,14 +64,6 @@ button:focus-visible,.visitor-list:focus-visible{outline:2px solid var(--color-f
 .event-copy>span{color:var(--color-text-muted);font-size:13px}
 .event-duration{font:inherit;color:inherit}
 .fund-list{display:grid;gap:2px}
-.fund-row{display:flex;align-items:start;gap:10px;width:100%;min-height:44px;padding:6px 4px;border:0;border-radius:0;background:transparent;text-align:left;cursor:pointer}
-.fund-row:hover{background:var(--color-selected)}
-.fund-logo{width:48px;height:48px;flex:0 0 48px;object-fit:contain;border-radius:0}
-.fund-copy{display:grid;flex:1;min-width:0;gap:2px}
-.fund-copy strong{font-size:14px;font-weight:550;overflow-wrap:anywhere}
-.fund-copy>span{color:var(--color-text-muted);font-size:13px;overflow-wrap:anywhere}
-:host .fund-track{display:block;height:4px;width:100%;border-radius:4px;background:var(--color-raised);overflow:hidden}
-.fund-fill{display:block;height:100%;border-radius:inherit;background:var(--color-text-secondary)}
 .fund-more{display:block;min-height:44px;margin:10px auto 0;padding:8px 14px;border:0;border-radius:8px;background:var(--color-raised);font-size:13px;cursor:pointer}
 .fund-more:hover{background:var(--color-selected)}
 .fund-more:disabled{opacity:.5;cursor:default}

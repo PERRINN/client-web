@@ -1,5 +1,5 @@
 import { chatEvent, ChatEvent, eventActionText, normalizeEvent } from './chat-event/chatEvent';
-import { chatFund, ChatFund, FundCurrency, fundCurrency, fundFromDraft, raisedFromDraft } from './chat-fund/chatFund';
+import { chatFund, ChatFund, FundCurrency, fundCurrency, fundFromDraft, raisedFromDraft, FUND_DAY } from './chat-fund/chatFund';
 import { EnvironmentInjector, Injectable, runInInjectionContext } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
@@ -121,7 +121,7 @@ export class ChatDataService {
     return fundCurrency(this.UI.currentUserLastMessageObj?.userCurrency, this.UI.PERRINNAdminLastMessageObj?.currencyList);
   }
 
-  async saveFund(chain: string, fields: Pick<ChatFund, 'description' | 'amountGBPTarget' | 'daysLeft'> & { amountGBPRaised?: number }, editing = false): Promise<void> {
+  async saveFund(chain: string, fields: Pick<ChatFund, 'description' | 'amountGBPTarget' | 'daysLeft'> & { amountGBPRaised?: number }, editing = false, preservedClosesAt?: number | null): Promise<void> {
     const userId = await this.requireSender();
     if (!chain) throw new Error('Choose a chat.');
     const fund: Pick<ChatFund, 'description' | 'amountGBPTarget' | 'daysLeft'> & { amountGBPRaised?: number } = fundFromDraft({ description: fields.description, amount: fields.amountGBPTarget, days: fields.daysLeft }, { code: 'gbp', perGBP: 1 });
@@ -129,8 +129,11 @@ export class ChatDataService {
       await this.requireFundAdmin(userId);
       fund.amountGBPRaised = raisedFromDraft(fields.amountGBPRaised ?? null, { code: 'gbp', perGBP: 1 });
     }
+    const closesAt = preservedClosesAt ?? Date.now() + fund.daysLeft * FUND_DAY;
+    if (!Number.isSafeInteger(closesAt) || closesAt <= Date.now() || closesAt > 8640000000000000) throw new Error('Choose a future closing date.');
+    const { daysLeft, ...values } = fund;
     await this.checkSender(userId);
-    await this.createMessage(userId, { chain, text: `${editing ? 'Updated' : 'Created'} fund: ${fund.description}\nTarget: GBP ${fund.amountGBPTarget.toFixed(0)}\nDays remaining: ${fund.daysLeft}${fund.amountGBPRaised === undefined ? '' : `\nRaised: GBP ${fund.amountGBPRaised.toFixed(2)}`}`, fund });
+    await this.createMessage(userId, { chain, text: `${editing ? 'Updated' : 'Created'} fund: ${fund.description}\nTarget: GBP ${fund.amountGBPTarget.toFixed(0)}\nDays remaining: ${daysLeft}${fund.amountGBPRaised === undefined ? '' : `\nRaised: GBP ${fund.amountGBPRaised.toFixed(2)}`}`, fund: { ...values, closesAt, cancelled: false } });
   }
 
   async cancelFund(chain: string, fund: ChatFund): Promise<void> {
@@ -138,9 +141,8 @@ export class ChatDataService {
     if (!chain) throw new Error('Choose a chat.');
     await this.requireFundAdmin(userId);
     await this.checkSender(userId);
-    // Match production: zero values are inherited by the verifier rather than clearing a fund.
     await this.createMessage(userId, { chain, text: `Cancelled fund: ${fund.description.slice(0, 200)}`,
-      fund: { description: 'add a description', amountGBPTarget: 0.0001, daysLeft: 0.1 } });
+      fund: { cancelled: true } });
   }
 
   private async requireFundAdmin(userId: string): Promise<void> {

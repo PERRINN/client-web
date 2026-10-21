@@ -1,16 +1,30 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { activeFund, ChatFund, FundCurrency, fundAmount, fundProgress } from './chatFund';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { activeFund, ChatFund, FundCurrency, fundAmount, fundClock, fundProgress, fundStatus } from './chatFund';
 
 @Component({
   selector: 'app-chat-fund-summary', templateUrl: './chat-fund-summary.component.html',
   styleUrls: ['./chat-fund-summary.component.css'], standalone: false,
-  host: { '[class.has-fund]': 'active' }
+  host: { '[class.has-fund]': 'visible', '[class.row-layout]': 'layout === "row"' }
 })
-export class ChatFundSummaryComponent {
+export class ChatFundSummaryComponent implements OnChanges, OnDestroy {
   @Input() fund: ChatFund | null = null;
   @Input() currency: FundCurrency = { code: 'gbp', perGBP: 1 };
+  @Input() layout: 'compact' | 'row' = 'compact';
+  @Input() image = '';
+  @Input() showEnded = false;
   @Output() openFund = new EventEmitter<void>();
   readonly progress = fundProgress;
-  get active(): boolean { return activeFund(this.fund); }
+  readonly status = fundStatus;
+  now = Date.now();
+  failedImage = '';
+  private clock?: Subscription;
+  get active(): boolean { return activeFund(this.fund, this.now); }
+  get visible(): boolean { return !!this.fund && (this.showEnded || this.active); }
   amount(value: number): string { return fundAmount(value, this.currency); }
+  ngOnChanges(): void {
+    this.clock?.unsubscribe();
+    this.clock = fundClock([this.fund]).subscribe(now => this.now = now);
+  }
+  ngOnDestroy(): void { this.clock?.unsubscribe(); }
 }

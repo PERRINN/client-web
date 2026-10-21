@@ -1,3 +1,5 @@
+import { FundFeedService, FundFeedSession } from './fundFeed.service';
+import { fundCurrency } from './chat/chat-fund/chatFund';
 import { recordImage, ImageRecord } from './image-viewer/imageViewer.service'
 import { Component, EventEmitter, Input, Output, NgZone, ChangeDetectorRef, DoCheck, OnInit, OnDestroy, EnvironmentInjector, runInInjectionContext } from '@angular/core'
 import { Subscription } from 'rxjs'
@@ -27,7 +29,7 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
   @Output() chatOpened = new EventEmitter<void>();
   messages!: Observable<any[]>
   comingEvents!: Observable<any[]>
-  currentFunds!: Observable<any[]>
+  fundList?: FundFeedSession
   latestImages!: Observable<any[]>
   scrollTeam!: string
   focusUserLastMessageObj: any = null
@@ -77,7 +79,8 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
     private presence: PresenceService,
     private activity: MessageActivityService,
     private sidebarConversations: SidebarConversationsService,
-    cursors: ReadCursorService
+    cursors: ReadCursorService,
+    private fundFeeds: FundFeedService
   ) {
     this.math=Math
     this.lastSeenByChain={}
@@ -232,6 +235,15 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
     window.scrollTo({ top: 0, behavior: 'auto' });
   }
 
+  get fundDisplayCurrency() { return fundCurrency(this.UI.currentUserLastMessageObj?.userCurrency, this.UI.PERRINNAdminLastMessageObj?.currencyList); }
+  private setupFunds(): void {
+    this.fundList?.destroy();
+    this.fundList = undefined;
+    if (this.sidePanelScope || (this.scope !== 'all' && this.mode !== 'inbox')) return;
+    this.fundList = this.fundFeeds.create(this.scope === 'all' ? undefined : this.scope);
+    this.fundList.loadMore();
+  }
+
   refreshMessages(){
     return runInInjectionContext(this.injector, () => {
       if (this.scope !== 'all' && ['history', 'chain', 'forecast'].includes(this.mode)) {
@@ -250,16 +262,7 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
         ).snapshotChanges().pipe(map(changes=>{
           return changes.map(c=>({payload:c.payload}))
         }))
-        this.currentFunds=this.afs.collection<any>('PERRINNMessages',ref=>ref
-          .where('lastMessage','==',true)
-          .where('verified','==',true)
-          .where('fund.active','==',true)
-          .orderBy('fund.daysLeft','asc')
-        ).snapshotChanges().pipe(map(changes=>{
-          return changes
-            .map(c=>({payload:c.payload}))
-            .filter(m => (m.payload.doc.data()?.fund?.amountGBPTarget || 0) >= 0.01)
-        }))
+        this.setupFunds();
         this.latestImages=this.afs.collection<any>('PERRINNMessages',ref=>ref
           .where('verified','==',true)
           .orderBy('chatImageTimestamp','desc')
@@ -321,17 +324,7 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
         ).snapshotChanges().pipe(map(changes=>{
           return changes.map(c=>({payload:c.payload}))
         }))
-        this.currentFunds=this.afs.collection<any>('PERRINNMessages',ref=>ref
-          .where('recipientList','array-contains-any',[this.scope])
-          .where('lastMessage','==',true)
-          .where('verified','==',true)
-          .where('fund.active','==',true)
-          .orderBy('fund.daysLeft','asc')
-        ).snapshotChanges().pipe(map(changes=>{
-          return changes
-            .map(c=>({payload:c.payload}))
-            .filter(m => (m.payload.doc.data()?.fund?.amountGBPTarget || 0) >= 0.01)
-        }))
+        this.setupFunds();
         this.latestImages=this.afs.collection<any>('PERRINNMessages',ref=>ref
           .where('recipientList','array-contains-any',[this.scope])
           .where('verified','==',true)
@@ -417,6 +410,7 @@ export class ProfileComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   ngOnDestroy() {
+    this.fundList?.destroy();
     if (this.sidePanelScope === 'all') this.activity.clear();
     this.lastSeenUnsubscribe();
     this.cursorSession.destroy();

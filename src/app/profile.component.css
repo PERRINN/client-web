@@ -21,12 +21,6 @@
 :host .prof-msg-btn { display: inline-flex; align-items: center; gap: 6px; }
 :host .prof-settings-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; }
 :host .prof-no-events { padding: 14px; border: 1px solid color-mix(in srgb, var(--color-selected) 10%, transparent); background: color-mix(in srgb, var(--color-selected) 3%, transparent); color: var(--color-text-muted); font-size: 14px; }
-:host .prof-fund-card-body { padding: 8px; border-radius: 10px; background: color-mix(in srgb, var(--color-selected) 5%, transparent); }
-:host .prof-fund-header { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
-:host .prof-fund-meta { margin-top: 5px; font-size: 12px; color: var(--color-text-muted); display: flex; justify-content: space-between; align-items: center; }
-:host .prof-fund-days { color: var(--color-success); font-weight: 500; margin-left: auto; }
-:host .prof-fund-desc { margin-top: 3px; font-size: 12px; color: var(--color-text-muted); line-height: 1.35; }
-:host .prof-fund-amounts { margin-top: 3px; font-size: 12px; color: var(--color-text-secondary); line-height: 1.35; }
 :host .prof-chart-box { height: 400px; margin: 10px; }
 :host .prof-list-item-rel { position: relative; }
 :host .prof-icon-14 { font-size: 14px; line-height: 1; }
@@ -173,3 +167,10 @@
 :host .user-photo-button { display: block; flex-shrink: 0; margin: 0; padding: 0; border: 0; background: transparent; line-height: 0; overflow: visible; transition: none; }
 :host .user-photo-button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
 :host .user-photo-button:disabled .profile-header-img { cursor: default; }
+
+:host .profile-funds-item p { color: var(--color-text-secondary); font-size: 13px; margin: 6px 4px; }
+
+:host .fund-more { min-height: 44px; margin: 6px 4px; padding: 8px 12px; border: 0; border-radius: 8px; background: var(--color-raised); color: var(--color-text-secondary); font-size: 13px; transition: none; }
+:host .fund-more:disabled { opacity: .5; cursor: default; }
+:host .fund-more:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+@media (hover: hover) and (pointer: fine) { :host .fund-more:hover { background: var(--color-selected); } }

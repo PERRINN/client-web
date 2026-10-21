@@ -1,8 +1,12 @@
-@if (fund && active) {
+@if (fund && visible) {
   <button type="button" (click)="openFund.emit()" [attr.aria-label]="'Fund details: ' + fund.description">
+    @if (layout === 'row' && image && failedImage !== image) { <img [src]="image" alt="" loading="lazy" (error)="failedImage = image"> }
     <span class="fund-copy"><strong>{{ fund.description }}</strong>
-      <span>{{ amount(fund.amountGBPRaised) }} / {{ amount(fund.amountGBPTarget) }} · {{ fund.daysLeft | number:'1.0-0' }} days left</span>
+      @if (layout === 'compact') { <span>{{ amount(fund.amountGBPRaised) }} / {{ amount(fund.amountGBPTarget) }} · {{ status(fund, now) }}</span> }
+      @else { <span>{{ amount(fund.amountGBPRaised) }} raised / {{ amount(fund.amountGBPTarget) }} target</span> }
       <progress max="100" [value]="progress(fund)" aria-label="Fund raised" [attr.aria-valuetext]="amount(fund.amountGBPRaised) + ' raised of ' + amount(fund.amountGBPTarget)"></progress>
-    </span><span class="open-indicator" aria-hidden="true">›</span>
+      @if (layout === 'row') { <span>{{ status(fund, now) }}</span> }
+    </span>
+    @if (layout === 'compact') { <span class="open-indicator" aria-hidden="true">›</span> }
   </button>
 }

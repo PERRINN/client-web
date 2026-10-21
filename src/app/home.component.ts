@@ -1,11 +1,12 @@
+import { FundFeedService, FundFeedSession, FundItem } from './fundFeed.service';
 import { GreenpowerLiveService } from './greenpower-telemetry/greenpowerLive.service';
 import { recordImage } from './image-viewer/imageViewer.service';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { fromEvent, merge, Subscription, timer } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { HomeFeedService, HomeFund, HomeMessage } from './homeFeed.service';
-import { fundAmount, fundCurrency, fundProgress } from './chat/chat-fund/chatFund';
+import { HomeFeedService, HomeMessage } from './homeFeed.service';
+import { fundCurrency } from './chat/chat-fund/chatFund';
 import { PresenceService, RecentVisitor } from './presence.service';
 import { MessageActivityService, MentionActivity } from './messageActivity.service';
 import { UserInterfaceService } from './userInterface.service';
@@ -21,12 +22,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   imageTiles: HomeMessage[] = [];
   events: HomeMessage[] = [];
   visitors: RecentVisitor[] = [];
-  funds: HomeFund[] = [];
-  fundLimit = 4;
+  funds: FundItem[] = [];
+  fundHasMore = false;
+  private fundSession?: FundFeedSession;
   loadingFunds = true;
   fundError = false;
-  readonly fundProgress = fundProgress;
-  private fundSubscription?: Subscription;
   loadingImages = true;
   loadingEvents = true;
   loadingVisitors = true;
@@ -45,7 +45,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     private changeDetector: ChangeDetectorRef,
     private router: Router,
     public greenpowerLive: GreenpowerLiveService,
-    public UI: UserInterfaceService
+    public UI: UserInterfaceService,
+    private fundFeeds: FundFeedService
   ) {}
 
   ngOnInit(): void {
@@ -79,21 +80,22 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.fundSession?.destroy();
     this.subscriptions.unsubscribe();
   }
 
-  loadFunds(more = false): void {
-    if (more) this.fundLimit += 4;
-    this.fundSubscription?.unsubscribe(); this.loadingFunds = true; this.fundError = false;
-    this.fundSubscription = this.feed.funds(this.fundLimit + 1).subscribe({
-      next: funds => { this.funds = funds; this.loadingFunds = false; this.changeDetector.markForCheck(); },
-      error: () => { this.fundError = true; this.loadingFunds = false; this.changeDetector.markForCheck(); }
-    });
-    this.subscriptions.add(this.fundSubscription);
-  }
+  get fundDisplayCurrency() { return fundCurrency(this.UI.currentUserLastMessageObj?.userCurrency, this.UI.PERRINNAdminLastMessageObj?.currencyList); }
 
-  fundAmount(value: number): string {
-    return fundAmount(value, fundCurrency(this.UI.currentUserLastMessageObj?.userCurrency, this.UI.PERRINNAdminLastMessageObj?.currencyList));
+  loadFunds(): void {
+    if (!this.fundSession) {
+      this.fundSession = this.fundFeeds.create(undefined, false, 4);
+      this.subscriptions.add(this.fundSession.state.subscribe(state => {
+        this.funds = state.items;
+        this.loadingFunds = state.loading; this.fundError = state.error; this.fundHasMore = state.hasMore;
+        this.changeDetector.markForCheck();
+      }));
+    }
+    this.fundSession.loadMore();
   }
 
   dismissHomeScreenHint(): void {

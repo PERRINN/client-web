@@ -2,6 +2,7 @@ const { getFirestore, FieldValue } = require('firebase-admin/firestore')
 const createMessageUtils = require('./createMessage')
 const admin = require('firebase-admin');
 const { validateFundCommand } = require('./fundCommand');
+const { resolveFund } = require('./fundState');
 
 module.exports = {
 
@@ -170,16 +171,10 @@ module.exports = {
       }
 
       //*******FUND**********
-      let fund={}
-      fund.description=((messageData.fund||{}).description)||((chatPreviousMessageData.fund||{}).description)||"add a description"
-      fund.amountGBPTarget=((messageData.fund||{}).amountGBPTarget)||((chatPreviousMessageData.fund||{}).amountGBPTarget)||0
-      fund.amountGBPRaised=correctedRaised ?? (((chatPreviousMessageData.fund||{}).amountGBPRaised)||0)
-      fund.amountGBPTargetUpdated=(fund.amountGBPTarget!=(((chatPreviousMessageData.fund||{}).amountGBPTarget)||0))?true:false
-      fund.daysSinceLastVerifiedMessage=(now/1000/3600/24-(chatPreviousMessageData.verifiedTimestamp||{}).seconds/3600/24)||0
-      fund.daysLeftLastVerifiedMessage=((messageData.fund||{}).daysLeft)||((chatPreviousMessageData.fund||{}).daysLeft)||30
-      fund.daysLeft=fund.daysLeftLastVerifiedMessage-fund.daysSinceLastVerifiedMessage
-      fund.daysLeft=Math.round(fund.daysLeft*10)/10
-      fund.active=(fund.amountGBPTarget>0&&fund.daysLeft>0)?true:false
+      const fund = resolveFund(chatPreviousMessageData, messageData.fund, now, {
+        raised: correctedRaised, verifiedAt: messageData.verifiedTimestamp,
+        reprocessing: reprocessing && messageData.verified === true
+      });
 
       //*******INSTANT CREDIT/DEBIT*********************
         //message transaction pending

@@ -14,7 +14,8 @@ service cloud.firestore {
       }
       function validView() {
         return request.resource.data.keys().hasAll(['scalars', 'charts', 'revision', 'updatedBy', 'updatedAt'])
-          && request.resource.data.keys().hasOnly(['scalars', 'charts', 'scalarOrder', 'chartOrder', 'revision', 'updatedBy', 'updatedAt'])
+          && request.resource.data.keys().hasOnly(['scalars', 'charts', 'scalarOrder', 'chartOrder', 'markers', 'revision', 'updatedBy', 'updatedAt'])
+          && (!request.resource.data.keys().hasAny(['markers']) || request.resource.data.markers is map && request.resource.data.markers.size() <= 512)
           && validChannels(request.resource.data.scalars) && validChannels(request.resource.data.charts)
           && (!request.resource.data.keys().hasAny(['scalarOrder']) || validOrder(request.resource.data.scalarOrder, request.resource.data.scalars))
           && (!request.resource.data.keys().hasAny(['chartOrder']) || validOrder(request.resource.data.chartOrder, request.resource.data.charts))
@@ -22,7 +23,9 @@ service cloud.firestore {
           && request.resource.data.updatedBy == request.auth.uid && request.resource.data.updatedAt == request.time;
       }
       allow create: if isPerrinnAdmin() && validView() && request.resource.data.revision == 1;
-      allow update: if isPerrinnAdmin() && validView() && request.resource.data.revision == resource.data.revision + 1;
+      allow update: if isPerrinnAdmin() && validView()
+        && (!resource.data.keys().hasAny(['markers']) || request.resource.data.keys().hasAny(['markers']))
+        && request.resource.data.revision == resource.data.revision + 1;
     }
     match /GreenpowerTelemetry/424/tracks/{trackId} {
       function validGpsPoint(point) {
@@ -107,6 +110,11 @@ service cloud.firestore {
       function validFundCommand() {
         let data = request.resource.data;
         return !('fund' in data) || (data.fund is map
+          && (!('cancelled' in data.fund) || (data.fund.cancelled is bool
+            && (!data.fund.cancelled || isPerrinnAdmin())))
+          && (!('closesAt' in data.fund) || (data.fund.closesAt is int && data.fund.closesAt > 0
+            && data.fund.closesAt <= 8640000000000000
+            && (data.fund.closesAt > request.time.toMillis() || isPerrinnAdmin())))
           && (!('amountGBPTarget' in data.fund) || (data.fund.amountGBPTarget is number
             && (data.fund.amountGBPTarget == 0 || data.fund.amountGBPTarget >= 0.01 || isPerrinnAdmin())))
           && (!('daysLeft' in data.fund) || (data.fund.daysLeft is number

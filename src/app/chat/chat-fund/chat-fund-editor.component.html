@@ -19,7 +19,7 @@
       <strong class="description">{{ fund.description }}</strong>
       <p>{{ amount(fund.amountGBPRaised) }} raised / {{ amount(fund.amountGBPTarget) }} target</p>
       <progress max="100" [value]="progress(fund)" aria-label="Fund raised" [attr.aria-valuetext]="amount(fund.amountGBPRaised) + ' raised of ' + amount(fund.amountGBPTarget)"></progress>
-      <p>{{ active ? (fund.daysLeft | number:'1.0-0') + ' days left' : 'Ended' }}</p>
+      <p>{{ status(fund, now) }}</p>
     }
     @if (confirmingCancel && isAdmin) {
       <div class="confirmation"><p>Cancel this fund?</p><div class="actions"><button #keepFundButton type="button" (click)="dismiss()" [disabled]="saving">Keep fund</button><button type="button" (click)="cancel()" [disabled]="saving">{{ saving ? 'Cancelling' : 'Cancel fund' }}</button></div></div>

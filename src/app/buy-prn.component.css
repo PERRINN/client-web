@@ -8,8 +8,6 @@
 :host .buy-center-content { padding: 12px; text-align: center; }
 :host .buy-text-normal { color: var(--color-text-secondary); font-size: 15px; line-height: 1.6; }
 :host .buy-text-muted { font-size: 14px; color: var(--color-text-muted); line-height: 1.6; }
-:host .fund-meta-row { margin-top: 8px; font-size: 13px; color: var(--color-text-muted); display: flex; justify-content: space-between; align-items: center; }
-:host .fund-target-text { margin-top: 4px; font-size: 12px; color: var(--color-text-secondary); line-height: 1.35; }
 
 /* Payment summary and tracking states */
 :host .payment-header { display: flex; align-items: center; margin-bottom: 20px; }
@@ -40,8 +38,6 @@
 :host .buy-btn-fixed-200 { margin: 12px auto; width: 200px; }
 :host .buy-btn-auto { margin: 16px auto; width: auto; }
 :host .buy-link-whatsapp { color: inherit; text-decoration: underline; font-weight: 700; }
-:host .fund-days-left { color: var(--color-success); font-weight: 500; }
-:host .fund-days-ago { color: var(--color-text-muted); }
 :host .payment-icon { font-size: 24px; color: var(--color-success); margin-right: 12px; }
 :host .payment-provider-container { font-size: 13px; color: var(--color-text-muted); display: flex; align-items: center; font-weight: 500; }
 :host .payment-lock-icon { font-size: 16px; margin-right: 8px; color: var(--color-success); }
@@ -72,9 +68,7 @@
 /* Page, funding cards and controls */
 :host .buyPage { font-family: var(--font-family-ui); color: var(--color-text); background: var(--color-page); min-height: 100vh; padding: 24px 16px; }
 :host button.buttonPrimary { font-weight: 600; transition: all 0.3s ease; }
-:host .fundCard { cursor: pointer; padding: 12px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--color-selected) 10%, transparent); margin-bottom: 10px; background: color-mix(in srgb, var(--color-selected) 3%, transparent); transition: all 0.2s ease; }
 :host .listLight li:hover { background-color: transparent; }
-:host .fundCard:hover { background: color-mix(in srgb, var(--color-selected) 8%, transparent); border-color: color-mix(in srgb, var(--color-selected) 30%, transparent); }
 :host .buyWrap { max-width: 500px; margin: 0 auto; }
 :host, :host * { -webkit-user-select: none; user-select: none; }
 :host img { -webkit-user-drag: none; -webkit-touch-callout: none; }
@@ -102,3 +96,11 @@
 @media (max-width:420px) {
   :host .info-grid-2cols { grid-template-columns: 1fr; }
 }
+
+:host .funds-heading { font-size: 16px; font-weight: 600; line-height: 1.35; margin: 0 0 12px; overflow: visible; }
+:host .fund-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+:host .fund-more { min-height: 44px; margin: 6px 4px; padding: 8px 12px; border: 0; border-radius: 8px; background: var(--color-raised); color: var(--color-text-secondary); font-size: 13px; transition: none; }
+:host .fund-more:disabled { opacity: .5; cursor: default; }
+:host .fund-more:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+@media (hover: hover) and (pointer: fine) { :host .fund-more:hover { background: var(--color-selected); } }

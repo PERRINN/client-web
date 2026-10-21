@@ -14,3 +14,7 @@ progress { position: static; z-index: auto; display: block; width: 100%; height:
 progress::-webkit-progress-bar { background: var(--color-raised); }
 progress::-webkit-progress-value { background: var(--color-text-secondary) !important; }
 progress::-moz-progress-bar { background: var(--color-text-secondary); }
+:host.row-layout { flex: none; width: 100%; }
+:host.row-layout button { align-items: flex-start; padding: 6px 4px; border-radius: 0; }
+:host.row-layout strong { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+img { width: 48px; height: 48px; flex: 0 0 48px; object-fit: contain; border-radius: 0; }

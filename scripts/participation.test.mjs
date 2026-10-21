@@ -18,7 +18,8 @@ function load(path, overrides = {}, globals = {}) {
   runInNewContext(code, { module, exports: module.exports, require: name => overrides[name] || createRequire(new URL(path, import.meta.url))(name), ...globals });
   return module.exports;
 }
-const { BuyPrnComponent } = load('../src/app/buy-prn.component.ts', { '@angular/core': core });
+const fundModel = load('../src/app/chat/chat-fund/chatFund.ts');
+const { BuyPrnComponent } = load('../src/app/buy-prn.component.ts', { '@angular/core': core, './chat/chat-fund/chatFund': fundModel });
 const teamModule = load('../src/app/team.service.ts', { '@angular/core': core });
 const { TeamService, selectContributors } = teamModule;
 const { TeamComponent } = load('../src/app/team.component.ts', { '@angular/core': core, './team.service': teamModule });

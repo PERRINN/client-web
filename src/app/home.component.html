@@ -107,22 +107,15 @@
             <div class="compact-state" role="status"><span class="loader" aria-hidden="true"></span>Loading</div>
           } @else if (funds.length) {
             <div class="fund-list">
-              @for (item of funds.slice(0, fundLimit); track item.chain) {
-                <button class="fund-row" type="button" (click)="openChat(item.chain)">
-                  @if (item.image) { <img class="fund-logo" [src]="item.image" alt="" loading="lazy" (error)="$any($event.target).style.visibility = 'hidden'"> }
-                  <span class="fund-copy"><strong>{{ item.title }}</strong>
-                    <span>{{ fundAmount(item.fund.amountGBPRaised) }} raised / {{ fundAmount(item.fund.amountGBPTarget) }} target</span>
-                    <span class="fund-track" role="progressbar" aria-label="Fund raised" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="fundProgress(item.fund)" [attr.aria-valuetext]="fundAmount(item.fund.amountGBPRaised) + ' raised of ' + fundAmount(item.fund.amountGBPTarget)"><span class="fund-fill" [style.width.%]="fundProgress(item.fund)"></span></span>
-                    <span>{{ item.fund.daysLeft | number:'1.0-0' }} days left</span>
-                  </span>
-                </button>
+              @for (item of funds; track item.chain) {
+                <app-chat-fund-summary layout="row" [fund]="item.fund" [currency]="fundDisplayCurrency" [image]="item.image" (openFund)="openChat(item.chain)" />
               }
             </div>
-          } @else if (!fundError) {
+          } @else if (!fundError && !fundHasMore) {
             <div class="compact-state empty-state">No active funds.</div>
           }
           @if (fundError) { <div class="compact-state error" role="alert">Funds are unavailable right now.</div><button class="fund-more" type="button" (click)="loadFunds()">Try again</button> }
-          @else if (funds.length > fundLimit) { <button class="fund-more" type="button" (click)="loadFunds(true)" [disabled]="loadingFunds">{{ loadingFunds ? 'Loading' : 'Load more' }}</button> }
+          @else if (fundHasMore) { <button class="fund-more" type="button" (click)="loadFunds()" [disabled]="loadingFunds">{{ loadingFunds ? 'Loading' : 'Load more' }}</button> }
         </section>
 
         <section class="panel visitors-panel" aria-labelledby="visitors-title">

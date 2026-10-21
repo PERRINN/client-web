@@ -62,7 +62,7 @@ async function verifyFixture({ fund, previousRaised = 125, adminClaim = false, v
     firestore: Object.assign(() => db, { FieldValue: { arrayUnion: value => [value], serverTimestamp: () => 'server-time' } }) };
   const module = { exports: {} };
   runInNewContext(readFileSync(new URL('../functions/utils/verifyMessage.js', import.meta.url), 'utf8'), {
-    module, require: name => ({ 'firebase-admin': admin, 'firebase-admin/firestore': { getFirestore: () => db }, './createMessage': {}, './fundCommand': { validateFundCommand } })[name],
+    module, require: name => ({ 'firebase-admin': admin, 'firebase-admin/firestore': { getFirestore: () => db }, './createMessage': {}, './fundCommand': { validateFundCommand }, './fundState': require('../functions/utils/fundState') })[name],
     Date: class extends Date { static now() { return 1800000000000; } }, console: { log: message => logs.push(message) }
   });
   await module.exports.verifyMessage('new', { user: 'person', chain: 'chat', name: 'Alex', text: 'Testing', serverTimestamp: 2, verified, ...(fund === undefined ? {} : { fund }) }, options);
@@ -106,4 +106,11 @@ test('reprocessing does not skip validation of unverified commands or new trigge
   const unverified = await verifyFixture({ fund: { amountGBPRaised: 0 }, options: { reprocessing: true } });
   assert.equal(unverified.updates.length, 0);
   assert.deepEqual(unverified.authCalls, ['person']);
+});
+
+test('full verifier processes explicit cancellation while keeping inherited target and raised total', async () => {
+  const result=await verifyFixture({fund:{cancelled:true},adminClaim:true});
+  assert.deepEqual(result.logs,[]);assert.equal(result.fund.cancelled,true);assert.equal(result.fund.active,false);
+  assert.equal(result.fund.amountGBPTarget,1000);assert.equal(result.fund.amountGBPRaised,125);
+  assert.equal(result.fund.closesAt,1799999999000+30*86400000);
 });

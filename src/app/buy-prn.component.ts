@@ -1,7 +1,9 @@
+import { FundFeedService, FundFeedSession } from './fundFeed.service';
+import { fundCurrency } from './chat/chat-fund/chatFund';
 import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, EnvironmentInjector, runInInjectionContext } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Observable, Subject, interval } from "rxjs";
-import { map, takeUntil } from "rxjs/operators";
+import { Subject, interval } from "rxjs";
+import { takeUntil } from "rxjs/operators";
 import { Router, ActivatedRoute } from "@angular/router";
 import { UserInterfaceService } from "./userInterface.service";
 import { AngularFirestore } from "@angular/fire/compat/firestore";
@@ -40,7 +42,7 @@ export class BuyPrnComponent implements OnInit, OnDestroy {
   creditSelected = 0;
   processing = false;
   showPastFunds = false;
-  currentFunds!: Observable<any[]>;
+  fundList?: FundFeedSession;
   paymentState: PaymentState = "idle";
   paymentStatusText = "";
   paymentOrderId: string | null = null;
@@ -68,7 +70,8 @@ export class BuyPrnComponent implements OnInit, OnDestroy {
     private cd: ChangeDetectorRef,
     private route: ActivatedRoute,
     private http: HttpClient,
-    private injector: EnvironmentInjector
+    private injector: EnvironmentInjector,
+    private fundFeeds: FundFeedService
   ) {
     this.currencySelected =
       UI.currentUserLastMessageObj?.userCurrency || "usd";
@@ -85,6 +88,7 @@ export class BuyPrnComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.fundList?.destroy();
     this.unlockBackgroundScroll();
     this.destroy$.next();
     this.destroy$.complete();
@@ -308,30 +312,13 @@ export class BuyPrnComponent implements OnInit, OnDestroy {
     });
   }
 
+  get fundDisplayCurrency() { return fundCurrency(this.UI.currentUserLastMessageObj?.userCurrency, this.UI.PERRINNAdminLastMessageObj?.currencyList); }
+  togglePastFunds(): void { this.showPastFunds = !this.showPastFunds; this.setupCurrentFunds(); }
   private setupCurrentFunds(): void {
-    this.currentFunds = runInInjectionContext(this.injector, () =>
-      this.afs
-        .collection<any>("PERRINNMessages", (ref) =>
-          ref
-            .where("lastMessage", "==", true)
-            .where("verified", "==", true)
-            .orderBy("fund.daysLeft", "desc")
-        )
-        .snapshotChanges()
-        .pipe(
-          map((changes) =>
-            changes
-              .map((c) => ({ payload: c.payload }))
-              .filter(
-                (m) =>
-                  (m.payload.doc.data()?.fund?.amountGBPTarget || 0) >= 0.01
-              )
-          ),
-          takeUntil(this.destroy$)
-        )
-    );
+    this.fundList?.destroy();
+    this.fundList = this.fundFeeds.create(undefined, this.showPastFunds);
+    this.fundList.loadMore();
   }
-
 
   private syncCurrencyAndCredits(): void {
     const currencyList = this.UI.PERRINNAdminLastMessageObj?.currencyList || {};

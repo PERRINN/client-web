@@ -605,6 +605,90 @@
           "order": "ASCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "PERRINNMessages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "lastMessage",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "verified",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "fund.cancelled",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "fund.closesAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "PERRINNMessages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "recipientList",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "lastMessage",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "verified",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "fund.cancelled",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "fund.closesAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "PERRINNMessages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "lastMessage",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "verified",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "fund.closesAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "PERRINNMessages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "lastMessage",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "verified",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "fund.amountGBPTarget",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": [

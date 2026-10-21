@@ -1,8 +1,12 @@
+import { defer, EMPTY, Observable, of, timer } from 'rxjs';
+import { expand, map } from 'rxjs/operators';
 export interface ChatFund {
   description: string;
   amountGBPTarget: number;
   amountGBPRaised: number;
   daysLeft: number;
+  closesAt?: number | null;
+  cancelled?: boolean;
 }
 export interface FundDraft { description: string; amount: number | null; days: number | null; raised?: number | null; }
 export interface FundCurrency { code: string; perGBP: number; }
@@ -15,18 +19,40 @@ export function fundCurrency(userCurrency?: string, rates: Record<string, { toCO
   return { code, perGBP };
 }
 
-// The verifier's legacy cancellation marker is below the display threshold.
-export function chatFund(record: { fund?: Partial<ChatFund> }): ChatFund | null {
+export const FUND_DAY = 86400000;
+export interface FundRecord { fund?: Partial<ChatFund>; verifiedTimestamp?: number | { seconds?: number; toMillis?: () => number }; }
+export function chatFund(record: FundRecord, now = Date.now()): ChatFund | null {
   const fund = record.fund;
   if (!fund || !Number.isFinite(fund.amountGBPTarget) || fund.amountGBPTarget! < 0.01) return null;
-  return {
-    description: typeof fund.description === 'string' ? fund.description : '',
-    amountGBPTarget: fund.amountGBPTarget!,
+  const stamp = record.verifiedTimestamp;
+  const reference = typeof stamp === 'number' ? stamp : stamp?.toMillis?.() || (Number(stamp?.seconds) * 1000 || 0);
+  const closesAt = Number.isSafeInteger(fund.closesAt) && fund.closesAt! > 0 ? fund.closesAt!
+    : reference > 0 && Number.isFinite(fund.daysLeft) ? Math.round(reference + fund.daysLeft! * FUND_DAY) : null;
+  return { description: typeof fund.description === 'string' ? fund.description : '', amountGBPTarget: fund.amountGBPTarget!,
     amountGBPRaised: Number.isFinite(fund.amountGBPRaised) ? Math.max(0, fund.amountGBPRaised!) : 0,
-    daysLeft: Number.isFinite(fund.daysLeft) ? Math.max(0, fund.daysLeft!) : 0
-  };
+    closesAt, cancelled: fund.cancelled === true, daysLeft: closesAt ? Math.max(0, (closesAt - now) / FUND_DAY) : 0 };
 }
-export const activeFund = (fund: ChatFund | null): boolean => !!fund && fund.daysLeft > 0;
+export const activeFund = (fund: ChatFund | null, now = Date.now()): boolean => !!fund && fund.amountGBPTarget >= 0.01 && !fund.cancelled && Number(fund.closesAt) > now;
+export const fundDays = (fund: ChatFund, now = Date.now()): number => Math.max(0, Math.ceil((Number(fund.closesAt) - now) / FUND_DAY));
+export function fundStatus(fund: ChatFund, now = Date.now()): string {
+  if (fund.cancelled) return 'Cancelled';
+  if (!activeFund(fund, now)) return 'Ended';
+  const days = fundDays(fund, now);
+  return `${days} ${days === 1 ? 'day' : 'days'} left`;
+}
+// Local-only clock: wake at expiry, a displayed day boundary, or after tab suspension.
+// There are no database requests or repeated application subscriptions here.
+export function fundClock(funds: Array<ChatFund | null>): Observable<number> {
+  const nextDelay = (now: number) => Math.max(1, Math.min(60000, ...funds.filter(fund => activeFund(fund, now)).map(fund => {
+    const remaining = Number(fund!.closesAt) - now;
+    return remaining - (Math.ceil(remaining / FUND_DAY) - 1) * FUND_DAY;
+  })));
+  return defer(() => of(Date.now())).pipe(expand(now => funds.some(fund => activeFund(fund, now)) ? timer(nextDelay(now)).pipe(map(() => Date.now())) : EMPTY));
+}
+export const fundIdentity = (fund: ChatFund | null): string => JSON.stringify(fund && {
+  description: fund.description, amountGBPTarget: fund.amountGBPTarget, amountGBPRaised: fund.amountGBPRaised,
+  closesAt: fund.closesAt, cancelled: fund.cancelled
+});
 export const fundProgress = (fund: ChatFund): number => Math.min(100, Math.max(0, fund.amountGBPRaised / fund.amountGBPTarget * 100));
 export function fundAmount(amountGBP: number, currency: FundCurrency): string {
   return new Intl.NumberFormat('en-GB', { style: 'currency', currency: currency.code.toUpperCase(), maximumFractionDigits: 0 }).format(amountGBP * currency.perGBP);

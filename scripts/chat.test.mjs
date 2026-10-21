@@ -702,15 +702,15 @@ const { ChatFundEditorComponent } = load('../src/app/chat/chat-fund/chat-fund-ed
 const { ChatFundSummaryComponent } = load('../src/app/chat/chat-fund/chat-fund-summary.component.ts', {
   '@angular/core': fundCore, './chatFund': funds, '../../permissions.service': { PermissionsService: class {} }
 });
-const sampleFund = { description: 'Track testing', amountGBPTarget: 1000, amountGBPRaised: 125, daysLeft: 12.5 };
+const sampleFund = { description: 'Track testing', amountGBPTarget: 1000, amountGBPRaised: 125, daysLeft: 12.5, closesAt: Date.now() + 12.5 * 86400000, cancelled: false };
 
 test('fund projection hides legacy cancellation markers, handles old fields and caps progress', () => {
   for (const record of [{}, { fund: {} }, { fund: { amountGBPTarget: NaN } }, { fund: { amountGBPTarget: 0.0001, daysLeft: 0.1 } }]) assert.equal(funds.chatFund(record), null);
-  assert.deepEqual(funds.chatFund({ fund: { amountGBPTarget: 20 } }), { description: '', amountGBPTarget: 20, amountGBPRaised: 0, daysLeft: 0 });
+  assert.deepEqual(funds.chatFund({ fund: { amountGBPTarget: 20 } }), { description: '', amountGBPTarget: 20, amountGBPRaised: 0, daysLeft: 0, closesAt: null, cancelled: false });
   assert.equal(funds.fundProgress({ ...sampleFund, amountGBPRaised: 2000 }), 100);
   const summary = new ChatFundSummaryComponent();
   summary.fund = sampleFund; assert.equal(summary.active, true);
-  summary.fund = { ...sampleFund, daysLeft: 0 }; assert.equal(summary.active, false);
+  summary.fund = { ...sampleFund, closesAt: Date.now() - 1 }; assert.equal(summary.active, false);
   assert.equal(funds.activeFund(null), false);
 });
 
@@ -727,7 +727,7 @@ test('fund validation converts selected currencies to GBP and rejects invalid ta
   assert.throws(() => funds.fundFromDraft(draft, { code: 'usd', perGBP: 0 }));
 });
 
-test('fund service uses existing messages and admin cancellation sentinels', async () => {
+test('fund service writes fixed closing dates and explicit admin cancellation', async () => {
   const f = fixture(), submitted = [];
   f.UI.PERRINNAdminLastMessageObj = { currencyList: { gbp: { toCOIN: 2 }, usd: { toCOIN: 1.6 } } };
   f.UI.currentUserLastMessageObj = { userCurrency: 'usd' };
@@ -736,8 +736,12 @@ test('fund service uses existing messages and admin cancellation sentinels', asy
   try {
     await f.service.saveFund('chat', { description: sampleFund.description, amountGBPTarget: 1000, daysLeft: 12 });
     await f.service.cancelFund('chat', sampleFund);
-    assert.deepEqual(f.writes[0].fund, { description: sampleFund.description, amountGBPTarget: 1000, daysLeft: 12 });
-    assert.deepEqual(f.writes[1].fund, { description: 'add a description', amountGBPTarget: 0.0001, daysLeft: 0.1 });
+    assert.equal(f.writes[0].fund.description, sampleFund.description);
+    assert.equal(f.writes[0].fund.amountGBPTarget, 1000);
+    assert.ok(Math.abs(f.writes[0].fund.closesAt - Date.now() - 12 * 86400000) < 100);
+    assert.equal(f.writes[0].fund.cancelled, false);
+    assert.equal(f.writes[0].fund.daysLeft, undefined);
+    assert.deepEqual(f.writes[1].fund, { cancelled: true });
     assert.equal(funds.chatFund(f.writes[1]), null);
     assert.equal(submitted.length, 2);
     assert.ok(f.writes.every(write => write.text.length <= 500 && write.chain === 'chat'));
@@ -1082,4 +1086,17 @@ test('admin fund editor converts corrections, preserves unchanged precision, and
     permissions.current = { ready: false, isAdmin: true }; assert.equal(editor.isAdmin, false);
     permissions.current.ready = true; editor.signedIn = false; assert.equal(editor.isAdmin, false);
   } finally { editor.ngOnDestroy(); globalThis.requestAnimationFrame = oldRAF; }
+});
+
+test('fund editor preserves the exact deadline across display-day changes and blocks accidental reopening at expiry', async () => {
+  const oldRAF=globalThis.requestAnimationFrame;globalThis.requestAnimationFrame=fn=>fn();
+  const calls=[],data={fundCurrency:{code:'gbp',perGBP:1},saveFund:async(...args)=>calls.push(args)};
+  const editor=new ChatFundEditorComponent(data,{run:fn=>fn()},{current:{ready:true,isAdmin:true}});
+  Object.assign(editor,{chain:'chat',signedIn:true,fund:{...sampleFund}});editor.ngOnChanges();
+  try {
+    editor.edit();editor.draft.description='Updated';editor.fund={...editor.fund,daysLeft:10};await editor.save();
+    assert.equal(calls.length,1);assert.equal(calls[0][3],sampleFund.closesAt);
+    editor.edit();editor.draft.description='After expiry';editor.now=sampleFund.closesAt;await editor.save();
+    assert.equal(calls.length,1);assert.match(editor.error,/ended/);
+  } finally {editor.ngOnDestroy();globalThis.requestAnimationFrame=oldRAF;}
 });

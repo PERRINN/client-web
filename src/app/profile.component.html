@@ -194,57 +194,19 @@
                 }
               </div>
             }
-            @if (!sidePanelScope) {
-              <div class="profile-funds-item">
-                <ul class="listLight">
-                  @for (message of currentFunds|async; track message; let first = $first; let last = $last) {
-                    <li class="guardedChatItem fundListItem"
-                      (click)="openListedChat(message.payload.doc.data()?.chain)">
-                      @if (scope==='all'||mode==='inbox') {
-                        <div>
-                          <div class="guardedChatItem prof-fund-card-body">
-                            <div class="prof-fund-header">
-                              @if (message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb) {
-                                <img
-                                  [src]="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb"
-                                  class="eventCardChatImage"
-                                  (error)="UI.handleChatImageError($event, message.payload.doc.data())">
-                                } @else {
-                                  <span class="material-symbols-outlined eventCardIconBadge">crowdsource</span>
-                                }
-                                <div class="eventCardTitleBlock">
-                                  <div class="eventCardLabel">{{first ? 'Current Fund' : 'Other Fund'}}</div>
-                                  <span class="chatSubject chatSubjectTwoLines">{{message.payload.doc.data()?.chatSubject}}</span>
-                                </div>
-                              </div>
-                              <div class="progress-track">
-                                <div class="progress-fill"
-                                  [style.width]="(message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100+'%'">
-                                  @if ((message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget)*100 > 30) {
-                                    <span class="progress-pct">
-                                      {{message.payload.doc.data()?.fund?.amountGBPRaised/message.payload.doc.data()?.fund?.amountGBPTarget|percent:'1.0-0'}}
-                                    </span>
-                                  }
-                                </div>
-                              </div>
-                              <div class="prof-fund-meta">
-                                <span class="prof-fund-days">{{message.payload.doc.data()?.fund?.daysLeft|number:'1.0-0'}} days left</span>
-                              </div>
-                              <div class="prof-fund-desc">
-                                <span>{{message.payload.doc.data()?.fund?.description}}</span>
-                              </div>
-                              <div class="prof-fund-amounts">
-                                target: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPTarget*((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]?.toCOIN||0))}} /
-                                raised: {{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.fund?.amountGBPRaised*((UI.PERRINNAdminLastMessageObj?.currencyList||{})["gbp"]?.toCOIN||0))}}
-                              </div>
-                            </div>
-                          </div>
-                        }
-                      </li>
-                    }
-                  </ul>
-                </div>
-              }
+            @if (!sidePanelScope && fundList) {
+              <section class="profile-funds-item" aria-label="Funds">
+                @if (fundList.state | async; as state) {
+                  @for (item of state.items; track item.chain) {
+                    <app-chat-fund-summary layout="row" [fund]="item.fund" [currency]="fundDisplayCurrency" [image]="item.image" (openFund)="openListedChat(item.chain)" />
+                  }
+                  @if (state.loading) { <p role="status">Loading</p> }
+                  @else if (state.error) { <p role="alert">Funds are unavailable right now.</p> }
+                  @else if (!state.items.length && !state.hasMore) { <p>No active funds.</p> }
+                  @if (state.hasMore || state.error) { <button class="fund-more" type="button" (click)="fundList.loadMore()" [disabled]="state.loading">{{ state.error ? 'Try again' : 'Load more' }}</button> }
+                }
+              </section>
+            }
 
             </div>
           }

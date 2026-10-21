@@ -4,7 +4,7 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import firebase from 'firebase/compat/app';
 import { Observable, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
-import { activeFund, chatFund, ChatFund } from './chat/chat-fund/chatFund';
+import { ChatFund } from './chat/chat-fund/chatFund';
 
 export interface HomeMessage {
   name?: string;
@@ -24,7 +24,6 @@ export interface HomeMessage {
   eventDateEnd?: number;
   eventDuration?: number;
 }
-export interface HomeFund { id: string; chain: string; title: string; image: string; fund: ChatFund; }
 
 @Injectable({ providedIn: 'root' })
 export class HomeFeedService {
@@ -43,29 +42,6 @@ export class HomeFeedService {
 
   events(): Observable<HomeMessage[]> {
     return this.eventPage(Date.now());
-  }
-
-  funds(limit = 5, cursor?: firebase.firestore.QueryDocumentSnapshot<HomeMessage>): Observable<HomeFund[]> {
-    const pageSize = 50;
-    return runInInjectionContext(this.injector, () =>
-      this.afs.collection<HomeMessage>('PERRINNMessages', ref => {
-        let query = ref.where('lastMessage', '==', true).where('verified', '==', true)
-          .where('fund.active', '==', true).orderBy('fund.daysLeft', 'asc').limit(pageSize);
-        if (cursor) query = query.startAfter(cursor);
-        return query;
-      }).snapshotChanges().pipe(switchMap(rows => {
-        const page: HomeFund[] = [];
-        for (const row of rows) {
-          const record = row.payload.doc.data(), fund = chatFund(record);
-          if (record.chain && fund && activeFund(fund)) page.push({ id: row.payload.doc.id, chain: record.chain,
-            title: fund.description || record.chatSubject || 'Team fund', image: record.chatProfileImageUrlThumb || record.chatProfileImageUrlMedium || '', fund });
-        }
-        // Cancelled legacy markers can still match fund.active. Continue through
-        // bounded pages so they cannot hide valid funds beyond the first page.
-        return page.length >= limit || rows.length < pageSize ? of(page.slice(0, limit))
-          : this.funds(limit - page.length, rows[rows.length - 1].payload.doc).pipe(map(next => [...page, ...next]));
-      }))
-    );
   }
 
   upcomingEvents(events: HomeMessage[], now: number): HomeMessage[] {
