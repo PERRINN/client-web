@@ -16,6 +16,11 @@ async function main() {
     if (!response.ok) throw Error(`${method} ${new URL(url).hostname} failed (${response.status}).`);
     return response.status === 204 ? {} : response.json();
   }
+  const bucketBase = `https://storage.googleapis.com/storage/v1/b/${project}.appspot.com`;
+  // Firebase rules cannot override public GCS IAM or default object ACLs.
+  const [bucketIam, defaultAcl] = await Promise.all([api(bucketBase + '/iam'), api(bucketBase + '/defaultObjectAcl')]);
+  if (bucketIam.bindings?.some(b => b.role?.startsWith('roles/storage.') && b.members?.some(m => ['allUsers', 'allAuthenticatedUsers'].includes(m)))
+      || defaultAcl.items?.some(a => ['allUsers', 'allAuthenticatedUsers'].includes(a.entity))) throw Error('Public bucket/default object access prevents a private inbox.');
   const prefix = `projects/${project}/locations/${region}`;
   const [enqueue, worker, desired] = await Promise.all([
     api(`https://cloudfunctions.googleapis.com/v2/${prefix}/functions/voiceInputEnqueue`),
@@ -47,7 +52,6 @@ async function main() {
   await grant(runBase, 'roles/run.invoker', false, true);
   await grant(queueBase, 'roles/cloudtasks.enqueuer', true);
   await grant(saBase, 'roles/iam.serviceAccountUser');
-  const bucketBase = `https://storage.googleapis.com/storage/v1/b/${project}.appspot.com`;
   const bucket = await api(bucketBase + '?fields=name,lifecycle,softDeletePolicy,metageneration');
   const rules = bucket.lifecycle?.rule || [];
   for (const rule of desired.rule) {
