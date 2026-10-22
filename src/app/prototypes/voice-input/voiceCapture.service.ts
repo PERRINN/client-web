@@ -1,5 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { MAX_VOICE_SAMPLES, voiceWav } from './voiceAudio';
+import { voiceCue } from './voiceCue';
 
 @Injectable()
 export class VoiceCaptureService implements OnDestroy {
@@ -67,7 +68,10 @@ export class VoiceCaptureService implements OnDestroy {
       this.stream!.getAudioTracks().forEach(track => { track.onended = interrupted; });
       this.mute = context.createGain(); this.mute.gain.value = 0;
       this.source = context.createMediaStreamSource(this.stream!);
-      this.source.connect(this.node); this.node.connect(this.mute); this.mute.connect(context.destination);
+      this.node.connect(this.mute); this.mute.connect(context.destination);
+      if (!await Promise.race([voiceCue(context, true).then(() => true), cancelled, deadline])
+        || generation !== this.generation) return false;
+      this.source!.connect(this.node!);
       return true;
     } catch (error) {
       // Stop a late permission grant even if worklet setup failed first.
@@ -92,19 +96,31 @@ export class VoiceCaptureService implements OnDestroy {
       });
       if (generation !== this.generation || !this.samples) throw new Error('Recording cancelled.');
       return voiceWav(this.samples.subarray(0, this.length));
-    } finally { if (generation === this.generation) this.cancel(); }
+    } finally {
+      if (generation === this.generation) {
+        const context = this.context;
+        if (context) context.onstatechange = null;
+        this.stopCapture();
+        if (context) await voiceCue(context, false);
+        if (generation === this.generation) this.cancel();
+      }
+    }
   }
 
   cancel(): void {
     this.generation++;
     this.startupCancelled?.(); this.startupCancelled = undefined;
     this.stopped?.(); this.stopped = undefined;
+    this.stopCapture();
+    if (this.context) { this.context.onstatechange = null; void this.context.close().catch(() => undefined); }
+    this.context = undefined;
+  }
+  private stopCapture(): void {
     this.stream?.getTracks().forEach(track => { track.onended = null; track.stop(); }); this.stream = undefined;
     if (this.node) { this.node.onprocessorerror = null; this.node.port.onmessage = null; this.node.port.close(); this.node.disconnect(); }
     this.node = undefined; this.source?.disconnect(); this.source = undefined;
     this.mute?.disconnect(); this.mute = undefined;
-    if (this.context) { this.context.onstatechange = null; void this.context.close().catch(() => undefined); }
-    this.context = undefined; this.samples = undefined; this.length = 0;
+    this.samples = undefined; this.length = 0;
   }
   ngOnDestroy(): void { this.cancel(); }
 }

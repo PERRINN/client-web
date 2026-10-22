@@ -234,7 +234,7 @@ test('capture cancels late microphone grants, drains samples on normal release, 
     Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { mediaDevices: { getUserMedia: () => new Promise(resolve => { grant = resolve; }) } } });
     Object.defineProperty(globalThis, 'AudioContext', { configurable: true, value: Context });
     Object.defineProperty(globalThis, 'AudioWorkletNode', { configurable: true, value: Node });
-    const { VoiceCaptureService } = load('../src/app/prototypes/voice-input/voiceCapture.service.ts', { '@angular/core': core, './voiceAudio': audio });
+    const { VoiceCaptureService } = load('../src/app/prototypes/voice-input/voiceCapture.service.ts', { '@angular/core': core, './voiceAudio': audio, './voiceCue': { voiceCue: async () => {} } });
     const capture = new VoiceCaptureService();
     const first = capture.start(() => {}, () => {}); capture.cancel(); grant(stream);
     assert.equal(await first, false); assert.equal(stops, 1); assert.equal(closes, 1);
@@ -418,9 +418,9 @@ test('new replies scroll into view once, without repeated scrolling on audio-lev
   component.ngAfterViewChecked(); assert.equal(scrolls, 2); component.ngOnDestroy();
 });
 
-function safariCapture({ stalled = false, permissionPending = false } = {}) {
+function safariCapture({ stalled = false, permissionPending = false, cue = async () => {} } = {}) {
   const originals = Object.fromEntries(['navigator', 'AudioContext', 'AudioWorkletNode'].map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
-  const contexts = [], tracks = [], nodes = [];
+  const contexts = [], tracks = [], nodes = [], sources = [];
   let grant;
   const connection = () => ({ gain: { value: 1 }, connect() {}, disconnect() {} });
   class Context {
@@ -434,7 +434,11 @@ function safariCapture({ stalled = false, permissionPending = false } = {}) {
       this.state = 'running'; return Promise.resolve();
     }
     async close() { this.closed = true; this.state = 'closed'; }
-    createGain = connection; createMediaStreamSource = connection;
+    createGain = connection;
+    createMediaStreamSource() {
+      const source = { connected: false, connect() { this.connected = true; }, disconnect() { this.connected = false; } };
+      sources.push(source); return source;
+    }
   }
   class Node {
     constructor() { nodes.push(this); }
@@ -449,9 +453,9 @@ function safariCapture({ stalled = false, permissionPending = false } = {}) {
     ? new Promise(resolve => { grant = () => resolve(stream()); }) : Promise.resolve(stream()) } } });
   Object.defineProperty(globalThis, 'AudioContext', { configurable: true, value: Context });
   Object.defineProperty(globalThis, 'AudioWorkletNode', { configurable: true, value: Node });
-  const { VoiceCaptureService } = load('../src/app/prototypes/voice-input/voiceCapture.service.ts', { '@angular/core': core, './voiceAudio': audio });
+  const { VoiceCaptureService } = load('../src/app/prototypes/voice-input/voiceCapture.service.ts', { '@angular/core': core, './voiceAudio': audio, './voiceCue': { voiceCue: cue } });
   const capture = new VoiceCaptureService();
-  return { capture, contexts, tracks, nodes, grant: () => grant(), restore() {
+  return { capture, contexts, tracks, nodes, sources, grant: () => grant(), restore() {
     capture.ngOnDestroy();
     for (const [key, descriptor] of Object.entries(originals)) {
       if (descriptor) Object.defineProperty(globalThis, key, descriptor); else delete globalThis[key];
@@ -542,4 +546,49 @@ test('client clearly distinguishes daily quotas, active recordings and unrecogni
     assert.ok(!service.replies.at(-1).text.includes('PRIVATE')); assert.equal(service.canRecord, true);
     service.ngOnDestroy();
   }
+});
+
+
+test('radio cues use distinct quiet pitches, fade cleanly and release their audio nodes', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const { voiceCue } = load('../src/app/prototypes/voice-input/voiceCue.ts');
+  for (const [opening, frequency] of [[true, 1040], [false, 520]]) {
+    const envelope = [], connections = [], frequencies = [];
+    let stopped, disconnected = 0, resolved = false;
+    const gain = { gain: { setValueAtTime: (...args) => envelope.push(args), linearRampToValueAtTime: (...args) => envelope.push(args) },
+      connect: node => connections.push(node), disconnect: () => disconnected++ };
+    const oscillator = { frequency: { setValueAtTime: value => frequencies.push(value) },
+      connect: node => connections.push(node), start() {}, stop: when => { stopped = when; }, disconnect: () => disconnected++ };
+    const context = { state: 'running', currentTime: 0, destination: {}, createOscillator: () => oscillator, createGain: () => gain };
+    const pending = voiceCue(context, opening).then(() => { resolved = true; });
+    assert.deepEqual(frequencies, [frequency]); assert.equal(oscillator.type, 'triangle');
+    assert.deepEqual(envelope, [[0, 0], [.07, .005], [.07, .035], [0, .06]]);
+    assert.equal(stopped, .065); assert.deepEqual(connections, [gain, context.destination]);
+    t.mock.timers.tick(94); await Promise.resolve(); assert.equal(resolved, false);
+    t.mock.timers.tick(1); await pending; assert.equal(disconnected, 2);
+  }
+  await voiceCue({ state: 'suspended' }, true);
+  await voiceCue({ state: 'running', createOscillator() { throw Error('Playback unavailable'); } }, true);
+});
+test('opening cue finishes before microphone samples connect; closing cue follows stopped capture', async () => {
+  const cues = [];
+  let endCue;
+  const fixture = safariCapture({ cue: async (_context, opening) => {
+    cues.push(opening);
+    assert.equal(fixture.sources.at(-1).connected, false);
+    if (!opening) { assert.equal(fixture.tracks.at(-1).stopped, true); assert.equal(fixture.capture.node, undefined); }
+    await new Promise(resolve => { endCue = resolve; });
+  } });
+  try {
+    const starting = fixture.capture.start(() => {}, () => {});
+    await until(() => cues.length === 1); assert.equal(fixture.sources[0].connected, false);
+    endCue(); assert.equal(await starting, true); assert.equal(fixture.sources[0].connected, true);
+    fixture.nodes[0].port.onmessage({ data: { type: 'samples', samples: new Float32Array(16000).fill(.1) } });
+    const finishing = fixture.capture.finish();
+    await until(() => cues.length === 2); assert.deepEqual(cues, [true, false]);
+    endCue(); assert.equal((await finishing).length, 32044); assert.equal(fixture.contexts[0].closed, true);
+    const cancelled = fixture.capture.start(() => {}, () => {});
+    await until(() => cues.length === 3); fixture.capture.cancel(); assert.equal(await cancelled, false);
+    endCue(); assert.equal(fixture.contexts[1].closed, true); assert.deepEqual(cues, [true, false, true]);
+  } finally { fixture.restore(); }
 });
