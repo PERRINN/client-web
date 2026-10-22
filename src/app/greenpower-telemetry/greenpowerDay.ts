@@ -12,7 +12,7 @@ export interface EventDefaults {
   motorId?: string; generatorId?: string; carMassKg?: number; driverMassKg?: number;
 }
 export interface DaySession {
-  id: string; type: string; startAt: number; endAt: number;
+  id: string; type: string; startAt: number; endAt: number | null;
   batteryIds: string[]; overrides: EventDefaults; ranges: RecordingSegment[];
   revision?: number; schemaVersion?: 2; telemetryRoot?: string; updatedBy?: string; updatedAt?: unknown;
 }
@@ -33,6 +33,8 @@ export function emptyDay(date: string): RecordedEvent {
     schemaVersion: 2, revision: 0, updatedBy: 'ingestion' };
 }
 export function wheelCircumference(event: DayMetadata) { return event.wheelCircumferenceM ?? DEFAULT_WHEEL_CIRCUMFERENCE_M; }
+/** Open sessions extend only through the available recording; no future samples are invented. */
+export function sessionEnd(session: DaySession) { return session.endAt ?? Infinity; }
 export function effectiveDefaults(event: DayMetadata, session?: DaySession): EventDefaults {
   return { ...event.defaults, ...session?.overrides };
 }
@@ -58,7 +60,7 @@ export function gearingRatio(event: DayMetadata, session?: DaySession): number |
 }
 export function sessionLabel(session: DaySession) {
   const time = (at: number) => new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(at);
-  return (DAY_SESSION_TYPES.find(type => type.id === session.type)?.label || session.type) + ' · ' + time(session.startAt) + '–' + time(session.endAt);
+  return (DAY_SESSION_TYPES.find(type => type.id === session.type)?.label || session.type) + ' · ' + time(session.startAt) + '–' + (session.endAt === null ? 'Open' : time(session.endAt));
 }
 export function defaultsError(value: EventDefaults): string {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return 'Invalid defaults.';
@@ -83,12 +85,15 @@ export function dayMetadataError(value: DayMetadata): string {
 }
 export function sessionMetadataError(session: DaySession, date: string): string {
   if (!session || !validId(session.id) || !DAY_SESSION_TYPES.some(type => type.id === session.type)
-    || !Number.isSafeInteger(session.startAt) || !Number.isSafeInteger(session.endAt) || session.startAt > session.endAt
+    || !Number.isSafeInteger(session.startAt) || session.startAt < 0
+    || session.endAt !== null && (!Number.isSafeInteger(session.endAt) || session.startAt > session.endAt)
     || !Array.isArray(session.batteryIds) || session.batteryIds.length > 8 || new Set(session.batteryIds).size !== session.batteryIds.length
     || session.batteryIds.some(id => typeof id !== 'string' || !id.trim() || new TextEncoder().encode(id).length > 80)) return 'Check the session type, times and battery identifiers.';
   const error = defaultsError(session.overrides); if (error) return error;
   if (!validSegments(session.ranges) || session.ranges.some(range => range.day !== date)
-    || session.ranges[0].firstAt !== session.startAt || session.ranges.at(-1)!.lastAt !== session.endAt) return 'Choose valid recorded session boundaries.';
+    || session.ranges[0].firstAt !== session.startAt || session.ranges.at(-1)!.lastAt !== (session.endAt ?? session.startAt)
+    || session.endAt === null && (session.ranges.length !== 1 || session.ranges[0].firstChunk !== session.ranges[0].lastChunk
+      || session.ranges[0].firstIndex !== session.ranges[0].lastIndex)) return 'Choose valid recorded session boundaries.';
   if (new TextEncoder().encode(JSON.stringify(session)).length > 16 * 1024 - 512) return 'Session metadata exceeds 16 KiB.';
   return '';
 }

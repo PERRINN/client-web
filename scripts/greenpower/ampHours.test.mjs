@@ -47,3 +47,18 @@ test('practice, missing metadata, missing readings and ambiguous windows preserv
   const other = { ...raw, id: '["A"]:A' };
   assert.equal(sessionAmpHours(other, [session('race', 0, 8)], 8), other);
 });
+
+test('open session Ah retains its start as telemetry arrives and does not invent a missing baseline', () => {
+  const raw = readings(), open = session('race', 2, null);
+  const result = sessionAmpHours(raw, [open], 8);
+  assert.equal(result.value, '6'); assert.equal(result.points[2].value, 0);
+  assert.deepEqual(sessionAmpHours(readings(), [open], 8), result);
+  const partial = { ...raw, points: raw.points.slice(4) };
+  assert.equal(sessionAmpHours(partial, [open], 8).value, '—');
+  assert.deepEqual(sessionAmpHours(partial, [open], 8).points, []);
+});
+
+test('incomplete session metadata keeps Ah readings blank until session pages are complete', () => {
+  const channel = sessionAmpHours(readings(), [], 8, false);
+  assert.equal(channel.value, '—'); assert.deepEqual(channel.points, []);
+});

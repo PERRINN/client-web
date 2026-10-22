@@ -25,24 +25,26 @@ export function overlayLabel(event: RecordedEvent, session: DaySession, channels
     maximum === undefined ? '' : `${formatChannelNumber({ id: ENERGY, unit: 'Wh' }, maximum)} Wh`].filter(Boolean).join(' · ');
 }
 export function overlayChannels(samples: Parameters<typeof channelsFor>[0], session: DaySession, event?: RecordedEvent, track?: TrackDefinition | null) {
+  if (session.endAt === null) return [];
+  const endAt = session.endAt;
   const ordered = [...samples].sort((a, b) => sampleTime(a) - sampleTime(b) || a.id.localeCompare(b.id));
   const latest = ordered.at(-1);
   const timed = withRaceTime(channelsFor(ordered, latest), [session],
-    ordered.length ? sampleTime(ordered[0]) : session.startAt, latest ? sampleTime(latest) : session.endAt, latest && sampleTime(latest));
+    ordered.length ? sampleTime(ordered[0]) : session.startAt, latest ? sampleTime(latest) : endAt, latest && sampleTime(latest));
   const channels = withEnergy(timed, [session], latest && sampleTime(latest)), fixes = gpsFixes(channels);
   const line = track?.line && fixes.every(fix => contains(track.bounds, fix)) ? track.line : null;
-  const analysis = gpsAnalysis(fixes, line, channels, session.endAt);
+  const analysis = gpsAnalysis(fixes, line, channels, endAt);
   const numbered = sessionLapAnalysis(analysis, event ? sessionIntervals(event, [session]) : [], {
-    channels, fixes, end: session.endAt, configured: !!line
+    channels, fixes, end: endAt, configured: !!line
   });
-  const projected = withMotorDerivedSpeed(savedGear(channels, event, [session], session.startAt, session.endAt,
+  const projected = withMotorDerivedSpeed(savedGear(channels, event, [session], session.startAt, endAt,
     latest && sampleTime(latest)), event, latest && sampleTime(latest));
   const metrics = lapMetricChannels(motorLapSpeeds(numbered.laps, projected), projected);
   return [...withDistance(projected, [session], latest && sampleTime(latest)), ...metrics].map(channel => {
     const adjusted = sessionAmpHours(channel, [session], latest && sampleTime(latest));
     return { ...adjusted,
       ...(adjusted.valueAt ? { valueAt: (time: number) => adjusted.valueAt!(time + session.startAt) } : {}),
-      points: adjusted.points.filter(point => point.time >= session.startAt && point.time <= session.endAt)
+      points: adjusted.points.filter(point => point.time >= session.startAt && point.time <= endAt)
         .map(point => ({ ...point, time: point.time - session.startAt })) };
   });
 }

@@ -1,21 +1,21 @@
-import { DAY_SESSION_TYPES, DaySession, RecordedEvent, effectiveDefaults, gearingRatio } from './greenpowerDay';
+import { DAY_SESSION_TYPES, DaySession, RecordedEvent, effectiveDefaults, gearingRatio, sessionEnd } from './greenpowerDay';
 import { channelDetails, displayValue, DISTANCE, ENERGY, isRaceTime, MOTOR_DERIVED_SPEED, GreenpowerChannel, pointIndex, POWER } from './greenpowerData';
 import { GpsFix, GpsLap, MAX_GPS_GAP, timeAverage, validSegment } from './greenpowerGps';
 
-export interface SessionInterval { id: string; start: number; end: number; label: string; gearRatio?: number; gearChanged?: boolean; }
+export interface SessionInterval { id: string; start: number; end: number; label: string; gearRatio?: number; gearChanged?: boolean; open?: boolean; }
 
 /** Replace the unreliable sensor gear for display, preserving saved channel selections. */
 export function savedGear(channels: GreenpowerChannel[], event: RecordedEvent | undefined, sessions: DaySession[], start: number, end: number, latestTime?: number, complete = true): GreenpowerChannel[] {
   const valueAt = (time: number) => {
     if (!event || !complete || time < start || time > end) return undefined;
-    const matches = sessions.filter(session => session.startAt <= time && time <= session.endAt
-      && (time !== session.endAt || !sessions.some(other => other.startAt === time && other !== session)));
+    const matches = sessions.filter(session => session.startAt <= time && time <= sessionEnd(session)
+      && (time !== sessionEnd(session) || !sessions.some(other => other.startAt === time && other !== session)));
     if (matches.length > 1) return undefined;
     const ratio = gearingRatio(event, matches[0]);
     return ratio !== undefined && Number.isFinite(ratio) && ratio > 0 ? ratio : undefined;
   };
   const times = new Set([start, end]);
-  for (const session of sessions) for (const time of [session.startAt, session.endAt + .001]) {
+  for (const session of sessions) for (const time of [session.startAt, sessionEnd(session) + .001]) {
     if (time > start && time <= end) { times.add(time - .001); times.add(time); }
   }
   const values = [...times].sort((a, b) => a - b).map(time => ({ time, value: valueAt(time) }));
@@ -30,33 +30,39 @@ export function savedGear(channels: GreenpowerChannel[], event: RecordedEvent | 
 }
 
 /** Rebase display readings only; zoom and view changes never alter the baseline. */
-export function sessionAmpHours(channel: GreenpowerChannel, sessions: DaySession[], latestTime?: number): GreenpowerChannel {
+export function sessionAmpHours(channel: GreenpowerChannel, sessions: DaySession[], latestTime?: number, complete = true): GreenpowerChannel {
   if (channel.id !== '["AH"]:Ah' || !channel.points.length) return channel;
+  if (!complete) return { ...channel, points: [], value: '—' };
   const windows = consumptionSessions(sessions);
   if (!windows.length) return channel;
   const points = channel.points.slice();
   let value = channel.value;
   for (const session of windows) {
     const first = pointIndex(channel.points, session.startAt);
-    const end = pointIndex(channel.points, session.endAt, true);
+    const end = pointIndex(channel.points, sessionEnd(session), true);
     if (first === end) continue;
+    if (session.startAt < channel.points[0].time) {
+      for (let index = first; index < end; index++) points[index] = { ...points[index], value: NaN };
+      if (latestTime !== undefined && latestTime <= sessionEnd(session)) value = '—';
+      continue;
+    }
     const baseline = channel.points[first].value;
     for (let index = first; index < end; index++) {
       const point = channel.points[index];
       points[index] = { time: point.time, value: point.value - baseline };
     }
-    if (latestTime !== undefined && latestTime >= channel.points[first].time && latestTime <= session.endAt
+    if (latestTime !== undefined && latestTime >= channel.points[first].time && latestTime <= sessionEnd(session)
       && channel.value !== '—' && Number.isFinite(Number(channel.value))) {
       value = displayValue(Number(channel.value) - baseline);
     }
   }
-  return { ...channel, points, value };
+  return { ...channel, points: points.filter(point => Number.isFinite(point.value)), value };
 }
 
 function consumptionSessions(sessions: DaySession[]) {
   return sessions.filter(session => ['race', 'battery_dyno', 'motor_dyno'].includes(session.type)
-    && session.endAt > session.startAt && !sessions.some(other => other !== session
-      && other.startAt < session.endAt && other.endAt > session.startAt));
+    && sessionEnd(session) > session.startAt && !sessions.some(other => other !== session
+      && other.startAt < sessionEnd(session) && sessionEnd(other) > session.startAt));
 }
 
 /** Use elapsed timestamps only when the recording has no numeric race-time readings. */
@@ -69,13 +75,13 @@ export function withRaceTime(channels: GreenpowerChannel[], sessions: DaySession
     if (!Number.isFinite(time) || time < start || time > end) return undefined;
     const index = pointIndex(starts, time, true) - 1;
     const session = windows[index];
-    return (time - (session && time <= session.endAt ? session.startAt : start)) / 60000;
+    return (time - (session && time <= sessionEnd(session) ? session.startAt : start)) / 60000;
   };
   const times = new Set([start, end]);
   const timeline = channels.reduce((longest, channel) => channel.points.length > longest.length ? channel.points : longest,
     [] as GreenpowerChannel['points']);
   for (const point of timeline) if (point.time >= start && point.time <= end) times.add(point.time);
-  for (const session of windows) for (const time of [session.startAt, session.endAt + .001]) {
+  for (const session of windows) for (const time of [session.startAt, sessionEnd(session) + .001]) {
     if (time > start && time <= end) { times.add(time - .001); times.add(time); }
   }
   const previous = channels.find(isRaceTime);
@@ -87,19 +93,20 @@ export function withRaceTime(channels: GreenpowerChannel[], sessions: DaySession
 }
 
 /** Integrate loaded samples once per projection, independently of chart zoom. */
-export function withEnergy(channels: GreenpowerChannel[], sessions: DaySession[], latestTime?: number): GreenpowerChannel[] {
-  return withSessionIntegral(channels, sessions, POWER, ENERGY, latestTime);
+export function withEnergy(channels: GreenpowerChannel[], sessions: DaySession[], latestTime?: number, complete = true): GreenpowerChannel[] {
+  return withSessionIntegral(channels, sessions, POWER, ENERGY, latestTime, complete);
 }
 
-export function withDistance(channels: GreenpowerChannel[], sessions: DaySession[], latestTime?: number): GreenpowerChannel[] {
-  return withSessionIntegral(channels, sessions, MOTOR_DERIVED_SPEED, DISTANCE, latestTime);
+export function withDistance(channels: GreenpowerChannel[], sessions: DaySession[], latestTime?: number, complete = true): GreenpowerChannel[] {
+  return withSessionIntegral(channels, sessions, MOTOR_DERIVED_SPEED, DISTANCE, latestTime, complete);
 }
 
 /** Both W → Wh and mph → miles integrate over hours and share reset/gap semantics. */
-function withSessionIntegral(channels: GreenpowerChannel[], sessions: DaySession[], input: string, output: string, latestTime?: number): GreenpowerChannel[] {
+function withSessionIntegral(channels: GreenpowerChannel[], sessions: DaySession[], input: string, output: string, latestTime?: number, complete = true): GreenpowerChannel[] {
   const source = channels.filter(channel => channel.id !== output);
   const signal = source.find(channel => channel.id === input);
   if (!signal?.points.length) return source;
+  if (!complete) return [...source, { id: output, ...channelDetails(output), points: [], value: '—' }];
   const windows = consumptionSessions(sessions).sort((a, b) => a.startAt - b.startAt);
   const values: (number | undefined)[] = [], points: GreenpowerChannel['points'] = [];
   let window = 0, previousSession: DaySession | undefined;
@@ -112,11 +119,11 @@ function withSessionIntegral(channels: GreenpowerChannel[], sessions: DaySession
     const area = previous && span > 0 && span <= MAX_GPS_GAP
       ? (previous.value / 2 + point.value / 2) * (span / 3600000) : undefined;
     if (index) total = accumulate(total, area);
-    while (windows[window] && (windows[window].endAt < point.time
-      || windows[window + 1]?.startAt === point.time && windows[window].endAt === point.time)) window++;
+    while (windows[window] && (sessionEnd(windows[window]) < point.time
+      || windows[window + 1]?.startAt === point.time && sessionEnd(windows[window]) === point.time)) window++;
     const candidate = windows[window];
-    const session = candidate && candidate.startAt <= point.time && point.time <= candidate.endAt ? candidate : undefined;
-    if (session) used = session !== previousSession ? 0 : accumulate(used, area);
+    const session = candidate && candidate.startAt <= point.time && point.time <= sessionEnd(candidate) ? candidate : undefined;
+    if (session) used = session !== previousSession ? (session.startAt < signal.points[0].time ? undefined : 0) : accumulate(used, area);
     const value = session ? used : total;
     values.push(value);
     if (value !== undefined) points.push({ time: point.time, value });
@@ -132,8 +139,8 @@ function withSessionIntegral(channels: GreenpowerChannel[], sessions: DaySession
   return [...source, { id: output, ...channelDetails(output), points, valueAt,
     value: latest === undefined ? '—' : displayValue(latest) }];
 }
-export function sessionIntervals(event: RecordedEvent, sessions: DaySession[]): SessionInterval[] {
-  const intervals = sessions.map(session => ({ id: session.id, start: session.startAt, end: session.endAt,
+export function sessionIntervals(event: RecordedEvent, sessions: DaySession[], end = Infinity): SessionInterval[] {
+  const intervals = sessions.map(session => ({ id: session.id, start: session.startAt, end: session.endAt ?? end, ...(session.endAt === null ? { open: true } : {}),
     gearRatio: gearingRatio(event, session),
     label: [DAY_SESSION_TYPES.find(type => type.id === session.type)?.label || session.type,
       effectiveDefaults(event, session).driver].filter(Boolean).join(' · ')
@@ -145,7 +152,7 @@ export function visibleSessions(sessions: SessionInterval[], start: number, end:
   return sessions.filter(session => session.end >= start && session.start <= end).map(session => ({ ...session,
     x: (Math.max(start, session.start) - start) / (end - start) * 100,
     width: (Math.min(end, session.end) - Math.max(start, session.start)) / (end - start) * 100,
-    starts: session.start >= start, ends: session.end <= end,
+    starts: session.start >= start, ends: !session.open && session.end <= end,
     showLabel: (Math.min(end, session.end) - Math.max(start, session.start)) / (end - start) * pixels >= session.label.length * 8 + 16
   }));
 }

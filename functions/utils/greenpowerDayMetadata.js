@@ -46,7 +46,7 @@ function validateDay(data) {
 function validateSession(session, day) {
   keys(session, ['id', 'type', 'startAt', 'endAt', 'batteryIds', 'overrides', 'ranges']);
   check(id(session.id) && TYPES.includes(session.type), 'Invalid session ID or type.');
-  check([session.startAt, session.endAt].every(value => Number.isSafeInteger(value) && value >= 0 && value <= 8640000000000000) && session.startAt <= session.endAt, 'Invalid session times.');
+  check([session.startAt, ...(session.endAt === null ? [] : [session.endAt])].every(value => Number.isSafeInteger(value) && value >= 0 && value <= 8640000000000000) && (session.endAt === null || session.startAt <= session.endAt), 'Invalid session times.');
   defaults(session.overrides);
   check(Array.isArray(session.batteryIds) && session.batteryIds.length <= 8 && new Set(session.batteryIds).size === session.batteryIds.length && session.batteryIds.every(value => text(value, 80)), 'Invalid battery IDs.');
   const ranges = session.ranges;
@@ -54,7 +54,9 @@ function validateSession(session, day) {
   ranges.forEach(range => validRange(range, day));
   const position = (range, side) => range[side + 'Chunk'] + '/' + String(range[side + 'Index']).padStart(2, '0');
   check(ranges.every((range, index) => !index || position(ranges[index - 1], 'last') < position(range, 'first') && ranges[index - 1].lastAt <= range.firstAt), 'Ranges must be ordered and non-overlapping.');
-  check(ranges[0].firstAt === session.startAt && ranges.at(-1).lastAt === session.endAt, 'Session times must match recording boundaries.');
+  check(ranges[0].firstAt === session.startAt && (session.endAt === null
+    ? ranges.length === 1 && ranges[0].firstChunk === ranges[0].lastChunk && ranges[0].firstIndex === ranges[0].lastIndex && ranges[0].lastAt === session.startAt
+    : ranges.at(-1).lastAt === session.endAt), 'Session times must match recording boundaries.');
   check(Buffer.byteLength(JSON.stringify(session)) <= 16 * 1024 - 512, 'Session exceeds 16 KiB.');
   return session;
 }
@@ -106,6 +108,13 @@ async function editDayMetadata(db, auth, input, { timestamp, dryRun = false } = 
     const previousSession = sessionRef ? (await get(sessionRef)).data() : undefined;
     if (previousSession) check(previousSession.schemaVersion === 2 && previousSession.telemetryRoot === ROOT && previousSession.id === input.session.id && Number.isSafeInteger(previousSession.revision) && previousSession.revision > 0, 'Stored session is invalid.', 'failed-precondition');
     if (sessionRef) check((previousSession?.revision || 0) === input.expectedSessionRevision, 'Session changed. Reload before saving.', 'failed-precondition');
+    if (sessionRef && input.session.endAt === null) {
+      // One indexed, bounded query; transaction isolation prevents concurrent open sessions.
+      const open = await transaction.get(db.collection(dayRef.path + '/sessions').where('endAt', '==', null).limit(2));
+      reads += Math.max(1, open.size);
+      check(reads <= 105, 'Read budget exceeded.', 'resource-exhausted');
+      check(open.docs.every(doc => doc.id === input.session.id), 'Close the open session before opening another.', 'failed-precondition');
+    }
     let sessionTypeCounts = before.sessionTypeCounts;
     if (sessionTypeCounts !== undefined) validateSessionTypeCounts(sessionTypeCounts);
     const countsChanged = !!sessionRef && previousSession?.type !== input.session.type;

@@ -164,7 +164,7 @@ test('legacy days remain readable but cannot silently create replacement metadat
   const h = client(new Map(recording().records)); h.service.selectEvent(day); await flush();
   assert.equal(h.service.eventReady, true); assert.equal(h.service.migrated, false);
   const editor = new GreenpowerEventEditService(h.service, {}, {}); editor.event();
-  assert.equal(editor.mode, ''); assert.match(editor.error, /migration/); editor.ngOnDestroy(); h.service.ngOnDestroy();
+  assert.equal(editor.mode, ''); assert.equal(editor.draft, undefined); editor.ngOnDestroy(); h.service.ngOnDestroy();
 });
 test('metadata save patches one cached event, never refreshes the year, and retries unknown outcomes identically', async () => {
   const { rec, value } = migrated(), backend = memoryDb([...rec.records, [ROOT + '/days/' + day, value], [ROOT + '/days/' + day + '/live/latest', { count: 4, activeChunk: 0 }]]);
@@ -175,6 +175,7 @@ test('metadata save patches one cached event, never refreshes the year, and retr
     if (unknown) { unknown = false; throw { code: 'functions/unavailable' }; } return result;
   }) };
   const editor = new GreenpowerEventEditService(h.service, { day, range: () => [rec.segment()] }, functions);
+  editor.recordingEvent = value;
   const reads = h.calls.length; editor.event(); editor.draft.eventName = 'Updated'; editor.draft.wheelCircumferenceM = 1.37;
   await editor.save(); assert.equal(editor.uncertain, true); assert.equal(editor.locked, true);
   editor.cancel(); assert.equal(editor.locked, true); await editor.save();
@@ -265,28 +266,6 @@ test('history labels show complete stored counts without per-event reads or chan
   h.service.ngOnDestroy();
 });
 
-test('recording session pages ignore picker type, use one query per action and reject stale account results', async () => {
-  const h = client(), { session } = migrated();
-  for (let i = 0; i < 31; i++) {
-    const id = 'session-' + String(i).padStart(2, '0');
-    h.records.set(ROOT + '/days/' + day + '/sessions/' + id, { ...session, id, type: i % 2 ? 'race' : 'practice' });
-  }
-  h.service.filters.type = 'race';
-  const first = await h.service.recordingSessionPage(day);
-  assert.equal(first.sessions.length, 30); assert.equal(first.more, true);
-  assert.equal(h.calls.length, 1); assert.equal(h.calls[0].limit, 30); assert.deepEqual(h.calls[0].filters, []);
-  assert.equal(first.sessions[0].type, 'practice');
-  const last = first.sessions.at(-1);
-  const second = await h.service.recordingSessionPage(day, { start: last.startAt, id: last.id });
-  assert.equal(second.sessions.length, 1); assert.equal(second.more, false); assert.equal(h.calls.length, 2);
-  let finish;
-  h.delay(() => new Promise(resolve => { finish = resolve; }));
-  const stale = h.service.recordingSessionPage(day);
-  h.state.next({ ready: true, uid: '', isAdmin: false }); finish({ docs: [], size: 0 });
-  await assert.rejects(stale, /Account changed/); h.service.ngOnDestroy();
-});
-
-
 test('session editing requires a loaded whole event and accepts an explicit session independently of history selection', async () => {
   const { value, session } = migrated();
   const h = client(new Map([[ROOT + '/days/' + day, value]]));
@@ -298,8 +277,8 @@ test('session editing requires a loaded whole event and accepts an explicit sess
   telemetry.recordingKey = 'loaded-session';
   editor.session(false, undefined, session); assert.equal(editor.mode, '');
   telemetry.recordingKey = ''; telemetry.live = true;
-  editor.session(false, undefined, session); assert.equal(editor.mode, '');
-  telemetry.live = false;
+  editor.session(false, undefined, session); assert.equal(editor.mode, 'session');
+  editor.cancel(); telemetry.live = false;
   editor.session(false, undefined, session);
   assert.equal(editor.sessionDraft.id, session.id);
   assert.equal(h.service.sessionId, '', 'editing does not select or load a session');
@@ -314,8 +293,8 @@ test('direct Save validates metadata before sending and retains invalid drafts',
   const h=client(new Map([[ROOT+'/days/'+day,value]]));
   h.service.selectEvent(day); await flush();
   let calls=0;
-  const editor=new GreenpowerEventEditService(h.service,{}, {httpsCallable(){calls++; throw Error('Invalid metadata must not submit');}});
-  editor.event(); editor.draft.eventName='x'.repeat(121);
+  const editor=new GreenpowerEventEditService(h.service,{day}, {httpsCallable(){calls++; throw Error('Invalid metadata must not submit');}});
+  editor.recordingEvent=value; editor.event(); editor.draft.eventName='x'.repeat(121);
   await editor.save();
   assert.equal(calls,0); assert.equal(editor.mode,'event'); assert.equal(editor.draft.eventName.length,121);
   assert.match(editor.error,/Invalid event/); assert.equal(editor.saving,false);
@@ -328,7 +307,5 @@ test('event-only history selection defers session reads until the recording is l
   const h=client(new Map([[ROOT+'/days/'+day,value],[ROOT+'/days/'+day+'/sessions/'+session.id,session]]));
   h.service.selectEvent(day,false); await flush();
   assert.equal(h.service.eventReady,true); assert.equal(h.calls.length,0); assert.equal(h.service.sessions.length,0);
-  const page=await h.service.recordingSessionPage(day);
-  assert.equal(page.sessions.length,1); assert.equal(h.calls.length,1); assert.equal(h.calls[0].limit,30);
   h.service.ngOnDestroy();
 });

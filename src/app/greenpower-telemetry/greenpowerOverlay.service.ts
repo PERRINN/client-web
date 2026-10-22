@@ -45,7 +45,7 @@ export class GreenpowerOverlayService implements OnDestroy {
     }
     return [...channels.values()];
   }
-  get end() { return Math.max(1, ...this.sessions.filter(item => item.loaded).map(item => item.session.endAt - item.session.startAt)); }
+  get end() { return Math.max(1, ...this.sessions.filter(item => item.loaded).map(item => (item.session.endAt ?? item.session.startAt) - item.session.startAt)); }
   get title() { return this.sessionType === 'battery_dyno' ? '2026 battery dyno tests' : '2026 race sessions'; }
   get status() {
     return this.loading ? 'Loading sessions…' : this.sessions.filter(item => item.loaded).length + ' sessions'
@@ -89,6 +89,7 @@ export class GreenpowerOverlayService implements OnDestroy {
           const date = doc.ref.parent.parent!.id, session = doc.data() as DaySession;
           if (doc.ref.path !== `${SESSION_SCOPE}/days/${date}/sessions/${doc.id}` || session.id !== doc.id
             || !validDaySession(session, date)) throw new Error('Invalid session metadata.');
+          if (session.endAt === null) continue;
           let event = this.parents.get(date);
           if (!event) {
             const parent = await doc.ref.parent.parent!.get({ source: 'server' });

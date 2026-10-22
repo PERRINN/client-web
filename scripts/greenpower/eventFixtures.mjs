@@ -34,14 +34,23 @@ export function memoryDb(initial = [], { failCommit = false, retryOnce = false, 
   const records = new Map(structuredClone(initial));
   const counts = { reads: 0, writes: 0, attempts: 0, rpcs: 0 };
   const doc = path => ({ path });
-  return { records, counts, doc, async runTransaction(callback, settings) {
+  const collection = path => ({ where: (field, op, value) => ({ limit: limit => ({ path, field, op, value, limit, query: true }) }) });
+  return { records, counts, doc, collection, async runTransaction(callback, settings) {
     assert.equal(settings.maxAttempts, 3);
     let result;
     for (let attempt = 0; attempt < (retryOnce ? 2 : 1); attempt++) {
       counts.attempts++;
       const writes = [];
       const snapshot = ref => { counts.reads++; onRead?.(ref); return { ref, data: () => structuredClone(records.get(ref.path)) }; };
-      const tx = { async get(ref) { assert.equal(writes.length, 0, 'all reads precede writes'); counts.rpcs++; return snapshot(ref); },
+      const tx = { async get(ref) { assert.equal(writes.length, 0, 'all reads precede writes'); counts.rpcs++;
+        if (ref.query) {
+          assert.equal(ref.op, '=='); assert.equal(ref.limit, 2);
+          const paths = [...records.keys()].filter(path => path.startsWith(ref.path + '/') && !path.slice(ref.path.length + 1).includes('/') && records.get(path)[ref.field] === ref.value).slice(0, ref.limit);
+          const docs = paths.map(path => ({ ...snapshot(doc(path)), id: path.split('/').at(-1) }));
+          if (!docs.length) counts.reads++;
+          return { docs, size: docs.length };
+        }
+        return snapshot(ref); },
         async getAll(...refs) { assert.equal(writes.length, 0); counts.rpcs++; return refs.map(snapshot); },
         set(ref, data) { writes.push({ ref, data }); }, create(ref, data) { assert.ok(!records.has(ref.path)); writes.push({ ref, data }); } };
       result = await callback(tx);

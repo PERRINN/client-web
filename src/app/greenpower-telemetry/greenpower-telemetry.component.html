@@ -47,7 +47,7 @@
           </div>
           }
           @if (editorPanel === 'event' || editorPanel === 'sessions') {
-            <app-greenpower-event-editor [range]="window" [cursor]="cursor" [sessionPanel]="editorPanel === 'sessions'" [sessions]="recordingSessions" [loading]="sessionsLoading" [more]="sessionsMore" [loadError]="sessionsError" (loadMore)="loadRecordingSessions()" />
+            <app-greenpower-event-editor [range]="window" [cursor]="cursor" [contextError]="eventContext.metadataError" (retryContext)="eventContext.retry()" [sessionPanel]="editorPanel === 'sessions'" [sessions]="recordingSessions" [loading]="sessionsLoading" [more]="sessionsMore" [loadError]="sessionsError" (loadMore)="loadRecordingSessions()" />
           } @else {
           <span class="order-notice" aria-live="polite">{{ orderNotice }}</span>
           @if (drag.preview; as preview) {
@@ -120,7 +120,7 @@
       }
     </div>
     <div id="telemetry-lap-list" class="view-panel" [hidden]="activeView !== 'laps'" role="region" aria-label="Lap list view">
-      <app-greenpower-lap-list [showSessions]="wholeEventLoaded" [sessionsLoading]="sessionsLoading" [sessionsError]="sessionsError" [sessionsMore]="sessionsMore" [canEditSessions]="editing && !historyOpen && events.canEdit && eventEdit.canEditSessions" [editDisabled]="!!eventEdit.mode || view.saving || lapConfig.saving" (sessionEdit)="editSession($event)" (loadSessions)="loadRecordingSessions()" [laps]="laps" [sessions]="sessions" [configured]="!!lapConfig.line" [loading]="telemetry.loading || lapConfig.searching || (!lapConfig.ready && !!lapConfig.selectedId)" [partial]="telemetry.more" (lapSelect)="selectLap($event)" />
+      <app-greenpower-lap-list [showSessions]="eventAvailable" [sessionsLoading]="sessionsLoading" [sessionsError]="sessionsError" [sessionsMore]="sessionsMore" [canEditSessions]="editing && !historyOpen && events.canEdit && eventEdit.canEditSessions" [editDisabled]="!!eventEdit.mode || view.saving || lapConfig.saving" (sessionEdit)="editSession($event)" (loadSessions)="loadRecordingSessions()" [laps]="laps" [sessions]="sessions" [configured]="!!lapConfig.line" [loading]="telemetry.loading || lapConfig.searching || (!lapConfig.ready && !!lapConfig.selectedId)" [partial]="telemetry.more" (lapSelect)="selectLap($event)" />
     </div>
   }
 </main>

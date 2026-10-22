@@ -1,10 +1,11 @@
 <section aria-label="Event metadata editor">
-  @if (events.eventReady && !events.migrated) { <p class="error">This day requires metadata migration before editing.</p> }
+  @if (contextError) { <p role="alert" class="error">{{ contextError }}</p><button type="button" [disabled]="edit.locked" (click)="retryContext.emit()">Retry event</button> }
+  @else if (!edit.recordingEvent) { <p role="status">Loading event…</p> }
   @if (!edit.mode) {
     @if (sessionPanel) {
       @if (!edit.canEditSessions) { <p>Load an event to edit its sessions.</p> }
       @else {
-        <div class="actions"><button type="button" [disabled]="!events.canEdit || !canCapture" (click)="edit.session(true, window)">Add session</button></div>
+        <div class="actions"><button type="button" [disabled]="!events.canEdit || !canCapture" (click)="addSession()">Add session</button></div>
         <ul aria-label="Event sessions">
           @for (session of sessions; track session.id) {
             <li><span>{{ sessionLabel(session) }}</span><button type="button" [disabled]="!events.canEdit" [attr.aria-label]="'Edit ' + sessionLabel(session)" (click)="edit.session(false, undefined, session)">Edit</button></li>
@@ -15,7 +16,7 @@
         @else if (more) { <button type="button" (click)="loadMore.emit()">More sessions</button> }
       }
     } @else {
-      <div class="actions"><button type="button" [disabled]="!events.canEdit || !events.eventReady || !events.migrated" (click)="edit.event()">Edit event</button></div>
+      <div class="actions"><button type="button" [disabled]="!events.canEdit || !edit.recordingEvent" (click)="edit.event()">Edit event</button></div>
     }
   } @else {
     <div class="heading"><h3>{{ edit.mode === 'event' ? 'Edit event' : 'Session' }}</h3></div>
@@ -26,6 +27,7 @@
       <div class="actions">
         <button type="button" [disabled]="edit.locked || !canCapture || cursor === undefined" (click)="capture('start')">Set start at cursor</button>
         <button type="button" [disabled]="edit.locked || !canCapture || cursor === undefined" (click)="capture('end')">Set end at cursor</button>
+        <button type="button" [disabled]="edit.locked || !canCapture || edit.sessionDraft?.endAt === null" (click)="edit.clearEnd()">Clear end</button>
       </div>
     }
     <div class="actions footer">

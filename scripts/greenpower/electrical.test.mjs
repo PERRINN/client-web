@@ -113,3 +113,24 @@ test('a synthetic full day keeps one Wh value per power sample and reuses channe
   assert.equal(result.find(channel => channel.id === data.POWER), channels.find(channel => channel.id === data.POWER));
   console.log(JSON.stringify({ powerSamples: 28800, energyProjectionMs: Math.round(performance.now() - start) }));
 });
+
+test('open race Wh keeps its saved baseline through appends, reload and closure, and stops across missing samples', () => {
+  const samples = Array.from({ length: 7 }, (_, index) => sample(index * 3000));
+  const open = session('race', 3000, null);
+  near(energy(samples.slice(0, 4), [open]).valueAt(9000), .8);
+  const continued = energy(samples, [open]);
+  near(continued.valueAt(18000), 2);
+  assert.deepEqual(energy(structuredClone(samples), [structuredClone(open)]).points, continued.points, 'reload reconstructs the original start');
+  assert.deepEqual(energy(samples, [{ ...open, endAt: 18000 }]).points, continued.points);
+  const missingStart = energy(samples.slice(2), [open]);
+  assert.equal(missingStart.value, '—'); assert.equal(missingStart.valueAt(18000), undefined);
+  const gap = energy([sample(0), sample(3000), sample(30000)], [open]);
+  assert.equal(gap.valueAt(30000), undefined);
+  near(energy(samples, [{ ...open, type: 'practice' }]).valueAt(18000), 2.4);
+});
+
+test('incomplete session metadata keeps the Energy channel available but withholds misleading totals', () => {
+  const raw = data.channelsFor([sample(0), sample(3000)]);
+  const channel = withEnergy(raw, [], 3000, false).find(channel => channel.id === data.ENERGY);
+  assert.equal(channel.value, '—'); assert.deepEqual(channel.points, []);
+});

@@ -144,3 +144,43 @@ test('circumference defaults to 1.29, validates before reads, persists edits, au
   await editDayMetadata(old.db, adminAuth, old.request, options);
   assert.equal(old.db.records.get(ROOT + '/days/' + old.day).wheelCircumferenceM, 1.29);
 });
+
+
+test('open sessions verify one start sample, replay, reject a second open session and close without rewriting telemetry', async () => {
+  const h = fixture(), input = sessionRequest(h, 'open');
+  input.session.ranges = [h.rec.segment(1, 1)];
+  input.session.startAt = input.session.ranges[0].firstAt; input.session.endAt = null;
+  const chunksBefore = structuredClone(h.db.records.get(h.rec.records[1][0]));
+  const result = await editDayMetadata(h.db, adminAuth, input, options);
+  assert.equal(result.reads, 7); assert.equal(result.writes, 4);
+  const saved = h.db.records.get(ROOT + '/days/' + h.day + '/sessions/open');
+  assert.equal(saved.endAt, null); assert.equal(dayData.validDaySession(saved, h.day), true);
+  assert.match(dayData.sessionLabel(saved), /Open/);
+  assert.equal((await editDayMetadata(h.db, adminAuth, input, options)).replayed, true);
+  const second = structuredClone(input); second.requestId = 'second'; second.session.id = 'second';
+  await assert.rejects(editDayMetadata(h.db, adminAuth, second, options), /Close the open session/);
+  const closing = structuredClone(input); closing.requestId = 'close'; closing.expectedSessionRevision = 1;
+  closing.session.ranges = [h.rec.segment(1, 3)]; closing.session.endAt = closing.session.ranges[0].lastAt;
+  const closed = await editDayMetadata(h.db, adminAuth, closing, options);
+  assert.equal(closed.writes, 3);
+  assert.equal(h.db.records.get(ROOT + '/days/' + h.day + '/sessions/open').endAt, closing.session.endAt);
+  await editDayMetadata(h.db, adminAuth, second, options);
+  assert.deepEqual(h.db.records.get(h.rec.records[1][0]), chunksBefore);
+});
+
+test('open sessions cannot smuggle an unverified range or bypass permissions and optimistic revisions', async () => {
+  for (const change of [session => {}, session => session.ranges[0].firstSampleId = 'wrong', session => session.ranges[0].lastSampleId = 'wrong']) {
+    const h = fixture(), input = sessionRequest(h);
+    input.session.endAt = null; input.session.ranges = [h.rec.segment(0, 0)]; change(input.session);
+    if (input.session.ranges[0].firstSampleId === 'wrong' || input.session.ranges[0].lastSampleId === 'wrong') {
+      await assert.rejects(editDayMetadata(h.db, adminAuth, input, options)); assert.equal(h.db.counts.writes, 0);
+    } else {
+      for (const auth of [undefined, {uid:'viewer',token:{}}]) await assert.rejects(editDayMetadata(h.db, auth, input, options));
+      assert.equal(h.db.counts.reads, 0);
+      input.expectedRevision = 1; await assert.rejects(editDayMetadata(h.db, adminAuth, input, options), /Metadata changed/);
+    }
+  }
+  const h = fixture(), input = sessionRequest(h); input.session.endAt = null;
+  assert.ok(dayData.sessionMetadataError(input.session, h.day));
+  await assert.rejects(editDayMetadata(h.db, adminAuth, input, options), /Session times/);
+});

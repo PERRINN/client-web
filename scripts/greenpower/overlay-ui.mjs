@@ -25,6 +25,7 @@ import {GreenpowerTelemetryComponent} from '${folder}/greenpower-telemetry.compo
 import {GreenpowerTelemetryService} from '${folder}/greenpowerTelemetry.service';
 import {GreenpowerLapService} from '${folder}/greenpowerLap.service';
 import {GreenpowerEventsService} from '${folder}/greenpowerEvents.service';
+import {GreenpowerEventContextService} from '${folder}/greenpowerEventContext.service';
 import {GreenpowerEventEditService} from '${folder}/greenpowerEventEdit.service';
 import {selectionFor} from '${folder}/greenpowerView';
 import {GreenpowerOverlayComponent} from '${folder}/greenpower-overlay.component';
@@ -70,7 +71,7 @@ TestBed.configureTestingModule({declarations:[GreenpowerChannelOptionComponent,G
 TestBed.overrideComponent(GreenpowerTelemetryComponent,{set:{providers:[
  {provide:GreenpowerOverlayService,useValue:overlay},{provide:GreenpowerViewService,useValue:view},
  {provide:GreenpowerTelemetryService,useValue:telemetry},{provide:GreenpowerLapService,useValue:lapConfig},
- {provide:GreenpowerEventsService,useValue:events},{provide:GreenpowerEventEditService,useValue:eventEdit}
+ {provide:GreenpowerEventContextService,useValue:{changed:new Subject(),sessions:[],select(){},clear(){},acknowledge(){}}},{provide:GreenpowerEventsService,useValue:events},{provide:GreenpowerEventEditService,useValue:eventEdit}
 ]}});
 const metadataFixture=TestBed.createComponent(GreenpowerMetadataFieldsComponent);metadataFixture.componentInstance.data=editableDay(emptyDay('2026-10-20'));metadataFixture.detectChanges();metadataFixture.changeDetectorRef.detach();metadataFixture.nativeElement.remove();
 const fixture=TestBed.createComponent(GreenpowerTelemetryComponent);const detect=()=>{fixture.changeDetectorRef.markForCheck();fixture.detectChanges()};document.body.append(fixture.nativeElement);detect();
@@ -95,10 +96,10 @@ window.overlayHarness={resetView(){overlay.end=5970000;lapConfig.ready=false;lap
  const samples=Array.from({length:11},(_,i)=>({id:String(i),source:'424-phone',receivedAt:i*3000,raw:JSON.stringify({RPM:30*.44704*60*5/1.29,Spd:99})}));
  fixture.componentInstance.window=undefined;fixture.componentInstance.cursor=undefined;
  if(mode==='overlay'){overlay.active=true;overlay.end=24000;overlay.sessions=[{id:'distance',label:'Distance driver',colour:overlayColour(0),loaded:true,hidden:false,excluded:false,session,channels:overlayChannels(samples.filter(row=>row.receivedAt>=session.startAt),session as any,event)}];overlay.changed.next()}
- else{overlay.clear();fixture.componentInstance['loadedEvent']=event;fixture.componentInstance.recordingSessions=[session as any];telemetry.live=false;telemetry.channels=channelsFor(samples,samples.at(-1));telemetry.latest=samples.at(-1);telemetry.start=0;telemetry.end=30000;telemetry.changed.next()}
+ else{overlay.clear();fixture.componentInstance.eventContext.event=event;fixture.componentInstance.eventContext.sessions=[session as any];telemetry.live=false;telemetry.channels=channelsFor(samples,samples.at(-1));telemetry.latest=samples.at(-1);telemetry.start=0;telemetry.end=30000;telemetry.changed.next()}
  selectLoaded();detect();
 },electrical(mode,voltagePair=false){
- if(mode==='restore'){view['saved']=electricalSaved;electricalSaved=undefined;fixture.componentInstance.recordingSessions=[];overlay.clear();view.changed.next();detect();return}
+ if(mode==='restore'){view['saved']=electricalSaved;electricalSaved=undefined;fixture.componentInstance.eventContext.sessions=[];overlay.clear();view.changed.next();detect();return}
  electricalSaved ??= view['saved'];
  const samples=Array.from({length:11},(_,i)=>({id:String(i),source:'424-phone',receivedAt:i*3000,raw:JSON.stringify({Vt:24,A:20,AH:10+i/60,...(voltagePair?{V1:i<5?9:13}:{})})}));
  const event=emptyDay('2026-10-20'),session={id:'battery',type:'battery_dyno',startAt:6000,endAt:30000,overrides:{},batteryIds:['A','B']};
@@ -107,18 +108,18 @@ window.overlayHarness={resetView(){overlay.end=5970000;lapConfig.ready=false;lap
  if(voltagePair)view['saved']={...view['saved'],charts:{'computed:voltage-left':true},chartOrder:['computed:voltage-left']};
  fixture.componentInstance.window=undefined;fixture.componentInstance.cursor=undefined;
  if(mode==='overlay'){overlay.sessionType='battery_dyno';overlay.active=true;overlay.end=24000;overlay.sessions=[{id:'battery',label:overlayLabel(event,session as any,overlayChannels(samples,session as any,event)),colour:overlayColour(0),loaded:true,hidden:false,excluded:false,session,channels:overlayChannels(samples,session as any,event)}];overlay.changed.next()}
- else{overlay.clear();fixture.componentInstance['loadedEvent']=mode==='live'?undefined:event;fixture.componentInstance.recordingSessions=mode==='live'?[]:[session as any];telemetry.live=mode==='live';telemetry.channels=rows;telemetry.latest=samples.at(-1);telemetry.start=0;telemetry.end=30000;telemetry.changed.next()}
+ else{overlay.clear();fixture.componentInstance.eventContext.event=mode==='live'?undefined:event;fixture.componentInstance.eventContext.sessions=mode==='live'?[]:[session as any];telemetry.live=mode==='live';telemetry.channels=rows;telemetry.latest=samples.at(-1);telemetry.start=0;telemetry.end=30000;telemetry.changed.next()}
  detect();
 },speed(mode,recorded=true,circumference=1.29){
  const event={...emptyDay('2026-10-20'),wheelCircumferenceM:circumference,defaults:{motorGearTeeth:12,wheelGearTeeth:60}};
  const samples=Array.from({length:4},(_,i)=>({id:String(i),source:'424-phone',receivedAt:i*3000,raw:JSON.stringify({RPM:2000+i*200,A:20,...(recorded?{Spd:10+i}: {})})}));
  if(mode==='overlay') {overlay.active=true;overlay.sessions=Array.from({length:2},(_,i)=>{const rows=i?samples.map(row=>({...row,raw:JSON.stringify({RPM:2400,A:20})})):samples;return {id:'speed-'+i,label:'Driver '+(i+1),colour:overlayColour(i),loaded:true,hidden:false,excluded:false,channels:overlayChannels(rows,{id:'s'+i,type:'race',startAt:0,endAt:9000,overrides:{}} as any,event),session:{startAt:0,endAt:9000}}});overlay.end=9000;overlay.changed.next()}
- else {overlay.clear();fixture.componentInstance['loadedEvent']=event;telemetry.live=false;telemetry.channels=channelsFor(samples,samples.at(-1));telemetry.latest=samples.at(-1);telemetry.start=0;telemetry.end=9000;telemetry.changed.next()}
+ else {overlay.clear();fixture.componentInstance.eventContext.event=event;telemetry.live=false;telemetry.channels=channelsFor(samples,samples.at(-1));telemetry.latest=samples.at(-1);telemetry.start=0;telemetry.end=9000;telemetry.changed.next()}
  selectLoaded();detect();
 },metadata(){const editor=metadataFixture;const old={...emptyDay('2026-10-20')};delete old.wheelCircumferenceM;editor.componentRef.setInput('data',editableDay(old));editor.changeDetectorRef.reattach();document.body.append(editor.nativeElement);editor.detectChanges();this.metadataFixture=editor;return editor.componentInstance.data},metadataError(){return dayMetadataError(this.metadataFixture.componentInstance.data)},removeMetadata(){this.metadataFixture.changeDetectorRef.detach();this.metadataFixture.nativeElement.remove()},metrics(mode){
  const laps=[{time:0,end:120000,lap:1,complete:true,speed:25,current:20},{time:120000,end:240000,lap:2,complete:false},{time:240000,end:390000,lap:3,complete:true,speed:26,current:21}];
  if(mode==='overlay') {overlay.active=true;overlay.sessions=Array.from({length:3},(_,i)=>({id:'metric-'+i,label:'Driver '+(i+1),colour:overlayColour(i),loaded:true,hidden:false,excluded:false,channels:lapMetricChannels(laps),session:{startAt:0,endAt:390000}}));overlay.end=390000;overlay.changed.next()}
- else {overlay.clear();const event={...emptyDay('2026-10-20'),defaults:{motorGearTeeth:12,wheelGearTeeth:60}};fixture.componentInstance['loadedEvent']=event;telemetry.live=false;
+ else {overlay.clear();const event={...emptyDay('2026-10-20'),defaults:{motorGearTeeth:12,wheelGearTeeth:60}};fixture.componentInstance.eventContext.event=event;telemetry.live=false;
  const samples=Array.from({length:131},(_,i)=>({id:String(i),source:'424-phone',receivedAt:i*3000,raw:JSON.stringify({RPM:(i*3000<240000?25:26)*.44704*60*5/1.29,A:20,Spd:99})}));
  telemetry.channels=channelsFor(samples,samples.at(-1));telemetry.latest=samples.at(-1);lapConfig.analysis={...lapConfig.analysis,laps};telemetry.start=0;telemetry.end=390000;telemetry.changed.next()}
  selectLoaded();detect();
@@ -131,7 +132,7 @@ await build({entryPoints:[output+'/entry.ts'],outfile:output+'/bundle.js',bundle
   source=source.replace(/templateUrl: '([^']+)'/,(_,name)=>'template: '+JSON.stringify(require('node:fs').readFileSync(resolve(dirname(args.path),name),'utf8')))
    .replace(/styleUrls: \[([^\]]+)\]/,(_,names)=>'styles: '+JSON.stringify([...names.matchAll(/'([^']+)'/g)].map(([,name])=>require('node:fs').readFileSync(resolve(dirname(args.path),name),'utf8'))));
   source += args.path.includes('channel-option') ? '' : args.path.includes('greenpower-telemetry.component')
-   ? '\n(GreenpowerTelemetryComponent as any).ctorParameters = () => [{type:GreenpowerTelemetryService},{type:ChangeDetectorRef},{type:Title},{type:GreenpowerViewService},{type:GreenpowerLapService},{type:GreenpowerEventsService},{type:GreenpowerEventEditService},{type:GreenpowerOverlayService}];'
+   ? '\n(GreenpowerTelemetryComponent as any).ctorParameters = () => [{type:GreenpowerTelemetryService},{type:ChangeDetectorRef},{type:Title},{type:GreenpowerViewService},{type:GreenpowerLapService},{type:GreenpowerEventsService},{type:GreenpowerEventEditService},{type:GreenpowerOverlayService},{type:GreenpowerEventContextService}];'
    : args.path.includes('metadata-fields') ? '\n(GreenpowerMetadataFieldsComponent as any).ctorParameters = () => [{type:GreenpowerEventsService}];' : args.path.includes('greenpower-overlay') ? '\n(GreenpowerOverlayComponent as any).ctorParameters = () => [{type:GreenpowerOverlayService},{type:GreenpowerViewService},{type:ChangeDetectorRef}];' : '\n(GreenpowerChartComponent as any).ctorParameters = () => [{type:ChangeDetectorRef},{type:NgZone}];';
   return {contents:ts.transpileModule(source,{compilerOptions:{experimentalDecorators:true,emitDecoratorMetadata:true,target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText,loader:'js'};
  })}}]});
@@ -407,7 +408,7 @@ try {
   await page.screenshot({path:output+'/'+name+'-lap-metrics-normal.png',fullPage:true});
   const motorAverage=page.locator('app-greenpower-chart').filter({has:page.getByRole('heading',{name:'Lap average speed · from motor · mph',exact:true})});
   assert.match(await motorAverage.locator('.readout').textContent(),/25.0 mph/,'normal average uses motor speed despite recorded 99 m/s');
-  await page.evaluate(()=>{const h=window.overlayHarness;h.fixture.componentInstance['loadedEvent'].wheelCircumferenceM=1.4;h.fixture.componentInstance.telemetry.changed.next();h.detect()});
+  await page.evaluate(()=>{const h=window.overlayHarness;h.fixture.componentInstance.eventContext.event.wheelCircumferenceM=1.4;h.fixture.componentInstance.telemetry.changed.next();h.detect()});
   assert.match(await motorAverage.locator('.readout').textContent(),/27.1 mph/,'metadata-only changes recalculate the lap average');
   await page.evaluate(()=>{const h=window.overlayHarness;h.lapConfig.ready=true;h.lapConfig.selectionReady=true;h.detect()});
   const geometry=()=>toolbar.evaluate(el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y+scrollY,width:r.width,height:r.height}});
@@ -623,7 +624,7 @@ try {
    await page.screenshot({path:output+'/'+name+'-race-time-'+mode+'.png',fullPage:true});
   }
   await page.evaluate(()=>window.overlayHarness.raceTime('restore'));
-  await page.evaluate(()=>{const h=window.overlayHarness;h.removeMetadata();const t=h.fixture.componentInstance.telemetry;t.channels=[];t.latest=undefined;t.live=true;t.start=0;t.end=1000;h.fixture.componentInstance['loadedEvent']=undefined;t.changed.next();h.detect()});
+  await page.evaluate(()=>{const h=window.overlayHarness;h.removeMetadata();const t=h.fixture.componentInstance.telemetry;t.channels=[];t.latest=undefined;t.live=true;t.start=0;t.end=1000;h.fixture.componentInstance.eventContext.event=undefined;t.changed.next();h.detect()});
 
 
  }

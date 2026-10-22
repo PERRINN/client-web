@@ -245,3 +245,40 @@ test('event circumference uses the real callable with audited, revisioned saves 
   for (const uid of ['alice', 'bob']) assert.equal((await access(parentRef.path, uid)).status, 200);
   assert.equal((await access(parentRef.path, 'admin', 'PATCH', { perrinnAdmin: true })).status, 403);
 });
+
+test('concurrent open sessions serialize, verify their starts, preserve raw data and remain server-only', async () => {
+  const date = '2026-10-18', rec = recording(date, '424-phone'), parentRef = db.doc(ROOT + '/days/' + date);
+  const batch = db.batch(); rec.records.forEach(([path, value]) => batch.set(db.doc(path), value));
+  batch.set(parentRef, { ...dayData.emptyDay(date), sessionTypeCounts: {} });
+  batch.set(db.doc(parentRef.path + '/live/latest'), { count: 4, activeChunk: 0 }); await batch.commit();
+  const rawRef = db.doc(parentRef.path + '/chunks/0000000000'), rawBefore = await rawRef.get();
+  const range = rec.segment(0, 0);
+  const input = id => ({ schemaVersion: 2, kind: 'session', requestId: 'open-' + id, date, expectedRevision: 0, expectedSessionRevision: 0,
+    session: { id, type: 'race', startAt: range.firstAt, endAt: null, batteryIds: [], overrides: {}, ranges: [range] } });
+  await assert.rejects(invoke(input('unauthenticated'), null), error => error.code === 'unauthenticated');
+  await assert.rejects(invoke(input('viewer'), { uid: 'viewer', token: {} }), error => error.code === 'permission-denied');
+  const results = await Promise.allSettled([invoke(input('a')), invoke(input('b'))]);
+  assert.equal(results.filter(result => result.status === 'fulfilled').length, 1);
+  const rejected = results.find(result => result.status === 'rejected'); assert.equal(rejected.reason.code, 'failed-precondition');
+  const open = await parentRef.collection('sessions').where('endAt', '==', null).limit(2).get(); assert.equal(open.size, 1);
+  const session = open.docs[0].data();
+  const path = open.docs[0].ref.path;
+  assert.equal((await access(path)).status, 403);
+  for (const uid of ['viewer', 'another-user']) assert.equal((await access(path, uid)).status, 200);
+  assert.equal((await access(path, 'admin', 'PATCH', { perrinnAdmin: true })).status, 403);
+  assert.equal((await invoke(input(session.id))).replayed, true);
+  await invoke({ ...input(session.id), requestId: 'close-live', expectedSessionRevision: 1,
+    session: { ...dayData.editableSession(session), endAt: rec.segment().lastAt, ranges: [rec.segment()] } });
+  await invoke(input(session.id === 'a' ? 'b' : 'a'));
+  assert.ok((await rawRef.get()).updateTime.isEqual(rawBefore.updateTime));
+  // Reopening two same-type sessions must also serialize without a parent count change.
+  const otherId = session.id === 'a' ? 'b' : 'a';
+  const other = (await parentRef.collection('sessions').doc(otherId).get()).data();
+  await invoke({ ...input(otherId), requestId: 'close-other', expectedSessionRevision: other.revision,
+    session: { ...dayData.editableSession(other), endAt: rec.segment().lastAt, ranges: [rec.segment()] } });
+  const completed = await parentRef.collection('sessions').orderBy('startAt').limit(2).get();
+  const reopening = await Promise.allSettled(completed.docs.map(doc => invoke({ ...input(doc.id),
+    requestId: 'reopen-' + doc.id, expectedSessionRevision: doc.data().revision })));
+  assert.equal(reopening.filter(result => result.status === 'fulfilled').length, 1);
+  assert.equal((await parentRef.collection('sessions').where('endAt', '==', null).limit(2).get()).size, 1);
+});

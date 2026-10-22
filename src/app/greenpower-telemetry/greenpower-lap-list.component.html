@@ -7,7 +7,7 @@
           <div class="session-summary">
             <h3>{{ session.label }}</h3>
             <div class="session-details">
-              <span>{{ time(session.start) }}–{{ time(session.end) }}</span>
+              <span>{{ time(session.start) }}–{{ session.open ? 'Open' : time(session.end) }}</span>
               @if ((index === 0 && session.gearRatio !== undefined) || session.gearChanged) {
                 <span class="gearing">Gear ratio {{ session.gearRatio === undefined ? '—' : (session.gearRatio | number:'1.3-3') + ':1' }}{{ session.gearChanged ? ' · changed' : '' }}</span>
               }
@@ -38,7 +38,7 @@
         <tbody>
             @if (sessions.length) {
               <tr class="session-heading"><th colspan="4" scope="rowgroup">
-                @if (group.session; as session) { <span>{{ session.label }}</span><span>{{ time(session.start) }}–{{ time(session.end) }}</span> }
+                @if (group.session; as session) { <span>{{ session.label }}</span><span>{{ time(session.start) }}–{{ session.open ? 'Open' : time(session.end) }}</span> }
                 @else { <span>Outside a single session</span> }
               </th></tr>
             }

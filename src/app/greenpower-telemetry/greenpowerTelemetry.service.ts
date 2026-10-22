@@ -79,7 +79,7 @@ export class GreenpowerTelemetryService implements OnDestroy {
     return new Map(this.recording?.cachedChunks() || (this.chunks.size ? Array.from(this.chunks, ([chunk, value]) => [`${this.day}/${chunk}`, value] as const) : this.recordingCache));
   }
   range(start: number, end: number): RecordingSegment[] {
-    if (this.live || this.loading || this.more || this.error) throw new Error('Load the complete recorded range before adding a session.');
+    if (this.loading || this.more || this.error) throw new Error('Load the complete recorded range before adding a session.');
     const entries: LocatedSample[] = this.recording?.entries || Array.from(this.chunks).sort(([a], [b]) => a.localeCompare(b))
       .flatMap(([chunk, value]) => value.samples.map((sample, index) => ({ day: this.day, chunk, index, sample, lastInChunk: index === value.samples.length - 1 })));
     return recordingRange(entries, start, end);

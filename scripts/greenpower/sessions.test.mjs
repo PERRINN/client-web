@@ -117,3 +117,16 @@ test('opening laps with missing GPS coverage remain incomplete and stale GPS has
   assert.equal(stale.channel.value,'—');
   assert.equal(sessionLapAnalysis(analysis,[intervals[0],{...intervals[0],id:'overlap'}],source),analysis);
 });
+
+
+test('open session bands advance through received samples without an invented end marker', () => {
+  const open = { id: 'open', type: 'race', startAt: 200, endAt: null, overrides: {} };
+  const initial = sessionIntervals(event, [open], 300);
+  assert.equal(initial[0].start, 200); assert.equal(initial[0].end, 300); assert.equal(initial[0].open, true);
+  assert.equal(visibleSessions(initial, 0, 300, 1000)[0].ends, false);
+  const next = sessionIntervals(event, [open], 500);
+  assert.equal(next[0].end, 500); assert.equal(next[0].start, initial[0].start);
+  assert.equal(visibleSessions(next, 0, 500, 1000)[0].ends, false);
+  const closed = sessionIntervals(event, [{ ...open, endAt: 400 }], 500);
+  assert.equal(visibleSessions(closed, 0, 500, 1000)[0].ends, true);
+});

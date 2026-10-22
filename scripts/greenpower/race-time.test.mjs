@@ -96,3 +96,13 @@ test('saved race-time aliases display the fallback in charts and scalars without
   assert.equal(view.selectedChannels([fallback, recorded], { [recorded.id]: true })[0], recorded);
   assert.equal(view.selectedChannels([fallback], { '["missing"]:s': true })[0].value, '—');
 });
+
+
+test('open race elapsed time retains the recorded start through new samples and zoom', () => {
+  const open = window('race', 60000, null);
+  const channel = raceTime([open]);
+  assert.equal(channel.valueAt(60000), 0); assert.equal(channel.valueAt(180000), 2);
+  assert.equal(channel.value, '2');
+  assert.equal(raceTime([open], raw, 0, 120000, 120000).value, '1');
+  assert.equal(raceTime([open]).valueAt(120000), 1);
+});
