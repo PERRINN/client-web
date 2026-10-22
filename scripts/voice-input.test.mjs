@@ -552,19 +552,24 @@ test('client clearly distinguishes daily quotas, active recordings and unrecogni
 test('radio cues use distinct quiet pitches, fade cleanly and release their audio nodes', async t => {
   t.mock.timers.enable({ apis: ['setTimeout'] });
   const { voiceCue } = load('../src/app/prototypes/voice-input/voiceCue.ts');
-  for (const [opening, frequency] of [[true, 1040], [false, 520]]) {
+  for (const [opening, expectedFrequencies, duration] of [[true, [1040], 95], [false, [1040, 920], 185]]) {
     const envelope = [], connections = [], frequencies = [];
     let stopped, disconnected = 0, resolved = false;
     const gain = { gain: { setValueAtTime: (...args) => envelope.push(args), linearRampToValueAtTime: (...args) => envelope.push(args) },
       connect: node => connections.push(node), disconnect: () => disconnected++ };
-    const oscillator = { frequency: { setValueAtTime: value => frequencies.push(value) },
+    const oscillator = { frequency: { setValueAtTime: (...args) => frequencies.push(args) },
       connect: node => connections.push(node), start() {}, stop: when => { stopped = when; }, disconnect: () => disconnected++ };
     const context = { state: 'running', currentTime: 0, destination: {}, createOscillator: () => oscillator, createGain: () => gain };
     const pending = voiceCue(context, opening).then(() => { resolved = true; });
-    assert.deepEqual(frequencies, [frequency]); assert.equal(oscillator.type, 'triangle');
-    assert.deepEqual(envelope, [[0, 0], [.07, .005], [.07, .035], [0, .06]]);
-    assert.equal(stopped, .065); assert.deepEqual(connections, [gain, context.destination]);
-    t.mock.timers.tick(94); await Promise.resolve(); assert.equal(resolved, false);
+    assert.deepEqual(frequencies, expectedFrequencies.map((frequency, index) => [frequency, index * .09]));
+    assert.equal(oscillator.type, 'triangle');
+    assert.deepEqual(envelope, expectedFrequencies.flatMap((_frequency, index) => {
+      const start = index * .09;
+      return [[0, start], [.07, start + .005], [.07, start + .035], [0, start + .06]];
+    }));
+    assert.equal(stopped, (expectedFrequencies.length - 1) * .09 + .065);
+    assert.deepEqual(connections, [gain, context.destination]);
+    t.mock.timers.tick(duration - 1); await Promise.resolve(); assert.equal(resolved, false);
     t.mock.timers.tick(1); await pending; assert.equal(disconnected, 2);
   }
   await voiceCue({ state: 'suspended' }, true);
