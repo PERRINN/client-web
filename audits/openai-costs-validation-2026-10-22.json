@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-10-22T15:04:54.593Z",
+  "secretAccessStatus": 200,
+  "projectId": "proj_jX5e05lU2jMJCDGhCAHve8Br",
+  "requests": 1,
+  "httpStatus": 200,
+  "bucketCount": 2,
+  "resultCounts": [
+    0,
+    0
+  ],
+  "summaryText": "OpenAI cost unavailable.",
+  "warnings": [],
+  "firebaseDataWrites": 0,
+  "dailyFunctionInvocations": 0,
+  "deployed": false
+}

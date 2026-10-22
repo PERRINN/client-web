@@ -3,10 +3,13 @@ const admin = require('firebase-admin')
 try { admin.initializeApp() } catch (e) {}
 const verifyMessageUtils = require('./utils/verifyMessage')
 const createMessageUtils = require('./utils/createMessage')
-const { defineString } = require('firebase-functions/params')
+const { defineSecret, defineString } = require('firebase-functions/params')
 const { dailyCloudCostText } = require('./utils/billingCosts')
+const { dailyOpenaiCostText } = require('./utils/openaiCosts')
 const BILLING_EXPORT_TABLE = defineString('BILLING_EXPORT_TABLE', { default: '' })
 const BILLING_EXPORT_LOCATION = defineString('BILLING_EXPORT_LOCATION', { default: '' })
+const OPENAI_COST_PROJECT_ID = defineString('OPENAI_COST_PROJECT_ID', { default: '' })
+const OPENAI_ADMIN_KEY = defineSecret('OPENAI_ADMIN_KEY')
 
 exports.scheduledDailyMembership = onSchedule(
   {
@@ -14,6 +17,7 @@ exports.scheduledDailyMembership = onSchedule(
     timeoutSeconds: 540,
     memory: '1GiB',
     timeZone: 'Etc/UTC',
+    secrets: [OPENAI_ADMIN_KEY],
   },
   async (context) => {
     try {
@@ -65,13 +69,17 @@ exports.scheduledDailyMembership = onSchedule(
       const investedAmount=((statistics.wallet||{}).balance)||0
       const investedAmountRounded=Math.round(Number(investedAmount||0)*1000)/1000
       const statisticsSummaryText=`${usersCount} people. ${investedAmountRounded} total PRN balance.`
+      const now = new Date()
       const cloudCostText = await dailyCloudCostText({
-        table: BILLING_EXPORT_TABLE.value(), location: BILLING_EXPORT_LOCATION.value(),
+        table: BILLING_EXPORT_TABLE.value(), location: BILLING_EXPORT_LOCATION.value(), now,
+      })
+      const openaiCostText = await dailyOpenaiCostText({
+        apiKey: OPENAI_ADMIN_KEY.value(), projectId: OPENAI_COST_PROJECT_ID.value(), now,
       })
   
       await createMessageUtils.createMessageAFS({
         user:adminUserId,
-        text:`${statisticsSummaryText}\n${cloudCostText}`,
+        text:`${statisticsSummaryText}\n${cloudCostText}\n${openaiCostText}`,
         statistics:statistics,
         chain:"Daily-updates"
       })

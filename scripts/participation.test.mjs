@@ -156,6 +156,7 @@ test('active UI has no membership status, threshold controls or funding gate', (
   }
 });
 
+for (const openaiText of ['OpenAI cost unavailable.', 'OpenAI cost: USD 0.12 on 2026-10-18 UTC · provisional.'])
 for (const pageCount of [1, 3]) for (const costText of ['Cloud cost unavailable.', 'Cloud cost: £2.35 on 2026-10-18 UTC · provisional, after credits.']) test(`daily refresh reads ${pageCount} Authentication page(s) and retains accounting with ${costText}`, async () => {
   const calls = [], queries = [], verified = [], messages = [], errors = [];
   const admin = {
@@ -177,8 +178,9 @@ for (const pageCount of [1, 3]) for (const costText of ['Cloud cost unavailable.
   };
   const backend = load('../functions/scheduledDailyMembership.f.js', {
     'firebase-admin': admin,
-    'firebase-functions/v2/scheduler': { onSchedule: (_, handler) => handler },
-    'firebase-functions/params': { defineString: () => ({ value: () => '' }) },
+    'firebase-functions/v2/scheduler': { onSchedule: (options, handler) => { assert.equal(options.secrets[0].value(), 'test-admin-key'); return handler; } },
+    'firebase-functions/params': { defineString: () => ({ value: () => '' }), defineSecret: () => ({ value: () => 'test-admin-key' }) },
+    './utils/openaiCosts': { dailyOpenaiCostText: async options => { assert.equal(options.apiKey, 'test-admin-key'); return openaiText; } },
     './utils/billingCosts': { dailyCloudCostText: async () => costText },
     './utils/verifyMessage': { verifyMessage: async (id, data, options) => { assert.equal(options.reprocessing, true); verified.push(id); return { user: data.user, wallet: { balance: 10 }, membership: { isMember: true } }; } },
     './utils/createMessage': { createMessageAFS: async message => messages.push(message) }
@@ -194,7 +196,7 @@ for (const pageCount of [1, 3]) for (const costText of ['Cloud cost unavailable.
   assert.equal(messages[0].statistics.userCount, pageCount);
   assert.equal(messages[0].statistics.wallet.balance, pageCount * 10);
   assert.equal(messages[0].statistics.membersCount, undefined);
-  assert.equal(messages[0].text, `${pageCount} people. ${pageCount * 10} total PRN balance.\n${costText}`);
+  assert.equal(messages[0].text, `${pageCount} people. ${pageCount * 10} total PRN balance.\n${costText}\n${openaiText}`);
   assert.doesNotMatch(messages[0].text, /member|threshold|invested/i);
 });
 
