@@ -2,19 +2,23 @@ import { AfterViewChecked, ChangeDetectorRef, Component, ElementRef, HostListene
 import { Subscription } from 'rxjs';
 import { VoiceCaptureService } from './voiceCapture.service';
 import { VoiceInputService } from './voiceInput.service';
+import { VoiceQueueService } from './voiceQueue.service';
 
 @Component({
   selector: 'app-voice-input', standalone: false,
   templateUrl: './voice-input.component.html', styleUrls: ['./voice-input.component.css'],
-  providers: [VoiceCaptureService, VoiceInputService]
+  providers: [VoiceCaptureService, VoiceQueueService, VoiceInputService]
 })
 export class VoiceInputComponent implements AfterViewChecked, OnDestroy {
   @ViewChild('replies') private replies?: ElementRef<HTMLElement>;
+  @ViewChild('keepRecording') private keepRecording?: ElementRef<HTMLButtonElement>;
   private renderedReplies = 0;
   private pointer?: { id: number; touch: boolean; x: number; y: number; uid: string; started: boolean; held: boolean };
   private pressTimer?: ReturnType<typeof setTimeout>;
   private holdTimer?: ReturnType<typeof setTimeout>;
   private changes: Subscription;
+  discardId = '';
+  private focusConfirmation = false;
   constructor(public voice: VoiceInputService, changeDetector: ChangeDetectorRef) {
     this.changes = voice.changed.subscribe(() => {
       if (this.pointer && (this.pointer.uid !== voice.uid
@@ -24,6 +28,10 @@ export class VoiceInputComponent implements AfterViewChecked, OnDestroy {
   }
 
   ngAfterViewChecked(): void {
+    if (this.focusConfirmation && this.keepRecording) {
+      this.focusConfirmation = false;
+      this.keepRecording.nativeElement.focus();
+    }
     if (this.renderedReplies === this.voice.replies.length) return;
     this.renderedReplies = this.voice.replies.length;
     this.replies?.nativeElement.lastElementChild?.scrollIntoView({ block: 'nearest', behavior: 'instant' });
@@ -32,6 +40,14 @@ export class VoiceInputComponent implements AfterViewChecked, OnDestroy {
   toggle(): void {
     if (this.voice.phase === 'recording' || this.voice.phase === 'requesting') void this.voice.release();
     else if (this.voice.canRecord) void this.voice.press();
+  }
+  discard(id: string): void {
+    this.discardId = '';
+    void this.voice.queue.discard(id);
+  }
+  confirmDiscard(id: string): void {
+    this.discardId = id;
+    this.focusConfirmation = true;
   }
   pointerDown(event: PointerEvent): void {
     if (!event.isPrimary || event.button !== 0 || this.pointer || !this.voice.canToggle) return;

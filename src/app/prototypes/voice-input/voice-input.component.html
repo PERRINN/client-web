@@ -18,7 +18,7 @@
       <span class="capture-feedback" aria-hidden="true"><ng-container [ngTemplateOutlet]="feedback"></ng-container></span>
     </button>
     <ng-template #feedback>
-        @if (voice.waiting || !voice.ready) {
+        @if (voice.waiting || !voice.ready || (voice.uid && !voice.queue.ready)) {
           <span class="waiting"><i></i><i></i><i></i></span>
         } @else {
           <span class="waveform">
@@ -28,14 +28,38 @@
           </span>
         }
     </ng-template>
-    <p id="voice-status" class="sr-only" role="status">{{ !voice.ready ? 'Loading' : voice.busy || voice.waiting ? voice.label : '' }}</p>
+    <p id="voice-status" class="sr-only" role="status">{{ !voice.ready || (voice.uid && !voice.queue.ready) ? 'Loading recording queue' : voice.busy || voice.waiting ? voice.label : '' }}</p>
     @if (voice.ready && !voice.uid) { <a class="sign-in" routerLink="/login" [queryParams]="{returnUrl: '/prototypes/voice-input'}">Sign in to record</a> }
   </section>
-  <section #replies class="replies" role="log" aria-label="Voice conversation" aria-live="polite" aria-relevant="additions">
+  <section #replies class="replies" role="log" aria-label="Voice conversation" aria-live="polite">
+    @if (voice.uid && voice.queue.ready && !voice.queue.items.length && !voice.queue.canRecord) {
+      <article class="reply"><p>Device recording queue full. Clear pending recordings in their original account.</p></article>
+    }
+    @if (voice.queue.storageError) {
+      <article class="reply" role="alert">
+        <p>{{ voice.queue.storageError }}</p>
+        <button class="recovery-action" type="button" (click)="voice.queue.refresh()">Retry storage</button>
+      </article>
+    }
     @for (reply of voice.replies; track reply.id) {
       <article class="reply" [class.reply-error]="reply.kind === 'error'">
         @if (reply.kind === 'error') { <span class="sr-only">Recording error: </span> }
-        <p>{{ reply.text }}</p>
+        @if (reply.kind === 'pending' && reply.recording; as recording) {
+          <div class="recording-state">
+            <span>{{ voice.queue.label(recording) }}</span>
+            <time [attr.datetime]="recording.createdAt | date:'yyyy-MM-ddTHH:mm:ssZZZZZ'">{{ recording.createdAt | date:'shortTime' }}</time>
+          </div>
+          @if (reply.text) { <p>{{ reply.text }}</p> }
+          <div class="recovery-actions">
+            @if (discardId === recording.id) {
+              <button #keepRecording class="recovery-action" type="button" (click)="discardId = ''">Keep</button>
+              <button class="recovery-action" type="button" [disabled]="voice.queue.active(recording)" (click)="discard(recording.id)">Discard recording</button>
+            } @else {
+              <button class="recovery-action" type="button" [disabled]="!voice.queue.attention(recording) || voice.queue.active(recording)" (click)="voice.queue.retry(recording.id)">Retry</button>
+              <button class="recovery-action" type="button" [disabled]="voice.queue.active(recording)" (click)="confirmDiscard(recording.id)">Discard</button>
+            }
+          </div>
+        } @else { <p>{{ reply.text }}</p> }
       </article>
     }
   </section>

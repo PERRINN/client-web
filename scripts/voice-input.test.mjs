@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import vm from 'node:vm';
 import ts from 'typescript';
-import { BehaviorSubject, of, throwError } from 'rxjs';
+import { BehaviorSubject, Subject, firstValueFrom, of, throwError } from 'rxjs';
 
 const require = createRequire(import.meta.url);
 const { validateInput, VoiceInputError } = require('../functions/utils/voiceAudio');
@@ -157,12 +157,32 @@ function client(call = () => of({ eventId: 'saved-id', transcript: 'Bonjour' }),
   const auth = { authState, currentUser: Promise.resolve({ uid: 'alice' }) };
   const capture = { start: async () => true, finish: async () => wav(), cancel: () => {}, silenceClosingCue: () => {}, ...captureChanges };
   const calls = [];
-  const functions = { httpsCallable: () => input => { calls.push(input); return call(input); } };
+  const queue = {
+    changed: new Subject(), completed: new Subject(), items: [], canRecord: true,
+    start() { this.items = []; },
+    async enqueue(bytes) {
+      const id = crypto.randomUUID();
+      const item = { id, audio: new Blob([bytes]), owner: 'alice' };
+      this.items.push(item); this.changed.next();
+      const input = { requestId: id, audio: audio.voiceBase64(bytes), sourcePage: '/prototypes/voice-input' };
+      calls.push(input);
+      try {
+        const result = await firstValueFrom(call(input));
+        if (!this.items.includes(item)) return;
+        this.completed.next({ id, transcript: result.transcript });
+        this.items = this.items.filter(row => row !== item);
+      } catch {
+        if (!this.items.includes(item)) return;
+        item.error = 'Could not confirm whether the recording was saved. Audio is kept on this device.';
+      }
+      this.changed.next();
+    }
+  };
   const { VoiceInputService } = load('../src/app/prototypes/voice-input/voiceInput.service.ts', {
-    '@angular/core': core, '@angular/fire/compat/auth': {}, '@angular/fire/compat/functions': {},
-    './voiceCapture.service': {}, './voiceAudio': audio
+    '@angular/core': core, '@angular/fire/compat/auth': {},
+    './voiceCapture.service': {}, './voiceQueue.service': {}, './voiceQueueStore.service': {}
   });
-  return { service: new VoiceInputService(auth, functions, capture, { run: fn => fn() }), auth, calls, capture };
+  return { service: new VoiceInputService(auth, queue, capture, { run: fn => fn() }), auth, calls, capture };
 }
 test('release during permission prompt and cancellation never submit, including late permission grants', async () => {
   let grant, cancel = 0;
@@ -180,7 +200,7 @@ test('normal release saves; repeated release does not duplicate, and sign-out cl
   assert.ok(phases.includes('saved'), 'Async completion must notify the rendered component without another gesture.');
   auth.authState.next(null); assert.deepEqual(service.replies, []); assert.equal(service.canRecord, false); service.ngOnDestroy();
 });
-test('unknown outcomes automatically allow a fresh recording without replaying the prior request', async () => {
+test('uncertain outcomes retain a pending reply while allowing another recording', async () => {
   let attempt = 0;
   const { service, calls } = client(() => ++attempt === 1 ? throwError(() => ({ code: 'functions/deadline-exceeded' })) : of({ eventId: 'saved', transcript: 'Next recording' }));
   await service.press(); await service.release();
@@ -282,7 +302,7 @@ test('audio history is bounded, clears on release/cancel, and ignores late captu
 function componentFixture(fixture = client()) {
   let marks = 0;
   const { VoiceInputComponent } = load('../src/app/prototypes/voice-input/voice-input.component.ts', {
-    '@angular/core': core, './voiceCapture.service': {}, './voiceInput.service': {}
+    '@angular/core': core, './voiceCapture.service': {}, './voiceInput.service': {}, './voiceQueue.service': {}
   });
   const component = new VoiceInputComponent(fixture.service, { markForCheck: () => { marks++; } });
   return { ...fixture, component, marks: () => marks };
@@ -362,7 +382,7 @@ test('mouse and keyboard toggle immediately, pending startup cancels, and sendin
 
 
 
-test('submission failures leave the control ready without a recovery action or automatic retry', async () => {
+test('pending failures leave capture ready and retain their conversation row', async () => {
   for (const code of ['unavailable', 'aborted', 'failed-precondition', 'resource-exhausted', 'invalid-argument', 'unauthenticated']) {
     const { service, calls } = client(() => throwError(() => ({ code: 'functions/' + code })));
     await service.press(); await service.release();
@@ -384,7 +404,7 @@ test('conversation appends one ordered reply per result and preserves earlier re
   const first = service.replies[0];
   await service.press(); assert.equal(service.replies[0], first); await service.release();
   await service.press(); await service.release();
-  assert.deepEqual(service.replies.map(reply => reply.kind), ['transcript', 'error', 'transcript']);
+  assert.deepEqual(service.replies.map(reply => reply.kind), ['transcript', 'pending', 'transcript']);
   assert.equal(new Set(service.replies.map(reply => reply.id)).size, 3);
   assert.equal(service.replies[0], first); assert.match(service.replies[1].text, /Could not confirm/);
   await service.press(); service.cancel(); assert.equal(service.replies.length, 3);
@@ -407,7 +427,7 @@ test('new replies scroll into view once, without repeated scrolling on audio-lev
   const { Subject } = require('rxjs'); let scrolls = 0;
   const voice = { replies: [], changed: new Subject() };
   const { VoiceInputComponent } = load('../src/app/prototypes/voice-input/voice-input.component.ts', {
-    '@angular/core': core, './voiceCapture.service': {}, './voiceInput.service': {}
+    '@angular/core': core, './voiceCapture.service': {}, './voiceInput.service': {}, './voiceQueue.service': {}
   });
   const component = new VoiceInputComponent(voice, { markForCheck() {} });
   component.replies = { nativeElement: { lastElementChild: { scrollIntoView: () => { scrolls++; } } } };
@@ -532,23 +552,6 @@ test('raised allowance reuses today counter, counts failures and resets at UTC r
   assert.equal(db.records.get('VoiceInputLimits/alice').count, 1);
 });
 
-test('client clearly distinguishes daily quotas, active recordings and unrecognised errors', async () => {
-  for (const [details, expected] of [
-    [{ reason: 'daily-limit', dailyLimit: 20 }, /daily limit of 20 recordings.*midnight UTC/],
-    [{ reason: 'daily-limit', dailyLimit: 1000 }, /daily limit of 1,000 recordings.*midnight UTC/],
-    [{ reason: 'recording-processing' }, /previous recording is still processing/],
-    [undefined, /temporarily unavailable/],
-    [{ reason: 'daily-limit', dailyLimit: '<unsafe>' }, /temporarily unavailable/]
-  ]) {
-    const { service } = client(() => throwError(() => ({ code: 'functions/resource-exhausted', details, message: 'PRIVATE ERROR' })));
-    await service.press(); await service.release();
-    assert.match(service.replies.at(-1).text, expected);
-    assert.ok(!service.replies.at(-1).text.includes('PRIVATE')); assert.equal(service.canRecord, true);
-    service.ngOnDestroy();
-  }
-});
-
-
 test('radio cues use distinct quiet pitches, fade cleanly and release their audio nodes', async t => {
   t.mock.timers.enable({ apis: ['setTimeout'] });
   const { voiceCue } = load('../src/app/prototypes/voice-input/voiceCue.ts');
@@ -644,55 +647,6 @@ test('page interruption during submission silences closing feedback without rese
   fixture.service.ngOnDestroy();
 });
 
-test('next recording overlaps transcription; one waiting item bounds work and results stay ordered', async () => {
-  const { Observable } = require('rxjs');
-  const responses = [];
-  const { service, calls } = client(() => new Observable(subscriber => { responses.push(subscriber); }));
-  await service.press(); const first = service.release(); await until(() => calls.length === 1);
-  assert.equal(service.canRecord, true); assert.equal(service.pendingCount, 1);
-  await service.press(); assert.equal(service.phase, 'recording');
-  responses[0].next({ eventId: 'first', transcript: 'First' }); responses[0].complete(); await first;
-  assert.equal(service.phase, 'recording', 'A response must not stop the next microphone capture');
-  const second = service.release(); await until(() => calls.length === 2);
-  await service.press(); const third = service.release(); await until(() => service.pendingCount === 2);
-  assert.equal(service.canRecord, false); assert.equal(service.waiting, true);
-  await service.press(); assert.equal(calls.length, 2, 'A third outstanding recording cannot start');
-  responses[1].next({ eventId: 'second', transcript: 'Second' }); responses[1].complete(); await second;
-  await until(() => calls.length === 3);
-  assert.equal(service.canRecord, true);
-  responses[2].next({ eventId: 'third', transcript: 'Third' }); responses[2].complete(); await third;
-  assert.deepEqual(service.replies.map(reply => reply.text), ['First', 'Second', 'Third']);
-  assert.equal(service.pendingCount, 0); service.ngOnDestroy();
-});
-
-test('capture cancellation preserves an in-flight result; request failure releases the waiting recording once', async () => {
-  const { Observable } = require('rxjs'); const responses = [];
-  const { service, calls } = client(() => new Observable(subscriber => { responses.push(subscriber); }));
-  await service.press(); const first = service.release(); await until(() => calls.length === 1);
-  await service.press(); service.cancel(); assert.equal(service.pendingCount, 1);
-  await service.press(); const next = service.release(); await until(() => service.pendingCount === 2);
-  responses[0].error({ code: 'functions/unavailable' }); await first;
-  await until(() => calls.length === 2);
-  assert.match(service.replies[0].text, /Could not confirm/);
-  responses[1].next({ eventId: 'next', transcript: 'Next' }); responses[1].complete(); await next;
-  assert.equal(calls.length, 2); assert.equal(service.replies[1].text, 'Next'); service.ngOnDestroy();
-});
-
-test('account changes and destruction discard queued audio and suppress late replies', async () => {
-  const { Observable } = require('rxjs');
-  for (const destroy of [false, true]) {
-    let response;
-    const { service, auth, calls } = client(() => new Observable(subscriber => { response = subscriber; }));
-    await service.press(); const first = service.release(); await until(() => calls.length === 1);
-    await service.press(); const next = service.release(); await until(() => service.pendingCount === 2);
-    const queued = service.queued;
-    if (destroy) service.ngOnDestroy(); else auth.authState.next({ uid: 'bob' });
-    assert.equal(queued.request, undefined); assert.equal(service.pendingCount, 0);
-    response.next({ eventId: 'old', transcript: 'Private old response' }); response.complete();
-    await Promise.all([first, next]); assert.equal(calls.length, 1); assert.deepEqual(service.replies, []);
-    assert.equal(service.pendingCount, 0); if (!destroy) service.ngOnDestroy();
-  }
-});
 
 test('touch, mouse and pen switch to push-to-talk at exactly 600 ms', async t => {
   t.mock.timers.enable({ apis: ['setTimeout'] });

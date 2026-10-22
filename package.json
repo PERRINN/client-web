@@ -7,7 +7,7 @@
     "functions"
   ],
   "scripts": {
-    "test:voice-input": "node --test scripts/voice-input.test.mjs",
+    "test:voice-input": "node --test scripts/voice-input.test.mjs scripts/voice-queue.test.mjs",
     "test:voice-input:emulator": "node --test scripts/voice-input.emulator.mjs",
     "ng": "ng",
     "start": "ng serve --configuration dev",
@@ -63,6 +63,7 @@
     "@eslint/js": "^9.39.5",
     "@types/node": "18.15.12",
     "angular-eslint": "^19.8.1",
+    "fake-indexeddb": "^6.2.6",
     "typescript": "5.9.3",
     "typescript-eslint": "^8.67.0"
   }

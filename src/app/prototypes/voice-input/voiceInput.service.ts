@@ -1,13 +1,11 @@
 import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { AngularFireFunctions } from '@angular/fire/compat/functions';
-import { firstValueFrom, Subject, Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 import { VoiceCaptureService } from './voiceCapture.service';
-import { voiceBase64 } from './voiceAudio';
+import { VoiceQueueService } from './voiceQueue.service';
+import { VoiceRecording } from './voiceQueueStore.service';
 
-interface VoiceRequest { requestId: string; audio: string; sourcePage: string }
-interface VoiceResult { eventId: string; transcript: string }
-export interface VoiceReply { id: number; kind: 'transcript' | 'error'; text: string }
+export interface VoiceReply { id: number; kind: 'transcript' | 'error' | 'pending'; text: string; recording?: VoiceRecording }
 type Phase = 'idle' | 'requesting' | 'recording' | 'sending' | 'saved' | 'error';
 
 @Injectable()
@@ -17,32 +15,54 @@ export class VoiceInputService implements OnDestroy {
   ready = false;
   uid = '';
   phase: Phase = 'idle';
-  pendingCount = 0;
   readonly replies: VoiceReply[] = [];
   private replyId = 0;
   private generation = 0;
   private captureGeneration = 0;
-  private submissions = Promise.resolve();
-  private queued?: { request?: VoiceRequest };
   private timer?: ReturnType<typeof setTimeout>;
   private subscription: Subscription;
 
-  constructor(private auth: AngularFireAuth, private functions: AngularFireFunctions,
+  constructor(private auth: AngularFireAuth, public queue: VoiceQueueService,
     private capture: VoiceCaptureService, private zone: NgZone) {
-    this.subscription = auth.authState.subscribe({
+    this.subscription = new Subscription();
+    this.subscription.add(queue.changed.subscribe(() => {
+      const ids = new Set(queue.items.map(item => item.id));
+      for (let i = this.replies.length - 1; i >= 0; i--) {
+        const reply = this.replies[i];
+        if (reply.kind === 'pending' && reply.recording && !ids.has(reply.recording.id)) this.replies.splice(i, 1);
+      }
+      for (const item of queue.items) {
+        let reply = this.replies.find(row => row.recording?.id === item.id);
+        if (!reply) { reply = { id: ++this.replyId, kind: 'pending', text: '', recording: item }; this.replies.push(reply); }
+        reply.recording = item; reply.text = item.error || '';
+      }
+      this.changed.next();
+    }));
+    this.subscription.add(queue.completed.subscribe(result => {
+      const reply = this.replies.find(row => row.recording?.id === result.id);
+      if (reply) { reply.kind = 'transcript'; reply.text = result.transcript; reply.recording = undefined; }
+      else this.reply(result.transcript, 'transcript');
+      if (!this.busy) this.phase = 'saved';
+      this.changed.next();
+    }));
+    this.subscription.add(auth.authState.subscribe({
       next: user => {
         if (this.uid !== (user?.uid || '')) { this.generation++; this.reset(); }
-        this.uid = user?.uid || ''; this.ready = true; this.changed.next();
+        const uid = user?.uid || '';
+        if (this.uid !== uid) { this.uid = uid; queue.start(uid); }
+        this.ready = true; this.changed.next();
       },
-      error: () => { this.generation++; this.reset(); this.uid = ''; this.ready = true; this.changed.next(); }
-    });
+      error: () => { this.generation++; this.reset(); this.uid = ''; queue.start(''); this.ready = true; this.changed.next(); }
+    }));
   }
+  get pendingCount(): number { return this.queue.items.length; }
   get busy(): boolean { return this.phase === 'requesting' || this.phase === 'recording' || this.phase === 'sending'; }
-  get canRecord(): boolean { return this.ready && !!this.uid && !this.busy && this.pendingCount < 2; }
+  get canRecord(): boolean { return this.ready && !!this.uid && !this.busy && this.queue.canRecord; }
   get canToggle(): boolean { return this.canRecord || this.phase === 'recording' || this.phase === 'requesting'; }
-  get waiting(): boolean { return this.phase === 'sending' || (!this.canToggle && this.pendingCount > 0); }
+  get waiting(): boolean { return this.phase === 'sending' || (!this.canToggle && !!this.uid && !this.queue.canRecord); }
   get label(): string {
-    if (this.waiting) return 'Waiting for previous recordings';
+    if (this.phase === 'sending') return 'Preparing recording';
+    if (this.waiting) return 'Recording queue unavailable or full';
     return ({ idle: 'Start recording', requesting: 'Cancel microphone', recording: 'Stop recording', sending: 'Preparing recording', saved: 'Start recording', error: 'Start recording' })[this.phase];
   }
 
@@ -85,57 +105,11 @@ export class VoiceInputService implements OnDestroy {
     try {
       const audio = await this.capture.finish();
       if (generation !== this.generation || captureGeneration !== this.captureGeneration) return;
-      const entry: { request?: VoiceRequest } = {
-        request: { requestId: crypto.randomUUID(), audio: voiceBase64(audio), sourcePage: '/prototypes/voice-input' }
-      };
-      this.queued = entry;
-      this.phase = 'idle';
-      this.pendingCount++;
-      // One in flight plus one waiting recording; submit serially without retries.
-      const pending = this.submissions.then(async () => {
-        const request = entry.request;
-        entry.request = undefined;
-        if (this.queued === entry) this.queued = undefined;
-        if (request && generation === this.generation) await this.submit(request);
-      }).finally(() => {
-        if (generation === this.generation) { this.pendingCount--; this.changed.next(); }
-      });
-      this.submissions = pending;
-      this.changed.next();
-      await pending;
+      await this.queue.enqueue(audio);
+      if (generation === this.generation) this.phase = this.replies.at(-1)?.kind === 'transcript' ? 'saved' : 'idle';
     } catch (error) {
       if (generation !== this.generation || captureGeneration !== this.captureGeneration) return;
       this.phase = 'idle'; this.reply(error instanceof Error ? error.message : 'Could not capture audio. Try again.', 'error');
-    } finally { if (generation === this.generation) this.changed.next(); }
-  }
-
-  private async submit(request: VoiceRequest): Promise<void> {
-    if (!this.uid) return;
-    const generation = this.generation, uid = this.uid;
-    try {
-      const user = await this.auth.currentUser;
-      if (generation !== this.generation) return;
-      if (!user || user.uid !== uid) { this.generation++; this.reset(); return; }
-      const response = await firstValueFrom(this.functions.httpsCallable<VoiceRequest, VoiceResult>('voiceInput', { timeout: 65000 })(request));
-      if (generation !== this.generation || uid !== this.uid) return;
-      if (!response?.eventId || typeof response.transcript !== 'string') throw new Error('Invalid response');
-      this.reply(response.transcript, 'transcript');
-    } catch (error) {
-      if (generation !== this.generation) return;
-      const code = (error as { code?: string }).code?.replace('functions/', '');
-      const details = (error as { details?: { reason?: string; dailyLimit?: number } }).details;
-      const messages: Record<string, string> = {
-        unauthenticated: 'Sign in again to record.', 'invalid-argument': 'No usable speech recorded. Try again.',
-        'resource-exhausted': details?.reason === 'daily-limit' && [20, 1000].includes(details.dailyLimit)
-          ? `You’ve reached your daily limit of ${details.dailyLimit.toLocaleString('en-GB')} recordings. Your allowance resets at midnight UTC.`
-          : details?.reason === 'recording-processing'
-            ? 'Your previous recording is still processing. Try again shortly.'
-            : 'Recording is temporarily unavailable. Try again later.',
-        unavailable: 'Could not confirm whether the recording was saved.',
-        aborted: 'The previous recording is still processing.',
-        'failed-precondition': 'Recording failed or voice input is unavailable. Record again later.'
-      };
-      this.reply(messages[code || ''] || 'Could not confirm whether the recording was saved.', 'error');
     } finally { if (generation === this.generation) this.changed.next(); }
   }
 
@@ -154,12 +128,10 @@ export class VoiceInputService implements OnDestroy {
   }
   private clearLevels(): void { this.levels = Array<number>(9).fill(0); }
   private reset(): void {
-    if (this.queued) this.queued.request = undefined;
-    this.queued = undefined;
-    this.captureGeneration++; this.pendingCount = 0; this.submissions = Promise.resolve();
+    this.captureGeneration++;
     this.clearLevels();
     this.capture.cancel(); clearTimeout(this.timer);
     this.phase = 'idle'; this.replies.length = 0; this.changed.next();
   }
-  ngOnDestroy(): void { this.generation++; this.reset(); this.subscription.unsubscribe(); this.changed.complete(); }
+  ngOnDestroy(): void { this.generation++; this.reset(); this.queue.start(''); this.subscription.unsubscribe(); this.changed.complete(); }
 }

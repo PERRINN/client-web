@@ -11,6 +11,7 @@ process.env.OPENAI_API_KEY = 'emulator-fake-key';
 process.env.VOICE_TRANSCRIPTION_MODEL = 'gpt-transcribe';
 process.env.VOICE_INPUT_HIGH_LIMIT_UID = 'quota-admin';
 const { voiceInput } = require('../functions/voiceInput.f.js');
+const { voiceInputStatus } = require('../functions/voiceInputStatus.f.js');
 const { processVoiceInput } = require('../functions/utils/voiceInput');
 const originalFetch = globalThis.fetch;
 let providerCalls = 0;
@@ -30,6 +31,7 @@ audio.writeUInt16LE(2, 32); audio.writeUInt16LE(16, 34); audio.write('data', 36)
 for (let i = 44; i < audio.length; i += 2) audio.writeInt16LE(Math.round(3000 * Math.sin(i * .2)), i);
 const request = () => ({ requestId: randomUUID(), sourcePage: '/prototypes/voice-input', audio: audio.toString('base64') });
 const invoke = (data, uid = 'alice') => voiceInput.run({ data, auth: uid ? { uid, token: {} } : undefined });
+const status = (requestId, uid = 'alice') => voiceInputStatus.run({ data: { requestId }, auth: uid ? { uid, token: {} } : undefined });
 const options = changes => ({ model: 'test-model', timestamp: () => admin.firestore.FieldValue.serverTimestamp(), transcribe: async () => 'Test', ...changes });
 const code = value => error => error.code === value;
 function token(uid, claims = {}) {
@@ -73,6 +75,21 @@ test('rules deny event/counter get, list, create, update and delete to anonymous
   assert.equal((await access('PERRINNMessages/public-voice-rules-test')).status, 200);
   assert.equal((await access('GreenpowerTelemetry/voice-rules-test')).status, 403);
   assert.equal((await access('GreenpowerTelemetry/voice-rules-test', 'alice')).status, 200);
+});
+test('status callable recovers only the caller result without writes, quota changes or provider calls', async () => {
+  const input = request(), response = await invoke(input);
+  const eventRef = db.doc('VoiceInputEvents/' + response.eventId), limitRef = db.doc('VoiceInputLimits/alice');
+  const beforeEvent = await eventRef.get(), beforeLimit = await limitRef.get(), beforeCalls = providerCalls;
+  assert.deepEqual(await status(input.requestId), { status: 'completed', ...response });
+  assert.deepEqual(await status(input.requestId, 'status-other-user'), { status: 'missing' });
+  await assert.rejects(status(input.requestId, null), code('unauthenticated'));
+  await assert.rejects(voiceInputStatus.run({ data: { requestId: input.requestId, userId: 'alice' }, auth: { uid: 'bob' } }), code('invalid-argument'));
+  assert.equal((await eventRef.get()).updateTime.toMillis(), beforeEvent.updateTime.toMillis());
+  assert.equal((await limitRef.get()).updateTime.toMillis(), beforeLimit.updateTime.toMillis());
+  assert.equal(providerCalls, beforeCalls);
+  await eventRef.update({ status: 'processing', createdAt: admin.firestore.Timestamp.fromMillis(Date.now() - 180000) });
+  assert.deepEqual(await status(input.requestId), { status: 'stalled' });
+  await eventRef.update({ status: 'failed' }); assert.deepEqual(await status(input.requestId), { status: 'failed' });
 });
 test('real concurrent transactions allow one active transcription and prevent duplicate calls', async () => {
   const uid = 'concurrent', input = request(); let calls = 0, finish;
