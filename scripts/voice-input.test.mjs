@@ -293,14 +293,14 @@ function gesture(component, duration, changes = {}) {
   component.pointerDown(pointer(changes));
   component.pointerUp(pointer({ ...changes, timeStamp: duration }));
 }
-test('touch toggles at 120 ms while held and release never toggles again', async t => {
+test('touch toggles at 120 ms and releases below 600 ms stay latched', async t => {
   t.mock.timers.enable({ apis: ['setTimeout'] });
   const { service, component, calls } = componentFixture();
   component.pointerDown(pointer());
   t.mock.timers.tick(119); assert.equal(service.phase, 'idle');
   t.mock.timers.tick(1); await new Promise(setImmediate);
   assert.equal(service.phase, 'recording');
-  t.mock.timers.tick(1000); assert.equal(service.phase, 'recording');
+  t.mock.timers.tick(479); assert.equal(service.phase, 'recording');
   component.pointerUp(pointer()); assert.equal(service.phase, 'recording');
   component.pointerDown(pointer());
   t.mock.timers.tick(120); await new Promise(setImmediate);
@@ -692,4 +692,80 @@ test('account changes and destruction discard queued audio and suppress late rep
     await Promise.all([first, next]); assert.equal(calls.length, 1); assert.deepEqual(service.replies, []);
     assert.equal(service.pendingCount, 0); if (!destroy) service.ngOnDestroy();
   }
+});
+
+test('touch, mouse and pen switch to push-to-talk at exactly 600 ms', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  for (const pointerType of ['touch', 'mouse', 'pen']) {
+    for (const duration of [599, 600, 900]) {
+      const { service, component, calls } = componentFixture();
+      component.pointerDown(pointer({ pointerType }));
+      t.mock.timers.tick(Math.min(duration, 120)); await new Promise(setImmediate);
+      assert.equal(service.phase, 'recording', pointerType);
+      t.mock.timers.tick(duration - 120);
+      component.pointerUp(pointer({ pointerType })); await new Promise(setImmediate);
+      assert.equal(calls.length, duration >= 600 ? 1 : 0, `${pointerType} at ${duration} ms`);
+      assert.equal(service.phase, duration >= 600 ? 'saved' : 'recording');
+      component.pointerUp(pointer({ pointerType }));
+      assert.equal(calls.length, duration >= 600 ? 1 : 0);
+      component.ngOnDestroy(); service.ngOnDestroy();
+    }
+  }
+});
+test('release of a long press cancels pending permission and ignores a late grant', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  let grant;
+  const { service, component, calls } = componentFixture(client(undefined, {
+    start: () => new Promise(resolve => { grant = resolve; })
+  }));
+  component.pointerDown(pointer()); t.mock.timers.tick(600);
+  assert.equal(service.phase, 'requesting'); component.pointerUp(pointer());
+  assert.equal(service.phase, 'idle'); grant(true); await new Promise(setImmediate);
+  assert.equal(service.phase, 'idle'); assert.equal(calls.length, 0);
+  component.ngOnDestroy(); service.ngOnDestroy();
+});
+test('holding a press that stops latched recording never reopens it on release', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  for (const pointerType of ['touch', 'mouse']) {
+    const { service, component, calls } = componentFixture();
+    await service.press(); component.pointerDown(pointer({ pointerType }));
+    t.mock.timers.tick(600); await new Promise(setImmediate);
+    assert.equal(calls.length, 1); assert.equal(service.phase, 'saved');
+    component.pointerUp(pointer({ pointerType })); await new Promise(setImmediate);
+    assert.equal(calls.length, 1); assert.equal(service.phase, 'saved');
+    component.ngOnDestroy(); service.ngOnDestroy();
+  }
+});
+test('movement, pointer cancellation, lost capture and interruption cancel held capture without submission', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  for (const action of ['move', 'cancel', 'lost capture', 'blur', 'hidden', 'pagehide']) {
+    const { service, component, calls } = componentFixture();
+    component.pointerDown(pointer()); t.mock.timers.tick(120); await new Promise(setImmediate);
+    t.mock.timers.tick(480);
+    if (action === 'move') component.pointerMove(pointer({ clientX: 31 }));
+    else if (action === 'cancel' || action === 'lost capture') component.pointerCancel(pointer());
+    else component.interrupt();
+    component.pointerUp(pointer()); await new Promise(setImmediate);
+    assert.equal(service.phase, 'idle', action); assert.equal(calls.length, 0, action);
+    component.ngOnDestroy(); service.ngOnDestroy();
+  }
+});
+test('an account change clears the old hold before another capture', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const { service, component, auth, calls } = componentFixture();
+  component.pointerDown(pointer()); t.mock.timers.tick(120); await new Promise(setImmediate);
+  t.mock.timers.tick(480); auth.authState.next({ uid: 'bob' });
+  await service.press(); component.pointerUp(pointer()); await new Promise(setImmediate);
+  assert.equal(service.phase, 'recording'); assert.equal(calls.length, 0);
+  component.ngOnDestroy(); service.ngOnDestroy();
+});
+test('automatic completion clears the hold so releasing cannot affect a later recording', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const { service, component, calls } = componentFixture();
+  component.pointerDown(pointer()); t.mock.timers.tick(120); await new Promise(setImmediate);
+  t.mock.timers.tick(30000); await new Promise(setImmediate);
+  assert.equal(calls.length, 1); assert.equal(service.phase, 'saved');
+  await service.press(); component.pointerUp(pointer()); await new Promise(setImmediate);
+  assert.equal(service.phase, 'recording'); assert.equal(calls.length, 1);
+  component.ngOnDestroy(); service.ngOnDestroy();
 });
