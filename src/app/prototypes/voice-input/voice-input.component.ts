@@ -12,8 +12,7 @@ import { VoiceQueueService } from './voiceQueue.service';
 export class VoiceInputComponent implements AfterViewChecked, OnDestroy {
   @ViewChild('replies') private replies?: ElementRef<HTMLElement>;
   private renderedReplies = 0;
-  private pointer?: { id: number; touch: boolean; x: number; y: number; uid: string; started: boolean; held: boolean };
-  private pressTimer?: ReturnType<typeof setTimeout>;
+  private pointer?: { id: number; x: number; y: number; uid: string; started: boolean; held: boolean };
   private holdTimer?: ReturnType<typeof setTimeout>;
   private changes: Subscription;
   constructor(public voice: VoiceInputService, changeDetector: ChangeDetectorRef) {
@@ -37,7 +36,7 @@ export class VoiceInputComponent implements AfterViewChecked, OnDestroy {
   pointerDown(event: PointerEvent): void {
     if (!event.isPrimary || event.button !== 0 || this.pointer || !this.voice.canToggle) return;
     event.preventDefault();
-    this.pointer = { id: event.pointerId, touch: event.pointerType === 'touch', x: event.clientX, y: event.clientY,
+    this.pointer = { id: event.pointerId, x: event.clientX, y: event.clientY,
       uid: this.voice.uid, started: false, held: false };
     try { (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId); }
     catch { this.clearPointer(); return; }
@@ -45,12 +44,6 @@ export class VoiceInputComponent implements AfterViewChecked, OnDestroy {
       this.holdTimer = undefined;
       if (this.pointer) this.pointer.held = true;
     }, 600);
-    if (this.pointer.touch) this.pressTimer = setTimeout(() => this.activatePointer(), 120);
-    else this.activatePointer();
-  }
-  private activatePointer(): void {
-    this.pressTimer = undefined;
-    if (!this.pointer || this.pointer.uid !== this.voice.uid) return;
     this.pointer.started = this.voice.canRecord;
     this.toggle();
   }
@@ -74,8 +67,8 @@ export class VoiceInputComponent implements AfterViewChecked, OnDestroy {
     if (cancel) this.voice.cancel();
   }
   private clearPointer(): void {
-    clearTimeout(this.pressTimer); clearTimeout(this.holdTimer);
-    this.pressTimer = undefined; this.holdTimer = undefined; this.pointer = undefined;
+    clearTimeout(this.holdTimer);
+    this.holdTimer = undefined; this.pointer = undefined;
   }
   keyDown(event: KeyboardEvent): void {
     if (event.key === 'Escape') { event.preventDefault(); this.interrupt(); return; }

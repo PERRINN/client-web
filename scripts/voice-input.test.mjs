@@ -313,42 +313,37 @@ function gesture(component, duration, changes = {}) {
   component.pointerDown(pointer(changes));
   component.pointerUp(pointer({ ...changes, timeStamp: duration }));
 }
-test('touch toggles at 120 ms and releases below 600 ms stay latched', async t => {
+test('touch activates synchronously and even a quick tap stays latched', async t => {
   t.mock.timers.enable({ apis: ['setTimeout'] });
-  const { service, component, calls } = componentFixture();
-  component.pointerDown(pointer());
-  t.mock.timers.tick(119); assert.equal(service.phase, 'idle');
-  t.mock.timers.tick(1); await new Promise(setImmediate);
-  assert.equal(service.phase, 'recording');
-  t.mock.timers.tick(479); assert.equal(service.phase, 'recording');
-  component.pointerUp(pointer()); assert.equal(service.phase, 'recording');
-  component.pointerDown(pointer());
-  t.mock.timers.tick(120); await new Promise(setImmediate);
-  assert.equal(service.phase, 'saved'); assert.equal(calls.length, 1);
-  component.pointerUp(pointer()); assert.equal(service.phase, 'saved');
-  assert.equal(calls.length, 1);
-  component.ngOnDestroy(); service.ngOnDestroy();
+  for (const duration of [0, 30, 119, 599]) {
+    const { service, component, calls } = componentFixture();
+    component.pointerDown(pointer());
+    assert.equal(service.phase, 'requesting', 'microphone starts directly in the touch gesture');
+    t.mock.timers.tick(duration);
+    component.pointerUp(pointer()); await new Promise(setImmediate);
+    assert.equal(service.phase, 'recording', `${duration} ms tap starts recording`);
+    component.pointerDown(pointer());
+    assert.equal(service.phase, 'sending', 'stopping also responds immediately');
+    component.pointerUp(pointer()); await new Promise(setImmediate);
+    assert.equal(service.phase, 'saved'); assert.equal(calls.length, 1);
+    component.ngOnDestroy(); service.ngOnDestroy();
+  }
 });
-test('short touches, swipes, cancelled gestures and interrupted timers never toggle', async t => {
+test('cancelled touch startup ignores late permission grants without submitting', async t => {
   t.mock.timers.enable({ apis: ['setTimeout'] });
-  for (const action of ['release', 'move', 'cancel', 'lost capture', 'blur', 'destroy', 'account change']) {
-    for (const recording of [false, true]) {
-      const { service, component, auth, calls } = componentFixture();
-      if (recording) await service.press();
-      component.pointerDown(pointer()); t.mock.timers.tick(119);
-      if (action === 'release') component.pointerUp(pointer());
-      else if (action === 'move') component.pointerMove(pointer({ clientX: 31 }));
-      else if (action === 'cancel' || action === 'lost capture') component.pointerCancel(pointer());
-      else if (action === 'blur') component.interrupt();
-      else if (action === 'destroy') component.ngOnDestroy();
-      else auth.authState.next({ uid: 'bob' });
-      t.mock.timers.tick(1); await new Promise(setImmediate);
-      const expected = recording && !['blur', 'account change'].includes(action) ? 'recording' : 'idle';
-      assert.equal(service.phase, expected, action); assert.equal(calls.length, 0, action);
-      component.pointerUp(pointer());
-      if (action !== 'destroy') component.ngOnDestroy();
-      service.ngOnDestroy();
-    }
+  for (const action of ['move', 'cancel', 'lost capture', 'blur', 'account change']) {
+    let grant;
+    const { service, component, auth, calls } = componentFixture(client(undefined, {
+      start: () => new Promise(resolve => { grant = resolve; })
+    }));
+    component.pointerDown(pointer()); assert.equal(service.phase, 'requesting');
+    if (action === 'move') component.pointerMove(pointer({ clientX: 31 }));
+    else if (action === 'cancel' || action === 'lost capture') component.pointerCancel(pointer());
+    else if (action === 'blur') component.interrupt();
+    else auth.authState.next({ uid: 'bob' });
+    t.mock.timers.tick(600); component.pointerUp(pointer()); grant(true); await new Promise(setImmediate);
+    assert.equal(service.phase, 'idle', action); assert.equal(calls.length, 0, action);
+    component.ngOnDestroy(); service.ngOnDestroy();
   }
 });
 test('a held second touch cancels pending microphone permission before release', async t => {
