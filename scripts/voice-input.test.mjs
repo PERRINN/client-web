@@ -643,3 +643,53 @@ test('page interruption during submission silences closing feedback without rese
   finish(wav()); await pending; assert.equal(fixture.calls.length, 1); assert.equal(fixture.service.phase, 'saved');
   fixture.service.ngOnDestroy();
 });
+
+test('next recording overlaps transcription; one waiting item bounds work and results stay ordered', async () => {
+  const { Observable } = require('rxjs');
+  const responses = [];
+  const { service, calls } = client(() => new Observable(subscriber => { responses.push(subscriber); }));
+  await service.press(); const first = service.release(); await until(() => calls.length === 1);
+  assert.equal(service.canRecord, true); assert.equal(service.pendingCount, 1);
+  await service.press(); assert.equal(service.phase, 'recording');
+  responses[0].next({ eventId: 'first', transcript: 'First' }); responses[0].complete(); await first;
+  assert.equal(service.phase, 'recording', 'A response must not stop the next microphone capture');
+  const second = service.release(); await until(() => calls.length === 2);
+  await service.press(); const third = service.release(); await until(() => service.pendingCount === 2);
+  assert.equal(service.canRecord, false); assert.equal(service.waiting, true);
+  await service.press(); assert.equal(calls.length, 2, 'A third outstanding recording cannot start');
+  responses[1].next({ eventId: 'second', transcript: 'Second' }); responses[1].complete(); await second;
+  await until(() => calls.length === 3);
+  assert.equal(service.canRecord, true);
+  responses[2].next({ eventId: 'third', transcript: 'Third' }); responses[2].complete(); await third;
+  assert.deepEqual(service.replies.map(reply => reply.text), ['First', 'Second', 'Third']);
+  assert.equal(service.pendingCount, 0); service.ngOnDestroy();
+});
+
+test('capture cancellation preserves an in-flight result; request failure releases the waiting recording once', async () => {
+  const { Observable } = require('rxjs'); const responses = [];
+  const { service, calls } = client(() => new Observable(subscriber => { responses.push(subscriber); }));
+  await service.press(); const first = service.release(); await until(() => calls.length === 1);
+  await service.press(); service.cancel(); assert.equal(service.pendingCount, 1);
+  await service.press(); const next = service.release(); await until(() => service.pendingCount === 2);
+  responses[0].error({ code: 'functions/unavailable' }); await first;
+  await until(() => calls.length === 2);
+  assert.match(service.replies[0].text, /Could not confirm/);
+  responses[1].next({ eventId: 'next', transcript: 'Next' }); responses[1].complete(); await next;
+  assert.equal(calls.length, 2); assert.equal(service.replies[1].text, 'Next'); service.ngOnDestroy();
+});
+
+test('account changes and destruction discard queued audio and suppress late replies', async () => {
+  const { Observable } = require('rxjs');
+  for (const destroy of [false, true]) {
+    let response;
+    const { service, auth, calls } = client(() => new Observable(subscriber => { response = subscriber; }));
+    await service.press(); const first = service.release(); await until(() => calls.length === 1);
+    await service.press(); const next = service.release(); await until(() => service.pendingCount === 2);
+    const queued = service.queued;
+    if (destroy) service.ngOnDestroy(); else auth.authState.next({ uid: 'bob' });
+    assert.equal(queued.request, undefined); assert.equal(service.pendingCount, 0);
+    response.next({ eventId: 'old', transcript: 'Private old response' }); response.complete();
+    await Promise.all([first, next]); assert.equal(calls.length, 1); assert.deepEqual(service.replies, []);
+    assert.equal(service.pendingCount, 0); if (!destroy) service.ngOnDestroy();
+  }
+});

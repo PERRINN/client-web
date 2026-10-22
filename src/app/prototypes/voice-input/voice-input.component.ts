@@ -29,7 +29,7 @@ export class VoiceInputComponent implements AfterViewChecked, OnDestroy {
     else if (this.voice.canRecord) void this.voice.press();
   }
   pointerDown(event: PointerEvent): void {
-    if (!event.isPrimary || event.button !== 0 || this.pointer || !this.voice.ready || !this.voice.uid || this.voice.phase === 'sending') return;
+    if (!event.isPrimary || event.button !== 0 || this.pointer || !this.voice.canToggle) return;
     event.preventDefault();
     this.pointer = { id: event.pointerId, touch: event.pointerType === 'touch', x: event.clientX, y: event.clientY };
     try { (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId); }

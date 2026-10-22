@@ -17,9 +17,13 @@ export class VoiceInputService implements OnDestroy {
   ready = false;
   uid = '';
   phase: Phase = 'idle';
+  pendingCount = 0;
   readonly replies: VoiceReply[] = [];
   private replyId = 0;
   private generation = 0;
+  private captureGeneration = 0;
+  private submissions = Promise.resolve();
+  private queued?: { request?: VoiceRequest };
   private timer?: ReturnType<typeof setTimeout>;
   private subscription: Subscription;
 
@@ -34,14 +38,17 @@ export class VoiceInputService implements OnDestroy {
     });
   }
   get busy(): boolean { return this.phase === 'requesting' || this.phase === 'recording' || this.phase === 'sending'; }
-  get canRecord(): boolean { return this.ready && !!this.uid && !this.busy; }
+  get canRecord(): boolean { return this.ready && !!this.uid && !this.busy && this.pendingCount < 2; }
+  get canToggle(): boolean { return this.canRecord || this.phase === 'recording' || this.phase === 'requesting'; }
+  get waiting(): boolean { return this.phase === 'sending' || (!this.canToggle && this.pendingCount > 0); }
   get label(): string {
-    return ({ idle: 'Start recording', requesting: 'Cancel microphone', recording: 'Stop recording', sending: 'Transcribing', saved: 'Start recording', error: 'Start recording' })[this.phase];
+    if (this.waiting) return 'Waiting for previous recordings';
+    return ({ idle: 'Start recording', requesting: 'Cancel microphone', recording: 'Stop recording', sending: 'Preparing recording', saved: 'Start recording', error: 'Start recording' })[this.phase];
   }
 
   async press(): Promise<void> {
     if (!this.canRecord) return;
-    const generation = ++this.generation;
+    const generation = ++this.captureGeneration;
     this.clearLevels();
     this.phase = 'requesting'; this.changed.next();
     try {
@@ -49,23 +56,23 @@ export class VoiceInputService implements OnDestroy {
         () => this.zone.run(() => { void this.release(); }),
         () => this.zone.run(() => this.cancel('Recording interrupted. Try again.')),
         level => {
-          if (generation !== this.generation || this.phase !== 'recording') return;
+          if (generation !== this.captureGeneration || this.phase !== 'recording') return;
           this.zone.run(() => {
             this.levels = [...this.levels.slice(1), level]; this.changed.next();
           });
         }
       );
-      if (!started || generation !== this.generation) return;
+      if (!started || generation !== this.captureGeneration) return;
       this.phase = 'recording';
       this.timer = setTimeout(() => { void this.release(); }, 30000);
     } catch (error) {
-      if (generation !== this.generation) return;
+      if (generation !== this.captureGeneration) return;
       const name = (error as { name?: string }).name;
       const message = name === 'NotAllowedError' ? 'Microphone access denied. Allow it in your browser to record.'
         : name === 'NotFoundError' ? 'No microphone found.'
         : error instanceof Error && error.message.startsWith('Voice recording requires') ? error.message : 'Could not start the microphone. Try again.';
-      this.reply(message, 'error');
-    } finally { if (generation === this.generation) this.changed.next(); }
+      this.phase = 'idle'; this.reply(message, 'error');
+    } finally { if (generation === this.captureGeneration) this.changed.next(); }
   }
 
   async release(): Promise<void> {
@@ -73,26 +80,42 @@ export class VoiceInputService implements OnDestroy {
     if (this.phase !== 'recording') return;
     clearTimeout(this.timer);
     const generation = this.generation;
+    const captureGeneration = this.captureGeneration;
     this.clearLevels(); this.phase = 'sending'; this.changed.next();
     try {
       const audio = await this.capture.finish();
-      if (generation !== this.generation) return;
-      const request: VoiceRequest = { requestId: crypto.randomUUID(), audio: voiceBase64(audio), sourcePage: '/prototypes/voice-input' };
-      await this.submit(request);
+      if (generation !== this.generation || captureGeneration !== this.captureGeneration) return;
+      const entry: { request?: VoiceRequest } = {
+        request: { requestId: crypto.randomUUID(), audio: voiceBase64(audio), sourcePage: '/prototypes/voice-input' }
+      };
+      this.queued = entry;
+      this.phase = 'idle';
+      this.pendingCount++;
+      // One in flight plus one waiting recording; submit serially without retries.
+      const pending = this.submissions.then(async () => {
+        const request = entry.request;
+        entry.request = undefined;
+        if (this.queued === entry) this.queued = undefined;
+        if (request && generation === this.generation) await this.submit(request);
+      }).finally(() => {
+        if (generation === this.generation) { this.pendingCount--; this.changed.next(); }
+      });
+      this.submissions = pending;
+      this.changed.next();
+      await pending;
     } catch (error) {
-      if (generation !== this.generation) return;
-      this.reply(error instanceof Error ? error.message : 'Could not capture audio. Try again.', 'error');
+      if (generation !== this.generation || captureGeneration !== this.captureGeneration) return;
+      this.phase = 'idle'; this.reply(error instanceof Error ? error.message : 'Could not capture audio. Try again.', 'error');
     } finally { if (generation === this.generation) this.changed.next(); }
   }
 
   private async submit(request: VoiceRequest): Promise<void> {
     if (!this.uid) return;
     const generation = this.generation, uid = this.uid;
-    this.phase = 'sending'; this.changed.next();
     try {
       const user = await this.auth.currentUser;
       if (generation !== this.generation) return;
-      if (!user || user.uid !== uid) { this.reset(); return; }
+      if (!user || user.uid !== uid) { this.generation++; this.reset(); return; }
       const response = await firstValueFrom(this.functions.httpsCallable<VoiceRequest, VoiceResult>('voiceInput', { timeout: 65000 })(request));
       if (generation !== this.generation || uid !== this.uid) return;
       if (!response?.eventId || typeof response.transcript !== 'string') throw new Error('Invalid response');
@@ -119,18 +142,21 @@ export class VoiceInputService implements OnDestroy {
   cancel(message = ''): void {
     if (this.phase === 'sending') { this.capture.silenceClosingCue(); return; }
     if (this.phase !== 'recording' && this.phase !== 'requesting') return;
-    this.generation++; this.capture.cancel(); clearTimeout(this.timer);
+    this.captureGeneration++; this.capture.cancel(); clearTimeout(this.timer);
     this.clearLevels();
+    this.phase = 'idle';
     if (message) this.reply(message, 'error');
-    else this.phase = 'idle';
     this.changed.next();
   }
   private reply(text: string, kind: VoiceReply['kind']): void {
     this.replies.push({ id: ++this.replyId, kind, text });
-    this.phase = kind === 'transcript' ? 'saved' : 'error';
+    if (!this.busy) this.phase = kind === 'transcript' ? 'saved' : 'error';
   }
   private clearLevels(): void { this.levels = Array<number>(9).fill(0); }
   private reset(): void {
+    if (this.queued) this.queued.request = undefined;
+    this.queued = undefined;
+    this.captureGeneration++; this.pendingCount = 0; this.submissions = Promise.resolve();
     this.clearLevels();
     this.capture.cancel(); clearTimeout(this.timer);
     this.phase = 'idle'; this.replies.length = 0; this.changed.next();

@@ -3,16 +3,16 @@
   <section class="capture-panel" aria-label="Voice recording">
     <button class="voice-dock" type="button" [class.recording]="voice.phase === 'recording'"
       [class.unavailable]="!voice.ready || !voice.uid" [attr.data-phase]="voice.phase"
-      [disabled]="!voice.ready || !voice.uid || voice.phase === 'sending'"
+      [disabled]="!voice.canToggle"
       [attr.aria-pressed]="voice.phase === 'recording' || voice.phase === 'requesting'" [attr.aria-label]="voice.label + ' · 30 seconds maximum'"
       [attr.title]="voice.label"
-      [attr.aria-busy]="voice.phase === 'requesting' || voice.phase === 'sending'" aria-describedby="voice-status"
+      [attr.aria-busy]="voice.phase === 'requesting' || voice.waiting" aria-describedby="voice-status"
       (pointerdown)="pointerDown($event)" (pointermove)="pointerMove($event)" (pointerup)="pointerUp($event)"
       (pointercancel)="pointerCancel($event)" (lostpointercapture)="pointerCancel($event)"
       (keydown)="keyDown($event)" (blur)="interrupt()"
       (contextmenu)="$event.preventDefault()" (click)="$event.detail === 0 && toggle()">
       <span class="capture-feedback" aria-hidden="true">
-        @if (voice.phase === 'sending' || !voice.ready) {
+        @if (voice.waiting || !voice.ready) {
           <span class="waiting"><i></i><i></i><i></i></span>
         } @else {
           <span class="waveform">
@@ -26,7 +26,7 @@
         <span class="talk-logo" aria-hidden="true"></span>
       </span>
     </button>
-    <p id="voice-status" class="sr-only" role="status">{{ !voice.ready ? 'Loading' : voice.busy ? voice.label : '' }}</p>
+    <p id="voice-status" class="sr-only" role="status">{{ !voice.ready ? 'Loading' : voice.busy || voice.waiting ? voice.label : '' }}</p>
     @if (voice.ready && !voice.uid) { <a class="sign-in" routerLink="/login" [queryParams]="{returnUrl: '/prototypes/voice-input'}">Sign in to record</a> }
   </section>
   <section #replies class="replies" role="log" aria-label="Voice conversation" aria-live="polite" aria-relevant="additions">
