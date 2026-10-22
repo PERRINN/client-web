@@ -4,9 +4,7 @@
     <div class="voice-dock" [class.recording]="voice.phase === 'recording'"
       [class.unavailable]="!voice.ready || !voice.uid" [attr.data-phase]="voice.phase">
       <div class="capture-feedback" aria-hidden="true">
-        @if (voice.phase === 'saved') {
-          <svg viewBox="0 0 32 32"><path d="m8 16 5 5 11-11" /></svg>
-        } @else if (voice.phase === 'requesting' || voice.phase === 'sending' || !voice.ready) {
+        @if (voice.phase === 'requesting' || voice.phase === 'sending' || !voice.ready) {
           <span class="waiting"><i></i><i></i><i></i></span>
         } @else {
           <span class="waveform">
@@ -28,7 +26,7 @@
         <span class="talk-logo" aria-hidden="true"></span>
       </button>
     </div>
-    <p id="voice-status" class="sr-only" role="status">{{ !voice.ready ? 'Loading' : voice.busy ? voice.label : voice.phase === 'saved' ? 'Recording saved' : '' }}</p>
+    <p id="voice-status" class="sr-only" role="status">{{ !voice.ready ? 'Loading' : voice.busy ? voice.label : '' }}</p>
     @if (voice.ready && !voice.uid) { <a class="sign-in" routerLink="/login" [queryParams]="{returnUrl: '/prototypes/voice-input'}">Sign in to record</a> }
   </section>
   <section #replies class="replies" role="log" aria-label="Voice conversation" aria-live="polite" aria-relevant="additions">
