@@ -552,7 +552,7 @@ test('client clearly distinguishes daily quotas, active recordings and unrecogni
 test('radio cues use distinct quiet pitches, fade cleanly and release their audio nodes', async t => {
   t.mock.timers.enable({ apis: ['setTimeout'] });
   const { voiceCue } = load('../src/app/prototypes/voice-input/voiceCue.ts');
-  for (const [opening, expectedFrequencies, duration] of [[true, [1040], 95], [false, [1040, 920], 185]]) {
+  for (const [opening, expectedFrequencies, duration] of [[true, [1040], 95], [false, [920], 95]]) {
     const envelope = [], connections = [], frequencies = [];
     let stopped, disconnected = 0, resolved = false;
     const gain = { gain: { setValueAtTime: (...args) => envelope.push(args), linearRampToValueAtTime: (...args) => envelope.push(args) },

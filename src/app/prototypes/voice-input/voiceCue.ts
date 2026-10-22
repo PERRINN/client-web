@@ -7,17 +7,13 @@ export function voiceCue(context: AudioContext, opening: boolean): Promise<void>
     oscillator = context.createOscillator(); gain = context.createGain();
     const now = context.currentTime;
     oscillator.type = 'triangle';
-    const frequencies = opening ? [1040] : [1040, 920];
-    frequencies.forEach((frequency, index) => {
-      const start = now + index * .09;
-      oscillator!.frequency.setValueAtTime(frequency, start);
-      gain!.gain.setValueAtTime(0, start);
-      gain!.gain.linearRampToValueAtTime(.07, start + .005);
-      gain!.gain.setValueAtTime(.07, start + .035);
-      gain!.gain.linearRampToValueAtTime(0, start + .06);
-    });
+    oscillator.frequency.setValueAtTime(opening ? 1040 : 920, now);
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(.07, now + .005);
+    gain.gain.setValueAtTime(.07, now + .035);
+    gain.gain.linearRampToValueAtTime(0, now + .06);
     oscillator.connect(gain); gain.connect(context.destination);
-    oscillator.start(now); oscillator.stop(now + (frequencies.length - 1) * .09 + .065);
+    oscillator.start(now); oscillator.stop(now + .065);
     return new Promise(resolve => {
       let tail: ReturnType<typeof setTimeout> | undefined;
       const finish = () => {
