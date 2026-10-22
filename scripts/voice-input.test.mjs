@@ -155,7 +155,7 @@ test('provider receives one WAV upload with configured model; unsafe errors are 
 function client(call = () => of({ eventId: 'saved-id', transcript: 'Bonjour' }), captureChanges = {}) {
   const authState = new BehaviorSubject({ uid: 'alice' });
   const auth = { authState, currentUser: Promise.resolve({ uid: 'alice' }) };
-  const capture = { start: async () => true, finish: async () => wav(), cancel: () => {}, ...captureChanges };
+  const capture = { start: async () => true, finish: async () => wav(), cancel: () => {}, silenceClosingCue: () => {}, ...captureChanges };
   const calls = [];
   const functions = { httpsCallable: () => input => { calls.push(input); return call(input); } };
   const { VoiceInputService } = load('../src/app/prototypes/voice-input/voiceInput.service.ts', {
@@ -569,8 +569,12 @@ test('radio cues use distinct quiet pitches, fade cleanly and release their audi
     }));
     assert.equal(stopped, (expectedFrequencies.length - 1) * .09 + .065);
     assert.deepEqual(connections, [gain, context.destination]);
-    t.mock.timers.tick(duration - 1); await Promise.resolve(); assert.equal(resolved, false);
+    t.mock.timers.tick(duration + 50); await Promise.resolve(); assert.equal(resolved, false);
+    assert.equal(disconnected, 0, 'Do not truncate playback when the audio timeline stalls.');
+    oscillator.onended();
+    t.mock.timers.tick(29); await Promise.resolve(); assert.equal(resolved, false);
     t.mock.timers.tick(1); await pending; assert.equal(disconnected, 2);
+    assert.equal(oscillator.onended, null);
   }
   await voiceCue({ state: 'suspended' }, true);
   await voiceCue({ state: 'running', createOscillator() { throw Error('Playback unavailable'); } }, true);
@@ -581,7 +585,7 @@ test('opening cue finishes before microphone samples connect; closing cue follow
   const fixture = safariCapture({ cue: async (_context, opening) => {
     cues.push(opening);
     assert.equal(fixture.sources.at(-1).connected, false);
-    if (!opening) { assert.equal(fixture.tracks.at(-1).stopped, true); assert.equal(fixture.capture.node, undefined); }
+    if (!opening) { assert.equal(fixture.tracks.at(-1).stopped, false); assert.equal(fixture.capture.node, undefined); }
     await new Promise(resolve => { endCue = resolve; });
   } });
   try {
@@ -592,8 +596,50 @@ test('opening cue finishes before microphone samples connect; closing cue follow
     const finishing = fixture.capture.finish();
     await until(() => cues.length === 2); assert.deepEqual(cues, [true, false]);
     endCue(); assert.equal((await finishing).length, 32044); assert.equal(fixture.contexts[0].closed, true);
+    assert.equal(fixture.tracks[0].stopped, true);
     const cancelled = fixture.capture.start(() => {}, () => {});
     await until(() => cues.length === 3); fixture.capture.cancel(); assert.equal(await cancelled, false);
     endCue(); assert.equal(fixture.contexts[1].closed, true); assert.deepEqual(cues, [true, false, true]);
   } finally { fixture.restore(); }
+});
+
+
+test('stalled cue playback has a 500 ms cleanup deadline', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const { voiceCue } = load('../src/app/prototypes/voice-input/voiceCue.ts');
+  let disconnected = 0, resolved = false;
+  const parameter = { setValueAtTime() {}, linearRampToValueAtTime() {} };
+  const oscillator = { frequency: parameter, connect() {}, start() {}, stop() {}, disconnect() { disconnected++; } };
+  const gain = { gain: parameter, connect() {}, disconnect() { disconnected++; } };
+  const context = { state: 'running', currentTime: 0, destination: {}, createOscillator: () => oscillator, createGain: () => gain };
+  const pending = voiceCue(context, false).then(() => { resolved = true; });
+  t.mock.timers.tick(499); await Promise.resolve(); assert.equal(resolved, false);
+  t.mock.timers.tick(1); await pending;
+  assert.equal(disconnected, 2); assert.equal(oscillator.onended, null);
+});
+test('interrupting closing feedback releases mic immediately without discarding finished audio', async () => {
+  let endCue;
+  const fixture = safariCapture({ cue: async (_context, opening) => {
+    if (!opening) await new Promise(resolve => { endCue = resolve; });
+  } });
+  try {
+    assert.equal(await fixture.capture.start(() => {}, () => {}), true);
+    fixture.nodes[0].port.onmessage({ data: { type: 'samples', samples: new Float32Array(16000).fill(.1) } });
+    const pending = fixture.capture.finish();
+    await until(() => endCue);
+    assert.equal(fixture.tracks[0].stopped, false);
+    fixture.capture.silenceClosingCue();
+    assert.equal(fixture.tracks[0].stopped, true); assert.equal(fixture.contexts[0].closed, true);
+    endCue(); assert.equal((await pending).length, 32044);
+  } finally { fixture.restore(); }
+});
+test('page interruption during submission silences closing feedback without resetting the request', async () => {
+  let silence = 0;
+  // Pause at capture completion to model the closing cue's lifetime.
+  let finish;
+  const fixture = client(undefined, { finish: () => new Promise(resolve => { finish = resolve; }), silenceClosingCue: () => { silence++; } });
+  await fixture.service.press(); const pending = fixture.service.release();
+  fixture.service.cancel(); assert.equal(silence, 1); assert.equal(fixture.service.phase, 'sending');
+  finish(wav()); await pending; assert.equal(fixture.calls.length, 1); assert.equal(fixture.service.phase, 'saved');
+  fixture.service.ngOnDestroy();
 });

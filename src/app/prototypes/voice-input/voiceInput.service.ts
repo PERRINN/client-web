@@ -117,6 +117,7 @@ export class VoiceInputService implements OnDestroy {
   }
 
   cancel(message = ''): void {
+    if (this.phase === 'sending') { this.capture.silenceClosingCue(); return; }
     if (this.phase !== 'recording' && this.phase !== 'requesting') return;
     this.generation++; this.capture.cancel(); clearTimeout(this.timer);
     this.clearLevels();

@@ -11,6 +11,7 @@ export class VoiceCaptureService implements OnDestroy {
   private mute?: GainNode;
   private samples?: Float32Array;
   private length = 0;
+  private closingCue = false;
   private generation = 0;
   private stopped?: () => void;
   private startupCancelled?: () => void;
@@ -100,23 +101,29 @@ export class VoiceCaptureService implements OnDestroy {
       if (generation === this.generation) {
         const context = this.context;
         if (context) context.onstatechange = null;
-        this.stopCapture();
+        // Keep the device audio route stable while playing the closing cue.
+        // The worklet is stopped and disconnected; no further samples are kept.
+        this.disconnectCapture();
+        this.closingCue = true;
         if (context) await voiceCue(context, false);
         if (generation === this.generation) this.cancel();
       }
     }
   }
 
+  silenceClosingCue(): void { if (this.closingCue) this.cancel(); }
+
   cancel(): void {
     this.generation++;
     this.startupCancelled?.(); this.startupCancelled = undefined;
     this.stopped?.(); this.stopped = undefined;
-    this.stopCapture();
+    this.closingCue = false;
+    this.stream?.getTracks().forEach(track => { track.onended = null; track.stop(); }); this.stream = undefined;
+    this.disconnectCapture();
     if (this.context) { this.context.onstatechange = null; void this.context.close().catch(() => undefined); }
     this.context = undefined;
   }
-  private stopCapture(): void {
-    this.stream?.getTracks().forEach(track => { track.onended = null; track.stop(); }); this.stream = undefined;
+  private disconnectCapture(): void {
     if (this.node) { this.node.onprocessorerror = null; this.node.port.onmessage = null; this.node.port.close(); this.node.disconnect(); }
     this.node = undefined; this.source?.disconnect(); this.source = undefined;
     this.mute?.disconnect(); this.mute = undefined;
