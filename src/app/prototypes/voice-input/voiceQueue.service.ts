@@ -109,7 +109,7 @@ export class VoiceQueueService implements OnDestroy {
 
   async enqueue(audio: Uint8Array): Promise<void> {
     const item: VoiceRecording = { id: crypto.randomUUID(), owner: this.owner, createdAt: Date.now(),
-      audio: new Blob([new Uint8Array(audio)], { type: 'audio/wav' }), attempts: 0, nextAt: 0, check: false };
+      audio: new Uint8Array(audio).buffer, attempts: 0, nextAt: 0, check: false };
     this.unsaved = item; await this.saveUnsent(item, this.epoch);
   }
   private async saveUnsent(item: VoiceRecording, epoch: number): Promise<void> {
@@ -231,7 +231,10 @@ export class VoiceQueueService implements OnDestroy {
     this.items = this.items.map(row => row.id === claimed.id ? claimed : row); this.changed.next();
     attempt.stage = 'Reading audio';
     let audio: string;
-    try { audio = voiceBase64(new Uint8Array(await claimed.audio.arrayBuffer())); }
+    try {
+      const buffer = claimed.audio instanceof ArrayBuffer ? claimed.audio : await claimed.audio.arrayBuffer();
+      audio = voiceBase64(new Uint8Array(buffer));
+    }
     catch (error) {
       if (!live()) return;
       attempt.stage = 'Checking saved result';
@@ -268,7 +271,7 @@ export class VoiceQueueService implements OnDestroy {
     }
     // Release local audio only after a durable inbox/task acknowledgement. Keep
     // the receipt across reloads so a server result is observed on reopening.
-    await this.settle(claimed, { received: true, eventId: receipt.eventId, audio: new Blob(), error: undefined }, live);
+    await this.settle(claimed, { received: true, eventId: receipt.eventId, audio: new ArrayBuffer(0), error: undefined }, live);
   }
   private async failed(item: VoiceRecording, error: unknown, epoch: number): Promise<void> {
     const rawCode = (error as { code?: unknown }).code;

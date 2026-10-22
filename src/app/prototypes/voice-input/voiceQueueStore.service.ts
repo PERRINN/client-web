@@ -8,7 +8,8 @@ export interface VoiceRecording {
   id: string;
   owner: string;
   createdAt: number;
-  audio: Blob;
+  // New recordings own their bytes; Blob remains readable for existing queues.
+  audio: ArrayBuffer | Blob;
   attempts: number;
   nextAt: number;
   check: boolean;
@@ -57,7 +58,8 @@ export class VoiceQueueStore {
   }
 
   async add(item: VoiceRecording): Promise<void> {
-    if (!item.owner || item.audio.size > VOICE_AUDIO_LIMIT || item.audio.size < 12844) throw new Error('Invalid recording.');
+    const size = item.audio instanceof ArrayBuffer ? item.audio.byteLength : item.audio.size;
+    if (!item.owner || !Number.isFinite(size) || size > VOICE_AUDIO_LIMIT || size < 12844) throw new Error('Invalid recording.');
     const db = await this.open();
     return new Promise((resolve, reject) => {
       const tx = db.transaction('recordings', 'readwrite'), store = tx.objectStore('recordings');

@@ -91,17 +91,41 @@ test('offline recordings persist identity/audio across reload and upload automat
   assert.equal(f.service.label(f.service.items[0]), 'Waiting for connection'); f.service.ngOnDestroy();
   const next = queue(t); await ready(next);
   assert.deepEqual(next.service.items.map(x => x.id), ids);
-  assert.deepEqual(new Uint8Array(await next.service.items[0].audio.arrayBuffer()), bytes);
+  assert.deepEqual(new Uint8Array(next.service.items[0].audio), bytes);
   env.navigator.onLine = true; env.window.dispatchEvent(new Event('online'));
   await until(() => next.completed.length === 2); await ready(next);
   assert.deepEqual(next.calls.map(x => x.input.requestId), ids);
   assert.ok(next.calls.every(x => x.name === 'voiceInputEnqueue' && x.input.owner === 'alice'));
   assert.equal((await next.store.list('alice')).total, 0);
 });
+test('new audio stores an owned buffer containing only the selected samples', async t => {
+  environment(t, false); const f = queue(t); await ready(f);
+  const source = new Uint8Array(bytes.length + 20).fill(7), selected = source.subarray(10, -10);
+  await f.service.enqueue(selected); source.fill(9);
+  const row = (await new VoiceQueueStore().list('alice')).items[0];
+  assert.ok(row.audio instanceof ArrayBuffer);
+  assert.deepEqual(new Uint8Array(row.audio), new Uint8Array(bytes.length).fill(7));
+});
+test('existing Blob audio uploads unchanged alongside new raw buffers', async t => {
+  environment(t, false); const store = new VoiceQueueStore(), legacy = recording(); await store.add(legacy);
+  const f = queue(t, { store }); await ready(f); await f.service.enqueue(bytes);
+  navigator.onLine = true; await f.service.refresh(); await until(() => f.completed.length === 2);
+  assert.equal(f.calls[0].input.requestId, legacy.id);
+  for (const call of f.calls) assert.deepEqual(Buffer.from(call.input.audio, 'base64'), Buffer.from(bytes));
+});
+test('raw and legacy audio enforce the same byte bounds before persistence', async t => {
+  environment(t, false); const store = new VoiceQueueStore();
+  for (const length of [0, 12843, 960045]) {
+    for (const audio of [new ArrayBuffer(length), new Blob([new Uint8Array(length)])])
+      await assert.rejects(store.add(recording({ audio })), /Invalid/);
+  }
+  for (const length of [12844, 960044]) await store.add(recording({ audio: new ArrayBuffer(length) }));
+  assert.equal((await store.list('alice')).total, 2);
+});
 test('durable receipt releases local audio; known document listener restores result after reopening', async t => {
   environment(t); const f = queue(t, { call: () => of({ status: 'queued', eventId }) }); await ready(f);
   await f.service.enqueue(bytes); await until(() => f.listeners.size === 1); await ready(f);
-  const row = f.service.items[0]; assert.equal(row.audio.size, 0); assert.equal(row.received, true);
+  const row = f.service.items[0]; assert.equal(row.audio.byteLength, 0); assert.equal(row.received, true);
   assert.equal(f.service.label(row), 'Transcribing'); assert.equal(f.calls.length, 1);
   f.result('queued', '', true); assert.equal(f.completed.length, 0);
   f.service.ngOnDestroy(); assert.equal(f.listeners.size, 0);
@@ -113,7 +137,7 @@ test('durable receipt releases local audio; known document listener restores res
 test('lost receipt retains audio and repeats identical identity, then recovers saved server result', async t => {
   environment(t); const f = queue(t, { call: () => throwError(() => ({ code: 'functions/unavailable' })) }); await ready(f);
   await f.service.enqueue(bytes); await until(() => f.calls.length === 1 && !f.service.running);
-  const item = f.service.items[0]; assert.equal(item.audio.size, bytes.length); assert.equal(item.attempts, 1);
+  const item = f.service.items[0]; assert.equal(item.audio.byteLength, bytes.length); assert.equal(item.attempts, 1);
   f.service.ngOnDestroy(); await f.store.change(item.id, 'alice', x => ({ ...x, nextAt: 0 }));
   const next = queue(t); await until(() => next.completed.length === 1);
   assert.equal(next.calls[0].input.requestId, item.id); assert.deepEqual(Buffer.from(next.calls[0].input.audio, 'base64'), Buffer.from(bytes));
@@ -156,7 +180,7 @@ test('storage failures recover automatically on foreground without losing volati
   const env = environment(t, false), store = new VoiceQueueStore(), add = store.add.bind(store); let fail = true;
   store.add = x => fail ? Promise.reject(Error('Full')) : add(x);
   const f = queue(t, { store }); await ready(f); await f.service.enqueue(bytes);
-  assert.equal(f.service.canRecord, false); assert.equal(f.service.items[0].audio.size, bytes.length);
+  assert.equal(f.service.canRecord, false); assert.equal(f.service.items[0].audio.byteLength, bytes.length);
   const id = f.service.items[0].id; fail = false; env.window.dispatchEvent(new Event('focus'));
   await until(() => f.service.ready); assert.equal((await store.list('alice')).items[0].id, id);
 });
@@ -169,7 +193,7 @@ test('terminal server failure becomes a reply and clears pending state automatic
 test('daily allowance waits until UTC midnight without showing management actions', async t => {
   environment(t); const f = queue(t, { call: () => throwError(() => ({ code: 'functions/resource-exhausted', details: { reason: 'daily-limit' } })) }); await ready(f);
   await f.service.enqueue(bytes); await until(() => f.calls.length === 1 && !f.service.running);
-  const row = f.service.items[0]; assert.equal(row.audio.size, bytes.length); assert.ok(row.nextAt > Date.now()); assert.equal(row.error, undefined);
+  const row = f.service.items[0]; assert.equal(row.audio.byteLength, bytes.length); assert.ok(row.nextAt > Date.now()); assert.equal(row.error, undefined);
 });
 function clock(t, timers = true) { t.mock.timers.enable({ apis: timers ? ['Date', 'setTimeout', 'setInterval'] : ['Date'], now: 1792696380000 }); }
 test('hung callable times out independently and automatic retry recovers without blocking forever', async t => {
