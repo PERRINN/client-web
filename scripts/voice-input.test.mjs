@@ -293,24 +293,55 @@ function gesture(component, duration, changes = {}) {
   component.pointerDown(pointer(changes));
   component.pointerUp(pointer({ ...changes, timeStamp: duration }));
 }
-test('touch toggle ignores quick taps, movement and cancelled gestures when opening and closing', async () => {
-  const { service, component, calls, marks } = componentFixture();
-  gesture(component, 199); assert.equal(service.phase, 'idle');
+test('touch toggles at 200 ms while held and release never toggles again', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const { service, component, calls } = componentFixture();
   component.pointerDown(pointer());
-  component.pointerMove(pointer({ clientX: 31 }));
-  component.pointerUp(pointer({ timeStamp: 300 })); assert.equal(service.phase, 'idle');
-  component.pointerDown(pointer()); component.pointerCancel(pointer());
-  component.pointerUp(pointer({ timeStamp: 300 })); assert.equal(service.phase, 'idle');
-  gesture(component, 200); await until(() => service.phase === 'recording');
-  gesture(component, 50); assert.equal(service.phase, 'recording');
-  component.pointerDown(pointer()); component.pointerCancel(pointer());
-  component.pointerUp(pointer({ timeStamp: 300 })); assert.equal(service.phase, 'recording');
-  component.pointerDown(pointer()); component.pointerUp(pointer({ timeStamp: 300, clientY: 31 }));
+  t.mock.timers.tick(199); assert.equal(service.phase, 'idle');
+  t.mock.timers.tick(1); await new Promise(setImmediate);
   assert.equal(service.phase, 'recording');
-  gesture(component, 250); await until(() => service.phase === 'saved');
-  assert.equal(calls.length, 1); assert.ok(marks() > 0);
-  const previous = marks(); component.ngOnDestroy(); service.changed.next(); assert.equal(marks(), previous);
-  service.ngOnDestroy();
+  t.mock.timers.tick(1000); assert.equal(service.phase, 'recording');
+  component.pointerUp(pointer()); assert.equal(service.phase, 'recording');
+  component.pointerDown(pointer());
+  t.mock.timers.tick(200); await new Promise(setImmediate);
+  assert.equal(service.phase, 'saved'); assert.equal(calls.length, 1);
+  component.pointerUp(pointer()); assert.equal(service.phase, 'saved');
+  assert.equal(calls.length, 1);
+  component.ngOnDestroy(); service.ngOnDestroy();
+});
+test('short touches, swipes, cancelled gestures and interrupted timers never toggle', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  for (const action of ['release', 'move', 'cancel', 'lost capture', 'blur', 'destroy', 'account change']) {
+    for (const recording of [false, true]) {
+      const { service, component, auth, calls } = componentFixture();
+      if (recording) await service.press();
+      component.pointerDown(pointer()); t.mock.timers.tick(199);
+      if (action === 'release') component.pointerUp(pointer());
+      else if (action === 'move') component.pointerMove(pointer({ clientX: 31 }));
+      else if (action === 'cancel' || action === 'lost capture') component.pointerCancel(pointer());
+      else if (action === 'blur') component.interrupt();
+      else if (action === 'destroy') component.ngOnDestroy();
+      else auth.authState.next({ uid: 'bob' });
+      t.mock.timers.tick(1); await new Promise(setImmediate);
+      const expected = recording && !['blur', 'account change'].includes(action) ? 'recording' : 'idle';
+      assert.equal(service.phase, expected, action); assert.equal(calls.length, 0, action);
+      component.pointerUp(pointer());
+      if (action !== 'destroy') component.ngOnDestroy();
+      service.ngOnDestroy();
+    }
+  }
+});
+test('a held second touch cancels pending microphone permission before release', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  let grant;
+  const { component, service, calls } = componentFixture(client(undefined, { start: () => new Promise(resolve => { grant = resolve; }) }));
+  component.pointerDown(pointer()); t.mock.timers.tick(200);
+  assert.equal(service.phase, 'requesting'); component.pointerUp(pointer());
+  component.pointerDown(pointer()); t.mock.timers.tick(200);
+  assert.equal(service.phase, 'idle'); component.pointerUp(pointer()); grant(true);
+  await new Promise(setImmediate);
+  assert.equal(service.phase, 'idle'); assert.equal(calls.length, 0);
+  component.ngOnDestroy(); service.ngOnDestroy();
 });
 test('mouse and keyboard toggle immediately, pending startup cancels, and sending cannot overlap', async () => {
   let grant;
