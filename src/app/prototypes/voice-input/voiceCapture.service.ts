@@ -12,6 +12,7 @@ export class VoiceCaptureService implements OnDestroy {
   private length = 0;
   private generation = 0;
   private stopped?: () => void;
+  private startupCancelled?: () => void;
 
   async start(onLimit: () => void, onError: () => void, onLevel?: (level: number) => void): Promise<boolean> {
     this.cancel();
@@ -20,16 +21,29 @@ export class VoiceCaptureService implements OnDestroy {
       || typeof AudioWorkletNode === 'undefined') throw new Error('Voice recording requires a supported browser on HTTPS.');
     const context = new AudioContext({ sampleRate: 16000 });
     this.context = context;
-    // Both operations begin in the trusted pointer/key gesture.
-    const resumed = context.resume();
+    // Begin in the gesture, but do not wait on this promise: Safari can leave it
+    // pending until microphone activation changes the system audio session.
+    void context.resume().catch(() => undefined);
+    let startupTimer: ReturnType<typeof setTimeout> | undefined;
+    let armTimeout: () => void;
+    const deadline = new Promise<never>((_, reject) => {
+      armTimeout = () => {
+        startupTimer = setTimeout(() => reject(new Error('Microphone startup timed out.')), 5000);
+      };
+    });
+    const cancelled = new Promise<boolean>(resolve => { this.startupCancelled = () => resolve(false); });
     const requested = navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
     try {
       // Each promise has a rejection handler while the permission prompt is open.
-      await Promise.all([requested.then(stream => {
-        if (generation !== this.generation) stream.getTracks().forEach(track => track.stop());
-        else this.stream = stream;
-      }), resumed, context.audioWorklet.addModule('/assets/voice-input/capture.worklet.js')]);
-      if (generation !== this.generation) return false;
+      const prepared = Promise.all([requested.then(stream => {
+        if (generation !== this.generation) { stream.getTracks().forEach(track => track.stop()); return; }
+        this.stream = stream;
+        // Only time out after permission is granted. One resume after acquisition
+        // handles the audio-session change; no polling or automatic capture retry.
+        armTimeout();
+        return context.state === 'running' ? undefined : context.resume();
+      }), context.audioWorklet.addModule('/assets/voice-input/capture.worklet.js')]).then(() => true);
+      if (!await Promise.race([prepared, cancelled, deadline]) || generation !== this.generation) return false;
       if (context.sampleRate !== 16000 || context.state !== 'running') throw new Error('Could not start audio. Press and hold again.');
       this.samples = new Float32Array(MAX_VOICE_SAMPLES); this.length = 0;
       const interrupted = () => { if (generation === this.generation) onError(); };
@@ -61,6 +75,9 @@ export class VoiceCaptureService implements OnDestroy {
       if (generation !== this.generation) return false;
       this.cancel();
       throw error;
+    } finally {
+      clearTimeout(startupTimer);
+      if (generation === this.generation) this.startupCancelled = undefined;
     }
   }
 
@@ -80,6 +97,7 @@ export class VoiceCaptureService implements OnDestroy {
 
   cancel(): void {
     this.generation++;
+    this.startupCancelled?.(); this.startupCancelled = undefined;
     this.stopped?.(); this.stopped = undefined;
     this.stream?.getTracks().forEach(track => { track.onended = null; track.stop(); }); this.stream = undefined;
     if (this.node) { this.node.onprocessorerror = null; this.node.port.onmessage = null; this.node.port.close(); this.node.disconnect(); }

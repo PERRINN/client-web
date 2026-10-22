@@ -355,3 +355,81 @@ test('new replies scroll into view once, without repeated scrolling on audio-lev
   voice.replies.push({ id: 2, kind: 'error', text: 'No speech detected.' });
   component.ngAfterViewChecked(); assert.equal(scrolls, 2); component.ngOnDestroy();
 });
+
+function safariCapture({ stalled = false, permissionPending = false } = {}) {
+  const originals = Object.fromEntries(['navigator', 'AudioContext', 'AudioWorkletNode'].map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
+  const contexts = [], tracks = [], nodes = [];
+  let grant;
+  const connection = () => ({ gain: { value: 1 }, connect() {}, disconnect() {} });
+  class Context {
+    sampleRate = 16000; state = 'suspended'; resumes = 0; closed = false;
+    audioWorklet = { addModule: async () => {} };
+    constructor() { contexts.push(this); }
+    resume() {
+      this.resumes++;
+      // Reopening the microphone can leave the gesture's resume unresolved.
+      if (stalled || (contexts.length > 1 && this.resumes === 1)) return new Promise(() => {});
+      this.state = 'running'; return Promise.resolve();
+    }
+    async close() { this.closed = true; this.state = 'closed'; }
+    createGain = connection; createMediaStreamSource = connection;
+  }
+  class Node {
+    constructor() { nodes.push(this); }
+    connect() {} disconnect() {}
+    port = { close() {}, postMessage: () => queueMicrotask(() => this.port.onmessage?.({ data: { type: 'stopped' } })) };
+  }
+  const stream = () => {
+    const track = { stopped: false, stop() { this.stopped = true; } }; tracks.push(track);
+    return { getTracks: () => [track], getAudioTracks: () => [track] };
+  };
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { mediaDevices: { getUserMedia: () => permissionPending
+    ? new Promise(resolve => { grant = () => resolve(stream()); }) : Promise.resolve(stream()) } } });
+  Object.defineProperty(globalThis, 'AudioContext', { configurable: true, value: Context });
+  Object.defineProperty(globalThis, 'AudioWorkletNode', { configurable: true, value: Node });
+  const { VoiceCaptureService } = load('../src/app/prototypes/voice-input/voiceCapture.service.ts', { '@angular/core': core, './voiceAudio': audio });
+  const capture = new VoiceCaptureService();
+  return { capture, contexts, tracks, nodes, grant: () => grant(), restore() {
+    capture.ngOnDestroy();
+    for (const [key, descriptor] of Object.entries(originals)) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor); else delete globalThis[key];
+    }
+  } };
+}
+
+test('second recording resumes again after microphone acquisition without waiting on a stalled first resume', { timeout: 1000 }, async () => {
+  const fixture = safariCapture();
+  try {
+    for (let recording = 0; recording < 2; recording++) {
+      assert.equal(await fixture.capture.start(() => {}, () => {}), true);
+      const node = fixture.nodes.at(-1);
+      node.port.onmessage({ data: { type: 'samples', samples: new Float32Array(16000).fill(.1) } });
+      assert.equal((await fixture.capture.finish()).length, 32044);
+      assert.ok(fixture.tracks.at(-1).stopped); assert.ok(fixture.contexts.at(-1).closed);
+    }
+    assert.equal(fixture.contexts[0].resumes, 1); assert.equal(fixture.contexts[1].resumes, 2);
+  } finally { fixture.restore(); }
+});
+
+test('startup deadline begins after permission, releases the microphone, and cancellation settles without permission', { timeout: 1000 }, async () => {
+  const fixture = safariCapture({ stalled: true, permissionPending: true });
+  const originalTimeout = globalThis.setTimeout;
+  let expire, deadlineCount = 0;
+  globalThis.setTimeout = (callback, delay, ...args) => {
+    if (delay !== 5000) return originalTimeout(callback, delay, ...args);
+    deadlineCount++; expire = callback; return undefined;
+  };
+  try {
+    const cancelled = fixture.capture.start(() => {}, () => {});
+    assert.equal(deadlineCount, 0); fixture.capture.cancel();
+    assert.equal(await cancelled, false);
+    fixture.grant(); await Promise.resolve(); assert.ok(fixture.tracks[0].stopped);
+    const pending = fixture.capture.start(() => {}, () => {});
+    const rejected = assert.rejects(pending, /startup timed out/);
+    assert.equal(deadlineCount, 0); fixture.grant();
+    await Promise.resolve(); assert.equal(deadlineCount, 1);
+    expire(); await rejected;
+    assert.ok(fixture.tracks.at(-1).stopped); assert.ok(fixture.contexts.at(-1).closed);
+    assert.equal(fixture.capture.node, undefined);
+  } finally { globalThis.setTimeout = originalTimeout; fixture.restore(); }
+});

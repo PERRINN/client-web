@@ -12,7 +12,6 @@ button { margin: 0; transition: none; color: var(--color-text); background: #242
 .waiting i { display: block; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
 .waiting i:nth-child(2) { opacity: .6; }
 .waiting i:nth-child(3) { opacity: .3; }
-.voice-dock[data-phase="requesting"] .waiting { outline: 1px solid #888; outline-offset: 10px; border-radius: 50%; }
 .voice-dock.unavailable .capture-feedback { opacity: .4; }
 .talk { display: grid; place-items: center; flex: 0 0 56px; width: 56px; height: 56px; min-height: 56px; padding: 0; border: 2px solid transparent; border-radius: 50%; background: #f5f5f5; color: #242424; touch-action: none; user-select: none; -webkit-touch-callout: none; }
 .talk-logo { display: block; width: 100%; height: 100%; border-radius: 50%; background: currentColor; mask: url('/assets/App icons/perrinn-02.png') center / 116% no-repeat; -webkit-mask: url('/assets/App icons/perrinn-02.png') center / 116% no-repeat; }

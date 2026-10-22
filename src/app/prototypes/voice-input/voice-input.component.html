@@ -4,7 +4,7 @@
     <div class="voice-dock" [class.recording]="voice.phase === 'recording'"
       [class.unavailable]="!voice.ready || !voice.uid" [attr.data-phase]="voice.phase">
       <div class="capture-feedback" aria-hidden="true">
-        @if (voice.phase === 'requesting' || voice.phase === 'sending' || !voice.ready) {
+        @if (voice.phase === 'sending' || !voice.ready) {
           <span class="waiting"><i></i><i></i><i></i></span>
         } @else {
           <span class="waveform">
