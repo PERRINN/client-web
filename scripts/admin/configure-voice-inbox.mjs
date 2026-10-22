@@ -51,7 +51,7 @@ async function main() {
   }
   await grant(runBase, 'roles/run.invoker', false, true);
   await grant(queueBase, 'roles/cloudtasks.enqueuer', true);
-  await grant(saBase, 'roles/iam.serviceAccountUser');
+  await grant(saBase, 'roles/iam.serviceAccountUser', true);
   const bucket = await api(bucketBase + '?fields=name,lifecycle,softDeletePolicy,metageneration');
   const rules = bucket.lifecycle?.rule || [];
   for (const rule of desired.rule) {
