@@ -67,7 +67,7 @@ export class VoiceQueueService implements OnDestroy {
       storageError: !!this.storageError, storageWork: this.storageWork, storageSince: this.storageSince,
       storageCode: this.storageCode, storageFaultStep: this.storageFaultStep, storageRetries: Math.min(this.storageRetries, 3),
       running: this.running, stage: this.attempt?.stage || 'Idle', startedAt: this.attempt?.startedAt || 0,
-      deadline: this.attempt?.deadline || 0, nextAt: pending.length ? Math.min(...pending.map(row => Math.max(row.nextAt, row.leaseUntil || 0))) : 0,
+      deadline: this.attempt?.deadline || 0, nextAt: pending.length ? Math.min(...pending.map(row => Math.max(this.retryAt(row), row.leaseUntil || 0))) : 0,
       uploadCode: this.uploadCode, uploadFaultStage: this.uploadFaultStage, recordingFault: pending.some(row => !!row.error), listeners: this.watchers.size, resultFailures: this.resultFailures.size,
       confirmedResults: this.confirmedResults.size, resultRetries: this.resultRetries, resultCode: this.resultCode, resultStatus: this.resultStatus, resultDeadline: this.resultDeadline, resultCached: this.resultCached };
   }
@@ -174,14 +174,22 @@ export class VoiceQueueService implements OnDestroy {
     }, 30000);
   }
 
+  private retryAt(item: VoiceRecording): number {
+    if (!item.retryWindow) return item.nextAt;
+    // Old rolling-budget records can carry a day-long wait. Retire that
+    // schedule on their next claim, preserving real UTC quota deferrals.
+    const now = new Date();
+    const midnight = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+    return item.nextAt === midnight ? item.nextAt : 0;
+  }
   private async drain(): Promise<void> {
     clearTimeout(this.timer);
     if (this.running || !this.owner || !this.ready || this.offline || document.hidden) return;
     const pending = this.items.filter(row => !row.received);
-    const item = pending.find(row => Math.max(row.nextAt, row.leaseUntil || 0) <= Date.now())
-      || pending.reduce<VoiceRecording | undefined>((first, row) => !first || Math.max(row.nextAt, row.leaseUntil || 0) < Math.max(first.nextAt, first.leaseUntil || 0) ? row : first, undefined);
+    const item = pending.find(row => Math.max(this.retryAt(row), row.leaseUntil || 0) <= Date.now())
+      || pending.reduce<VoiceRecording | undefined>((first, row) => !first || Math.max(this.retryAt(row), row.leaseUntil || 0) < Math.max(this.retryAt(first), first.leaseUntil || 0) ? row : first, undefined);
     if (!item) return;
-    const delay = Math.max(item.nextAt, item.leaseUntil || 0) - Date.now();
+    const delay = Math.max(this.retryAt(item), item.leaseUntil || 0) - Date.now();
     if (delay > 0) { this.timer = setTimeout(() => { void this.refresh(); }, Math.min(delay, 60000)); return; }
     const epoch = this.epoch;
     const attempt: Attempt = { startedAt: Date.now(), stage: 'Claiming', deadline: Date.now() + 75000, stopped: new Subject(), expired: false };
@@ -215,8 +223,8 @@ export class VoiceQueueService implements OnDestroy {
   }
   private async send(item: VoiceRecording, attempt: Attempt, live: () => boolean): Promise<void> {
     const claimed = await this.changeRecording(item, row => {
-      if (!live() || row.received || this.active(row) || row.nextAt > Date.now()) return undefined;
-      return { ...row, attempts: row.attempts + 1,
+      if (!live() || row.received || this.active(row) || this.retryAt(row) > Date.now()) return undefined;
+      return { ...row, attempts: row.attempts + 1, retryWindow: undefined, nextAt: 0,
         // Cover the 75s send, 30s final check and bounded local cleanup.
         leaseId: crypto.randomUUID(), leaseUntil: Date.now() + 150000, check: true };
     }, 'Claim recording', live);

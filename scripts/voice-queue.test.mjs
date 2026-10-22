@@ -525,3 +525,49 @@ for (const serverStatus of ['receiving', 'queued']) test(`a ${serverStatus} rese
   navigator.onLine = true; await f.service.refresh(); await until(() => f.completed.length === 1); await ready(f);
   assert.equal(f.completed[0].failed, true); assert.equal(f.listeners.size, 0); assert.equal((await store.list('alice')).total, 0);
 });
+
+test('a legacy daily retry timestamp cannot postpone exhausted-recording cleanup', async t => {
+  environment(t, false); const store = new VoiceQueueStore();
+  const row = recording({ attempts: 24, retryWindow: Date.now() - 3868000, nextAt: Date.now() + 82532000 });
+  await store.add(row); const f = queue(t, { store, call: () => of({ status: 'missing' }) }); await ready(f);
+  assert.equal((await store.list('alice')).items[0].nextAt, row.nextAt, 'Offline loading must not mutate the entry');
+  assert.equal(f.calls.length, 0);
+  navigator.onLine = true; await f.service.refresh(); await until(() => f.completed.length === 1); await ready(f);
+  assert.deepEqual(f.calls.map(x => x.name), ['voiceInputStatus']);
+  assert.equal(f.completed[0].failed, true); assert.equal(f.service.canRecord, true); assert.equal((await store.list('alice')).total, 0);
+});
+test('legacy long backoff resumes with the same UUID and clears its old scheduling marker', async t => {
+  environment(t, false); const store = new VoiceQueueStore();
+  const row = recording({ attempts: 1, retryWindow: Date.now() - 10000, nextAt: Date.now() + 3600000 }); await store.add(row);
+  const f = queue(t, { store, call: () => of({ status: 'queued', eventId }) }); await ready(f);
+  assert.equal(f.service.diagnostics.nextAt, 0, 'Diagnostics must use the effective schedule');
+  navigator.onLine = true; await f.service.refresh(); await until(() => f.listeners.size === 1); await ready(f);
+  assert.equal(f.calls[0].input.requestId, row.id); assert.equal(f.calls.length, 1);
+  const saved = (await store.list('alice')).items[0];
+  assert.equal(saved.retryWindow, undefined); assert.equal(saved.nextAt, 0); assert.equal(saved.attempts, 2);
+});
+test('legacy quota waits until UTC midnight instead of bypassing the server daily limit', async t => {
+  environment(t); const store = new VoiceQueueStore(), now = new Date();
+  const midnight = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+  const row = recording({ attempts: 1, retryWindow: Date.now() - 10000, nextAt: midnight }); await store.add(row);
+  const f = queue(t, { store }); await ready(f);
+  assert.equal(f.calls.length, 0); assert.equal(f.service.diagnostics.nextAt, midnight);
+  assert.equal((await store.list('alice')).items[0].nextAt, midnight);
+});
+test('legacy recovery respects an active upload lease from another tab', async t => {
+  environment(t); const store = new VoiceQueueStore(), leaseUntil = Date.now() + 150000;
+  const row = recording({ attempts: 24, retryWindow: Date.now() - 10000, nextAt: Date.now() + 82532000, leaseId: 'other-tab', leaseUntil }); await store.add(row);
+  const f = queue(t, { store }); await ready(f);
+  assert.equal(f.calls.length, 0); assert.equal(f.service.diagnostics.nextAt, leaseUntil);
+  assert.equal(f.service.label(f.service.items[0]), 'Waiting for upload slot');
+});
+test('reopening after legacy recovery keeps the new short backoff without repeating immediate recovery', async t => {
+  environment(t, false); const store = new VoiceQueueStore();
+  const row = recording({ attempts: 1, retryWindow: Date.now() - 10000, nextAt: Date.now() + 82532000 }); await store.add(row);
+  const f = queue(t, { store, call: () => throwError(() => ({ code: 'functions/unavailable' })) }); await ready(f);
+  navigator.onLine = true; await f.service.refresh(); await until(() => f.calls.length === 1 && !f.service.running); await ready(f);
+  const saved = (await store.list('alice')).items[0];
+  assert.equal(saved.retryWindow, undefined); assert.equal(saved.attempts, 2); assert.ok(saved.nextAt > Date.now());
+  f.service.ngOnDestroy(); const next = queue(t, { store }); await ready(next);
+  assert.equal(next.calls.length, 0); assert.equal(next.service.diagnostics.nextAt, saved.nextAt);
+});
