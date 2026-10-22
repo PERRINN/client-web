@@ -16,13 +16,13 @@
       </div>
       <button class="talk" type="button" [class.recording]="voice.phase === 'recording'"
         [disabled]="!voice.ready || !voice.uid || voice.phase === 'sending'"
-        [attr.aria-pressed]="voice.phase === 'recording'" [attr.aria-label]="voice.label + ' · 30 seconds maximum'"
+        [attr.aria-pressed]="voice.phase === 'recording' || voice.phase === 'requesting'" [attr.aria-label]="voice.label + ' · 30 seconds maximum'"
         [attr.title]="voice.label"
         [attr.aria-busy]="voice.phase === 'requesting' || voice.phase === 'sending'" aria-describedby="voice-status"
-        (pointerdown)="pointerDown($event)" (pointerup)="pointerUp($event)"
+        (pointerdown)="pointerDown($event)" (pointermove)="pointerMove($event)" (pointerup)="pointerUp($event)"
         (pointercancel)="pointerCancel($event)" (lostpointercapture)="pointerCancel($event)"
-        (keydown)="keyDown($event)" (keyup)="keyUp($event)" (blur)="interrupt()"
-        (contextmenu)="$event.preventDefault()" (click)="$event.preventDefault()">
+        (keydown)="keyDown($event)" (blur)="interrupt()"
+        (contextmenu)="$event.preventDefault()" (click)="$event.detail === 0 && toggle()">
         <span class="talk-logo" aria-hidden="true"></span>
       </button>
     </div>

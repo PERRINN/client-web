@@ -44,7 +44,7 @@ export class VoiceCaptureService implements OnDestroy {
         return context.state === 'running' ? undefined : context.resume();
       }), context.audioWorklet.addModule('/assets/voice-input/capture.worklet.js')]).then(() => true);
       if (!await Promise.race([prepared, cancelled, deadline]) || generation !== this.generation) return false;
-      if (context.sampleRate !== 16000 || context.state !== 'running') throw new Error('Could not start audio. Press and hold again.');
+      if (context.sampleRate !== 16000 || context.state !== 'running') throw new Error('Could not start audio. Start recording again.');
       this.samples = new Float32Array(MAX_VOICE_SAMPLES); this.length = 0;
       const interrupted = () => { if (generation === this.generation) onError(); };
       this.node = new AudioWorkletNode(context, 'voice-capture', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1] });

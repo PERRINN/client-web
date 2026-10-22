@@ -36,7 +36,7 @@ export class VoiceInputService implements OnDestroy {
   get busy(): boolean { return this.phase === 'requesting' || this.phase === 'recording' || this.phase === 'sending'; }
   get canRecord(): boolean { return this.ready && !!this.uid && !this.busy; }
   get label(): string {
-    return ({ idle: 'Hold to talk', requesting: 'Allow microphone', recording: 'Recording', sending: 'Transcribing', saved: 'Hold to talk', error: 'Hold to talk' })[this.phase];
+    return ({ idle: 'Start recording', requesting: 'Cancel microphone', recording: 'Stop recording', sending: 'Transcribing', saved: 'Start recording', error: 'Start recording' })[this.phase];
   }
 
   async press(): Promise<void> {

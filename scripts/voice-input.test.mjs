@@ -184,7 +184,7 @@ test('unknown outcomes automatically allow a fresh recording without replaying t
   let attempt = 0;
   const { service, calls } = client(() => ++attempt === 1 ? throwError(() => ({ code: 'functions/deadline-exceeded' })) : of({ eventId: 'saved', transcript: 'Next recording' }));
   await service.press(); await service.release();
-  assert.equal(service.canRecord, true); assert.equal(service.label, 'Hold to talk'); assert.equal(calls.length, 1);
+  assert.equal(service.canRecord, true); assert.equal(service.label, 'Start recording'); assert.equal(calls.length, 1);
   assert.match(service.replies.at(-1)?.text, /Could not confirm/);
   await service.press(); assert.equal(service.replies.length, 1); await service.release();
   assert.equal(calls.length, 2); assert.notEqual(calls[0].requestId, calls[1].requestId);
@@ -279,32 +279,63 @@ test('audio history is bounded, clears on release/cancel, and ignores late captu
   assert.deepEqual(service.levels, Array(9).fill(0));
 });
 
-test('component routes primary touch release, cancellation, repeated keys and completion notifications correctly', () => {
-  const { Subject } = require('rxjs'); let presses = 0, releases = 0, cancels = 0, marks = 0;
-  const voice = { canRecord: true, press: async () => { presses++; }, release: async () => { releases++; }, cancel: () => { cancels++; }, changed: new Subject() };
+function componentFixture(fixture = client()) {
+  let marks = 0;
   const { VoiceInputComponent } = load('../src/app/prototypes/voice-input/voice-input.component.ts', {
     '@angular/core': core, './voiceCapture.service': {}, './voiceInput.service': {}
   });
-  const component = new VoiceInputComponent(voice, { markForCheck: () => { marks++; } });
-  const pointer = { pointerId: 1, pointerType: 'touch', isPrimary: true, button: 0, preventDefault() {}, currentTarget: { setPointerCapture() {} } };
-  component.pointerDown(pointer); component.pointerDown({ ...pointer, pointerId: 2, isPrimary: false });
-  component.pointerUp({ ...pointer, pointerId: 2 }); assert.equal(presses, 1); assert.equal(releases, 0);
-  component.pointerUp(pointer); component.pointerCancel(pointer); assert.equal(releases, 1); assert.equal(cancels, 0);
-  component.pointerDown(pointer); component.pointerCancel(pointer); assert.equal(cancels, 1);
-  const key = { key: ' ', repeat: false, preventDefault() {} };
-  component.keyDown(key); component.keyDown({ ...key, repeat: true }); component.keyUp(key);
-  assert.equal(presses, 3); assert.equal(releases, 2);
-  component.keyDown({ ...key, ctrlKey: true }); assert.equal(presses, 3);
-  component.keyDown(key); component.interrupt(); assert.equal(cancels, 2);
-  voice.changed.next(); assert.equal(marks, 1); component.ngOnDestroy(); voice.changed.next(); assert.equal(marks, 1);
+  const component = new VoiceInputComponent(fixture.service, { markForCheck: () => { marks++; } });
+  return { ...fixture, component, marks: () => marks };
+}
+const pointer = (changes = {}) => ({ pointerId: 1, pointerType: 'touch', isPrimary: true, button: 0,
+  timeStamp: 0, clientX: 20, clientY: 20, preventDefault() {}, currentTarget: { setPointerCapture() {} }, ...changes });
+function gesture(component, duration, changes = {}) {
+  component.pointerDown(pointer(changes));
+  component.pointerUp(pointer({ ...changes, timeStamp: duration }));
+}
+test('touch toggle ignores quick taps, movement and cancelled gestures when opening and closing', async () => {
+  const { service, component, calls, marks } = componentFixture();
+  gesture(component, 199); assert.equal(service.phase, 'idle');
+  component.pointerDown(pointer());
+  component.pointerMove(pointer({ clientX: 31 }));
+  component.pointerUp(pointer({ timeStamp: 300 })); assert.equal(service.phase, 'idle');
+  component.pointerDown(pointer()); component.pointerCancel(pointer());
+  component.pointerUp(pointer({ timeStamp: 300 })); assert.equal(service.phase, 'idle');
+  gesture(component, 200); await until(() => service.phase === 'recording');
+  gesture(component, 50); assert.equal(service.phase, 'recording');
+  component.pointerDown(pointer()); component.pointerCancel(pointer());
+  component.pointerUp(pointer({ timeStamp: 300 })); assert.equal(service.phase, 'recording');
+  component.pointerDown(pointer()); component.pointerUp(pointer({ timeStamp: 300, clientY: 31 }));
+  assert.equal(service.phase, 'recording');
+  gesture(component, 250); await until(() => service.phase === 'saved');
+  assert.equal(calls.length, 1); assert.ok(marks() > 0);
+  const previous = marks(); component.ngOnDestroy(); service.changed.next(); assert.equal(marks(), previous);
+  service.ngOnDestroy();
 });
+test('mouse and keyboard toggle immediately, pending startup cancels, and sending cannot overlap', async () => {
+  let grant;
+  const fixture = componentFixture(client(undefined, { start: () => new Promise(resolve => { grant = resolve; }) }));
+  const { component, service, calls } = fixture;
+  gesture(component, 1, { pointerType: 'mouse' }); assert.equal(service.phase, 'requesting');
+  gesture(component, 1, { pointerType: 'mouse' }); grant(true);
+  await new Promise(resolve => setImmediate(resolve)); assert.equal(service.phase, 'idle'); assert.equal(calls.length, 0);
+  component.toggle(); grant(true); await until(() => service.phase === 'recording');
+  let prevented = 0;
+  component.keyDown({ key: 'Enter', repeat: true, preventDefault() { prevented++; } });
+  assert.equal(prevented, 1); assert.equal(service.phase, 'recording');
+  component.toggle(); component.toggle(); await until(() => service.phase === 'saved'); assert.equal(calls.length, 1);
+  component.toggle(); grant(true); await until(() => service.phase === 'recording');
+  component.keyDown({ key: 'Escape', preventDefault() {} }); assert.equal(service.phase, 'idle');
+  component.ngOnDestroy(); service.ngOnDestroy();
+});
+
 
 
 test('submission failures leave the control ready without a recovery action or automatic retry', async () => {
   for (const code of ['unavailable', 'aborted', 'failed-precondition', 'resource-exhausted', 'invalid-argument', 'unauthenticated']) {
     const { service, calls } = client(() => throwError(() => ({ code: 'functions/' + code })));
     await service.press(); await service.release();
-    assert.equal(service.canRecord, true, code); assert.equal(service.label, 'Hold to talk');
+    assert.equal(service.canRecord, true, code); assert.equal(service.label, 'Start recording');
     assert.equal(calls.length, 1); assert.ok(service.replies.at(-1)?.text);
     await service.press(); assert.equal(service.phase, 'recording'); assert.equal(service.replies.length, 1);
     service.ngOnDestroy();
