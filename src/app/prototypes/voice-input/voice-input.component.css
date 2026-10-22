@@ -1,0 +1,18 @@
+:host { display: block; color: var(--color-text); font-family: var(--font-family-ui); }
+:host :where(*) { font-size: inherit; line-height: inherit; overflow: visible; }
+.voice-page { max-width: 640px; margin: 0 auto; padding: 24px 24px calc(144px + env(safe-area-inset-bottom, 0px)); font-size: 16px; line-height: 1.45; }
+.back { display: inline-block; font-size: 15px; margin-bottom: 16px; text-decoration: none; }
+.capture-panel { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+button { margin: 0; transition: none; color: var(--color-text); background: var(--color-raised); padding: 10px 14px; min-height: 44px; }
+.talk { position: fixed; right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 20; display: grid; place-items: center; width: 96px; height: 96px; padding: 0; border: 2px solid transparent; border-radius: 50%; background: var(--color-accent); color: var(--color-accent-ink); touch-action: none; user-select: none; -webkit-touch-callout: none; }
+.talk-logo { display: block; width: 100%; height: 100%; border-radius: 50%; background: currentColor; mask: url('/assets/App icons/perrinn-02.png') center / 116% no-repeat; -webkit-mask: url('/assets/App icons/perrinn-02.png') center / 116% no-repeat; }
+.talk.recording { background: var(--color-raised); color: var(--color-text); border-color: var(--color-accent); }
+.talk:disabled { background: var(--color-raised); color: var(--color-text-muted); cursor: default; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.error { font-size: 15px; color: var(--color-danger-text); text-align: center; overflow-wrap: anywhere; }
+.recovery { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.transcript { margin-top: 16px; padding: 20px; background: var(--color-surface); }
+.transcript p { white-space: pre-wrap; overflow-wrap: anywhere; }
+button:focus-visible, a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 4px; }
+@media (hover: hover) and (pointer: fine) { button:not(:disabled):hover { filter: brightness(.94); } .back:hover { text-decoration: underline; } }
+@media (max-width: 480px) { .voice-page { padding: 16px 16px calc(144px + env(safe-area-inset-bottom, 0px)); } }

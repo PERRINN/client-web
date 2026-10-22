@@ -1,4 +1,9 @@
 :host { display: block; color: var(--text-light); font-family: var(--font-family-ui); }
+.voice-preview { width: 240px; max-width: 100%; height: 88px; fill: none; stroke: var(--color-text-secondary); stroke-width: 3; }
+.voice-preview circle { fill: var(--color-accent); stroke: none; }
+.voice-preview rect, .voice-preview path { stroke: var(--color-accent-ink); }
+.voice-preview path { stroke-linecap: round; }
+.voice-preview .voice-lines { stroke: var(--color-text-secondary); }
 :host h1, :host h2, :host h3 { overflow: visible; line-height: 1.35; }
 .prototype-gallery { max-width: 960px; margin: 0 auto; padding: 24px; }
 .gallery-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 24px; }

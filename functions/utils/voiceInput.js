@@ -1,0 +1,66 @@
+const { createHash } = require('node:crypto');
+const { VoiceInputError, validateInput } = require('./voiceAudio');
+
+const fail = (code, message) => { throw new VoiceInputError(code, message); };
+const result = event => ({ eventId: event.eventId, transcript: event.transcript });
+
+async function processVoiceInput(db, auth, data, options) {
+  if (!auth?.uid) fail('unauthenticated', 'Sign in to use voice input.');
+  const input = validateInput(data);
+  const now = options.now?.() ?? Date.now();
+  const eventId = createHash('sha256').update(auth.uid + ':' + data.requestId).digest('hex');
+  const eventRef = db.doc('VoiceInputEvents/' + eventId);
+  const limitRef = db.doc('VoiceInputLimits/' + auth.uid);
+  const day = new Date(now).toISOString().slice(0, 10);
+  const event = {
+    eventId, userId: auth.uid, sourcePage: data.sourcePage, status: 'processing',
+    createdAt: options.timestamp(), durationMs: input.durationMs, fingerprint: input.fingerprint,
+    provider: 'openai', model: options.model
+  };
+  const replay = await db.runTransaction(async tx => {
+    const existing = await tx.get(eventRef);
+    if (existing.exists) {
+      const saved = existing.data();
+      if (saved.fingerprint !== input.fingerprint || saved.userId !== auth.uid) fail('invalid-argument', 'Recording ID already used.');
+      if (saved.status === 'completed') return result(saved);
+      if (saved.status === 'processing') fail('aborted', 'Recording is still processing. Check again shortly.');
+      fail('failed-precondition', 'This recording failed. Record again.');
+    }
+    const limit = (await tx.get(limitRef)).data() || {};
+    if (limit.activeUntil > now) fail('resource-exhausted', 'A recording is still processing. Try later.');
+    const count = limit.day === day ? limit.count : 0;
+    if (count >= 20) fail('resource-exhausted', 'Daily recording limit reached. Try tomorrow.');
+    tx.create(eventRef, event);
+    tx.set(limitRef, { day, count: count + 1, activeEvent: eventId, activeUntil: now + 90000 });
+    return null;
+  }, { maxAttempts: 3 });
+  if (replay) return replay;
+
+  let transcript;
+  try {
+    transcript = await options.transcribe(input.audio);
+    // Persist before returning; a failed save must never appear as success.
+    await eventRef.update({ status: 'completed', transcript, completedAt: options.timestamp() });
+  } catch (error) {
+    try {
+      await db.runTransaction(async tx => {
+        const saved = (await tx.get(eventRef)).data();
+        // The success write may have committed even if its acknowledgement was lost.
+        if (saved?.status === 'processing') tx.update(eventRef, { status: 'failed', completedAt: options.timestamp() });
+      }, { maxAttempts: 3 });
+    } catch { /* Leave a replay-safe processing marker. */ }
+    if (error instanceof VoiceInputError) throw error;
+    throw new VoiceInputError('internal', 'Could not save the transcript. Check this recording before recording again.');
+  } finally {
+    // Compare the lease identity so late cleanup cannot unlock a newer request.
+    try {
+      await db.runTransaction(async tx => {
+        const lease = (await tx.get(limitRef)).data();
+        if (lease?.activeEvent === eventId) tx.update(limitRef, { activeUntil: 0 });
+      }, { maxAttempts: 3 });
+    } catch { /* The 90-second lease expires without a cleanup job. */ }
+  }
+  return { eventId, transcript };
+}
+
+module.exports = { processVoiceInput };

@@ -27,6 +27,12 @@ The former **chat-bubbles** experiment is now the production chat at `/chat/:id`
 
 See [ui-spec.md → Production chat](ui-spec.md#production-chat) for the approved conversation experience and known feature differences, and [data-model.md](data-model.md) for message, read-cursor and transfer contracts. The implementation no longer imports chat code from the prototype tree.
 
+## Voice input
+
+`/prototypes/voice-input` is the functional speech-capture pilot for #99, listed under Team tools with a microphone/transcript graphic tile. Any signed-in user can hold the round PERRINN logo button, Space or Enter to record, then release to transcribe and privately save the result. The 96px button shows only an enlarged logo and stays fixed to the viewport's bottom-right with safe-area clearance. The page has no title, explanatory copy or empty recording panel; the button retains an accessible action label and visually hidden live status. Sign-in, errors, recovery controls and the returned transcript appear only when needed. Page scroll clearance keeps the floating control from obscuring the final content or actions. Each recording is capped at 30 seconds and each user at 20 submissions per UTC day. Interrupted gestures discard capture; uncertain results offer an explicit check of the same recording. The initiating page shows its saved transcript and clears it on sign-out/navigation.
+
+This pilot captures input only; it does not interpret intent or publish messages. Audio goes to OpenAI through the authenticated backend and is never retained in PERRINN storage. See [Voice input prototype](data-model.md#voice-input-prototype) for persisted paths, security rules, request/work budgets, retention, costs, setup, release order and validation limitations. Build the frontend and backend locally without calling the real provider; a hosted round trip requires separately authorized rule/function/client deployment and a configured server-side secret.
+
 ## 424 rear-wing pilot
 
 `/prototypes/rear-wing-pilot` is a single engineering brief for Lewis Valentine’s NativeCAD/FeatureBoard pilot (#84). It covers the development scope, fixed geometry, two-pillar load path, loads and stiffness, preliminary pneumatic sizing, composite construction, required deliverables and open decisions. It is a read-only handoff with no tabs, forms, browser-local drafts or Firebase writes. The approved scope targets a manufacturing-ready assembly; release still depends on resolving open requirements and engineering validation.

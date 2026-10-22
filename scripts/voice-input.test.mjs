@@ -1,0 +1,268 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import vm from 'node:vm';
+import ts from 'typescript';
+import { BehaviorSubject, of, throwError } from 'rxjs';
+
+const require = createRequire(import.meta.url);
+const { validateInput, VoiceInputError } = require('../functions/utils/voiceAudio');
+const { processVoiceInput } = require('../functions/utils/voiceInput');
+const { transcribe } = require('../functions/utils/voiceTranscription');
+function load(file, overrides = {}) {
+  const code = ts.transpileModule(readFileSync(new URL(file, import.meta.url), 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, experimentalDecorators: true }
+  }).outputText;
+  const exports = {};
+  new Function('exports', 'require', code)(exports, name => overrides[name] || require(name));
+  return exports;
+}
+const core = { Injectable: () => target => target, Component: () => target => target, HostListener: () => () => {} };
+const audio = load('../src/app/prototypes/voice-input/voiceAudio.ts');
+const wav = (seconds = 1, amplitude = .1) => audio.voiceWav(Float32Array.from({ length: seconds * 16000 }, (_, i) => amplitude * Math.sin(i * .2)));
+const request = (changes = {}) => ({ requestId: '12345678-1234-1234-1234-123456789abc', sourcePage: '/prototypes/voice-input', audio: audio.voiceBase64(wav()), ...changes });
+const valid = request();
+const rejected = code => error => error.code === code;
+async function until(predicate) {
+  for (let attempt = 0; attempt < 100; attempt++) {
+    if (predicate()) return;
+    await new Promise(resolve => setTimeout(resolve, 5));
+  }
+  assert.fail('Expected asynchronous work to start within 500 ms.');
+}
+
+function store() {
+  const records = new Map(), work = { reads: 0, writes: 0, transactions: 0 };
+  let queue = Promise.resolve();
+  const ref = path => ({ path, update: async data => {
+    work.writes++; if (!records.has(path)) throw Error('Missing document');
+    records.set(path, { ...records.get(path), ...data });
+  } });
+  const db = { records, work, doc: ref, runTransaction(fn, options) {
+    assert.equal(options.maxAttempts, 3);
+    const execute = async () => {
+      work.transactions++;
+      const writes = [];
+      const tx = { get: async doc => { work.reads++; return { exists: records.has(doc.path), data: () => records.get(doc.path) }; },
+        create: (doc, data) => { assert.equal(records.has(doc.path), false); writes.push([doc.path, data]); },
+        set: (doc, data) => writes.push([doc.path, data]), update: (doc, data) => writes.push([doc.path, { ...records.get(doc.path), ...data }]) };
+      const result = await fn(tx);
+      writes.forEach(([path, data]) => { work.writes++; records.set(path, data); });
+      return result;
+    };
+    const pending = queue.then(execute); queue = pending.catch(() => undefined); return pending;
+  } };
+  return db;
+}
+const settings = (changes = {}) => ({ model: 'gpt-transcribe', timestamp: () => 'server-time', now: () => 1792670400000,
+  transcribe: async () => 'Bonjour PERRINN', ...changes });
+
+test('client WAV matches backend format; min/max duration and clipping are enforced', () => {
+  assert.equal(validateInput(valid).durationMs, 1000);
+  assert.equal(validateInput(request({ audio: audio.voiceBase64(wav(.4)) })).durationMs, 400);
+  assert.equal(validateInput(request({ audio: audio.voiceBase64(wav(30)) })).durationMs, 30000);
+  assert.throws(() => wav(.39)); assert.throws(() => wav(30.1)); assert.throws(() => wav(1, 0));
+  const clipped = audio.voiceWav(new Float32Array(16000).fill(2));
+  assert.equal(new DataView(clipped.buffer).getInt16(44, true), 32767);
+});
+test('server rejects malformed, silent, oversized, forged duration, and unsupported WAVs', () => {
+  for (const changes of [{ sourcePage: '/chat' }, { requestId: '../bob' }, { extra: true }, { audio: '!' }, { audio: '='.repeat(1280064) }])
+    assert.throws(() => validateInput(request(changes)), rejected('invalid-argument'));
+  for (const [offset, value] of [[4, 0], [16, 18], [20, 3], [22, 2], [24, 48000], [28, 96000], [32, 4], [34, 32], [40, 1]]) {
+    const bytes = Buffer.from(wav()); bytes.writeUInt32LE(value, offset);
+    assert.throws(() => validateInput(request({ audio: bytes.toString('base64') })), rejected('invalid-argument'));
+  }
+  const silent = Buffer.from(wav()); silent.fill(0, 44);
+  assert.throws(() => validateInput(request({ audio: silent.toString('base64') })), rejected('invalid-argument'));
+  const long = Buffer.alloc(960046); Buffer.from(wav()).copy(long);
+  assert.throws(() => validateInput(request({ audio: long.toString('base64') })), rejected('invalid-argument'));
+});
+test('auth/validation rejection performs no reads or provider work', async () => {
+  const db = store(); let calls = 0;
+  const options = settings({ transcribe: async () => { calls++; } });
+  await assert.rejects(processVoiceInput(db, null, valid, options), rejected('unauthenticated'));
+  await assert.rejects(processVoiceInput(db, { uid: 'alice' }, {}, options), rejected('invalid-argument'));
+  assert.deepEqual(db.work, { reads: 0, writes: 0, transactions: 0 }); assert.equal(calls, 0);
+});
+test('success persists private metadata before return; same-ID replay costs one read and no provider call', async () => {
+  const db = store(); let calls = 0;
+  const options = settings({ transcribe: async () => { calls++; return 'Bonjour PERRINN'; } });
+  const response = await processVoiceInput(db, { uid: 'alice' }, valid, options);
+  const event = db.records.get('VoiceInputEvents/' + response.eventId);
+  assert.equal(event.transcript, response.transcript); assert.equal(event.userId, 'alice'); assert.equal(event.status, 'completed');
+  assert.equal(event.createdAt, 'server-time'); assert.equal(event.sourcePage, valid.sourcePage);
+  assert.ok(!('audio' in event)); assert.equal(calls, 1);
+  assert.deepEqual(db.work, { reads: 3, writes: 4, transactions: 2 });
+  assert.deepEqual(await processVoiceInput(db, { uid: 'alice' }, valid, options), response);
+  assert.equal(db.work.reads, 4); assert.equal(db.work.writes, 4); assert.equal(calls, 1);
+  const other = await processVoiceInput(db, { uid: 'bob' }, valid, options);
+  assert.notEqual(other.eventId, response.eventId);
+  assert.equal(db.records.get('VoiceInputEvents/' + other.eventId).userId, 'bob');
+});
+test('concurrent duplicates and different IDs reserve only one provider call per user', async () => {
+  const db = store(); let finish, calls = 0;
+  const first = processVoiceInput(db, { uid: 'alice' }, valid, settings({ transcribe: () => { calls++; return new Promise(resolve => { finish = resolve; }); } }));
+  await until(() => finish);
+  await assert.rejects(processVoiceInput(db, { uid: 'alice' }, valid, settings()), rejected('aborted'));
+  await assert.rejects(processVoiceInput(db, { uid: 'alice' }, request({ requestId: '22345678-1234-1234-1234-123456789abc' }), settings()), rejected('resource-exhausted'));
+  finish('Saved'); await first; assert.equal(calls, 1); assert.equal(db.records.get('VoiceInputLimits/alice').count, 1);
+});
+test('same ID cannot be repurposed, daily limit is enforced, and UTC rollover resets it', async () => {
+  const db = store(); await processVoiceInput(db, { uid: 'alice' }, valid, settings());
+  await assert.rejects(processVoiceInput(db, { uid: 'alice' }, request({ audio: audio.voiceBase64(wav(2)) }), settings()), rejected('invalid-argument'));
+  const limit = db.records.get('VoiceInputLimits/alice'); limit.count = 20;
+  const next = request({ requestId: '22345678-1234-1234-1234-123456789abc' });
+  await assert.rejects(processVoiceInput(db, { uid: 'alice' }, next, settings()), rejected('resource-exhausted'));
+  await processVoiceInput(db, { uid: 'alice' }, next, settings({ now: () => 1792670400000 + 86400000 }));
+  assert.equal(db.records.get('VoiceInputLimits/alice').count, 1);
+});
+test('failed provider/persistence leaves no success response and never retranscribes the same ID', async () => {
+  for (const failure of ['provider', 'save', 'acknowledgement']) {
+    const db = store(); let calls = 0;
+    const original = db.doc;
+    db.doc = path => {
+      const ref = original(path), update = ref.update;
+      ref.update = async data => {
+        if (path.startsWith('VoiceInputEvents/') && data.status === 'completed') {
+          if (failure === 'save') throw Error('write failed');
+          if (failure === 'acknowledgement') { await update(data); throw Error('ack lost'); }
+        }
+        return update(data);
+      };
+      return ref;
+    };
+    const options = settings({ transcribe: async () => { calls++; if (failure === 'provider') throw new VoiceInputError('unavailable', 'Failed'); return 'Saved'; } });
+    await assert.rejects(processVoiceInput(db, { uid: 'alice' }, valid, options));
+    if (failure === 'acknowledgement') assert.equal((await processVoiceInput(db, { uid: 'alice' }, valid, options)).transcript, 'Saved');
+    else await assert.rejects(processVoiceInput(db, { uid: 'alice' }, valid, options), rejected('failed-precondition'));
+    assert.equal(calls, 1); assert.equal(db.records.get('VoiceInputLimits/alice').activeUntil, 0);
+  }
+});
+test('provider receives one WAV upload with configured model; unsafe errors are sanitized and never retried', async () => {
+  let calls = 0;
+  const options = { apiKey: 'fake-test-key', model: 'configured-model', fetcher: async (url, init) => {
+    calls++; assert.equal(url, 'https://api.openai.com/v1/audio/transcriptions');
+    assert.equal(init.body.get('model'), 'configured-model'); assert.equal(init.body.get('file').type, 'audio/wav');
+    return { ok: true, json: async () => ({ text: '  Bonjour  ' }) };
+  } };
+  assert.equal(await transcribe(Buffer.from(wav()), options), 'Bonjour'); assert.equal(calls, 1);
+  await assert.rejects(transcribe(Buffer.from(wav()), { ...options, fetcher: async () => { calls++; throw Error('SECRET PROVIDER RESPONSE'); } }),
+    error => error.code === 'unavailable' && !error.message.includes('SECRET'));
+  assert.equal(calls, 2);
+});
+
+function client(call = () => of({ eventId: 'saved-id', transcript: 'Bonjour' }), captureChanges = {}) {
+  const authState = new BehaviorSubject({ uid: 'alice' });
+  const auth = { authState, currentUser: Promise.resolve({ uid: 'alice' }) };
+  const capture = { start: async () => true, finish: async () => wav(), cancel: () => {}, ...captureChanges };
+  const calls = [];
+  const functions = { httpsCallable: () => input => { calls.push(input); return call(input); } };
+  const { VoiceInputService } = load('../src/app/prototypes/voice-input/voiceInput.service.ts', {
+    '@angular/core': core, '@angular/fire/compat/auth': {}, '@angular/fire/compat/functions': {},
+    './voiceCapture.service': {}, './voiceAudio': audio
+  });
+  return { service: new VoiceInputService(auth, functions, capture, { run: fn => fn() }), auth, calls, capture };
+}
+test('release during permission prompt and cancellation never submit, including late permission grants', async () => {
+  let grant, cancel = 0;
+  const fixture = client(undefined, { start: () => new Promise(resolve => { grant = resolve; }), cancel: () => { cancel++; } });
+  const pending = fixture.service.press(); assert.equal(fixture.service.phase, 'requesting');
+  await fixture.service.release(); grant(true); await pending;
+  assert.equal(fixture.service.phase, 'idle'); assert.equal(fixture.calls.length, 0); assert.ok(cancel > 0);
+  fixture.service.ngOnDestroy();
+});
+test('normal release saves; repeated release does not duplicate, and sign-out clears transcript', async () => {
+  const { service, auth, calls } = client(); await service.press();
+  const phases = []; service.changed.subscribe(() => phases.push(service.phase));
+  await Promise.all([service.release(), service.release()]);
+  assert.equal(calls.length, 1); assert.equal(service.phase, 'saved'); assert.equal(service.transcript, 'Bonjour');
+  assert.ok(phases.includes('saved'), 'Async completion must notify the rendered component without another gesture.');
+  auth.authState.next(null); assert.equal(service.transcript, ''); assert.equal(service.canRecord, false); service.ngOnDestroy();
+});
+test('unknown outcomes retain identical ID/audio for a user-triggered check', async () => {
+  let attempt = 0;
+  const { service, calls } = client(() => ++attempt === 1 ? throwError(() => ({ code: 'functions/deadline-exceeded' })) : of({ eventId: 'saved', transcript: 'Recovered' }));
+  await service.press(); await service.release();
+  assert.ok(service.pending); assert.equal(service.canRecord, false); assert.equal(calls.length, 1);
+  await service.check(); assert.equal(calls.length, 2); assert.deepEqual(calls[0], calls[1]); assert.equal(service.transcript, 'Recovered'); service.ngOnDestroy();
+});
+test('auth change during response discards result; permission denial and empty recordings are recoverable', async () => {
+  let deliver;
+  const { Observable } = require('rxjs');
+  const fixture = client(() => new Observable(subscriber => { deliver = subscriber; }));
+  await fixture.service.press(); const pending = fixture.service.release();
+  await until(() => deliver);
+  fixture.auth.authState.next({ uid: 'bob' }); deliver.next({ eventId: 'private', transcript: 'Alice only' }); deliver.complete(); await pending;
+  assert.equal(fixture.service.transcript, ''); assert.equal(fixture.service.pending, undefined); fixture.service.ngOnDestroy();
+  const denied = client(undefined, { start: async () => { throw { name: 'NotAllowedError' }; } });
+  await denied.service.press(); assert.match(denied.service.error, /denied/); assert.equal(denied.service.canRecord, true); denied.service.ngOnDestroy();
+  const empty = client(undefined, { finish: async () => { throw Error('No speech detected. Try again.'); } });
+  await empty.service.press(); await empty.service.release(); assert.equal(empty.calls.length, 0); assert.match(empty.service.error, /No speech/); empty.service.ngOnDestroy();
+});
+test('worklet hard-caps capture at 30 seconds and flushes the final partial block before stopped', () => {
+  let Processor; const messages = [];
+  const scope = { AudioWorkletProcessor: class { port = { postMessage: message => messages.push(message) }; }, Float32Array,
+    registerProcessor: (_, processor) => { Processor = processor; } };
+  vm.runInNewContext(readFileSync(new URL('../src/assets/voice-input/capture.worklet.js', import.meta.url), 'utf8'), scope);
+  const recorder = new Processor();
+  for (let i = 0; i < 4000; i++) recorder.process([[new Float32Array(128).fill(.1)]]);
+  assert.equal(messages.filter(item => item.type === 'samples').reduce((sum, item) => sum + item.samples.length, 0), 480000);
+  assert.equal(messages.filter(item => item.type === 'limit').length, 1);
+  recorder.port.onmessage({ data: 'stop' }); assert.equal(messages.at(-1).type, 'stopped');
+});
+
+test('capture cancels late microphone grants, drains samples on normal release, and stops every track', async () => {
+  const originals = Object.fromEntries(['navigator', 'AudioContext', 'AudioWorkletNode'].map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
+  let grant, stops = 0, closes = 0, node;
+  const track = { stop: () => { stops++; } }, stream = { getTracks: () => [track], getAudioTracks: () => [track] };
+  const connection = () => ({ gain: { value: 1 }, connect() {}, disconnect() {} });
+  class Context {
+    sampleRate = 16000; state = 'running'; audioWorklet = { addModule: async () => {} };
+    resume = async () => {}; close = async () => { closes++; };
+    createGain = connection; createMediaStreamSource = connection;
+  }
+  class Node {
+    constructor() { node = this; }
+    connect() {} disconnect() {}
+    port = { close() {}, postMessage: () => queueMicrotask(() => this.port.onmessage?.({ data: { type: 'stopped' } })) };
+  }
+  try {
+    Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { mediaDevices: { getUserMedia: () => new Promise(resolve => { grant = resolve; }) } } });
+    Object.defineProperty(globalThis, 'AudioContext', { configurable: true, value: Context });
+    Object.defineProperty(globalThis, 'AudioWorkletNode', { configurable: true, value: Node });
+    const { VoiceCaptureService } = load('../src/app/prototypes/voice-input/voiceCapture.service.ts', { '@angular/core': core, './voiceAudio': audio });
+    const capture = new VoiceCaptureService();
+    const first = capture.start(() => {}, () => {}); capture.cancel(); grant(stream);
+    assert.equal(await first, false); assert.equal(stops, 1); assert.equal(closes, 1);
+    navigator.mediaDevices.getUserMedia = async () => stream;
+    assert.equal(await capture.start(() => {}, () => {}), true);
+    node.port.onmessage({ data: { type: 'samples', samples: Float32Array.from({ length: 16000 }, (_, i) => .1 * Math.sin(i * .2)) } });
+    assert.equal((await capture.finish()).length, 32044); assert.equal(stops, 2); assert.equal(closes, 2);
+    capture.ngOnDestroy();
+  } finally {
+    for (const [key, descriptor] of Object.entries(originals)) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor); else delete globalThis[key];
+    }
+  }
+});
+
+test('component routes primary touch release, cancellation, repeated keys and completion notifications correctly', () => {
+  const { Subject } = require('rxjs'); let presses = 0, releases = 0, cancels = 0, marks = 0;
+  const voice = { canRecord: true, press: async () => { presses++; }, release: async () => { releases++; }, cancel: () => { cancels++; }, changed: new Subject() };
+  const { VoiceInputComponent } = load('../src/app/prototypes/voice-input/voice-input.component.ts', {
+    '@angular/core': core, './voiceCapture.service': {}, './voiceInput.service': {}
+  });
+  const component = new VoiceInputComponent(voice, { markForCheck: () => { marks++; } });
+  const pointer = { pointerId: 1, pointerType: 'touch', isPrimary: true, button: 0, preventDefault() {}, currentTarget: { setPointerCapture() {} } };
+  component.pointerDown(pointer); component.pointerDown({ ...pointer, pointerId: 2, isPrimary: false });
+  component.pointerUp({ ...pointer, pointerId: 2 }); assert.equal(presses, 1); assert.equal(releases, 0);
+  component.pointerUp(pointer); component.pointerCancel(pointer); assert.equal(releases, 1); assert.equal(cancels, 0);
+  component.pointerDown(pointer); component.pointerCancel(pointer); assert.equal(cancels, 1);
+  const key = { key: ' ', repeat: false, preventDefault() {} };
+  component.keyDown(key); component.keyDown({ ...key, repeat: true }); component.keyUp(key);
+  assert.equal(presses, 3); assert.equal(releases, 2);
+  component.keyDown({ ...key, ctrlKey: true }); assert.equal(presses, 3);
+  component.keyDown(key); component.interrupt(); assert.equal(cancels, 2);
+  voice.changed.next(); assert.equal(marks, 1); component.ngOnDestroy(); voice.changed.next(); assert.equal(marks, 1);
+});

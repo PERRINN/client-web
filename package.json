@@ -7,6 +7,8 @@
     "functions"
   ],
   "scripts": {
+    "test:voice-input": "node --test scripts/voice-input.test.mjs",
+    "test:voice-input:emulator": "node --test scripts/voice-input.emulator.mjs",
     "ng": "ng",
     "start": "ng serve --configuration dev",
     "start:prod": "ng serve --configuration production",

@@ -11,6 +11,7 @@ import { GreenpowerEventSelectorComponent } from './greenpower-telemetry/greenpo
 import { GreenpowerEventEditorComponent } from './greenpower-telemetry/greenpower-event-editor.component';
 import { GreenpowerMetadataFieldsComponent } from './greenpower-telemetry/greenpower-metadata-fields.component';
 import { TeamRadioComponent } from './prototypes/team-radio/team-radio.component';
+import { VoiceInputComponent } from './prototypes/voice-input/voice-input.component';
 import { RearWingPilotComponent } from './prototypes/rear-wing-pilot/rear-wing-pilot.component';
 import { PrnSendManagerComponent } from './chat/prn-send-manager/prn-send-manager.component';
 import { ChatFlagComponent } from './chat/chat-flag/chat-flag.component';
@@ -89,6 +90,7 @@ export const firebaseConfig = {
         GreenpowerLapListComponent,
         RearWingPilotComponent,
         TeamRadioComponent,
+        VoiceInputComponent,
         AppComponent,
         ImageViewerComponent,
         AppsComponent,

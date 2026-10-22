@@ -19,6 +19,14 @@
         <a class="prototype-card" [routerLink]="prototype.route">
           <div class="preview-stage" aria-hidden="true">
             @switch (prototype.name) {
+              @case ('voice-input') {
+                <svg class="voice-preview" viewBox="0 0 240 88" focusable="false">
+                  <circle cx="86" cy="44" r="31" />
+                  <rect x="81" y="26" width="10" height="25" rx="5" />
+                  <path d="M75 42v3a11 11 0 0 0 22 0v-3M86 56v7M80 63h12" />
+                  <path class="voice-lines" d="M133 33h43M133 44h56M133 55h34" />
+                </svg>
+              }
               @case ('rear-wing-pilot') {
                 <svg class="wing-preview" viewBox="0 0 240 88" focusable="false">
                   <path class="wing-surface" d="M25 23 Q120 10 215 23 L207 36 Q120 28 33 36 Z" />

@@ -79,7 +79,7 @@ service cloud.firestore {
       allow update: if isPerrinnAdmin() && validDatasetTrack(request.resource.data) && request.resource.data.revision == resource.data.revision + 1;
     }
     match /{collection}/{document=**} {
-      allow read: if collection != 'GreenpowerTelemetry';
+      allow read: if !(collection in ['GreenpowerTelemetry', 'VoiceInputEvents', 'VoiceInputLimits']);
     }
     match /GreenpowerTelemetry/{document=**} {
       allow read: if request.auth != null;

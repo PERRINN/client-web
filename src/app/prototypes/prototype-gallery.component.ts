@@ -8,6 +8,7 @@ import { Component } from '@angular/core';
 })
 export class PrototypeGalleryComponent {
   readonly prototypes = [
+    { name: 'voice-input', category: 'team', type: 'Functional pilot', description: 'Hold to record speech and privately save its transcription.', route: '/prototypes/voice-input' },
     { name: 'rear-wing-pilot', category: 'engineering', type: 'Engineering brief', description: '424 rear-wing engineering scope and deliverables for Lewis’s NativeCAD pilot.', route: '/prototypes/rear-wing-pilot' },
     {
       name: 'app-wiring',
@@ -81,6 +82,7 @@ export class PrototypeGalleryComponent {
   ];
 
   readonly categories = [
+    { id: 'team', title: 'Team tools', prototypes: this.prototypes.filter(item => item.category === 'team') },
     { id: 'engineering', title: 'Engineering pilots', prototypes: this.prototypes.filter(item => item.category === 'engineering') },
     { id: 'architecture', title: 'Architecture maps', prototypes: this.prototypes.filter(item => item.category === 'architecture') },
     { id: 'mosaics', title: 'Mosaics', prototypes: this.prototypes.filter(item => item.category === 'mosaics') },
