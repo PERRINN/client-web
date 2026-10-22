@@ -1,26 +1,51 @@
-import { AfterViewChecked, ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewChecked, ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { VoiceCaptureService } from './voiceCapture.service';
 import { VoiceInputService } from './voiceInput.service';
 import { VoiceQueueService } from './voiceQueue.service';
+import { VoiceDiagnosticRow, voiceDiagnosticRows } from './voiceDiagnostics';
 
 @Component({
   selector: 'app-voice-input', standalone: false,
   templateUrl: './voice-input.component.html', styleUrls: ['./voice-input.component.css'],
   providers: [VoiceCaptureService, VoiceQueueService, VoiceInputService]
 })
-export class VoiceInputComponent implements AfterViewChecked, OnDestroy {
+export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy {
   @ViewChild('replies') private replies?: ElementRef<HTMLElement>;
   private renderedReplies = 0;
-  private pointer?: { id: number; x: number; y: number; uid: string; started: boolean; held: boolean };
+  private pointer?: { downAt: number; id: number; x: number; y: number; uid: string; started: boolean; held: boolean };
   private holdTimer?: ReturnType<typeof setTimeout>;
   private changes: Subscription;
-  constructor(public voice: VoiceInputService, changeDetector: ChangeDetectorRef) {
+  private diagnosticTimer?: ReturnType<typeof setInterval>;
+  diagnosticRows: VoiceDiagnosticRow[] = [];
+  diagnosticUpdatedAt = 0;
+  diagnosticBuild = '';
+  private diagnosticsActive = false;
+  constructor(public voice: VoiceInputService, private changeDetector: ChangeDetectorRef) {
     this.changes = voice.changed.subscribe(() => {
       if (this.pointer && (this.pointer.uid !== voice.uid
         || (this.pointer.started && voice.phase !== 'requesting' && voice.phase !== 'recording'))) this.clearPointer();
+      if (this.diagnosticsActive) this.updateDiagnostics();
       changeDetector.markForCheck();
     });
+  }
+
+  ngOnInit(): void {
+    this.diagnosticsActive = true;
+    const bundle = Array.from(document.scripts).map(script => script.src).find(src => /main(?:\.[a-f0-9]+)?\.js/.test(src));
+    this.diagnosticBuild = bundle?.match(/main\.([a-f0-9]+)\.js/)?.[1].slice(0, 8) || 'Development';
+    this.updateDiagnostics();
+    this.diagnosticTimer = setInterval(() => { if (!document.hidden) this.updateDiagnostics(); }, 1000);
+  }
+  private updateDiagnostics(): void {
+    const now = Date.now();
+    if (now - this.diagnosticUpdatedAt < 1000) return;
+    this.diagnosticUpdatedAt = now;
+    this.diagnosticRows = voiceDiagnosticRows(this.voice, this.voice.queue.diagnostics, this.voice.captureDiagnostics, {
+      online: navigator.onLine !== false, visible: !document.hidden, secure: window.isSecureContext,
+      gesture: this.pointer ? (this.pointer.held ? 'Held' : 'Pressed') : 'Released', gestureSince: this.pointer?.downAt || 0
+    }, this.diagnosticUpdatedAt);
+    this.changeDetector.markForCheck();
   }
 
   ngAfterViewChecked(): void {
@@ -36,7 +61,7 @@ export class VoiceInputComponent implements AfterViewChecked, OnDestroy {
   pointerDown(event: PointerEvent): void {
     if (!event.isPrimary || event.button !== 0 || this.pointer || !this.voice.canToggle) return;
     event.preventDefault();
-    this.pointer = { id: event.pointerId, x: event.clientX, y: event.clientY,
+    this.pointer = { downAt: Date.now(), id: event.pointerId, x: event.clientX, y: event.clientY,
       uid: this.voice.uid, started: false, held: false };
     try { (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId); }
     catch { this.clearPointer(); return; }
@@ -80,5 +105,5 @@ export class VoiceInputComponent implements AfterViewChecked, OnDestroy {
   visibility(): void { if (document.hidden) this.interrupt(); }
   @HostListener('window:pagehide')
   pageHide(): void { this.interrupt(); }
-  ngOnDestroy(): void { this.clearPointer(); this.changes.unsubscribe(); }
+  ngOnDestroy(): void { clearInterval(this.diagnosticTimer); this.diagnosticsActive = false; this.clearPointer(); this.changes.unsubscribe(); }
 }

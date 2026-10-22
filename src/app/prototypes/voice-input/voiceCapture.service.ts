@@ -12,9 +12,21 @@ export class VoiceCaptureService implements OnDestroy {
   private samples?: Float32Array;
   private length = 0;
   private closingCue = false;
+  private connectedAt = 0;
+  private lastSampleAt = 0;
   private generation = 0;
   private stopped?: () => void;
   private startupCancelled?: () => void;
+
+  get diagnostics() {
+    const tracks = this.stream?.getAudioTracks() || [];
+    return {
+      supported: !!navigator.mediaDevices?.getUserMedia && typeof AudioContext !== 'undefined' && typeof AudioWorkletNode !== 'undefined',
+      context: this.context?.state || 'Idle', liveTracks: tracks.filter(track => track.readyState === 'live').length,
+      muted: tracks.some(track => track.muted), permissionPending: !!this.startupCancelled && !this.stream,
+      worklet: !!this.node, durationMs: this.length / 16, connectedAt: this.connectedAt, lastSampleAt: this.lastSampleAt
+    };
+  }
 
   async start(onLimit: () => void, onError: () => void, onLevel?: (level: number) => void): Promise<boolean> {
     this.cancel();
@@ -53,6 +65,7 @@ export class VoiceCaptureService implements OnDestroy {
       this.node.port.onmessage = ({ data }) => {
         if (generation !== this.generation) return;
         if (data.type === 'samples' && data.samples instanceof Float32Array) {
+          this.lastSampleAt = Date.now();
           const samples = data.samples.subarray(0, MAX_VOICE_SAMPLES - this.length);
           this.samples?.set(samples, this.length); this.length += samples.length;
           // Reuse captured batches (about eight per second); no extra stream or polling.
@@ -72,7 +85,7 @@ export class VoiceCaptureService implements OnDestroy {
       this.node.connect(this.mute); this.mute.connect(context.destination);
       if (!await Promise.race([voiceCue(context, true).then(() => true), cancelled, deadline])
         || generation !== this.generation) return false;
-      this.source!.connect(this.node!);
+      this.source!.connect(this.node!); this.connectedAt = Date.now();
       return true;
     } catch (error) {
       // Stop a late permission grant even if worklet setup failed first.
@@ -117,7 +130,7 @@ export class VoiceCaptureService implements OnDestroy {
     this.generation++;
     this.startupCancelled?.(); this.startupCancelled = undefined;
     this.stopped?.(); this.stopped = undefined;
-    this.closingCue = false;
+    this.closingCue = false; this.connectedAt = 0; this.lastSampleAt = 0;
     this.stream?.getTracks().forEach(track => { track.onended = null; track.stop(); }); this.stream = undefined;
     this.disconnectCapture();
     if (this.context) { this.context.onstatechange = null; void this.context.close().catch(() => undefined); }

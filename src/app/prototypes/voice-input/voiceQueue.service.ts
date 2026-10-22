@@ -4,10 +4,11 @@ import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { defer, firstValueFrom, from, merge, Subject, Subscription, takeUntil, timeout } from 'rxjs';
 import { voiceBase64 } from './voiceAudio';
+import { voiceDiagnosticCode } from './voiceDiagnostics';
 import { VoiceQueueStore, VoiceRecording, VOICE_QUEUE_LIMIT, VOICE_REQUEST_LIMIT } from './voiceQueueStore.service';
 
 interface Receipt { eventId: string; status: string; transcript?: string }
-interface Attempt { deadline: number; stopped: Subject<void>; expired: boolean; record?: VoiceRecording }
+interface Attempt { startedAt: number; stage: string; deadline: number; stopped: Subject<void>; expired: boolean; record?: VoiceRecording }
 class QueueStorageError extends Error {}
 const DAY = 86400000;
 
@@ -23,6 +24,15 @@ export class VoiceQueueService implements OnDestroy {
   private epoch = 0;
   private refreshId = 0;
   private running = false;
+  private storageWork = 0;
+  private storageSince = 0;
+  private storageCode = '';
+  private uploadCode = '';
+  private resultCode = '';
+  private resultStatus = '';
+  private resultCached = false;
+  private resultDeadline = 0;
+  private confirmedResults = new Set<string>();
   private attempt?: Attempt;
   private timer?: ReturnType<typeof setTimeout>;
   private storageTimer?: ReturnType<typeof setTimeout>;
@@ -48,6 +58,17 @@ export class VoiceQueueService implements OnDestroy {
     for (const event of ['online', 'offline', 'pageshow', 'focus']) window.addEventListener(event, this.wake);
     document.addEventListener('visibilitychange', this.wake);
   }
+  get diagnostics() {
+    const pending = this.items.filter(item => !item.received);
+    return { ready: this.ready, total: this.total, unsent: pending.length,
+      received: this.items.length - pending.length, unsaved: !!this.unsaved,
+      storageError: !!this.storageError, storageWork: this.storageWork, storageSince: this.storageSince,
+      storageCode: this.storageCode, storageRetries: Math.min(this.storageRetries, 3),
+      running: this.running, stage: this.attempt?.stage || 'Idle', startedAt: this.attempt?.startedAt || 0,
+      deadline: this.attempt?.deadline || 0, nextAt: pending.length ? Math.min(...pending.map(row => Math.max(row.nextAt, row.leaseUntil || 0))) : 0,
+      uploadCode: this.uploadCode, listeners: this.watchers.size, resultFailures: this.resultFailures.size,
+      confirmedResults: this.confirmedResults.size, resultRetries: this.resultRetries, resultCode: this.resultCode, resultStatus: this.resultStatus, resultDeadline: this.resultDeadline, resultCached: this.resultCached };
+  }
   get canRecord(): boolean { return this.ready && !this.storageError && !this.unsaved && this.total < VOICE_QUEUE_LIMIT; }
   get offline(): boolean { return navigator.onLine === false; }
   active(item: VoiceRecording): boolean { return !item.received && (item.leaseUntil || 0) > Date.now(); }
@@ -62,6 +83,7 @@ export class VoiceQueueService implements OnDestroy {
     clearTimeout(this.timer); clearTimeout(this.storageTimer); clearTimeout(this.resultTimer);
     this.resultTimer = undefined; this.resultRetries = 0; this.resultFailures.clear();
     this.watchers.forEach(watcher => watcher.unsubscribe()); this.watchers.clear(); this.finishing.clear();
+    this.storageCode = ''; this.uploadCode = ''; this.resultCode = ''; this.resultStatus = ''; this.resultDeadline = 0; this.resultCached = false; this.confirmedResults.clear();
     this.owner = owner; this.items = []; this.total = 0; this.ready = false;
     this.unsaved = undefined; this.storageError = ''; this.running = false; this.storageRetries = 0;
     if (owner) void this.refresh();
@@ -104,6 +126,7 @@ export class VoiceQueueService implements OnDestroy {
     const ids = new Set(received.map(item => item.id));
     for (const [id, watcher] of this.watchers) if (!ids.has(id)) { watcher.unsubscribe(); this.watchers.delete(id); }
     for (const id of this.resultFailures) if (!ids.has(id)) this.resultFailures.delete(id);
+    for (const id of this.confirmedResults) if (!ids.has(id)) this.confirmedResults.delete(id);
     // At most ten known owner documents; no collection scan or history query.
     for (const item of received) {
       if (this.watchers.has(item.id) || this.resultFailures.has(item.id)) continue;
@@ -111,23 +134,30 @@ export class VoiceQueueService implements OnDestroy {
         // AngularFire compat document wrappers inject EnvironmentInjector when
         // constructed, including after this asynchronous IndexedDB refresh.
         const watcher = runInInjectionContext(this.injector, () =>
-          this.firestore.doc<Receipt & { userId: string }>('VoiceInputEvents/' + item.eventId).snapshotChanges().subscribe({
+          this.firestore.doc<Receipt & { userId: string; processingUntil?: number }>('VoiceInputEvents/' + item.eventId).snapshotChanges().subscribe({
             next: snapshot => {
               if (epoch !== this.epoch || snapshot.payload.metadata.hasPendingWrites) return;
               const event = snapshot.payload.data();
+              this.resultCached = snapshot.payload.metadata.fromCache;
+              this.resultDeadline = Number.isFinite(event?.processingUntil) ? event!.processingUntil! : 0;
+              this.resultStatus = ['receiving', 'queued', 'processing', 'completed', 'failed'].includes(event?.status || '') ? event!.status : 'Unknown';
+              this.resultCode = !event ? 'missing-result' : event.userId !== item.owner ? 'owner-mismatch' : '';
+              if (!this.resultCached && !this.resultCode) this.confirmedResults.add(item.id);
+              else this.confirmedResults.delete(item.id);
               // Metadata-only reconnects may not emit another snapshot.
               if (event?.userId !== item.owner) return;
               if (event.status === 'completed' && typeof event.transcript === 'string') void this.finish(item, event.transcript, false, epoch);
               else if (event.status === 'failed') void this.finish(item, 'Could not transcribe this recording.', true, epoch);
             },
-            error: () => {
+            error: error => {
               if (epoch !== this.epoch) return;
+              this.resultCode = voiceDiagnosticCode(error); this.confirmedResults.delete(item.id);
               this.watchers.delete(item.id); this.resultFailures.add(item.id); this.recoverResults(epoch);
             }
           })
         );
         if (!watcher.closed) this.watchers.set(item.id, watcher);
-      } catch { this.resultFailures.add(item.id); this.recoverResults(epoch); }
+      } catch (error) { this.resultCode = voiceDiagnosticCode(error); this.confirmedResults.delete(item.id); this.resultFailures.add(item.id); this.recoverResults(epoch); }
     }
   }
   private recoverResults(epoch: number): void {
@@ -151,7 +181,7 @@ export class VoiceQueueService implements OnDestroy {
     const delay = Math.max(item.nextAt, item.leaseUntil || 0) - Date.now();
     if (delay > 0) { this.timer = setTimeout(() => { void this.refresh(); }, Math.min(delay, 60000)); return; }
     const epoch = this.epoch;
-    const attempt: Attempt = { deadline: Date.now() + 75000, stopped: new Subject(), expired: false };
+    const attempt: Attempt = { startedAt: Date.now(), stage: 'Claiming', deadline: Date.now() + 75000, stopped: new Subject(), expired: false };
     this.attempt = attempt; this.running = true;
     const current = () => epoch === this.epoch && this.attempt === attempt;
     const live = () => current() && !attempt.expired && Date.now() < attempt.deadline;
@@ -162,6 +192,7 @@ export class VoiceQueueService implements OnDestroy {
     } catch (error) {
       if (!current()) return;
       attempt.expired = true; attempt.stopped.next();
+      this.uploadCode = voiceDiagnosticCode(error);
       if (error instanceof QueueStorageError) this.storageFailure();
       else try { await this.failed(attempt.record || item, error, epoch); }
       catch { if (current()) this.storageFailure(); }
@@ -185,7 +216,7 @@ export class VoiceQueueService implements OnDestroy {
         leaseId: crypto.randomUUID(), leaseUntil: Date.now() + 90000, check: true };
     }));
     if (!claimed || !live() || !this.active(claimed)) return;
-    attempt.record = claimed;
+    attempt.record = claimed; attempt.stage = 'Account';
     const user = await this.auth.currentUser;
     if (!live()) return;
     if (user?.uid !== this.owner) {
@@ -193,6 +224,7 @@ export class VoiceQueueService implements OnDestroy {
       this.start(''); return;
     }
     this.items = this.items.map(row => row.id === claimed.id ? claimed : row); this.changed.next();
+    attempt.stage = 'Reading audio';
     const audio = voiceBase64(new Uint8Array(await claimed.audio.arrayBuffer()));
     if (!live()) return;
     if (this.offline || document.hidden) {
@@ -201,11 +233,13 @@ export class VoiceQueueService implements OnDestroy {
     // Rx timeout includes AngularFire lazy loading and token preparation, which
     // are outside Firebase's own HTTP timeout. The outer deadline covers auth,
     // IndexedDB and Blob preparation as well.
+    attempt.stage = 'Uploading';
     const receipt = await firstValueFrom(this.functions.httpsCallable<{ requestId: string; sourcePage: string; audio: string; owner: string }, Receipt>('voiceInputEnqueue', { timeout: 65000 })({
       requestId: claimed.id, sourcePage: '/prototypes/voice-input', audio, owner: claimed.owner
     }).pipe(timeout({ first: 65000 }), takeUntil(merge(this.cancelled, attempt.stopped))));
     if (!live()) return;
     if (!receipt?.eventId || !/^[a-f0-9]{64}$/.test(receipt.eventId) || !['queued', 'completed', 'failed'].includes(receipt.status)) throw new Error('Invalid receipt');
+    this.uploadCode = ''; attempt.stage = 'Saving receipt';
     if (receipt.status === 'completed' && typeof receipt.transcript === 'string') {
       await this.finish(claimed, receipt.transcript, false, this.epoch, live); return;
     }
@@ -246,8 +280,13 @@ export class VoiceQueueService implements OnDestroy {
     finally { this.finishing.delete(item.id); }
   }
   private async storage<T>(operation: Promise<T>): Promise<T> {
-    try { return await firstValueFrom(from(operation).pipe(timeout({ first: 5000 }))); }
-    catch { throw new QueueStorageError(); }
+    if (!this.storageWork) this.storageSince = Date.now();
+    this.storageWork++;
+    try {
+      const result = await firstValueFrom(from(operation).pipe(timeout({ first: 5000 })));
+      this.storageCode = ''; return result;
+    } catch (error) { this.storageCode = voiceDiagnosticCode(error); throw new QueueStorageError(); }
+    finally { this.storageWork--; }
   }
   private storageFailure(message = 'Recording storage is temporarily unavailable.'): void {
     this.storageError = message; this.ready = false; this.changed.next();

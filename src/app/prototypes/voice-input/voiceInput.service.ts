@@ -4,6 +4,7 @@ import { Subject, Subscription } from 'rxjs';
 import { VoiceCaptureService } from './voiceCapture.service';
 import { VoiceQueueService } from './voiceQueue.service';
 import { VoiceRecording } from './voiceQueueStore.service';
+import { voiceDiagnosticCode } from './voiceDiagnostics';
 
 export interface VoiceReply { id: number; kind: 'transcript' | 'error' | 'pending'; text: string; recording?: VoiceRecording }
 type Phase = 'idle' | 'requesting' | 'recording' | 'sending' | 'saved' | 'error';
@@ -14,7 +15,12 @@ export class VoiceInputService implements OnDestroy {
   levels = Array<number>(9).fill(0);
   ready = false;
   uid = '';
-  phase: Phase = 'idle';
+  private currentPhase: Phase = 'idle';
+  phaseSince = Date.now();
+  captureFailure = '';
+  get phase(): Phase { return this.currentPhase; }
+  set phase(value: Phase) { if (value !== this.currentPhase) this.phaseSince = Date.now(); this.currentPhase = value; }
+  get captureDiagnostics() { return this.capture.diagnostics; }
   readonly replies: VoiceReply[] = [];
   private replyId = 0;
   private generation = 0;
@@ -69,7 +75,7 @@ export class VoiceInputService implements OnDestroy {
   async press(): Promise<void> {
     if (!this.canRecord) return;
     const generation = ++this.captureGeneration;
-    this.clearLevels();
+    this.captureFailure = ''; this.clearLevels();
     this.phase = 'requesting'; this.changed.next();
     try {
       const started = await this.capture.start(
@@ -87,6 +93,7 @@ export class VoiceInputService implements OnDestroy {
       this.timer = setTimeout(() => { void this.release(); }, 30000);
     } catch (error) {
       if (generation !== this.captureGeneration) return;
+      this.captureFailure = voiceDiagnosticCode(error);
       const name = (error as { name?: string }).name;
       const message = name === 'NotAllowedError' ? 'Microphone access denied. Allow it in your browser to record.'
         : name === 'NotFoundError' ? 'No microphone found.'
@@ -109,6 +116,7 @@ export class VoiceInputService implements OnDestroy {
       if (generation === this.generation) this.phase = this.replies.at(-1)?.kind === 'transcript' ? 'saved' : 'idle';
     } catch (error) {
       if (generation !== this.generation || captureGeneration !== this.captureGeneration) return;
+      this.captureFailure = voiceDiagnosticCode(error);
       this.phase = 'idle'; this.reply(error instanceof Error ? error.message : 'Could not capture audio. Try again.', 'error');
     } finally { if (generation === this.generation) this.changed.next(); }
   }
@@ -119,7 +127,7 @@ export class VoiceInputService implements OnDestroy {
     this.captureGeneration++; this.capture.cancel(); clearTimeout(this.timer);
     this.clearLevels();
     this.phase = 'idle';
-    if (message) this.reply(message, 'error');
+    if (message) { this.captureFailure = 'Interrupted'; this.reply(message, 'error'); }
     this.changed.next();
   }
   private reply(text: string, kind: VoiceReply['kind']): void {
@@ -128,7 +136,7 @@ export class VoiceInputService implements OnDestroy {
   }
   private clearLevels(): void { this.levels = Array<number>(9).fill(0); }
   private reset(): void {
-    this.captureGeneration++;
+    this.captureFailure = ''; this.captureGeneration++;
     this.clearLevels();
     this.capture.cancel(); clearTimeout(this.timer);
     this.phase = 'idle'; this.replies.length = 0; this.changed.next();

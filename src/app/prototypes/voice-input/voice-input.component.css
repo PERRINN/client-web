@@ -35,3 +35,22 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--color-focus); o
   .talk { transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease; }
   .waveform i { transition: height 90ms linear, background-color 140ms ease; }
 }
+
+.voice-content { display: grid; grid-template-columns: minmax(0, 1fr) 144px; gap: 16px; align-items: start; }
+.replies { min-width: 0; }
+.diagnostics { position: sticky; top: 16px; max-height: calc(100dvh - 260px); overflow: auto; background: #181e22; border-radius: 12px; padding: 10px; font-size: 13px; line-height: 1.4; }
+.diagnostics h2 { font-size: 14px; line-height: 1.4; font-weight: 600; margin: 0; }
+.diagnostic-meta { color: var(--color-text-muted); margin: 4px 0 8px; font-size: 12px; }
+.diagnostics dl, .diagnostics dd { margin: 0; }
+.diagnostic-row { min-height: 48px; padding: 5px 0; overflow-wrap: anywhere; }
+.diagnostic-row dt { font-weight: 600; }
+.diagnostic-row dd { font-size: 12px; }
+.state-ok { color: var(--color-success); }
+.state-error { color: var(--color-danger-text); }
+@media (max-width: 480px) {
+  .voice-content { grid-template-columns: minmax(0, 1fr) 108px; gap: 10px; }
+  .diagnostics { padding: 8px; }
+  .reply { padding: 10px; }
+}
+
+.diagnostics:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }

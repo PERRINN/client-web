@@ -31,6 +31,7 @@
     <p id="voice-status" class="sr-only" role="status">{{ !voice.ready || (voice.uid && !voice.queue.ready) ? 'Loading recording queue' : voice.busy || voice.waiting ? voice.label : '' }}</p>
     @if (voice.ready && !voice.uid) { <a class="sign-in" routerLink="/login" [queryParams]="{returnUrl: '/prototypes/voice-input'}">Sign in to record</a> }
   </section>
+  <div class="voice-content">
   <section #replies class="replies" role="log" aria-label="Voice conversation" aria-live="polite">
     @if (voice.uid && voice.queue.ready && !voice.queue.items.length && !voice.queue.canRecord) {
       <article class="reply"><p>Recording storage is full.</p></article>
@@ -54,4 +55,17 @@
       </article>
     }
   </section>
+  <aside class="diagnostics" aria-label="Voice diagnostics" tabindex="0">
+    <h2>States</h2>
+    <p class="diagnostic-meta">{{ diagnosticBuild }}<br><time>{{ diagnosticUpdatedAt | date:'HH:mm:ss' }}</time></p>
+    <dl>
+      @for (state of diagnosticRows; track state.label) {
+        <div class="diagnostic-row" [attr.data-state]="state.label" [class.state-ok]="state.ok" [class.state-error]="!state.ok">
+          <dt>{{ state.label }}</dt>
+          <dd><span class="sr-only">{{ state.ok ? 'OK: ' : 'Fault: ' }}</span>{{ state.value }}</dd>
+        </div>
+      }
+    </dl>
+  </aside>
+  </div>
 </main>

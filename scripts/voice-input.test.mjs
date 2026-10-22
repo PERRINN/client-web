@@ -18,6 +18,7 @@ function load(file, overrides = {}) {
   new Function('exports', 'require', code)(exports, name => overrides[name] || require(name));
   return exports;
 }
+const diagnosticsModule = load('../src/app/prototypes/voice-input/voiceDiagnostics.ts');
 const core = { Injectable: () => target => target, Component: () => target => target, HostListener: () => () => {}, ViewChild: () => () => {} };
 const audio = load('../src/app/prototypes/voice-input/voiceAudio.ts');
 const wav = (seconds = 1, amplitude = .1) => audio.voiceWav(Float32Array.from({ length: seconds * 16000 }, (_, i) => amplitude * Math.sin(i * .2)));
@@ -179,7 +180,7 @@ function client(call = () => of({ eventId: 'saved-id', transcript: 'Bonjour' }),
     }
   };
   const { VoiceInputService } = load('../src/app/prototypes/voice-input/voiceInput.service.ts', {
-    '@angular/core': core, '@angular/fire/compat/auth': {},
+    '@angular/core': core, './voiceDiagnostics': diagnosticsModule, '@angular/fire/compat/auth': {},
     './voiceCapture.service': {}, './voiceQueue.service': {}, './voiceQueueStore.service': {}
   });
   return { service: new VoiceInputService(auth, queue, capture, { run: fn => fn() }), auth, calls, capture };
@@ -302,7 +303,7 @@ test('audio history is bounded, clears on release/cancel, and ignores late captu
 function componentFixture(fixture = client()) {
   let marks = 0;
   const { VoiceInputComponent } = load('../src/app/prototypes/voice-input/voice-input.component.ts', {
-    '@angular/core': core, './voiceCapture.service': {}, './voiceInput.service': {}, './voiceQueue.service': {}
+    '@angular/core': core, './voiceDiagnostics': diagnosticsModule, './voiceCapture.service': {}, './voiceInput.service': {}, './voiceQueue.service': {}
   });
   const component = new VoiceInputComponent(fixture.service, { markForCheck: () => { marks++; } });
   return { ...fixture, component, marks: () => marks };
@@ -422,7 +423,7 @@ test('new replies scroll into view once, without repeated scrolling on audio-lev
   const { Subject } = require('rxjs'); let scrolls = 0;
   const voice = { replies: [], changed: new Subject() };
   const { VoiceInputComponent } = load('../src/app/prototypes/voice-input/voice-input.component.ts', {
-    '@angular/core': core, './voiceCapture.service': {}, './voiceInput.service': {}, './voiceQueue.service': {}
+    '@angular/core': core, './voiceDiagnostics': diagnosticsModule, './voiceCapture.service': {}, './voiceInput.service': {}, './voiceQueue.service': {}
   });
   const component = new VoiceInputComponent(voice, { markForCheck() {} });
   component.replies = { nativeElement: { lastElementChild: { scrollIntoView: () => { scrolls++; } } } };

@@ -17,6 +17,7 @@ function load(path, overrides = {}) {
   return exports;
 }
 let inInjectionContext = false;
+const diagnosticsModule = load('../src/app/prototypes/voice-input/voiceDiagnostics.ts');
 const core = { Injectable: () => value => value, runInInjectionContext: (_injector, fn) => {
   const previous = inInjectionContext; inInjectionContext = true;
   try { return fn(); } finally { inInjectionContext = previous; }
@@ -24,11 +25,11 @@ const core = { Injectable: () => value => value, runInInjectionContext: (_inject
 const storeModule = load('../src/app/prototypes/voice-input/voiceQueueStore.service.ts', { '@angular/core': core });
 const { VoiceQueueStore, VOICE_QUEUE_LIMIT, VOICE_REQUEST_LIMIT } = storeModule;
 const { VoiceQueueService } = load('../src/app/prototypes/voice-input/voiceQueue.service.ts', {
-  '@angular/core': core, '@angular/fire/compat/auth': {}, '@angular/fire/compat/functions': {}, '@angular/fire/compat/firestore': {},
+  '@angular/core': core, './voiceDiagnostics': diagnosticsModule, '@angular/fire/compat/auth': {}, '@angular/fire/compat/functions': {}, '@angular/fire/compat/firestore': {},
   './voiceQueueStore.service': storeModule, './voiceAudio': load('../src/app/prototypes/voice-input/voiceAudio.ts')
 });
 const { VoiceInputService } = load('../src/app/prototypes/voice-input/voiceInput.service.ts', {
-  '@angular/core': core, '@angular/fire/compat/auth': {}, './voiceQueue.service': { VoiceQueueService },
+  '@angular/core': core, './voiceDiagnostics': diagnosticsModule, '@angular/fire/compat/auth': {}, './voiceQueue.service': { VoiceQueueService },
   './voiceQueueStore.service': storeModule, './voiceCapture.service': {}
 });
 const bytes = new Uint8Array(32044).fill(1);
