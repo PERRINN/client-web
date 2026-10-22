@@ -7,6 +7,7 @@ const { transcribe } = require('./utils/voiceTranscription');
 
 const apiKey = defineSecret('OPENAI_API_KEY');
 const model = defineString('VOICE_TRANSCRIPTION_MODEL', { default: 'gpt-transcribe' });
+const highLimitUid = defineString('VOICE_INPUT_HIGH_LIMIT_UID', { default: '' });
 
 exports.voiceInput = onCall({
   secrets: [apiKey], timeoutSeconds: 60, maxInstances: 2, concurrency: 2,
@@ -14,11 +15,11 @@ exports.voiceInput = onCall({
 }, async request => {
   try {
     return await processVoiceInput(admin.firestore(), request.auth, request.data, {
-      model: model.value(), timestamp: () => admin.firestore.FieldValue.serverTimestamp(),
+      model: model.value(), highLimitUid: highLimitUid.value(), timestamp: () => admin.firestore.FieldValue.serverTimestamp(),
       transcribe: audio => transcribe(audio, { apiKey: apiKey.value(), model: model.value() })
     });
   } catch (error) {
-    if (error instanceof VoiceInputError) throw new HttpsError(error.code, error.message);
+    if (error instanceof VoiceInputError) throw new HttpsError(error.code, error.message, error.details);
     throw new HttpsError('internal', 'Could not process the recording. Check it before recording again.');
   }
 });

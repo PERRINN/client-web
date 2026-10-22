@@ -1,7 +1,7 @@
 const { createHash } = require('node:crypto');
 const { VoiceInputError, validateInput } = require('./voiceAudio');
 
-const fail = (code, message) => { throw new VoiceInputError(code, message); };
+const fail = (code, message, details) => { throw new VoiceInputError(code, message, details); };
 const result = event => ({ eventId: event.eventId, transcript: event.transcript });
 
 async function processVoiceInput(db, auth, data, options) {
@@ -12,6 +12,8 @@ async function processVoiceInput(db, auth, data, options) {
   const eventRef = db.doc('VoiceInputEvents/' + eventId);
   const limitRef = db.doc('VoiceInputLimits/' + auth.uid);
   const day = new Date(now).toISOString().slice(0, 10);
+  // The temporary exception requires both server configuration and the trusted admin claim.
+  const dailyLimit = auth.uid === options.highLimitUid && auth.token?.perrinnAdmin === true ? 1000 : 20;
   const event = {
     eventId, userId: auth.uid, sourcePage: data.sourcePage, status: 'processing',
     createdAt: options.timestamp(), durationMs: input.durationMs, fingerprint: input.fingerprint,
@@ -27,9 +29,10 @@ async function processVoiceInput(db, auth, data, options) {
       fail('failed-precondition', 'This recording failed. Record again.');
     }
     const limit = (await tx.get(limitRef)).data() || {};
-    if (limit.activeUntil > now) fail('resource-exhausted', 'A recording is still processing. Try later.');
+    if (limit.activeUntil > now) fail('resource-exhausted', 'A recording is still processing. Try later.', { reason: 'recording-processing' });
     const count = limit.day === day ? limit.count : 0;
-    if (count >= 20) fail('resource-exhausted', 'Daily recording limit reached. Try tomorrow.');
+    if (count >= dailyLimit) fail('resource-exhausted', 'Daily recording limit reached. Your allowance resets at midnight UTC.',
+      { reason: 'daily-limit', dailyLimit });
     tx.create(eventRef, event);
     tx.set(limitRef, { day, count: count + 1, activeEvent: eventId, activeUntil: now + 90000 });
     return null;

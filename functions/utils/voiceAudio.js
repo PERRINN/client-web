@@ -1,7 +1,7 @@
 const { createHash } = require('node:crypto');
 
 class VoiceInputError extends Error {
-  constructor(code, message) { super(message); this.code = code; }
+  constructor(code, message, details) { super(message); this.code = code; this.details = details; }
 }
 
 // A deliberately narrow format lets us enforce duration before paying a provider.

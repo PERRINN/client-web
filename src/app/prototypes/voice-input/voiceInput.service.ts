@@ -100,9 +100,14 @@ export class VoiceInputService implements OnDestroy {
     } catch (error) {
       if (generation !== this.generation) return;
       const code = (error as { code?: string }).code?.replace('functions/', '');
+      const details = (error as { details?: { reason?: string; dailyLimit?: number } }).details;
       const messages: Record<string, string> = {
         unauthenticated: 'Sign in again to record.', 'invalid-argument': 'No usable speech recorded. Try again.',
-        'resource-exhausted': 'Recording limit reached or another recording is processing. Try later.',
+        'resource-exhausted': details?.reason === 'daily-limit' && [20, 1000].includes(details.dailyLimit)
+          ? `You’ve reached your daily limit of ${details.dailyLimit.toLocaleString('en-GB')} recordings. Your allowance resets at midnight UTC.`
+          : details?.reason === 'recording-processing'
+            ? 'Your previous recording is still processing. Try again shortly.'
+            : 'Recording is temporarily unavailable. Try again later.',
         unavailable: 'Could not confirm whether the recording was saved.',
         aborted: 'The previous recording is still processing.',
         'failed-precondition': 'Recording failed or voice input is unavailable. Record again later.'

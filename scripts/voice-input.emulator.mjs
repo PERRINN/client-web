@@ -9,6 +9,7 @@ const require = createRequire(import.meta.url), admin = require('firebase-admin'
 const projectId = 'demo-voice-input', app = admin.initializeApp({ projectId }), db = app.firestore();
 process.env.OPENAI_API_KEY = 'emulator-fake-key';
 process.env.VOICE_TRANSCRIPTION_MODEL = 'gpt-transcribe';
+process.env.VOICE_INPUT_HIGH_LIMIT_UID = 'quota-admin';
 const { voiceInput } = require('../functions/voiceInput.f.js');
 const { processVoiceInput } = require('../functions/utils/voiceInput');
 const originalFetch = globalThis.fetch;
@@ -94,4 +95,24 @@ test('daily cap and failed requests remain replay safe under real Firestore tran
   await assert.rejects(processVoiceInput(db, { uid: uid2 }, input, failed), error => error.code === 'internal' && !error.message.includes('PRIVATE'));
   await assert.rejects(processVoiceInput(db, { uid: uid2 }, input, failed), code('failed-precondition'));
   assert.equal(calls, 1); assert.equal((await db.doc('VoiceInputLimits/' + uid2).get()).data().activeUntil, 0);
+});
+
+
+test('callable forwards structured quota details and restricts configured admin exception', async () => {
+  const day = new Date().toISOString().slice(0, 10);
+  const uid = 'quota-admin';
+  await db.doc('VoiceInputLimits/' + uid).set({ day, count: 20, activeUntil: 0 });
+  await assert.rejects(voiceInput.run({ data: request(), auth: { uid, token: {} } }),
+    error => error.code === 'resource-exhausted' && error.details.reason === 'daily-limit' && error.details.dailyLimit === 20);
+  const response = await voiceInput.run({ data: request(), auth: { uid, token: { perrinnAdmin: true } } });
+  assert.equal(response.transcript, 'Bonjour, Nürburgring.');
+  assert.equal((await db.doc('VoiceInputLimits/' + uid).get()).data().count, 21);
+  await db.doc('VoiceInputLimits/' + uid).update({ count: 1000 });
+  const before = providerCalls;
+  await assert.rejects(voiceInput.run({ data: request(), auth: { uid, token: { perrinnAdmin: true } } }),
+    error => error.code === 'resource-exhausted' && error.details.reason === 'daily-limit' && error.details.dailyLimit === 1000);
+  assert.equal(providerCalls, before);
+  await db.doc('VoiceInputLimits/' + uid).update({ count: 21, activeUntil: Date.now() + 90000 });
+  await assert.rejects(voiceInput.run({ data: request(), auth: { uid, token: { perrinnAdmin: true } } }),
+    error => error.code === 'resource-exhausted' && error.details.reason === 'recording-processing');
 });

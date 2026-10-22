@@ -433,3 +433,51 @@ test('startup deadline begins after permission, releases the microphone, and can
     assert.equal(fixture.capture.node, undefined);
   } finally { globalThis.setTimeout = originalTimeout; fixture.restore(); }
 });
+
+test('temporary 1000 quota requires configured identity and exact trusted admin claim', async () => {
+  for (const [uid, token, highLimitUid, expected] of [
+    ['alice', { perrinnAdmin: true }, 'alice', 1000],
+    ['alice', {}, 'alice', 20],
+    ['alice', { perrinnAdmin: 'true' }, 'alice', 20],
+    ['bob', { perrinnAdmin: true }, 'alice', 20],
+    ['alice', { perrinnAdmin: true }, '', 20]
+  ]) {
+    const db = store(), options = settings({ highLimitUid });
+    const day = new Date(options.now()).toISOString().slice(0, 10);
+    db.records.set('VoiceInputLimits/' + uid, { day, count: expected - 1, activeUntil: 0 });
+    await processVoiceInput(db, { uid, token }, valid, options);
+    assert.equal(db.records.get('VoiceInputLimits/' + uid).count, expected);
+    const work = { ...db.work };
+    await assert.rejects(processVoiceInput(db, { uid, token }, request({ requestId: '22345678-1234-1234-1234-123456789abc' }), options),
+      error => error.code === 'resource-exhausted' && error.details.reason === 'daily-limit' && error.details.dailyLimit === expected);
+    assert.equal(db.work.writes, work.writes, 'Quota rejection must not write or call the provider');
+  }
+});
+
+test('raised allowance reuses today counter, counts failures and resets at UTC rollover', async () => {
+  const db = store(), auth = { uid: 'alice', token: { perrinnAdmin: true } };
+  let calls = 0;
+  const options = settings({ highLimitUid: 'alice', transcribe: async () => { calls++; throw new VoiceInputError('unavailable', 'Failed'); } });
+  const day = new Date(options.now()).toISOString().slice(0, 10);
+  db.records.set('VoiceInputLimits/alice', { day, count: 20, activeUntil: 0 });
+  await assert.rejects(processVoiceInput(db, auth, valid, options), rejected('unavailable'));
+  assert.equal(db.records.get('VoiceInputLimits/alice').count, 21); assert.equal(calls, 1);
+  await processVoiceInput(db, auth, request({ requestId: '22345678-1234-1234-1234-123456789abc' }), settings({ highLimitUid: 'alice', now: () => options.now() + 86400000 }));
+  assert.equal(db.records.get('VoiceInputLimits/alice').count, 1);
+});
+
+test('client clearly distinguishes daily quotas, active recordings and unrecognised errors', async () => {
+  for (const [details, expected] of [
+    [{ reason: 'daily-limit', dailyLimit: 20 }, /daily limit of 20 recordings.*midnight UTC/],
+    [{ reason: 'daily-limit', dailyLimit: 1000 }, /daily limit of 1,000 recordings.*midnight UTC/],
+    [{ reason: 'recording-processing' }, /previous recording is still processing/],
+    [undefined, /temporarily unavailable/],
+    [{ reason: 'daily-limit', dailyLimit: '<unsafe>' }, /temporarily unavailable/]
+  ]) {
+    const { service } = client(() => throwError(() => ({ code: 'functions/resource-exhausted', details, message: 'PRIVATE ERROR' })));
+    await service.press(); await service.release();
+    assert.match(service.replies.at(-1).text, expected);
+    assert.ok(!service.replies.at(-1).text.includes('PRIVATE')); assert.equal(service.canRecord, true);
+    service.ngOnDestroy();
+  }
+});
