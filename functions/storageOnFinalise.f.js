@@ -6,6 +6,8 @@ exports.storageOnFinalise = onObjectFinalized(async (event) => {
   try {
     const object = event.data;
     const filePath = object.name;
+    // The durable voice inbox is private and never enters image publishing.
+    if (filePath === 'voice-input' || filePath?.startsWith('voice-input/')) return;
     const fileName = filePath.split('/').pop();
     const imageID = fileName.substring(0, 13);
 

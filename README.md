@@ -35,7 +35,7 @@ Article validation: `node --test scripts/greenpower/article-entry.test.mjs`, `np
 - Angular 21, TypeScript, and Angular CLI.
 - Angular NgModules and the Angular Router.
 - AngularFire compatibility APIs with Firebase Authentication, Cloud Firestore, Realtime Database, and Storage.
-- Firebase Cloud Functions v2, written in JavaScript and configured for Node.js 20.
+- Firebase Cloud Functions v2, written in JavaScript and configured for Node.js 22 (existing deployments migrate only when explicitly redeployed).
 - Firebase Hosting, with the production client build output served from `dist/`.
 
 ## Get started

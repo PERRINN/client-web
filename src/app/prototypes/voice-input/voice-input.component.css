@@ -26,9 +26,6 @@ button { margin: 0; transition: none; color: var(--color-text); background: #242
 .reply-error { background: #1d1d1d; }
 .recording-state { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
 .recording-state time { font-size: 14px; color: #ccc; }
-.recovery-actions { display: flex; gap: 8px; }
-.recovery-action { min-height: 44px; padding: 8px 10px; background: transparent; color: inherit; white-space: nowrap; }
-.recovery-action:disabled { opacity: .45; cursor: default; }
 button:focus-visible, a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 4px; }
 @media (hover: hover) and (pointer: fine) { button:not(:disabled):hover { filter: brightness(.94); } .back:hover { text-decoration: underline; } }
 @media (max-width: 480px) { .voice-page { padding: 16px 16px calc(160px + env(safe-area-inset-bottom, 0px)); } }

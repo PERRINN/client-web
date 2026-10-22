@@ -17,7 +17,7 @@ PERRINN is an open, contribution-oriented team. Do not introduce membership stat
 - The client is an Angular CLI/TypeScript app in `src/`, using NgModules (`src/app/app.module.ts`), routed template-backed components, and AngularFire compatibility APIs.
 - Firebase provides Authentication, Cloud Firestore, Realtime Database, and Storage. Client configuration is in `src/environments/`.
 - Firestore documents and message records are coupled to client workflows and Cloud Functions. Before changing data shapes, inspect their readers, writers, rules, and functions.
-- `functions/` is a separate Node.js 20 codebase using JavaScript, Firebase Admin, and Functions v2. It contains Firestore, Storage, scheduled, and Revolut payment handlers.
+- `functions/` is a separate Node.js 22 codebase using JavaScript, Firebase Admin, and Functions v2. It contains Firestore, Storage, scheduled, and Revolut payment handlers.
 - Firebase configuration and policies are in `firebase.json`, `firestore.rules`, `firestore.indexes.json`, `storage.rules`, and `database.rules.json`. Hosting serves `dist/`; production enables the service worker.
 - Root scripts provide `npm start`, `npm run build`, and `npm run lint`. Functions scripts are in `functions/package.json`. Confirm test coverage before relying on the initial observation that no maintained automated suite exists.
 - These are observed implementation details; do not assume other services, layers, data models, or deployment processes exist.

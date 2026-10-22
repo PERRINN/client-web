@@ -30,3 +30,6 @@ exports.greenpowerTelemetry = require('./greenpowerTelemetry.f.js').greenpowerTe
 exports.greenpowerEventEdit = require('./greenpowerEvents.f.js').greenpowerEventEdit;
 exports.voiceInput = require('./voiceInput.f.js').voiceInput;
 exports.voiceInputStatus = require('./voiceInputStatus.f.js').voiceInputStatus;
+
+exports.voiceInputEnqueue = require('./voiceInputInbox.f.js').voiceInputEnqueue;
+exports.processVoiceInputInbox = require('./voiceInputInbox.f.js').processVoiceInputInbox;

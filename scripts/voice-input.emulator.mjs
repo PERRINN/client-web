@@ -58,13 +58,13 @@ test('actual handler persists server timestamps, returns only saved result, and 
   assert.equal((await db.doc('VoiceInputEvents/' + bob.eventId).get()).data().userId, 'bob');
   await assert.rejects(invoke(input, null), code('unauthenticated'));
 });
-test('rules deny event/counter get, list, create, update and delete to anonymous, owner, other users and admins', async () => {
+test('rules permit only owner event get and deny lists, descendants, counters and all client writes', async () => {
   for (const collection of ['VoiceInputEvents', 'VoiceInputLimits']) {
     await db.doc(collection + '/rule-fixture').set({ userId: 'alice', transcript: 'Private' });
     await db.doc(collection + '/rule-fixture/nested/child').set({ userId: 'alice' });
     for (const [uid, claims] of [[undefined, {}], ['alice', {}], ['bob', {}], ['admin', { perrinnAdmin: true }]]) {
       for (const path of [collection + '/rule-fixture', collection + '/rule-fixture/nested/child'])
-        for (const method of ['GET', 'PATCH', 'DELETE']) assert.equal((await access(path, uid, method, claims)).status, 403, `${uid}: ${method} ${path}`);
+        for (const method of ['GET', 'PATCH', 'DELETE']) assert.equal((await access(path, uid, method, claims)).status, collection === 'VoiceInputEvents' && path === collection + '/rule-fixture' && method === 'GET' && uid === 'alice' ? 200 : 403, `${uid}: ${method} ${path}`);
       assert.equal((await access(collection + '/new-document', uid, 'PATCH', claims)).status, 403);
       assert.equal((await access(collection + '?pageSize=1', uid, 'GET', claims)).status, 403);
     }
@@ -132,4 +132,40 @@ test('callable forwards structured quota details and restricts configured admin 
   await db.doc('VoiceInputLimits/' + uid).update({ count: 21, activeUntil: Date.now() + 90000 });
   await assert.rejects(voiceInput.run({ data: request(), auth: { uid, token: { perrinnAdmin: true } } }),
     error => error.code === 'resource-exhausted' && error.details.reason === 'recording-processing');
+});
+
+const storageHost = process.env.FIREBASE_STORAGE_EMULATOR_HOST;
+assert.match(storageHost || '', /^(localhost|127\.0\.0\.1):\d+$/, 'Local Storage emulator is required.');
+const bucket = app.storage().bucket(projectId + '.appspot.com');
+const { enqueueVoiceInput, processVoiceInbox } = require('../functions/utils/voiceInbox');
+async function storageAccess(path, uid, method = 'GET') {
+  return originalFetch(`http://${storageHost}/v0/b/${bucket.name}/o/${encodeURIComponent(path)}${method === 'GET' ? '?alt=media' : ''}`, {
+    method, headers: { ...(uid ? { Authorization: `Bearer ${token(uid)}` } : {}), 'Content-Type': 'audio/wav' },
+    ...(method === 'POST' ? { body: audio } : {})
+  });
+}
+test('private Storage prefix denies owner/other/anonymous reads and writes; legacy object policy is preserved', async () => {
+  for (const path of ['voice-input/alice/private.wav', 'voice-input', 'public-root.wav', 'existing/nested.wav']) {
+    await bucket.file(path).save(audio, { resumable: false });
+    for (const uid of [undefined, 'alice', 'bob']) {
+      const privatePath = path.split('/')[0] === 'voice-input';
+      assert.equal((await storageAccess(path, uid)).status, privatePath ? 403 : 200, `${path}: read ${uid}`);
+      assert.equal((await storageAccess(path, uid, 'DELETE')).status, privatePath || !uid ? 403 : 204, `${path}: delete ${uid}`);
+      if (!privatePath && uid) await bucket.file(path).save(audio, { resumable: false });
+    }
+  }
+});
+test('durable inbox uses real Firestore and Storage, survives lost receipt, and processes without a client', async () => {
+  const data = { ...request(), owner: 'inbox-owner' }, tasks = new Map(); let calls = 0;
+  const settings = options({ enqueue: async (data, config) => { tasks.set(config.id, data); }, transcribe: async () => { calls++; return 'Durable result'; } });
+  const receipt = await enqueueVoiceInput(db, bucket, { uid: data.owner }, data, settings);
+  assert.deepEqual(await enqueueVoiceInput(db, bucket, { uid: data.owner }, data, settings), receipt);
+  assert.equal(tasks.size, 1); assert.equal((await db.doc('VoiceInputLimits/' + data.owner).get()).data().count, 1);
+  const ref = db.doc('VoiceInputEvents/' + receipt.eventId), event = (await ref.get()).data();
+  assert.equal(event.status, 'queued'); assert.equal((await bucket.file(event.audioPath).download())[0].length, audio.length);
+  assert.equal((await access(ref.path, data.owner)).status, 200); assert.equal((await access(ref.path, 'bob')).status, 403);
+  await processVoiceInbox(db, bucket, { eventId: receipt.eventId }, settings);
+  await processVoiceInbox(db, bucket, { eventId: receipt.eventId }, settings);
+  assert.equal(calls, 1); assert.equal((await ref.get()).data().transcript, 'Durable result');
+  assert.equal((await bucket.file(event.audioPath).exists())[0], false);
 });

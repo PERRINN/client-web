@@ -18,6 +18,7 @@ async function getVoiceInputStatus(db, auth, data, now = Date.now()) {
   const event = snapshot.data();
   if (event.userId !== auth.uid) fail('permission-denied', 'Recording unavailable.');
   if (event.status === 'completed' && typeof event.transcript === 'string') return { status: 'completed', ...result(event) };
+  if (event.inboxVersion === 1 && ['receiving', 'queued', 'processing'].includes(event.status)) return { status: 'processing' };
   if (event.status === 'processing') {
     const createdAt = event.createdAt?.toMillis?.();
     return { status: Number.isFinite(createdAt) && now - createdAt < 120000 ? 'processing' : 'stalled' };

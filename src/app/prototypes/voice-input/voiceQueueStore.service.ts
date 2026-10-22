@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 
 export const VOICE_QUEUE_LIMIT = 10;
 export const VOICE_AUDIO_LIMIT = 960044;
-// Initial submission plus five recovery calls, persisted before each request.
-export const VOICE_REQUEST_LIMIT = 6;
+// Per-record rolling 24-hour upload budget; foreground resumption does not reset it.
+export const VOICE_REQUEST_LIMIT = 24;
 export interface VoiceRecording {
   id: string;
   owner: string;
@@ -15,6 +15,9 @@ export interface VoiceRecording {
   leaseId?: string;
   leaseUntil?: number;
   error?: string;
+  received?: boolean;
+  eventId?: string;
+  retryWindow?: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -59,13 +62,20 @@ export class VoiceQueueStore {
     return new Promise((resolve, reject) => {
       const tx = db.transaction('recordings', 'readwrite'), store = tx.objectStore('recordings');
       let full = false;
-      const count = store.count();
-      count.onsuccess = () => {
-        if (count.result >= VOICE_QUEUE_LIMIT) { full = true; tx.abort(); }
-        else store.add(item);
+      const existing = store.get(item.id);
+      existing.onsuccess = () => {
+        if (existing.result) {
+          if (existing.result.owner !== item.owner) tx.abort();
+          return; // A previous commit acknowledgement may have been lost.
+        }
+        const count = store.count();
+        count.onsuccess = () => {
+          if (count.result >= VOICE_QUEUE_LIMIT) { full = true; tx.abort(); }
+          else store.add(item);
+        };
       };
       tx.oncomplete = () => resolve();
-      tx.onabort = tx.onerror = () => reject(new Error(full ? 'Recording queue is full. Discard a recording to make room.' : 'Could not save on this device. Keep this page open and retry.'));
+      tx.onabort = tx.onerror = () => reject(new Error(full ? 'Recording storage is full.' : 'Could not save on this device. Keep this page open.'));
     });
   }
 

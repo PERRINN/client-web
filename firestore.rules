@@ -81,6 +81,9 @@ service cloud.firestore {
     match /{collection}/{document=**} {
       allow read: if !(collection in ['GreenpowerTelemetry', 'VoiceInputEvents', 'VoiceInputLimits']);
     }
+    match /VoiceInputEvents/{eventId} {
+      allow get: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
     match /GreenpowerTelemetry/{document=**} {
       allow read: if request.auth != null;
     }

@@ -40,8 +40,8 @@ export class VoiceInputService implements OnDestroy {
     }));
     this.subscription.add(queue.completed.subscribe(result => {
       const reply = this.replies.find(row => row.recording?.id === result.id);
-      if (reply) { reply.kind = 'transcript'; reply.text = result.transcript; reply.recording = undefined; }
-      else this.reply(result.transcript, 'transcript');
+      if (reply) { reply.kind = result.failed ? 'error' : 'transcript'; reply.text = result.transcript; reply.recording = undefined; }
+      else this.reply(result.transcript, result.failed ? 'error' : 'transcript');
       if (!this.busy) this.phase = 'saved';
       this.changed.next();
     }));

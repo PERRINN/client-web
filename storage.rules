@@ -1,8 +1,10 @@
+rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    match /{allPaths=**} {
-      allow read; // 👈 allows anyone to read (no auth required)
-      allow write: if request.auth != null; // 👈 only authenticated users can write
+    // Voice recordings are server-only. Existing objects retain their policy.
+    match /{root}/{rest=**} {
+      allow read: if root != 'voice-input';
+      allow write: if root != 'voice-input' && request.auth != null;
     }
   }
 }
