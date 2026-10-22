@@ -97,10 +97,13 @@ export class VoiceQueueService implements OnDestroy {
     // At most ten known owner documents; no collection scan or history query.
     for (const item of received) {
       if (this.watchers.has(item.id)) continue;
-      const watcher = this.firestore.doc<Receipt>('VoiceInputEvents/' + item.eventId).snapshotChanges().subscribe({
+      const watcher = this.firestore.doc<Receipt & { userId: string }>('VoiceInputEvents/' + item.eventId).snapshotChanges().subscribe({
         next: snapshot => {
-          if (epoch !== this.epoch || snapshot.payload.metadata.fromCache) return;
+          if (epoch !== this.epoch || snapshot.payload.metadata.hasPendingWrites) return;
           const event = snapshot.payload.data();
+          // Cached terminal results are valid too: Firestore may not emit a
+          // second snapshot when only fromCache changes after reconnecting.
+          if (event?.userId !== item.owner) return;
           if (event?.status === 'completed' && typeof event.transcript === 'string') void this.finish(item, event.transcript, false, epoch);
           else if (event?.status === 'failed') void this.finish(item, 'Could not transcribe this recording.', true, epoch);
         },

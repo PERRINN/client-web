@@ -63,7 +63,7 @@ function queue(t, { store = new VoiceQueueStore(), call = () => of({ eventId, st
   const service = new VoiceQueueService(store, auth, functions, firestore);
   service.completed.subscribe(result => completed.push(result)); service.start(uid); activeQueues.push(service);
   const result = (status, transcript = 'Server transcript', cache = false) => {
-    for (const subscriber of [...listeners.values()]) subscriber.next({ payload: { metadata: { fromCache: cache }, data: () => ({ status, transcript }) } });
+    for (const subscriber of [...listeners.values()]) subscriber.next({ payload: { metadata: { fromCache: cache }, data: () => ({ status, transcript, userId: uid }) } });
   };
   return { service, store, auth, calls, completed, listeners, result };
 }
@@ -93,10 +93,10 @@ test('durable receipt releases local audio; known document listener restores res
   await f.service.enqueue(bytes); await until(() => f.listeners.size === 1); await ready(f);
   const row = f.service.items[0]; assert.equal(row.audio.size, 0); assert.equal(row.received, true);
   assert.equal(f.service.label(row), 'Transcribing'); assert.equal(f.calls.length, 1);
-  f.result('completed', 'Cached', true); assert.equal(f.completed.length, 0);
+  f.result('queued', '', true); assert.equal(f.completed.length, 0);
   f.service.ngOnDestroy(); assert.equal(f.listeners.size, 0);
   const next = queue(t); await until(() => next.listeners.size === 1);
-  assert.equal(next.calls.length, 0); next.result('completed');
+  assert.equal(next.calls.length, 0); next.result('completed', 'Server transcript', true);
   await until(() => next.completed.length === 1); await ready(next);
   assert.equal(next.completed[0].transcript, 'Server transcript'); assert.equal((await next.store.list('alice')).total, 0);
 });
@@ -237,4 +237,14 @@ test('a delayed upload does not block another eligible recording', async t => {
   await store.add(first); await store.add(second); const f = queue(t, { store }); await ready(f);
   navigator.onLine = true; await f.service.refresh(); await until(() => f.completed.length === 1);
   assert.equal(f.calls[0].input.requestId, second.id); assert.equal((await store.list('alice')).items[0].id, first.id);
+});
+
+test('cached results require the recording owner and settle without a metadata-only server snapshot', async t => {
+  environment(t); const f = queue(t, { call: () => of({ status: 'queued', eventId }) }); await ready(f);
+  await f.service.enqueue(bytes); await until(() => f.listeners.size === 1);
+  const subscriber = [...f.listeners.values()][0];
+  subscriber.next({ payload: { metadata: { fromCache: true, hasPendingWrites: false }, data: () => ({ userId: 'bob', status: 'completed', transcript: 'Other user' }) } });
+  assert.equal(f.completed.length, 0);
+  f.result('completed', 'Owner cached result', true); await until(() => f.completed.length === 1);
+  assert.equal(f.completed[0].transcript, 'Owner cached result');
 });
