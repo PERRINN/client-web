@@ -21,7 +21,7 @@
     }
     @for (field of fields; track field.key) {
       <label [for]="prefix + '-' + field.key">{{ field.label }}
-        @if (field.options; as options) {
+        @if (optionsFor(field); as options) {
           <select [attr.aria-label]="field.label" [id]="prefix + '-' + field.key" [ngModel]="$any(values)[field.key] ?? ''" [ngModelOptions]="{standalone:true}" (ngModelChange)="value(field.key, '' + $event, true)">
             <option value="">{{ session ? 'Use event value' + ($any(data.defaults)[field.key] ? ' · ' + $any(data.defaults)[field.key] : '') : '—' }}</option>
             @if ($any(values)[field.key] && !options.includes($any(values)[field.key])) {

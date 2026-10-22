@@ -12,9 +12,10 @@ export class GreenpowerMetadataFieldsComponent {
   @ViewChild('initialInput') set initialInput(input: ElementRef<HTMLElement> | undefined) { input?.nativeElement.focus(); }
   readonly prefix = 'metadata-' + crypto.randomUUID();
   readonly types = DAY_SESSION_TYPES;
+  readonly motorGearOptions = [15, 16, 17, 18, 19, 20, 21, 22];
   readonly fields: { key: string; label: string; numeric: boolean; options?: number[] }[] = [
     { key: 'driver', label: 'Driver', numeric: false },
-    { key: 'motorGearTeeth', label: 'Motor gear · teeth', numeric: true, options: [15, 16, 17, 18, 19, 20, 21, 22] },
+    { key: 'motorGearTeeth', label: 'Motor gear · teeth', numeric: true, options: this.motorGearOptions },
     { key: 'wheelGearTeeth', label: 'Wheel gear · teeth', numeric: true, options: [48, 57] },
     { key: 'motorId', label: 'Motor', numeric: false }, { key: 'generatorId', label: 'Generator', numeric: false },
     { key: 'carMassKg', label: 'Car mass · kg', numeric: true }, { key: 'driverMassKg', label: 'Driver mass · kg', numeric: true }
@@ -23,6 +24,9 @@ export class GreenpowerMetadataFieldsComponent {
   trackName = '';
   constructor(public events: GreenpowerEventsService) {}
   get values(): EventDefaults { return this.session ? this.session.overrides : this.data.defaults; }
+  optionsFor(field: { key: string; options?: number[] }) {
+    return field.key === 'wheelGearTeeth' && this.session?.type === 'motor_dyno' ? this.motorGearOptions : field.options;
+  }
   value(key: string, value: string, numeric: boolean) {
     if (!value.trim()) delete this.values[key];
     else this.values[key] = numeric ? Number(value) : value.trim();

@@ -406,6 +406,29 @@ try {
     assert.equal(await sessionGear.locator('option:checked').innerText(), '22');
     await sessionGear.selectOption('');
     assert.equal(await sessionGear.inputValue(), '', 'session gear can return to event inheritance');
+    const sessionWheel = fields.getByLabel('Wheel gear · teeth', { exact: true });
+    const enabledTeeth = select => select.locator('option:enabled').evaluateAll(options => options.slice(1).map(option => option.textContent.trim()));
+    const fieldLayout = await fields.boundingBox();
+    await fields.getByLabel('Session type', { exact: true }).selectOption('motor_dyno');
+    assert.deepEqual(await enabledTeeth(sessionWheel), await enabledTeeth(sessionGear), 'motor dyno wheel offers the motor tooth range');
+    assert.deepEqual(await fields.boundingBox(), fieldLayout, 'changing session type preserves field layout');
+    for (const teeth of ['15', '22']) {
+      await sessionWheel.selectOption({ label: teeth });
+      assert.equal(await page.evaluate(() => window.dayHarness.stats().sessionDraft.overrides.wheelGearTeeth), Number(teeth));
+    }
+    for (const type of ['race', 'battery_dyno', 'practice']) {
+      await fields.getByLabel('Session type', { exact: true }).selectOption(type);
+      assert.deepEqual(await enabledTeeth(sessionWheel), ['48', '57']);
+      assert.equal(await sessionWheel.locator('option:checked').innerText(), '22', 'type changes preserve an existing draft value');
+      assert.equal(await sessionWheel.locator('option:checked').evaluate(option => option.disabled), true);
+    }
+    await fields.getByLabel('Session type', { exact: true }).selectOption('motor_dyno');
+    assert.equal(await sessionWheel.locator('option:checked').evaluate(option => option.disabled), false);
+    await sessionWheel.selectOption('');
+    assert.equal(await sessionWheel.locator('option:checked').innerText(), 'Use event value · 57');
+    assert.equal(await page.evaluate(() => window.dayHarness.stats().sessionDraft.overrides.wheelGearTeeth), undefined);
+    await fields.getByLabel('Session type', { exact: true }).selectOption('practice');
+    assert.deepEqual(await fields.boundingBox(), fieldLayout);
     await fields.getByLabel('Driver', { exact: true }).fill('Sam');
     const startButton=page.getByRole('button',{name:'Set start at cursor',exact:true});
     const endButton=page.getByRole('button',{name:'Set end at cursor',exact:true});
