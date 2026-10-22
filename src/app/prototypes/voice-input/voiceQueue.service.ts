@@ -9,7 +9,8 @@ import { VoiceQueueStore, VoiceRecording, VOICE_QUEUE_LIMIT, VOICE_REQUEST_LIMIT
 
 interface Receipt { eventId: string; status: string; transcript?: string }
 interface Attempt { startedAt: number; stage: string; deadline: number; stopped: Subject<void>; expired: boolean; record?: VoiceRecording }
-class QueueStorageError extends Error {}
+class QueueStorageError extends Error { constructor(readonly code: string) { super('Local storage failed.'); } }
+class QueueAudioError extends Error { constructor(readonly code: string) { super('Local audio is unreadable.'); } }
 const DAY = 86400000;
 
 @Injectable()
@@ -28,6 +29,8 @@ export class VoiceQueueService implements OnDestroy {
   private storageSince = 0;
   private storageCode = '';
   private uploadCode = '';
+  private uploadFaultStage = '';
+  private storageFaultStep = '';
   private resultCode = '';
   private resultStatus = '';
   private resultCached = false;
@@ -63,10 +66,10 @@ export class VoiceQueueService implements OnDestroy {
     return { ready: this.ready, total: this.total, unsent: pending.length,
       received: this.items.length - pending.length, unsaved: !!this.unsaved,
       storageError: !!this.storageError, storageWork: this.storageWork, storageSince: this.storageSince,
-      storageCode: this.storageCode, storageRetries: Math.min(this.storageRetries, 3),
+      storageCode: this.storageCode, storageFaultStep: this.storageFaultStep, storageRetries: Math.min(this.storageRetries, 3),
       running: this.running, stage: this.attempt?.stage || 'Idle', startedAt: this.attempt?.startedAt || 0,
       deadline: this.attempt?.deadline || 0, nextAt: pending.length ? Math.min(...pending.map(row => Math.max(row.nextAt, row.leaseUntil || 0))) : 0,
-      uploadCode: this.uploadCode, listeners: this.watchers.size, resultFailures: this.resultFailures.size,
+      uploadCode: this.uploadCode, uploadFaultStage: this.uploadFaultStage, recordingFault: pending.some(row => !!row.error), listeners: this.watchers.size, resultFailures: this.resultFailures.size,
       confirmedResults: this.confirmedResults.size, resultRetries: this.resultRetries, resultCode: this.resultCode, resultStatus: this.resultStatus, resultDeadline: this.resultDeadline, resultCached: this.resultCached };
   }
   get canRecord(): boolean { return this.ready && !this.storageError && !this.unsaved && this.total < VOICE_QUEUE_LIMIT; }
@@ -75,7 +78,8 @@ export class VoiceQueueService implements OnDestroy {
   label(item: VoiceRecording): string {
     if (this.unsaved?.id === item.id) return 'Saving recording';
     if (item.received) return 'Transcribing';
-    if (this.active(item)) return 'Sending';
+    if (this.active(item)) return this.running && this.attempt?.record?.id === item.id
+      ? this.attempt.stage === 'Checking saved result' ? 'Checking saved result' : 'Sending' : 'Waiting for upload slot';
     return this.offline ? 'Waiting for connection' : 'Waiting';
   }
   start(owner: string): void {
@@ -83,7 +87,7 @@ export class VoiceQueueService implements OnDestroy {
     clearTimeout(this.timer); clearTimeout(this.storageTimer); clearTimeout(this.resultTimer);
     this.resultTimer = undefined; this.resultRetries = 0; this.resultFailures.clear();
     this.watchers.forEach(watcher => watcher.unsubscribe()); this.watchers.clear(); this.finishing.clear();
-    this.storageCode = ''; this.uploadCode = ''; this.resultCode = ''; this.resultStatus = ''; this.resultDeadline = 0; this.resultCached = false; this.confirmedResults.clear();
+    this.storageCode = ''; this.storageFaultStep = ''; this.uploadCode = ''; this.uploadFaultStage = ''; this.resultCode = ''; this.resultStatus = ''; this.resultDeadline = 0; this.resultCached = false; this.confirmedResults.clear();
     this.owner = owner; this.items = []; this.total = 0; this.ready = false;
     this.unsaved = undefined; this.storageError = ''; this.running = false; this.storageRetries = 0;
     if (owner) void this.refresh();
@@ -93,7 +97,7 @@ export class VoiceQueueService implements OnDestroy {
     if (!owner) return;
     if (this.unsaved) { await this.saveUnsent(this.unsaved, epoch); return; }
     let loaded: Awaited<ReturnType<VoiceQueueStore['list']>>;
-    try { loaded = await this.storage(this.store.list(owner)); }
+    try { loaded = await this.storage(this.store.list(owner), 'Read queue'); }
     catch {
       if (epoch === this.epoch && refreshId === this.refreshId) this.storageFailure();
       return;
@@ -110,7 +114,7 @@ export class VoiceQueueService implements OnDestroy {
   }
   private async saveUnsent(item: VoiceRecording, epoch: number): Promise<void> {
     try {
-      await this.storage(this.store.add(item));
+      await this.storage(this.store.add(item), 'Save recording');
       if (epoch !== this.epoch) return;
       this.unsaved = undefined; this.storageRetries = 0;
       void navigator.storage?.persist?.().catch(() => false);
@@ -193,6 +197,7 @@ export class VoiceQueueService implements OnDestroy {
       if (!current()) return;
       attempt.expired = true; attempt.stopped.next();
       this.uploadCode = voiceDiagnosticCode(error);
+      this.uploadFaultStage = error instanceof QueueAudioError ? 'Read audio' : attempt.stage;
       if (error instanceof QueueStorageError) this.storageFailure();
       else try { await this.failed(attempt.record || item, error, epoch); }
       catch { if (current()) this.storageFailure(); }
@@ -214,7 +219,7 @@ export class VoiceQueueService implements OnDestroy {
       if (attempts >= VOICE_REQUEST_LIMIT) return { ...row, nextAt: window + DAY };
       return { ...row, attempts: attempts + 1, retryWindow: expired ? Date.now() : window,
         leaseId: crypto.randomUUID(), leaseUntil: Date.now() + 90000, check: true };
-    }));
+    }), 'Claim recording');
     if (!claimed || !live() || !this.active(claimed)) return;
     attempt.record = claimed; attempt.stage = 'Account';
     const user = await this.auth.currentUser;
@@ -225,7 +230,25 @@ export class VoiceQueueService implements OnDestroy {
     }
     this.items = this.items.map(row => row.id === claimed.id ? claimed : row); this.changed.next();
     attempt.stage = 'Reading audio';
-    const audio = voiceBase64(new Uint8Array(await claimed.audio.arrayBuffer()));
+    let audio: string;
+    try { audio = voiceBase64(new Uint8Array(await claimed.audio.arrayBuffer())); }
+    catch (error) {
+      if (!live()) return;
+      attempt.stage = 'Checking saved result';
+      // A lost upload response may have left a complete server transcript even
+      // when the browser can no longer read its local Blob backing file.
+      try {
+        const saved = await firstValueFrom(this.functions.httpsCallable<{ requestId: string }, Receipt>('voiceInputStatus', { timeout: 20000 })({ requestId: claimed.id })
+          .pipe(timeout({ first: 20000 }), takeUntil(merge(this.cancelled, attempt.stopped))));
+        if (!live()) return;
+        if (saved?.status === 'completed' && typeof saved.transcript === 'string' && /^[a-f0-9]{64}$/.test(saved.eventId || '')) {
+          await this.finish(claimed, saved.transcript, false, this.epoch, live);
+          if (live()) { this.uploadCode = ''; this.uploadFaultStage = ''; } return;
+        }
+      } catch { /* Retain the original audio error and recording for recovery. */ }
+      if (live()) throw new QueueAudioError(voiceDiagnosticCode(error));
+      return;
+    }
     if (!live()) return;
     if (this.offline || document.hidden) {
       await this.settle(claimed, { attempts: claimed.attempts - 1 }, live); return;
@@ -239,7 +262,7 @@ export class VoiceQueueService implements OnDestroy {
     }).pipe(timeout({ first: 65000 }), takeUntil(merge(this.cancelled, attempt.stopped))));
     if (!live()) return;
     if (!receipt?.eventId || !/^[a-f0-9]{64}$/.test(receipt.eventId) || !['queued', 'completed', 'failed'].includes(receipt.status)) throw new Error('Invalid receipt');
-    this.uploadCode = ''; attempt.stage = 'Saving receipt';
+    this.uploadCode = ''; this.uploadFaultStage = ''; attempt.stage = 'Saving receipt';
     if (receipt.status === 'completed' && typeof receipt.transcript === 'string') {
       await this.finish(claimed, receipt.transcript, false, this.epoch, live); return;
     }
@@ -248,7 +271,8 @@ export class VoiceQueueService implements OnDestroy {
     await this.settle(claimed, { received: true, eventId: receipt.eventId, audio: new Blob(), error: undefined }, live);
   }
   private async failed(item: VoiceRecording, error: unknown, epoch: number): Promise<void> {
-    const code = (error as { code?: string }).code?.replace('functions/', '');
+    const rawCode = (error as { code?: unknown }).code;
+    const code = typeof rawCode === 'string' ? rawCode.replace('functions/', '') : undefined;
     const details = (error as { details?: { reason?: string } }).details;
     if (code === 'invalid-argument') {
       await this.finish(item, 'Could not use this recording.', true, epoch); return;
@@ -258,12 +282,13 @@ export class VoiceQueueService implements OnDestroy {
     const nextAt = code === 'resource-exhausted' && details?.reason === 'daily-limit'
       ? Date.UTC(new Date(now).getUTCFullYear(), new Date(now).getUTCMonth(), new Date(now).getUTCDate() + 1)
       : item.attempts >= VOICE_REQUEST_LIMIT && item.retryWindow ? item.retryWindow + DAY : now + delay;
-    await this.settle(item, { nextAt, error: undefined });
+    await this.settle(item, { nextAt, error: error instanceof QueueAudioError
+      ? `Audio unavailable on this device (${error.code}). Checking for a saved transcript.` : undefined });
   }
   private async settle(item: VoiceRecording, changes: Partial<VoiceRecording>, live = () => true): Promise<void> {
     const epoch = this.epoch;
     const updated = await this.storage(this.store.change(item.id, item.owner, row => epoch !== this.epoch || !live() || row.leaseId !== item.leaseId ? undefined
-      : { ...row, ...changes, leaseId: undefined, leaseUntil: 0 }));
+      : { ...row, ...changes, leaseId: undefined, leaseUntil: 0 }), 'Update recording');
     if (updated && epoch === this.epoch) { this.items = this.items.map(row => row.id === item.id ? updated : row); this.changed.next(); }
   }
   private async finish(item: VoiceRecording, transcript: string, failed: boolean, epoch: number, live = () => true): Promise<void> {
@@ -271,7 +296,7 @@ export class VoiceQueueService implements OnDestroy {
     this.finishing.add(item.id);
     try {
       const removed = await this.storage(this.store.change(item.id, item.owner, row => epoch === this.epoch && live()
-        && (row.received || row.leaseId === item.leaseId) ? null : undefined));
+        && (row.received || row.leaseId === item.leaseId) ? null : undefined), 'Remove completed recording');
       if (removed && epoch === this.epoch && live()) {
         this.completed.next({ id: item.id, transcript, failed }); this.storageRetries = 0;
         await this.refresh();
@@ -279,13 +304,13 @@ export class VoiceQueueService implements OnDestroy {
     } catch { if (epoch === this.epoch) this.storageFailure(); }
     finally { this.finishing.delete(item.id); }
   }
-  private async storage<T>(operation: Promise<T>): Promise<T> {
+  private async storage<T>(operation: Promise<T>, step: string): Promise<T> {
     if (!this.storageWork) this.storageSince = Date.now();
     this.storageWork++;
     try {
       const result = await firstValueFrom(from(operation).pipe(timeout({ first: 5000 })));
-      this.storageCode = ''; return result;
-    } catch (error) { this.storageCode = voiceDiagnosticCode(error); throw new QueueStorageError(); }
+      this.storageCode = ''; this.storageFaultStep = ''; return result;
+    } catch (error) { this.storageCode = voiceDiagnosticCode(error); this.storageFaultStep = step; throw new QueueStorageError(this.storageCode); }
     finally { this.storageWork--; }
   }
   private storageFailure(message = 'Recording storage is temporarily unavailable.'): void {

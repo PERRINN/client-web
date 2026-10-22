@@ -292,3 +292,75 @@ test('navigation cancels scheduled transcript recovery and suppresses previous o
   f.service.start('bob'); await ready(f); t.mock.timers.tick(30000);
   assert.equal(attempts, 1); assert.equal(f.completed.length, 0); assert.equal((await store.list('alice')).total, 1);
 });
+
+test('a missing Blob file with a numeric DOM error cannot lock the database or retain its upload lease', async t => {
+  environment(t, false); const store = new VoiceQueueStore(), broken = recording({ createdAt: Date.now() - 1000 });
+  await store.add(broken); const f = queue(t, { store, call: name => name === 'voiceInputStatus' ? of({ status: 'missing' }) : of({ eventId, status: 'completed', transcript: 'Recovered' }) }); await ready(f);
+  const change = store.change.bind(store);
+  store.change = async (...args) => {
+    const result = await change(...args);
+    return result?.id === broken.id && result.leaseUntil > Date.now() ? { ...result, audio: {
+      arrayBuffer: async () => { throw new DOMException('Simulated missing backing file', 'NotFoundError'); }
+    } } : result;
+  };
+  navigator.onLine = true; await f.service.refresh(); await until(() => !f.service.running && f.service.diagnostics.uploadCode);
+  assert.equal(f.service.storageError, '', 'A numeric DOMException must not become a database lock');
+  assert.equal(f.service.canRecord, true);
+  assert.equal((await store.list('alice')).items[0].leaseUntil, 0);
+  assert.equal((await store.list('alice')).items[0].id, broken.id);
+});
+
+function unreadableAudio(store, id, name = 'NotFoundError') {
+  const change = store.change.bind(store);
+  store.change = async (...args) => {
+    const result = await change(...args);
+    return result?.id === id && result.leaseUntil > Date.now() ? { ...result, audio: {
+      arrayBuffer: async () => { throw new DOMException('PRIVATE FILE DESCRIPTION', name); }
+    } } : result;
+  };
+}
+test('unreadable local audio recovers a saved server transcript without an audio upload', async t => {
+  environment(t, false); const store = new VoiceQueueStore(), item = recording(); await store.add(item); unreadableAudio(store, item.id);
+  const f = queue(t, { store }); await ready(f); navigator.onLine = true; await f.service.refresh();
+  await until(() => f.completed.length === 1); await ready(f);
+  assert.deepEqual(f.calls.map(x => x.name), ['voiceInputStatus']);
+  assert.deepEqual(f.calls[0].input, { requestId: item.id }); assert.equal(f.calls[0].options.timeout, 20000);
+  assert.equal(f.completed[0].transcript, 'Recovered'); assert.equal((await store.list('alice')).total, 0);
+});
+test('one unreadable recording is retained while healthy later recordings upload and the microphone stays enabled', async t => {
+  environment(t, false); const store = new VoiceQueueStore(), broken = recording({ createdAt: Date.now() - 1000 }), healthy = recording();
+  await store.add(broken); await store.add(healthy); unreadableAudio(store, broken.id);
+  const f = queue(t, { store, call: name => name === 'voiceInputStatus' ? of({ status: 'missing' }) : of({ eventId, status: 'completed', transcript: 'Healthy' }) });
+  await ready(f); navigator.onLine = true; await f.service.refresh(); await until(() => f.completed.length === 1); await ready(f);
+  assert.equal(f.completed[0].id, healthy.id); assert.equal(f.service.canRecord, true); assert.equal(f.service.storageError, '');
+  const retained = (await store.list('alice')).items[0];
+  assert.equal(retained.id, broken.id); assert.equal(retained.leaseUntil, 0); assert.ok(retained.nextAt > Date.now());
+  assert.match(retained.error, /NotFoundError/); assert.ok(!retained.error.includes('PRIVATE'));
+  assert.equal(f.service.diagnostics.recordingFault, true);
+  assert.deepEqual(f.calls.map(x => x.name), ['voiceInputStatus', 'voiceInputEnqueue']);
+});
+test('a hung saved-result lookup is independently bounded and does not turn into a local DB lock', async t => {
+  environment(t, false); clock(t); const store = new VoiceQueueStore(), item = recording(); await store.add(item); unreadableAudio(store, item.id, 'NotReadableError');
+  const f = queue(t, { store, call: () => new Observable(() => {}) }); await ready(f);
+  navigator.onLine = true; await f.service.refresh(); await until(() => f.calls.length === 1);
+  t.mock.timers.tick(20000); await until(() => !f.service.running && f.service.items[0]?.leaseUntil === 0);
+  assert.equal(f.service.canRecord, true); assert.equal(f.service.storageError, ''); assert.match(f.service.items[0].error, /NotReadableError/);
+});
+test('an outstanding reservation from another page is labelled as waiting, not active sending', async t => {
+  environment(t, false); const store = new VoiceQueueStore(), item = recording({ leaseUntil: Date.now() + 90000 }); await store.add(item);
+  const f = queue(t, { store }); await ready(f); assert.equal(f.service.label(f.service.items[0]), 'Waiting for upload slot'); assert.equal(f.calls.length, 0);
+});
+
+test('numeric DOM errors from the SDK release the lease without being mistaken for storage failure', async t => {
+  environment(t); const f = queue(t, { call: () => throwError(() => new DOMException('PRIVATE', 'NetworkError')) }); await ready(f);
+  await f.service.enqueue(bytes); await until(() => f.calls.length === 1 && !f.service.running);
+  assert.equal(f.service.canRecord, true); assert.equal(f.service.storageError, ''); assert.equal(f.service.items[0].leaseUntil, 0);
+});
+test('a late fallback result after an account change cannot expose the previous owner transcript', async t => {
+  environment(t, false); const store = new VoiceQueueStore(), item = recording(); await store.add(item); unreadableAudio(store, item.id);
+  let observer; const f = queue(t, { store, call: () => new Observable(s => { observer = s; }) }); await ready(f);
+  navigator.onLine = true; await f.service.refresh(); await until(() => observer);
+  f.auth.currentUser = Promise.resolve({ uid: 'bob' }); f.service.start('bob');
+  observer.next({ status: 'completed', eventId, transcript: 'Alice private result' }); observer.complete(); await ready(f);
+  assert.equal(f.completed.length, 0); assert.equal(f.service.items.length, 0); assert.equal((await store.list('alice')).total, 1);
+});

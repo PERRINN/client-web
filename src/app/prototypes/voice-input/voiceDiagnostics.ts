@@ -33,7 +33,9 @@ export function voiceDiagnosticRows(voice: Pick<VoiceInputService, 'phase' | 'ph
   const backoff = queue.nextAt > now ? Math.ceil((queue.nextAt - now) / 1000) : 0;
   const cloudOk = !queue.resultFailures && !queue.resultCode && (!queue.received || queue.listeners === queue.received && queue.confirmedResults === queue.received);
   const serverOverdue = queue.received > 0 && queue.resultStatus === 'processing' && queue.resultDeadline > 0 && now > queue.resultDeadline + 5000;
-  const lastFault = queue.storageCode || voice.captureFailure || queue.uploadCode || queue.resultCode || (serverOverdue ? 'Worker lease expired' : queue.resultStatus === 'failed' ? 'Transcription failed' : '');
+  const storageFault = queue.storageCode ? [queue.storageFaultStep, queue.storageCode].filter(Boolean).join(' · ') : '';
+  const uploadFault = queue.uploadCode ? [queue.uploadFaultStage, queue.uploadCode].filter(Boolean).join(' · ') : '';
+  const lastFault = storageFault || voice.captureFailure || uploadFault || queue.resultCode || (queue.recordingFault ? 'Unsent recording error' : '') || (serverOverdue ? 'Worker lease expired' : queue.resultStatus === 'failed' ? 'Transcription failed' : '');
   return [
     { label: 'Button', value: voice.canToggle ? (active ? 'Enabled · Stop' : requesting ? 'Enabled · Cancel' : 'Enabled · Start') : 'Disabled', ok: voice.canToggle || expectedWait && lockOk },
     { label: 'Lock', value: lock, ok: lockOk },
@@ -41,7 +43,7 @@ export function voiceDiagnosticRows(voice: Pick<VoiceInputService, 'phase' | 'ph
     { label: 'Local DB', value: queue.storageError ? queue.storageCode || 'Unavailable' : queue.storageWork ? `Working · ${seconds(queue.storageSince)}s` : queue.ready ? 'Ready' : 'Loading', ok: queue.ready && !queue.storageError && (!queue.storageWork || seconds(queue.storageSince) < 5) },
     { label: 'Cloud DB', value: queue.resultCode ? queue.resultCode : queue.resultFailures ? 'Listener failed' : queue.received ? `${queue.listeners}/${queue.received} listening · ${queue.confirmedResults} server${queue.resultStatus ? ' · ' + queue.resultStatus : ''}${queue.resultCached ? ' · Cached' : ''}` : 'No pending results', ok: cloudOk },
     { label: 'Server', value: queue.received ? (queue.resultStatus || 'Not observed') + (serverOverdue ? ' · Lease expired' : queue.resultCached ? ' · Cached' : queue.confirmedResults < queue.received ? ' · Last observed' : '') : 'Idle', ok: !queue.received || ['receiving', 'queued', 'processing', 'completed'].includes(queue.resultStatus) && !serverOverdue && !queue.resultCached && queue.confirmedResults === queue.received },
-    { label: 'Upload', value: queue.running ? `${queue.stage} · ${seconds(queue.startedAt)}s${uploadOverdue ? ' · Overdue' : ''}` : backoff ? `Retry in ${backoff}s` : queue.unsent && (!device.online || !device.visible) ? 'Paused' : 'Idle', ok: !uploadOverdue && !queue.uploadCode && (!queue.unsent || device.online && device.visible) },
+    { label: 'Upload', value: queue.running ? `${queue.stage} · ${seconds(queue.startedAt)}s${uploadOverdue ? ' · Overdue' : ''}` : backoff ? `Retry in ${backoff}s` : queue.unsent && (!device.online || !device.visible) ? 'Paused' : 'Idle', ok: !uploadOverdue && !queue.uploadCode && !queue.recordingFault && (!queue.unsent || device.online && device.visible) },
     { label: 'Queue', value: `${queue.total}/10 · ${queue.unsent} unsent`, ok: !queue.unsaved && queue.total < 10 },
     { label: 'Device', value: !device.secure ? 'HTTPS required' : capture.supported ? 'Supported' : 'Audio unsupported', ok: device.secure && capture.supported },
     { label: 'Account', value: voice.ready ? voice.uid ? 'Signed in' : 'Signed out' : 'Loading', ok: voice.ready && !!voice.uid },
