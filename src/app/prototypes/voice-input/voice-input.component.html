@@ -11,7 +11,13 @@
       (pointercancel)="pointerCancel($event)" (lostpointercapture)="pointerCancel($event)"
       (keydown)="keyDown($event)" (blur)="interrupt()"
       (contextmenu)="$event.preventDefault()" (click)="$event.detail === 0 && toggle()">
-      <span class="capture-feedback" aria-hidden="true">
+      <span class="capture-feedback" aria-hidden="true"><ng-container [ngTemplateOutlet]="feedback"></ng-container></span>
+      <span class="talk" aria-hidden="true">
+        <span class="talk-logo" aria-hidden="true"></span>
+      </span>
+      <span class="capture-feedback" aria-hidden="true"><ng-container [ngTemplateOutlet]="feedback"></ng-container></span>
+    </button>
+    <ng-template #feedback>
         @if (voice.waiting || !voice.ready) {
           <span class="waiting"><i></i><i></i><i></i></span>
         } @else {
@@ -21,11 +27,7 @@
             }
           </span>
         }
-      </span>
-      <span class="talk" aria-hidden="true">
-        <span class="talk-logo" aria-hidden="true"></span>
-      </span>
-    </button>
+    </ng-template>
     <p id="voice-status" class="sr-only" role="status">{{ !voice.ready ? 'Loading' : voice.busy || voice.waiting ? voice.label : '' }}</p>
     @if (voice.ready && !voice.uid) { <a class="sign-in" routerLink="/login" [queryParams]="{returnUrl: '/prototypes/voice-input'}">Sign in to record</a> }
   </section>
