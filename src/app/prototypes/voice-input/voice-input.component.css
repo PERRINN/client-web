@@ -4,7 +4,7 @@
 .back { display: inline-block; font-size: 15px; margin-bottom: 16px; text-decoration: none; }
 .capture-panel { display: flex; flex-direction: column; align-items: center; gap: 16px; }
 button { margin: 0; transition: none; color: var(--color-text); background: #242424; padding: 10px 14px; min-height: 44px; }
-.voice-dock { position: fixed; right: calc(24px + env(safe-area-inset-right, 0px)); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 20; display: flex; align-items: center; gap: 16px; padding: 10px; border-radius: 44px; background: #242424; color: #f5f5f5; }
+.voice-dock { position: fixed; right: calc(24px + env(safe-area-inset-right, 0px)); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 20; display: flex; align-items: center; gap: 16px; padding: 10px; border: 0; border-radius: 44px; touch-action: none; user-select: none; -webkit-touch-callout: none; background: #242424; color: #f5f5f5; }
 .capture-feedback { display: grid; place-items: center; width: 92px; height: 64px; }
 .waveform, .waiting { display: flex; align-items: center; justify-content: center; gap: 4px; height: 32px; }
 .waveform i { display: block; width: 4px; border-radius: 2px; background: #888; }
@@ -14,10 +14,10 @@ button { margin: 0; transition: none; color: var(--color-text); background: #242
 .waiting i:nth-child(2) { opacity: .6; }
 .waiting i:nth-child(3) { opacity: .3; }
 .voice-dock.unavailable .capture-feedback { opacity: .4; }
-.talk { display: grid; place-items: center; flex: 0 0 64px; width: 64px; height: 64px; min-height: 64px; padding: 0; border: 2px solid transparent; border-radius: 50%; background: #f5f5f5; color: #242424; touch-action: none; user-select: none; -webkit-touch-callout: none; }
+.talk { display: grid; place-items: center; flex: 0 0 64px; width: 64px; height: 64px; min-height: 64px; padding: 0; border: 2px solid transparent; border-radius: 50%; background: #f5f5f5; color: #242424; }
 .talk-logo { display: block; width: 100%; height: 100%; border-radius: 50%; background: currentColor; mask: url('/assets/App icons/perrinn-02.png') center / 116% no-repeat; -webkit-mask: url('/assets/App icons/perrinn-02.png') center / 116% no-repeat; }
-.talk.recording { background: #242424; color: #f5f5f5; border-color: #f5f5f5; }
-.talk:disabled { background: #383838; color: #aaa; cursor: default; }
+.recording .talk { background: #242424; color: #f5f5f5; border-color: #f5f5f5; }
+.voice-dock:disabled .talk { background: #383838; color: #aaa; cursor: default; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .replies { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
 .reply { max-width: 92%; padding: 12px 16px; border-radius: 16px 16px 16px 4px; background: #242424; color: #f5f5f5; scroll-margin-bottom: 112px; }
