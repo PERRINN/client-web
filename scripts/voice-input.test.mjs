@@ -293,17 +293,17 @@ function gesture(component, duration, changes = {}) {
   component.pointerDown(pointer(changes));
   component.pointerUp(pointer({ ...changes, timeStamp: duration }));
 }
-test('touch toggles at 200 ms while held and release never toggles again', async t => {
+test('touch toggles at 120 ms while held and release never toggles again', async t => {
   t.mock.timers.enable({ apis: ['setTimeout'] });
   const { service, component, calls } = componentFixture();
   component.pointerDown(pointer());
-  t.mock.timers.tick(199); assert.equal(service.phase, 'idle');
+  t.mock.timers.tick(119); assert.equal(service.phase, 'idle');
   t.mock.timers.tick(1); await new Promise(setImmediate);
   assert.equal(service.phase, 'recording');
   t.mock.timers.tick(1000); assert.equal(service.phase, 'recording');
   component.pointerUp(pointer()); assert.equal(service.phase, 'recording');
   component.pointerDown(pointer());
-  t.mock.timers.tick(200); await new Promise(setImmediate);
+  t.mock.timers.tick(120); await new Promise(setImmediate);
   assert.equal(service.phase, 'saved'); assert.equal(calls.length, 1);
   component.pointerUp(pointer()); assert.equal(service.phase, 'saved');
   assert.equal(calls.length, 1);
@@ -315,7 +315,7 @@ test('short touches, swipes, cancelled gestures and interrupted timers never tog
     for (const recording of [false, true]) {
       const { service, component, auth, calls } = componentFixture();
       if (recording) await service.press();
-      component.pointerDown(pointer()); t.mock.timers.tick(199);
+      component.pointerDown(pointer()); t.mock.timers.tick(119);
       if (action === 'release') component.pointerUp(pointer());
       else if (action === 'move') component.pointerMove(pointer({ clientX: 31 }));
       else if (action === 'cancel' || action === 'lost capture') component.pointerCancel(pointer());
@@ -335,9 +335,9 @@ test('a held second touch cancels pending microphone permission before release',
   t.mock.timers.enable({ apis: ['setTimeout'] });
   let grant;
   const { component, service, calls } = componentFixture(client(undefined, { start: () => new Promise(resolve => { grant = resolve; }) }));
-  component.pointerDown(pointer()); t.mock.timers.tick(200);
+  component.pointerDown(pointer()); t.mock.timers.tick(120);
   assert.equal(service.phase, 'requesting'); component.pointerUp(pointer());
-  component.pointerDown(pointer()); t.mock.timers.tick(200);
+  component.pointerDown(pointer()); t.mock.timers.tick(120);
   assert.equal(service.phase, 'idle'); component.pointerUp(pointer()); grant(true);
   await new Promise(setImmediate);
   assert.equal(service.phase, 'idle'); assert.equal(calls.length, 0);

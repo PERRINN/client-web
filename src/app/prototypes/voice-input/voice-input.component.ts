@@ -39,7 +39,7 @@ export class VoiceInputComponent implements AfterViewChecked, OnDestroy {
       this.pressTimer = setTimeout(() => {
         this.pressTimer = undefined;
         if (this.voice.uid === uid) this.toggle();
-      }, 200);
+      }, 120);
     }
   }
   pointerMove(event: PointerEvent): void {
