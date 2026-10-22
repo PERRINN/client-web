@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { EnvironmentInjector, Injectable, OnDestroy, runInInjectionContext } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
@@ -27,6 +27,9 @@ export class VoiceQueueService implements OnDestroy {
   private timer?: ReturnType<typeof setTimeout>;
   private storageTimer?: ReturnType<typeof setTimeout>;
   private storageRetries = 0;
+  private resultTimer?: ReturnType<typeof setTimeout>;
+  private resultRetries = 0;
+  private resultFailures = new Set<string>();
   private cancelled = new Subject<void>();
   private unsaved?: VoiceRecording;
   private watchers = new Map<string, Subscription>();
@@ -37,10 +40,11 @@ export class VoiceQueueService implements OnDestroy {
     if (this.attempt && Date.now() >= this.attempt.deadline) {
       this.attempt.expired = true; this.attempt.stopped.next();
     }
-    this.storageRetries = 0; void this.refresh();
+    this.storageRetries = 0; this.resultRetries = 0; this.resultFailures.clear();
+    clearTimeout(this.resultTimer); this.resultTimer = undefined; void this.refresh();
   };
   constructor(private store: VoiceQueueStore, private auth: AngularFireAuth,
-    private functions: AngularFireFunctions, private firestore: AngularFirestore) {
+    private functions: AngularFireFunctions, private firestore: AngularFirestore, private injector: EnvironmentInjector) {
     for (const event of ['online', 'offline', 'pageshow', 'focus']) window.addEventListener(event, this.wake);
     document.addEventListener('visibilitychange', this.wake);
   }
@@ -55,7 +59,8 @@ export class VoiceQueueService implements OnDestroy {
   }
   start(owner: string): void {
     this.epoch++; this.cancelled.next(); this.attempt?.stopped.next(); this.attempt = undefined;
-    clearTimeout(this.timer); clearTimeout(this.storageTimer);
+    clearTimeout(this.timer); clearTimeout(this.storageTimer); clearTimeout(this.resultTimer);
+    this.resultTimer = undefined; this.resultRetries = 0; this.resultFailures.clear();
     this.watchers.forEach(watcher => watcher.unsubscribe()); this.watchers.clear(); this.finishing.clear();
     this.owner = owner; this.items = []; this.total = 0; this.ready = false;
     this.unsaved = undefined; this.storageError = ''; this.running = false; this.storageRetries = 0;
@@ -65,13 +70,17 @@ export class VoiceQueueService implements OnDestroy {
     const owner = this.owner, epoch = this.epoch, refreshId = ++this.refreshId;
     if (!owner) return;
     if (this.unsaved) { await this.saveUnsent(this.unsaved, epoch); return; }
-    try {
-      const loaded = await this.storage(this.store.list(owner));
-      if (epoch !== this.epoch || refreshId !== this.refreshId) return;
-      this.items = loaded.items; this.total = loaded.total; this.ready = true; this.storageError = '';
-      this.watchResults(epoch); this.changed.next(); void this.drain();
-    } catch { if (epoch === this.epoch && refreshId === this.refreshId) this.storageFailure(); }
+    let loaded: Awaited<ReturnType<VoiceQueueStore['list']>>;
+    try { loaded = await this.storage(this.store.list(owner)); }
+    catch {
+      if (epoch === this.epoch && refreshId === this.refreshId) this.storageFailure();
+      return;
+    }
+    if (epoch !== this.epoch || refreshId !== this.refreshId) return;
+    this.items = loaded.items; this.total = loaded.total; this.ready = true; this.storageError = '';
+    this.watchResults(epoch); this.changed.next(); void this.drain();
   }
+
   async enqueue(audio: Uint8Array): Promise<void> {
     const item: VoiceRecording = { id: crypto.randomUUID(), owner: this.owner, createdAt: Date.now(),
       audio: new Blob([new Uint8Array(audio)], { type: 'audio/wav' }), attempts: 0, nextAt: 0, check: false };
@@ -94,28 +103,44 @@ export class VoiceQueueService implements OnDestroy {
     const received = this.items.filter(item => item.received && item.eventId);
     const ids = new Set(received.map(item => item.id));
     for (const [id, watcher] of this.watchers) if (!ids.has(id)) { watcher.unsubscribe(); this.watchers.delete(id); }
+    for (const id of this.resultFailures) if (!ids.has(id)) this.resultFailures.delete(id);
     // At most ten known owner documents; no collection scan or history query.
     for (const item of received) {
-      if (this.watchers.has(item.id)) continue;
-      const watcher = this.firestore.doc<Receipt & { userId: string }>('VoiceInputEvents/' + item.eventId).snapshotChanges().subscribe({
-        next: snapshot => {
-          if (epoch !== this.epoch || snapshot.payload.metadata.hasPendingWrites) return;
-          const event = snapshot.payload.data();
-          // Cached terminal results are valid too: Firestore may not emit a
-          // second snapshot when only fromCache changes after reconnecting.
-          if (event?.userId !== item.owner) return;
-          if (event?.status === 'completed' && typeof event.transcript === 'string') void this.finish(item, event.transcript, false, epoch);
-          else if (event?.status === 'failed') void this.finish(item, 'Could not transcribe this recording.', true, epoch);
-        },
-        error: () => {
-          if (epoch !== this.epoch) return;
-          this.watchers.delete(item.id);
-          this.storageFailure('Your recording is saved. Waiting for its transcript.');
-        }
-      });
-      if (!watcher.closed) this.watchers.set(item.id, watcher);
+      if (this.watchers.has(item.id) || this.resultFailures.has(item.id)) continue;
+      try {
+        // AngularFire compat document wrappers inject EnvironmentInjector when
+        // constructed, including after this asynchronous IndexedDB refresh.
+        const watcher = runInInjectionContext(this.injector, () =>
+          this.firestore.doc<Receipt & { userId: string }>('VoiceInputEvents/' + item.eventId).snapshotChanges().subscribe({
+            next: snapshot => {
+              if (epoch !== this.epoch || snapshot.payload.metadata.hasPendingWrites) return;
+              const event = snapshot.payload.data();
+              // Metadata-only reconnects may not emit another snapshot.
+              if (event?.userId !== item.owner) return;
+              if (event.status === 'completed' && typeof event.transcript === 'string') void this.finish(item, event.transcript, false, epoch);
+              else if (event.status === 'failed') void this.finish(item, 'Could not transcribe this recording.', true, epoch);
+            },
+            error: () => {
+              if (epoch !== this.epoch) return;
+              this.watchers.delete(item.id); this.resultFailures.add(item.id); this.recoverResults(epoch);
+            }
+          })
+        );
+        if (!watcher.closed) this.watchers.set(item.id, watcher);
+      } catch { this.resultFailures.add(item.id); this.recoverResults(epoch); }
     }
   }
+  private recoverResults(epoch: number): void {
+    // A saved server receipt is independent of local recording storage. Remote
+    // listener failures must never disable capture or stop eligible uploads.
+    if (epoch !== this.epoch || this.resultTimer || this.resultRetries >= 3) return;
+    this.resultRetries++;
+    this.resultTimer = setTimeout(() => {
+      this.resultTimer = undefined;
+      if (epoch === this.epoch) { this.resultFailures.clear(); this.watchResults(epoch); }
+    }, 30000);
+  }
+
   private async drain(): Promise<void> {
     clearTimeout(this.timer);
     if (this.running || !this.owner || !this.ready || this.offline || document.hidden) return;

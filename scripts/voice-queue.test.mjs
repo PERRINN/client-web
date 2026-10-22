@@ -16,7 +16,11 @@ function load(path, overrides = {}) {
   new Function('exports', 'require', source)(exports, name => overrides[name] || require(name));
   return exports;
 }
-const core = { Injectable: () => value => value };
+let inInjectionContext = false;
+const core = { Injectable: () => value => value, runInInjectionContext: (_injector, fn) => {
+  const previous = inInjectionContext; inInjectionContext = true;
+  try { return fn(); } finally { inInjectionContext = previous; }
+} };
 const storeModule = load('../src/app/prototypes/voice-input/voiceQueueStore.service.ts', { '@angular/core': core });
 const { VoiceQueueStore, VOICE_QUEUE_LIMIT, VOICE_REQUEST_LIMIT } = storeModule;
 const { VoiceQueueService } = load('../src/app/prototypes/voice-input/voiceQueue.service.ts', {
@@ -54,13 +58,18 @@ function environment(t, online = true) {
   return { window, document, navigator };
 }
 const eventId = 'a'.repeat(64);
-function queue(t, { store = new VoiceQueueStore(), call = () => of({ eventId, status: 'completed', transcript: 'Recovered' }), uid = 'alice' } = {}) {
+function queue(t, { store = new VoiceQueueStore(), call = () => of({ eventId, status: 'completed', transcript: 'Recovered' }), uid = 'alice', documentError, listenerError } = {}) {
   const auth = { currentUser: Promise.resolve({ uid }), authState: new BehaviorSubject({ uid }) }, calls = [], completed = [], listeners = new Map();
   const functions = { httpsCallable: (name, options) => input => { calls.push({ name, input, options }); return call(name, input); } };
-  const firestore = { doc: path => ({ snapshotChanges: () => new Observable(subscriber => {
-    listeners.set(path, subscriber); return () => listeners.delete(path);
-  }) }) };
-  const service = new VoiceQueueService(store, auth, functions, firestore);
+  const firestore = { doc: path => {
+    assert.equal(inInjectionContext, true, 'AngularFire document wrappers require an injection context');
+    if (documentError?.()) throw Error('Document setup failed');
+    return { snapshotChanges: () => new Observable(subscriber => {
+      if (listenerError?.()) { subscriber.error(Error('Listener unavailable')); return; }
+      listeners.set(path, subscriber); return () => listeners.delete(path);
+    }) };
+  } };
+  const service = new VoiceQueueService(store, auth, functions, firestore, {});
   service.completed.subscribe(result => completed.push(result)); service.start(uid); activeQueues.push(service);
   const result = (status, transcript = 'Server transcript', cache = false) => {
     for (const subscriber of [...listeners.values()]) subscriber.next({ payload: { metadata: { fromCache: cache }, data: () => ({ status, transcript, userId: uid }) } });
@@ -247,4 +256,38 @@ test('cached results require the recording owner and settle without a metadata-o
   assert.equal(f.completed.length, 0);
   f.result('completed', 'Owner cached result', true); await until(() => f.completed.length === 1);
   assert.equal(f.completed[0].transcript, 'Owner cached result');
+});
+
+async function savedReceipt(store) {
+  const row = recording(); await store.add(row);
+  await store.change(row.id, row.owner, x => ({ ...x, received: true, eventId, audio: new Blob() }));
+  return row;
+}
+test('synchronous transcript setup errors cannot masquerade as local storage failure or block capture/uploads', async t => {
+  environment(t); const store = new VoiceQueueStore(); await savedReceipt(store);
+  const raw = recording(); await store.add(raw);
+  const f = queue(t, { store, documentError: () => true });
+  await until(() => f.completed.length === 1); await ready(f);
+  assert.equal(f.service.ready, true); assert.equal(f.service.storageError, ''); assert.equal(f.service.canRecord, true);
+  assert.equal(f.calls[0].input.requestId, raw.id); assert.equal((await store.list('alice')).total, 1);
+});
+test('failed transcript subscriptions recover automatically within a bounded budget and never lock recording', async t => {
+  const env = environment(t); clock(t); const store = new VoiceQueueStore(); await savedReceipt(store);
+  let failed = true, attempts = 0;
+  const f = queue(t, { store, listenerError: () => { attempts++; return failed; } }); await ready(f);
+  assert.equal(attempts, 1); assert.equal(f.service.canRecord, true); assert.equal(f.service.storageError, '');
+  for (let i = 0; i < 3; i++) { t.mock.timers.tick(30000); await new Promise(setImmediate); }
+  assert.equal(attempts, 4);
+  for (let i = 0; i < 5; i++) { await f.service.refresh(); t.mock.timers.tick(60000); }
+  assert.equal(attempts, 4, 'Other local refreshes must not bypass the listener retry cap');
+  assert.equal(f.service.canRecord, true); failed = false; env.window.dispatchEvent(new Event('focus'));
+  await until(() => f.listeners.size === 1); assert.equal(attempts, 5);
+  f.result('completed', 'Recovered result'); await until(() => f.completed.length === 1);
+  assert.equal(f.completed[0].transcript, 'Recovered result');
+});
+test('navigation cancels scheduled transcript recovery and suppresses previous owner results', async t => {
+  environment(t); clock(t); const store = new VoiceQueueStore(); await savedReceipt(store); let attempts = 0;
+  const f = queue(t, { store, listenerError: () => { attempts++; return true; } }); await ready(f);
+  f.service.start('bob'); await ready(f); t.mock.timers.tick(30000);
+  assert.equal(attempts, 1); assert.equal(f.completed.length, 0); assert.equal((await store.list('alice')).total, 1);
 });
