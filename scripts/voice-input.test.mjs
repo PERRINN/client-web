@@ -18,7 +18,7 @@ function load(file, overrides = {}) {
   new Function('exports', 'require', code)(exports, name => overrides[name] || require(name));
   return exports;
 }
-const core = { Injectable: () => target => target, Component: () => target => target, HostListener: () => () => {} };
+const core = { Injectable: () => target => target, Component: () => target => target, HostListener: () => () => {}, ViewChild: () => () => {} };
 const audio = load('../src/app/prototypes/voice-input/voiceAudio.ts');
 const wav = (seconds = 1, amplitude = .1) => audio.voiceWav(Float32Array.from({ length: seconds * 16000 }, (_, i) => amplitude * Math.sin(i * .2)));
 const request = (changes = {}) => ({ requestId: '12345678-1234-1234-1234-123456789abc', sourcePage: '/prototypes/voice-input', audio: audio.voiceBase64(wav()), ...changes });
@@ -176,16 +176,19 @@ test('normal release saves; repeated release does not duplicate, and sign-out cl
   const { service, auth, calls } = client(); await service.press();
   const phases = []; service.changed.subscribe(() => phases.push(service.phase));
   await Promise.all([service.release(), service.release()]);
-  assert.equal(calls.length, 1); assert.equal(service.phase, 'saved'); assert.equal(service.transcript, 'Bonjour');
+  assert.equal(calls.length, 1); assert.equal(service.phase, 'saved'); assert.equal(service.replies.at(-1)?.text, 'Bonjour');
   assert.ok(phases.includes('saved'), 'Async completion must notify the rendered component without another gesture.');
-  auth.authState.next(null); assert.equal(service.transcript, ''); assert.equal(service.canRecord, false); service.ngOnDestroy();
+  auth.authState.next(null); assert.deepEqual(service.replies, []); assert.equal(service.canRecord, false); service.ngOnDestroy();
 });
-test('unknown outcomes retain identical ID/audio for a user-triggered check', async () => {
+test('unknown outcomes automatically allow a fresh recording without replaying the prior request', async () => {
   let attempt = 0;
-  const { service, calls } = client(() => ++attempt === 1 ? throwError(() => ({ code: 'functions/deadline-exceeded' })) : of({ eventId: 'saved', transcript: 'Recovered' }));
+  const { service, calls } = client(() => ++attempt === 1 ? throwError(() => ({ code: 'functions/deadline-exceeded' })) : of({ eventId: 'saved', transcript: 'Next recording' }));
   await service.press(); await service.release();
-  assert.ok(service.pending); assert.equal(service.canRecord, false); assert.equal(calls.length, 1);
-  await service.check(); assert.equal(calls.length, 2); assert.deepEqual(calls[0], calls[1]); assert.equal(service.transcript, 'Recovered'); service.ngOnDestroy();
+  assert.equal(service.canRecord, true); assert.equal(service.label, 'Hold to talk'); assert.equal(calls.length, 1);
+  assert.match(service.replies.at(-1)?.text, /Could not confirm/);
+  await service.press(); assert.equal(service.replies.length, 1); await service.release();
+  assert.equal(calls.length, 2); assert.notEqual(calls[0].requestId, calls[1].requestId);
+  assert.equal(service.replies.at(-1)?.text, 'Next recording'); assert.equal(service.canRecord, true); service.ngOnDestroy();
 });
 test('auth change during response discards result; permission denial and empty recordings are recoverable', async () => {
   let deliver;
@@ -194,11 +197,11 @@ test('auth change during response discards result; permission denial and empty r
   await fixture.service.press(); const pending = fixture.service.release();
   await until(() => deliver);
   fixture.auth.authState.next({ uid: 'bob' }); deliver.next({ eventId: 'private', transcript: 'Alice only' }); deliver.complete(); await pending;
-  assert.equal(fixture.service.transcript, ''); assert.equal(fixture.service.pending, undefined); fixture.service.ngOnDestroy();
+  assert.deepEqual(fixture.service.replies, []); fixture.service.ngOnDestroy();
   const denied = client(undefined, { start: async () => { throw { name: 'NotAllowedError' }; } });
-  await denied.service.press(); assert.match(denied.service.error, /denied/); assert.equal(denied.service.canRecord, true); denied.service.ngOnDestroy();
+  await denied.service.press(); assert.match(denied.service.replies.at(-1)?.text, /denied/); assert.equal(denied.service.canRecord, true); denied.service.ngOnDestroy();
   const empty = client(undefined, { finish: async () => { throw Error('No speech detected. Try again.'); } });
-  await empty.service.press(); await empty.service.release(); assert.equal(empty.calls.length, 0); assert.match(empty.service.error, /No speech/); empty.service.ngOnDestroy();
+  await empty.service.press(); await empty.service.release(); assert.equal(empty.calls.length, 0); assert.match(empty.service.replies.at(-1)?.text, /No speech/); empty.service.ngOnDestroy();
 });
 test('worklet hard-caps capture at 30 seconds and flushes the final partial block before stopped', () => {
   let Processor; const messages = [];
@@ -236,15 +239,44 @@ test('capture cancels late microphone grants, drains samples on normal release, 
     const first = capture.start(() => {}, () => {}); capture.cancel(); grant(stream);
     assert.equal(await first, false); assert.equal(stops, 1); assert.equal(closes, 1);
     navigator.mediaDevices.getUserMedia = async () => stream;
-    assert.equal(await capture.start(() => {}, () => {}), true);
+    const levels = [];
+    assert.equal(await capture.start(() => {}, () => {}, level => levels.push(level)), true);
+    node.port.onmessage({ data: { type: 'samples', samples: new Float32Array(2048) } });
+    assert.equal(levels.at(-1), 0);
+    node.port.onmessage({ data: { type: 'samples', samples: new Float32Array(2048).fill(.5) } });
+    assert.equal(levels.at(-1), 1);
+    // Start fresh so the final WAV assertion still verifies one second of captured audio.
+    capture.cancel();
+    assert.equal(await capture.start(() => {}, () => {}, level => levels.push(level)), true);
     node.port.onmessage({ data: { type: 'samples', samples: Float32Array.from({ length: 16000 }, (_, i) => .1 * Math.sin(i * .2)) } });
-    assert.equal((await capture.finish()).length, 32044); assert.equal(stops, 2); assert.equal(closes, 2);
+    assert.equal((await capture.finish()).length, 32044); assert.equal(stops, 3); assert.equal(closes, 3);
+    assert.ok(levels.at(-1) > 0 && levels.at(-1) < 1);
+    assert.equal(capture.node, undefined);
     capture.ngOnDestroy();
   } finally {
     for (const [key, descriptor] of Object.entries(originals)) {
       if (descriptor) Object.defineProperty(globalThis, key, descriptor); else delete globalThis[key];
     }
   }
+});
+
+
+test('audio history is bounded, clears on release/cancel, and ignores late capture callbacks', async () => {
+  let report;
+  const { service } = client(undefined, { start: async (_limit, _error, level) => { report = level; return true; } });
+  await service.press();
+  for (let i = 0; i < 20; i++) report(.5);
+  assert.deepEqual(service.levels, Array(9).fill(.5));
+  report(0); assert.equal(service.levels.at(-1), 0);
+  await service.release(); assert.deepEqual(service.levels, Array(9).fill(0));
+  report(1); assert.deepEqual(service.levels, Array(9).fill(0));
+  await service.press(); const oldReport = report;
+  report(.8); service.cancel();
+  assert.deepEqual(service.levels, Array(9).fill(0));
+  await service.press(); oldReport(1);
+  assert.deepEqual(service.levels, Array(9).fill(0));
+  service.ngOnDestroy(); report(1);
+  assert.deepEqual(service.levels, Array(9).fill(0));
 });
 
 test('component routes primary touch release, cancellation, repeated keys and completion notifications correctly', () => {
@@ -265,4 +297,61 @@ test('component routes primary touch release, cancellation, repeated keys and co
   component.keyDown({ ...key, ctrlKey: true }); assert.equal(presses, 3);
   component.keyDown(key); component.interrupt(); assert.equal(cancels, 2);
   voice.changed.next(); assert.equal(marks, 1); component.ngOnDestroy(); voice.changed.next(); assert.equal(marks, 1);
+});
+
+
+test('submission failures leave the control ready without a recovery action or automatic retry', async () => {
+  for (const code of ['unavailable', 'aborted', 'failed-precondition', 'resource-exhausted', 'invalid-argument', 'unauthenticated']) {
+    const { service, calls } = client(() => throwError(() => ({ code: 'functions/' + code })));
+    await service.press(); await service.release();
+    assert.equal(service.canRecord, true, code); assert.equal(service.label, 'Hold to talk');
+    assert.equal(calls.length, 1); assert.ok(service.replies.at(-1)?.text);
+    await service.press(); assert.equal(service.phase, 'recording'); assert.equal(service.replies.length, 1);
+    service.ngOnDestroy();
+  }
+});
+
+
+test('conversation appends one ordered reply per result and preserves earlier replies during capture', async () => {
+  let attempt = 0;
+  const { service, auth } = client(() => ++attempt === 2
+    ? throwError(() => ({ code: 'functions/unavailable' }))
+    : of({ eventId: 'event-' + attempt, transcript: 'Transcript ' + attempt }));
+  await service.press(); await Promise.all([service.release(), service.release()]);
+  assert.deepEqual(service.replies.map(reply => [reply.kind, reply.text]), [['transcript', 'Transcript 1']]);
+  const first = service.replies[0];
+  await service.press(); assert.equal(service.replies[0], first); await service.release();
+  await service.press(); await service.release();
+  assert.deepEqual(service.replies.map(reply => reply.kind), ['transcript', 'error', 'transcript']);
+  assert.equal(new Set(service.replies.map(reply => reply.id)).size, 3);
+  assert.equal(service.replies[0], first); assert.match(service.replies[1].text, /Could not confirm/);
+  await service.press(); service.cancel(); assert.equal(service.replies.length, 3);
+  await service.press(); service.cancel('Recording interrupted. Try again.');
+  assert.equal(service.replies.length, 4); assert.equal(service.replies.at(-1).kind, 'error');
+  auth.authState.next({ uid: 'bob' }); assert.deepEqual(service.replies, []);
+  service.ngOnDestroy();
+});
+test('permission and local capture failures become conversation replies without provider calls', async () => {
+  const fixture = client(undefined, { start: async () => { throw { name: 'NotAllowedError' }; } });
+  await fixture.service.press();
+  assert.equal(fixture.service.replies.length, 1); assert.match(fixture.service.replies[0].text, /denied/);
+  fixture.capture.start = async () => true;
+  fixture.capture.finish = async () => { throw Error('No speech detected. Try again.'); };
+  await fixture.service.press(); await fixture.service.release();
+  assert.equal(fixture.service.replies.length, 2); assert.match(fixture.service.replies[1].text, /No speech/);
+  assert.equal(fixture.calls.length, 0); fixture.service.ngOnDestroy();
+});
+test('new replies scroll into view once, without repeated scrolling on audio-level updates', () => {
+  const { Subject } = require('rxjs'); let scrolls = 0;
+  const voice = { replies: [], changed: new Subject() };
+  const { VoiceInputComponent } = load('../src/app/prototypes/voice-input/voice-input.component.ts', {
+    '@angular/core': core, './voiceCapture.service': {}, './voiceInput.service': {}
+  });
+  const component = new VoiceInputComponent(voice, { markForCheck() {} });
+  component.replies = { nativeElement: { lastElementChild: { scrollIntoView: () => { scrolls++; } } } };
+  component.ngAfterViewChecked(); assert.equal(scrolls, 0);
+  voice.replies.push({ id: 1, kind: 'transcript', text: 'Hello' });
+  component.ngAfterViewChecked(); component.ngAfterViewChecked(); assert.equal(scrolls, 1);
+  voice.replies.push({ id: 2, kind: 'error', text: 'No speech detected.' });
+  component.ngAfterViewChecked(); assert.equal(scrolls, 2); component.ngOnDestroy();
 });

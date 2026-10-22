@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, HostListener, OnDestroy } from '@angular/core';
+import { AfterViewChecked, ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { VoiceCaptureService } from './voiceCapture.service';
 import { VoiceInputService } from './voiceInput.service';
@@ -8,12 +8,20 @@ import { VoiceInputService } from './voiceInput.service';
   templateUrl: './voice-input.component.html', styleUrls: ['./voice-input.component.css'],
   providers: [VoiceCaptureService, VoiceInputService]
 })
-export class VoiceInputComponent implements OnDestroy {
+export class VoiceInputComponent implements AfterViewChecked, OnDestroy {
+  @ViewChild('replies') private replies?: ElementRef<HTMLElement>;
+  private renderedReplies = 0;
   private pointer?: number;
   private key = '';
   private changes: Subscription;
   constructor(public voice: VoiceInputService, changeDetector: ChangeDetectorRef) {
     this.changes = voice.changed.subscribe(() => changeDetector.markForCheck());
+  }
+
+  ngAfterViewChecked(): void {
+    if (this.renderedReplies === this.voice.replies.length) return;
+    this.renderedReplies = this.voice.replies.length;
+    this.replies?.nativeElement.lastElementChild?.scrollIntoView({ block: 'nearest', behavior: 'instant' });
   }
 
   pointerDown(event: PointerEvent): void {

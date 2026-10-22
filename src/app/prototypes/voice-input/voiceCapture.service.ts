@@ -13,7 +13,7 @@ export class VoiceCaptureService implements OnDestroy {
   private generation = 0;
   private stopped?: () => void;
 
-  async start(onLimit: () => void, onError: () => void): Promise<boolean> {
+  async start(onLimit: () => void, onError: () => void, onLevel?: (level: number) => void): Promise<boolean> {
     this.cancel();
     const generation = this.generation;
     if (!navigator.mediaDevices?.getUserMedia || typeof AudioContext === 'undefined'
@@ -39,6 +39,12 @@ export class VoiceCaptureService implements OnDestroy {
         if (data.type === 'samples' && data.samples instanceof Float32Array) {
           const samples = data.samples.subarray(0, MAX_VOICE_SAMPLES - this.length);
           this.samples?.set(samples, this.length); this.length += samples.length;
+          // Reuse captured batches (about eight per second); no extra stream or polling.
+          if (samples.length && onLevel) {
+            let energy = 0;
+            for (const sample of samples) energy += sample * sample;
+            onLevel(Math.min(1, Math.sqrt(energy / samples.length) * 8));
+          }
         } else if (data.type === 'limit') onLimit();
         else if (data.type === 'stopped') this.stopped?.();
       };
