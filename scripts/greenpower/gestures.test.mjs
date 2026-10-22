@@ -255,10 +255,11 @@ test('overlay cursor uses elapsed time and each session’s nearest visible samp
   const short = { id: 'first', label: 'First', colour: 'blue', channel: c.channel };
   const long = { ...short, id: 'second', channel: { ...c.channel, points: [{ time: 0, value: 10 }, { time: 2000, value: 20 }] } };
   c.overlays = [short, long]; c.end = 2000;
-  c.ngOnChanges({ overlays: {}, end: {} });
+  c.ngOnChanges({ overlays: {previousValue:[],currentValue:c.overlays}, end: {} });
   c.down({pointerId:1,pointerType:'mouse',button:0,isPrimary:true,clientX:20,clientY:0,timeStamp:Date.now()});
+  const previous = c.overlays;
   c.overlays = [...c.overlays, { ...long, id: 'third' }];
-  c.ngOnChanges({ overlays: {} });
+  c.ngOnChanges({ overlays: {previousValue:previous,currentValue:c.overlays} });
   assert.equal(c.drag, undefined, 'a changed session set cancels the previous gesture');
   assert.equal(c.model.overlays.length, 3, 'new trace paths render immediately during a session load');
   c.inspect(.75); assert.equal(c.cursorChange.values.at(-1), 1500);
@@ -446,4 +447,24 @@ test('shared marker changes rerender the axis without changing zoom, cursor or t
   assert.equal(c.marker,0);assert.ok(c.model.axis.min<=0);
   assert.equal(c.start,0);assert.equal(c.end,1000);assert.deepEqual(c.cursorChange.values,[]);
   c.ngOnDestroy();
+});
+
+
+test('incoming overlay samples preserve an active touch or mouse hold while session visibility changes cancel it', async () => {
+  for (const pointerType of ['touch', 'mouse']) {
+    const {component:c,pointer:p}=fixture();
+    c.overlays=[{id:'live-current',sessionId:'live',label:'1 Wh · Live',colour:'blue',channel:c.channel}];
+    c.ngOnChanges({overlays:{previousValue:[],currentValue:c.overlays}});
+    c.down(p(50,pointerType)); const drag=c.drag, previous=c.overlays;
+    c.end=2000;
+    c.overlays=[{...previous[0],label:'2 Wh · Live',channel:{...c.channel,points:[...c.channel.points,{time:2000,value:6}]}}];
+    c.ngOnChanges({overlays:{previousValue:previous,currentValue:c.overlays},end:{}});
+    assert.equal(c.drag,drag); assert.equal(c.renderPending,true);
+    await new Promise(resolve=>setTimeout(resolve,350));
+    assert.equal(c.drag.mode,'cursor'); assert.equal(c.cursorChange.values.at(-1),250,'hold uses its captured time range');
+    const visible=c.overlays; c.overlays=visible.map(trace=>({...trace,hidden:true}));
+    c.ngOnChanges({overlays:{previousValue:visible,currentValue:c.overlays}});
+    assert.equal(c.drag,undefined); assert.equal(c.renderPending,false);
+    c.ngOnDestroy();
+  }
 });

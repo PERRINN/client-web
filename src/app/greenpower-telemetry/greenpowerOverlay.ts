@@ -1,4 +1,4 @@
-import { ENERGY, formatChannelNumber, GreenpowerChannel, channelsFor, sampleTime } from './greenpowerData';
+import { ENERGY, formatChannelNumber, GreenpowerChannel, channelsFor, sampleTime, pointIndex } from './greenpowerData';
 import { DaySession, RecordedEvent, effectiveDefaults } from './greenpowerDay';
 import { gpsAnalysis, gpsFixes } from './greenpowerGps';
 import { contains, TrackDefinition } from './greenpowerTracks';
@@ -10,6 +10,7 @@ import { sessionLapAnalysis, sessionIntervals, sessionAmpHours, savedGear, withE
 export interface OverlaySession {
   id: string; label: string; colour: string; session: DaySession;
   date: string; channels: GreenpowerChannel[]; loaded: boolean; hidden: boolean; excluded: boolean;
+  live?: boolean; observedEnd?: number;
 }
 export interface OverlayTrace { id: string; label: string; colour: string; channel: GreenpowerChannel; dashed?: boolean; detail?: string; sessionId?: string; hidden?: boolean; excluded?: boolean; }
 export function overlayColour(index: number) { return `hsl(${(205 + index * 137.508) % 360} 60% 72%)`; }
@@ -40,11 +41,16 @@ export function overlayChannels(samples: Parameters<typeof channelsFor>[0], sess
   const projected = withMotorDerivedSpeed(savedGear(channels, event, [session], session.startAt, endAt,
     latest && sampleTime(latest)), event, latest && sampleTime(latest));
   const metrics = lapMetricChannels(motorLapSpeeds(numbered.laps, projected), projected);
-  return [...withDistance(projected, [session], latest && sampleTime(latest)), ...metrics].map(channel => {
-    const adjusted = sessionAmpHours(channel, [session], latest && sampleTime(latest));
-    return { ...adjusted,
-      ...(adjusted.valueAt ? { valueAt: (time: number) => adjusted.valueAt!(time + session.startAt) } : {}),
-      points: adjusted.points.filter(point => point.time >= session.startAt && point.time <= endAt)
-        .map(point => ({ ...point, time: point.time - session.startAt })) };
-  });
+  const adjusted = [...withDistance(projected, [session], latest && sampleTime(latest)), ...metrics]
+    .map(channel => sessionAmpHours(channel, [session], latest && sampleTime(latest)));
+  return relativeSessionChannels(adjusted, session, endAt);
+}
+
+/** Reuse calculated channels; copy only the session's received points, with elapsed-time coordinates. */
+export function relativeSessionChannels(channels: GreenpowerChannel[], session: DaySession, end: number): GreenpowerChannel[] {
+  return channels.map(channel => ({ ...channel,
+    ...(channel.valueAt ? { valueAt: (time: number) => time >= 0 && time <= end - session.startAt ? channel.valueAt!(time + session.startAt) : undefined } : {}),
+    points: channel.points.slice(pointIndex(channel.points, session.startAt), pointIndex(channel.points, end, true))
+      .map(point => ({ ...point, time: point.time - session.startAt }))
+  }));
 }

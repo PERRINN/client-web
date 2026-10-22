@@ -42,7 +42,7 @@ export class GreenpowerOverlayComponent implements OnDestroy {
       heading: channel.id === VOLTAGE_LEFT ? 'Voltage left / right' : '',
       traces: this.overlay.sessions.filter(session => session.loaded).flatMap(session => session.channels.filter(item =>
         item.id === channel.id || channel.id === VOLTAGE_LEFT && item.id === VOLTAGE_RIGHT
-          || isVehicleSpeed(channel.id) && item.id === MOTOR_DERIVED_SPEED).filter(item => item.points.length)
+          || isVehicleSpeed(channel.id) && item.id === MOTOR_DERIVED_SPEED).filter(item => item.points.length || session.live)
         .map(item => ({ id: session.id + ':' + item.id, label: session.label,
           sessionId: session.id, hidden: session.hidden || session.excluded, excluded: session.excluded, colour: session.colour, channel: item, dashed: item.id === VOLTAGE_RIGHT || item.id === MOTOR_DERIVED_SPEED,
           detail: isVehicleSpeed(channel.id) ? item.id === MOTOR_DERIVED_SPEED ? 'Motor-derived' : 'Recorded' : undefined })))

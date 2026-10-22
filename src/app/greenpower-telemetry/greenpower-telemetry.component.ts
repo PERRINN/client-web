@@ -168,6 +168,9 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
     this.channels = withDistance(withMotorDerivedSpeed(this.channels, this.loadedEvent, latestTime), this.recordingSessions, latestTime, complete);
     this.laps = motorLapSpeeds(this.numberedLaps, this.channels);
     this.channels = [...this.channels, this.lapChannel!, ...lapMetricChannels(this.laps, this.channels)];
+    this.overlay.syncLive(this.telemetry.access === 'signed-in' && this.telemetry.live && this.loadedEvent?.date === this.telemetry.day
+      ? { event: this.loadedEvent, sessions: this.recordingSessions, channels: this.channels, end: this.telemetry.end,
+        complete: !!complete && !this.telemetry.loading && !this.telemetry.error } : undefined);
     this.motorDerivedSpeed = this.channels.find(channel => channel.id === MOTOR_DERIVED_SPEED);
     this.voltageRight = this.channels.find(channel => channel.id === VOLTAGE_RIGHT);
     this.scalars = this.view.scalars(this.channels);

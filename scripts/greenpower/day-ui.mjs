@@ -16,13 +16,14 @@ import 'zone.js'; import '@angular/compiler';
 import { ChangeDetectorRef, NgZone } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { BrowserDynamicTestingModule, platformBrowserDynamicTesting } from '@angular/platform-browser-dynamic/testing';
-import { Title } from '@angular/platform-browser';
+import { Title, By } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common'; import { FormsModule } from '@angular/forms'; import { RouterModule } from '@angular/router';
 import { AngularFirestore } from '@angular/fire/compat/firestore'; import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { BehaviorSubject, Subject, defer } from 'rxjs';
 import { PermissionsService } from '${root}/src/app/permissions.service';
 import { GreenpowerTelemetryComponent } from '${folder}/greenpower-telemetry.component';
 import { GreenpowerTelemetryService } from '${folder}/greenpowerTelemetry.service';
+import { GreenpowerOverlayComponent } from '${folder}/greenpower-overlay.component';
 import { GreenpowerOverlayService } from '${folder}/greenpowerOverlay.service';
 import { GreenpowerEventsService } from '${folder}/greenpowerEvents.service';
 import { GreenpowerEventContextService } from '${folder}/greenpowerEventContext.service';
@@ -47,15 +48,15 @@ for(let i=0;i<2;i++){const id='s'+i, startAt=first+i*3600000,endAt=startAt+18000
 records.set('GreenpowerTelemetry/424/days/'+date,event);
 records.set('GreenpowerTelemetry/424/days/2026-06-15',{...emptyDay('2026-06-15'),eventName:'Circuit test'});
 records.set('GreenpowerTelemetry/424/tracks/workshop',{name:'Workshop',bounds:null,line:null,cells:[],revision:1,updatedBy:'admin'});
-const snapshot=path=>({exists:records.has(path),id:path.split('/').at(-1),data:()=>records.get(path),metadata:{fromCache:false,hasPendingWrites:false}});
+const snapshot=path=>({ref:ref(path),exists:records.has(path),id:path.split('/').at(-1),data:()=>records.get(path),metadata:{fromCache:false,hasPendingWrites:false}});
 const notify=()=>listeners.filter(l=>l.active && !l.path.endsWith('/sessions')).forEach(l=>l.emit());
-const ref=(path,spec={filters:[],order:[]})=>({path,id:path.split('/').at(-1),doc:(id='new-track')=>ref(path+'/'+id),
+const ref=(path,spec={filters:[],order:[]})=>({path,get parent(){return ref(path.split('/').slice(0,-1).join('/'));},id:path.split('/').at(-1),doc:(id='new-track')=>ref(path+'/'+id),
  where:(key,op,value)=>ref(path,{...spec,filters:[...spec.filters,[key,op,value]]}),orderBy:(key,direction='asc')=>ref(path,{...spec,order:[...spec.order,[key,direction]]}),limit:limit=>ref(path,{...spec,limit}),startAfter:cursor=>ref(path,{...spec,after:cursor.id}),
  async get(){calls.push(path);if(fail)throw Error('synthetic');if(path.split('/').length%2===0)return snapshot(path);
- const field=(doc,key)=>key==='__name__'?doc.id:doc.data()[key];let docs=[...records.keys()].filter(key=>key.startsWith(path+'/')&&!key.slice(path.length+1).includes('/')).map(snapshot).filter(doc=>spec.filters.every(([key,op,value])=>op==='=='?field(doc,key)===value:op==='>='?field(doc,key)>=value:field(doc,key)<=value));
+ const field=(doc,key)=>key==='__name__'?doc.id:doc.data()[key];let docs=[...records.keys()].filter(key=>path==='group:sessions'?key.includes('/sessions/'):key.startsWith(path+'/')&&!key.slice(path.length+1).includes('/')).map(snapshot).filter(doc=>spec.filters.every(([key,op,value])=>op==='=='?field(doc,key)===value:op==='>='?field(doc,key)>=value:field(doc,key)<=value));
  docs.sort((a,b)=>{for(const [key,direction] of spec.order){if(field(a,key)!==field(b,key))return(field(a,key)<field(b,key)?-1:1)*(direction==='desc'?-1:1);}return 0;});if(spec.after)docs=docs.slice(docs.findIndex(doc=>doc.id===spec.after)+1);docs=docs.slice(0,spec.limit);return {docs,size:docs.length};},
  onSnapshot(options,next,error){const l={path,next,error,active:true,emit:async()=>{if(!l.active)return;const value=path.split('/').length%2===0?snapshot(path):{...await ref(path,spec).get(),metadata:{fromCache:false,hasPendingWrites:false}};if(l.active)next(value);}};listeners.push(l);queueMicrotask(()=>l.emit());return()=>l.active=false;}});
-const db={doc:ref,collection:ref,async runTransaction(callback){const writes=[];await callback({get:async r=>snapshot(r.path),set:(r,value)=>writes.push([r.path,value])});writes.forEach(([path,value])=>records.set(path,value));notify();}};
+const db={doc:ref,collection:ref,collectionGroup:name=>ref('group:'+name),async runTransaction(callback){const writes=[];await callback({get:async r=>snapshot(r.path),set:(r,value)=>writes.push([r.path,value])});writes.forEach(([path,value])=>records.set(path,value));notify();}};
 const telemetry={changed:new Subject(),access:'signed-in',live:false,day:'2026-06-13',loading:false,error:'',more:false,recordingKey:'',connected:true,channels:[],latest:undefined,start:0,end:0,dayLoads:0,sessionLoads:0,
  seed(start,end){const samples=Array.from({length:40},(_,i)=>({id:String(i),receivedAt:start+(end-start)*i/39,source:'424-phone',raw:JSON.stringify({Vt:24+i/100,Spd:10,...(this.live?{A:20,AH:10+i/100,RPM:3000}:{})})}));this.start=start;this.end=end;this.latest=samples.at(-1);this.channels=channelsFor(samples,this.latest);},
  async select(day,live=false){this.dayLoads++;this.day=day;this.live=live;this.recordingKey='';this.seed(Date.parse(day+'T08:00:00Z'),Date.parse(day+(live?'T08:01:57Z':'T16:00:00Z')));this.changed.next();},
@@ -69,6 +70,8 @@ const parentPath='GreenpowerTelemetry/424/days/'+input.date;
 if(input.kind==='session'){const next={...input.session,telemetryRoot:'GreenpowerTelemetry/424',schemaVersion:2,revision:input.expectedSessionRevision+1,updatedBy:'viewer'};records.set(parentPath+'/sessions/'+next.id,next);notify();return {date:input.date,revision:input.expectedRevision,sessionId:next.id,sessionRevision:next.revision,changeId:'synthetic'};}
 const next={...input.data,schemaVersion:2,revision:input.expectedRevision+1,updatedBy:'viewer'};records.set(parentPath,next);notify();return {date:input.date,revision:next.revision,changeId:'synthetic'};})};
 GreenpowerTelemetryComponent.ctorParameters=()=>[{type:GreenpowerTelemetryService},{type:ChangeDetectorRef},{type:Title},{type:GreenpowerViewService},{type:GreenpowerLapService},{type:GreenpowerEventsService},{type:GreenpowerEventEditService},{type:GreenpowerOverlayService},{type:GreenpowerEventContextService}];
+GreenpowerOverlayService.ctorParameters=()=>[{type:AngularFirestore},{type:PermissionsService}];
+GreenpowerOverlayComponent.ctorParameters=()=>[{type:GreenpowerOverlayService},{type:GreenpowerViewService},{type:ChangeDetectorRef}];
 GreenpowerEventContextService.ctorParameters=()=>[{type:AngularFirestore},{type:PermissionsService}];
 GreenpowerEventsService.ctorParameters=()=>[{type:PermissionsService},{type:AngularFirestore}];
 GreenpowerEventEditService.ctorParameters=()=>[{type:GreenpowerEventsService},{type:GreenpowerTelemetryService},{type:AngularFireFunctions}];
@@ -77,17 +80,18 @@ GreenpowerEventEditorComponent.ctorParameters=()=>[{type:GreenpowerEventEditServ
 GreenpowerMetadataFieldsComponent.ctorParameters=()=>[{type:GreenpowerEventsService}];
 GreenpowerMapComponent.ctorParameters=()=>[{type:ChangeDetectorRef}];GreenpowerChartComponent.ctorParameters=()=>[{type:ChangeDetectorRef},{type:NgZone}];
 TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTesting());
-TestBed.configureTestingModule({imports:[CommonModule,FormsModule,RouterModule.forRoot([])],declarations:[GreenpowerChannelOptionComponent,GreenpowerTelemetryComponent,GreenpowerEventSelectorComponent,GreenpowerEventEditorComponent,GreenpowerMetadataFieldsComponent,GreenpowerChartComponent,GreenpowerMapComponent,GreenpowerLapListComponent],providers:[{provide:PermissionsService,useValue:permissions},{provide:AngularFirestore,useValue:{firestore:db}},{provide:AngularFireFunctions,useValue:functions}]});
-TestBed.overrideComponent(GreenpowerTelemetryComponent,{set:{providers:[{provide:GreenpowerTelemetryService,useValue:telemetry},{provide:GreenpowerViewService,useValue:view},{provide:GreenpowerLapService,useValue:laps},GreenpowerEventsService,GreenpowerEventEditService,GreenpowerEventContextService,{provide:GreenpowerOverlayService,useValue:{active:false,changed:new Subject(),clear(){}}}]}});
+TestBed.configureTestingModule({imports:[CommonModule,FormsModule,RouterModule.forRoot([])],declarations:[GreenpowerOverlayComponent,GreenpowerChannelOptionComponent,GreenpowerTelemetryComponent,GreenpowerEventSelectorComponent,GreenpowerEventEditorComponent,GreenpowerMetadataFieldsComponent,GreenpowerChartComponent,GreenpowerMapComponent,GreenpowerLapListComponent],providers:[{provide:PermissionsService,useValue:permissions},{provide:AngularFirestore,useValue:{firestore:db}},{provide:AngularFireFunctions,useValue:functions}]});
+TestBed.overrideComponent(GreenpowerTelemetryComponent,{set:{providers:[{provide:GreenpowerTelemetryService,useValue:telemetry},{provide:GreenpowerViewService,useValue:view},{provide:GreenpowerLapService,useValue:laps},GreenpowerEventsService,GreenpowerEventEditService,GreenpowerEventContextService,GreenpowerOverlayService]}});
 const fixture=TestBed.createComponent(GreenpowerTelemetryComponent);document.querySelector('.contentCard').append(fixture.nativeElement);fixture.autoDetectChanges();
 window.dayHarness={
+ overlayState(){const component=fixture.debugElement.query(By.directive(GreenpowerOverlayComponent)).componentInstance;return {cursor:component.cursor,window:component.window};},
  prepareLive(){const day=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/London',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());records.set('GreenpowerTelemetry/424/days/'+day,{...emptyDay(day),eventName:'Live race',defaults:{driver:'Taylor',motorGearTeeth:18,wheelGearTeeth:57},sessionTypeCounts:{}});},
  liveCursor(index){fixture.componentInstance.cursor=telemetry.channels[0].points[index].time;fixture.changeDetectorRef.markForCheck();fixture.detectChanges();},
- current:()=>({day:telemetry.day,live:telemetry.live,start:telemetry.start,end:telemetry.end,sessions:fixture.componentInstance.recordingSessions,channels:fixture.componentInstance.channels}),
+ current:()=>({day:telemetry.day,live:telemetry.live,start:telemetry.start,end:telemetry.end,sessions:fixture.componentInstance.recordingSessions,channels:fixture.componentInstance.channels,overlay:fixture.componentInstance.overlay.sessions}),
 
  liveSeed(){telemetry.live=true;telemetry.seed(0,1000);telemetry.changed.next();fixture.detectChanges();},
  zoom(range){fixture.componentInstance.zoom(range);fixture.changeDetectorRef.markForCheck();fixture.detectChanges();},
- append(end){telemetry.end=end;telemetry.latest={...telemetry.latest,id:'live'+end,receivedAt:end,raw:JSON.stringify({Vt:30,Spd:12})};const added=channelsFor([telemetry.latest],telemetry.latest);telemetry.channels=telemetry.channels.map(channel=>{const next=added.find(item=>item.id===channel.id);return next?{...next,points:[...channel.points,...next.points]}:channel;});telemetry.changed.next();fixture.detectChanges();},
+ append(end){telemetry.end=end;telemetry.latest={...telemetry.latest,id:'live'+end,receivedAt:end,raw:JSON.stringify({Vt:30,Spd:12,A:20,AH:11,RPM:3000})};const added=channelsFor([telemetry.latest],telemetry.latest);telemetry.channels=telemetry.channels.map(channel=>{const next=added.find(item=>item.id===channel.id);return next?{...next,points:[...channel.points,...next.points]}:channel;});telemetry.changed.next();fixture.detectChanges();},
  bounds(){const c=fixture.componentInstance;return {start:c.start,end:c.end,cursor:c.cursor};},
  sessionLaps(){laps.line={a:{lat:52,lon:-1},b:{lat:52,lon:-0.9999},direction:1};laps.fixes=Array.from({length:1801},(_,i)=>({time:first+i*3000,lat:52,lon:-1}));laps.analysis.laps=[{time:first+300000,end:first+900000,lap:1,complete:true},{time:first+900000,end:first+1800000,lap:2,complete:false},{time:first+3900000,end:first+4500000,lap:3,complete:true},{time:first+4500000,end:first+5400000,lap:4,complete:false}];laps.changed.next();fixture.detectChanges();},sessionCounts(counts){records.get('GreenpowerTelemetry/424/days/'+date).sessionTypeCounts=counts;notify();fixture.detectChanges();},stats:()=>({window:fixture.componentInstance.window,cursor:fixture.componentInstance.cursor,sessionDraft:fixture.componentInstance.eventEdit.sessionDraft,dayLoads:telemetry.dayLoads,sessionLoads:telemetry.sessionLoads,calls:[...calls]}),viewer(){state.next({ready:true,uid:'viewer',isAdmin:false});fixture.detectChanges();},noLaps(){laps.analysis.laps=[];laps.changed.next();fixture.detectChanges();},admin(){state.next({ready:true,uid:'viewer',isAdmin:true});fixture.detectChanges();},empty(){records.clear();fixture.componentInstance.events.loadEvents(true);},failure(value){fail=value;},saveFailure(value){saveFail=value;},error(){telemetry.error='Synthetic load failure';telemetry.changed.next();},loading(value){telemetry.loading=value;telemetry.changed.next();},logout(){telemetry.access='signed-out';state.next({ready:true,uid:'',isAdmin:false});telemetry.changed.next();}};
 `);
@@ -562,6 +566,41 @@ try {
     await page.getByRole('button', { name: 'Save', exact: true }).click();
     await page.getByText('Saved', { exact: true }).waitFor();
     assert.equal(await page.evaluate(() => window.dayHarness.current().sessions[0].endAt === null), false);
+    // Reopen as a battery dyno and exercise the real overlay with the already running live feed.
+    await page.locator('[aria-label="Event sessions"]').getByRole('button', {name:/^Edit Race/}).click();
+    await page.getByLabel('Session type', {exact:true}).selectOption('battery_dyno');
+    await page.getByRole('button', {name:'Clear end',exact:true}).click();
+    await page.getByRole('button', {name:'Save',exact:true}).click();
+    await page.getByText('Saved', {exact:true}).waitFor();
+    await page.locator('.edit-mode').click();
+    await page.getByRole('button', {name:'Overlay',exact:true}).click();
+    await page.getByRole('combobox',{name:'Overlay sessions',exact:true}).selectOption('2026-battery-dyno');
+    await page.locator('.session-list li').filter({hasText:'Live'}).waitFor();
+    const liveKey=await page.evaluate(()=>window.dayHarness.current().overlay.find(item=>item.live).id);
+    const liveBefore=await page.evaluate(()=>({reads:window.dayHarness.stats().calls.length,colour:window.dayHarness.current().overlay.find(item=>item.live).colour,energy:window.dayHarness.current().overlay.find(item=>item.live).channels.find(channel=>channel.id==='computed:energy').points.at(-1).value}));
+    const overlayBox=await page.locator('app-greenpower-overlay .charts').boundingBox();
+    await page.screenshot({path:output+'/live-battery-overlay-'+width+'.png',fullPage:true});
+    await page.evaluate(()=>{const h=window.dayHarness;h.append(h.current().end+3000);});
+    const liveAfter=await page.evaluate(()=>({reads:window.dayHarness.stats().calls.length,item:window.dayHarness.current().overlay.find(item=>item.live)}));
+    assert.equal(liveAfter.reads,liveBefore.reads,'live overlay append performs no database queries');
+    assert.equal(liveAfter.item.id,liveKey);assert.equal(liveAfter.item.colour,liveBefore.colour);
+    assert.ok(liveAfter.item.channels.find(channel=>channel.id==='computed:energy').points.at(-1).value>liveBefore.energy);
+    assert.deepEqual(await page.locator('app-greenpower-overlay .charts').boundingBox(),overlayBox,'live growth preserves chart geometry');
+    const livePlot=page.locator('app-greenpower-overlay app-greenpower-chart svg').first();
+    await livePlot.scrollIntoViewIfNeeded();
+    const livePlotBox=await livePlot.boundingBox(), liveX=livePlotBox.x+livePlotBox.width*.4,liveY=livePlotBox.y+livePlotBox.height*.6;
+    const touch=width<500?await page.context().newCDPSession(page):undefined;
+    if(touch) await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:liveX,y:liveY}]});
+    else {await page.mouse.move(liveX,liveY);await page.mouse.down();}
+    await page.evaluate(()=>{const h=window.dayHarness;h.append(h.current().end+3000);});
+    await page.waitForFunction(()=>typeof window.dayHarness.overlayState().cursor==='number');
+    if(touch){await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await touch.detach();}
+    else await page.mouse.up();
+    const heldCursor=await page.evaluate(()=>window.dayHarness.overlayState().cursor);
+    await page.evaluate(()=>{const h=window.dayHarness;h.append(h.current().end+3000);});
+    assert.equal(await page.evaluate(()=>window.dayHarness.overlayState().cursor),heldCursor,'held cursor survives incoming live samples');
+
+
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     await page.evaluate(() => window.dayHarness.logout());
     await page.getByRole('link', { name: 'Sign in to view telemetry' }).waitFor();

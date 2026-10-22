@@ -356,3 +356,143 @@ test('a session without complete lap data never masks another session’s metric
   assert.ok(h.service.channels.every(channel => channel.points.length > 0));
   h.service.ngOnDestroy();
 });
+
+function liveFixture(count = 1, type = 'battery_dyno') {
+  const h = fixture(count, 2);
+  for (const [path, session] of h.records) if (path.includes('/sessions/')) session.type = type;
+  const event = h.records.get(`${ROOT}/days/${date}`);
+  event.defaults = { driver: 'Live driver', motorGearTeeth: 18, wheelGearTeeth: 57 };
+  const startAt = Date.parse(date + 'T20:00:00Z');
+  const session = { ...structuredClone(h.records.get(`${ROOT}/days/${date}/sessions/race-0`)),
+    id: 'live-run', type, startAt, endAt: null, batteryIds: ['Live battery'], overrides: {} };
+  session.ranges = [{ ...session.ranges[0], firstAt: startAt, lastAt: startAt, lastChunk: session.ranges[0].firstChunk, firstIndex: 0, lastIndex: 0, lastSampleId: session.ranges[0].firstSampleId }];
+  h.records.set(`${ROOT}/days/${date}/sessions/${session.id}`, session);
+  const source = (count = 5, changes = {}) => {
+    const samples = Array.from({ length: count }, (_, index) => ({ id: 'live-' + index, source: '424-phone',
+      receivedAt: startAt - 3000 + index * 3000,
+      raw: JSON.stringify({ Vt: 24, A: 20, AH: 10 + index / 10, RPM: 3000, Spd: 10 }) }));
+    const end = samples.at(-1).receivedAt;
+    const raw = data.channelsFor(samples, samples.at(-1));
+    const energy = sessions.withEnergy(raw, [session], end);
+    const geared = sessions.savedGear(energy.map(channel => sessions.sessionAmpHours(channel, [session], end)), event, [session], samples[0].receivedAt, end, end);
+    const channels = sessions.withDistance(motorSpeed.withMotorDerivedSpeed(geared, event, end), [session], end);
+    return { event, sessions: [session], channels, end, complete: true, ...changes };
+  };
+  return { ...h, event, session, source };
+}
+
+test('live overlay reuses calculated data with zero extra queries, keeps its start and updates Wh and elapsed time', async () => {
+  const h = liveFixture(1), source = h.source(5), id = `${ROOT}/days/${date}/sessions/live-run`;
+  h.service.syncLive(source); assert.equal(h.calls.length, 0);
+  await h.service.load(true, 'battery_dyno');
+  const item = h.service.sessions.find(item => item.id === id);
+  assert.equal(item.live, true); assert.equal(item.loaded, true); assert.match(item.label, /Live battery · 1 Wh · Live$/);
+  const energy = item.channels.find(channel => channel.id === data.ENERGY);
+  assert.deepEqual(energy.points[0], { time: 0, value: 0 });
+  assert.ok(Math.abs(energy.points.at(-1).value - 1.2) < 1e-10);
+  assert.ok(Math.abs(energy.valueAt(9000) - 1.2) < 1e-10);
+  const before = h.calls.length, colour = item.colour;
+  const component = new GreenpowerOverlayComponent(h.service, { changed: new Subject(), charts: channels => channels }, { markForCheck() {} });
+  component.zoom({ start: 0, end: 6000 }); component.cursor = 3000;
+  h.service.toggleVisibility(id); h.service.toggleInclusion(id);
+  h.service.syncLive(h.source(8));
+  const updated = h.service.sessions.find(item => item.id === id);
+  assert.equal(h.calls.length, before, 'appending live data performs no reads');
+  assert.equal(updated.colour, colour); assert.equal(updated.hidden, true); assert.equal(updated.excluded, true);
+  assert.match(updated.label, /2 Wh · Live$/);
+  assert.equal(h.service.end, 18000); assert.equal(component.cursor, 3000); assert.deepEqual(component.window, { start: 0, end: 6000 });
+  assert.equal(h.session.endAt, null, 'the persisted session stays open');
+  const original = source.channels.find(channel => channel.id === data.ENERGY).points.at(-1);
+  assert.equal(original.time, source.end); assert.ok(Math.abs(original.value - 1.2) < 1e-10);
+  component.ngOnDestroy(); h.service.ngOnDestroy();
+});
+
+test('live session is included before historical pagination reaches it, without a second chunk reader or duplicate', async () => {
+  const h = liveFixture(35);
+  h.service.syncLive(h.source()); await h.service.load(true, 'battery_dyno');
+  assert.equal(h.service.sessions.length, 31); assert.equal(h.service.more, true);
+  assert.equal(h.calls.filter(call => call.path === 'group:sessions').length, 1);
+  assert.equal(h.calls.find(call => call.path === 'group:sessions').limit, 30);
+  assert.equal(h.calls.filter(call => call.path.endsWith('/chunks')).length, 30, 'only completed recordings read chunks');
+  await h.service.load();
+  assert.equal(h.service.sessions.length, 36);
+  assert.equal(h.service.sessions.filter(item => item.session.id === 'live-run').length, 1);
+  assert.equal(h.calls.filter(call => call.path.endsWith('/chunks')).length, 35);
+  h.service.ngOnDestroy();
+});
+
+test('live race preset, session closure and paused contexts retain one stable comparison snapshot', async () => {
+  const h = liveFixture(1, 'race'); h.service.syncLive(h.source());
+  await h.service.load(true, 'battery_dyno'); assert.equal(h.service.sessions.length, 0, 'mismatched preset excludes the session');
+  await h.service.load(true, 'race');
+  const item = h.service.sessions.find(item => item.live), colour = item.colour, before = h.calls.length;
+  const closed = { ...h.session, endAt: h.session.startAt + 9000 };
+  h.service.syncLive(h.source(8, { sessions: [closed] }));
+  assert.equal(item.live, false); assert.equal(item.session.endAt, closed.endAt);
+  assert.equal(item.channels.find(channel => channel.id === data.ENERGY).points.at(-1).time, 9000);
+  assert.equal(item.colour, colour); assert.doesNotMatch(item.label, / · Live$/); assert.equal(h.calls.length, before);
+  h.service.syncLive(h.source(10, { sessions: [closed] }));
+  assert.equal(item.channels.find(channel => channel.id === data.ENERGY).points.at(-1).time, 9000, 'closed snapshot stops growing');
+  h.service.syncLive(h.source(8));
+  assert.equal(item.live, true, 'reopening reuses the existing session identity');
+  const snapshot = item.channels;
+  h.service.syncLive(); assert.equal(item.live, false); assert.match(item.label, / · Open$/); assert.equal(item.channels, snapshot);
+  assert.equal(h.calls.length, before);
+  h.service.clear(); h.service.syncLive(h.source()); await h.service.load(true, 'race');
+  assert.equal(h.service.sessions.filter(item => item.session.id === h.session.id).length, 1, 'reopening overlay attaches one live session');
+  h.state.next({ uid: '', ready: true }); assert.equal(h.service.sessions.length, 0);
+  h.service.ngOnDestroy();
+});
+
+test('incomplete or overlapping live metadata withholds consumption and preserves chart frames and cursor', async () => {
+  const h = liveFixture(); h.service.syncLive(h.source()); await h.service.load(true, 'battery_dyno');
+  const component = new GreenpowerOverlayComponent(h.service, { changed: new Subject(), charts: channels => channels }, { markForCheck() {} });
+  component.cursor = 3000;
+  const before = h.calls.length, count = component.charts.length;
+  const missing = h.source(8, { complete: false });
+  missing.channels = missing.channels.filter(channel => channel.id !== data.DISTANCE);
+  h.service.syncLive(missing);
+  const item = h.service.sessions.find(item => item.live);
+  assert.equal(component.charts.length, count); assert.equal(component.cursor, 3000);
+  assert.doesNotMatch(item.label, / Wh/);
+  for (const id of [data.ENERGY, data.DISTANCE, '["AH"]:Ah']) {
+    const channel = item.channels.find(channel => channel.id === id);
+    assert.deepEqual(channel.points, []); assert.equal(channel.valueAt?.(3000), undefined);
+  }
+  h.service.syncLive(h.source(8, { sessions: [h.session, { ...h.session, id: 'overlap', type: 'practice', endAt: h.session.startAt + 3000 }] }));
+  assert.deepEqual(item.channels.find(channel => channel.id === data.ENERGY).points, []);
+  h.service.syncLive(h.source(8)); assert.match(item.label, / Wh · Live$/);
+  assert.equal(h.calls.length, before); assert.equal(component.charts.length, count); assert.equal(component.cursor, 3000);
+  component.ngOnDestroy(); h.service.ngOnDestroy();
+});
+
+test('a session adopted from an in-flight historical load is not duplicated or overwritten by its old recording', async () => {
+  const h = fixture(2, 2), event = h.records.get(`${ROOT}/days/${date}`);
+  let resume; h.pause(new Promise(resolve => resume = resolve));
+  const loading = h.service.load(true, 'race');
+  for (let step = 0; step < 20 && !h.calls.at(-1)?.path.endsWith('/chunks'); step++) await Promise.resolve();
+  assert.ok(h.calls.at(-1).path.endsWith('/chunks'));
+  const open = { ...h.records.get(`${ROOT}/days/${date}/sessions/race-0`), endAt: null };
+  const channels = [{ id: '["A"]:A', label: 'Current', unit: 'A', value: '42',
+    points: [{ time: open.startAt, value: 42 }, { time: open.startAt + 3000, value: 43 }] }];
+  h.service.syncLive({ event, sessions: [open], channels, end: open.startAt + 3000, complete: true });
+  resume(); await loading;
+  assert.equal(h.service.error, '');
+  assert.equal(h.service.sessions.filter(item => item.session.id === open.id).length, 1);
+  const item = h.service.sessions.find(item => item.session.id === open.id);
+  assert.equal(item.live, true); assert.deepEqual(item.channels[0].points, [{time:0,value:42},{time:3000,value:43}]);
+  assert.equal(h.calls.filter(call => call.path.endsWith('/chunks')).length, 2, 'one existing in-flight read and the other historical recording');
+  h.service.ngOnDestroy();
+});
+
+test('closure waits for received end samples, and elapsed readers cannot escape the session boundaries', async () => {
+  const h = liveFixture(); h.service.syncLive(h.source(5)); await h.service.load(true, 'battery_dyno');
+  const item = h.service.sessions.find(item => item.live), endAt = h.session.startAt + 18000;
+  const closed = { ...h.session, endAt };
+  h.service.syncLive(h.source(5, {sessions:[closed]})); assert.equal(item.live, true, 'tail still has to reach the saved end');
+  h.service.syncLive(h.source(8, {sessions:[closed]})); assert.equal(item.live, false);
+  const energy = item.channels.find(channel => channel.id === data.ENERGY);
+  assert.equal(energy.valueAt(-1), undefined); assert.equal(energy.valueAt(18001), undefined);
+  assert.ok(Math.abs(energy.valueAt(18000) - 2.4) < 1e-10);
+  h.service.ngOnDestroy();
+});

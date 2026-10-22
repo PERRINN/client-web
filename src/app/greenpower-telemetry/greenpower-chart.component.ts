@@ -149,7 +149,9 @@ export class GreenpowerChartComponent implements OnChanges, AfterViewInit, OnDes
   }
   ngOnChanges(changes: SimpleChanges) {
     if (!this.legendHighlight || changes['context']) this.hoveredLegend = this.focusedLegend = undefined;
-    if (changes['context'] || changes['overlays']) this.cancel();
+    const overlays = changes['overlays'];
+    const identity = (traces: OverlayTrace[] = []) => traces.map(trace => `${trace.id}:${!!trace.hidden}:${!!trace.excluded}`).join('|');
+    if (changes['context'] || overlays && identity(overlays.previousValue) !== identity(overlays.currentValue)) this.cancel();
     if (changes['markerSetting'] || changes['channel'] || changes['comparison'] || changes['overlays'] || changes['start'] || changes['end'] || changes['laps'] || changes['sessions']) {
       if (this.drag) this.renderPending = true;
       else this.render();

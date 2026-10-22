@@ -42,7 +42,7 @@ const channels=(offset=0)=>['Current','Voltage left','Voltage right','Voltage di
  id:['["A"]:A','computed:voltage-left','computed:voltage-right','computed:voltage-diff','["Spd"]:m/s'][index],label,unit:index===4?'m/s':index?'V':'A',value:'20',
  points:Array.from({length:200},(_,i)=>({time:i*30000,value:(index===0?20:index===3?1:12)+Math.sin(i/15+offset)*(index===0?4:.5)}))
 }));
-const overlay:any={active:false,loading:false,more:false,error:'',sessions:[],changed:new Subject(),end:5970000,hasMore:false,
+const overlay:any={syncLive(){},active:false,loading:false,more:false,error:'',sessions:[],changed:new Subject(),end:5970000,hasMore:false,
  get title(){return Object.getOwnPropertyDescriptor(GreenpowerOverlayService.prototype,'title').get.call(this)},
  get channels(){return this.sessions.length?Object.getOwnPropertyDescriptor(GreenpowerOverlayService.prototype,'channels').get.call(this):channels()},get visibleSessions(){return this.sessions.filter(s=>s.loaded&&!s.hidden&&!s.excluded)},get status(){return this.loading?'Loading sessions…':this.sessions.length+' sessions'},
  async load(reset=false,sessionType='race'){this.sessionType=sessionType;this.active=true;this.loading=true;this.changed.next();await new Promise(r=>setTimeout(r,80));
