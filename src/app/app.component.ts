@@ -1,6 +1,7 @@
 import { GreenpowerLiveService } from './greenpower-telemetry/greenpowerLive.service';
 import { RadioLifecycleService } from './prototypes/team-radio/radioLifecycle.service';
-import { Component, OnInit, OnDestroy, HostListener, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, HostListener, ViewChild, ElementRef, ChangeDetectorRef, inject } from '@angular/core';
+import { MobileOrientationService } from './mobileOrientation.service';
 import { activeChatChain, sidebarChatCommands } from './chatNavigation';
 import { Router, NavigationEnd } from '@angular/router';
 import { UserInterfaceService } from './userInterface.service';
@@ -21,7 +22,34 @@ import { of } from 'rxjs';
     standalone: false,
     host: { '[attr.data-input-modality]': 'inputModality' }
 })
-export class AppComponent implements OnInit, OnDestroy {
+export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
+  private readonly orientation = inject(MobileOrientationService);
+  @ViewChild('orientationNotice', { static: true }) orientationNotice!: ElementRef<HTMLDialogElement>;
+  private orientationSubscription?: Subscription;
+  private orientationReturnFocus?: HTMLElement;
+  private orientationFocusFrame = 0;
+
+  @HostListener('document:focusin', ['$event'])
+  rememberOrientationFocus(event: FocusEvent): void {
+    if (!this.orientationNotice?.nativeElement.open && event.target instanceof HTMLElement && event.target !== document.body) {
+      this.orientationReturnFocus = event.target;
+    }
+  }
+
+  ngAfterViewInit(): void {
+    this.orientationSubscription = this.orientation.landscapeBlocked$.subscribe(blocked => {
+      cancelAnimationFrame(this.orientationFocusFrame);
+      const dialog = this.orientationNotice.nativeElement;
+      if (blocked && !dialog.open) dialog.showModal();
+      else if (!blocked && dialog.open) {
+        const previousFocus = this.orientationReturnFocus;
+        dialog.close();
+        // Orientation events can precede the resize that makes mobile controls visible again.
+        this.orientationFocusFrame = requestAnimationFrame(() => previousFocus?.focus({ preventScroll: true }));
+      }
+    });
+  }
+
   inputModality: 'pointer' | 'keyboard' = 'pointer';
 
   @HostListener('document:pointerdown')
@@ -98,6 +126,8 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.orientationSubscription?.unsubscribe();
+    cancelAnimationFrame(this.orientationFocusFrame);
     clearTimeout(this.conversationScrollbarTimer);
     clearTimeout(this.automaticScrollbarTimer);
     this.navigationSubscription.unsubscribe();

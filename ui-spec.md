@@ -172,6 +172,7 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 
 ## Responsive
 
+- Mobile touch devices use portrait orientation. Keep the installed app's manifest portrait setting and request native locking where supported. Where browsers cannot lock orientation, the shell shows a full-screen, non-dismissible “Rotate your device to portrait” modal in physical landscape orientation; returning to portrait restores the existing page and focus without navigation or remounting. Detect screen orientation rather than viewport aspect ratio so the software keyboard does not block portrait use. Desktop pointer devices retain landscape layouts. This UI guard does not pause background work or change data access.
 - Design for desktop, tablet and mobile from the content outward; do not treat existing breakpoints as a required system.
 - The app shell occupies the dynamic viewport, with `#main_container` owning page scrolling. Avoid creating a second, document-level scroll surface around it.
 - All pages, including prototypes, use a 320px conversation sidebar on desktop. Its conversation list scrolls independently, with navigation above and account/wallet controls below. Below 900px, the sidebar becomes a dismissible navigation drawer with focus containment and a header menu button. Prototype preview controls sit inside the shared app shell.
