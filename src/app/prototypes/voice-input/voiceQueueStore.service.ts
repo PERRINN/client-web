@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 
 export const VOICE_QUEUE_LIMIT = 10;
 export const VOICE_AUDIO_LIMIT = 960044;
-// Per-record rolling 24-hour upload budget; foreground resumption does not reset it.
-export const VOICE_REQUEST_LIMIT = 24;
+// Total upload preparation budget; reopening and network flaps do not reset it.
+export const VOICE_REQUEST_LIMIT = 3;
 export interface VoiceRecording {
   id: string;
   owner: string;
@@ -32,6 +32,7 @@ export class VoiceQueueStore {
         request.onupgradeneeded = () => request.result.createObjectStore('recordings', { keyPath: 'id' });
         request.onsuccess = () => {
           const db = request.result;
+          db.onclose = () => { this.opening = undefined; };
           db.onversionchange = () => { db.close(); this.opening = undefined; };
           resolve(db);
         };
@@ -88,15 +89,30 @@ export class VoiceQueueStore {
       const tx = db.transaction('recordings', 'readwrite'), store = tx.objectStore('recordings');
       const request = store.get(id);
       let result: VoiceRecording | undefined;
+      let failure: unknown;
+      // Abort the real transaction before the service deadline. An Rx timeout
+      // alone leaves IndexedDB work alive and can block every subsequent write.
+      const timer = setTimeout(() => {
+        failure = new DOMException('Recording update timed out.', 'TimeoutError');
+        tx.abort();
+      }, 4500);
       request.onsuccess = () => {
-        const item = request.result as VoiceRecording | undefined;
-        if (!item || item.owner !== owner) return;
-        const next = update(item);
-        if (next === null) { store.delete(id); result = item; }
-        else if (next) { store.put(next); result = next; }
+        try {
+          const item = request.result as VoiceRecording | undefined;
+          if (!item || item.owner !== owner) return;
+          const next = update(item);
+          if (next === null) { store.delete(id); result = item; }
+          else if (next) { store.put(next); result = next; }
+        } catch (error) {
+          // put() can throw synchronously (for example when cloning a damaged
+          // legacy Blob). Do not leave the promise pending or report a commit.
+          failure = error; tx.abort();
+        }
       };
-      tx.oncomplete = () => resolve(result);
-      tx.onabort = tx.onerror = () => reject(tx.error || new Error('Could not update recording storage.'));
+      tx.oncomplete = () => { clearTimeout(timer); resolve(result); };
+      tx.onabort = tx.onerror = () => {
+        clearTimeout(timer); reject(failure || tx.error || new Error('Could not update recording storage.'));
+      };
     });
   }
 }

@@ -11,7 +11,6 @@ interface Receipt { eventId: string; status: string; transcript?: string }
 interface Attempt { startedAt: number; stage: string; deadline: number; stopped: Subject<void>; expired: boolean; record?: VoiceRecording }
 class QueueStorageError extends Error { constructor(readonly code: string) { super('Local storage failed.'); } }
 class QueueAudioError extends Error { constructor(readonly code: string) { super('Local audio is unreadable.'); } }
-const DAY = 86400000;
 
 @Injectable()
 export class VoiceQueueService implements OnDestroy {
@@ -198,9 +197,14 @@ export class VoiceQueueService implements OnDestroy {
       attempt.expired = true; attempt.stopped.next();
       this.uploadCode = voiceDiagnosticCode(error);
       this.uploadFaultStage = error instanceof QueueAudioError ? 'Read audio' : attempt.stage;
-      if (error instanceof QueueStorageError) this.storageFailure();
+      if (error instanceof QueueStorageError) {
+        // A single row that cannot be rewritten must not lock the recorder.
+        // Deletion does not serialize its audio again; finish locks storage only
+        // if even that independent transaction fails.
+        await this.finish(attempt.record || item, 'Recording could not be saved. Removed from this device.', true, epoch);
+      }
       else try { await this.failed(attempt.record || item, error, epoch); }
-      catch { if (current()) this.storageFailure(); }
+      catch { if (current()) await this.finish(attempt.record || item, 'Recording could not be saved. Removed from this device.', true, epoch); }
     } finally {
       attempt.expired = true; attempt.stopped.next(); attempt.stopped.complete();
       if (current()) {
@@ -210,25 +214,25 @@ export class VoiceQueueService implements OnDestroy {
     }
   }
   private async send(item: VoiceRecording, attempt: Attempt, live: () => boolean): Promise<void> {
-    const claimed = await this.storage(this.store.change(item.id, this.owner, row => {
+    const claimed = await this.changeRecording(item, row => {
       if (!live() || row.received || this.active(row) || row.nextAt > Date.now()) return undefined;
-      const window = row.retryWindow || Date.now(), expired = Date.now() - window >= DAY;
-      // Legacy lifetime budgets become a rolling daily budget, without changing
-      // IDs/audio. Reopening and network flaps never replenish this window.
-      const attempts = row.retryWindow && !expired ? row.attempts : 0;
-      if (attempts >= VOICE_REQUEST_LIMIT) return { ...row, nextAt: window + DAY };
-      return { ...row, attempts: attempts + 1, retryWindow: expired ? Date.now() : window,
-        leaseId: crypto.randomUUID(), leaseUntil: Date.now() + 90000, check: true };
-    }), 'Claim recording');
+      return { ...row, attempts: row.attempts + 1,
+        // Cover the 75s send, 30s final check and bounded local cleanup.
+        leaseId: crypto.randomUUID(), leaseUntil: Date.now() + 150000, check: true };
+    }, 'Claim recording', live);
     if (!claimed || !live() || !this.active(claimed)) return;
     attempt.record = claimed; attempt.stage = 'Account';
     const user = await this.auth.currentUser;
     if (!live()) return;
     if (user?.uid !== this.owner) {
-      await this.settle(claimed, { attempts: claimed.attempts - 1 }, live);
-      this.start(''); return;
+      try { await this.settle(claimed, { attempts: claimed.attempts - 1 }, live); }
+      finally { this.start(''); }
+      return;
     }
     this.items = this.items.map(row => row.id === claimed.id ? claimed : row); this.changed.next();
+    if (claimed.attempts > VOICE_REQUEST_LIMIT) {
+      await this.exhausted(claimed, this.epoch, live); return;
+    }
     attempt.stage = 'Reading audio';
     let audio: string;
     try {
@@ -240,15 +244,7 @@ export class VoiceQueueService implements OnDestroy {
       attempt.stage = 'Checking saved result';
       // A lost upload response may have left a complete server transcript even
       // when the browser can no longer read its local Blob backing file.
-      try {
-        const saved = await firstValueFrom(this.functions.httpsCallable<{ requestId: string }, Receipt>('voiceInputStatus', { timeout: 20000 })({ requestId: claimed.id })
-          .pipe(timeout({ first: 20000 }), takeUntil(merge(this.cancelled, attempt.stopped))));
-        if (!live()) return;
-        if (saved?.status === 'completed' && typeof saved.transcript === 'string' && /^[a-f0-9]{64}$/.test(saved.eventId || '')) {
-          await this.finish(claimed, saved.transcript, false, this.epoch, live);
-          if (live()) { this.uploadCode = ''; this.uploadFaultStage = ''; } return;
-        }
-      } catch { /* Retain the original audio error and recording for recovery. */ }
+      if (await this.savedResult(claimed, this.epoch, live, attempt.stopped)) return;
       if (live()) throw new QueueAudioError(voiceDiagnosticCode(error));
       return;
     }
@@ -280,18 +276,73 @@ export class VoiceQueueService implements OnDestroy {
     if (code === 'invalid-argument') {
       await this.finish(item, 'Could not use this recording.', true, epoch); return;
     }
+    const dailyLimit = code === 'resource-exhausted' && details?.reason === 'daily-limit';
+    if (!this.offline && !document.hidden && !dailyLimit && item.attempts >= VOICE_REQUEST_LIMIT) {
+      await this.exhausted(item, epoch); return;
+    }
     const now = Date.now();
-    const delay = [2000, 5000, 15000, 30000, 60000, 300000, 900000, 3600000][Math.min(Math.max(item.attempts - 1, 0), 7)];
-    const nextAt = code === 'resource-exhausted' && details?.reason === 'daily-limit'
+    const delay = item.attempts <= 1 ? 2000 : 5000;
+    const nextAt = dailyLimit
       ? Date.UTC(new Date(now).getUTCFullYear(), new Date(now).getUTCMonth(), new Date(now).getUTCDate() + 1)
-      : item.attempts >= VOICE_REQUEST_LIMIT && item.retryWindow ? item.retryWindow + DAY : now + delay;
-    await this.settle(item, { nextAt, error: error instanceof QueueAudioError
+      : now + delay;
+    await this.settle(item, { nextAt, attempts: dailyLimit || this.offline || document.hidden ? Math.max(0, item.attempts - 1) : item.attempts, error: error instanceof QueueAudioError
       ? `Audio unavailable on this device (${error.code}). Checking for a saved transcript.` : undefined });
+  }
+  private async savedResult(item: VoiceRecording, epoch: number, live: () => boolean, stopped = this.cancelled): Promise<boolean> {
+    try {
+      const saved = await firstValueFrom(this.functions.httpsCallable<{ requestId: string }, Receipt>('voiceInputStatus', { timeout: 20000 })({ requestId: item.id })
+        .pipe(timeout({ first: 20000 }), takeUntil(merge(this.cancelled, stopped))));
+      if (epoch !== this.epoch || !live()) return true;
+      if (saved?.status === 'completed' && typeof saved.transcript === 'string' && /^[a-f0-9]{64}$/.test(saved.eventId || '')) {
+        await this.finish(item, saved.transcript, false, epoch, live); return true;
+      }
+      if (saved?.status === 'processing') {
+        // Status also calls an unfinished "receiving" reservation processing.
+        // Verify that a worker actually started before treating it as a receipt.
+        const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(item.owner + ':' + item.id));
+        if (epoch !== this.epoch || !live()) return true;
+        const eventId = Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, '0')).join('');
+        const snapshot = await firstValueFrom(runInInjectionContext(this.injector, () =>
+          this.firestore.doc<Receipt & { userId: string; inboxVersion?: number }>('VoiceInputEvents/' + eventId).get({ source: 'server' }))
+          .pipe(timeout({ first: 10000 }), takeUntil(merge(this.cancelled, stopped))));
+        if (epoch !== this.epoch || !live()) return true;
+        const event = snapshot.data();
+        if (event?.userId !== item.owner) return false;
+        if (event.status === 'completed' && typeof event.transcript === 'string') {
+          await this.finish(item, event.transcript, false, epoch, live); return true;
+        }
+        if (event.inboxVersion !== 1 || event.status !== 'processing') return false;
+        await this.settle(item, { received: true, eventId, audio: new ArrayBuffer(0), error: undefined }, live);
+        return true;
+      }
+    } catch (error) { if (error instanceof QueueStorageError) throw error; }
+    return epoch !== this.epoch || !live();
+  }
+  private async exhausted(item: VoiceRecording, epoch: number, live = () => epoch === this.epoch): Promise<void> {
+    if (!this.offline && !document.hidden && await this.savedResult(item, epoch, live)) return;
+    if (epoch !== this.epoch || !live()) return;
+    if (this.offline || document.hidden) {
+      await this.settle(item, { attempts: Math.max(0, item.attempts - 1), nextAt: Date.now() + 5000 }, live); return;
+    }
+    await this.finish(item, 'Upload could not be confirmed. Recording removed from this device.', true, epoch, live);
+  }
+  private async changeRecording(item: VoiceRecording, update: (row: VoiceRecording) => VoiceRecording | undefined,
+    step: string, live = () => true): Promise<VoiceRecording | undefined> {
+    const epoch = this.epoch;
+    // At most three local transactions per update, then one guarded deletion.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (epoch !== this.epoch || !live()) return undefined;
+      try {
+        return await this.storage(this.store.change(item.id, item.owner,
+          row => epoch === this.epoch && live() ? update(row) : undefined), step);
+      } catch (error) { if (attempt === 2) throw error; }
+    }
+    return undefined;
   }
   private async settle(item: VoiceRecording, changes: Partial<VoiceRecording>, live = () => true): Promise<void> {
     const epoch = this.epoch;
-    const updated = await this.storage(this.store.change(item.id, item.owner, row => epoch !== this.epoch || !live() || row.leaseId !== item.leaseId ? undefined
-      : { ...row, ...changes, leaseId: undefined, leaseUntil: 0 }), 'Update recording');
+    const updated = await this.changeRecording(item, row => row.leaseId !== item.leaseId ? undefined
+      : { ...row, ...changes, leaseId: undefined, leaseUntil: 0 }, 'Update recording', live);
     if (updated && epoch === this.epoch) { this.items = this.items.map(row => row.id === item.id ? updated : row); this.changed.next(); }
   }
   private async finish(item: VoiceRecording, transcript: string, failed: boolean, epoch: number, live = () => true): Promise<void> {
@@ -299,7 +350,7 @@ export class VoiceQueueService implements OnDestroy {
     this.finishing.add(item.id);
     try {
       const removed = await this.storage(this.store.change(item.id, item.owner, row => epoch === this.epoch && live()
-        && (row.received || row.leaseId === item.leaseId) ? null : undefined), 'Remove completed recording');
+        && (item.received && row.received || !row.received && row.leaseId === item.leaseId) ? null : undefined), 'Remove completed recording');
       if (removed && epoch === this.epoch && live()) {
         this.completed.next({ id: item.id, transcript, failed }); this.storageRetries = 0;
         await this.refresh();

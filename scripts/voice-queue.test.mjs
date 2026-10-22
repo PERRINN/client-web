@@ -59,13 +59,16 @@ function environment(t, online = true) {
   return { window, document, navigator };
 }
 const eventId = 'a'.repeat(64);
-function queue(t, { store = new VoiceQueueStore(), call = () => of({ eventId, status: 'completed', transcript: 'Recovered' }), uid = 'alice', documentError, listenerError } = {}) {
+function queue(t, { store = new VoiceQueueStore(), call = () => of({ eventId, status: 'completed', transcript: 'Recovered' }), uid = 'alice', documentError, listenerError, serverStatus = 'processing' } = {}) {
   const auth = { currentUser: Promise.resolve({ uid }), authState: new BehaviorSubject({ uid }) }, calls = [], completed = [], listeners = new Map();
   const functions = { httpsCallable: (name, options) => input => { calls.push({ name, input, options }); return call(name, input); } };
   const firestore = { doc: path => {
     assert.equal(inInjectionContext, true, 'AngularFire document wrappers require an injection context');
     if (documentError?.()) throw Error('Document setup failed');
-    return { snapshotChanges: () => new Observable(subscriber => {
+    return { get: options => {
+      assert.equal(options.source, 'server');
+      return of({ data: () => ({ userId: uid, inboxVersion: 1, status: serverStatus }) });
+    }, snapshotChanges: () => new Observable(subscriber => {
       if (listenerError?.()) { subscriber.error(Error('Listener unavailable')); return; }
       listeners.set(path, subscriber); return () => listeners.delete(path);
     }) };
@@ -143,16 +146,14 @@ test('lost receipt retains audio and repeats identical identity, then recovers s
   assert.equal(next.calls[0].input.requestId, item.id); assert.deepEqual(Buffer.from(next.calls[0].input.audio, 'base64'), Buffer.from(bytes));
   assert.equal(next.calls[0].options.timeout, 65000);
 });
-test('automatic budget survives reopening/flaps and renews after its daily window without controls', async t => {
-  const env = environment(t, false), store = new VoiceQueueStore();
-  const item = recording({ retryWindow: Date.now(), attempts: VOICE_REQUEST_LIMIT }); await store.add(item);
-  const f = queue(t, { store }); await ready(f); navigator.onLine = true;
-  for (let i = 0; i < 10; i++) env.window.dispatchEvent(new Event('online'));
-  await ready(f); assert.equal(f.calls.length, 0); f.service.ngOnDestroy();
-  const next = queue(t); await ready(next); assert.equal(next.calls.length, 0);
-  await store.change(item.id, 'alice', x => ({ ...x, retryWindow: Date.now() - 86400001, nextAt: 0 }));
-  await next.service.refresh(); await until(() => next.completed.length === 1);
-  assert.equal(next.calls.length, 1); assert.equal(typeof next.service.retry, 'undefined'); assert.equal(typeof next.service.discard, 'undefined');
+test('exhausted upload budget survives reopening and does not reset after a day', async t => {
+  environment(t, false); const store = new VoiceQueueStore();
+  const item = recording({ retryWindow: Date.now() - 86400001, attempts: VOICE_REQUEST_LIMIT }); await store.add(item);
+  const f = queue(t, { store, call: () => of({ status: 'missing' }) }); await ready(f);
+  f.service.ngOnDestroy(); const next = queue(t, { call: () => of({ status: 'missing' }) }); await ready(next);
+  navigator.onLine = true; await next.service.refresh(); await until(() => next.completed.length === 1); await ready(next);
+  assert.deepEqual(next.calls.map(x => x.name), ['voiceInputStatus']);
+  assert.equal(next.completed[0].failed, true); assert.equal((await store.list('alice')).total, 0);
 });
 test('capacity/ownership limits are atomic and local save acknowledgement is replay safe', async t => {
   environment(t, false); const store = new VoiceQueueStore(), other = new VoiceQueueStore();
@@ -387,4 +388,140 @@ test('a late fallback result after an account change cannot expose the previous 
   f.auth.currentUser = Promise.resolve({ uid: 'bob' }); f.service.start('bob');
   observer.next({ status: 'completed', eventId, transcript: 'Alice private result' }); observer.complete(); await ready(f);
   assert.equal(f.completed.length, 0); assert.equal(f.service.items.length, 0); assert.equal((await store.list('alice')).total, 1);
+});
+
+// Inject the browser's actual synchronous put failure, while keeping reads and
+// deletes functional. This reproduces one broken audio record, not a dead DB.
+async function failPuts(store, id, { afterClaim = false, transient = false, deleteFails = false } = {}) {
+  const db = await store.open(), transaction = db.transaction.bind(db);
+  let failures = 0;
+  db.transaction = (...args) => {
+    const tx = transaction(...args), objectStore = tx.objectStore.bind(tx);
+    tx.objectStore = (...names) => {
+      const table = objectStore(...names), put = table.put.bind(table), remove = table.delete.bind(table);
+      table.put = row => {
+        if (row.id === id && (!afterClaim || !row.leaseUntil) && (!transient || failures === 0)) {
+          failures++; throw new DOMException('PRIVATE AUDIO FILE', 'DataCloneError');
+        }
+        return put(row);
+      };
+      table.delete = key => {
+        if (deleteFails && key === id) throw new DOMException('PRIVATE', 'UnknownError');
+        return remove(key);
+      };
+      return table;
+    };
+    return tx;
+  };
+  return () => failures;
+}
+test('synchronous IndexedDB update failures reject and leave the original record unchanged', async t => {
+  environment(t, false); const store = new VoiceQueueStore(), row = recording(); await store.add(row);
+  await assert.rejects(store.change(row.id, 'alice', item => ({ ...item, audio: () => {} })), error => error.name === 'DataCloneError');
+  assert.equal((await store.list('alice')).items[0].attempts, 0);
+  await store.change(row.id, 'alice', () => null); assert.equal((await store.list('alice')).total, 0);
+});
+test('a broken claim is retried three times then deleted without blocking a later recording', async t => {
+  environment(t, false); const store = new VoiceQueueStore(), broken = recording({ createdAt: Date.now() - 1000 }), healthy = recording();
+  await store.add(broken); await store.add(healthy); const failures = await failPuts(store, broken.id);
+  const f = queue(t, { store }); await ready(f); navigator.onLine = true; await f.service.refresh();
+  await until(() => f.completed.length === 2); await ready(f);
+  assert.equal(failures(), 3); assert.equal(f.completed[0].id, broken.id); assert.equal(f.completed[0].failed, true);
+  assert.equal(f.completed[1].id, healthy.id); assert.equal(f.service.storageError, ''); assert.equal(f.service.canRecord, true);
+  assert.equal((await store.list('alice')).total, 0); assert.equal(f.calls.length, 1);
+});
+test('a retry-state update failure removes only its row and restores recording', async t => {
+  environment(t, false); const store = new VoiceQueueStore(), broken = recording(); await store.add(broken);
+  const failures = await failPuts(store, broken.id, { afterClaim: true });
+  const f = queue(t, { store, call: () => throwError(() => ({ code: 'functions/unavailable' })) }); await ready(f);
+  navigator.onLine = true; await f.service.refresh(); await until(() => f.completed.length === 1); await ready(f);
+  assert.equal(failures(), 3); assert.equal(f.completed[0].failed, true); assert.equal(f.service.canRecord, true);
+  assert.equal(f.service.storageError, ''); assert.equal((await store.list('alice')).total, 0);
+});
+test('a transient update failure recovers without discarding audio', async t => {
+  environment(t, false); const store = new VoiceQueueStore(), row = recording(); await store.add(row);
+  const failures = await failPuts(store, row.id, { transient: true }); const f = queue(t, { store }); await ready(f);
+  navigator.onLine = true; await f.service.refresh(); await until(() => f.completed.length === 1); await ready(f);
+  assert.equal(failures(), 1); assert.equal(f.completed[0].failed, false); assert.equal(f.calls.length, 1);
+});
+test('a database that cannot delete still blocks capture rather than pretending cleanup succeeded', async t => {
+  environment(t, false); const store = new VoiceQueueStore(), row = recording(); await store.add(row);
+  await failPuts(store, row.id, { deleteFails: true }); const f = queue(t, { store }); await ready(f);
+  navigator.onLine = true; await f.service.refresh(); await until(() => !f.service.running && f.service.storageError);
+  assert.equal(f.service.canRecord, false); assert.equal(f.completed.length, 0); assert.equal((await store.list('alice')).total, 1);
+});
+test('three failed online uploads check saved status then remove the entry automatically', async t => {
+  environment(t); clock(t); const f = queue(t, { call: name => name === 'voiceInputStatus' ? of({ status: 'missing' }) : throwError(() => ({ code: 'functions/unavailable' })) });
+  await ready(f); await f.service.enqueue(bytes); await until(() => f.calls.length === 1 && !f.service.running);
+  t.mock.timers.tick(2000); await until(() => f.calls.length === 2 && !f.service.running); await ready(f);
+  await until(() => f.service.diagnostics.storageWork === 0);
+  t.mock.timers.tick(5000); await until(() => f.completed.length === 1); await ready(f);
+  assert.equal(f.calls.filter(x => x.name === 'voiceInputEnqueue').length, 3);
+  assert.equal(f.calls.filter(x => x.name === 'voiceInputStatus').length, 1);
+  assert.equal(f.completed[0].failed, true); assert.equal(f.service.canRecord, true); assert.equal((await f.store.list('alice')).total, 0);
+});
+test('final recovery saves a completed transcript instead of discarding it', async t => {
+  environment(t, false); const store = new VoiceQueueStore(), row = recording({ attempts: VOICE_REQUEST_LIMIT - 1 }); await store.add(row);
+  const f = queue(t, { store, call: name => name === 'voiceInputStatus' ? of({ status: 'completed', eventId, transcript: 'Saved' }) : throwError(() => Error('Network')) }); await ready(f);
+  navigator.onLine = true; await f.service.refresh(); await until(() => f.completed.length === 1); await ready(f);
+  assert.equal(f.completed[0].transcript, 'Saved'); assert.equal(f.completed[0].failed, false); assert.equal(f.service.canRecord, true);
+});
+test('final recovery attaches to confirmed server processing instead of discarding its result', async t => {
+  environment(t, false); const store = new VoiceQueueStore(), row = recording({ attempts: VOICE_REQUEST_LIMIT - 1 }); await store.add(row);
+  const f = queue(t, { store, call: name => name === 'voiceInputStatus' ? of({ status: 'processing' }) : throwError(() => Error('Network')) }); await ready(f);
+  navigator.onLine = true; await f.service.refresh(); await until(() => f.listeners.size === 1); await ready(f);
+  const expected = createHash('sha256').update('alice:' + row.id).digest('hex');
+  assert.ok(f.listeners.has('VoiceInputEvents/' + expected)); assert.equal(f.service.items[0].received, true);
+  assert.equal(f.service.items[0].audio.byteLength, 0); assert.equal(f.completed.length, 0); assert.equal(f.service.canRecord, true);
+  f.result('completed', 'Processing finished'); await until(() => f.completed.length === 1);
+});
+test('daily quota does not consume the final upload attempt', async t => {
+  environment(t, false); const store = new VoiceQueueStore(), row = recording({ attempts: VOICE_REQUEST_LIMIT - 1 }); await store.add(row);
+  const f = queue(t, { store, call: () => throwError(() => ({ code: 'functions/resource-exhausted', details: { reason: 'daily-limit' } })) }); await ready(f);
+  navigator.onLine = true; await f.service.refresh(); await until(() => f.calls.length === 1 && !f.service.running);
+  assert.equal(f.service.items[0].attempts, VOICE_REQUEST_LIMIT - 1); assert.equal(f.completed.length, 0);
+});
+
+test('a stalled update aborts its actual transaction before the service timeout', async t => {
+  environment(t, false); clock(t); const store = new VoiceQueueStore(), db = await store.open();
+  const original = db.transaction.bind(db); let aborted = false, requested = false;
+  db.transaction = () => ({
+    objectStore: () => ({ get: () => { requested = true; return {}; } }),
+    abort() { aborted = true; this.onabort(); }
+  });
+  const work = assert.rejects(store.change('unused', 'alice', () => undefined), error => error.name === 'TimeoutError');
+  await until(() => requested); t.mock.timers.tick(4500); await work;
+  assert.equal(aborted, true); db.transaction = original;
+  assert.equal((await store.list('alice')).total, 0);
+});
+test('account changes during final recovery suppress removal and private replies', async t => {
+  environment(t, false); const store = new VoiceQueueStore(), row = recording({ attempts: VOICE_REQUEST_LIMIT }); await store.add(row);
+  let response; const f = queue(t, { store, call: () => new Observable(s => { response = s; }) }); await ready(f);
+  navigator.onLine = true; await f.service.refresh(); await until(() => response);
+  f.service.start('bob'); response.next({ status: 'missing' }); response.complete(); await ready(f);
+  assert.equal(f.completed.length, 0); assert.equal((await store.list('alice')).total, 1);
+});
+
+test('losing connectivity during final status recovery retains the recording for reconnection', async t => {
+  environment(t, false); const store = new VoiceQueueStore(), row = recording({ attempts: VOICE_REQUEST_LIMIT }); await store.add(row);
+  let response; const f = queue(t, { store, call: () => new Observable(s => { response = s; }) }); await ready(f);
+  navigator.onLine = true; await f.service.refresh(); await until(() => response);
+  navigator.onLine = false; response.error(Error('Offline')); await until(() => !f.service.running); await ready(f);
+  assert.equal(f.completed.length, 0); assert.equal((await store.list('alice')).total, 1);
+  assert.equal(f.service.items[0].attempts, VOICE_REQUEST_LIMIT); assert.equal(f.service.items[0].leaseUntil, 0);
+});
+test('a stale failed upload cannot delete a receipt saved by another tab', async t => {
+  environment(t, false); const store = new VoiceQueueStore(), row = recording(); await store.add(row);
+  const f = queue(t, { store }); await ready(f);
+  await store.change(row.id, 'alice', x => ({ ...x, received: true, eventId, audio: new ArrayBuffer(0) }));
+  await f.service.finish(row, 'Failed', true, f.service.epoch); await f.service.refresh(); await ready(f);
+  assert.equal(f.completed.length, 0); assert.equal((await store.list('alice')).total, 1);
+  assert.equal(f.listeners.size, 1);
+});
+
+for (const serverStatus of ['receiving', 'queued']) test(`a ${serverStatus} reservation cannot masquerade as confirmed worker processing`, async t => {
+  environment(t, false); const store = new VoiceQueueStore(), row = recording({ attempts: VOICE_REQUEST_LIMIT }); await store.add(row);
+  const f = queue(t, { store, serverStatus, call: () => of({ status: 'processing' }) }); await ready(f);
+  navigator.onLine = true; await f.service.refresh(); await until(() => f.completed.length === 1); await ready(f);
+  assert.equal(f.completed[0].failed, true); assert.equal(f.listeners.size, 0); assert.equal((await store.list('alice')).total, 0);
 });
