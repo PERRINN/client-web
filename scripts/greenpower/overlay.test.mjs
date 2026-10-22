@@ -411,11 +411,13 @@ test('live session is included before historical pagination reaches it, without 
   const h = liveFixture(35);
   h.service.syncLive(h.source()); await h.service.load(true, 'battery_dyno');
   assert.equal(h.service.sessions.length, 31); assert.equal(h.service.more, true);
+  assert.equal(h.service.sessions.at(-1).session.id, 'live-run', 'live session follows the historical page');
   assert.equal(h.calls.filter(call => call.path === 'group:sessions').length, 1);
   assert.equal(h.calls.find(call => call.path === 'group:sessions').limit, 30);
   assert.equal(h.calls.filter(call => call.path.endsWith('/chunks')).length, 30, 'only completed recordings read chunks');
   await h.service.load();
   assert.equal(h.service.sessions.length, 36);
+  assert.equal(h.service.sessions.at(-1).session.id, 'live-run', 'loading more history keeps live last');
   assert.equal(h.service.sessions.filter(item => item.session.id === 'live-run').length, 1);
   assert.equal(h.calls.filter(call => call.path.endsWith('/chunks')).length, 35);
   h.service.ngOnDestroy();
@@ -495,4 +497,23 @@ test('closure waits for received end samples, and elapsed readers cannot escape 
   assert.equal(energy.valueAt(-1), undefined); assert.equal(energy.valueAt(18001), undefined);
   assert.ok(Math.abs(energy.valueAt(18000) - 2.4) < 1e-10);
   h.service.ngOnDestroy();
+});
+
+
+test('overlay lists and graph readings keep live last through history loading, updates and visibility changes', async () => {
+  const h = liveFixture(2); h.service.syncLive(h.source()); await h.service.load(true, 'battery_dyno');
+  const component = new GreenpowerOverlayComponent(h.service, { changed: new Subject(), charts: channels => channels }, { markForCheck() {} });
+  const id = `${ROOT}/days/${date}/sessions/live-run`, item = h.service.sessions.at(-1), colour = item.colour;
+  assert.equal(item.id, id);
+  for (const chart of component.charts.filter(chart => chart.traces.some(trace => trace.sessionId === id))) assert.equal(chart.traces.at(-1).sessionId, id);
+  component.zoom({start:0,end:6000}); component.cursor=3000;
+  h.service.toggleVisibility(id); h.service.toggleInclusion(id);
+  const reads=h.calls.length;
+  h.service.syncLive(h.source(8));
+  assert.equal(h.calls.length,reads); assert.equal(h.service.sessions.at(-1).id,id);
+  assert.equal(h.service.sessions.at(-1).colour,colour);
+  assert.equal(h.service.sessions.at(-1).hidden,true); assert.equal(h.service.sessions.at(-1).excluded,true);
+  for (const chart of component.charts.filter(chart => chart.traces.some(trace => trace.sessionId === id))) assert.equal(chart.traces.at(-1).sessionId,id);
+  assert.deepEqual(component.window,{start:0,end:6000}); assert.equal(component.cursor,3000);
+  component.ngOnDestroy(); h.service.ngOnDestroy();
 });

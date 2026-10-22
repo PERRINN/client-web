@@ -64,7 +64,11 @@ export class GreenpowerOverlayService implements OnDestroy {
   /** Receives the existing Live view's calculated data. This path performs no database work. */
   syncLive(source?: LiveOverlaySource) {
     this.liveSource = source;
-    if (this.active && this.updateLiveSession()) this.changed.next();
+    if (this.active && this.updateLiveSession()) { this.sortSessions(); this.changed.next(); }
+  }
+  private sortSessions() {
+    this.sessions.sort((a, b) => Number(!!a.live) - Number(!!b.live)
+      || a.session.startAt - b.session.startAt || a.id.localeCompare(b.id));
   }
   private updateLiveSession() {
     const source = this.liveSource;
@@ -168,6 +172,7 @@ export class GreenpowerOverlayService implements OnDestroy {
         }
         this.queue = page.filter(item => !this.sessions.some(existing => existing.id === item.id));
         this.sessions = [...this.sessions, ...this.queue];
+        this.sortSessions();
         this.cursor = snapshot.docs.at(-1) || this.cursor; this.more = snapshot.size === 30;
         this.changed.next();
       }
