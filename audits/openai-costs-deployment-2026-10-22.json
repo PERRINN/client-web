@@ -1,0 +1,26 @@
+{
+  "checkedAt": "2026-10-22T15:11:25.870Z",
+  "implementationCommit": "30828cb3fe7ac71aeb8ac0963d6d104aa11e7aec",
+  "functionState": "ACTIVE",
+  "revision": "scheduleddailymembership-00067-ruj",
+  "runtime": "nodejs20",
+  "runtimeAccount": "44958643568-compute@developer.gserviceaccount.com",
+  "costProjectId": "proj_jX5e05lU2jMJCDGhCAHve8Br",
+  "secretBindings": [
+    {
+      "key": "OPENAI_ADMIN_KEY",
+      "secret": "OPENAI_ADMIN_KEY",
+      "version": "1"
+    }
+  ],
+  "scheduler": {
+    "state": "ENABLED",
+    "schedule": "every 24 hours",
+    "timeZone": "Etc/UTC",
+    "nextRun": "2026-10-23T14:23:00.817568Z"
+  },
+  "metadataRequests": 2,
+  "dailyFunctionInvocations": 0,
+  "firebaseDataWrites": 0,
+  "dailyMessageVerification": "Pending next normal scheduled run"
+}
