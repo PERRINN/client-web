@@ -110,3 +110,40 @@ test('reduced-motion playback keeps the waveform static and avoids a sampling ti
   assert.equal(f.service.active, 'still'); assert.equal(f.service.waveformTimer, undefined);
   assert.deepEqual(f.service.levels, Array(9).fill(.35));
 });
+
+function audioSession(t, session) {
+  const original = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { audioSession: session } });
+  t.after(() => {
+    if (original) Object.defineProperty(globalThis, 'navigator', original); else delete globalThis.navigator;
+  });
+}
+test('manual and automatic replay select media playback and restore the prior session on navigation', async t => {
+  const session = { type: 'auto' }; audioSession(t, session);
+  const f = fixture(t);
+  f.service.toggle(f.message('manual')); await tick();
+  assert.equal(session.type, 'playback'); assert.equal(f.service.active, 'manual');
+  f.nodes.at(-1).onended(); await tick();
+  f.conversation.incoming.next(f.message('automatic')); await tick();
+  assert.equal(session.type, 'playback'); assert.equal(f.service.active, 'automatic');
+  f.service.ngOnDestroy(); f.session.ngOnDestroy();
+  assert.equal(session.type, 'auto');
+});
+test('unsupported and rejecting audio-session APIs preserve replay', async t => {
+  const session = { get type() { return 'auto'; }, set type(_value) { throw Error('Unsupported'); } };
+  audioSession(t, session);
+  const f = fixture(t);
+  f.service.toggle(f.message('rejected')); await tick();
+  assert.equal(f.service.active, 'rejected');
+  delete navigator.audioSession;
+  f.nodes.at(-1).onended(); await tick();
+  f.service.toggle(f.message('unsupported')); await tick();
+  assert.equal(f.service.active, 'unsupported');
+});
+test('session restoration preserves a newer audio mode selected elsewhere', t => {
+  const session = { type: 'ambient' }; audioSession(t, session);
+  const f = fixture(t); f.service.unlock();
+  assert.equal(session.type, 'playback');
+  session.type = 'transient'; f.session.ngOnDestroy();
+  assert.equal(session.type, 'transient');
+});

@@ -745,6 +745,39 @@ function safariCapture({ stalled = false, permissionPending = false, inputPendin
   } };
 }
 
+test('capture keeps recording mode through both cues and returns to media playback after releasing tracks', async () => {
+  const session = { type: 'auto' }, modes = [];
+  const fixture = safariCapture({ browser: { userAgent: 'iPhone', audioSession: session }, cue: async (_context, opening) => {
+    modes.push(opening);
+    assert.equal(session.type, 'play-and-record');
+    assert.equal(fixture.tracks.at(-1).stopped, false);
+  } });
+  try {
+    fixture.session.acquire(); assert.equal(session.type, 'playback');
+    for (let i = 0; i < 2; i++) {
+      assert.equal(await fixture.capture.start(() => {}, () => {}), true);
+      fixture.nodes.at(-1).port.onmessage({ data: { type: 'samples', samples: new Float32Array(16000).fill(.1) } });
+      await fixture.capture.finish();
+      assert.equal(fixture.tracks.at(-1).stopped, true);
+      assert.equal(session.type, 'playback');
+    }
+    assert.deepEqual(modes, [true, false, true, false]);
+    fixture.session.ngOnDestroy(); assert.equal(session.type, 'auto');
+  } finally { fixture.restore(); }
+});
+test('cancelling pending microphone permission returns to playback and stops a late grant', async () => {
+  const session = { type: 'auto' };
+  const fixture = safariCapture({ permissionPending: true, browser: { userAgent: 'iPhone', audioSession: session } });
+  try {
+    const starting = fixture.capture.start(() => {}, () => {});
+    assert.equal(session.type, 'play-and-record');
+    fixture.capture.cancel();
+    assert.equal(await starting, false); assert.equal(session.type, 'playback');
+    fixture.grant(); await until(() => fixture.tracks[0]?.stopped);
+    assert.equal(session.type, 'playback');
+  } finally { fixture.restore(); }
+});
+
 test('second recording resumes again after microphone acquisition without waiting on a stalled first resume', { timeout: 1000 }, async () => {
   const fixture = safariCapture();
   try {

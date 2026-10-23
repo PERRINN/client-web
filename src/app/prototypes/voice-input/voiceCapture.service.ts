@@ -48,7 +48,7 @@ export class VoiceCaptureService implements OnDestroy {
     this.echoCancellation = `Requested ${echoCancellation ? 'on' : 'off'} · actual unknown`;
     if (!navigator.mediaDevices?.getUserMedia || typeof AudioContext === 'undefined'
       || typeof AudioWorkletNode === 'undefined') throw new Error('Voice recording requires a supported browser on HTTPS.');
-    const context = this.audioSession.acquire();
+    const context = this.audioSession.acquire('play-and-record');
     this.context = context;
     const note = (event: string) => { if (generation === this.generation) this.noteAudio(event, context); };
     note(`Context acquired · ${context.sampleRate}Hz`);
@@ -196,6 +196,7 @@ export class VoiceCaptureService implements OnDestroy {
     this.stream?.getTracks().forEach(track => { track.onended = null; track.stop(); }); this.stream = undefined;
     this.disconnectCapture();
     if (this.context) this.context.onstatechange = null;
+    if (this.context) this.audioSession.releaseCapture(this.context);
     this.context = undefined;
   }
   private observeCue(context: AudioContext, opening: boolean): (event: VoiceCueEvent) => void {
