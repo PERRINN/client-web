@@ -25,7 +25,7 @@ export class ScreenWakeLockService implements OnDestroy {
   }
   get description(): string {
     return ({ off: 'Keep screen awake: off', requesting: 'Keep screen awake: requesting permission',
-      active: 'Keep screen awake: active', paused: 'Keep screen awake: paused while the app is hidden',
+      active: 'Keep screen awake: preventing idle dimming and automatic locking', paused: 'Keep screen awake: paused while the app is hidden',
       blocked: 'Keep screen awake: the phone or browser did not allow it',
       unsupported: 'Keep screen awake is not supported by this browser' })[this.state.value];
   }
@@ -64,6 +64,7 @@ export class ScreenWakeLockService implements OnDestroy {
     this.requesting = true;
     this.state.next('requesting');
     try {
+      // A screen wake lock inhibits both idle dimming and automatic locking.
       const lock = await navigator.wakeLock.request('screen');
       if (generation !== this.generation || !this.eligible) {
         void lock.release().catch(() => undefined);

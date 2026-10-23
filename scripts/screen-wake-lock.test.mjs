@@ -56,7 +56,8 @@ for (const mode of ['standalone', 'fullscreen', 'ios']) {
   test(`${mode} app starts automatically and repeated starts/events cannot duplicate locks`, async t => {
     const f = fixture(t, { mode }); f.service.start(); f.service.start(); await flush();
     f.visible(true); f.window.dispatchEvent(new Event('pageshow')); await flush();
-    assert.equal(f.service.enabled, true); assert.equal(f.service.label, 'Screen on'); assert.equal(f.calls.length, 1);
+    assert.equal(f.service.enabled, true); assert.equal(f.service.label, 'Screen on');
+    assert.deepEqual(f.calls, ['screen'], 'Installed apps must request the screen lock that covers idle dimming and locking');
   });
 }
 
