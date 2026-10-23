@@ -93,16 +93,14 @@
         </div>
       }
     </dl>
-    <div class="diagnostic-details" tabindex="0" role="region" aria-label="Detailed voice diagnostics">
-      <dl>
-        @for (state of diagnosticDetails; track state.label) {
-          <div class="diagnostic-row" [attr.data-state]="state.label" [class.state-ok]="state.ok" [class.state-error]="!state.ok">
-            <dt>{{ state.label }}</dt>
-            <dd><span class="sr-only">{{ state.ok ? 'OK: ' : 'Fault: ' }}</span>{{ state.value }}</dd>
-          </div>
-        }
-      </dl>
-    </div>
+    <dl>
+      @for (state of diagnosticDetails; track state.label) {
+        <div class="diagnostic-row" [attr.data-state]="state.label" [class.state-ok]="state.ok" [class.state-error]="!state.ok">
+          <dt>{{ state.label }}</dt>
+          <dd><span class="sr-only">{{ state.ok ? 'OK: ' : 'Fault: ' }}</span>{{ state.value }}</dd>
+        </div>
+      }
+    </dl>
   </aside>
   </div>
   }
