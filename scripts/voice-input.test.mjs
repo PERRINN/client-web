@@ -314,6 +314,112 @@ function gesture(component, duration, changes = {}) {
   component.pointerDown(pointer(changes));
   component.pointerUp(pointer({ ...changes, timeStamp: duration }));
 }
+const shortcut = (changes = {}) => ({ key: 'p', code: 'KeyP', preventDefault() { this.defaultPrevented = true; }, ...changes });
+test('P uses the same 600 ms quick-press and hold boundary as pointer input', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: 1000 });
+  for (const duration of [0, 30, 599, 600, 900]) {
+    const { component, service, calls } = componentFixture();
+    component.shortcutKeyDown(shortcut());
+    assert.equal(service.phase, 'requesting');
+    await new Promise(setImmediate);
+    t.mock.timers.tick(duration);
+    component.shortcutKeyUp(shortcut({ key: 'P', shiftKey: true }));
+    await new Promise(setImmediate);
+    assert.equal(service.phase, duration >= 600 ? 'saved' : 'recording', `${duration} ms`);
+    assert.equal(calls.length, duration >= 600 ? 1 : 0);
+    component.ngOnDestroy(); service.ngOnDestroy();
+  }
+});
+test('held P release cancels pending microphone startup without submission', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: 1000 });
+  let grant;
+  const { component, service, calls } = componentFixture(client(undefined, { start: () => new Promise(resolve => { grant = resolve; }) }));
+  component.shortcutKeyDown(shortcut()); t.mock.timers.tick(600);
+  component.shortcutKeyUp(shortcut()); assert.equal(service.phase, 'idle');
+  grant(true); await new Promise(setImmediate);
+  assert.equal(service.phase, 'idle'); assert.equal(calls.length, 0);
+  component.ngOnDestroy(); service.ngOnDestroy();
+});
+test('holding P to stop an existing recording never reopens it on release', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: 1000 });
+  const { component, service, calls } = componentFixture();
+  await service.press(); component.shortcutKeyDown(shortcut());
+  await until(() => service.phase === 'saved');
+  t.mock.timers.tick(900); component.shortcutKeyUp(shortcut());
+  assert.equal(service.phase, 'saved'); assert.equal(calls.length, 1);
+  component.ngOnDestroy(); service.ngOnDestroy();
+});
+test('stale P releases cannot stop capture after interruptions, account changes or automatic completion', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: 1000 });
+  for (const action of ['interrupt', 'account', 'automatic completion']) {
+    const { component, service, auth } = componentFixture();
+    component.shortcutKeyDown(shortcut()); await new Promise(setImmediate);
+    t.mock.timers.tick(900);
+    if (action === 'interrupt') component.interrupt();
+    else if (action === 'account') auth.authState.next({ uid: 'bob' });
+    else await service.release();
+    await service.press();
+    component.shortcutKeyDown(shortcut({ repeat: true }));
+    component.shortcutKeyUp(shortcut());
+    assert.equal(service.phase, 'recording', action);
+    component.ngOnDestroy(); service.ngOnDestroy();
+  }
+});
+test('unrelated key releases and pointer presses do not end a held P gesture', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: 1000 });
+  const { component, service, calls } = componentFixture();
+  component.shortcutKeyDown(shortcut()); await new Promise(setImmediate);
+  component.pointerDown(pointer()); component.pointerUp(pointer());
+  t.mock.timers.tick(600);
+  component.shortcutKeyUp(shortcut({ key: 'x', code: 'KeyX' }));
+  assert.equal(service.phase, 'recording');
+  component.shortcutKeyUp(shortcut()); await until(() => service.phase === 'saved');
+  assert.equal(calls.length, 1);
+  component.ngOnDestroy(); service.ngOnDestroy();
+});
+test('P starts recording immediately, ignores repeats, and stops with one submission', async () => {
+  const { component, service, calls } = componentFixture();
+  const event = shortcut();
+  component.shortcutKeyDown(event);
+  assert.equal(event.defaultPrevented, true); assert.equal(service.phase, 'requesting');
+  await until(() => service.phase === 'recording');
+  component.shortcutKeyDown(shortcut({ repeat: true }));
+  assert.equal(service.phase, 'recording');
+  component.shortcutKeyUp(shortcut());
+  component.shortcutKeyDown(shortcut({ key: 'P' }));
+  await until(() => service.phase === 'saved'); assert.equal(calls.length, 1);
+  component.ngOnDestroy(); service.ngOnDestroy();
+});
+test('P cancels pending startup and ignores its late permission result', async () => {
+  let grant;
+  const { component, service, calls } = componentFixture(client(undefined, { start: () => new Promise(resolve => { grant = resolve; }) }));
+  component.shortcutKeyDown(shortcut()); assert.equal(service.phase, 'requesting');
+  component.shortcutKeyUp(shortcut());
+  component.shortcutKeyDown(shortcut()); assert.equal(service.phase, 'idle');
+  grant(true); await new Promise(setImmediate);
+  assert.equal(service.phase, 'idle'); assert.equal(calls.length, 0);
+  component.ngOnDestroy(); service.ngOnDestroy();
+});
+test('P leaves typing, composition, modified shortcuts and unavailable capture untouched', () => {
+  const { component, service, auth } = componentFixture();
+  for (const changes of [{ key: 'x' }, { repeat: true }, { isComposing: true }, { defaultPrevented: true },
+    { ctrlKey: true }, { metaKey: true }, { altKey: true }, { shiftKey: true },
+    { target: { isContentEditable: true } },
+    ...['input', 'textarea', 'select', '[role="textbox"]', '[contenteditable]:not([contenteditable="false"])']
+      .map(selector => ({ target: { closest: selectors => selectors.includes(selector) ? {} : null } }))]) {
+    let prevented = false;
+    component.shortcutKeyDown(shortcut({ ...changes, preventDefault() { prevented = true; } }));
+    assert.equal(service.phase, 'idle'); assert.equal(prevented, false);
+  }
+  component.pointerDown(pointer());
+  const held = shortcut(); component.shortcutKeyDown(held);
+  assert.equal(held.defaultPrevented, undefined); assert.equal(service.phase, 'requesting');
+  component.interrupt();
+  auth.authState.next(null);
+  const signedOut = shortcut(); component.shortcutKeyDown(signedOut);
+  assert.equal(signedOut.defaultPrevented, undefined); assert.equal(service.phase, 'idle');
+  component.ngOnDestroy(); service.ngOnDestroy();
+});
 test('touch activates synchronously and even a quick tap stays latched', async t => {
   t.mock.timers.enable({ apis: ['setTimeout'] });
   for (const duration of [0, 30, 119, 599]) {

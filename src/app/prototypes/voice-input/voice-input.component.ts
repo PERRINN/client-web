@@ -14,6 +14,7 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
   @ViewChild('replies') private replies?: ElementRef<HTMLElement>;
   private renderedReplies = 0;
   private pointer?: { downAt: number; id: number; x: number; y: number; uid: string; started: boolean; held: boolean };
+  private keyboard?: { downAt: number; code: string; uid: string; started: boolean };
   private holdTimer?: ReturnType<typeof setTimeout>;
   private changes: Subscription;
   private diagnosticTimer?: ReturnType<typeof setInterval>;
@@ -25,6 +26,8 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
     this.changes = voice.changed.subscribe(() => {
       if (this.pointer && (this.pointer.uid !== voice.uid
         || (this.pointer.started && voice.phase !== 'requesting' && voice.phase !== 'recording'))) this.clearPointer();
+      if (this.keyboard && (this.keyboard.uid !== voice.uid
+        || (this.keyboard.started && voice.phase !== 'requesting' && voice.phase !== 'recording'))) this.keyboard = undefined;
       if (this.diagnosticsActive) this.updateDiagnostics();
       changeDetector.markForCheck();
     });
@@ -43,7 +46,9 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
     this.diagnosticUpdatedAt = now;
     this.diagnosticRows = voiceDiagnosticRows(this.voice, this.voice.queue.diagnostics, this.voice.captureDiagnostics, {
       online: navigator.onLine !== false, visible: !document.hidden, secure: window.isSecureContext,
-      gesture: this.pointer ? (this.pointer.held ? 'Held' : 'Pressed') : 'Released', gestureSince: this.pointer?.downAt || 0
+      gesture: this.pointer ? (this.pointer.held ? 'Held' : 'Pressed')
+        : this.keyboard ? (now - this.keyboard.downAt >= 600 ? 'Held' : 'Pressed') : 'Released',
+      gestureSince: this.pointer?.downAt || this.keyboard?.downAt || 0
     }, this.diagnosticUpdatedAt);
     this.changeDetector.markForCheck();
   }
@@ -59,7 +64,7 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
     else if (this.voice.canRecord) void this.voice.press();
   }
   pointerDown(event: PointerEvent): void {
-    if (!event.isPrimary || event.button !== 0 || this.pointer || !this.voice.canToggle) return;
+    if (!event.isPrimary || event.button !== 0 || this.pointer || this.keyboard || !this.voice.canToggle) return;
     event.preventDefault();
     this.pointer = { downAt: Date.now(), id: event.pointerId, x: event.clientX, y: event.clientY,
       uid: this.voice.uid, started: false, held: false };
@@ -95,15 +100,33 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
     clearTimeout(this.holdTimer);
     this.holdTimer = undefined; this.pointer = undefined;
   }
+  @HostListener('document:keydown', ['$event'])
+  shortcutKeyDown(event: KeyboardEvent): void {
+    const target = event.target as HTMLElement | null;
+    if (event.key.toLowerCase() !== 'p' || event.defaultPrevented || event.repeat || event.isComposing
+      || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || this.pointer || this.keyboard || !this.voice.canToggle
+      || target?.isContentEditable || target?.closest?.('input, textarea, select, [role="textbox"], [contenteditable]:not([contenteditable="false"])')) return;
+    event.preventDefault();
+    this.keyboard = { downAt: Date.now(), code: event.code, uid: this.voice.uid, started: this.voice.canRecord };
+    this.toggle();
+  }
+  @HostListener('document:keyup', ['$event'])
+  shortcutKeyUp(event: KeyboardEvent): void {
+    if (!this.keyboard || event.code !== this.keyboard.code) return;
+    event.preventDefault();
+    const finish = this.keyboard.started && this.keyboard.uid === this.voice.uid && Date.now() - this.keyboard.downAt >= 600;
+    this.keyboard = undefined;
+    if (finish) void this.voice.release();
+  }
   keyDown(event: KeyboardEvent): void {
     if (event.key === 'Escape') { event.preventDefault(); this.interrupt(); return; }
     if ([' ', 'Enter'].includes(event.key) && (event.repeat || event.altKey || event.ctrlKey || event.metaKey)) event.preventDefault();
   }
   @HostListener('window:blur')
-  interrupt(): void { this.clearPointer(); this.voice.cancel(); }
+  interrupt(): void { this.clearPointer(); this.keyboard = undefined; this.voice.cancel(); }
   @HostListener('document:visibilitychange')
   visibility(): void { if (document.hidden) this.interrupt(); }
   @HostListener('window:pagehide')
   pageHide(): void { this.interrupt(); }
-  ngOnDestroy(): void { clearInterval(this.diagnosticTimer); this.diagnosticsActive = false; this.clearPointer(); this.changes.unsubscribe(); }
+  ngOnDestroy(): void { clearInterval(this.diagnosticTimer); this.diagnosticsActive = false; this.clearPointer(); this.keyboard = undefined; this.changes.unsubscribe(); }
 }
