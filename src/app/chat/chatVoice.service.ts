@@ -103,32 +103,20 @@ export class ChatVoiceService implements OnDestroy {
   private async play(message: ChatMessage, automatic: boolean): Promise<void> {
     if (!this.available(message) || this.input.busy) return;
     const epoch = this.epoch;
-    this.loading = message.id; this.error = ''; this.errorId = '';
+    this.loading = message.id; this.error = ''; this.errorId = ''; this.notify();
     try {
       const response = await this.audio(message, automatic);
       if (response.skipped || epoch !== this.epoch || !this.foreground || this.input.busy) return;
       const context = this.session.current;
-      if (!context || context.state !== 'running') throw Error('Tap play to listen.');
+      if (!context || context.state !== 'running') throw Error('Tap the recording to listen.');
       const buffer = await context.decodeAudioData(this.bytes(response).buffer as ArrayBuffer);
       if (epoch !== this.epoch || !this.available(message) || !this.foreground || this.input.busy) return;
       const source = context.createBufferSource(); source.buffer = buffer; source.connect(context.destination);
       this.source = source; this.active = message.id;
       source.onended = () => this.zone.run(() => { if (this.source === source) { this.stop(); this.notify(); void this.drain(); } });
       source.start(); this.playbackTimer = setTimeout(() => { this.stop(); this.notify(); void this.drain(); }, 35000);
-    } catch { if (epoch === this.epoch) { this.error = 'Recording unavailable. Try play again.'; this.errorId = message.id; } }
+    } catch { if (epoch === this.epoch) { this.error = 'Recording unavailable. Tap to try again.'; this.errorId = message.id; } }
     finally { if (epoch === this.epoch) { this.loading = ''; if (!this.active) void this.drain(); this.notify(); } }
-  }
-  async download(message: ChatMessage): Promise<void> {
-    if (this.loading || !this.available(message)) return;
-    this.cancelPlayback(); const epoch = this.epoch; this.loading = message.id; this.error = ''; this.errorId = '';
-    try {
-      const response = await this.audio(message, false);
-      if (epoch !== this.epoch || !this.available(message)) return;
-      const url = URL.createObjectURL(new Blob([this.bytes(response).buffer as ArrayBuffer], { type: 'audio/wav' }));
-      const link = document.createElement('a'); link.href = url; link.download = `voice-${message.id}.wav`; link.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    } catch { if (epoch === this.epoch) { this.error = 'Recording couldn’t download. Try again.'; this.errorId = message.id; } }
-    finally { if (epoch === this.epoch) { this.loading = ''; this.notify(); } }
   }
   private stop(): void {
     clearTimeout(this.playbackTimer);

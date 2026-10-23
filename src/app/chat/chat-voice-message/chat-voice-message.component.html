@@ -1,11 +1,16 @@
 <div class="voice-message">
-  <span class="voice-label" [attr.title]="voice.errorId === message.id ? voice.error : null">{{ voice.errorId === message.id ? 'Recording unavailable' : 'Voice · ' + (message.voice.durationMs / 1000 | number:'1.0-0') + 's' }}</span>
   @if (voice.canListen) {
-    <button type="button" [disabled]="voice.input.busy || (!voice.available(message) && voice.active !== message.id && voice.loading !== message.id)" (click)="voice.toggle(message)"
-      [attr.aria-label]="voice.active === message.id || voice.loading === message.id ? 'Stop voice playback' : 'Play voice recording'">
-      {{ voice.loading === message.id ? 'Loading…' : voice.active === message.id ? 'Stop' : 'Play' }}
+    <button type="button" class="voice-label" [class.loading]="voice.loading === message.id" [class.playing]="voice.active === message.id"
+      [class.failed]="voice.errorId === message.id" [attr.title]="voice.errorId === message.id ? voice.error : !voice.available(message) ? 'Recording expired' : null"
+      [disabled]="voice.input.busy || (!voice.available(message) && voice.active !== message.id && voice.loading !== message.id)" (click)="voice.toggle(message)"
+      [attr.aria-label]="voice.loading === message.id ? 'Cancel loading voice recording' : voice.active === message.id ? 'Stop voice playback' : 'Play voice recording'"
+      [attr.aria-busy]="voice.loading === message.id" [attr.aria-pressed]="voice.active === message.id">
+      <span>Voice · {{ message.voice.durationMs / 1000 | number:'1.0-0' }}s</span>
+      <span class="feedback" aria-hidden="true"><i></i><i></i><i></i></span>
     </button>
-    <button type="button" [disabled]="!voice.available(message) || !!voice.loading" (click)="voice.download(message)" aria-label="Download voice recording">Download</button>
+  } @else {
+    <span class="voice-label">Voice · {{ message.voice.durationMs / 1000 | number:'1.0-0' }}s</span>
   }
+  <span class="status" role="status">{{ voice.errorId === message.id ? voice.error : voice.loading === message.id ? 'Loading recording' : voice.active === message.id ? 'Playing recording' : '' }}</span>
 </div>
 @if (message.voice.transcription === 'unavailable') { <p class="unavailable">Transcription unavailable</p> }

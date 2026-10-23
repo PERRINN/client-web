@@ -46,7 +46,7 @@ async function enqueueVoiceInput(db, bucket, auth, data, options) {
     const limitRef = db.doc('VoiceInputLimits/' + auth.uid), limit = (await tx.get(limitRef)).data() || {};
     const day = new Date(now).toISOString().slice(0, 10), count = limit.day === day ? limit.count || 0 : 0;
     if (chain && chat.chatInputMode !== 'voice') fail('failed-precondition', 'Voice input is not enabled for this chat.');
-    const dailyLimit = chain ? 100 : (VOICE_PARTICIPANTS.includes(auth.uid)
+    const dailyLimit = chain ? (auth.token?.perrinnAdmin === true ? 1000 : 100) : (VOICE_PARTICIPANTS.includes(auth.uid)
       || auth.uid === options.highLimitUid && auth.token?.perrinnAdmin === true ? 1000 : 20);
     if (count >= dailyLimit) fail('resource-exhausted', 'Daily recording limit reached.', { reason: 'daily-limit', dailyLimit });
     const created = { eventId, userId: auth.uid, sourcePage: data.sourcePage, createdAt: options.timestamp(),

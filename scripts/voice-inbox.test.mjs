@@ -448,21 +448,21 @@ test('empty transcription delivers audio; corrupt stored production audio is nev
   await g.process(bad.eventId); assert.equal(g.message(bad.eventId), undefined);
   assert.equal(g.records.get(eventPath(bad.eventId)).status, 'failed');
 });
-test('production allowance is 100 across chat destinations, including admins, and replays are free', async () => {
-  for (const uid of ['alice', VOICE_ADMIN, ...VOICE_PARTICIPANTS]) {
+test('production allowance is 100, or 1000 for trusted admins, across chats with free replays', async () => {
+  for (const [uid, token, limit] of [['alice', {}, 100], [VOICE_ADMIN, {perrinnAdmin:true}, 1000], ['other-admin', {perrinnAdmin:true}, 1000], ...VOICE_PARTICIPANTS.map(uid=>[uid, {}, 100]), ['forged-admin', {perrinnAdmin:'true'}, 100], ['numeric-admin', {perrinnAdmin:1}, 100]]) {
     const f = productionFixture(), day = new Date(f.options.now()).toISOString().slice(0, 10);
     f.records.set('PERRINNMessages/other-state', { ...f.records.get('PERRINNMessages/chat-state'), chain: 'other' });
-    f.records.set('VoiceInputLimits/' + uid, { day, count: 99 });
-    const data = f.request({ owner: uid }), auth = { uid, token: { perrinnAdmin: true } };
+    f.records.set('VoiceInputLimits/' + uid, { day, count: limit - 1 });
+    const data = f.request({ owner: uid }), auth = { uid, token };
     await f.enqueue(data, auth); await f.enqueue(data, auth);
-    await assert.rejects(f.enqueue(f.request({ owner: uid, conversationId: 'chat:other' }), auth), e => e.details.dailyLimit === 100);
+    await assert.rejects(f.enqueue(f.request({ owner: uid, conversationId: 'chat:other' }), auth), e => e.details.dailyLimit === limit);
     f.records.get('PERRINNMessages/chat-state').chatInputMode = 'text';
     await f.enqueue(data, auth); // Disabling new input does not invalidate an existing durable receipt.
     f.advance(86400000); f.records.get('PERRINNMessages/chat-state').chatInputMode = 'voice';
     await f.enqueue(f.request({ owner: uid }), auth); assert.equal(f.records.get('VoiceInputLimits/' + uid).count, 1);
   }
 });
-test('production playback and download use current recipients, independent autoplay and seven-day expiry', async () => {
+test('production playback uses current recipients, independent autoplay and seven-day expiry', async () => {
   const f = productionFixture(), receipt = await f.enqueue(f.request()); await f.process(receipt.eventId);
   const play = (uid, automatic = false) => voicePlayback(f.db, f.bucket, uid ? { uid } : null, { eventId: receipt.eventId, automatic }, f.options.now());
   await assert.rejects(play(null), e => e.code === 'unauthenticated');
@@ -487,4 +487,11 @@ test('input mode commands require an exact trusted admin claim; ordinary message
     await validateChatInputMode({ user: 'alice', chatInputMode: mode }, auth({ perrinnAdmin: true }));
   }
   await assert.rejects(validateChatInputMode({ user: 'alice', chatInputMode: 'other' }, auth({ perrinnAdmin: true })));
+});
+
+test('trusted admin resumes at the old 100-recording cap without resetting the counter', async () => {
+  const f = productionFixture(), day = new Date(f.options.now()).toISOString().slice(0,10);
+  f.records.set('VoiceInputLimits/admin', {day,count:100});
+  await f.enqueue(f.request({owner:'admin'}), {uid:'admin',token:{perrinnAdmin:true}});
+  assert.equal(f.records.get('VoiceInputLimits/admin').count,101);
 });

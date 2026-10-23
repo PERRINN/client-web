@@ -303,7 +303,7 @@ export class VoiceQueueService implements OnDestroy {
     const nextAt = dailyLimit
       ? Date.UTC(new Date(now).getUTCFullYear(), new Date(now).getUTCMonth(), new Date(now).getUTCDate() + 1)
       : now + delay;
-    await this.settle(item, { nextAt, attempts: dailyLimit || this.offline || document.hidden ? Math.max(0, item.attempts - 1) : item.attempts, error: error instanceof QueueAudioError
+    await this.settle(item, { nextAt, attempts: dailyLimit || this.offline || document.hidden ? Math.max(0, item.attempts - 1) : item.attempts, error: dailyLimit ? 'Daily limit reached. Saved until 00:00 UTC.' : error instanceof QueueAudioError
       ? `Audio unavailable on this device (${error.code}). Checking for a saved transcript.` : undefined });
   }
   private async savedResult(item: VoiceRecording, epoch: number, live: () => boolean, stopped = this.cancelled): Promise<boolean> {

@@ -9,6 +9,7 @@
       @if (voice.phase === 'recording') {
         <span class="waveform" aria-hidden="true">@for (level of voice.levels; track $index) { <i [style.height.px]="4 + level * 24"></i> }</span>
       }
+      @if (voice.phase === 'sending' || (voice.pendingCount && voice.phase !== 'recording' && voice.phase !== 'requesting')) { <span class="pending">{{ voice.phase === 'sending' ? 'Sending…' : voice.pendingCount + ' processing' }}</span> }
       <span class="mic" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 11v1a6 6 0 0 0 12 0v-1M12 18v3M9 21h6"/></svg></span>
     }
   </button>

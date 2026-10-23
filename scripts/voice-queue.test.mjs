@@ -195,7 +195,7 @@ test('terminal server failure becomes a reply and clears pending state automatic
 test('daily allowance waits until UTC midnight without showing management actions', async t => {
   environment(t); const f = queue(t, { call: () => throwError(() => ({ code: 'functions/resource-exhausted', details: { reason: 'daily-limit' } })) }); await ready(f);
   await f.service.enqueue(bytes); await until(() => f.calls.length === 1 && !f.service.running);
-  const row = f.service.items[0]; assert.equal(row.audio.byteLength, bytes.length); assert.ok(row.nextAt > Date.now()); assert.equal(row.error, undefined);
+  const row = f.service.items[0]; assert.equal(row.audio.byteLength, bytes.length); assert.ok(row.nextAt > Date.now()); assert.equal(row.error, 'Daily limit reached. Saved until 00:00 UTC.');
 });
 function clock(t, timers = true) { t.mock.timers.enable({ apis: timers ? ['Date', 'setTimeout', 'setInterval'] : ['Date'], now: 1792696380000 }); }
 test('hung callable times out independently and automatic retry recovers without blocking forever', async t => {

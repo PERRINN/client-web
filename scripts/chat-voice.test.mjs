@@ -127,3 +127,14 @@ test('playback failures expose a recording-specific error and require an explici
   assert.equal(f.voice.errorId, 'audio'); assert.ok(f.voice.error); assert.equal(f.calls.length, 1);
   await tick(); assert.equal(f.calls.length, 1); f.voice.toggle(message); await tick(); assert.equal(f.calls.length, 2);
 });
+
+test('loading feedback notifies immediately and pressing again cancels without another fetch', async t => {
+  const f = fixture(t), response = new Subject(), states = [];
+  f.respond(() => response); const message = f.message('audio'); f.configure([message]);
+  f.voice.changed.subscribe(() => states.push({loading:f.voice.loading,active:f.voice.active}));
+  f.voice.toggle(message);
+  assert.equal(states.at(-1).loading, 'audio'); assert.equal(f.calls.length, 1);
+  f.voice.toggle(message); assert.equal(states.at(-1).loading, ''); assert.equal(f.calls.length, 1);
+  response.next({audio:'AAAA',expiresAt:Date.now()+60000}); response.complete(); await tick();
+  assert.equal(f.nodes.length, 0); assert.equal(f.voice.error, '');
+});

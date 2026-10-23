@@ -12,6 +12,7 @@ svg { width: 25px; height: 25px; fill: none; stroke: currentColor; stroke-width:
 button:disabled { opacity: .5; cursor: default; }
 button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
 .error { max-height: 44px; padding: 0 8px; overflow-y: auto; color: var(--color-danger-text); font: inherit; font-size: 12px; line-height: 1.4; }
+.pending { max-width: calc(50% - 40px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: var(--color-text-muted); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 @media (prefers-reduced-motion: reduce) { * { animation: none; } }
 @media (max-width: 500px) { .voice-composer { height: 62px; padding: 5px 6px; } }

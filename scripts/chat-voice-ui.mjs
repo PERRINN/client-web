@@ -27,12 +27,12 @@ import {ChatVoiceService} from '${root}/src/app/chat/chatVoice.service';
 import {VoiceInputService} from '${root}/src/app/voice/voiceInput.service';
 import {PermissionsService} from '${root}/src/app/permissions.service';
 import {UserAvatarComponent} from '${root}/src/app/user-avatar.component';
-let failSave=false,requests=[],plays=[],downloads=[];
+let failSave=false,requests=[],plays=[];
 const input:any={changed:new Subject(),phase:'idle',uid:'alice',ready:true,levels:Array(9).fill(.25),replies:[],queue:{storageError:''},pendingCount:0,
  get busy(){return ['requesting','recording','sending'].includes(this.phase)},get canRecord(){return !this.busy},get canToggle(){return this.canRecord||this.phase==='recording'||this.phase==='requesting'},get waiting(){return false},get label(){return this.phase==='recording'?'Stop recording':'Start recording'},
  press(){this.phase='recording'},release(){this.phase='idle'},cancel(){this.phase='idle'}};
 const voice:any={changed:new Subject(),mode:'text',keyboard:false,canListen:true,loading:'',active:'',error:'',input,configure(){},unlock(){},useKeyboard(){input.cancel();this.keyboard=true},useVoice(){this.keyboard=false},
- available(m){return this.canListen&&m.voice.expiresAt>Date.now()},toggle(m){plays.push(m.id);this.active=this.active===m.id?'':m.id},download(m){downloads.push(m.id)}};
+ available(m){return this.canListen&&m.voice.expiresAt>Date.now()},toggle(m){plays.push(m.id);this.active=this.active===m.id?'':m.id}};
 const permissions={current:{ready:true,isAdmin:true,uid:'alice'}};
 const data={viewerName:'Alice',fundCurrency:{code:'gbp',perGBP:1},async updateInputMode(chain,mode){requests.push({chain,mode});if(failSave)throw Error('Offline');voice.mode=mode;},timeCreditAmount(){return ''}};
 @Pipe({name:'linky',standalone:false})class Linky {transform(value){return value}}
@@ -49,7 +49,7 @@ class Area extends ChatComponent {
 TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTesting());
 TestBed.configureTestingModule({imports:[CommonModule,FormsModule],declarations:[Area,ChatComposerComponent,VoiceComposerComponent,ChatMessageComponent,ChatVoiceMessageComponent,ChatInputSettingsComponent,UserAvatarComponent,Linky],schemas:[NO_ERRORS_SCHEMA],providers:[provideZoneChangeDetection(),{provide:ChatVoiceService,useValue:voice},{provide:VoiceInputService,useValue:input},{provide:ChatDataService,useValue:data},{provide:PermissionsService,useValue:permissions}]});
 const fixture=TestBed.createComponent(Area);document.body.append(fixture.nativeElement);fixture.autoDetectChanges();fixture.detectChanges();
-window.voiceUI={state(value){fixture.componentInstance.state=value;fixture.detectChanges()},mode(value){voice.mode=value;fixture.detectChanges()},recipient(value){voice.canListen=value;fixture.detectChanges()},admin(value){permissions.current.isAdmin=value;fixture.detectChanges()},fail(value){failSave=value},error(){input.phase='error';input.replies=[{kind:'error',text:'Microphone access denied.'}];fixture.detectChanges()},pending(){input.phase='idle';input.replies=[];input.pendingCount=2;fixture.detectChanges()},expired(){fixture.componentInstance.messages[0].voice.expiresAt=1;fixture.detectChanges()},audioOnly(){fixture.componentInstance.messages[0]={...fixture.componentInstance.messages[0],text:'',voice:{...fixture.componentInstance.messages[0].voice,transcription:'unavailable'}};fixture.detectChanges()},requests(){return requests},plays(){return plays},downloads(){return downloads},flush(){fixture.detectChanges()}};
+window.voiceUI={state(value){fixture.componentInstance.state=value;fixture.detectChanges()},mode(value){voice.mode=value;fixture.detectChanges()},recipient(value){voice.canListen=value;fixture.detectChanges()},admin(value){permissions.current.isAdmin=value;fixture.detectChanges()},fail(value){failSave=value},error(){input.phase='error';input.replies=[{kind:'error',text:'Microphone access denied.'}];fixture.detectChanges()},quota(){input.phase='idle';input.replies=[{kind:'pending',text:'Daily limit reached. Saved until 00:00 UTC.',recording:{conversationId:'chat:engineering',error:'Daily limit reached. Saved until 00:00 UTC.'}}];fixture.detectChanges()},pending(){input.phase='idle';input.replies=[];input.pendingCount=2;fixture.detectChanges()},expired(){fixture.componentInstance.messages[0].voice.expiresAt=1;fixture.detectChanges()},audioOnly(){fixture.componentInstance.messages[0]={...fixture.componentInstance.messages[0],text:'',voice:{...fixture.componentInstance.messages[0].voice,transcription:'unavailable'}};fixture.detectChanges()},requests(){return requests},plays(){return plays},playback(state){voice.loading=state==='loading'?'voice':'';voice.active=state==='playing'?'voice':'';voice.errorId=state==='error'?'voice':'';voice.error=state==='error'?'Recording unavailable. Tap to try again.':'';fixture.detectChanges()},flush(){fixture.detectChanges()}};
 `);
 await build({ entryPoints: [output + '/entry.ts'], outfile: output + '/bundle.js', bundle: true, platform: 'browser', format: 'iife', nodePaths: [root + '/node_modules'], tsconfigRaw: { compilerOptions: { experimentalDecorators: true } }, logLevel: 'silent', plugins: [{ name: 'angular-resources', setup(plugin) {
   plugin.onLoad({ filter: /\.component\.ts$/ }, async args => {
@@ -87,14 +87,31 @@ try {
     const recordingMic = await page.locator('.mic svg').boundingBox(); assert.deepEqual(recordingMic, mic);
     await page.screenshot({path:output+'/chat-voice-recording-'+width+'.png'});
     await page.getByRole('button', { name: /Stop recording/ }).click(); assert.equal(await page.locator('.waveform').count(), 0); await page.evaluate(() => window.voiceUI.error()); await page.getByText('Microphone access denied.', { exact: true }).first().waitFor(); await stable();
-    await page.evaluate(() => window.voiceUI.pending()); assert.equal(await page.locator('.waveform').count(), 0); await stable();
+    await page.evaluate(() => window.voiceUI.quota()); await page.getByText('Daily limit reached. Saved until 00:00 UTC.',{exact:true}).first().waitFor(); await stable();
+    await page.evaluate(() => window.voiceUI.pending()); await page.getByText('2 processing', {exact:true}).waitFor(); assert.equal(await page.locator('.waveform').count(), 0); await stable();
     await page.getByRole('button', { name: 'Use keyboard' }).click(); await page.locator('textarea').waitFor(); assert.equal(await page.locator('textarea').inputValue(),'Unsent draft'); await page.locator('textarea').fill(''); await stable();
     await page.getByRole('button', { name: 'Use voice', exact: true }).click(); await page.getByRole('button', { name: 'Use keyboard' }).waitFor(); await stable();
     await page.getByRole('button', { name: 'Play voice recording' }).click(); assert.deepEqual(await page.evaluate(() => window.voiceUI.plays()), ['voice']);
-    await page.getByRole('button', { name: 'Download voice recording' }).click(); assert.deepEqual(await page.evaluate(() => window.voiceUI.downloads()), ['voice']);
-    await page.evaluate(() => window.voiceUI.recipient(false)); assert.equal(await page.getByRole('button', { name: /voice playback|Play voice recording|Download voice/ }).count(), 0); await page.getByText('Voice · 30s', { exact: true }).waitFor(); await stable();
+    const recording = page.locator('app-chat-voice-message button');
+    assert.equal(await recording.innerText(), 'Voice · 30s');
+    const recordingBounds = await recording.boundingBox();
+    assert.equal(recordingBounds.height,28);
+    assert.equal(await recording.evaluate(node => getComputedStyle(node,'::after').top),'-8px');
+    for (const state of ['loading', 'playing', 'error', 'idle']) {
+      await page.evaluate(value => window.voiceUI.playback(value), state);
+      assert.deepEqual(await recording.boundingBox(), recordingBounds); await stable();
+      if (state === 'loading') assert.equal(await recording.getAttribute('aria-busy'), 'true');
+      if (state === 'playing') assert.equal(await recording.getAttribute('aria-pressed'), 'true');
+      await page.screenshot({path:output+'/chat-voice-playback-'+state+'-'+width+'.png'});
+    }
+    await page.emulateMedia({reducedMotion:'reduce'});
+    await page.evaluate(() => window.voiceUI.playback('loading'));
+    assert.equal(await page.locator('.feedback').evaluate(node => getComputedStyle(node).animationName), 'none');
+    await page.evaluate(() => window.voiceUI.playback('idle')); await page.emulateMedia({reducedMotion:'no-preference'});
+    assert.equal(await page.getByRole('button', {name:/Download/}).count(),0);
+    await page.evaluate(() => window.voiceUI.recipient(false)); assert.equal(await recording.count(), 0); await page.getByText('Voice · 30s', { exact: true }).waitFor(); await stable();
     await page.evaluate(() => { window.voiceUI.recipient(true); window.voiceUI.audioOnly(); }); await page.getByText('Transcription unavailable').waitFor(); await stable();
-    await page.evaluate(() => window.voiceUI.expired()); assert.equal(await page.getByRole('button', { name: 'Download voice recording' }).isDisabled(), true);
+    await page.evaluate(() => window.voiceUI.expired()); assert.equal(await page.getByRole('button', { name: 'Play voice recording' }).isDisabled(), true);
     await page.getByRole('button', { name: 'Chat details: Engineering' }).click(); await page.getByRole('switch').waitFor();
     await page.evaluate(() => window.voiceUI.fail(true)); await page.getByRole('switch').click(); await page.evaluate(()=>new Promise(requestAnimationFrame)); await page.getByRole('alert').filter({ hasText: 'Input mode couldn’t save' }).waitFor();
     await page.evaluate(() => window.voiceUI.fail(false)); await page.getByRole('switch').click(); await page.waitForFunction(() => document.querySelector('[role=switch]')?.getAttribute('aria-checked') === 'false');
@@ -103,5 +120,5 @@ try {
     for (const state of ['loading', 'error', 'empty', 'ready']) { await page.evaluate(value => window.voiceUI.state(value), state); await stable(); }
     await page.screenshot({ path: output + '/chat-voice-' + width + '.png' });
   }
-  assert.deepEqual(errors, []); console.log(JSON.stringify({ output, widths: [1440, 390, 320], checks: ['text/voice/keyboard stable geometry', 'recording and error states', 'pending', 'long transcript', 'audio-only', 'recipient controls', 'expiry', 'admin toggle failure/retry/role loss', 'loading/error/empty', 'no overflow'], errors }));
+  assert.deepEqual(errors, []); console.log(JSON.stringify({ output, widths: [1440, 390, 320], checks: ['text/voice/keyboard stable geometry', 'recording and error states', 'pending', 'long transcript', 'audio-only', 'recipient-only 28px pill with 44px touch area', 'loading/playing/error stable feedback', 'reduced motion', 'expiry', 'admin toggle failure/retry/role loss', 'loading/error/empty', 'no overflow'], errors }));
 } finally { await browser.close(); await new Promise(done => server.close(done)); }
