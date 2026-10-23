@@ -156,8 +156,8 @@ test('active UI has no membership status, threshold controls or funding gate', (
   }
 });
 
-for (const openaiText of ['OpenAI cost unavailable.', 'OpenAI cost: USD 0.12 on 2026-10-18 UTC · provisional.'])
-for (const pageCount of [1, 3]) for (const costText of ['Cloud cost unavailable.', 'Cloud cost: £2.35 on 2026-10-18 UTC · provisional, after credits.']) test(`daily refresh reads ${pageCount} Authentication page(s) and retains accounting with ${costText}`, async () => {
+for (const openaiText of ['OpenAI cost unavailable.\nOpenAI month-to-date (2026-10): unavailable.', 'OpenAI cost: USD 0.12 on 2026-10-18 UTC · provisional.\nOpenAI month-to-date (2026-10-01–2026-10-18 UTC): USD 2.00 · provisional.'])
+for (const pageCount of [1, 3]) for (const costText of ['Google Cloud cost unavailable.\nGoogle Cloud month-to-date (2026-10): unavailable.', 'Google Cloud cost: £2.35 on 2026-10-18 UTC · provisional, after credits.\nGoogle Cloud month-to-date (2026-10-01–2026-10-18 UTC): £35.00 · provisional, after credits.']) test(`daily refresh reads ${pageCount} Authentication page(s) and retains accounting with ${costText}`, async () => {
   const calls = [], queries = [], verified = [], messages = [], errors = [];
   const admin = {
     initializeApp: () => {},

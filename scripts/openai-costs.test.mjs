@@ -14,14 +14,14 @@ const page = (...data) => ({ object: 'page', data, has_more: false, next_page: n
 const response = data => ({ ok: true, json: async () => data });
 const render = data => dailyOpenaiCostText({ ...config, fetcher: async () => response(data) });
 
-test('one project-filtered request covers two UTC days with deadline and no redirects', async () => {
+test('one project-filtered request covers month-to-date and comparison days with deadline and no redirects', async () => {
   let calls = 0;
   const text = await dailyOpenaiCostText({ ...config, fetcher: async (url, options) => {
     calls++;
     assert.equal(url.origin + url.pathname, 'https://api.openai.com/v1/organization/costs');
     assert.deepEqual(Object.fromEntries(url.searchParams), {
-      start_time: String(start - 86400), end_time: String(start + 86400),
-      bucket_width: '1d', limit: '2', 'project_ids[]': 'proj_perrinn',
+      start_time: String(Date.parse('2026-10-01') / 1000), end_time: String(start + 86400),
+      bucket_width: '1d', limit: '31', 'project_ids[]': 'proj_perrinn',
     });
     assert.equal(options.headers.Authorization, 'Bearer test-secret');
     assert.equal(options.redirect, 'error');
@@ -29,12 +29,12 @@ test('one project-filtered request covers two UTC days with deadline and no redi
     return response(page(bucket(start - 86400, 0.32), bucket()));
   } });
   assert.equal(calls, 1);
-  assert.equal(text, 'OpenAI cost: USD\u00a00.12 on 2026-10-20 UTC · down USD\u00a00.20 from previous day · provisional.');
+  assert.equal(text, 'OpenAI cost: USD\u00a00.12 on 2026-10-20 UTC · down USD\u00a00.20 from previous day · provisional.\nOpenAI month-to-date (2026-10): unavailable.');
 });
 
 test('missing configuration never falls back to organization costs', async () => {
   for (const overrides of [{ apiKey: '' }, { projectId: '' }, { projectId: undefined }, { projectId: 'invalid' }]) {
-    assert.equal(await dailyOpenaiCostText({ ...config, ...overrides, fetcher: () => assert.fail('unexpected request') }), 'OpenAI cost unavailable.');
+    assert.equal(await dailyOpenaiCostText({ ...config, ...overrides, fetcher: () => assert.fail('unexpected request') }), 'OpenAI cost unavailable.\nOpenAI month-to-date (2026-10): unavailable.');
   }
 });
 
@@ -48,12 +48,12 @@ test('missing, partial, malformed and unexpected data never becomes a zero bill'
     page(bucket(), bucket()), page(bucket(start + 86400)), page(wrongProject), page(duplicateRows), page(malformed),
     page(bucket(start, null)), page(bucket(start, '1')), page(bucket(start, NaN)), page(bucket(start, Infinity)),
     page(bucket(start, 1, 'bad-currency')), page(bucket(), bucket(start - 86400, 1, 'gbp'))]) {
-    assert.equal(await render(data), 'OpenAI cost unavailable.');
+    assert.equal(await render(data), 'OpenAI cost unavailable.\nOpenAI month-to-date (2026-10): unavailable.');
   }
 });
 
 test('explicit zero, negative, up, unchanged and absent prior day are reported', async () => {
-  assert.equal(await render(page(bucket(start, 0))), 'OpenAI cost: USD\u00a00.00 on 2026-10-20 UTC · provisional.');
+  assert.equal(await render(page(bucket(start, 0))), 'OpenAI cost: USD\u00a00.00 on 2026-10-20 UTC · provisional.\nOpenAI month-to-date (2026-10): unavailable.');
   assert.match(await render(page(bucket(start, -1))), /-USD\s1.00/);
   assert.match(await render(page(bucket(), bucket(start - 86400, 0))), /up USD\s0.12/);
   assert.match(await render(page(bucket(), bucket(start - 86400, 0.12))), /unchanged from previous day/);
@@ -78,9 +78,45 @@ test('HTTP errors, timeouts and invalid JSON fail once without private details i
     const warnings = []; let calls = 0;
     const text = await dailyOpenaiCostText({ ...config, logger: { warn: (...args) => warnings.push(args) },
       fetcher: async () => { calls++; return failure(); } });
-    assert.equal(text, 'OpenAI cost unavailable.');
+    assert.equal(text, 'OpenAI cost unavailable.\nOpenAI month-to-date (2026-10): unavailable.');
     assert.equal(calls, 1);
     assert.equal(warnings.length, 1);
     assert.doesNotMatch(JSON.stringify(warnings), /test-secret|private billing/);
+  }
+});
+
+const monthBuckets = () => Array.from({ length: 20 }, (_, index) => bucket(Date.parse('2026-10-01') / 1000 + index * 86400, 1));
+
+test('complete month-to-date preserves zero, refunds and currency', async () => {
+  const buckets = monthBuckets(); buckets[0].results[0].amount.value = -1; buckets[1].results[0].amount.value = 0;
+  assert.match(await render(page(...buckets)), /OpenAI month-to-date \(2026-10-01–2026-10-20 UTC\): USD\s17.00/);
+});
+
+test('missing or empty interior bucket keeps daily result and withholds partial monthly total', async () => {
+  for (const empty of [false, true]) {
+    const buckets = monthBuckets();
+    if (empty) buckets[3].results = []; else buckets.splice(3, 1);
+    const text = await render(page(...buckets));
+    assert.match(text, /OpenAI cost: USD\s1.00 on 2026-10-20/);
+    assert.match(text, /month-to-date \(2026-10\): unavailable/);
+  }
+});
+
+test('historical currency mismatch, duplicate days, misaligned timestamps and excess buckets fail closed', async () => {
+  const mixed = monthBuckets(); mixed[0].results[0].amount.currency = 'gbp';
+  for (const buckets of [mixed, [...monthBuckets(), monthBuckets()[0]], [bucket(start - 1)], Array.from({ length: 32 }, () => bucket())]) {
+    assert.match(await render(page(...buckets)), /^OpenAI cost unavailable/);
+  }
+});
+
+test('new month waits for eligible data then excludes prior-month comparison', async () => {
+  for (const day of [1, 2, 3]) {
+    const now = new Date(`2027-01-0${day}T00:00:00Z`);
+    const report = Date.UTC(2027, 0, day - 2) / 1000;
+    const text = await dailyOpenaiCostText({ ...config, now, fetcher: async url => {
+      assert.equal(Number(url.searchParams.get('start_time')), Date.UTC(2027, 0, day - 3) / 1000);
+      return response(page(bucket(report - 86400, 9), bucket(report, 0)));
+    } });
+    assert.match(text, day < 3 ? /month-to-date \(2027-01\): unavailable/ : /month-to-date \(2027-01-01–2027-01-01 UTC\): USD\s0.00/);
   }
 });

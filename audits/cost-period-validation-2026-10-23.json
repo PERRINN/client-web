@@ -1,0 +1,29 @@
+{
+  "checkedAt": "2026-10-23T14:33:10.614Z",
+  "identity": "operator Firebase CLI login (not runtime impersonation)",
+  "requests": {
+    "functionMetadata": 1,
+    "bigquery": 1,
+    "secretAccess": 1,
+    "openai": 1
+  },
+  "warnings": [],
+  "cloud": {
+    "jobComplete": true,
+    "totalBytesProcessed": "1546094",
+    "rows": 21,
+    "maximumBytesBilled": "104857600",
+    "dates": [
+      "2026-10-01",
+      "2026-10-22"
+    ]
+  },
+  "cloudText": "Google Cloud cost: £0.83 on 2026-10-21 UTC · up £0.22 from previous day · provisional, after credits.\nGoogle Cloud month-to-date (2026-10-01–2026-10-21 UTC): £5.40 · provisional, after credits.",
+  "openai": {
+    "status": 200,
+    "limit": "31",
+    "start": "1790812800",
+    "end": "1792627200"
+  },
+  "openaiText": "OpenAI cost unavailable.\nOpenAI month-to-date (2026-10): unavailable."
+}
