@@ -1,6 +1,6 @@
 const { createHash, randomUUID } = require('node:crypto');
 const { VoiceInputError, validateInput } = require('./voiceAudio');
-const { authorizeVoiceConversation, sharedVoiceMessage } = require('./voiceConversation');
+const { authorizeVoiceConversation, sharedVoiceMessage, VOICE_PARTICIPANT } = require('./voiceConversation');
 
 const eventIdFor = (uid, requestId) => createHash('sha256').update(uid + ':' + requestId).digest('hex');
 const fail = (code, message, details) => { throw new VoiceInputError(code, message, details); };
@@ -33,7 +33,8 @@ async function enqueueVoiceInput(db, bucket, auth, data, options) {
     }
     const limitRef = db.doc('VoiceInputLimits/' + auth.uid), limit = (await tx.get(limitRef)).data() || {};
     const day = new Date(now).toISOString().slice(0, 10), count = limit.day === day ? limit.count || 0 : 0;
-    const dailyLimit = auth.uid === options.highLimitUid && auth.token?.perrinnAdmin === true ? 1000 : 20;
+    const dailyLimit = auth.uid === VOICE_PARTICIPANT
+      || auth.uid === options.highLimitUid && auth.token?.perrinnAdmin === true ? 1000 : 20;
     if (count >= dailyLimit) fail('resource-exhausted', 'Daily recording limit reached.', { reason: 'daily-limit', dailyLimit });
     const created = { eventId, userId: auth.uid, sourcePage: data.sourcePage, createdAt: options.timestamp(),
       ...(conversationId ? { conversationId, requestId: data.requestId, authorName: typeof auth.token?.name === 'string' ? auth.token.name.slice(0, 100) : '' } : {}),

@@ -9,6 +9,7 @@ import { BehaviorSubject, Subject, firstValueFrom, of, throwError } from 'rxjs';
 const require = createRequire(import.meta.url);
 const { validateInput, VoiceInputError } = require('../functions/utils/voiceAudio');
 const { processVoiceInput } = require('../functions/utils/voiceInput');
+const { VOICE_PARTICIPANT } = require('../functions/utils/voiceConversation');
 const { transcribe } = require('../functions/utils/voiceTranscription');
 function load(file, overrides = {}) {
   const code = ts.transpileModule(readFileSync(new URL(file, import.meta.url), 'utf8'), {
@@ -696,8 +697,10 @@ test('startup deadline begins after permission, releases the microphone, and can
   } finally { globalThis.setTimeout = originalTimeout; fixture.restore(); }
 });
 
-test('temporary 1000 quota requires configured identity and exact trusted admin claim', async () => {
+test('1000 quota applies to the pilot participant or configured trusted admin', async () => {
   for (const [uid, token, highLimitUid, expected] of [
+    [VOICE_PARTICIPANT, {}, '', 1000],
+    [VOICE_PARTICIPANT + '-other', {}, '', 20],
     ['alice', { perrinnAdmin: true }, 'alice', 1000],
     ['alice', {}, 'alice', 20],
     ['alice', { perrinnAdmin: 'true' }, 'alice', 20],
@@ -717,15 +720,15 @@ test('temporary 1000 quota requires configured identity and exact trusted admin 
 });
 
 test('raised allowance reuses today counter, counts failures and resets at UTC rollover', async () => {
-  const db = store(), auth = { uid: 'alice', token: { perrinnAdmin: true } };
+  const db = store(), auth = { uid: VOICE_PARTICIPANT, token: {} };
   let calls = 0;
   const options = settings({ highLimitUid: 'alice', transcribe: async () => { calls++; throw new VoiceInputError('unavailable', 'Failed'); } });
   const day = new Date(options.now()).toISOString().slice(0, 10);
-  db.records.set('VoiceInputLimits/alice', { day, count: 20, activeUntil: 0 });
+  db.records.set('VoiceInputLimits/' + auth.uid, { day, count: 20, activeUntil: 0 });
   await assert.rejects(processVoiceInput(db, auth, valid, options), rejected('unavailable'));
-  assert.equal(db.records.get('VoiceInputLimits/alice').count, 21); assert.equal(calls, 1);
+  assert.equal(db.records.get('VoiceInputLimits/' + auth.uid).count, 21); assert.equal(calls, 1);
   await processVoiceInput(db, auth, request({ requestId: '22345678-1234-1234-1234-123456789abc' }), settings({ highLimitUid: 'alice', now: () => options.now() + 86400000 }));
-  assert.equal(db.records.get('VoiceInputLimits/alice').count, 1);
+  assert.equal(db.records.get('VoiceInputLimits/' + auth.uid).count, 1);
 });
 
 test('radio cues use distinct quiet pitches, fade cleanly and release their audio nodes', async t => {

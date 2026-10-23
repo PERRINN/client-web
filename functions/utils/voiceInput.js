@@ -1,5 +1,6 @@
 const { createHash } = require('node:crypto');
 const { VoiceInputError, validateInput } = require('./voiceAudio');
+const { VOICE_PARTICIPANT } = require('./voiceConversation');
 
 const fail = (code, message, details) => { throw new VoiceInputError(code, message, details); };
 const result = event => ({ eventId: event.eventId, transcript: event.transcript });
@@ -34,8 +35,9 @@ async function processVoiceInput(db, auth, data, options) {
   const eventRef = db.doc('VoiceInputEvents/' + eventId);
   const limitRef = db.doc('VoiceInputLimits/' + auth.uid);
   const day = new Date(now).toISOString().slice(0, 10);
-  // The temporary exception requires both server configuration and the trusted admin claim.
-  const dailyLimit = auth.uid === options.highLimitUid && auth.token?.perrinnAdmin === true ? 1000 : 20;
+  // The pilot participant shares the configured admin's allowance, not their role.
+  const dailyLimit = auth.uid === VOICE_PARTICIPANT
+    || auth.uid === options.highLimitUid && auth.token?.perrinnAdmin === true ? 1000 : 20;
   const event = {
     eventId, userId: auth.uid, sourcePage: data.sourcePage, status: 'processing',
     createdAt: options.timestamp(), durationMs: input.durationMs, fingerprint: input.fingerprint,

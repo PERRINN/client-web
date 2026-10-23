@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto';
 const require = createRequire(import.meta.url);
 const { enqueueVoiceInput, processVoiceInbox, failExhaustedInbox, eventIdFor } = require('../functions/utils/voiceInbox');
 const { VoiceInputError } = require('../functions/utils/voiceAudio');
+const { VOICE_CONVERSATION, VOICE_ADMIN, VOICE_PARTICIPANT } = require('../functions/utils/voiceConversation');
 export function audio() {
   const b = Buffer.alloc(32044); b.write('RIFF'); b.writeUInt32LE(b.length - 8, 4); b.write('WAVEfmt ', 8);
   b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20); b.writeUInt16LE(1, 22); b.writeUInt32LE(16000, 24);
@@ -156,6 +157,32 @@ test('existing ordinary/admin daily quotas apply once per accepted recording', a
   }
 });
 
+test('pilot participant can resume at 20, replay at 1000, and reset at UTC midnight', async () => {
+  const f = fixture(), uid = VOICE_PARTICIPANT, auth = { uid, token: {} };
+  const limitPath = 'VoiceInputLimits/' + uid;
+  const data = input({ owner: uid, conversationId: 'pilot' });
+  const day = new Date(f.options.now()).toISOString().slice(0, 10);
+  f.records.set(limitPath, { day, count: 20 });
+  await f.enqueue(data, auth);
+  assert.equal(f.records.get(limitPath).count, 21);
+  f.records.set(limitPath, { day, count: 999 });
+  const last = input({ owner: uid, conversationId: 'pilot' });
+  const receipt = await f.enqueue(last, auth);
+  assert.equal(f.records.get(limitPath).count, 1000);
+  assert.deepEqual(await f.enqueue(last, auth), receipt);
+  assert.equal(f.records.get(limitPath).count, 1000);
+  const work = { ...f.counts }, tasks = f.tasks.size;
+  const next = input({ owner: uid, conversationId: 'pilot' });
+  await assert.rejects(f.enqueue(next, auth), e => e.code === 'resource-exhausted'
+    && e.details.reason === 'daily-limit' && e.details.dailyLimit === 1000);
+  assert.equal(f.counts.writes, work.writes);
+  assert.equal(f.counts.saves, work.saves);
+  assert.equal(f.tasks.size, tasks);
+  f.advance(86400000);
+  await f.enqueue(next, auth);
+  assert.equal(f.records.get(limitPath).count, 1);
+});
+
 test('lost completion acknowledgement preserves saved transcript and never repeats provider work', async () => {
   const f = fixture(), receipt = await f.enqueue(), transaction = f.db.runTransaction.bind(f.db); let lost = false;
   f.db.runTransaction = async (...args) => {
@@ -184,7 +211,6 @@ test('existing image finalizer never publishes private audio or runs image queri
   assert.deepEqual(operations, []);
 });
 
-const { VOICE_CONVERSATION, VOICE_ADMIN, VOICE_PARTICIPANT } = require('../functions/utils/voiceConversation');
 test('shared pilot accepts only its two participants, including an exact admin claim for its admin account', async () => {
   for (const [uid, token, allowed] of [[VOICE_PARTICIPANT, {}, true], [VOICE_ADMIN, { perrinnAdmin: true }, true],
     [VOICE_ADMIN, {}, false], ['sPJhQ9lcLRgdKcIitszQp4oi7M23', {}, false], ['outsider', {}, false], ['another-admin', { perrinnAdmin: true }, false]]) {
