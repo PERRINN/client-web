@@ -1,0 +1,11 @@
+<div class="voice-message">
+  <span class="voice-label" [attr.title]="voice.errorId === message.id ? voice.error : null">{{ voice.errorId === message.id ? 'Recording unavailable' : 'Voice · ' + (message.voice.durationMs / 1000 | number:'1.0-0') + 's' }}</span>
+  @if (voice.canListen) {
+    <button type="button" [disabled]="voice.input.busy || (!voice.available(message) && voice.active !== message.id && voice.loading !== message.id)" (click)="voice.toggle(message)"
+      [attr.aria-label]="voice.active === message.id || voice.loading === message.id ? 'Stop voice playback' : 'Play voice recording'">
+      {{ voice.loading === message.id ? 'Loading…' : voice.active === message.id ? 'Stop' : 'Play' }}
+    </button>
+    <button type="button" [disabled]="!voice.available(message) || !!voice.loading" (click)="voice.download(message)" aria-label="Download voice recording">Download</button>
+  }
+</div>
+@if (message.voice.transcription === 'unavailable') { <p class="unavailable">Transcription unavailable</p> }

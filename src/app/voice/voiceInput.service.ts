@@ -56,7 +56,7 @@ export class VoiceInputService implements OnDestroy {
         if (reply) this.replies.splice(this.replies.indexOf(reply), 1);
       } else if (reply) { reply.kind = result.failed ? 'error' : 'transcript'; reply.text = result.transcript; reply.private = !result.conversationId; reply.recording = undefined; }
       else this.reply(result.transcript, result.failed ? 'error' : 'transcript', !result.conversationId);
-      if (!this.busy) this.phase = 'saved';
+      if (!this.busy) this.phase = result.failed ? 'error' : 'saved';
       this.changed.next();
     }));
     this.subscription.add(auth.authState.subscribe({
@@ -68,6 +68,11 @@ export class VoiceInputService implements OnDestroy {
       },
       error: () => { this.generation++; this.reset(); this.uid = ''; queue.start(''); this.ready = true; this.changed.next(); }
     }));
+  }
+  destination = 'pilot';
+  setDestination(destination: string): void {
+    if (this.destination === destination) return;
+    this.generation++; this.reset(); this.destination = destination;
   }
   setAccess(allowed: boolean, uid = this.uid): void {
     if (allowed === this.accessGranted && uid === this.accessUid) return;
@@ -142,7 +147,7 @@ export class VoiceInputService implements OnDestroy {
     try {
       const audio = await this.capture.finish();
       if (generation !== this.generation || captureGeneration !== this.captureGeneration) return;
-      await this.queue.enqueue(audio, 'pilot');
+      await this.queue.enqueue(audio, this.destination);
       if (generation === this.generation) this.phase = this.replies.at(-1)?.kind === 'transcript' ? 'saved' : 'idle';
     } catch (error) {
       if (generation !== this.generation || captureGeneration !== this.captureGeneration) return;

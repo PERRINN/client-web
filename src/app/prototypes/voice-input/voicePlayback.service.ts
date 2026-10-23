@@ -2,8 +2,8 @@ import { EnvironmentInjector, Injectable, OnDestroy, runInInjectionContext } fro
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { firstValueFrom, Subject, Subscription, takeUntil, timeout } from 'rxjs';
 import { VoiceConversationService, VoiceMessage } from './voiceConversation.service';
-import { VoiceInputService } from './voiceInput.service';
-import { VoiceAudioSessionService, VoicePageEvent } from './voiceAudioSession.service';
+import { VoiceInputService } from '../../voice/voiceInput.service';
+import { VoiceAudioSessionService, VoicePageEvent } from '../../voice/voiceAudioSession.service';
 
 interface PlaybackResponse { skipped?: boolean; audio?: string; expiresAt?: number }
 

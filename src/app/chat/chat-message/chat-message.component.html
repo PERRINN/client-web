@@ -20,6 +20,7 @@
                       @if (transfer.activationId) { <a class="activation-link" [routerLink]="['/buyPRN', transfer.activationId]">Open activation</a> }
                     </section>
                   }
+                  @if (message.voice) { <app-chat-voice-message [message]="message" /> }
                   @if (message.image) {
                     <button type="button" class="image-button" (click)="imageOpened.emit(message)" [attr.aria-label]="'Open image: ' + message.imageName">
                       <img [src]="message.image" [alt]="message.imageName || 'Shared image'" (load)="imageLoaded.emit()">

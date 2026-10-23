@@ -43,6 +43,9 @@ import { DeepTideComponent } from './prototypes/deep-tide/deep-tide.component';
 import { QuietPlumComponent } from './prototypes/quiet-plum/quiet-plum.component';
 import { ClayEmberComponent } from './prototypes/clay-ember/clay-ember.component';
 import { NightSignalComponent } from './prototypes/night-signal/night-signal.component';
+import { VoiceComposerComponent } from './voice/voice-composer/voice-composer.component';
+import { ChatVoiceMessageComponent } from './chat/chat-voice-message/chat-voice-message.component';
+import { ChatInputSettingsComponent } from './chat/chat-input-settings/chat-input-settings.component';
 import { ChatComponent } from './chat/chat.component';
 import { ChatComposerComponent } from './chat/chat-composer/chat-composer.component';
 import { AppMapComponent } from './prototypes/app-map/app-map.component';
@@ -105,6 +108,7 @@ export const firebaseConfig = {
         ClayEmberComponent,
         NightSignalComponent,
         ChatComposerComponent,
+        VoiceComposerComponent, ChatVoiceMessageComponent, ChatInputSettingsComponent,
         ChatComponent,
         PrnSendManagerComponent,
         ChatFlagComponent,

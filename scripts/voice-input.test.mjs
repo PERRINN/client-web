@@ -16,15 +16,15 @@ function load(file, overrides = {}) {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, experimentalDecorators: true }
   }).outputText;
   const exports = {};
-  new Function('exports', 'require', code)(exports, name => overrides[name] || require(name));
+  new Function('exports', 'require', code)(exports, name => overrides[name] || overrides[name.replace('../../voice/', './')] || require(name));
   return exports;
 }
 const chatDateModule = load('../src/app/chat/chatDate.ts');
-const diagnosticsModule = load('../src/app/prototypes/voice-input/voiceDiagnostics.ts');
+const diagnosticsModule = load('../src/app/voice/voiceDiagnostics.ts');
 const core = { Injectable: () => target => target, Component: () => target => target, HostListener: () => () => {}, ViewChild: () => () => {} };
-const audioSessionModule = load('../src/app/prototypes/voice-input/voiceAudioSession.service.ts', { '@angular/core': core });
-const audio = load('../src/app/prototypes/voice-input/voiceAudio.ts');
-const captureSettings = load('../src/app/prototypes/voice-input/voiceCaptureSettings.ts');
+const audioSessionModule = load('../src/app/voice/voiceAudioSession.service.ts', { '@angular/core': core });
+const audio = load('../src/app/voice/voiceAudio.ts');
+const captureSettings = load('../src/app/voice/voiceCaptureSettings.ts');
 const wav = (seconds = 1, amplitude = .1) => audio.voiceWav(Float32Array.from({ length: seconds * 16000 }, (_, i) => amplitude * Math.sin(i * .2)));
 const request = (changes = {}) => ({ requestId: '12345678-1234-1234-1234-123456789abc', sourcePage: '/prototypes/voice-input', audio: audio.voiceBase64(wav()), ...changes });
 const valid = request();
@@ -183,7 +183,7 @@ function client(call = () => of({ eventId: 'saved-id', transcript: 'Bonjour' }),
       this.changed.next();
     }
   };
-  const { VoiceInputService } = load('../src/app/prototypes/voice-input/voiceInput.service.ts', {
+  const { VoiceInputService } = load('../src/app/voice/voiceInput.service.ts', {
     '@angular/core': core, './voiceDiagnostics': diagnosticsModule, '@angular/fire/compat/auth': {},
     './voiceAudioSession.service': audioSessionModule, './voiceCaptureSettings': captureSettings, './voiceCapture.service': {}, './voiceQueue.service': {}, './voiceQueueStore.service': {}
   });
@@ -297,7 +297,7 @@ test('capture cancels late microphone grants, drains samples on normal release, 
     Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { mediaDevices: { getUserMedia: () => new Promise(resolve => { grant = resolve; }) } } });
     Object.defineProperty(globalThis, 'AudioContext', { configurable: true, value: Context });
     Object.defineProperty(globalThis, 'AudioWorkletNode', { configurable: true, value: Node });
-    const { VoiceCaptureService } = load('../src/app/prototypes/voice-input/voiceCapture.service.ts', { '@angular/core': core, './voiceAudio': audio, './voiceAudioSession.service': audioSessionModule, './voiceCaptureSettings': captureSettings, './voiceCue': { voiceCue: async () => {} } });
+    const { VoiceCaptureService } = load('../src/app/voice/voiceCapture.service.ts', { '@angular/core': core, './voiceAudio': audio, './voiceAudioSession.service': audioSessionModule, './voiceCaptureSettings': captureSettings, './voiceCue': { voiceCue: async () => {} } });
     const session = new audioSessionModule.VoiceAudioSessionService();
   const capture = new VoiceCaptureService(session);
     const first = capture.start(() => {}, () => {}); capture.cancel(); grant(stream);
@@ -842,7 +842,7 @@ function safariCapture({ stalled = false, permissionPending = false, inputPendin
     ? new Promise(resolve => { grant = () => resolve(stream()); }) : Promise.resolve(stream()); } } } });
   Object.defineProperty(globalThis, 'AudioContext', { configurable: true, value: Context });
   Object.defineProperty(globalThis, 'AudioWorkletNode', { configurable: true, value: Node });
-  const { VoiceCaptureService } = load('../src/app/prototypes/voice-input/voiceCapture.service.ts', { '@angular/core': core, './voiceAudio': audio, './voiceAudioSession.service': audioSessionModule, './voiceCaptureSettings': captureSettings, './voiceCue': { voiceCue: cue } });
+  const { VoiceCaptureService } = load('../src/app/voice/voiceCapture.service.ts', { '@angular/core': core, './voiceAudio': audio, './voiceAudioSession.service': audioSessionModule, './voiceCaptureSettings': captureSettings, './voiceCue': { voiceCue: cue } });
   const session = new audioSessionModule.VoiceAudioSessionService();
   const capture = new VoiceCaptureService(session);
   return { capture, session, contexts, tracks, nodes, sources, constraints, grant: () => grant(), restore() {
@@ -992,7 +992,7 @@ test('raised allowance reuses today counter, counts failures and resets at UTC r
 
 test('radio cues use distinct quiet pitches, fade cleanly and release their audio nodes', async t => {
   t.mock.timers.enable({ apis: ['setTimeout'] });
-  const { voiceCue } = load('../src/app/prototypes/voice-input/voiceCue.ts');
+  const { voiceCue } = load('../src/app/voice/voiceCue.ts');
   for (const [opening, expectedFrequencies, duration] of [[true, [1040], 95], [false, [920], 95]]) {
     const envelope = [], connections = [], frequencies = [], events = [];
     let stopped, disconnected = 0, resolved = false;
@@ -1057,7 +1057,7 @@ test('opening cue follows input readiness and finishes before capture is armed; 
 
 test('stalled cue playback has a 500 ms cleanup deadline', async t => {
   t.mock.timers.enable({ apis: ['setTimeout'] });
-  const { voiceCue } = load('../src/app/prototypes/voice-input/voiceCue.ts');
+  const { voiceCue } = load('../src/app/voice/voiceCue.ts');
   let disconnected = 0, resolved = false;
   const parameter = { setValueAtTime() {}, linearRampToValueAtTime() {} };
   const oscillator = { frequency: parameter, connect() {}, start() {}, stop() {}, disconnect() { disconnected++; } };
@@ -1464,4 +1464,16 @@ test('repeated app returns discard the interrupted playback context before the n
     playback.ngOnDestroy(); f.restore();
     if (original) Object.defineProperty(globalThis, 'document', original); else delete globalThis.document;
   }
+});
+
+test('production capture submits its configured destination and changing chats cancels draining old audio', async () => {
+  let finish;
+  const f = client(undefined, { finish: () => new Promise(resolve => { finish = resolve; }) }), submitted = [];
+  f.service.queue.enqueue = async (_audio, destination) => submitted.push(destination);
+  f.service.setDestination('chat:engineering'); await f.service.press();
+  const draining = f.service.release();
+  f.service.setDestination('chat:design'); finish(wav()); await draining;
+  assert.deepEqual(submitted, []); assert.equal(f.service.phase, 'idle');
+  f.capture.finish = async () => wav(); await f.service.press(); await f.service.release();
+  assert.deepEqual(submitted, ['chat:design']); f.service.ngOnDestroy();
 });

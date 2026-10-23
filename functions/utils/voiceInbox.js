@@ -2,23 +2,28 @@ const { createHash, randomUUID } = require('node:crypto');
 const { VoiceInputError, validateInput } = require('./voiceAudio');
 const { authorizeVoiceConversation, sharedVoiceMessage, VOICE_CONVERSATION, VOICE_PARTICIPANTS } = require('./voiceConversation');
 
+const { voiceChatChain, currentVoiceChat, publishChatVoice } = require('./chatVoice');
+
 const eventIdFor = (uid, requestId) => createHash('sha256').update(uid + ':' + requestId).digest('hex');
 const fail = (code, message, details) => { throw new VoiceInputError(code, message, details); };
 const receipt = event => ({ eventId: event.eventId, status: event.status, ...(event.status === 'completed' ? { transcript: event.transcript } : {}) });
-// Delivery succeeds independently of transcription once validated audio is shared.
-const terminalFailure = (event, code, timestamp) => ({
-  status: event.conversationId === VOICE_CONVERSATION && Number.isFinite(event.audioExpiresAt) ? 'completed' : 'failed',
-  ...(event.conversationId === VOICE_CONVERSATION && Number.isFinite(event.audioExpiresAt) ? { transcript: '' } : {}),
-  failureCode: code, completedAt: timestamp(), processingUntil: 0
-});
+// Published pilot audio and validated production audio survive transcription failure.
+const terminalFailure = (event, code, timestamp) => {
+  const hasAudio = Number.isFinite(event.audioExpiresAt) && (event.conversationId === VOICE_CONVERSATION
+    || voiceChatChain(event.conversationId) && event.audioValidated === true);
+  return { status: hasAudio ? 'completed' : 'failed', ...(hasAudio ? { transcript: '' } : {}),
+    failureCode: code, completedAt: timestamp(), processingUntil: 0 };
+};
 const stale = (event, now) => now - (event.createdAt?.toMillis?.() || 0) >= 120000;
 
 async function enqueueVoiceInput(db, bucket, auth, data, options) {
   if (!auth?.uid) fail('unauthenticated', 'Sign in to record.');
   if (!data || data.owner !== auth.uid) fail('permission-denied', 'Recording owner changed.');
   const { owner, conversationId, ...recording } = data;
-  if (conversationId !== undefined) authorizeVoiceConversation(auth, conversationId);
-  const input = validateInput(recording), now = options.now?.() ?? Date.now();
+  const chain = voiceChatChain(conversationId);
+  if (conversationId !== undefined && !chain) authorizeVoiceConversation(auth, conversationId);
+  const input = validateInput(recording, chain ? '/chat' : '/prototypes/voice-input');
+  const now = options.now?.() ?? Date.now();
   const eventId = eventIdFor(auth.uid, data.requestId), ref = db.doc('VoiceInputEvents/' + eventId);
   const audioPath = `voice-input/${auth.uid}/${eventId}.wav`;
   const event = await db.runTransaction(async tx => {
@@ -37,10 +42,12 @@ async function enqueueVoiceInput(db, bucket, auth, data, options) {
       tx.update(ref, { inboxVersion: 1, audioPath, status: 'receiving', attempts: 1 });
       return adopted;
     }
+    const chat = chain ? await currentVoiceChat(db, chain, tx) : null;
     const limitRef = db.doc('VoiceInputLimits/' + auth.uid), limit = (await tx.get(limitRef)).data() || {};
     const day = new Date(now).toISOString().slice(0, 10), count = limit.day === day ? limit.count || 0 : 0;
-    const dailyLimit = VOICE_PARTICIPANTS.includes(auth.uid)
-      || auth.uid === options.highLimitUid && auth.token?.perrinnAdmin === true ? 1000 : 20;
+    if (chain && chat.chatInputMode !== 'voice') fail('failed-precondition', 'Voice input is not enabled for this chat.');
+    const dailyLimit = chain ? 100 : (VOICE_PARTICIPANTS.includes(auth.uid)
+      || auth.uid === options.highLimitUid && auth.token?.perrinnAdmin === true ? 1000 : 20);
     if (count >= dailyLimit) fail('resource-exhausted', 'Daily recording limit reached.', { reason: 'daily-limit', dailyLimit });
     const created = { eventId, userId: auth.uid, sourcePage: data.sourcePage, createdAt: options.timestamp(),
       ...(conversationId ? { conversationId, requestId: data.requestId, authorName: typeof auth.token?.name === 'string' ? auth.token.name.slice(0, 100) : '' } : {}),
@@ -90,6 +97,7 @@ async function processVoiceInbox(db, bucket, data, options) {
     const limitRef = db.doc('VoiceInputLimits/' + event.userId), limit = (await tx.get(limitRef)).data() || {};
     if (limit.activeUntil > now) throw new Error('Another recording is processing.');
     if ((event.attempts || 0) >= 3) {
+      publishChatVoice(tx, db, event, '', options.timestamp);
       tx.update(ref, terminalFailure(event, 'attempt-limit', options.timestamp)); return null;
     }
     tx.update(ref, { status: 'processing', attempts: (event.attempts || 0) + 1, processingAttempt: attemptId, processingUntil: now + 90000 });
@@ -105,9 +113,19 @@ async function processVoiceInbox(db, bucket, data, options) {
     const file = bucket.file(expectedPath), [metadata] = await file.getMetadata();
     if (!Number.isSafeInteger(Number(metadata.size)) || Number(metadata.size) > 960044 || Number(metadata.size) < 12844) fail('failed-precondition', 'Invalid recording size.');
     const [audio] = await file.download({ start: 0, end: 960044 });
-    const input = validateInput({ requestId: '00000000-0000-0000-0000-000000000000', sourcePage: '/prototypes/voice-input', audio: audio.toString('base64') });
+    const chain = voiceChatChain(reserved.conversationId);
+    const sourcePage = chain ? '/chat' : '/prototypes/voice-input';
+    const input = validateInput({ requestId: '00000000-0000-0000-0000-000000000000', sourcePage, audio: audio.toString('base64') }, sourcePage);
     if (input.fingerprint !== reserved.fingerprint) fail('failed-precondition', 'Invalid recording fingerprint.');
-    if (reserved.conversationId) {
+    if (chain) {
+      const validated = await db.runTransaction(async tx => {
+        const event = (await tx.get(ref)).data();
+        if (event?.processingAttempt !== attemptId || event.status !== 'processing') return false;
+        tx.update(ref, { audioValidated: true, audioExpiresAt: event.createdAt.toMillis() + 7 * 86400000 });
+        return true;
+      }, { maxAttempts: 3 });
+      if (!validated) return;
+    } else if (reserved.conversationId) {
       // Publish only verified stored audio, once, under this worker's lease.
       const published = await db.runTransaction(async tx => {
         const event = (await tx.get(ref)).data();
@@ -128,7 +146,8 @@ async function processVoiceInbox(db, bucket, data, options) {
       const event = (await tx.get(ref)).data();
       if (event?.processingAttempt === attemptId && event.status === 'processing') {
         tx.update(ref, { status: 'completed', transcript, completedAt: options.timestamp(), processingUntil: 0 });
-        if (event.conversationId) {
+        if (chain) publishChatVoice(tx, db, event, transcript.trim(), options.timestamp);
+        else if (event.conversationId) {
           tx.update(db.doc(`VoiceConversations/${event.conversationId}/messages/${event.eventId}`), { text: transcript });
         }
         return true;
@@ -145,6 +164,7 @@ async function processVoiceInbox(db, bucket, data, options) {
       const event = (await tx.get(ref)).data();
       // A success write can commit even if its acknowledgement is lost.
       if (event?.processingAttempt === attemptId && event.status === 'processing') {
+        if (!retry) publishChatVoice(tx, db, event, '', options.timestamp);
         tx.update(ref, retry ? { status: 'queued', processingUntil: 0 }
           : terminalFailure(event, 'transcription-unavailable', options.timestamp));
       } else if (event?.status === 'completed') retry = false;
@@ -166,6 +186,7 @@ async function failExhaustedInbox(db, eventId, timestamp) {
   await db.runTransaction(async tx => {
     const event = (await tx.get(ref)).data();
     if (event?.inboxVersion === 1 && !['completed', 'failed'].includes(event.status)) {
+      publishChatVoice(tx, db, event, '', timestamp);
       tx.update(ref, terminalFailure(event, 'delivery-limit', timestamp));
     }
   }, { maxAttempts: 3 });

@@ -1,10 +1,10 @@
-<main class="chat-page">
+<main class="chat-page" tabindex="-1" (pointerdown)="voice.unlock()" (keydown)="voice.unlock()">
   <div class="chat-viewport">
     <section class="chat-frame" [class.details-open]="detailsOpen" aria-label="Conversation">
       <div class="conversation">
         <header class="chat-header">
           <h1 class="chat-heading">
-            <button #detailsTrigger type="button" class="chat-identity-button" (click)="toggleDetails()" [disabled]="state === 'loading' || !chain || savingDetails || eventSaving || fundSaving || transferBusy" [attr.aria-expanded]="detailsOpen" aria-controls="chat-details" [attr.aria-label]="'Chat details: ' + title">
+            <button #detailsTrigger type="button" class="chat-identity-button" (click)="toggleDetails()" [disabled]="state === 'loading' || !chain || savingDetails || eventSaving || fundSaving || transferBusy || inputSaving" [attr.aria-expanded]="detailsOpen" aria-controls="chat-details" [attr.aria-label]="'Chat details: ' + title">
               <app-user-avatar class="chat-avatar" [name]="title" [sources]="avatarSources" aria-hidden="true"></app-user-avatar>
               <span class="chat-title"><span class="chat-subject">{{ title }}</span>@if (members.length) { <span class="chat-participants">{{ members.length }} participants</span> }</span>
             </button>
@@ -33,7 +33,13 @@
           }
         </div>
         @if (showLatest && state === 'ready') { <button class="latest-button" type="button" (click)="jumpToLatest()">Latest messages ↓</button> }
-        <div class="composer-area"><app-chat-composer [disabled]="!signedIn || sending || !chain || state === 'loading' || state === 'error'" [sending]="sending" (messageSent)="send($event)" /></div>
+        <div class="composer-area">
+          @if (voice.mode === 'voice' && !voice.keyboard && signedIn) {
+            <app-voice-composer [chain]="chain" [disabled]="!chain || state === 'loading' || state === 'error'" (keyboardRequested)="voice.useKeyboard()" />
+          }
+            <app-chat-composer [hidden]="voice.mode === 'voice' && !voice.keyboard && signedIn" [disabled]="!signedIn || sending || !chain || state === 'loading' || state === 'error'" [sending]="sending" [voiceAvailable]="signedIn && voice.mode === 'voice'" (voiceRequested)="voice.useVoice()" (messageSent)="send($event)" />
+          <span class="sr-only" role="status">{{ voice.error }}</span>
+        </div>
         @if (reads.error) { <div class="read-error" role="alert"><span>{{ reads.error }}</span><button type="button" (click)="reads.retry(); retry()">Try again</button></div> }
         @if (sendError) { <p class="inline-error" role="alert">{{ sendError }}</p> }
         @if (!signedIn && chain && state !== 'loading' && state !== 'error') { <p class="composer-status"><a routerLink="/login">Sign in to send</a></p> }
@@ -41,7 +47,7 @@
       </div>
       @if (detailsOpen) {
         <aside id="chat-details" class="chat-details" tabindex="-1" aria-labelledby="details-title" (keydown.escape)="onDetailsEscape($event)">
-          <header><h2 id="details-title">Chat details</h2><button #detailsClose type="button" (click)="closeDetails()" [disabled]="savingDetails || eventSaving || fundSaving || transferBusy" aria-label="Close chat details">×</button></header>
+          <header><h2 id="details-title">Chat details</h2><button #detailsClose type="button" (click)="closeDetails()" [disabled]="savingDetails || eventSaving || fundSaving || transferBusy || inputSaving" aria-label="Close chat details">×</button></header>
           <div class="details-body">
             <div class="chat-identity">
               <app-user-avatar class="details-avatar" [name]="editingDetails ? subjectDraft : title" [sources]="imagePreview ? [imagePreview] : avatarSources" aria-hidden="true"></app-user-avatar>
@@ -61,6 +67,7 @@
               <button #editDetailsButton type="button" class="edit-details" (click)="editDetails()">Edit chat</button>
             } @else { <a class="edit-details" routerLink="/login">Sign in to edit</a> }
             @if (detailsNotice) { <p class="details-notice" role="status">{{ detailsNotice }}</p> }
+            <app-chat-input-settings [chain]="chain" [mode]="voice.mode" (busyChange)="inputSaving = $event" />
             <app-chat-event-editor #eventEditor [chain]="chain" [event]="event" [signedIn]="signedIn" (busyChange)="eventSaving = $event" />
             <app-chat-fund-editor #fundEditor [chain]="chain" [fund]="fund" [signedIn]="signedIn" (busyChange)="fundSaving = $event" />
             <app-prn-send-manager [chain]="chain" [signedIn]="signedIn" [members]="members" (busyChange)="transferBusy = $event" />

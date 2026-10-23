@@ -1,0 +1,4 @@
+@if (permissions.current.ready && permissions.current.isAdmin) {
+  <div class="input-setting"><span>Voice input</span><button type="button" role="switch" aria-label="Voice input" [attr.aria-checked]="mode === 'voice'" [disabled]="saving" (click)="toggle()">{{ mode === 'voice' ? 'On' : 'Off' }}</button></div>
+  @if (error) { <p role="alert">{{ error }}</p> }
+}

@@ -5,10 +5,10 @@ class VoiceInputError extends Error {
 }
 
 // A deliberately narrow format lets us enforce duration before paying a provider.
-function validateInput(data) {
+function validateInput(data, sourcePage = '/prototypes/voice-input') {
   const fail = () => { throw new VoiceInputError('invalid-argument', 'Record between 0.4 and 30 seconds of speech.'); };
   if (!data || Object.keys(data).some(key => !['requestId', 'audio', 'sourcePage'].includes(key))
-    || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(data.requestId || '') || data.sourcePage !== '/prototypes/voice-input'
+    || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(data.requestId || '') || data.sourcePage !== sourcePage
     || typeof data.audio !== 'string' || data.audio.length > 1280060
     || data.audio.length % 4 !== 0 || !/^[A-Za-z0-9+/]*={0,2}$/.test(data.audio)) fail();
   const audio = Buffer.from(data.audio, 'base64');

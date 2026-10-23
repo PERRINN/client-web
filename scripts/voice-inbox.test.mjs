@@ -17,11 +17,21 @@ export const input = (changes = {}) => ({ requestId: randomUUID(), sourcePage: '
 function fixture() {
   const records = new Map(), blobs = new Map(), tasks = new Map(), counts = { reads: 0, writes: 0, provider: 0, saves: 0, downloads: 0 };
   let chain = Promise.resolve(), now = Date.now();
-  const db = { records, doc: path => ({ path }), runTransaction(fn, settings) {
+  const db = { records, collection: name => {
+    assert.equal(name, 'PERRINNMessages'); const filters = [];
+    const query = { where: (...args) => { filters.push(args); return query; }, orderBy: (field, order) => {
+      assert.equal(field, 'serverTimestamp'); assert.equal(order, 'desc'); return query;
+    }, limit: limit => { assert.equal(limit, 1); return query; }, get: async () => {
+      counts.reads++;
+      const docs = [...records].filter(([path, data]) => path.startsWith('PERRINNMessages/') && filters.every(([field, op, value]) => op === '==' && data[field] === value))
+        .sort((a, b) => (b[1].serverTimestamp?.toMillis?.() || 0) - (a[1].serverTimestamp?.toMillis?.() || 0)).slice(0, 1).map(([, data]) => ({ data: () => data }));
+      return { docs, empty: !docs.length };
+    } }; return query;
+  }, doc: path => ({ path }), runTransaction(fn, settings) {
     assert.equal(settings.maxAttempts, 3);
     const pending = chain.then(async () => {
       const changes = [], tx = {
-        get: async ref => { counts.reads++; return { exists: records.has(ref.path), data: () => records.get(ref.path) }; },
+        get: async ref => { if (ref.get) return ref.get(); counts.reads++; return { exists: records.has(ref.path), data: () => records.get(ref.path) }; },
         create: (ref, data) => { assert.ok(!records.has(ref.path)); changes.push([ref.path, data]); },
         set: (ref, data) => changes.push([ref.path, data]),
         update: (ref, data) => { assert.ok(records.has(ref.path)); changes.push([ref.path, { ...records.get(ref.path), ...data }]); }
@@ -276,12 +286,12 @@ async function playableFixture() {
     voicePlayback(f.db, f.bucket, auth, { eventId, automatic }, f.options.now()) };
 }
 const playbackAdmin = { uid: VOICE_ADMIN, token: { perrinnAdmin: true } };
-test('playback denies anonymous, outsider, removed participant and admin without exact claim before reads', async () => {
+test('playback denies anonymous before reads and nonparticipants before audio downloads', async () => {
   const f = await playableFixture(), before = f.counts.reads;
   for (const auth of [null, { uid: 'outsider' }, { uid: 'sPJhQ9lcLRgdKcIitszQp4oi7M23' }, { uid: VOICE_ADMIN }, { uid: VOICE_ADMIN, token: { perrinnAdmin: 1 } }]) {
-    await assert.rejects(f.play(auth), e => e.code === 'permission-denied');
+    await assert.rejects(f.play(auth), e => e.code === (auth ? 'permission-denied' : 'unauthenticated'));
   }
-  assert.equal(f.counts.reads, before);
+  assert.equal(f.counts.reads, before + 4);
 });
 test('one recipient device claims automatic audio; sender never auto downloads and either participant can replay', async () => {
   const f = await playableFixture(), downloads = f.counts.downloads;
@@ -375,4 +385,106 @@ test('added participant audio can be replayed by both other participants', async
     const result = await voicePlayback(f.db, f.bucket, auth, { eventId: receipt.eventId, automatic: false }, f.options.now());
     assert.ok(result.audio);
   }
+});
+
+const { validateChatInputMode } = require('../functions/utils/chatVoice');
+function productionFixture() {
+  const f = fixture();
+  f.records.set('PERRINNMessages/chat-state', { chain: 'engineering', verified: true, chatInputMode: 'voice', recipientList: ['alice', 'bob'], serverTimestamp: f.options.timestamp() });
+  f.request = changes => input({ conversationId: 'chat:engineering', sourcePage: '/chat', ...changes });
+  f.message = id => f.records.get('PERRINNMessages/voice-' + id);
+  return f;
+}
+test('production routing requires an authenticated owner, real enabled chat and matching source', async () => {
+  const f = productionFixture();
+  await assert.rejects(f.enqueue(f.request(), null), e => e.code === 'unauthenticated');
+  await assert.rejects(f.enqueue(f.request(), { uid: 'bob' }), e => e.code === 'permission-denied');
+  await assert.rejects(f.enqueue(f.request({ sourcePage: '/prototypes/voice-input' })), e => e.code === 'invalid-argument');
+  await assert.rejects(f.enqueue(f.request({ conversationId: 'chat:missing' })), e => e.code === 'not-found');
+  await assert.rejects(f.enqueue(f.request({ conversationId: 'chat:../private' })), e => e.code === 'invalid-argument');
+  f.records.get('PERRINNMessages/chat-state').chatInputMode = 'text';
+  await assert.rejects(f.enqueue(f.request()), e => e.code === 'failed-precondition');
+  assert.equal(f.counts.saves, 0); assert.equal(f.tasks.size, 0);
+});
+test('production publishes one full human transcript with trusted recording metadata and no backend label', async () => {
+  const f = productionFixture(), data = f.request();
+  const receipt = await f.enqueue(data);
+  assert.equal(f.message(receipt.eventId), undefined);
+  const transcript = 'Full transcription. '.repeat(100);
+  await f.process(receipt.eventId, { transcribe: async () => transcript });
+  const message = f.message(receipt.eventId), event = f.records.get(eventPath(receipt.eventId));
+  assert.equal(message.text, transcript.trim()); assert.ok(message.text.length > 500);
+  assert.equal(message.user, 'alice'); assert.equal(message.chain, 'engineering'); assert.equal(message.isBackendMessage, undefined);
+  assert.equal(message.voice.eventId, receipt.eventId); assert.equal(message.voice.durationMs, 1000);
+  assert.equal(message.voice.expiresAt, event.createdAt.toMillis() + 7 * 86400000);
+  assert.equal(message.voice.transcription, 'completed'); assert.equal(message.chatInputMode, undefined);
+  assert.ok(f.blobs.size); const writes = f.counts.writes;
+  await f.process(receipt.eventId); await f.enqueue(data); assert.equal(f.counts.writes, writes);
+  const reused = f.request({ requestId: data.requestId, conversationId: 'chat:other' });
+  f.records.set('PERRINNMessages/other-state', { ...f.records.get('PERRINNMessages/chat-state'), chain: 'other' });
+  await assert.rejects(f.enqueue(reused), e => e.code === 'invalid-argument');
+});
+test('transcription exhaustion and final task exhaustion publish one audio-only production message', async () => {
+  const f = productionFixture(), { eventId } = await f.enqueue(f.request());
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const work = f.process(eventId, { transcribe: async () => { throw Error('Provider down'); } });
+    if (attempt < 2) { await assert.rejects(work); assert.equal(f.message(eventId), undefined); }
+    else await work;
+  }
+  assert.equal(f.records.get(eventPath(eventId)).status, 'completed');
+  assert.equal(f.message(eventId).voice.transcription, 'unavailable'); assert.equal(f.message(eventId).text, '');
+  await failExhaustedInbox(f.db, eventId, f.options.timestamp); await f.process(eventId);
+  const g = productionFixture(), receipt = await g.enqueue(g.request());
+  await assert.rejects(g.process(receipt.eventId, { transcribe: async () => { throw Error('Provider down'); } }));
+  await failExhaustedInbox(g.db, receipt.eventId, g.options.timestamp);
+  assert.equal(g.message(receipt.eventId).voice.transcription, 'unavailable');
+});
+test('empty transcription delivers audio; corrupt stored production audio is never published', async () => {
+  const f = productionFixture(), receipt = await f.enqueue(f.request());
+  await f.process(receipt.eventId, { transcribe: async () => '' });
+  assert.equal(f.message(receipt.eventId).voice.transcription, 'unavailable');
+  const g = productionFixture(), bad = await g.enqueue(g.request());
+  g.blobs.values().next().value.bytes.fill(0);
+  await g.process(bad.eventId); assert.equal(g.message(bad.eventId), undefined);
+  assert.equal(g.records.get(eventPath(bad.eventId)).status, 'failed');
+});
+test('production allowance is 100 across chat destinations, including admins, and replays are free', async () => {
+  for (const uid of ['alice', VOICE_ADMIN, ...VOICE_PARTICIPANTS]) {
+    const f = productionFixture(), day = new Date(f.options.now()).toISOString().slice(0, 10);
+    f.records.set('PERRINNMessages/other-state', { ...f.records.get('PERRINNMessages/chat-state'), chain: 'other' });
+    f.records.set('VoiceInputLimits/' + uid, { day, count: 99 });
+    const data = f.request({ owner: uid }), auth = { uid, token: { perrinnAdmin: true } };
+    await f.enqueue(data, auth); await f.enqueue(data, auth);
+    await assert.rejects(f.enqueue(f.request({ owner: uid, conversationId: 'chat:other' }), auth), e => e.details.dailyLimit === 100);
+    f.records.get('PERRINNMessages/chat-state').chatInputMode = 'text';
+    await f.enqueue(data, auth); // Disabling new input does not invalidate an existing durable receipt.
+    f.advance(86400000); f.records.get('PERRINNMessages/chat-state').chatInputMode = 'voice';
+    await f.enqueue(f.request({ owner: uid }), auth); assert.equal(f.records.get('VoiceInputLimits/' + uid).count, 1);
+  }
+});
+test('production playback and download use current recipients, independent autoplay and seven-day expiry', async () => {
+  const f = productionFixture(), receipt = await f.enqueue(f.request()); await f.process(receipt.eventId);
+  const play = (uid, automatic = false) => voicePlayback(f.db, f.bucket, uid ? { uid } : null, { eventId: receipt.eventId, automatic }, f.options.now());
+  await assert.rejects(play(null), e => e.code === 'unauthenticated');
+  await assert.rejects(play('outsider'), e => e.code === 'permission-denied');
+  assert.deepEqual(await play('alice', true), { skipped: true });
+  assert.ok((await play('bob', true)).audio);
+  f.records.get('PERRINNMessages/chat-state').recipientList.push('carol');
+  assert.ok((await play('carol', true)).audio); assert.ok((await play('carol', false)).audio);
+  f.records.get('PERRINNMessages/chat-state').recipientList = ['alice']; const downloads = f.counts.downloads;
+  await assert.rejects(play('bob'), e => e.code === 'permission-denied'); assert.equal(f.counts.downloads, downloads);
+  f.advance(7 * 86400000); await assert.rejects(play('alice'), e => e.code === 'not-found');
+  assert.ok(f.message(receipt.eventId).text); assert.ok(f.message(receipt.eventId).voice);
+});
+test('input mode commands require an exact trusted admin claim; ordinary messages need no role lookup', async () => {
+  let reads = 0;
+  const auth = claims => ({ getUser: async uid => { assert.equal(uid, 'alice'); reads++; return { customClaims: claims }; } });
+  await validateChatInputMode({ user: 'alice' }, auth({})); assert.equal(reads, 0);
+  for (const mode of ['text', 'voice']) {
+    for (const claims of [{}, { perrinnAdmin: 'true' }, { perrinnAdmin: 1 }]) {
+      await assert.rejects(validateChatInputMode({ user: 'alice', chatInputMode: mode }, auth(claims)), e => e.code === 'permission-denied');
+    }
+    await validateChatInputMode({ user: 'alice', chatInputMode: mode }, auth({ perrinnAdmin: true }));
+  }
+  await assert.rejects(validateChatInputMode({ user: 'alice', chatInputMode: 'other' }, auth({ perrinnAdmin: true })));
 });

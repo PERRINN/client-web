@@ -1,0 +1,17 @@
+<div class="voice-composer">
+  <button class="voice-dock" type="button" [disabled]="disabled || !voice.canToggle" [class.recording]="voice.phase === 'recording'"
+    [attr.aria-pressed]="voice.phase === 'recording' || voice.phase === 'requesting'" [attr.aria-label]="voice.label + ' · P to toggle · Hold to talk · 30 seconds maximum'"
+    [attr.title]="status" aria-keyshortcuts="p" (pointerdown)="pointerDown($event)" (pointerup)="pointerUp($event)"
+    (pointercancel)="pointerCancel($event)" (lostpointercapture)="pointerCancel($event)" (keydown)="keyDown($event)"
+    (blur)="interrupt()" (contextmenu)="$event.preventDefault()" (click)="$event.detail === 0 && toggle()">
+    @if (error && !voice.busy) { <span class="error">{{ error }}</span> }
+    @else {
+      @if (voice.phase === 'recording') {
+        <span class="waveform" aria-hidden="true">@for (level of voice.levels; track $index) { <i [style.height.px]="4 + level * 24"></i> }</span>
+      }
+      <span class="mic" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 11v1a6 6 0 0 0 12 0v-1M12 18v3M9 21h6"/></svg></span>
+    }
+  </button>
+  <button class="keyboard" type="button" aria-label="Use keyboard" title="Use keyboard" (click)="keyboard()"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M5 9h2m2 0h2m2 0h2m2 0h2M5 12h2m2 0h2m2 0h2m2 0h2M7 16h10"/></svg></button>
+</div>
+<span class="sr-only" role="status">{{ status }}</span>

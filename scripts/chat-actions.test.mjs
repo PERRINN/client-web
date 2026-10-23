@@ -8,7 +8,7 @@ const require = createRequire(import.meta.url);
 function load(path, overrides = {}) {
   const code = ts.transpileModule(readFileSync(new URL(path, import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, experimentalDecorators: true } }).outputText;
   const exports = {};
-  new Function('exports', 'require', code)(exports, name => overrides[name] || require(name));
+  new Function('exports', 'require', code)(exports, name => overrides[name] || (name.startsWith('../voice/') || name === './chatVoice.service' ? {} : require(name)));
   return exports;
 }
 class Emitter { values = []; emit(value) { this.values.push(value); } }
@@ -34,7 +34,7 @@ test('latest-message visibility stays stable during rendering and refreshes afte
   const flush = () => { while (frames.length) frames.shift()(); };
   try {
     const component = new ChatComponent({ paramMap: of({ get: () => null }), snapshot: { queryParamMap: { get: () => null } } }, {}, {},
-      { latestHuman: of({ status: 'loading' }) }, zone, { reset() {} });
+      { latestHuman: of({ status: 'loading' }) }, zone, { reset() {} }, undefined, { configure() {} });
     const list = { clientHeight: 500, scrollHeight: 1500, top: 0,
       get scrollTop() { return this.top; }, set scrollTop(value) { this.top = Math.max(0, Math.min(value, this.scrollHeight - this.clientHeight)); } };
     component.messageList = { nativeElement: list };

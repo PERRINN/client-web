@@ -269,7 +269,7 @@ export class VoiceQueueService implements OnDestroy {
     // IndexedDB and Blob preparation as well.
     attempt.stage = 'Uploading';
     const receipt = await firstValueFrom(this.functions.httpsCallable<{ requestId: string; sourcePage: string; audio: string; owner: string; conversationId?: string }, Receipt>('voiceInputEnqueue', { timeout: 65000 })({
-      requestId: claimed.id, sourcePage: '/prototypes/voice-input', audio, owner: claimed.owner, ...(claimed.conversationId ? { conversationId: claimed.conversationId } : {})
+      requestId: claimed.id, sourcePage: claimed.conversationId?.startsWith('chat:') ? '/chat' : '/prototypes/voice-input', audio, owner: claimed.owner, ...(claimed.conversationId ? { conversationId: claimed.conversationId } : {})
     }).pipe(timeout({ first: 65000 }), takeUntil(merge(this.cancelled, attempt.stopped))));
     if (!live()) return;
     if (!receipt?.eventId || !/^[a-f0-9]{64}$/.test(receipt.eventId) || !['queued', 'completed', 'failed'].includes(receipt.status)) throw new Error('Invalid receipt');

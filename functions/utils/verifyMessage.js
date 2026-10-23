@@ -3,6 +3,7 @@ const createMessageUtils = require('./createMessage')
 const admin = require('firebase-admin');
 const { validateFundCommand } = require('./fundCommand');
 const { resolveFund } = require('./fundState');
+const { validateChatInputMode } = require('./chatVoice');
 
 module.exports = {
 
@@ -15,6 +16,7 @@ module.exports = {
     var batch = firestore.batch();
 
     try{
+      if (!(reprocessing && messageData.verified === true)) await validateChatInputMode(messageData, admin.auth());
       // Only the trusted daily caller opts in; a client field cannot enable this path.
       const correctedRaised = reprocessing && messageData.verified === true
         ? messageData.fund?.amountGBPRaised
@@ -124,6 +126,11 @@ module.exports = {
         }
       })
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{lastMessage:chatLastMessage})
+
+      // Input mode is chat state; voice metadata belongs only to its own message.
+      batch.update(admin.firestore().doc('PERRINNMessages/'+messageId), {
+        chatInputMode: messageData.chatInputMode || chatPreviousMessageData.chatInputMode || 'text'
+      });
 
       //message chat Subject
       if(messageData.chain==user)messageData.chatSubject=messageData.name||userPreviousMessageData.name||"user"

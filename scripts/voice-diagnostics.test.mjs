@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import ts from 'typescript';
 const exports = {};
-new Function('exports', ts.transpileModule(readFileSync(new URL('../src/app/prototypes/voice-input/voiceDiagnostics.ts', import.meta.url), 'utf8'), {
+new Function('exports', ts.transpileModule(readFileSync(new URL('../src/app/voice/voiceDiagnostics.ts', import.meta.url), 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
 }).outputText)(exports);
 const { voiceDiagnosticRows: rows, voiceDiagnosticCode: code, VoiceKeyDiagnostics } = exports;

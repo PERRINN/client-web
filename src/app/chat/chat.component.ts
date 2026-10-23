@@ -1,3 +1,8 @@
+import { VoiceInputService } from '../voice/voiceInput.service';
+import { VoiceCaptureService } from '../voice/voiceCapture.service';
+import { VoiceQueueService } from '../voice/voiceQueue.service';
+import { VoiceAudioSessionService } from '../voice/voiceAudioSession.service';
+import { ChatVoiceService } from './chatVoice.service';
 import { ImageViewerService } from '../image-viewer/imageViewer.service';
 import { ChatEvent } from './chat-event/chatEvent';
 import { ChatFund } from './chat-fund/chatFund';
@@ -15,7 +20,7 @@ import { ChatDataService } from './chatData.service';
 
 @Component({
   selector: 'app-chat',
-  providers: [ChatReadService],
+  providers: [ChatReadService, VoiceAudioSessionService, VoiceCaptureService, VoiceQueueService, VoiceInputService, ChatVoiceService],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.css'],
   standalone: false
@@ -27,6 +32,7 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
   fund: ChatFund | null = null;
   fundSaving = false;
   transferBusy = false;
+  inputSaving = false;
   get viewerName(): string { return this.signedIn ? this.data.viewerName : ''; }
   timeCreditAmount(amount: number): string { return this.data.timeCreditAmount(amount); }
   @ViewChild('fundEditor') fundEditor?: ChatFundEditorComponent;
@@ -71,12 +77,13 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
   private messageSubscription?: Subscription;
   private latestSubscription?: Subscription;
 
-  constructor(private route: ActivatedRoute, private router: Router, private data: ChatDataService, private sidebar: SidebarConversationsService, private zone: NgZone, public readonly reads: ChatReadService, private imageViewer: ImageViewerService) {
+  constructor(private route: ActivatedRoute, private router: Router, private data: ChatDataService, private sidebar: SidebarConversationsService, private zone: NgZone, public readonly reads: ChatReadService, private imageViewer: ImageViewerService, public voice: ChatVoiceService) {
     this.subscriptions.add(route.paramMap.subscribe(params => {
       this.messageSubscription?.unsubscribe(); this.latestSubscription?.unsubscribe(); this.reads.reset();
       this.resetDetailsEditor(); this.savingDetails = false; this.detailsNotice = '';
       this.event = null; this.eventSaving = false; this.fund = null; this.fundSaving = false; this.transferBusy = false;
       this.chain = params.get('id') || ''; this.messages = []; this.members = [];
+      this.voice.configure(this.chain, 'text', '', [], []); this.inputSaving = false;
       this.state = 'loading'; this.title = 'Conversation'; this.avatarSources = []; this.unreadId = '';
       this.detailsOpen = false; this.awayFromLatest = false; this.showLatest = false; this.sendError = ''; this.loadMoreError = '';
       this.hasMore = false; this.loadingMore = false; this.pendingAnchor = undefined; this.composer?.clearDraft();
@@ -103,6 +110,7 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
       next: chat => this.zone.run(() => {
         const stick = !this.awayFromLatest, entering = this.state === 'loading';
         this.event = chat.event; this.fund = chat.fund; this.messages = chat.messages; this.title = chat.title; this.members = chat.members; this.avatarSources = chat.avatarSources;
+        this.voice.configure(this.chain, chat.inputMode, chat.userId || '', chat.voiceRecipients, chat.messages);
         this.unreadId = this.reads.update(this.chain, chat); this.hasMore = chat.hasMore; this.signedIn = chat.signedIn;
         if (!chat.signedIn && this.editingDetails) this.resetDetailsEditor();
         this.loadingMore = false; this.loadMoreError = ''; this.state = this.messages.length ? 'ready' : 'empty';
@@ -274,7 +282,7 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
   }
 
   closeDetails(): void {
-    if (this.savingDetails || this.eventSaving || this.fundSaving || this.transferBusy) return;
+    if (this.savingDetails || this.eventSaving || this.fundSaving || this.transferBusy || this.inputSaving) return;
     this.resetDetailsEditor(); this.detailsNotice = '';
     this.detailsOpen = false; this.reads.paused = false; this.reads.scan();
     requestAnimationFrame(() => this.detailsTrigger?.nativeElement.focus());

@@ -8,6 +8,7 @@
   }
   <div class="composer-controls">
     <input #imagePicker class="file-input" type="file" accept="image/png,image/jpeg,image/gif,image/webp" [disabled]="disabled" (change)="onFileChange($event)" aria-label="Choose an image">
+    @if (voiceAvailable) { <button type="button" class="attach-button" [disabled]="disabled" aria-label="Use voice" title="Use voice" (click)="voiceRequested.emit()"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 11v1a6 6 0 0 0 12 0v-1M12 18v3M9 21h6"/></svg></button> }
     <button class="attach-button" type="button" (click)="imagePicker.click()" [disabled]="disabled" aria-label="Attach an image" title="Attach an image"><span aria-hidden="true"></span></button>
     <textarea #messageInput [(ngModel)]="draft" [disabled]="disabled" rows="1" maxlength="500" placeholder="Type a message" aria-label="Type a message" (input)="resizeInput(messageInput)" (keydown)="onInputKeydown($event)"></textarea>
     @if (draft.trim() || imageUrl) {

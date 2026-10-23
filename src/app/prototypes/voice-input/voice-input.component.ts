@@ -2,13 +2,13 @@ import { AfterViewChecked, ChangeDetectorRef, Component, ElementRef, HostListene
 import { Subscription } from 'rxjs';
 import { friendlyDateLabel } from '../../chat/chatDate';
 import { VoiceAuthorService } from './voiceAuthor.service';
-import { VoiceAudioSessionService } from './voiceAudioSession.service';
+import { VoiceAudioSessionService } from '../../voice/voiceAudioSession.service';
 import { VoicePlaybackService } from './voicePlayback.service';
-import { VoiceCaptureService } from './voiceCapture.service';
-import { VoiceInputService, VoiceReply } from './voiceInput.service';
+import { VoiceCaptureService } from '../../voice/voiceCapture.service';
+import { VoiceInputService, VoiceReply } from '../../voice/voiceInput.service';
 import { VoiceConversationService, VoiceMessage } from './voiceConversation.service';
-import { VoiceQueueService } from './voiceQueue.service';
-import { VoiceDiagnosticRow, VoiceKeyDiagnostics, voiceDiagnosticRows } from './voiceDiagnostics';
+import { VoiceQueueService } from '../../voice/voiceQueue.service';
+import { VoiceDiagnosticRow, VoiceKeyDiagnostics, voiceDiagnosticRows } from '../../voice/voiceDiagnostics';
 
 interface ConversationEntry { id: string; createdAt: number; message?: VoiceMessage; reply?: VoiceReply; dayStart?: boolean; continued?: boolean }
 

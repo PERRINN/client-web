@@ -28,12 +28,14 @@ export class ChatDataService {
       ).snapshotChanges();
       return combineLatest([messages, cursor]).pipe(map(([rows, seen]) => {
         const latest = rows.find(row => row.payload.doc.data().lastMessage)?.payload.doc.data() || rows[0]?.payload.doc.data() || {};
+        const verified = rows.find(row => row.payload.doc.data().verified === true)?.payload.doc.data();
         const records = new Map(rows.map(row => [row.payload.doc.id, row.payload.doc.data()]));
         const messages = [...rows].reverse().map(row => {
           const record = row.payload.doc.data();
           return bubbleMessage(row.payload.doc.id, record, user?.uid || null, records.get(record.transactionIn?.message || ''));
         });
         return {
+          inputMode: verified?.chatInputMode === 'voice' ? 'voice' as const : 'text' as const, voiceRecipients: verified?.recipientList || [],
           messages, event: chatEvent(latest), fund: chatFund(latest), title: latest.chatSubject || 'Conversation', members: chatMembers(latest, user?.uid || null),
           avatarSources: [latest.chatProfileImageUrlThumb, latest.chatProfileImageUrlMedium, latest.chatProfileImageUrlOriginal].filter((url): url is string => !!url),
           unreadId: firstUnread(messages, seen?.timestamp || 0, seen?.messageId), userId: user?.uid || null, seen, cursorUnavailable: !!user && seen === null, hasMore: rows.length === limit, signedIn: !!user
@@ -80,6 +82,16 @@ export class ChatDataService {
       text: draft.text.trim(), chain, chatImageTimestamp: image.timestamp,
       chatImageUrlThumb: image.url, chatImageUrlMedium: image.url, chatImageUrlOriginal: image.url
     });
+  }
+
+  async updateInputMode(chain: string, mode: 'text' | 'voice'): Promise<void> {
+    const uid = await this.requireSender(), user = await this.auth.currentUser;
+    const token = await user?.getIdTokenResult();
+    if (!chain || !['text', 'voice'].includes(mode) || token?.claims['sub'] !== uid || token?.claims['perrinnAdmin'] !== true) {
+      throw new Error('Admin permission is required to change chat input.');
+    }
+    await this.checkSender(uid);
+    await this.createMessage(uid, { chain, chatInputMode: mode, text: mode === 'voice' ? 'Enabled voice input' : 'Enabled text input' });
   }
 
   async updateDetails(chain: string, changes: { subject?: string; image?: File }): Promise<void> {

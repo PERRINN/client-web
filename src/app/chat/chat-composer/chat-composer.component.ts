@@ -12,6 +12,8 @@ export interface ChatDraft { text: string; image: File | null; }
 export class ChatComposerComponent implements OnDestroy {
   @Input() disabled = false;
   @Input() sending = false;
+  @Input() voiceAvailable = false;
+  @Output() voiceRequested = new EventEmitter<void>();
   uploadProgress: number | null = null;
   @Output() messageSent = new EventEmitter<ChatDraft>();
   @ViewChild('messageInput') messageInput?: ElementRef<HTMLTextAreaElement>;

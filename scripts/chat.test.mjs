@@ -10,7 +10,7 @@ function load(path, overrides = {}) {
   const source = readFileSync(new URL(path, import.meta.url), 'utf8');
   const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, experimentalDecorators: true } }).outputText;
   const exports = {};
-  new Function('exports', 'require', code)(exports, name => overrides[name] || require(name));
+  new Function('exports', 'require', code)(exports, name => overrides[name] || (name.startsWith('../voice/') || name === './chatVoice.service' ? {} : require(name)));
   return exports;
 }
 const funds = load('../src/app/chat/chat-fund/chatFund.ts');
@@ -524,7 +524,7 @@ test('Chat opens with 30 messages and delays Latest until beyond a viewport with
   const limits = [];
   const data = { watch: (chain, limit) => { limits.push(limit); return of(); } };
   const route = { paramMap: of({ get: () => 'chat' }), snapshot: { queryParamMap: { get: () => '' } } };
-  const component = new ChatComponent(route, {}, data, {}, { run: fn => fn() }, { reset() {} });
+  const component = new ChatComponent(route, {}, data, {}, { run: fn => fn() }, { reset() {} }, undefined, { configure() {} });
   try {
     assert.deepEqual(limits, [30]);
     const list = { scrollHeight: 3000, clientHeight: 600, scrollTop: 2250 };
@@ -537,7 +537,7 @@ test('Chat opens with 30 messages and delays Latest until beyond a viewport with
     list.scrollTop = 2499; component.onScroll(); assert.equal(component.showLatest, true);
     component.loadMore(); assert.deepEqual(limits, [30, 45]);
     route.snapshot.queryParamMap.get = () => 'message';
-    const linked = new ChatComponent(route, {}, data, {}, { run: fn => fn() }, { reset() {} });
+    const linked = new ChatComponent(route, {}, data, {}, { run: fn => fn() }, { reset() {} }, undefined, { configure() {} });
     assert.equal(limits.at(-1), 100); linked.ngOnDestroy();
   } finally { component.ngOnDestroy(); }
 });
@@ -957,12 +957,12 @@ test('chat entry uses canonical navigation and preserves meaningful empty/error 
   const route = id => ({ paramMap: of({ get: () => id }), snapshot: { queryParamMap: { get: () => '' } } });
   for (const state of [{ status: 'ready', chain: 'latest' }, { status: 'ready', chain: '' }, { status: 'error', chain: '' }]) {
     const calls = [];
-    const component = new ChatComponent(route(''), { navigate: (...args) => calls.push(args) }, {}, { latestHuman: of(state) }, zone, reads);
+    const component = new ChatComponent(route(''), { navigate: (...args) => calls.push(args) }, {}, { latestHuman: of(state) }, zone, reads, undefined, { configure() {} });
     if (state.chain) assert.deepEqual(calls, [[['/chat', 'latest'], { replaceUrl: true }]]);
     else assert.equal(component.state, state.status === 'error' ? 'error' : 'empty');
     component.ngOnDestroy();
   }
-  const broken = new ChatComponent(route('chat'), {}, { watch: () => throwError(() => Error('offline')) }, {}, zone, reads);
+  const broken = new ChatComponent(route('chat'), {}, { watch: () => throwError(() => Error('offline')) }, {}, zone, reads, undefined, { configure() {} });
   assert.equal(broken.state, 'error'); broken.ngOnDestroy();
 });
 
@@ -1143,4 +1143,23 @@ test('end fund requires confirmation, blocks role loss and stale state, and reta
     editor.askEnd();editor.fund={...editor.fund,closesAt:Date.now()-1};editor.ngOnChanges();await editor.end();assert.equal(calls.length,2);
     editor.fund=sampleFund;editor.ngOnChanges();editor.askEnd();editor.signedIn=false;editor.ngOnChanges();assert.equal(editor.confirmation,null);
   } finally {editor.ngOnDestroy();globalThis.requestAnimationFrame=oldRAF;}
+});
+
+test('input mode reads only verified loaded state and voice metadata remains on the individual message', async () => {
+  const f = fixture();
+  f.rows[0].payload.doc.data = () => ({ chain: 'chat', chatInputMode: 'text', lastMessage: true, verified: false, recipientList: ['intruder'] });
+  f.rows[1].payload.doc.data = () => ({ chain: 'chat', chatInputMode: 'voice', verified: true, user: 'other', recipientList: ['owner', 'other'], voice: { eventId: 'known', durationMs: 1000, expiresAt: 123, transcription: 'completed' } });
+  const chat = await firstValueFrom(f.service.watch('chat', 30));
+  assert.equal(chat.inputMode, 'voice'); assert.deepEqual(chat.voiceRecipients, ['owner', 'other']);
+  assert.equal(chat.messages[0].voice.eventId, 'known'); assert.equal(chat.messages[1].voice, undefined);
+  assert.deepEqual(f.queries.filter(row => row[0] === 'limit'), [['limit', 30]]);
+});
+test('admin mode changes submit normal message-state commands, while nonadmins and switched accounts cannot write them', async () => {
+  const f = fixture();
+  await f.service.updateInputMode('chat', 'voice');
+  assert.deepEqual(f.writes[0], { chain: 'chat', chatInputMode: 'voice', text: 'Enabled voice input' });
+  f.auth.currentUser = Promise.resolve({ uid: 'owner', getIdTokenResult: async () => ({ claims: { sub: 'owner', perrinnAdmin: 'true' } }) });
+  await assert.rejects(f.service.updateInputMode('chat', 'text'), /Admin permission/); assert.equal(f.writes.length, 1);
+  f.auth.currentUser = Promise.resolve({ uid: 'other', getIdTokenResult: async () => ({ claims: { sub: 'other', perrinnAdmin: true } }) });
+  await assert.rejects(f.service.updateInputMode('chat', 'text'), /Sign in/);
 });

@@ -45,11 +45,11 @@ test('malformed amounts and disguised cancellation fail before Auth or verificat
   assert.deepEqual(account.calls, []);
 });
 
-async function verifyFixture({ fund, previousRaised = 125, adminClaim = false, verified = false, options } = {}) {
+async function verifyFixture({ fund, previousRaised = 125, adminClaim = false, verified = false, options, mode, previousMode } = {}) {
   const { readFileSync } = await import('node:fs');
   const { runInNewContext } = await import('node:vm');
   const updates = [], logs = [], authCalls = [];
-  const previous = { name: 'Alex', emails: { auth: 'person@example.test' }, verifiedTimestamp: { seconds: 1799999999 },
+  const previous = { chatInputMode: previousMode, name: 'Alex', emails: { auth: 'person@example.test' }, verifiedTimestamp: { seconds: 1799999999 },
     serverTimestamp: 1, wallet: { balance: 100 }, fund: { description: 'Testing', amountGBPTarget: 1000, amountGBPRaised: previousRaised, daysLeft: 30 } };
   const doc = { id: 'previous', data: () => previous }, snapshot = docs => ({ docs, forEach: fn => docs.forEach(fn) });
   const db = { batch: () => ({ update: (path, fields) => updates.push({ path, fields }), commit: async () => {} }), doc: path => path,
@@ -62,10 +62,10 @@ async function verifyFixture({ fund, previousRaised = 125, adminClaim = false, v
     firestore: Object.assign(() => db, { FieldValue: { arrayUnion: value => [value], serverTimestamp: () => 'server-time' } }) };
   const module = { exports: {} };
   runInNewContext(readFileSync(new URL('../functions/utils/verifyMessage.js', import.meta.url), 'utf8'), {
-    module, require: name => ({ 'firebase-admin': admin, 'firebase-admin/firestore': { getFirestore: () => db }, './createMessage': {}, './fundCommand': { validateFundCommand }, './fundState': require('../functions/utils/fundState') })[name],
+    module, require: name => ({ 'firebase-admin': admin, 'firebase-admin/firestore': { getFirestore: () => db }, './createMessage': {}, './chatVoice': require('../functions/utils/chatVoice'), './fundCommand': { validateFundCommand }, './fundState': require('../functions/utils/fundState') })[name],
     Date: class extends Date { static now() { return 1800000000000; } }, console: { log: message => logs.push(message) }
   });
-  await module.exports.verifyMessage('new', { user: 'person', chain: 'chat', name: 'Alex', text: 'Testing', serverTimestamp: 2, verified, ...(fund === undefined ? {} : { fund }) }, options);
+  await module.exports.verifyMessage('new', { user: 'person', chain: 'chat', name: 'Alex', text: 'Testing', serverTimestamp: 2, verified, ...(fund === undefined ? {} : { fund }), ...(mode === undefined ? {} : { chatInputMode: mode }) }, options);
   return { fund: updates.find(update => update.fields.fund)?.fields.fund, updates, logs, authCalls };
 }
 
@@ -125,4 +125,20 @@ test('full verifier enforces admin-only ending and preserves totals without mark
   }
   const denied=await verifyFixture({fund:{closesAt}});
   assert.equal(denied.updates.length,0);assert.deepEqual(denied.authCalls,['person']);
+});
+
+// Exercise the real verifier, including its inherited chat-state update.
+test('input mode commands are admin-only and subsequent ordinary/voice messages inherit the mode', async () => {
+  for (const mode of ['voice', 'text']) {
+    const allowed = await verifyFixture({ mode, adminClaim: true });
+    assert.ok(allowed.updates.some(row => row.fields.chatInputMode === mode));
+    const denied = await verifyFixture({ mode });
+    assert.equal(denied.updates.length, 0);
+  }
+  for (const previousMode of [undefined, 'voice', 'text']) {
+    const result = await verifyFixture({ previousMode });
+    assert.ok(result.updates.some(row => row.fields.chatInputMode === (previousMode || 'text')));
+    assert.deepEqual(result.authCalls, []);
+    assert.ok(result.updates.some(row => row.fields.verified === true));
+  }
 });

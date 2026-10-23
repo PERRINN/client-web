@@ -105,6 +105,12 @@ User photos share the `app-user-avatar` component. It tries the supplied stored 
 
 The root app component provides the shared navigation and layout. The router renders the page components; on chat routes, the app shell also displays a profile side panel. Most app-wide data and shared behavior are handled by `UserInterfaceService`.
 
+## Voice chat
+
+Production chat defaults to text. Admins can enable Voice input in Chat details; contributors can temporarily use the keyboard. Recordings are limited to 30 seconds and 100 accepted submissions per person per UTC day. Transcriptions become normal chat messages automatically. Only current recipients can play/download recordings, which remain available for seven days. The private pilot remains at `/prototypes/voice-input`.
+
+Contracts, security, query/work limits and release order are documented in [data-model.md → Production voice chat](data-model.md#production-voice-chat); interactions follow [ui-spec.md → Production chat](ui-spec.md#production-chat). Run `npm run test:chat-voice` for production voice processing/playback regressions, alongside the existing voice/chat and emulator checks. Physical microphone and phone audio checks remain necessary before release.
+
 ## Firebase backend
 
 Participation is open: no membership, PRN balance or payment is required. Contributions of time, funds, hardware, services and software are voluntary. The Team lists contributors with a PRN balance greater than zero, ordered by balance descending, in pages of up to 200 profiles, with Load more. The Team page has compact contributor cards and a responsive list, with name-and-bio search across loaded profiles. Contributors remain ordered by highest PRN balance. Names open the existing contributor profile routes. The funding page offers voluntary 10, 25, 50, 100 and 250 presets in the selected currency. Run `npm run test:participation` for focused registration, Team, funding and daily-refresh regressions.

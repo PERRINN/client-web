@@ -17,21 +17,21 @@ function load(path, overrides = {}) {
   return exports;
 }
 let inInjectionContext = false;
-const diagnosticsModule = load('../src/app/prototypes/voice-input/voiceDiagnostics.ts');
+const diagnosticsModule = load('../src/app/voice/voiceDiagnostics.ts');
 const core = { Injectable: () => value => value, runInInjectionContext: (_injector, fn) => {
   const previous = inInjectionContext; inInjectionContext = true;
   try { return fn(); } finally { inInjectionContext = previous; }
 } };
-const storeModule = load('../src/app/prototypes/voice-input/voiceQueueStore.service.ts', { '@angular/core': core });
+const storeModule = load('../src/app/voice/voiceQueueStore.service.ts', { '@angular/core': core });
 const { VoiceQueueStore, VOICE_QUEUE_LIMIT, VOICE_REQUEST_LIMIT } = storeModule;
-const { VoiceQueueService } = load('../src/app/prototypes/voice-input/voiceQueue.service.ts', {
+const { VoiceQueueService } = load('../src/app/voice/voiceQueue.service.ts', {
   '@angular/core': core, './voiceDiagnostics': diagnosticsModule, '@angular/fire/compat/auth': {}, '@angular/fire/compat/functions': {}, '@angular/fire/compat/firestore': {},
-  './voiceQueueStore.service': storeModule, './voiceAudio': load('../src/app/prototypes/voice-input/voiceAudio.ts')
+  './voiceQueueStore.service': storeModule, './voiceAudio': load('../src/app/voice/voiceAudio.ts')
 });
-const { VoiceInputService } = load('../src/app/prototypes/voice-input/voiceInput.service.ts', {
+const { VoiceInputService } = load('../src/app/voice/voiceInput.service.ts', {
   '@angular/core': core, './voiceDiagnostics': diagnosticsModule, '@angular/fire/compat/auth': {}, './voiceQueue.service': { VoiceQueueService },
   './voiceQueueStore.service': storeModule, './voiceCapture.service': {},
-  './voiceCaptureSettings': load('../src/app/prototypes/voice-input/voiceCaptureSettings.ts')
+  './voiceCaptureSettings': load('../src/app/voice/voiceCaptureSettings.ts')
 });
 const bytes = new Uint8Array(32044).fill(1);
 const recording = (changes = {}) => ({ id: crypto.randomUUID(), owner: 'alice', createdAt: Date.now(),
@@ -623,4 +623,17 @@ test('new shared recordings persist their destination across reload without recl
   assert.equal(next.calls.find(call => call.input.requestId !== sharedId).input.conversationId, undefined);
   assert.equal(next.completed.find(result => result.id === sharedId).conversationId, 'pilot');
   assert.equal(next.completed.find(result => result.id !== sharedId).conversationId, undefined);
+});
+
+test('production recordings retain their original chat across reload/navigation and use the production source', async t => {
+  const env = environment(t, false), f = queue(t); await ready(f);
+  await f.service.enqueue(bytes, 'chat:engineering'); await f.service.enqueue(bytes, 'chat:design');
+  const destinations = new Map(f.service.items.map(item => [item.id, item.conversationId])); f.service.ngOnDestroy();
+  const next = queue(t); await ready(next);
+  env.navigator.onLine = true; env.window.dispatchEvent(new Event('online'));
+  await until(() => next.completed.length === 2); await ready(next);
+  assert.equal(next.calls.length, 2);
+  for (const row of next.calls) assert.equal(row.input.conversationId, destinations.get(row.input.requestId));
+  assert.deepEqual(next.calls.map(row => row.input.conversationId).sort(), ['chat:design', 'chat:engineering']);
+  assert.ok(next.calls.every(row => row.input.sourcePage === '/chat'));
 });

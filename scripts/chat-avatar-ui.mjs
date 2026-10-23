@@ -29,7 +29,7 @@ let failSave=false,writes=[];
 const data={updateDetails:async(chain,changes)=>{if(failSave)throw Error('offline');writes.push({chain,subject:changes.subject,image:changes.image?.name});},fundCurrency:{code:'gbp',perGBP:1}};
 @Component({standalone:false,template:${JSON.stringify(template)},styles:[${JSON.stringify(styles)}]})
 class Area extends ChatComponent {
- constructor(){super({paramMap:EMPTY} as any,{} as any,data as any,{} as any,{run:fn=>fn()} as any,{error:'',attach(){},scan(){}} as any,{} as any);
+ constructor(){super({paramMap:EMPTY} as any,{} as any,data as any,{} as any,{run:fn=>fn()} as any,{error:'',attach(){},scan(){}} as any,{} as any,{mode:'text',configure(){},unlock(){}} as any);
  this.state='empty';this.chain='synthetic';this.title='Engineering Team';this.signedIn=true;this.avatarSources=['/broken.png','/photo.svg'];}
 }
 @Component({standalone:false,template:${JSON.stringify('<ul class="sidebar-conversations listLight"><li><div class="prof-avatar-wrap">'+sidebarAvatar+'</div><span>Engineering Team</span></li></ul>')},styles:[${JSON.stringify(profileStyles)}]})

@@ -214,7 +214,7 @@ test('private playback callable serves retained audio, atomically claims one dev
   await processVoiceInbox(db, bucket, { eventId: receipt.eventId }, settings);
   const payload = { eventId: receipt.eventId, automatic: true }, auth = { uid: VOICE_ADMIN, token: { perrinnAdmin: true } };
   for (const denied of [undefined, { uid: 'outsider' }, { uid: VOICE_ADMIN, token: {} }]) {
-    await assert.rejects(voicePlayback.run({ data: payload, auth: denied }), e => e.code === 'permission-denied');
+    await assert.rejects(voicePlayback.run({ data: payload, auth: denied }), e => e.code === (denied ? 'permission-denied' : 'unauthenticated'));
   }
   const results = await Promise.all([voicePlayback.run({ data: payload, auth }), voicePlayback.run({ data: payload, auth })]);
   assert.equal(results.filter(r => r.skipped).length, 1); assert.equal(results.filter(r => r.audio).length, 1);
@@ -254,4 +254,60 @@ test('audio is playable during transcription and remains a successful audio-only
   assert.equal((await access(messageRef.path, VOICE_ADMIN, 'GET', { perrinnAdmin: true })).status, 200);
   assert.equal((await access(messageRef.path, 'outsider')).status, 403);
   assert.equal((await bucket.file(event.audioPath).exists())[0], true);
+});
+
+function ruleValue(value) {
+  if (typeof value === 'boolean') return { booleanValue: value };
+  if (typeof value === 'string') return { stringValue: value };
+  return { mapValue: { fields: Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, ruleValue(entry)])) } };
+}
+async function createChatCommand(fields, uid, claims = {}) {
+  const name = `projects/${projectId}/databases/(default)/documents/PERRINNMessages/rules-${randomUUID()}`;
+  return originalFetch(`http://${host}/v1/projects/${projectId}/databases/(default)/documents:commit`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', ...(uid ? { Authorization: `Bearer ${token(uid, claims)}` } : {}) },
+    body: JSON.stringify({ writes: [{ update: { name, fields: Object.fromEntries(Object.entries({ user: uid || 'anonymous', chain: 'voice-chat', text: 'Chat update', ...fields }).map(([key, value]) => [key, ruleValue(value)])) },
+      updateTransforms: [{ fieldPath: 'serverTimestamp', setToServerValue: 'REQUEST_TIME' }] }] })
+  });
+}
+test('production rules restrict mode changes to admins, reject forged voice records and retain typed limits', async () => {
+  assert.equal((await createChatCommand({}, 'alice')).status, 200);
+  for (const mode of ['text', 'voice']) {
+    for (const uid of [undefined, 'alice', 'bob']) assert.equal((await createChatCommand({ chatInputMode: mode }, uid)).status, 403);
+    assert.equal((await createChatCommand({ chatInputMode: mode }, 'admin', { perrinnAdmin: 'true' })).status, 403);
+    assert.equal((await createChatCommand({ chatInputMode: mode }, 'admin', { perrinnAdmin: true })).status, 200);
+  }
+  assert.equal((await createChatCommand({ chatInputMode: 'other' }, 'admin', { perrinnAdmin: true })).status, 403);
+  for (const uid of ['alice', 'admin']) assert.equal((await createChatCommand({ voice: { eventId: 'forged' } }, uid, { perrinnAdmin: true })).status, 403);
+  assert.equal((await createChatCommand({ text: 'a'.repeat(501) }, 'alice')).status, 403);
+  assert.equal((await createChatCommand({ verified: false }, 'alice')).status, 200);
+  for (const uid of ['alice', 'admin']) for (const fields of [{ verified: true }, { verifiedTimestamp: 'forged' }, { lastMessage: true }, { lastMessage: false }]) {
+    assert.equal((await createChatCommand(fields, uid, { perrinnAdmin: true })).status, 403);
+  }
+});
+test('production inbox and recipient playback use real transactions and private stored audio', async () => {
+  const chain = 'production-' + randomUUID();
+  const state = db.collection('PERRINNMessages').doc();
+  await state.set({ chain, chatInputMode: 'voice', verified: true, recipientList: ['voice-speaker', 'voice-listener'], serverTimestamp: admin.firestore.FieldValue.serverTimestamp() });
+  const data = { ...request(), sourcePage: '/chat', owner: 'voice-speaker', conversationId: 'chat:' + chain };
+  const settings = options({ enqueue: async () => {}, transcribe: async () => 'Full transcript. '.repeat(60) });
+  const receipt = await enqueueVoiceInput(db, bucket, { uid: data.owner }, data, settings);
+  await processVoiceInbox(db, bucket, { eventId: receipt.eventId }, settings);
+  const messageRef = db.doc('PERRINNMessages/voice-' + receipt.eventId), message = (await messageRef.get()).data();
+  assert.ok(message.text.length > 500); assert.equal(message.user, 'voice-speaker'); assert.equal(message.chain, chain);
+  assert.equal(message.voice.transcription, 'completed'); assert.equal(message.isBackendMessage, undefined);
+  const { voicePlayback } = require('../functions/voicePlayback.f.js');
+  const payload = { eventId: receipt.eventId, automatic: false };
+  const play = uid => voicePlayback.run({ data: payload, auth: uid ? { uid } : undefined });
+  assert.deepEqual(Buffer.from((await play('voice-listener')).audio, 'base64'), audio);
+  await assert.rejects(play('outsider'), e => e.code === 'permission-denied');
+  await assert.rejects(play(null), e => e.code === 'unauthenticated');
+  await state.update({ recipientList: ['voice-speaker', 'new-listener'] });
+  await assert.rejects(play('voice-listener'), e => e.code === 'permission-denied');
+  assert.ok((await play('new-listener')).audio);
+  const path = 'voice-input/voice-speaker/' + receipt.eventId + '.wav';
+  for (const uid of [undefined, 'voice-speaker', 'new-listener', 'outsider']) assert.equal((await storageAccess(path, uid)).status, 403);
+  assert.equal((await access(messageRef.path)).status, 200);
+  await db.doc('VoiceInputEvents/' + receipt.eventId).update({ audioExpiresAt: Date.now() - 1 });
+  await assert.rejects(play('new-listener'), e => e.code === 'not-found');
+  assert.ok((await messageRef.get()).data().voice);
 });

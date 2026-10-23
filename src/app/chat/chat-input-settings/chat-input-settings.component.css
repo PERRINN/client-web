@@ -1,0 +1,8 @@
+:host { display: block; }
+.input-setting { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+span, p { color: var(--color-text-secondary); font: inherit; line-height: 1.4; overflow: visible; }
+button { min-width: 48px; min-height: 44px; padding: 6px 12px; border: 0; border-radius: 8px; background: var(--color-raised); color: var(--color-text); font: inherit; cursor: pointer; }
+button[aria-checked="true"] { background: var(--color-selected); }
+button:disabled { opacity: .5; cursor: default; }
+button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+p { color: var(--color-danger-text); font-size: 12px; }

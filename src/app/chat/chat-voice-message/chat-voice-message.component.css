@@ -1,0 +1,8 @@
+:host { display: block; }
+:host * { box-sizing: border-box; font: inherit; line-height: 1.4; }
+.voice-message { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-height: 44px; }
+.voice-label, .unavailable { color: var(--color-text-muted); font-size: 12px; overflow: visible; }
+button { min-height: 44px; margin: 0; padding: 4px 8px; border: 0; border-radius: 8px; background: var(--color-raised); color: var(--color-text-secondary); cursor: pointer; font-size: 12px; }
+button:disabled { opacity: .5; cursor: default; }
+button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.unavailable { margin: 0 0 4px; }

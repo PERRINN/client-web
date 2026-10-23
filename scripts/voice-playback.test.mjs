@@ -14,7 +14,7 @@ new Function('exports', 'require', code)(exports, name => name === '@angular/cor
 } : name === 'rxjs' ? require(name) : {});
 const { VoicePlaybackService } = exports;
 const sessionExports = {};
-const sessionCode = ts.transpileModule(readFileSync(new URL('../src/app/prototypes/voice-input/voiceAudioSession.service.ts', import.meta.url), 'utf8'), {
+const sessionCode = ts.transpileModule(readFileSync(new URL('../src/app/voice/voiceAudioSession.service.ts', import.meta.url), 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, experimentalDecorators: true }
 }).outputText;
 new Function('exports', 'require', sessionCode)(sessionExports, () => ({ Injectable: () => value => value }));

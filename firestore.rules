@@ -140,6 +140,11 @@ service cloud.firestore {
       }
       allow create: if request.resource.data.user==request.auth.uid
                     && !('emails' in request.resource.data)
+                    && !('voice' in request.resource.data)
+                    && !request.resource.data.keys().hasAny(['verifiedTimestamp', 'lastMessage'])
+                    && (!('verified' in request.resource.data) || request.resource.data.verified == false)
+                    && (!('chatInputMode' in request.resource.data)
+                      || (isPerrinnAdmin() && request.resource.data.chatInputMode in ['text', 'voice']))
                     && request.resource.data.serverTimestamp==request.time
                     && request.resource.data.text.size()<=500
                     && validFundCommand() && validRaisedAmount();
