@@ -22,6 +22,8 @@ export class VoiceCaptureService implements OnDestroy {
   private audioTraceSince = 0;
   private openingCue = 'idle';
   private closingCueState = 'idle';
+  private testingCue = false;
+  private testCueState = 'idle';
 
   get diagnostics() {
     const tracks = this.stream?.getAudioTracks() || [];
@@ -30,7 +32,7 @@ export class VoiceCaptureService implements OnDestroy {
       context: this.context?.state || 'Idle', liveTracks: tracks.filter(track => track.readyState === 'live').length,
       muted: tracks.some(track => track.muted), permissionPending: !!this.startupCancelled && !this.stream,
       worklet: !!this.node, durationMs: this.length / 16, connectedAt: this.connectedAt, lastSampleAt: this.lastSampleAt,
-      openingCue: this.openingCue, closingCue: this.closingCueState, audioTrace: this.audioTrace.join('\n')
+      openingCue: this.openingCue, closingCue: this.closingCueState, testCue: this.testCueState, audioTrace: this.audioTrace.join('\n')
     };
   }
 
@@ -38,7 +40,7 @@ export class VoiceCaptureService implements OnDestroy {
     this.cancel();
     const generation = this.generation;
     this.audioTrace = []; this.audioTraceSince = performance.now();
-    this.openingCue = this.closingCueState = 'idle';
+    this.openingCue = this.closingCueState = this.testCueState = 'idle';
     if (!navigator.mediaDevices?.getUserMedia || typeof AudioContext === 'undefined'
       || typeof AudioWorkletNode === 'undefined') throw new Error('Voice recording requires a supported browser on HTTPS.');
     const context = new AudioContext({ sampleRate: 16000 });
@@ -129,6 +131,20 @@ export class VoiceCaptureService implements OnDestroy {
     }
   }
 
+  async testCue(opening: boolean): Promise<void> {
+    const context = this.context;
+    if (!context || !this.node || this.startupCancelled || this.closingCue || this.testingCue) return;
+    const generation = this.generation;
+    this.testingCue = true;
+    try {
+      await voiceCue(context, opening, event => {
+        if (generation !== this.generation) return;
+        this.testCueState = `${opening ? 'Bip' : 'Bop'} ${event}`;
+        this.noteAudio(`Test ${this.testCueState}`, context);
+      });
+    } finally { if (generation === this.generation) this.testingCue = false; }
+  }
+
   async finish(): Promise<Uint8Array> {
     if (!this.node) throw new Error('No recording available.');
     const generation = this.generation;
@@ -162,6 +178,8 @@ export class VoiceCaptureService implements OnDestroy {
     if (this.openingCue === 'scheduled') this.openingCue = 'cancelled';
     if (this.closingCueState === 'scheduled') this.closingCueState = 'cancelled';
     this.generation++;
+    if (this.testingCue) this.testCueState = 'cancelled';
+    this.testingCue = false;
     this.startupCancelled?.(); this.startupCancelled = undefined;
     this.stopped?.(); this.stopped = undefined;
     this.closingCue = false; this.connectedAt = 0; this.lastSampleAt = 0;

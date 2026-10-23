@@ -67,3 +67,8 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--color-focus); o
 .history { align-self: center; background: var(--color-surface); }
 .conversation-state, .access-state { font-size: 15px; color: var(--color-text-secondary); }
 .conversation-state button { margin-top: 8px; }
+
+.diagnostic-tests { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.diagnostic-tests button { min-width: 0; padding: 8px 4px; border-radius: 8px; }
+.diagnostic-tests button:disabled { opacity: .5; }
+.diagnostic-test-state { margin: 4px 0 8px; min-height: 20px; font-size: 13px; }

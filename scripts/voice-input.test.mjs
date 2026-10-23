@@ -1081,3 +1081,50 @@ test('shared completion removes the pending local row instead of duplicating the
   // The account boundary also suppresses an outstanding upload/capture result.
   service.ngOnDestroy(); response.next({ transcript: 'Shared' }); response.complete(); await releasing;
 });
+
+test('manual cue controls require recording, prevent overlap and ignore stale completion after cancellation', async () => {
+  const pending = [], tones = [];
+  const { service, calls } = client(undefined, { testCue: opening => {
+    tones.push(opening); return new Promise(resolve => pending.push(resolve));
+  } });
+  try {
+    await service.testCue(true); assert.deepEqual(tones, []);
+    await service.press(); assert.equal(service.canTestCue, true);
+    const first = service.testCue(true);
+    assert.equal(service.canTestCue, false); await service.testCue(false);
+    assert.deepEqual(tones, [true]); assert.equal(service.phase, 'recording'); assert.equal(calls.length, 0);
+    service.cancel(); assert.equal(service.testingCue, false);
+    await service.press(); const second = service.testCue(false);
+    pending[0](); await first;
+    assert.equal(service.testingCue, true, 'Old completion cannot unlock the new tone.');
+    pending[1](); await second;
+    assert.equal(service.canTestCue, true); assert.deepEqual(tones, [true, false]);
+    assert.equal(calls.length, 0);
+  } finally { service.ngOnDestroy(); }
+});
+
+test('manual tones reuse the live capture context and preserve automatic outcomes and samples', async () => {
+  const tones = [], observers = [];
+  const fixture = safariCapture({ cue: async (context, opening, observe) => {
+    tones.push({ context, opening }); observers.push(observe); observe('scheduled'); observe('ended');
+  } });
+  try {
+    await fixture.capture.testCue(true); assert.equal(tones.length, 0);
+    await fixture.capture.start(() => {}, () => {});
+    fixture.nodes[0].port.onmessage({ data: { type: 'samples', samples: new Float32Array(1600) } });
+    for (let i = 0; i < 30; i++) fixture.contexts[0].onstatechange();
+    await fixture.capture.testCue(true); await fixture.capture.testCue(false);
+    assert.deepEqual(tones.map(tone => tone.opening), [true, true, false]);
+    assert.equal(tones.every(tone => tone.context === fixture.contexts[0]), true);
+    assert.equal(fixture.contexts.length, 1); assert.equal(fixture.tracks.length, 1);
+    assert.equal(fixture.tracks[0].stopped, false); assert.equal(fixture.sources[0].connected, true);
+    assert.deepEqual(fixture.nodes[0].commands, ['start']);
+    assert.equal(fixture.capture.diagnostics.durationMs, 100);
+    assert.equal(fixture.capture.diagnostics.openingCue, 'ended'); assert.equal(fixture.capture.diagnostics.closingCue, 'idle');
+    assert.equal(fixture.capture.diagnostics.testCue, 'Bop ended');
+    assert.equal(fixture.capture.diagnostics.audioTrace.split('\n').length, 16);
+    fixture.capture.cancel(); observers.at(-1)('failed');
+    assert.equal(fixture.capture.diagnostics.testCue, 'Bop ended');
+    await fixture.capture.testCue(false); assert.equal(tones.length, 3);
+  } finally { fixture.restore(); }
+});

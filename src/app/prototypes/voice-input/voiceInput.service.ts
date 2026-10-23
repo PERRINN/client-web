@@ -21,6 +21,7 @@ export class VoiceInputService implements OnDestroy {
   private currentPhase: Phase = 'idle';
   phaseSince = Date.now();
   captureFailure = '';
+  testingCue = false;
   get phase(): Phase { return this.currentPhase; }
   set phase(value: Phase) { if (value !== this.currentPhase) this.phaseSince = Date.now(); this.currentPhase = value; }
   get captureDiagnostics() { return this.capture.diagnostics; }
@@ -82,10 +83,21 @@ export class VoiceInputService implements OnDestroy {
     return ({ idle: 'Start recording', requesting: 'Cancel microphone', recording: 'Stop recording', sending: 'Preparing recording', saved: 'Start recording', error: 'Start recording' })[this.phase];
   }
 
+  get canTestCue(): boolean { return this.allowed && this.phase === 'recording' && !this.testingCue; }
+  async testCue(opening: boolean): Promise<void> {
+    if (!this.canTestCue) return;
+    const generation = this.captureGeneration;
+    this.testingCue = true; this.changed.next();
+    try { await this.capture.testCue(opening); }
+    finally {
+      if (generation === this.captureGeneration) { this.testingCue = false; this.changed.next(); }
+    }
+  }
+
   async press(): Promise<void> {
     if (!this.canRecord) return;
     const generation = ++this.captureGeneration;
-    this.captureFailure = ''; this.clearLevels();
+    this.captureFailure = ''; this.testingCue = false; this.clearLevels();
     this.phase = 'requesting'; this.changed.next();
     try {
       const started = await this.capture.start(
@@ -134,7 +146,7 @@ export class VoiceInputService implements OnDestroy {
   cancel(message = ''): void {
     if (this.phase === 'sending') { this.capture.silenceClosingCue(); return; }
     if (this.phase !== 'recording' && this.phase !== 'requesting') return;
-    this.captureGeneration++; this.capture.cancel(); clearTimeout(this.timer);
+    this.captureGeneration++; this.testingCue = false; this.capture.cancel(); clearTimeout(this.timer);
     this.clearLevels();
     this.phase = 'idle';
     if (message) { this.captureFailure = 'Interrupted'; this.reply(message, 'error'); }
@@ -146,7 +158,7 @@ export class VoiceInputService implements OnDestroy {
   }
   private clearLevels(): void { this.levels = Array<number>(9).fill(0); }
   private reset(): void {
-    this.captureFailure = ''; this.captureGeneration++;
+    this.captureFailure = ''; this.captureGeneration++; this.testingCue = false;
     this.clearLevels();
     this.capture.cancel(); clearTimeout(this.timer);
     this.phase = 'idle'; this.replies.length = 0; this.changed.next();
