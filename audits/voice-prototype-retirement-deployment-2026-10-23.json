@@ -1,0 +1,127 @@
+{
+  "project": "perrinn-d5fc1",
+  "commit": "80d749ae97c5f1d34ae252f8b1f768f75cf0cdd4",
+  "verifiedAt": "2026-10-23T16:28:03.565Z",
+  "rules": {
+    "rulesetName": "projects/perrinn-d5fc1/rulesets/c96ebe89-7938-426b-894a-a7550b5d4a39",
+    "sha256": "fc20b1ff7971c2bb3b6b697937cecaa4b5df17b2ec1a94e6d4b021b32795dbce",
+    "matches": true
+  },
+  "hosting": [
+    {
+      "origin": "https://perrinn.com",
+      "main": "main.a0286f0a3b113e3d.js",
+      "mainSha256": "3905cffed1708c904fe7e81160e743adc22f88fab879a4b9a6fd63fddd0dfd06",
+      "htmlMatches": true,
+      "serviceWorkerMatches": true,
+      "prototypeRouteAbsent": true
+    },
+    {
+      "origin": "https://perrinn-d5fc1.web.app",
+      "main": "main.a0286f0a3b113e3d.js",
+      "mainSha256": "3905cffed1708c904fe7e81160e743adc22f88fab879a4b9a6fd63fddd0dfd06",
+      "htmlMatches": true,
+      "serviceWorkerMatches": true,
+      "prototypeRouteAbsent": true
+    }
+  ],
+  "anonymousGuards": [
+    {
+      "name": "voiceInputEnqueue",
+      "status": 401,
+      "error": "UNAUTHENTICATED"
+    },
+    {
+      "name": "voicePlayback",
+      "status": 401,
+      "error": "UNAUTHENTICATED"
+    }
+  ],
+  "retiredCallableAbsent": true,
+  "functions": [
+    {
+      "name": "voiceInputEnqueue",
+      "state": "ACTIVE",
+      "updateTime": "2026-10-23T16:26:36.924272729Z",
+      "runtime": "nodejs22",
+      "revision": "voiceinputenqueue-00009-vuz",
+      "maxInstances": 2,
+      "concurrency": 2
+    },
+    {
+      "name": "processVoiceInputInbox",
+      "state": "ACTIVE",
+      "updateTime": "2026-10-23T16:26:39.900217763Z",
+      "runtime": "nodejs22",
+      "revision": "processvoiceinputinbox-00009-dof",
+      "maxInstances": 2,
+      "concurrency": 1
+    },
+    {
+      "name": "voicePlayback",
+      "state": "ACTIVE",
+      "updateTime": "2026-10-23T16:26:41.662697630Z",
+      "runtime": "nodejs22",
+      "revision": "voiceplayback-00005-hoq",
+      "maxInstances": 2,
+      "concurrency": 4
+    },
+    {
+      "name": "voiceInputStatus",
+      "state": "ACTIVE",
+      "updateTime": "2026-10-23T16:26:36.171154346Z",
+      "runtime": "nodejs22",
+      "revision": "voiceinputstatus-00003-jaj",
+      "maxInstances": 2,
+      "concurrency": 2
+    }
+  ],
+  "privateWorkerAndQueue": {
+    "project": "perrinn-d5fc1",
+    "mode": "--check",
+    "changes": [],
+    "identity": "44958643568-compute@developer.gserviceaccount.com",
+    "workerService": "projects/perrinn-d5fc1/locations/us-central1/services/processvoiceinputinbox",
+    "queue": {
+      "state": "RUNNING",
+      "retryConfig": {
+        "maxAttempts": 8,
+        "minBackoff": "300s",
+        "maxBackoff": "3600s",
+        "maxDoublings": 6
+      },
+      "rateLimits": {
+        "maxDispatchesPerSecond": 2,
+        "maxBurstSize": 10,
+        "maxConcurrentDispatches": 2
+      }
+    },
+    "softDeletePolicy": {
+      "retentionDurationSeconds": "604800",
+      "effectiveTime": "2024-03-01T08:00:00.000Z"
+    }
+  },
+  "indexAudit": {
+    "indexes": 32,
+    "fieldOverrides": 4,
+    "matchesIncludingImplicitDefaults": true,
+    "deployedChanges": false
+  },
+  "validation": {
+    "voiceTests": 114,
+    "productionVoiceTests": 47,
+    "chatTests": 86,
+    "emulatorTests": 4,
+    "browserWidths": [
+      1440,
+      390,
+      320
+    ],
+    "build": "passed",
+    "lintErrors": 0,
+    "existingLintWarnings": 50,
+    "recordingWrites": 0,
+    "providerCalls": 0
+  },
+  "remainingCheck": "Physical phone audibility and recording/playback acceptance"
+}
