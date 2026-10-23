@@ -37,7 +37,7 @@
   }
   @if (conversation.allowed) {
   <div class="voice-content">
-  <section #replies class="replies" role="log" aria-label="Voice conversation" aria-live="polite">
+  <section #replies class="replies" role="log" aria-label="Voice conversation" aria-live="polite" tabindex="0">
     @if (conversation.canLoadEarlier) {
       <button class="history" type="button" (click)="conversation.loadEarlier()" [disabled]="conversation.loadingEarlier">
         {{ conversation.loadingEarlier ? 'Loading…' : 'Load earlier' }}
@@ -81,16 +81,28 @@
     }
   </section>
   <aside class="diagnostics" aria-label="Voice diagnostics" tabindex="0">
-    <h2>States</h2>
-    <p class="diagnostic-meta">{{ diagnosticBuild }}<br><time>{{ diagnosticUpdatedAt | date:'HH:mm:ss' }}</time></p>
-    <dl>
-      @for (state of diagnosticRows; track state.label) {
-        <div class="diagnostic-row" [attr.data-state]="state.label" [class.state-ok]="state.ok" [class.state-error]="!state.ok">
+    <header class="diagnostic-heading">
+      <h2>States</h2>
+      <p class="diagnostic-meta">{{ diagnosticBuild }}<br><time>{{ diagnosticUpdatedAt | date:'HH:mm:ss' }}</time></p>
+    </header>
+    <dl class="diagnostic-summary">
+      @for (state of diagnosticSummary; track state.label) {
+        <div class="diagnostic-row" [class.state-ok]="state.ok" [class.state-error]="!state.ok">
           <dt>{{ state.label }}</dt>
           <dd><span class="sr-only">{{ state.ok ? 'OK: ' : 'Fault: ' }}</span>{{ state.value }}</dd>
         </div>
       }
     </dl>
+    <div class="diagnostic-details" tabindex="0" role="region" aria-label="Detailed voice diagnostics">
+      <dl>
+        @for (state of diagnosticDetails; track state.label) {
+          <div class="diagnostic-row" [attr.data-state]="state.label" [class.state-ok]="state.ok" [class.state-error]="!state.ok">
+            <dt>{{ state.label }}</dt>
+            <dd><span class="sr-only">{{ state.ok ? 'OK: ' : 'Fault: ' }}</span>{{ state.value }}</dd>
+          </div>
+        }
+      </dl>
+    </div>
   </aside>
   </div>
   }

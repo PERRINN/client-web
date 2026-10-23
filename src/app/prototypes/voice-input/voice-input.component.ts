@@ -27,6 +27,8 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
   private changes: Subscription;
   private diagnosticTimer?: ReturnType<typeof setInterval>;
   diagnosticRows: VoiceDiagnosticRow[] = [];
+  diagnosticSummary: VoiceDiagnosticRow[] = [];
+  diagnosticDetails: VoiceDiagnosticRow[] = [];
   diagnosticUpdatedAt = 0;
   diagnosticBuild = '';
   private diagnosticsActive = false;
@@ -69,6 +71,11 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
         : this.keyboard ? (now - this.keyboard.downAt >= 600 ? 'Held' : 'Pressed') : 'Released',
       gestureSince: this.pointer?.downAt || this.keyboard?.downAt || 0
     }, this.diagnosticUpdatedAt).concat(this.keyDiagnostics.rows());
+    this.diagnosticSummary = this.diagnosticRows.filter(row => row.label === 'Opening cue' || row.label === 'Closing cue');
+    this.diagnosticDetails = [
+      ...this.diagnosticRows.filter(row => row.label === 'Audio trace'),
+      ...this.diagnosticRows.filter(row => row.label !== 'Audio trace' && row.label !== 'Opening cue' && row.label !== 'Closing cue')
+    ];
     this.changeDetector.markForCheck();
   }
 
