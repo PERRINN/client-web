@@ -348,7 +348,7 @@ function componentFixture(fixture = client()) {
   const { VoiceInputComponent } = load('../src/app/prototypes/voice-input/voice-input.component.ts', {
     '@angular/core': core, './voiceDiagnostics': diagnosticsModule, './voiceCapture.service': {}, './voiceInput.service': {}, './voiceQueue.service': {}, './voiceConversation.service': {}, './voiceAudioSession.service': audioSessionModule, './voiceAuthor.service': {}, './voicePlayback.service': {}, '../../chat/chatDate': chatDateModule
   });
-  const component = new VoiceInputComponent({}, { unlock() {} }, fixture.service, { allowed: true, uid: 'alice', messages: [], changed: new Subject() }, { markForCheck: () => { marks++; } });
+  const component = new VoiceInputComponent({}, { unlock() {}, leave() {}, returned() {}, diagnosticRows: [] }, fixture.service, { allowed: true, uid: 'alice', messages: [], changed: new Subject() }, { markForCheck: () => { marks++; } });
   return { ...fixture, component, marks: () => marks };
 }
 const pointer = (changes = {}) => ({ pointerId: 1, pointerType: 'touch', isPrimary: true, button: 0,
@@ -1294,5 +1294,67 @@ test('playback activation and capture share one context across repeated page vis
     }
   } finally {
     if (originalDocument) Object.defineProperty(globalThis, 'document', originalDocument); else delete globalThis.document;
+  }
+});
+
+test('microphone pointer and P gestures never unlock playback before capture', () => {
+  const { component, service } = componentFixture(); let unlocks = 0;
+  component.playback.unlock = () => { unlocks++; };
+  component.unlockPlayback({ target: { closest: selector => selector === '.voice-dock' } });
+  component.unlockPlayback({ key: 'P', target: { closest: () => false } });
+  assert.equal(unlocks, 0);
+  component.unlockPlayback({ target: { closest: () => false } });
+  assert.equal(unlocks, 1);
+  component.ngOnDestroy(); service.ngOnDestroy();
+});
+
+test('backgrounded submission drains its last audio block before releasing the shared session', async () => {
+  const system = { type: 'auto' }, cues = [];
+  const f = safariCapture({ browser: { userAgent: 'iPhone', audioSession: system }, cue: async (_context, opening) => { cues.push(opening); } });
+  try {
+    assert.equal(await f.capture.start(() => {}, () => {}), true);
+    const context = f.session.current, node = f.nodes.at(-1);
+    node.port.onmessage({ data: { type: 'samples', samples: new Float32Array(16000).fill(.1) } });
+    node.port.postMessage = () => {};
+    const finishing = f.capture.finish();
+    f.capture.silenceClosingCue(); f.session.release();
+    assert.equal(context.closed, false, 'Keep the submitted audio graph until its stop acknowledgement.');
+    node.port.onmessage({ data: { type: 'stopped' } });
+    assert.equal((await finishing).length, 32044);
+    assert.equal(context.closed, true); assert.equal(f.session.current, undefined);
+    assert.equal(f.tracks.at(-1).stopped, true); assert.equal(system.type, 'auto');
+    assert.deepEqual(cues, [true], 'Do not start a closing cue after the page has already left.');
+  } finally { f.restore(); }
+});
+
+test('repeated app returns discard the interrupted playback context before the next microphone request', async () => {
+  const original = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: { hidden: false, hasFocus: () => true, addEventListener() {}, removeEventListener() {} } });
+  const { VoicePlaybackService } = load('../src/app/prototypes/voice-input/voicePlayback.service.ts', {
+    '@angular/core': { ...core, runInInjectionContext: (_injector, fn) => fn() },
+    '@angular/fire/compat/functions': {}, './voiceConversation.service': {}, './voiceInput.service': {}, './voiceAudioSession.service': audioSessionModule
+  });
+  const system = { type: 'auto' }, f = safariCapture({ browser: { userAgent: 'iPhone', audioSession: system } });
+  const voice = { changed: new Subject(), busy: false, cancel() { f.capture.cancel(); this.busy = false; this.changed.next(); } };
+  const playback = new VoicePlaybackService({}, {}, { allowed: true, uid: 'alice', changed: new Subject(), incoming: new Subject() }, voice, f.session);
+  try {
+    for (let i = 0; i < 3; i++) {
+      playback.unlock(); const old = f.session.current;
+      old.state = 'interrupted'; old.resume = () => new Promise(() => {});
+      playback.unlock(); playback.leave('Window blur');
+      assert.equal(old.closed, true); assert.equal(system.type, 'auto');
+      playback.returned('Window focus'); assert.equal(f.session.current, undefined);
+      voice.busy = true; voice.changed.next();
+      assert.equal(await f.capture.start(() => {}, () => {}), true);
+      assert.equal(f.contexts.filter(context => !context.closed).length, 1);
+      assert.notEqual(f.capture.context, old); assert.equal(system.type, 'play-and-record');
+      f.nodes.at(-1).port.onmessage({ data: { type: 'samples', samples: new Float32Array(16000).fill(.1) } });
+      assert.equal((await f.capture.finish()).length, 32044);
+      voice.busy = false; voice.changed.next();
+    }
+    assert.equal(f.tracks.every(track => track.stopped), true);
+  } finally {
+    playback.ngOnDestroy(); f.restore();
+    if (original) Object.defineProperty(globalThis, 'document', original); else delete globalThis.document;
   }
 });

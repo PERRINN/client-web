@@ -60,9 +60,12 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
     });
   }
 
-  @HostListener('pointerdown')
-  @HostListener('keydown')
-  unlockPlayback(): void { this.playback.unlock(); }
+  @HostListener('pointerdown', ['$event'])
+  @HostListener('keydown', ['$event'])
+  unlockPlayback(event: Event): void {
+    if ((event.target as HTMLElement)?.closest?.('.voice-dock') || (event as KeyboardEvent).key?.toLowerCase() === 'p') return;
+    this.playback.unlock();
+  }
 
   ngOnInit(): void {
     this.diagnosticsActive = true;
@@ -80,11 +83,12 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
       gesture: this.pointer ? (this.pointer.held ? 'Held' : 'Pressed')
         : this.keyboard ? (now - this.keyboard.downAt >= 600 ? 'Held' : 'Pressed') : 'Released',
       gestureSince: this.pointer?.downAt || this.keyboard?.downAt || 0
-    }, this.diagnosticUpdatedAt).concat(this.keyDiagnostics.rows());
+    }, this.diagnosticUpdatedAt).concat(this.playback.diagnosticRows, this.keyDiagnostics.rows());
     this.diagnosticSummary = this.diagnosticRows.filter(row => row.label === 'Opening cue' || row.label === 'Closing cue');
+    const primary = ['Button', 'Lock', 'Last fault', 'Shared context', 'Audio session', 'Resume', 'Playback', 'Session trace', 'Audio trace'];
     this.diagnosticDetails = [
-      ...this.diagnosticRows.filter(row => row.label === 'Audio trace'),
-      ...this.diagnosticRows.filter(row => row.label !== 'Audio trace' && row.label !== 'Opening cue' && row.label !== 'Closing cue')
+      ...primary.flatMap(label => this.diagnosticRows.filter(row => row.label === label)),
+      ...this.diagnosticRows.filter(row => !primary.includes(row.label) && row.label !== 'Opening cue' && row.label !== 'Closing cue')
     ];
     this.changeDetector.markForCheck();
   }
@@ -206,11 +210,17 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
   @HostListener('window:blur', ['"Window blur"'])
   interrupt(reason = 'Control blur'): void {
     this.keyDiagnostics.note(`Interrupt: ${reason} · ${this.voice.phase}${this.keyboard ? ' · ' + (Date.now() - this.keyboard.downAt) + ' ms' : ''}`);
-    this.clearPointer(); this.keyboard = undefined; this.voice.cancel();
+    this.clearPointer(); this.keyboard = undefined;
+    if (reason === 'Window blur' || reason === 'Page hide') this.playback.leave(reason);
+    this.voice.cancel();
   }
   @HostListener('document:visibilitychange')
   visibility(): void { if (document.hidden) this.interrupt('Page hidden'); }
   @HostListener('window:pagehide')
   pageHide(): void { this.interrupt('Page hide'); }
+  @HostListener('window:focus')
+  focus(): void { this.playback.returned('Window focus'); }
+  @HostListener('window:pageshow')
+  pageShow(): void { this.playback.returned('Page show'); }
   ngOnDestroy(): void { clearInterval(this.diagnosticTimer); this.diagnosticsActive = false; this.clearPointer(); this.keyboard = undefined; this.changes.unsubscribe(); this.conversationChanges.unsubscribe(); }
 }

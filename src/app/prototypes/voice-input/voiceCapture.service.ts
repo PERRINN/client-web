@@ -28,6 +28,7 @@ export class VoiceCaptureService implements OnDestroy {
   private testingCue = false;
   private testCueState = 'idle';
   private echoCancellation = 'Not requested';
+  private feedbackSuppressed = false;
 
   get diagnostics() {
     const tracks = this.stream?.getAudioTracks() || [];
@@ -45,6 +46,7 @@ export class VoiceCaptureService implements OnDestroy {
     const generation = this.generation;
     this.audioTrace = []; this.audioTraceSince = performance.now();
     this.openingCue = this.closingCueState = this.testCueState = 'idle';
+    this.feedbackSuppressed = false;
     this.echoCancellation = `Requested ${echoCancellation ? 'on' : 'off'} · actual unknown`;
     if (!navigator.mediaDevices?.getUserMedia || typeof AudioContext === 'undefined'
       || typeof AudioWorkletNode === 'undefined') throw new Error('Voice recording requires a supported browser on HTTPS.');
@@ -55,7 +57,7 @@ export class VoiceCaptureService implements OnDestroy {
     context.onstatechange = () => note('Context changed');
     // Begin in the gesture, but do not wait on this promise: Safari can leave it
     // pending until microphone activation changes the system audio session.
-    void context.resume().then(() => note('Gesture resume resolved'), () => note('Gesture resume rejected'));
+    void this.audioSession.resume(context, 'Capture gesture').then(() => note('Gesture resume resolved'), () => note('Gesture resume rejected'));
     let startupTimer: ReturnType<typeof setTimeout> | undefined;
     let armTimeout: () => void;
     const deadline = new Promise<never>((_, reject) => {
@@ -80,7 +82,7 @@ export class VoiceCaptureService implements OnDestroy {
         armTimeout();
         if (context.state === 'running') return;
         note('Mic resume requested');
-        return context.resume().then(() => note('Mic resume resolved'));
+        return this.audioSession.resume(context, 'Microphone acquired').then(() => note('Mic resume resolved'));
       }), this.audioSession.prepareCapture(context)]).then(() => true);
       if (!await Promise.race([prepared, cancelled, deadline]) || generation !== this.generation) return false;
       if (context.sampleRate !== 16000 || context.state !== 'running') throw new Error('Could not start audio. Start recording again.');
@@ -175,13 +177,13 @@ export class VoiceCaptureService implements OnDestroy {
         this.disconnectCapture();
         if (context) this.noteAudio('Capture drained', context);
         this.closingCue = true;
-        if (context) await voiceCue(context, false, this.observeCue(context, false));
+        if (context && !this.feedbackSuppressed) await voiceCue(context, false, this.observeCue(context, false));
         if (generation === this.generation) this.cancel();
       }
     }
   }
 
-  silenceClosingCue(): void { if (this.closingCue) this.cancel(); }
+  silenceClosingCue(): void { this.feedbackSuppressed = true; if (this.closingCue) this.cancel(); }
 
   cancel(): void {
     if (this.context) this.noteAudio('Releasing audio', this.context);

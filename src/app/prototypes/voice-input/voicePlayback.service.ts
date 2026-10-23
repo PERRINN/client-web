@@ -1,9 +1,9 @@
 import { EnvironmentInjector, Injectable, OnDestroy, runInInjectionContext } from '@angular/core';
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
-import { firstValueFrom, Subscription, timeout } from 'rxjs';
+import { firstValueFrom, Subject, Subscription, takeUntil, timeout } from 'rxjs';
 import { VoiceConversationService, VoiceMessage } from './voiceConversation.service';
 import { VoiceInputService } from './voiceInput.service';
-import { VoiceAudioSessionService } from './voiceAudioSession.service';
+import { VoiceAudioSessionService, VoicePageEvent } from './voiceAudioSession.service';
 
 interface PlaybackResponse { skipped?: boolean; audio?: string; expiresAt?: number }
 
@@ -25,14 +25,15 @@ export class VoicePlaybackService implements OnDestroy {
   private processing = false;
   private destroyed = false;
   private waveformTimer?: ReturnType<typeof setInterval>;
-  private readonly hide = () => { if (document.hidden) { this.queue = []; this.stop(); } };
+  private readonly cancelled = new Subject<void>();
+  private readonly hide = () => { if (document.hidden) this.leave('Page hidden'); else this.returned('Page visible'); };
 
   constructor(private functions: AngularFireFunctions, private injector: EnvironmentInjector,
     private conversation: VoiceConversationService, private voice: VoiceInputService, private audioSession: VoiceAudioSessionService) {
     this.subscriptions.add(conversation.changed.subscribe(() => {
       const owner = conversation.allowed ? conversation.uid : '';
       if (owner !== this.owner) {
-        this.owner = owner; this.epoch++; this.queue = []; this.cache.clear(); this.stop();
+        this.owner = owner; this.cancelPlayback(); this.cache.clear();
         this.loading = ''; this.error = '';
       }
     }));
@@ -44,30 +45,48 @@ export class VoicePlaybackService implements OnDestroy {
       }
     }));
     this.subscriptions.add(voice.changed.subscribe(() => {
-      if (voice.busy) this.stop();
+      if (voice.busy) {
+        if (this.loading || this.active || this.queue.length) { this.audioSession.note('Capture priority'); this.cancelPlayback(); }
+      }
       else void this.drain();
     }));
     document.addEventListener('visibilitychange', this.hide);
   }
 
   private get foreground(): boolean { return !document.hidden && document.hasFocus(); }
+  get diagnosticRows() {
+    return [...this.audioSession.diagnosticRows, { label: 'Playback',
+      value: `${this.active ? 'Playing' : this.loading ? 'Loading' : 'Idle'} · ${this.queue.length}/10 queued`,
+      ok: !this.voice.busy || !this.active && !this.loading && !this.queue.length }];
+  }
+  leave(reason: VoicePageEvent): void {
+    this.audioSession.note(`${reason} · playback ${this.active ? 'playing' : this.loading ? 'loading' : 'idle'} · mic ${this.voice.busy ? 'busy' : 'idle'}`);
+    this.cancelPlayback();
+    this.voice.cancel();
+    this.audioSession.release();
+    this.notify();
+  }
+  returned(reason: VoicePageEvent): void { this.audioSession.note(reason); this.notify(); }
+  private cancelPlayback(): void {
+    this.epoch++; this.queue = []; this.loading = ''; this.stop(); this.cancelled.next();
+  }
   available(message: VoiceMessage): boolean { return !!message.audioExpiresAt && message.audioExpiresAt > Date.now(); }
   label(message: VoiceMessage): string {
     return !this.available(message) ? 'Voice recording unavailable' : this.loading === message.id ? 'Loading recording'
       : this.active === message.id ? 'Stop recording playback' : 'Play voice recording';
   }
-  // Called in a real pointer/keyboard gesture, including the microphone control.
+  // Called in a real pointer/keyboard gesture outside the microphone control.
   unlock(): void {
-    if (!this.owner || this.destroyed || this.voice.busy) return;
+    if (!this.owner || this.destroyed || this.voice.busy || !this.foreground) return;
     try {
       const context = this.audioSession.acquire();
-      if (context.state !== 'running') void context.resume().catch(() => {});
+      if (context.state !== 'running') void this.audioSession.resume(context, 'Playback').catch(() => {});
     } catch { /* The play button remains available on unsupported devices. */ }
   }
   toggle(message: VoiceMessage): void {
     this.unlock();
-    if (this.active === message.id || this.loading === message.id) { this.epoch++; this.loading = ''; this.stop(); this.notify(); return; }
-    if (!this.available(message) || this.voice.busy || this.loading) return;
+    if (this.active === message.id || this.loading === message.id) { this.cancelPlayback(); this.notify(); return; }
+    if (!this.available(message) || this.voice.busy || this.loading || !this.foreground) return;
     this.queue = []; this.stop(); void this.play(message, false);
   }
   private async drain(): Promise<void> {
@@ -91,7 +110,7 @@ export class VoicePlaybackService implements OnDestroy {
         const result = await firstValueFrom(runInInjectionContext(this.injector, () =>
           this.functions.httpsCallable<{ eventId: string; automatic: boolean }, PlaybackResponse>('voicePlayback', { timeout: 20000 })(
             { eventId: message.id, automatic })
-        ).pipe(timeout({ first: 20000 })));
+        ).pipe(timeout({ first: 20000 }), takeUntil(this.cancelled)));
         if (epoch !== this.epoch || owner !== this.owner || this.destroyed) return;
         if (result.skipped) return;
         if (!result.audio || result.audio.length > 1280060 || !result.expiresAt || result.expiresAt <= Date.now()) throw Error('Unavailable');
@@ -148,7 +167,7 @@ export class VoicePlaybackService implements OnDestroy {
   }
   private notify(): void { this.conversation.changed.next(); }
   ngOnDestroy(): void {
-    this.destroyed = true; this.epoch++; this.queue = []; this.cache.clear(); this.stop();
+    this.destroyed = true; this.cancelPlayback(); this.cache.clear(); this.cancelled.complete();
     this.subscriptions.unsubscribe(); document.removeEventListener('visibilitychange', this.hide);
   }
 }

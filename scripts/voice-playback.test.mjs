@@ -32,7 +32,7 @@ function fixture(t) {
     createBufferSource() { const node = { connect() {}, disconnect() {}, start() {}, stop() {}, onended: null }; nodes.push(node); return node; }
   };
   const conversation = { changed: new Subject(), incoming: new Subject(), allowed: true, uid: 'recipient' };
-  const voice = { changed: new Subject(), busy: false };
+  const voice = { changed: new Subject(), busy: false, cancel() { this.busy = false; this.changed.next(); } };
   let response = () => of({ audio: Buffer.alloc(32044).toString('base64'), expiresAt: Date.now() + 60000 });
   const functions = { httpsCallable: (_name, options) => data => { calls.push(data); assert.equal(options.timeout, 20000); return response(); } };
   const session = new sessionExports.VoiceAudioSessionService();
@@ -73,7 +73,8 @@ test('failed downloads require explicit retry and automatic backlog is capped at
   for (let i = 0; i < 40; i++) f.conversation.incoming.next(f.message(String(i)));
   assert.equal(f.calls.length, 1); assert.equal(f.service.queue.length, 10);
   f.document.hidden = true; f.listeners.get('visibilitychange')();
-  pending.error(Error('Offline')); await tick(); assert.equal(f.calls.length, 1); assert.ok(f.service.error);
+  pending.error(Error('Offline')); await tick(); assert.equal(f.calls.length, 1); assert.equal(f.service.error, '');
+  assert.equal(f.service.loading, ''); assert.equal(f.service.queue.length, 0);
   f.document.hidden = false; f.respond(() => of({ skipped: true }));
   f.service.toggle(f.message('0')); await tick(); assert.equal(f.calls.length, 2); assert.equal(f.calls[1].automatic, false);
 });
@@ -146,4 +147,72 @@ test('session restoration preserves a newer audio mode selected elsewhere', t =>
   assert.equal(session.type, 'playback');
   session.type = 'transient'; f.session.ngOnDestroy();
   assert.equal(session.type, 'transient');
+});
+
+test('background releases an interrupted context and a stuck resume; returning waits for another gesture', async t => {
+  const system = { type: 'auto', state: 'interrupted' }; audioSession(t, system);
+  const f = fixture(t); f.service.unlock();
+  const old = f.session.current;
+  old.state = 'interrupted'; old.resume = () => new Promise(() => {});
+  f.service.unlock();
+  assert.match(f.service.diagnosticRows.find(row => row.label === 'Resume').value, /pending/);
+  f.document.hidden = true; f.listeners.get('visibilitychange')();
+  assert.equal(old.state, 'closed'); assert.equal(f.session.current, undefined);
+  assert.equal(system.type, 'auto');
+  f.document.hidden = false; f.listeners.get('visibilitychange')(); await tick();
+  assert.equal(f.session.current, undefined); assert.equal(f.calls.length, 0);
+  f.service.toggle(f.message('returned')); await tick();
+  assert.notEqual(f.session.current, old); assert.equal(f.service.active, 'returned');
+  const trace = f.service.diagnosticRows.find(row => row.label === 'Session trace').value;
+  assert.match(trace, /Page hidden[\s\S]*Context release[\s\S]*Page visible[\s\S]*Context created/);
+  assert.doesNotMatch(trace, /recipient|returned/);
+});
+test('a download cancelled on background cannot play or overwrite a new request after return', async t => {
+  const f = fixture(t), oldResponse = new Subject(), newResponse = new Subject();
+  f.respond(() => oldResponse); f.service.toggle(f.message('old'));
+  assert.equal(oldResponse.observers.length, 1);
+  f.document.hidden = true; f.listeners.get('visibilitychange')();
+  assert.equal(oldResponse.observers.length, 0); assert.equal(f.service.loading, '');
+  f.document.hidden = false; f.listeners.get('visibilitychange')();
+  f.respond(() => newResponse); f.service.toggle(f.message('new'));
+  oldResponse.next({ audio: Buffer.alloc(32044).toString('base64'), expiresAt: Date.now() + 60000 }); await tick();
+  assert.equal(f.nodes.length, 0); assert.equal(f.service.loading, 'new');
+  newResponse.next({ audio: Buffer.alloc(32044).toString('base64'), expiresAt: Date.now() + 60000 }); await tick();
+  assert.equal(f.service.active, 'new'); assert.equal(f.calls.length, 2);
+});
+test('capture cancels pending playback, suppresses late results and never changes recording mode', async t => {
+  const system = { type: 'auto' }; audioSession(t, system);
+  const f = fixture(t), pending = new Subject(); f.respond(() => pending);
+  f.service.toggle(f.message('download')); f.session.acquire('play-and-record');
+  f.voice.busy = true; f.voice.changed.next();
+  assert.equal(f.service.loading, ''); assert.equal(pending.observers.length, 0);
+  f.service.unlock(); assert.equal(system.type, 'play-and-record');
+  pending.next({ audio: Buffer.alloc(32044).toString('base64'), expiresAt: Date.now() + 60000 }); await tick();
+  assert.equal(f.nodes.length, 0); assert.equal(f.calls.length, 1);
+  assert.equal(f.service.diagnosticRows.find(row => row.label === 'Playback').ok, true);
+});
+test('session trace retains at most 24 events across repeated returns without remote work', t => {
+  const f = fixture(t);
+  for (let i = 0; i < 100; i++) f.service.returned('Window focus');
+  const trace = f.service.diagnosticRows.find(row => row.label === 'Session trace');
+  assert.equal(trace.value.split('\n').length, 24); assert.equal(f.calls.length, 0);
+  assert.equal(f.session.current, undefined);
+});
+test('failed playback requires an explicit retry without restarting automatically', async t => {
+  const f = fixture(t), pending = new Subject(); f.respond(() => pending);
+  f.service.toggle(f.message('failed')); pending.error(Error('Offline')); await tick();
+  assert.ok(f.service.error); assert.equal(f.calls.length, 1); assert.equal(f.service.loading, '');
+  await tick(); assert.equal(f.calls.length, 1);
+  f.respond(() => of({ skipped: true })); f.service.toggle(f.message('failed')); await tick();
+  assert.equal(f.calls.length, 2);
+});
+test('a late decode from a discarded context cannot cache or play over a new recording', async t => {
+  const f = fixture(t); f.service.unlock(); let decoded;
+  f.session.current.decodeAudioData = () => new Promise(resolve => { decoded = resolve; });
+  f.service.toggle(f.message('old-decode')); await tick();
+  f.service.leave('Page hide'); f.service.returned('Page show');
+  f.service.toggle(f.message('new-decode')); await tick();
+  assert.equal(f.service.active, 'new-decode');
+  decoded({ duration: 1, sampleRate: 16000, getChannelData: () => new Float32Array(16000) }); await tick();
+  assert.equal(f.service.cache.has('old-decode'), false); assert.equal(f.service.active, 'new-decode');
 });

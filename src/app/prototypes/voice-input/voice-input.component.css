@@ -47,7 +47,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--color-focus); o
 .diagnostic-row { min-height: 48px; padding: 5px 0; overflow-wrap: anywhere; }
 .diagnostic-row dt { font-weight: 600; }
 .diagnostic-row dd { font-size: 13px; }
-.diagnostic-row[data-state="P trace"] dd, .diagnostic-row[data-state="Audio trace"] dd { white-space: pre-line; }
+.diagnostic-row[data-state="P trace"] dd, .diagnostic-row[data-state="Audio trace"] dd, .diagnostic-row[data-state="Session trace"] dd { white-space: pre-line; }
 .state-ok { color: var(--color-success); }
 .state-error { color: var(--color-danger-text); }
 @media (max-width: 480px) {
