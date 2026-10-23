@@ -676,6 +676,19 @@ test('old waiting rows precede new shared messages and cannot take their scroll 
   component.ngOnDestroy(); service.ngOnDestroy();
 });
 
+test('timeline hides received pending recordings while preserving sending and terminal errors', () => {
+  const { component, service } = componentFixture();
+  const recording = { id: 'sending', conversationId: 'pilot', createdAt: 100, received: false };
+  const reply = { id: 1, kind: 'pending', text: '', recording };
+  service.replies.push(reply);
+  assert.deepEqual(component.conversationEntries.map(row => row.id), ['reply:1']);
+  recording.received = true;
+  assert.deepEqual(component.conversationEntries, [], 'Receipt removes the whole row, including its timestamp/day divider');
+  reply.kind = 'error'; reply.text = 'Could not transcribe this recording.'; reply.recording = undefined;
+  assert.deepEqual(component.conversationEntries.map(row => row.id), ['reply:1']);
+  component.ngOnDestroy(); service.ngOnDestroy();
+});
+
 test('timeline removes confirmed pending duplicates and hides private and other-conversation replies', () => {
   const { component, service } = componentFixture();
   service.replies.push(

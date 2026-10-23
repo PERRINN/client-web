@@ -33,7 +33,7 @@ navigator.mediaDevices.getUserMedia=async()=>{
  track.stop=()=>{if(stopped)return;stopped=true;stop();tone.stop();void driver.close();};tracks.push(track);return sink.stream;
 };
 const queue={items:[],changed:new Subject(),completed:new Subject(),ready:true,canRecord:true,
- start(){},enqueue:async bytes=>{submitted.push(bytes.length);},diagnostics:{ready:true,total:0,unsent:0,unsaved:false,
+ start(){},label(){return 'Sending';},enqueue:async bytes=>{submitted.push(bytes.length);},diagnostics:{ready:true,total:0,unsent:0,unsaved:false,
  received:0,storageError:false,storageRetries:0,resultRetries:0,listeners:0,confirmedResults:0,resultFailures:0}};
 const voice=new VoiceInputService({authState:new BehaviorSubject({uid:'synthetic'})} as any,queue as any,capture,{run:fn=>fn()} as any);
 const conversation={allowed:true,ready:true,uid:'synthetic',messages:[],changed:new Subject(),incoming:new Subject()};
@@ -44,6 +44,9 @@ TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTe
 TestBed.configureTestingModule({imports:[CommonModule],declarations:[Area,UserAvatarComponent],schemas:[NO_ERRORS_SCHEMA],providers:[provideZoneChangeDetection()]});
 const fixture=TestBed.createComponent(Area);document.body.append(fixture.nativeElement);fixture.autoDetectChanges();fixture.detectChanges();
 window.voiceHarness={
+ pending(received){voice.replies.splice(0,voice.replies.length,{id:1,kind:'pending',text:'',recording:{id:'local',conversationId:'pilot',createdAt:Date.now(),received} as any});fixture.detectChanges();},
+ failure(){voice.replies.splice(0,voice.replies.length,{id:1,kind:'error',text:'Recording failed.'});fixture.detectChanges();},
+ clear(){voice.replies.splice(0);fixture.detectChanges();},
  leave(){fixture.componentInstance.pageHide();},returned(){fixture.componentInstance.pageShow();},
  async suspend(){await audio.current?.suspend();},
  async stop(){await voice.release();fixture.detectChanges();},
@@ -80,6 +83,17 @@ try {
     await page.setViewportSize({ width, height: 850 }); await page.goto(origin);
     await page.waitForFunction(() => !!window.voiceHarness);
     const dock = page.locator('.voice-dock'), frame = await page.locator('.voice-page').boundingBox(), dockBox = await dock.boundingBox();
+    await page.evaluate(() => window.voiceHarness.pending(false));
+    assert.equal(await page.locator('.recording-state').innerText().then(text => text.startsWith('Sending')), true);
+    await page.evaluate(() => window.voiceHarness.pending(true));
+    assert.equal(await page.locator('.replies .reply').count(), 0);
+    assert.equal(await page.locator('.date-divider').count(), 0);
+    assert.equal(await page.getByText('Transcribing', { exact: true }).count(), 0);
+    await page.evaluate(() => window.voiceHarness.failure());
+    assert.equal(await page.locator('.reply-error').innerText().then(text => text.includes('Recording failed.')), true);
+    await page.evaluate(() => window.voiceHarness.clear());
+    assert.deepEqual(await page.locator('.voice-page').boundingBox(), frame);
+    assert.deepEqual(await dock.boundingBox(), dockBox);
     await page.getByRole('button', { name: 'Open diagnostics', exact: true }).click();
     await page.evaluate(() => window.voiceHarness.flush());
     await page.locator('[data-state="Session trace"]').waitFor();

@@ -130,7 +130,7 @@ test('durable receipt releases local audio; known document listener restores res
   environment(t); const f = queue(t, { call: () => of({ status: 'queued', eventId }) }); await ready(f);
   await f.service.enqueue(bytes); await until(() => f.listeners.size === 1); await ready(f);
   const row = f.service.items[0]; assert.equal(row.audio.byteLength, 0); assert.equal(row.received, true);
-  assert.equal(f.service.label(row), 'Transcribing'); assert.equal(f.calls.length, 1);
+  assert.equal(f.service.label(row), ''); assert.equal(f.calls.length, 1);
   f.result('queued', '', true); assert.equal(f.completed.length, 0);
   f.service.ngOnDestroy(); assert.equal(f.listeners.size, 0);
   const next = queue(t); await until(() => next.listeners.size === 1);

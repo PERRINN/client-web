@@ -77,7 +77,7 @@ export class VoiceQueueService implements OnDestroy {
   active(item: VoiceRecording): boolean { return !item.received && (item.leaseUntil || 0) > Date.now(); }
   label(item: VoiceRecording): string {
     if (this.unsaved?.id === item.id) return 'Saving recording';
-    if (item.received) return 'Transcribing';
+    if (item.received) return '';
     if (this.active(item)) return this.running && this.attempt?.record?.id === item.id
       ? this.attempt.stage === 'Checking saved result' ? 'Checking saved result' : 'Sending' : 'Waiting for upload slot';
     return this.offline ? 'Waiting for connection' : 'Waiting';

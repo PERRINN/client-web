@@ -108,12 +108,13 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
 
   get conversationEntries(): ConversationEntry[] {
     const messages = this.conversation.messages;
-    const local = this.voice.replies.map(reply => `${reply.id}:${!!reply.private}:${reply.recording?.id || ''}`).join('|');
+    const local = this.voice.replies.map(reply => `${reply.id}:${!!reply.private}:${reply.recording?.id || ''}:${!!reply.recording?.received}`).join('|');
     if (this.timelineMessages === messages && this.timelineLocal === local) return this.timeline;
     this.timelineMessages = messages; this.timelineLocal = local;
     const shared = new Set(messages.filter(message => message.userId === this.voice.uid).map(message => message.requestId));
     const entries: ConversationEntry[] = messages.map(message => ({ id: 'message:' + message.id, createdAt: message.createdAt.toMillis(), message }));
     for (const reply of this.voice.replies) {
+      if (reply.kind === 'pending' && reply.recording?.received) continue;
       if (reply.private || reply.recording && (reply.recording.conversationId !== 'pilot' || shared.has(reply.recording.id))) continue;
       entries.push({ id: 'reply:' + reply.id, createdAt: reply.createdAt ?? reply.recording?.createdAt ?? 0, reply });
     }
