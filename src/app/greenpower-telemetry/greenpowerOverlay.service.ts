@@ -23,7 +23,7 @@ export class GreenpowerOverlayService implements OnDestroy {
   sessions: OverlaySession[] = [];
   more = false;
   private liveSource?: LiveOverlaySource;
-  private sessionType: 'race' | 'battery_dyno' = 'race';
+  private sessionType: 'race' | 'battery_dyno' | 'motor_dyno' = 'race';
   private cursor?: firebase.firestore.QueryDocumentSnapshot;
   private queue: OverlaySession[] = [];
   private reader?: RecordingReader;
@@ -51,7 +51,10 @@ export class GreenpowerOverlayService implements OnDestroy {
     return [...channels.values()];
   }
   get end() { return Math.max(1, ...this.sessions.filter(item => item.loaded).map(item => (item.session.endAt ?? item.observedEnd ?? item.session.startAt) - item.session.startAt)); }
-  get title() { return this.sessionType === 'battery_dyno' ? '2026 battery dyno tests' : '2026 race sessions'; }
+  get title() {
+    return this.sessionType === 'motor_dyno' ? '2026 motor dyno sessions'
+      : this.sessionType === 'battery_dyno' ? '2026 battery dyno tests' : '2026 race sessions';
+  }
   get status() {
     return this.loading ? 'Loading sessions…' : this.sessions.filter(item => item.loaded).length + ' sessions'
       + (this.error ? ' · Load incomplete' : this.hasMore ? ' · More available' : '');
@@ -129,7 +132,7 @@ export class GreenpowerOverlayService implements OnDestroy {
     this.sessions = this.sessions.map(item => item.id === id ? { ...item, hidden: !item.hidden } : item);
     this.changed.next();
   }
-  async load(reset = false, sessionType: 'race' | 'battery_dyno' = 'race') {
+  async load(reset = false, sessionType: 'race' | 'battery_dyno' | 'motor_dyno' = 'race') {
     if (!this.account || this.loading) return;
     if (reset) { this.clear(); this.sessionType = sessionType; this.active = true; this.more = true; this.updateLiveSession(); }
     if (!this.active || !this.more && !this.queue.length) return;

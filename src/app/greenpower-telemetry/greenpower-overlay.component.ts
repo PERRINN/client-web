@@ -33,6 +33,7 @@ export class GreenpowerOverlayComponent implements OnDestroy {
   choose(value: string) {
     if (value === '2026-race') void this.overlay.load(true, 'race');
     else if (value === '2026-battery-dyno') void this.overlay.load(true, 'battery_dyno');
+    else if (value === '2026-motor-dyno') void this.overlay.load(true, 'motor_dyno');
   }
   private refresh() {
     const membership = this.overlay.sessions.filter(item => item.loaded).map(item => item.id).join('|');

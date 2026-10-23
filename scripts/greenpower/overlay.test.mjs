@@ -161,21 +161,24 @@ test('loading a battery dyno adds computed maximum Wh to shared session and char
   subscription.unsubscribe(); component.ngOnDestroy(); h.service.ngOnDestroy();
 });
 
-test('battery dyno preset filters the year and type, retains its filter on pagination and retry, and resets when switching', async () => {
+for (const [type, preset, title, otherType] of [
+  ['battery_dyno', '2026-battery-dyno', '2026 battery dyno tests', 'motor_dyno'],
+  ['motor_dyno', '2026-motor-dyno', '2026 motor dyno sessions', 'battery_dyno']
+]) test(`${type} preset filters the year and type, retains its filter on pagination and retry, and resets when switching`, async () => {
   const h = fixture(31);
-  for (const [path, value] of h.records) if (path.includes('/sessions/')) value.type = 'battery_dyno';
+  for (const [path, value] of h.records) if (path.includes('/sessions/')) value.type = type;
   const source = h.records.get(`${ROOT}/days/${date}/sessions/race-0`);
-  for (const [id, changes] of [['race', { type: 'race' }], ['motor', { type: 'motor_dyno' }],
+  for (const [id, changes] of [['race', { type: 'race' }], ['other-dyno', { type: otherType }],
     ['practice', { type: 'practice' }], ['old-year', { startAt: Date.UTC(2025, 11, 31) }],
     ['next-year', { startAt: Date.UTC(2027, 0, 1) }], ['legacy', { schemaVersion: 1 }]]) {
     h.records.set(`${ROOT}/days/${date}/sessions/${id}`, { ...source, id, ...changes });
   }
   const component = new GreenpowerOverlayComponent(h.service, { changed: new Subject(), charts: channels => channels }, { markForCheck() {} });
-  component.choose('2026-battery-dyno');
+  component.choose(preset);
   while (h.service.loading) await Promise.resolve();
-  assert.equal(h.service.title, '2026 battery dyno tests');
+  assert.equal(h.service.title, title);
   assert.equal(h.service.sessions.length, 30);
-  assert.ok(h.service.sessions.every(item => item.loaded && item.session.type === 'battery_dyno'));
+  assert.ok(h.service.sessions.every(item => item.loaded && item.session.type === type));
   h.fail(true); await h.service.load();
   assert.ok(h.service.error);
   assert.equal(h.service.sessions.length, 31);
@@ -184,8 +187,8 @@ test('battery dyno preset filters the year and type, retains its filter on pagin
   assert.ok(h.service.sessions.every(item => item.loaded));
   const queries = h.calls.filter(call => call.path === 'group:sessions');
   assert.equal(queries.length, 2);
-  assert.ok(queries.every(query => query.limit === 30 && query.filters.some(([key, , value]) => key === 'type' && value === 'battery_dyno')));
-  assert.ok(queries[1].after, 'continuation uses the battery preset cursor');
+  assert.ok(queries.every(query => query.limit === 30 && query.filters.some(([key, , value]) => key === 'type' && value === type)));
+  assert.ok(queries[1].after, 'continuation uses the selected preset cursor');
   component.choose('2026-race');
   while (h.service.loading) await Promise.resolve();
   assert.equal(h.service.title, '2026 race sessions');
@@ -423,10 +426,10 @@ test('live session is included before historical pagination reaches it, without 
   h.service.ngOnDestroy();
 });
 
-test('live race preset, session closure and paused contexts retain one stable comparison snapshot', async () => {
-  const h = liveFixture(1, 'race'); h.service.syncLive(h.source());
+for (const type of ['race', 'motor_dyno']) test(`live ${type} preset, session closure and paused contexts retain one stable comparison snapshot`, async () => {
+  const h = liveFixture(1, type); h.service.syncLive(h.source());
   await h.service.load(true, 'battery_dyno'); assert.equal(h.service.sessions.length, 0, 'mismatched preset excludes the session');
-  await h.service.load(true, 'race');
+  await h.service.load(true, type);
   const item = h.service.sessions.find(item => item.live), colour = item.colour, before = h.calls.length;
   const closed = { ...h.session, endAt: h.session.startAt + 9000 };
   h.service.syncLive(h.source(8, { sessions: [closed] }));
@@ -440,7 +443,7 @@ test('live race preset, session closure and paused contexts retain one stable co
   const snapshot = item.channels;
   h.service.syncLive(); assert.equal(item.live, false); assert.match(item.label, / · Open$/); assert.equal(item.channels, snapshot);
   assert.equal(h.calls.length, before);
-  h.service.clear(); h.service.syncLive(h.source()); await h.service.load(true, 'race');
+  h.service.clear(); h.service.syncLive(h.source()); await h.service.load(true, type);
   assert.equal(h.service.sessions.filter(item => item.session.id === h.session.id).length, 1, 'reopening overlay attaches one live session');
   h.state.next({ uid: '', ready: true }); assert.equal(h.service.sessions.length, 0);
   h.service.ngOnDestroy();

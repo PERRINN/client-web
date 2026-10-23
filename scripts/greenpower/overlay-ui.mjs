@@ -164,6 +164,17 @@ try {
   assert.ok(batteryLabels.every((label,index)=>label.endsWith('Battery '+(index+1)+'A, Battery '+(index+1)+'B')));
   assert.deepEqual(await page.locator('app-greenpower-chart').first().locator('.overlay-name').allTextContents(),batteryLabels);
   await page.screenshot({path:output+'/'+name+'-battery-dyno.png',fullPage:true});
+  assert.equal(await page.locator('#overlay-source option[value="2026-motor-dyno"]').textContent(),'2026 motor dyno sessions');
+  await page.locator('#overlay-source').selectOption('2026-motor-dyno');
+  await page.waitForFunction(()=>window.overlayHarness.overlay.sessionType==='motor_dyno'&&!window.overlayHarness.overlay.loading);
+  assert.deepEqual(await toolbar.boundingBox(),initial,'motor dyno selection preserves toolbar geometry at '+width);
+  assert.equal(await page.locator('body').evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  assert.equal(await page.getByRole('heading',{name:'2026 motor dyno sessions',exact:true}).count(),1);
+  assert.equal(await page.title(),'2026 motor dyno sessions · PERRINN');
+  const motorLabels=await page.locator('.session-list .session-label').allTextContents();
+  assert.ok(motorLabels.every(label=>!label.includes('Battery')));
+  assert.deepEqual(await page.locator('app-greenpower-chart').first().locator('.overlay-name').allTextContents(),motorLabels);
+  await page.screenshot({path:output+'/'+name+'-motor-dyno.png',fullPage:true});
   await page.locator('#overlay-source').selectOption('2026-race');
   await page.waitForFunction(()=>window.overlayHarness.overlay.sessionType==='race'&&!window.overlayHarness.overlay.loading);
   assert.equal(await page.getByRole('heading',{name:'2026 race sessions',exact:true}).count(),1);
