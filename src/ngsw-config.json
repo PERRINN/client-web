@@ -9,9 +9,16 @@
         "/favicon.ico",
         "/index.html",
         "/*.css",
-        "/*.js",
-        "/assets/voice-input/capture.worklet.js"
+        "/*.js"
       ]
+    }
+  }, {
+    "name": "voice-capture",
+    "installMode": "prefetch",
+    "updateMode": "prefetch",
+    "cacheQueryOptions": { "ignoreSearch": true },
+    "resources": {
+      "files": ["/assets/voice-input/capture.worklet.js"]
     }
   }, {
     "name": "assets",

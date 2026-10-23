@@ -238,6 +238,37 @@ test('worklet hard-caps capture at 30 seconds and flushes the final partial bloc
   assert.equal(messages.filter(item => item.type === 'limit').length, 1);
   recorder.port.onmessage({ data: 'stop' }); assert.equal(messages.at(-1).type, 'stopped');
 });
+test('deferred worklet confirms real input once and discards all samples until armed', () => {
+  let Processor; const messages = [];
+  const scope = { AudioWorkletProcessor: class { port = { postMessage: message => messages.push(message) }; }, Float32Array,
+    registerProcessor: (_, processor) => { Processor = processor; } };
+  vm.runInNewContext(readFileSync(new URL('../src/assets/voice-input/capture.worklet.js', import.meta.url), 'utf8'), scope);
+  const recorder = new Processor({ processorOptions: { deferCapture: true } });
+  recorder.process([]); recorder.process([[new Float32Array(0)]]);
+  assert.equal(messages.length, 0, 'No readiness without an input block.');
+  for (let i = 0; i < 1000; i++) recorder.process([[new Float32Array(128).fill(.9)]]);
+  assert.equal(messages.length, 1); assert.equal(messages[0].type, 'ready');
+  assert.equal(recorder.total, 0); assert.equal(recorder.offset, 0);
+  recorder.port.onmessage({ data: 'start' });
+  for (let i = 0; i < 4000; i++) {
+    recorder.port.onmessage({ data: 'start' });
+    recorder.process([[new Float32Array(128).fill(.1)]]);
+  }
+  const samples = messages.filter(item => item.type === 'samples');
+  assert.equal(samples.reduce((total, item) => total + item.samples.length, 0), 480000);
+  assert.ok(samples.every(item => item.samples.every(sample => Math.abs(sample - .1) < .00001)));
+  assert.equal(messages.filter(item => item.type === 'limit').length, 1);
+  assert.equal(messages.filter(item => item.type === 'ready').length, 1);
+  recorder.port.onmessage({ data: 'start' }); recorder.process([[new Float32Array(128)]]);
+  assert.equal(recorder.total, 480000, 'Start cannot bypass the hard sample cap.');
+  const beforeCancel = messages.length;
+  const cancelled = new Processor({ processorOptions: { deferCapture: true } });
+  cancelled.port.onmessage({ data: 'stop' }); cancelled.port.onmessage({ data: 'start' });
+  cancelled.process([[new Float32Array(128).fill(.9)]]);
+  assert.equal(cancelled.total, 0, 'Stop before arming cannot be undone.');
+  assert.equal(messages.length, beforeCancel + 1, 'Stopped input must not announce readiness.');
+  assert.equal(messages.at(-1).type, 'stopped');
+});
 
 test('capture cancels late microphone grants, drains samples on normal release, and stops every track', async () => {
   const originals = Object.fromEntries(['navigator', 'AudioContext', 'AudioWorkletNode'].map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
@@ -247,12 +278,17 @@ test('capture cancels late microphone grants, drains samples on normal release, 
   class Context {
     sampleRate = 16000; state = 'running'; audioWorklet = { addModule: async () => {} };
     resume = async () => {}; close = async () => { closes++; };
-    createGain = connection; createMediaStreamSource = connection;
+    createGain = connection;
+    createMediaStreamSource = () => ({ connect: target => queueMicrotask(() => target.port.onmessage?.({ data: { type: 'ready' } })), disconnect() {} });
   }
   class Node {
     constructor() { node = this; }
     connect() {} disconnect() {}
-    port = { close() {}, postMessage: () => queueMicrotask(() => this.port.onmessage?.({ data: { type: 'stopped' } })) };
+    commands = [];
+    port = { close() {}, postMessage: message => {
+      this.commands.push(message);
+      if (message === 'stop') queueMicrotask(() => this.port.onmessage?.({ data: { type: 'stopped' } }));
+    } };
   }
   try {
     Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { mediaDevices: { getUserMedia: () => new Promise(resolve => { grant = resolve; }) } } });
@@ -651,7 +687,7 @@ test('timeline removes confirmed pending duplicates and hides private and other-
   component.ngOnDestroy(); service.ngOnDestroy();
 });
 
-function safariCapture({ stalled = false, permissionPending = false, cue = async () => {} } = {}) {
+function safariCapture({ stalled = false, permissionPending = false, inputPending = false, cue = async () => {} } = {}) {
   const originals = Object.fromEntries(['navigator', 'AudioContext', 'AudioWorkletNode'].map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
   const contexts = [], tracks = [], nodes = [], sources = [];
   let grant;
@@ -669,14 +705,21 @@ function safariCapture({ stalled = false, permissionPending = false, cue = async
     async close() { this.closed = true; this.state = 'closed'; }
     createGain = connection;
     createMediaStreamSource() {
-      const source = { connected: false, connect() { this.connected = true; }, disconnect() { this.connected = false; } };
+      const source = { connected: false, connect(target) {
+        this.connected = true;
+        if (!inputPending) queueMicrotask(() => target.port.onmessage?.({ data: { type: 'ready' } }));
+      }, disconnect() { this.connected = false; } };
       sources.push(source); return source;
     }
   }
   class Node {
     constructor() { nodes.push(this); }
     connect() {} disconnect() {}
-    port = { close() {}, postMessage: () => queueMicrotask(() => this.port.onmessage?.({ data: { type: 'stopped' } })) };
+    commands = [];
+    port = { close() {}, postMessage: message => {
+      this.commands.push(message);
+      if (message === 'stop') queueMicrotask(() => this.port.onmessage?.({ data: { type: 'stopped' } }));
+    } };
   }
   const stream = () => {
     const track = { stopped: false, stop() { this.stopped = true; } }; tracks.push(track);
@@ -730,6 +773,36 @@ test('startup deadline begins after permission, releases the microphone, and can
     expire(); await rejected;
     assert.ok(fixture.tracks.at(-1).stopped); assert.ok(fixture.contexts.at(-1).closed);
     assert.equal(fixture.capture.node, undefined);
+  } finally { globalThis.setTimeout = originalTimeout; fixture.restore(); }
+});
+test('opening cue waits for a connected input graph, with immediate cancellation and the existing startup deadline', async () => {
+  let cues = 0;
+  const fixture = safariCapture({ inputPending: true, cue: async () => { cues++; } });
+  const originalTimeout = globalThis.setTimeout;
+  let expire;
+  globalThis.setTimeout = (callback, delay, ...args) => {
+    if (delay !== 5000) return originalTimeout(callback, delay, ...args);
+    expire = callback; return undefined;
+  };
+  try {
+    const starting = fixture.capture.start(() => {}, () => {});
+    await until(() => fixture.sources[0]?.connected);
+    assert.equal(cues, 0); assert.deepEqual(fixture.nodes[0].commands, []);
+    fixture.nodes[0].port.onmessage({ data: { type: 'ready' } });
+    assert.equal(await starting, true); assert.equal(cues, 1);
+    assert.deepEqual(fixture.nodes[0].commands, ['start']);
+    fixture.capture.cancel();
+    const cancelled = fixture.capture.start(() => {}, () => {});
+    await until(() => fixture.sources[1]?.connected);
+    const lateReady = fixture.nodes[1].port.onmessage;
+    fixture.capture.cancel(); assert.equal(await cancelled, false);
+    lateReady({ data: { type: 'ready' } });
+    assert.equal(cues, 1); assert.ok(fixture.contexts[1].closed); assert.ok(fixture.tracks[1].stopped);
+    const stalled = fixture.capture.start(() => {}, () => {});
+    const rejected = assert.rejects(stalled, /startup timed out/);
+    await until(() => fixture.sources[2]?.connected);
+    expire(); await rejected;
+    assert.equal(cues, 1); assert.ok(fixture.contexts[2].closed); assert.ok(fixture.tracks[2].stopped);
   } finally { globalThis.setTimeout = originalTimeout; fixture.restore(); }
 });
 
@@ -802,19 +875,24 @@ test('radio cues use distinct quiet pitches, fade cleanly and release their audi
   assert.deepEqual(events, ['skipped', 'failed']);
   await voiceCue({ state: 'suspended' }, true, () => { throw Error('Observer unavailable'); });
 });
-test('opening cue finishes before microphone samples connect; closing cue follows stopped capture', async () => {
+test('opening cue follows input readiness and finishes before capture is armed; closing follows drained capture', async () => {
   const cues = [];
   let endCue;
   const fixture = safariCapture({ cue: async (_context, opening) => {
     cues.push(opening);
-    assert.equal(fixture.sources.at(-1).connected, false);
+    assert.equal(fixture.sources.at(-1).connected, opening);
+    if (opening) assert.deepEqual(fixture.nodes.at(-1).commands, []);
     if (!opening) { assert.equal(fixture.tracks.at(-1).stopped, false); assert.equal(fixture.capture.node, undefined); }
     await new Promise(resolve => { endCue = resolve; });
   } });
   try {
     const starting = fixture.capture.start(() => {}, () => {});
-    await until(() => cues.length === 1); assert.equal(fixture.sources[0].connected, false);
+    await until(() => cues.length === 1); assert.equal(fixture.sources[0].connected, true);
+    fixture.nodes[0].port.onmessage({ data: { type: 'samples', samples: new Float32Array(16000).fill(.9) } });
+    assert.equal(fixture.capture.diagnostics.durationMs, 0, 'Never retain cue-time samples.');
+    assert.deepEqual(fixture.nodes[0].commands, []);
     endCue(); assert.equal(await starting, true); assert.equal(fixture.sources[0].connected, true);
+    assert.deepEqual(fixture.nodes[0].commands, ['start']);
     fixture.nodes[0].port.onmessage({ data: { type: 'samples', samples: new Float32Array(16000).fill(.1) } });
     const finishing = fixture.capture.finish();
     await until(() => cues.length === 2); assert.deepEqual(cues, [true, false]);
@@ -858,7 +936,7 @@ test('audio diagnostics retain cue outcomes and bounded timing evidence without 
     const first = fixture.capture.diagnostics;
     assert.equal(first.openingCue, 'ended'); assert.equal(first.closingCue, 'idle');
     assert.match(first.audioTrace, /Context created · 16000Hz/);
-    assert.match(first.audioTrace, /Mic acquired[\s\S]*Opening scheduled[\s\S]*Opening ended[\s\S]*Mic connected/);
+    assert.match(first.audioTrace, /Mic acquired[\s\S]*Mic connected[\s\S]*Input ready[\s\S]*Opening scheduled[\s\S]*Opening ended[\s\S]*Capture armed/);
     assert.match(first.audioTrace, /audio 65ms · output 55ms/);
     fixture.nodes[0].port.onmessage({ data: { type: 'samples', samples: new Float32Array(16000).fill(.1) } });
     assert.equal((await fixture.capture.finish()).length, 32044);

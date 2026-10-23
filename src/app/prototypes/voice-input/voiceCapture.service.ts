@@ -70,16 +70,23 @@ export class VoiceCaptureService implements OnDestroy {
         if (context.state === 'running') return;
         note('Mic resume requested');
         return context.resume().then(() => note('Mic resume resolved'));
-      }), context.audioWorklet.addModule('/assets/voice-input/capture.worklet.js')]).then(() => true);
+      }), context.audioWorklet.addModule('/assets/voice-input/capture.worklet.js?v=2')]).then(() => true);
       if (!await Promise.race([prepared, cancelled, deadline]) || generation !== this.generation) return false;
       if (context.sampleRate !== 16000 || context.state !== 'running') throw new Error('Could not start audio. Start recording again.');
       note('Capture prepared');
       this.samples = new Float32Array(MAX_VOICE_SAMPLES); this.length = 0;
       const interrupted = () => { if (generation === this.generation) onError(); };
-      this.node = new AudioWorkletNode(context, 'voice-capture', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1] });
+      let inputReady: () => void;
+      const ready = new Promise<boolean>(resolve => { inputReady = () => resolve(true); });
+      let capturing = false;
+      this.node = new AudioWorkletNode(context, 'voice-capture', {
+        numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1], processorOptions: { deferCapture: true }
+      });
       this.node.port.onmessage = ({ data }) => {
         if (generation !== this.generation) return;
-        if (data.type === 'samples' && data.samples instanceof Float32Array) {
+        if (data.type === 'ready') { note('Input ready'); inputReady(); }
+        else if (data.type === 'samples' && data.samples instanceof Float32Array) {
+          if (!capturing) return;
           this.lastSampleAt = Date.now();
           const samples = data.samples.subarray(0, MAX_VOICE_SAMPLES - this.length);
           this.samples?.set(samples, this.length); this.length += samples.length;
@@ -98,10 +105,17 @@ export class VoiceCaptureService implements OnDestroy {
       this.mute = context.createGain(); this.mute.gain.value = 0;
       this.source = context.createMediaStreamSource(this.stream!);
       this.node.connect(this.mute); this.mute.connect(context.destination);
+      // Establish the mic graph before scheduling feedback. A running context
+      // alone can still be catching up after mobile audio-session changes.
+      // The worklet discards input until explicitly armed, including cue audio.
+      this.source.connect(this.node); this.connectedAt = Date.now();
+      note('Mic connected');
+      if (!await Promise.race([ready, cancelled, deadline]) || generation !== this.generation) return false;
       if (!await Promise.race([voiceCue(context, true, this.observeCue(context, true)).then(() => true), cancelled, deadline])
         || generation !== this.generation) return false;
-      this.source!.connect(this.node!); this.connectedAt = Date.now();
-      note('Mic connected');
+      capturing = true;
+      this.node!.port.postMessage('start');
+      note('Capture armed');
       return true;
     } catch (error) {
       // Stop a late permission grant even if worklet setup failed first.
