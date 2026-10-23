@@ -86,8 +86,14 @@ export function continuesMessageGroup(previous: ChatMessage | undefined, message
 export { friendlyDateLabel as messageDateLabel } from './chatDate';
 
 export function chatImageError(image: File): string {
-  if (!['image/png', 'image/jpeg', 'image/gif', 'image/webp'].includes(image.type)) return 'Choose a PNG, JPEG, GIF or WebP image.';
-  return image.size > 15 * 1024 * 1024 ? 'Choose an image smaller than 15 MB.' : '';
+  if (['image/png', 'image/jpeg', 'image/gif', 'image/webp'].includes(image.type)) return image.size > 15 * 1024 * 1024 ? 'Choose an image smaller than 15 MB.' : '';
+  if (/^image\/hei[cf]/i.test(image.type) || /\.hei[cf]$/i.test(image.name)) return 'HEIC photos aren’t supported. Choose a JPEG or PNG version.';
+  return 'Choose a PNG, JPEG, GIF or WebP image.';
+}
+
+export function clipboardImage(event: ClipboardEvent): File | undefined {
+  return Array.from(event.clipboardData?.items || []).find(item => item.type.startsWith('image/'))?.getAsFile()
+    || Array.from(event.clipboardData?.files || []).find(file => file.type.startsWith('image/'));
 }
 
 export interface ReadPosition { timestamp: number; messageId: string; }

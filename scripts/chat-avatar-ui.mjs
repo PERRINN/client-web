@@ -24,6 +24,7 @@ import {BrowserDynamicTestingModule,platformBrowserDynamicTesting} from '@angula
 import {CommonModule} from '@angular/common'; import {FormsModule} from '@angular/forms';
 import {EMPTY} from 'rxjs';
 import {ChatComponent} from '${root}/src/app/chat/chat.component';
+import {ChatComposerComponent} from '${root}/src/app/chat/chat-composer/chat-composer.component';
 import {UserAvatarComponent} from '${root}/src/app/user-avatar.component';
 let failSave=false,writes=[];
 const data={updateDetails:async(chain,changes)=>{if(failSave)throw Error('offline');writes.push({chain,subject:changes.subject,image:changes.image?.name});},fundCurrency:{code:'gbp',perGBP:1}};
@@ -35,7 +36,7 @@ class Area extends ChatComponent {
 @Component({standalone:false,template:${JSON.stringify('<ul class="sidebar-conversations listLight"><li><div class="prof-avatar-wrap">'+sidebarAvatar+'</div><span>Engineering Team</span></li></ul>')},styles:[${JSON.stringify(profileStyles)}]})
 class SidebarArea {record={chain:'team',user:'author',name:'Alex Morgan',chatSubject:'Engineering Team',chatProfileImageUrlThumb:'/broken.png',chatProfileImageUrlMedium:'/photo.svg'};message={payload:{doc:{data:()=>this.record}}};}
 TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTesting());
-TestBed.configureTestingModule({imports:[CommonModule,FormsModule],declarations:[Area,SidebarArea,UserAvatarComponent],schemas:[NO_ERRORS_SCHEMA],providers:[provideZoneChangeDetection()]});
+TestBed.configureTestingModule({imports:[CommonModule,FormsModule],declarations:[Area,SidebarArea,UserAvatarComponent,ChatComposerComponent],schemas:[NO_ERRORS_SCHEMA],providers:[provideZoneChangeDetection()]});
 const fixture=TestBed.createComponent(Area);document.body.append(fixture.nativeElement);fixture.autoDetectChanges();fixture.detectChanges();
 window.avatarUI={sidebar(){fixture.destroy();fixture.nativeElement.remove();const sidebar=TestBed.createComponent(SidebarArea);document.body.append(sidebar.nativeElement);sidebar.autoDetectChanges();sidebar.detectChanges();window.sidebarUI={missing(){sidebar.componentInstance.record.chatProfileImageUrlThumb='';sidebar.componentInstance.record.chatProfileImageUrlMedium='';sidebar.detectChanges();}};},flush(){fixture.detectChanges();},sources(values){fixture.componentInstance.avatarSources=values;fixture.detectChanges();},state(value){fixture.componentInstance.state=value;fixture.detectChanges();},fail(value){failSave=value;},writes(){return writes;},title(value){fixture.componentInstance.title=value;fixture.detectChanges();}};
 `);
@@ -86,8 +87,20 @@ try{
   await page.getByLabel('Subject',{exact:true}).fill('Design Review');
   assert.equal(await details.locator('.initials').innerText(),'DR');
   const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a12sAAAAASUVORK5CYII=','base64');
-  const choose=()=>page.locator('input[type=file]').setInputFiles({name:'preview.png',mimeType:'image/png',buffer:png});
-  await choose();assert.match(await details.locator('img').getAttribute('src'),/^blob:/);await stable();
+  const choose=()=>page.getByLabel('Choose chat image',{exact:true}).setInputFiles({name:'preview.png',mimeType:'image/png',buffer:png});
+  const paste = async (selector, name = 'pasted.png', type = 'image/png', size = 1) => page.locator(selector).evaluate((element, { name, type, size }) => {
+    const pixels = size === 1 ? Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a12sAAAAASUVORK5CYII='), c => c.charCodeAt(0)) : new Uint8Array(size);
+    const clipboardData = new DataTransfer(); clipboardData.items.add(new File([pixels], name, { type }));
+    element.dispatchEvent(new ClipboardEvent('paste', { clipboardData, bubbles: true, cancelable: true }));
+  }, { name, type, size });
+  await paste('#chat-subject');assert.match(await details.locator('img').getAttribute('src'),/^blob:/);await stable();
+  assert.equal(await page.locator('.attachment-preview').count(),0);
+  const preview = await details.locator('img').getAttribute('src');
+  await paste('.chat-page','phone.HEIC','image/heic');
+  await page.getByRole('alert').waitFor();assert.match(await page.getByRole('alert').innerText(),/HEIC/);
+  assert.equal(await details.locator('img').getAttribute('src'),preview);await stable();
+  await paste('.chat-page','large.jpg','image/jpeg',16*1024*1024);
+  assert.match(await page.getByRole('alert').innerText(),/15 MB/);await stable();
   await page.getByRole('button',{name:'Undo image change'}).click();
   assert.equal(await details.locator('img').getAttribute('src'),'/photo.svg');await stable();
   await choose();await page.getByRole('button',{name:'Cancel',exact:true}).click();
@@ -103,6 +116,9 @@ try{
   assert.equal(await details.locator('img').getAttribute('src'),'/photo.svg');await stable();
   await page.screenshot({path:output+'/details-'+width+'.png'});
   await page.getByRole('button',{name:'Close chat details'}).click();
+  await paste('.chat-page');await page.locator('.attachment-preview').waitFor();
+  assert.deepEqual(await page.locator('.chat-frame').boundingBox(),frame);
+  await page.getByRole('button',{name:'Remove attached image'}).click();
   assert.equal((await header.boundingBox()).width,44);
   for(const state of ['loading','error','empty']){
    await page.evaluate(state=>window.avatarUI.state(state),state);

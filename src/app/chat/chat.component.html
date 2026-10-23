@@ -1,4 +1,4 @@
-<main class="chat-page" tabindex="-1" (pointerdown)="voice.unlock()" (keydown)="voice.unlock()">
+<main class="chat-page" tabindex="-1" (paste)="onPaste($event)" (pointerdown)="voice.unlock()" (keydown)="voice.unlock()">
   <div class="chat-viewport">
     <section class="chat-frame" [class.details-open]="detailsOpen" aria-label="Conversation">
       <div class="conversation">

@@ -113,6 +113,7 @@ test('the composer retains text until the consumer confirms a successful send', 
   class Emitter { values = []; emit(value) { this.values.push(value); } }
   const decorator = () => () => {};
   const { ChatComposerComponent } = load('../src/app/chat/chat-composer/chat-composer.component.ts', {
+    '../chatData': model,
     '@angular/core': { Component: () => target => target, Input: decorator, Output: decorator, ViewChild: decorator, EventEmitter: Emitter }
   });
   const composer = new ChatComposerComponent();
@@ -120,6 +121,47 @@ test('the composer retains text until the consumer confirms a successful send', 
   assert.equal(composer.messageSent.values.length, 1); assert.equal(composer.draft, 'Keep this until saved');
   composer.disabled = true; composer.send(); assert.equal(composer.messageSent.values.length, 1);
   composer.clearDraft(); assert.equal(composer.draft, '');
+});
+
+test('chat paste selects the image draft, preserves invalid replacements, and respects editor guards', () => {
+  assert.equal(model.chatImageError({ name: 'converted.HEIC', type: 'image/jpeg', size: 100 }), '');
+  const { ChatComponent } = load('../src/app/chat/chat.component.ts', {
+    '@angular/core': { Component: () => target => target, ViewChild: () => () => {} },
+    './chatRead.service': {}, './chat-event/chat-event-editor.component': {}, './chat-fund/chat-fund-editor.component': {},
+    './chat-composer/chat-composer.component': {}, './chatData': model
+  });
+  const component = new ChatComponent({ paramMap: of() }, {}, {}, {}, { run: fn => fn() }, {}, {}, { mode: 'text' });
+  const originalCreate = URL.createObjectURL, originalRevoke = URL.revokeObjectURL, revoked = [];
+  const originalFrame = globalThis.requestAnimationFrame;
+  globalThis.requestAnimationFrame = fn => fn();
+  URL.createObjectURL = file => 'blob:' + file.name; URL.revokeObjectURL = url => revoked.push(url);
+  const file = { name: 'photo.png', type: 'image/png', size: 100 };
+  const paste = (image = file, filesOnly = false) => ({ defaultPrevented: false,
+    preventDefault() { this.defaultPrevented = true; }, clipboardData: {
+      items: filesOnly ? [] : [{ type: image.type, getAsFile: () => image }], files: filesOnly ? [image] : []
+    } });
+  try {
+    Object.assign(component, { signedIn: true, editingDetails: true });
+    const event = paste(); component.onPaste(event);
+    assert.equal(event.defaultPrevented, true); assert.equal(component.imagePreview, 'blob:photo.png');
+    component.onPaste(paste({ ...file, size: 16 * 1024 * 1024 }));
+    assert.match(component.detailsError, /15 MB/); assert.equal(component.detailsImage, file);
+    component.onPaste(paste({ ...file, name: 'phone.HEIC', type: 'image/heic' }));
+    assert.match(component.detailsError, /HEIC/); assert.equal(component.detailsImage, file);
+    component.onPaste(paste({ ...file, name: 'second.png' }, true));
+    assert.deepEqual(revoked, ['blob:photo.png']); assert.equal(component.detailsError, '');
+    component.savingDetails = true; component.onPaste(paste());
+    assert.equal(component.imagePreview, 'blob:second.png');
+    component.savingDetails = false; component.signedIn = false; component.onPaste(paste());
+    assert.equal(component.imagePreview, 'blob:second.png');
+    component.signedIn = true;
+    const text = paste({ type: 'text/plain' }); component.onPaste(text); assert.equal(text.defaultPrevented, false);
+    component.cancelDetailsEdit(); assert.equal(component.imagePreview, '');
+    let forwarded = 0; component.composer = { onPaste: () => forwarded++ };
+    component.onPaste(paste()); assert.equal(forwarded, 1);
+    component.voice.mode = 'voice'; component.onPaste(paste()); assert.equal(forwarded, 1);
+    component.voice.keyboard = true; component.onPaste(paste()); assert.equal(forwarded, 2);
+  } finally { component.ngOnDestroy(); URL.createObjectURL = originalCreate; URL.revokeObjectURL = originalRevoke; globalThis.requestAnimationFrame = originalFrame; }
 });
 
 const { sidebarChatCommands, activeChatChain } = load('../src/app/chatNavigation.ts');

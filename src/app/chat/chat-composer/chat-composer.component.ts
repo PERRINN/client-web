@@ -1,4 +1,5 @@
 import { Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
+import { chatImageError, clipboardImage } from '../chatData';
 
 export interface ChatDraft { text: string; image: File | null; }
 
@@ -36,8 +37,7 @@ export class ChatComposerComponent implements OnDestroy {
   }
 
   onPaste(event: ClipboardEvent): void {
-    const image = Array.from(event.clipboardData?.items || [])
-      .find(item => item.type.startsWith('image/'))?.getAsFile();
+    const image = clipboardImage(event);
     if (image && !this.disabled) { event.preventDefault(); this.setImage(image); }
   }
 
@@ -70,10 +70,8 @@ export class ChatComposerComponent implements OnDestroy {
   ngOnDestroy(): void { this.clearImage(); }
 
   private setImage(file: File): void {
-    if (!['image/png', 'image/jpeg', 'image/gif', 'image/webp'].includes(file.type)) {
-      this.error = 'Choose a PNG, JPEG, GIF or WebP image.'; return;
-    }
-    if (file.size > 15 * 1024 * 1024) { this.error = 'Choose an image smaller than 15 MB.'; return; }
+    this.error = chatImageError(file);
+    if (this.error) return;
     this.clearImage(); this.image = file;
     this.imageUrl = URL.createObjectURL(file);
     this.imageName = file.name || 'Pasted image';

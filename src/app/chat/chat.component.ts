@@ -14,7 +14,7 @@ import { Subscription } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
 import { SidebarConversationsService } from '../sidebarConversations.service';
 import { ChatComposerComponent, ChatDraft } from './chat-composer/chat-composer.component';
-import { ChatMessage, chatImageError, continuesMessageGroup, messageDateLabel } from './chatData';
+import { ChatMessage, chatImageError, clipboardImage, continuesMessageGroup, messageDateLabel } from './chatData';
 import { ChatReadService } from './chatRead.service';
 import { ChatDataService } from './chatData.service';
 
@@ -220,7 +220,23 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
   chooseChatImage(event: Event): void {
     const input = event.target as HTMLInputElement, file = input.files?.[0];
     input.value = '';
-    if (!file || this.savingDetails) return;
+    if (file) this.setChatImage(file);
+  }
+
+  onPaste(event: ClipboardEvent): void {
+    if (event.defaultPrevented || !this.signedIn) return;
+    if (!this.editingDetails) {
+      if (this.voice.mode !== 'voice' || this.voice.keyboard) this.composer?.onPaste(event);
+      return;
+    }
+    const file = clipboardImage(event);
+    if (!file) return;
+    event.preventDefault();
+    this.setChatImage(file);
+  }
+
+  private setChatImage(file: File): void {
+    if (!this.signedIn || !this.editingDetails || this.savingDetails) return;
     this.detailsError = chatImageError(file);
     if (this.detailsError) return;
     this.clearChatImage(); this.detailsImage = file; this.imagePreview = URL.createObjectURL(file);
