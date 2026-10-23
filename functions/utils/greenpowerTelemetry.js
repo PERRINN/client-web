@@ -4,7 +4,33 @@ const { emptyDay } = require('./greenpowerDayMetadata');
 const MAX_PAYLOAD_BYTES = 16 * 1024;
 const MAX_CHUNK_BYTES = 128 * 1024;
 const MAX_CHUNK_SAMPLES = 32;
+const FROZEN_AFTER_MS = 60_000;
+const INGESTION_STATE_PATH = 'GreenpowerTelemetry/424/ingestion/state';
+// Only board readings establish activity. Phone location, clocks, lap counters
+// and other derived fields can keep changing after Bluetooth disconnects.
+const SENSOR_NAMES = new Set(['vt', 'v1', 'a', 'rpm', 'spd', 'thrtl', 'tmp1', 'tmp2', 'ah', 'brk', 'actualthrtl', 'inputthrtl']);
 const dayFormat = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' });
+
+function sensorFingerprint(raw) {
+  const entries = Object.entries(JSON.parse(raw)).filter(([key]) => SENSOR_NAMES.has(key.toLowerCase()));
+  if (!entries.length) return null;
+  const readings = [];
+  for (const [key, reading] of entries) {
+    const envelope = reading && typeof reading === 'object' && !Array.isArray(reading);
+    const value = envelope ? reading.value : reading;
+    // Unsupported/missing sensor values must not silently suppress recordings.
+    if (typeof value !== 'number' || !Number.isFinite(value) || envelope && typeof reading.unit !== 'string') return null;
+    readings.push([key, value, envelope ? reading.unit : null]);
+  }
+  readings.sort((a, b) => a[0].localeCompare(b[0], 'en'));
+  return createHash('sha256').update(JSON.stringify(readings)).digest('hex');
+}
+
+function validIngestionState(state) {
+  return state?.schemaVersion === 1 && (state.sensorFingerprint === null || /^[a-f0-9]{64}$/.test(state.sensorFingerprint))
+    && Number.isSafeInteger(state.unchangedSince) && Number.isSafeInteger(state.lastAcceptedAt)
+    && state.unchangedSince >= 0 && state.lastAcceptedAt >= state.unchangedSince;
+}
 
 function londonDay(time) {
   const parts = Object.fromEntries(dayFormat.formatToParts(time).map(p => [p.type, p.value]));
@@ -47,7 +73,14 @@ async function storeSample(db, raw, now = Date.now(), id = randomUUID(), timesta
   const dayRef = db.doc(`GreenpowerTelemetry/424/days/${day}`);
   const sample = { id, receivedAt: now, source: '424-phone', raw };
   const bytes = Buffer.byteLength(JSON.stringify(sample));
-  await db.runTransaction(async transaction => {
+  const fingerprint = sensorFingerprint(raw);
+  const recorded = await db.runTransaction(async transaction => {
+    const ingestionRef = db.doc(INGESTION_STATE_PATH);
+    const ingestion = (await transaction.get(ingestionRef)).data();
+    const validState = validIngestionState(ingestion);
+    const ordered = !validState || now >= ingestion.lastAcceptedAt;
+    const unchanged = fingerprint !== null && validState && ingestion.sensorFingerprint === fingerprint;
+    if (ordered && unchanged && now - ingestion.unchangedSince >= FROZEN_AFTER_MS) return false;
     const liveRef = db.doc(dayRef.path + '/live/latest');
     const live = (await transaction.get(liveRef)).data();
     const parent = live ? undefined : (await transaction.get(dayRef)).data();
@@ -70,8 +103,13 @@ async function storeSample(db, raw, now = Date.now(), id = randomUUID(), timesta
       transaction.set(liveRef, state);
       if (!live) transaction.set(dayRef, emptyDay(day, timestamp));
     } else transaction.set(dayRef, { ...parent, ...state });
+    if (ordered) transaction.set(ingestionRef, {
+      schemaVersion: 1, sensorFingerprint: fingerprint,
+      unchangedSince: unchanged ? ingestion.unchangedSince : now, lastAcceptedAt: now,
+    });
+    return true;
   }, { maxAttempts: 3 });
-  return { day, id };
+  return { day, id, recorded };
 }
 
 function createHandler({ db, password, timestamp, now = Date.now }) {
@@ -105,4 +143,4 @@ function createHandler({ db, password, timestamp, now = Date.now }) {
   };
 }
 
-module.exports = { MAX_PAYLOAD_BYTES, MAX_CHUNK_BYTES, MAX_CHUNK_SAMPLES, londonDay, validatePayload, authorized, storeSample, createHandler };
+module.exports = { MAX_PAYLOAD_BYTES, MAX_CHUNK_BYTES, MAX_CHUNK_SAMPLES, FROZEN_AFTER_MS, INGESTION_STATE_PATH, sensorFingerprint, londonDay, validatePayload, authorized, storeSample, createHandler };
