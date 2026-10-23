@@ -49,7 +49,7 @@ class Area extends ChatComponent {
 TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTesting());
 TestBed.configureTestingModule({imports:[CommonModule,FormsModule],declarations:[Area,ChatComposerComponent,VoiceComposerComponent,ChatMessageComponent,ChatVoiceMessageComponent,ChatInputSettingsComponent,UserAvatarComponent,Linky],schemas:[NO_ERRORS_SCHEMA],providers:[provideZoneChangeDetection(),{provide:ChatVoiceService,useValue:voice},{provide:VoiceInputService,useValue:input},{provide:ChatDataService,useValue:data},{provide:PermissionsService,useValue:permissions}]});
 const fixture=TestBed.createComponent(Area);document.body.append(fixture.nativeElement);fixture.autoDetectChanges();fixture.detectChanges();
-window.voiceUI={state(value){fixture.componentInstance.state=value;fixture.detectChanges()},mode(value){voice.mode=value;fixture.detectChanges()},recipient(value){voice.canListen=value;fixture.detectChanges()},admin(value){permissions.current.isAdmin=value;fixture.detectChanges()},fail(value){failSave=value},error(){input.phase='error';input.replies=[{kind:'error',text:'Microphone access denied.'}];fixture.detectChanges()},quota(){input.phase='idle';input.replies=[{kind:'pending',text:'Daily limit reached. Saved until 00:00 UTC.',recording:{conversationId:'chat:engineering',error:'Daily limit reached. Saved until 00:00 UTC.'}}];fixture.detectChanges()},pending(){input.phase='idle';input.replies=[];input.pendingCount=2;fixture.detectChanges()},expired(){fixture.componentInstance.messages[0].voice.expiresAt=1;fixture.detectChanges()},audioOnly(){fixture.componentInstance.messages[0]={...fixture.componentInstance.messages[0],text:'',voice:{...fixture.componentInstance.messages[0].voice,transcription:'unavailable'}};fixture.detectChanges()},requests(){return requests},plays(){return plays},playback(state){voice.loading=state==='loading'?'voice':'';voice.active=state==='playing'?'voice':'';voice.errorId=state==='error'?'voice':'';voice.error=state==='error'?'Recording unavailable. Tap to try again.':'';fixture.detectChanges()},flush(){fixture.detectChanges()}};
+window.voiceUI={own(value){fixture.componentInstance.messages[0]={...fixture.componentInstance.messages[0],own:value};fixture.detectChanges()},state(value){fixture.componentInstance.state=value;fixture.detectChanges()},mode(value){voice.mode=value;fixture.detectChanges()},recipient(value){voice.canListen=value;fixture.detectChanges()},admin(value){permissions.current.isAdmin=value;fixture.detectChanges()},fail(value){failSave=value},error(){input.phase='error';input.replies=[{kind:'error',text:'Microphone access denied.'}];fixture.detectChanges()},quota(){input.phase='idle';input.replies=[{kind:'pending',text:'Daily limit reached. Saved until 00:00 UTC.',recording:{conversationId:'chat:engineering',error:'Daily limit reached. Saved until 00:00 UTC.'}}];fixture.detectChanges()},pending(){input.phase='idle';input.replies=[];input.pendingCount=2;fixture.detectChanges()},expired(){fixture.componentInstance.messages[0].voice.expiresAt=1;fixture.detectChanges()},audioOnly(){fixture.componentInstance.messages[0]={...fixture.componentInstance.messages[0],text:'',voice:{...fixture.componentInstance.messages[0].voice,transcription:'unavailable'}};fixture.detectChanges()},requests(){return requests},plays(){return plays},playback(state){voice.loading=state==='loading'?'voice':'';voice.active=state==='playing'?'voice':'';voice.errorId=state==='error'?'voice':'';voice.error=state==='error'?'Recording unavailable. Tap to try again.':'';fixture.detectChanges()},flush(){fixture.detectChanges()}};
 `);
 await build({ entryPoints: [output + '/entry.ts'], outfile: output + '/bundle.js', bundle: true, platform: 'browser', format: 'iife', nodePaths: [root + '/node_modules'], tsconfigRaw: { compilerOptions: { experimentalDecorators: true } }, logLevel: 'silent', plugins: [{ name: 'angular-resources', setup(plugin) {
   plugin.onLoad({ filter: /\.component\.ts$/ }, async args => {
@@ -104,6 +104,17 @@ try {
       if (state === 'playing') assert.equal(await recording.getAttribute('aria-pressed'), 'true');
       await page.screenshot({path:output+'/chat-voice-playback-'+state+'-'+width+'.png'});
     }
+    await page.evaluate(() => window.voiceUI.own(true));
+    const ownBounds=await recording.boundingBox();
+    assert.equal(ownBounds.height,28);
+    for(const state of ['idle','loading','playing','error']) {
+      await page.evaluate(value=>window.voiceUI.playback(value),state);
+      assert.deepEqual(await recording.boundingBox(),ownBounds);await stable();
+      const appearance=await recording.evaluate(node=>({background:getComputedStyle(node).backgroundColor,bubble:getComputedStyle(node.closest('.message-content')).backgroundColor,border:getComputedStyle(node).borderTopWidth}));
+      assert.notEqual(appearance.background,appearance.bubble);assert.equal(appearance.border,'0px');
+      await page.screenshot({path:output+'/chat-voice-own-'+state+'-'+width+'.png'});
+    }
+    await page.evaluate(() => {window.voiceUI.own(false);window.voiceUI.playback('idle')});
     await page.emulateMedia({reducedMotion:'reduce'});
     await page.evaluate(() => window.voiceUI.playback('loading'));
     assert.equal(await page.locator('.feedback').evaluate(node => getComputedStyle(node).animationName), 'none');

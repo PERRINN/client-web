@@ -3,8 +3,9 @@
 .voice-message { display: flex; align-items: center; min-height: 44px; }
 .voice-label, .unavailable { color: var(--color-text-muted); font-size: 13px; overflow: visible; }
 button.voice-label { position: relative; display: inline-flex; align-items: center; gap: 7px; height: 28px; min-height: 28px; margin: 0; padding: 4px 10px; border: 0; border-radius: 999px; background: var(--color-raised); cursor: pointer; }
+.own button.voice-label { background: var(--color-selected); }
 button.voice-label::after { content: ""; position: absolute; inset: -8px 0; border-radius: inherit; }
-button.voice-label:hover:not(:disabled), button.playing { background: var(--color-selected); color: var(--color-text); }
+button.voice-label:hover:not(:disabled), button.voice-label.playing { background: var(--color-selected); color: var(--color-text); }
 button:disabled { opacity: .5; cursor: default; }
 button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
 .feedback { display: flex; align-items: center; justify-content: space-between; width: 12px; height: 12px; visibility: hidden; }

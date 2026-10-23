@@ -1,4 +1,4 @@
-<div class="voice-message">
+<div class="voice-message" [class.own]="message.own">
   @if (voice.canListen) {
     <button type="button" class="voice-label" [class.loading]="voice.loading === message.id" [class.playing]="voice.active === message.id"
       [class.failed]="voice.errorId === message.id" [attr.title]="voice.errorId === message.id ? voice.error : !voice.available(message) ? 'Recording expired' : null"
