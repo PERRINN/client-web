@@ -30,7 +30,7 @@ const { VoiceQueueService } = load('../src/app/voice/voiceQueue.service.ts', {
 });
 const { VoiceInputService } = load('../src/app/voice/voiceInput.service.ts', {
   '@angular/core': core, './voiceDiagnostics': diagnosticsModule, '@angular/fire/compat/auth': {}, './voiceQueue.service': { VoiceQueueService },
-  './voiceQueueStore.service': storeModule, './voiceCapture.service': {},
+  './voiceQueueStore.service': storeModule, './voiceCapture.service': {}, './voiceAudio': load('../src/app/voice/voiceAudio.ts'),
   './voiceCaptureSettings': load('../src/app/voice/voiceCaptureSettings.ts')
 });
 const bytes = new Uint8Array(32044).fill(1);
@@ -492,7 +492,7 @@ test('a newly accepted upload releases older quota waits without changing audio,
   const leased = recording({ nextAt: midnight, leaseUntil: Date.now() + 150000, leaseId: 'other-tab' });
   for (const row of [...waiting, foreign, leased]) await store.add(row);
   const f = queue(t, { store }); await ready(f); assert.equal(f.calls.length, 0);
-  await f.service.enqueue(bytes, 'pilot');
+  await f.service.enqueue(bytes, 'chat:engineering');
   await until(() => f.completed.length === 3); await ready(f);
   assert.equal(f.calls.length, 3, 'One new upload plus one per eligible saved recording');
   assert.deepEqual(f.calls.slice(1).map(call => call.input.requestId), waiting.map(row => row.id));
@@ -508,7 +508,7 @@ test('quota rechecks stop at renewed daily rejection and survive reload with the
   const f = queue(t, { store, call: (_name, input) => input.requestId === row.id
     ? throwError(() => ({ code: 'functions/resource-exhausted', details: { reason: 'daily-limit' } }))
     : of({ eventId, status: 'queued' }) });
-  await ready(f); await f.service.enqueue(bytes, 'pilot');
+  await ready(f); await f.service.enqueue(bytes, 'chat:engineering');
   await until(() => f.calls.length === 2 && !f.service.running); await ready(f);
   const saved = (await store.list('alice')).items.find(item => item.id === row.id);
   assert.equal(saved.attempts, 2); assert.equal(saved.nextAt, midnight);
@@ -610,18 +610,18 @@ test('reopening after legacy recovery keeps the new short backoff without repeat
 
 test('new shared recordings persist their destination across reload without reclassifying legacy audio', async t => {
   const env = environment(t, false), f = queue(t); await ready(f);
-  await f.service.enqueue(bytes, 'pilot');
+  await f.service.enqueue(bytes, 'chat:engineering');
   const sharedId = f.service.items[0].id;
   await f.service.enqueue(bytes);
   const items = (await f.store.list('alice')).items;
-  assert.equal(items.find(item => item.id === sharedId).conversationId, 'pilot');
+  assert.equal(items.find(item => item.id === sharedId).conversationId, 'chat:engineering');
   assert.equal(items.find(item => item.id !== sharedId).conversationId, undefined);
   f.service.ngOnDestroy(); const next = queue(t); await ready(next);
   env.navigator.onLine = true; env.window.dispatchEvent(new Event('online'));
   await until(() => next.completed.length === 2); await ready(next);
-  assert.equal(next.calls.find(call => call.input.requestId === sharedId).input.conversationId, 'pilot');
+  assert.equal(next.calls.find(call => call.input.requestId === sharedId).input.conversationId, 'chat:engineering');
   assert.equal(next.calls.find(call => call.input.requestId !== sharedId).input.conversationId, undefined);
-  assert.equal(next.completed.find(result => result.id === sharedId).conversationId, 'pilot');
+  assert.equal(next.completed.find(result => result.id === sharedId).conversationId, 'chat:engineering');
   assert.equal(next.completed.find(result => result.id !== sharedId).conversationId, undefined);
 });
 

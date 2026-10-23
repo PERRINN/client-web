@@ -5,7 +5,7 @@ class VoiceInputError extends Error {
 }
 
 // A deliberately narrow format lets us enforce duration before paying a provider.
-function validateInput(data, sourcePage = '/prototypes/voice-input') {
+function validateInput(data, sourcePage = '/chat') {
   const fail = () => { throw new VoiceInputError('invalid-argument', 'Record between 0.4 and 30 seconds of speech.'); };
   if (!data || Object.keys(data).some(key => !['requestId', 'audio', 'sourcePage'].includes(key))
     || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(data.requestId || '') || data.sourcePage !== sourcePage

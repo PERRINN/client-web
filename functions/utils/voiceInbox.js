@@ -1,16 +1,14 @@
 const { createHash, randomUUID } = require('node:crypto');
 const { VoiceInputError, validateInput } = require('./voiceAudio');
-const { authorizeVoiceConversation, sharedVoiceMessage, VOICE_CONVERSATION, VOICE_PARTICIPANTS } = require('./voiceConversation');
 
 const { voiceChatChain, currentVoiceChat, publishChatVoice } = require('./chatVoice');
 
 const eventIdFor = (uid, requestId) => createHash('sha256').update(uid + ':' + requestId).digest('hex');
 const fail = (code, message, details) => { throw new VoiceInputError(code, message, details); };
 const receipt = event => ({ eventId: event.eventId, status: event.status, ...(event.status === 'completed' ? { transcript: event.transcript } : {}) });
-// Published pilot audio and validated production audio survive transcription failure.
+// Validated production audio survives transcription failure.
 const terminalFailure = (event, code, timestamp) => {
-  const hasAudio = Number.isFinite(event.audioExpiresAt) && (event.conversationId === VOICE_CONVERSATION
-    || voiceChatChain(event.conversationId) && event.audioValidated === true);
+  const hasAudio = Number.isFinite(event.audioExpiresAt) && voiceChatChain(event.conversationId) && event.audioValidated === true;
   return { status: hasAudio ? 'completed' : 'failed', ...(hasAudio ? { transcript: '' } : {}),
     failureCode: code, completedAt: timestamp(), processingUntil: 0 };
 };
@@ -21,8 +19,8 @@ async function enqueueVoiceInput(db, bucket, auth, data, options) {
   if (!data || data.owner !== auth.uid) fail('permission-denied', 'Recording owner changed.');
   const { owner, conversationId, ...recording } = data;
   const chain = voiceChatChain(conversationId);
-  if (conversationId !== undefined && !chain) authorizeVoiceConversation(auth, conversationId);
-  const input = validateInput(recording, chain ? '/chat' : '/prototypes/voice-input');
+  if (!chain) fail('invalid-argument', 'A production chat is required.');
+  const input = validateInput(recording);
   const now = options.now?.() ?? Date.now();
   const eventId = eventIdFor(auth.uid, data.requestId), ref = db.doc('VoiceInputEvents/' + eventId);
   const audioPath = `voice-input/${auth.uid}/${eventId}.wav`;
@@ -42,12 +40,11 @@ async function enqueueVoiceInput(db, bucket, auth, data, options) {
       tx.update(ref, { inboxVersion: 1, audioPath, status: 'receiving', attempts: 1 });
       return adopted;
     }
-    const chat = chain ? await currentVoiceChat(db, chain, tx) : null;
+    const chat = await currentVoiceChat(db, chain, tx);
     const limitRef = db.doc('VoiceInputLimits/' + auth.uid), limit = (await tx.get(limitRef)).data() || {};
     const day = new Date(now).toISOString().slice(0, 10), count = limit.day === day ? limit.count || 0 : 0;
-    if (chain && chat.chatInputMode !== 'voice') fail('failed-precondition', 'Voice input is not enabled for this chat.');
-    const dailyLimit = chain ? (auth.token?.perrinnAdmin === true ? 1000 : 100) : (VOICE_PARTICIPANTS.includes(auth.uid)
-      || auth.uid === options.highLimitUid && auth.token?.perrinnAdmin === true ? 1000 : 20);
+    if (chat.chatInputMode !== 'voice') fail('failed-precondition', 'Voice input is not enabled for this chat.');
+    const dailyLimit = auth.token?.perrinnAdmin === true ? 1000 : 100;
     if (count >= dailyLimit) fail('resource-exhausted', 'Daily recording limit reached.', { reason: 'daily-limit', dailyLimit });
     const created = { eventId, userId: auth.uid, sourcePage: data.sourcePage, createdAt: options.timestamp(),
       ...(conversationId ? { conversationId, requestId: data.requestId, authorName: typeof auth.token?.name === 'string' ? auth.token.name.slice(0, 100) : '' } : {}),
@@ -93,6 +90,11 @@ async function processVoiceInbox(db, bucket, data, options) {
   const reserved = await db.runTransaction(async tx => {
     const event = (await tx.get(ref)).data();
     if (!event || event.inboxVersion !== 1 || ['completed', 'failed'].includes(event.status)) return null;
+    // Retire old pilot tasks without downloads, transcription or publication.
+    if (!voiceChatChain(event.conversationId)) {
+      tx.update(ref, { status: 'failed', failureCode: 'prototype-retired', completedAt: options.timestamp(), processingUntil: 0 });
+      return null;
+    }
     if (event.status === 'receiving' || event.processingUntil > now) throw new Error('Recording is not ready.');
     const limitRef = db.doc('VoiceInputLimits/' + event.userId), limit = (await tx.get(limitRef)).data() || {};
     if (limit.activeUntil > now) throw new Error('Another recording is processing.');
@@ -114,7 +116,7 @@ async function processVoiceInbox(db, bucket, data, options) {
     if (!Number.isSafeInteger(Number(metadata.size)) || Number(metadata.size) > 960044 || Number(metadata.size) < 12844) fail('failed-precondition', 'Invalid recording size.');
     const [audio] = await file.download({ start: 0, end: 960044 });
     const chain = voiceChatChain(reserved.conversationId);
-    const sourcePage = chain ? '/chat' : '/prototypes/voice-input';
+    const sourcePage = '/chat';
     const input = validateInput({ requestId: '00000000-0000-0000-0000-000000000000', sourcePage, audio: audio.toString('base64') }, sourcePage);
     if (input.fingerprint !== reserved.fingerprint) fail('failed-precondition', 'Invalid recording fingerprint.');
     if (chain) {
@@ -125,38 +127,19 @@ async function processVoiceInbox(db, bucket, data, options) {
         return true;
       }, { maxAttempts: 3 });
       if (!validated) return;
-    } else if (reserved.conversationId) {
-      // Publish only verified stored audio, once, under this worker's lease.
-      const published = await db.runTransaction(async tx => {
-        const event = (await tx.get(ref)).data();
-        if (event?.processingAttempt !== attemptId || event.status !== 'processing') return false;
-        if (!Number.isFinite(event.audioExpiresAt)) {
-          const audioExpiresAt = event.createdAt.toMillis() + 7 * 86400000;
-          const message = sharedVoiceMessage({ ...event, audioExpiresAt }, '', options.timestamp());
-          tx.update(ref, { audioExpiresAt });
-          tx.create(db.doc(`VoiceConversations/${event.conversationId}/messages/${event.eventId}`), message);
-        }
-        return true;
-      }, { maxAttempts: 3 });
-      if (!published) return;
     }
     const transcript = await options.transcribe(input.audio, reserved.model);
     if (typeof transcript !== 'string' || !transcript.trim() || transcript.length > 20000) fail('failed-precondition', 'No transcript returned.');
-    const completed = await db.runTransaction(async tx => {
+    await db.runTransaction(async tx => {
       const event = (await tx.get(ref)).data();
       if (event?.processingAttempt === attemptId && event.status === 'processing') {
         tx.update(ref, { status: 'completed', transcript, completedAt: options.timestamp(), processingUntil: 0 });
         if (chain) publishChatVoice(tx, db, event, transcript.trim(), options.timestamp);
-        else if (event.conversationId) {
-          tx.update(db.doc(`VoiceConversations/${event.conversationId}/messages/${event.eventId}`), { text: transcript });
-        }
         return true;
       }
       return event?.status === 'completed';
     }, { maxAttempts: 3 });
-    // Shared audio remains private for seven days. Legacy private audio is deleted
-    // after success; prefix-scoped lifecycle remains the cleanup fallback.
-    if (completed && !reserved.conversationId) try { await file.delete({ ignoreNotFound: true }); } catch { /* Lifecycle fallback. */ }
+    // The private prefix lifecycle removes retained audio after seven days.
   } catch (error) {
     const permanent = error instanceof VoiceInputError && ['invalid-argument', 'failed-precondition'].includes(error.code);
     retry = !permanent && reserved.attempts < 3 && (options.retryCount || 0) < 7;

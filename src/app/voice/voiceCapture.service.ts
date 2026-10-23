@@ -16,6 +16,7 @@ export class VoiceCaptureService implements OnDestroy {
   private samples?: Float32Array;
   private length = 0;
   private closingCue = false;
+  private finishing = false;
   private connectedAt = 0;
   private lastSampleAt = 0;
   private generation = 0;
@@ -25,8 +26,6 @@ export class VoiceCaptureService implements OnDestroy {
   private audioTraceSince = 0;
   private openingCue = 'idle';
   private closingCueState = 'idle';
-  private testingCue = false;
-  private testCueState = 'idle';
   private echoCancellation = 'Not requested';
   private feedbackSuppressed = false;
 
@@ -37,7 +36,7 @@ export class VoiceCaptureService implements OnDestroy {
       context: this.context?.state || 'Idle', liveTracks: tracks.filter(track => track.readyState === 'live').length,
       muted: tracks.some(track => track.muted), permissionPending: !!this.startupCancelled && !this.stream,
       worklet: !!this.node, durationMs: this.length / 16, connectedAt: this.connectedAt, lastSampleAt: this.lastSampleAt,
-      openingCue: this.openingCue, closingCue: this.closingCueState, testCue: this.testCueState, echoCancellation: this.echoCancellation, audioTrace: this.audioTrace.join('\n')
+      openingCue: this.openingCue, closingCue: this.closingCueState, echoCancellation: this.echoCancellation, audioTrace: this.audioTrace.join('\n')
     };
   }
 
@@ -45,7 +44,7 @@ export class VoiceCaptureService implements OnDestroy {
     this.cancel();
     const generation = this.generation;
     this.audioTrace = []; this.audioTraceSince = performance.now();
-    this.openingCue = this.closingCueState = this.testCueState = 'idle';
+    this.openingCue = this.closingCueState = 'idle';
     this.feedbackSuppressed = false;
     this.echoCancellation = `Requested ${echoCancellation ? 'on' : 'off'} · actual unknown`;
     if (!navigator.mediaDevices?.getUserMedia || typeof AudioContext === 'undefined'
@@ -92,6 +91,8 @@ export class VoiceCaptureService implements OnDestroy {
       let inputReady: () => void;
       const ready = new Promise<boolean>(resolve => { inputReady = () => resolve(true); });
       let capturing = false;
+      let warning = 0;
+      const warningSamples = [MAX_VOICE_SAMPLES - 5 * 16000, MAX_VOICE_SAMPLES - 2 * 16000];
       this.node = new AudioWorkletNode(context, 'voice-capture', {
         numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1], processorOptions: { deferCapture: true }
       });
@@ -103,6 +104,14 @@ export class VoiceCaptureService implements OnDestroy {
           this.lastSampleAt = Date.now();
           const samples = data.samples.subarray(0, MAX_VOICE_SAMPLES - this.length);
           this.samples?.set(samples, this.length); this.length += samples.length;
+          // At most two local warning bops, driven by existing sample batches.
+          // Skip obsolete thresholds if a delayed batch crosses both at once.
+          if (warning < warningSamples.length && this.length >= warningSamples[warning]) {
+            while (warning < warningSamples.length && this.length >= warningSamples[warning]) warning++;
+            if (this.length < MAX_VOICE_SAMPLES && !this.finishing && !this.feedbackSuppressed) {
+              void voiceCue(context, false, event => note(`Limit warning ${event}`));
+            }
+          }
           // Reuse captured batches (about eight per second); no extra stream or polling.
           if (samples.length && onLevel) {
             let energy = 0;
@@ -143,22 +152,9 @@ export class VoiceCaptureService implements OnDestroy {
     }
   }
 
-  async testCue(opening: boolean): Promise<void> {
-    const context = this.context;
-    if (!context || !this.node || this.startupCancelled || this.closingCue || this.testingCue) return;
-    const generation = this.generation;
-    this.testingCue = true;
-    try {
-      await voiceCue(context, opening, event => {
-        if (generation !== this.generation) return;
-        this.testCueState = `${opening ? 'Bip' : 'Bop'} ${event}`;
-        this.noteAudio(`Test ${this.testCueState}`, context);
-      });
-    } finally { if (generation === this.generation) this.testingCue = false; }
-  }
-
   async finish(): Promise<Uint8Array> {
     if (!this.node) throw new Error('No recording available.');
+    this.finishing = true;
     const generation = this.generation;
     try {
       await new Promise<void>((resolve, reject) => {
@@ -190,11 +186,9 @@ export class VoiceCaptureService implements OnDestroy {
     if (this.openingCue === 'scheduled') this.openingCue = 'cancelled';
     if (this.closingCueState === 'scheduled') this.closingCueState = 'cancelled';
     this.generation++;
-    if (this.testingCue) this.testCueState = 'cancelled';
-    this.testingCue = false;
     this.startupCancelled?.(); this.startupCancelled = undefined;
     this.stopped?.(); this.stopped = undefined;
-    this.closingCue = false; this.connectedAt = 0; this.lastSampleAt = 0;
+    this.closingCue = false; this.finishing = false; this.connectedAt = 0; this.lastSampleAt = 0;
     this.stream?.getTracks().forEach(track => { track.onended = null; track.stop(); }); this.stream = undefined;
     this.disconnectCapture();
     if (this.context) this.context.onstatechange = null;

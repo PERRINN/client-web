@@ -120,9 +120,9 @@
 :host .sidebarShell #main_container:has(app-telemetry) { padding-top: 0; }
 
 /* Chat and voice own scrolling inside the shell's available viewport. */
-:host .sidebarShell #main_container:has(app-chat, app-voice-input) { overflow-y: hidden; }
-:host .sidebarShell .contentWrap:has(app-chat, app-voice-input) { max-width: none; height: 100%; min-height: 0; }
-:host .sidebarShell .contentCard:has(app-chat, app-voice-input) { height: 100%; min-height: 0; }
+:host .sidebarShell #main_container:has(app-chat) { overflow-y: hidden; }
+:host .sidebarShell .contentWrap:has(app-chat) { max-width: none; height: 100%; min-height: 0; }
+:host .sidebarShell .contentCard:has(app-chat) { height: 100%; min-height: 0; }
 
 /* Conditional discovery actions share the existing navigation row. */
 :host .shellDiscoverActions{display:flex;align-items:center;gap:8px;height:40px}

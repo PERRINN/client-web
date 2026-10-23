@@ -81,15 +81,6 @@ service cloud.firestore {
     match /{collection}/{document=**} {
       allow read: if !(collection in ['GreenpowerTelemetry', 'VoiceInputEvents', 'VoiceInputLimits', 'VoiceConversations']);
     }
-    match /VoiceConversations/pilot/messages/{messageId} {
-      function isVoiceParticipant() {
-        return request.auth != null && (request.auth.uid in ['xDfdZLLRHuObIUNEUj8SdClxZXf2', 'sks8zpXOy7ZBzhOIx1ISjtNgegh1']
-          || (request.auth.uid == 'QYm5NATKa6MGD87UpNZCTl6IolX2' && isPerrinnAdmin()));
-      }
-      allow get: if isVoiceParticipant();
-      allow list: if isVoiceParticipant() && request.query.limit != null && request.query.limit <= 50;
-      // Only the trusted inbox worker publishes completed transcripts.
-    }
     match /VoiceInputEvents/{eventId} {
       allow get: if request.auth != null && resource.data.userId == request.auth.uid;
     }

@@ -8,13 +8,12 @@ const { VoiceInputError } = require('./utils/voiceAudio');
 const { transcribe } = require('./utils/voiceTranscription');
 const key = defineSecret('OPENAI_API_KEY');
 const model = defineString('VOICE_TRANSCRIPTION_MODEL', { default: 'gpt-transcribe' });
-const highLimitUid = defineString('VOICE_INPUT_HIGH_LIMIT_UID', { default: '' });
 const timestamp = () => admin.firestore.FieldValue.serverTimestamp();
 
 exports.voiceInputEnqueue = onCall({ timeoutSeconds: 60, maxInstances: 2, concurrency: 2, memory: '256MiB', minInstances: 0 }, async request => {
   try {
     return await enqueueVoiceInput(admin.firestore(), admin.storage().bucket(), request.auth, request.data, {
-      model: model.value(), highLimitUid: highLimitUid.value(), timestamp,
+      model: model.value(), timestamp,
       enqueue: (data, options) => getFunctions().taskQueue('locations/us-central1/functions/processVoiceInputInbox').enqueue(data, options)
     });
   } catch (error) {

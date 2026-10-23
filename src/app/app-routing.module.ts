@@ -1,4 +1,3 @@
-import { VoiceInputComponent } from './prototypes/voice-input/voice-input.component';
 import { GreenpowerTelemetryComponent } from './greenpower-telemetry/greenpower-telemetry.component';
 import { RearWingPilotComponent } from './prototypes/rear-wing-pilot/rear-wing-pilot.component';
 import { TelemetryComponent } from './telemetry/telemetry.component';
@@ -27,7 +26,6 @@ import { GreenpowerLaunchComponent } from './greenpower-launch/greenpower-launch
 const appRoutes: Routes = [
   { path: '424-greenpower-2027', component: GreenpowerLaunchComponent, data: { editorial: true } },
   { path: '424-greenpower-telemetry', component: GreenpowerTelemetryComponent },
-  { path: 'prototypes/voice-input', component: VoiceInputComponent },
   { path: 'prototypes/rear-wing-pilot', component: RearWingPilotComponent },
   { path: '424-telemetry', component: TelemetryComponent },
   { path: 'prototypes/unity-live-link', redirectTo: '424-telemetry', pathMatch: 'full' },

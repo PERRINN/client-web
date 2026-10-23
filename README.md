@@ -107,7 +107,7 @@ The root app component provides the shared navigation and layout. The router ren
 
 ## Voice chat
 
-Production chat defaults to text. Admins can enable Voice input in Chat details; contributors can temporarily use the keyboard. Recordings are limited to 30 seconds and 100 accepted submissions per person per UTC day (1,000 for trusted admins). Transcriptions become normal chat messages automatically. Only current recipients can listen by pressing the Voice/duration indicator on recordings, which remain available for seven days. The private pilot remains at `/prototypes/voice-input`.
+Production chat defaults to text. Admins can enable Voice input in Chat details; contributors can temporarily use the keyboard. Recordings are limited to 30 seconds and 100 accepted submissions per person per UTC day (1,000 for trusted admins). Transcriptions become normal chat messages automatically. Only current recipients can listen by pressing the Voice/duration indicator on recordings, which remain available for seven days. Warning bops play at five and two seconds before the recording limit.
 
 Contracts, security, query/work limits and release order are documented in [data-model.md → Production voice chat](data-model.md#production-voice-chat); interactions follow [ui-spec.md → Production chat](ui-spec.md#production-chat). Run `npm run test:chat-voice` for production voice processing/playback regressions, alongside the existing voice/chat and emulator checks. Physical microphone and phone audio checks remain necessary before release.
 

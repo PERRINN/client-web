@@ -8,7 +8,6 @@ import { Component } from '@angular/core';
 })
 export class PrototypeGalleryComponent {
   readonly prototypes = [
-    { name: 'voice-input', category: 'team', type: 'Functional pilot', description: 'A private voice conversation with shared transcripts.', route: '/prototypes/voice-input' },
     { name: 'rear-wing-pilot', category: 'engineering', type: 'Engineering brief', description: '424 rear-wing engineering scope and deliverables for Lewis’s NativeCAD pilot.', route: '/prototypes/rear-wing-pilot' },
     {
       name: 'app-wiring',
