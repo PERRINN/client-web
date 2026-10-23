@@ -2,6 +2,7 @@ import { AfterViewChecked, ChangeDetectorRef, Component, ElementRef, HostListene
 import { Subscription } from 'rxjs';
 import { friendlyDateLabel } from '../../chat/chatDate';
 import { VoiceAuthorService } from './voiceAuthor.service';
+import { VoiceAudioSessionService } from './voiceAudioSession.service';
 import { VoicePlaybackService } from './voicePlayback.service';
 import { VoiceCaptureService } from './voiceCapture.service';
 import { VoiceInputService, VoiceReply } from './voiceInput.service';
@@ -14,7 +15,7 @@ interface ConversationEntry { id: string; createdAt: number; message?: VoiceMess
 @Component({
   selector: 'app-voice-input', standalone: false,
   templateUrl: './voice-input.component.html', styleUrls: ['./voice-input.component.css'],
-  providers: [VoiceCaptureService, VoiceQueueService, VoiceInputService, VoiceConversationService, VoicePlaybackService, VoiceAuthorService]
+  providers: [VoiceAudioSessionService, VoiceCaptureService, VoiceQueueService, VoiceInputService, VoiceConversationService, VoicePlaybackService, VoiceAuthorService]
 })
 export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy {
   @ViewChild('replies') private replies?: ElementRef<HTMLElement>;
@@ -123,7 +124,6 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
   }
 
   toggle(): void {
-    this.playback.unlock();
     if (this.voice.phase === 'recording' || this.voice.phase === 'requesting') void this.voice.release();
     else if (this.voice.canRecord) void this.voice.press();
   }

@@ -13,6 +13,11 @@ new Function('exports', 'require', code)(exports, name => name === '@angular/cor
   Injectable: () => value => value, runInInjectionContext: (_injector, fn) => fn()
 } : name === 'rxjs' ? require(name) : {});
 const { VoicePlaybackService } = exports;
+const sessionExports = {};
+const sessionCode = ts.transpileModule(readFileSync(new URL('../src/app/prototypes/voice-input/voiceAudioSession.service.ts', import.meta.url), 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, experimentalDecorators: true }
+}).outputText;
+new Function('exports', 'require', sessionCode)(sessionExports, () => ({ Injectable: () => value => value }));
 const tick = () => new Promise(setImmediate);
 function fixture(t) {
   const originalDocument = globalThis.document, originalAudio = globalThis.AudioContext;
@@ -30,10 +35,11 @@ function fixture(t) {
   const voice = { changed: new Subject(), busy: false };
   let response = () => of({ audio: Buffer.alloc(32044).toString('base64'), expiresAt: Date.now() + 60000 });
   const functions = { httpsCallable: (_name, options) => data => { calls.push(data); assert.equal(options.timeout, 20000); return response(); } };
-  const service = new VoicePlaybackService(functions, {}, conversation, voice);
-  t.after(() => { service.ngOnDestroy(); globalThis.document = originalDocument; globalThis.AudioContext = originalAudio; });
+  const session = new sessionExports.VoiceAudioSessionService();
+  const service = new VoicePlaybackService(functions, {}, conversation, voice, session);
+  t.after(() => { service.ngOnDestroy(); session.ngOnDestroy(); globalThis.document = originalDocument; globalThis.AudioContext = originalAudio; });
   const message = id => ({ id, userId: 'sender', source: 'voice', audioExpiresAt: Date.now() + 60000 });
-  return { service, conversation, voice, calls, nodes, document, listeners, message, respond: fn => { response = fn; } };
+  return { service, session, conversation, voice, calls, nodes, document, listeners, message, respond: fn => { response = fn; } };
 }
 test('automatic playback requires foreground audio activation; sequential delivery and replay reuse cache', async t => {
   const f = fixture(t);

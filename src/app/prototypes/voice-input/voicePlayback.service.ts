@@ -3,6 +3,7 @@ import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { firstValueFrom, Subscription, timeout } from 'rxjs';
 import { VoiceConversationService, VoiceMessage } from './voiceConversation.service';
 import { VoiceInputService } from './voiceInput.service';
+import { VoiceAudioSessionService } from './voiceAudioSession.service';
 
 interface PlaybackResponse { skipped?: boolean; audio?: string; expiresAt?: number }
 
@@ -13,7 +14,7 @@ export class VoicePlaybackService implements OnDestroy {
   error = '';
   readonly idleLevels = [.15, .45, .8, .35, 1, .6, .25, .7, .2];
   levels = this.idleLevels;
-  private context?: AudioContext;
+  private get context(): AudioContext | undefined { return this.audioSession.current; }
   private source?: AudioBufferSourceNode;
   private finish?: () => void;
   private cache = new Map<string, { buffer: AudioBuffer; expiresAt: number }>();
@@ -27,7 +28,7 @@ export class VoicePlaybackService implements OnDestroy {
   private readonly hide = () => { if (document.hidden) { this.queue = []; this.stop(); } };
 
   constructor(private functions: AngularFireFunctions, private injector: EnvironmentInjector,
-    private conversation: VoiceConversationService, private voice: VoiceInputService) {
+    private conversation: VoiceConversationService, private voice: VoiceInputService, private audioSession: VoiceAudioSessionService) {
     this.subscriptions.add(conversation.changed.subscribe(() => {
       const owner = conversation.allowed ? conversation.uid : '';
       if (owner !== this.owner) {
@@ -57,10 +58,10 @@ export class VoicePlaybackService implements OnDestroy {
   }
   // Called in a real pointer/keyboard gesture, including the microphone control.
   unlock(): void {
-    if (!this.owner || this.destroyed) return;
+    if (!this.owner || this.destroyed || this.voice.busy) return;
     try {
-      this.context ??= new AudioContext({ sampleRate: 16000 });
-      if (this.context.state !== 'running') void this.context.resume().catch(() => {});
+      const context = this.audioSession.acquire();
+      if (context.state !== 'running') void context.resume().catch(() => {});
     } catch { /* The play button remains available on unsupported devices. */ }
   }
   toggle(message: VoiceMessage): void {
@@ -149,6 +150,5 @@ export class VoicePlaybackService implements OnDestroy {
   ngOnDestroy(): void {
     this.destroyed = true; this.epoch++; this.queue = []; this.cache.clear(); this.stop();
     this.subscriptions.unsubscribe(); document.removeEventListener('visibilitychange', this.hide);
-    void this.context?.close().catch(() => {});
   }
 }

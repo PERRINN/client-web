@@ -1,4 +1,5 @@
 import { Injectable, OnDestroy } from '@angular/core';
+import { VoiceAudioSessionService } from './voiceAudioSession.service';
 import { MAX_VOICE_SAMPLES, voiceWav } from './voiceAudio';
 import { voiceCue } from './voiceCue';
 import { defaultVoiceEchoCancellation } from './voiceCaptureSettings';
@@ -6,6 +7,7 @@ import type { VoiceCueEvent } from './voiceCue';
 
 @Injectable()
 export class VoiceCaptureService implements OnDestroy {
+  constructor(private audioSession: VoiceAudioSessionService) {}
   private context?: AudioContext;
   private stream?: MediaStream;
   private node?: AudioWorkletNode;
@@ -46,10 +48,10 @@ export class VoiceCaptureService implements OnDestroy {
     this.echoCancellation = `Requested ${echoCancellation ? 'on' : 'off'} · actual unknown`;
     if (!navigator.mediaDevices?.getUserMedia || typeof AudioContext === 'undefined'
       || typeof AudioWorkletNode === 'undefined') throw new Error('Voice recording requires a supported browser on HTTPS.');
-    const context = new AudioContext({ sampleRate: 16000 });
+    const context = this.audioSession.acquire();
     this.context = context;
     const note = (event: string) => { if (generation === this.generation) this.noteAudio(event, context); };
-    note(`Context created · ${context.sampleRate}Hz`);
+    note(`Context acquired · ${context.sampleRate}Hz`);
     context.onstatechange = () => note('Context changed');
     // Begin in the gesture, but do not wait on this promise: Safari can leave it
     // pending until microphone activation changes the system audio session.
@@ -79,7 +81,7 @@ export class VoiceCaptureService implements OnDestroy {
         if (context.state === 'running') return;
         note('Mic resume requested');
         return context.resume().then(() => note('Mic resume resolved'));
-      }), context.audioWorklet.addModule('/assets/voice-input/capture.worklet.js?v=2')]).then(() => true);
+      }), this.audioSession.prepareCapture(context)]).then(() => true);
       if (!await Promise.race([prepared, cancelled, deadline]) || generation !== this.generation) return false;
       if (context.sampleRate !== 16000 || context.state !== 'running') throw new Error('Could not start audio. Start recording again.');
       note('Capture prepared');
@@ -131,6 +133,7 @@ export class VoiceCaptureService implements OnDestroy {
       void requested.then(stream => stream.getTracks().forEach(track => track.stop()), () => undefined);
       if (generation !== this.generation) return false;
       this.cancel();
+      this.audioSession.reset(context);
       throw error;
     } finally {
       clearTimeout(startupTimer);
@@ -192,7 +195,7 @@ export class VoiceCaptureService implements OnDestroy {
     this.closingCue = false; this.connectedAt = 0; this.lastSampleAt = 0;
     this.stream?.getTracks().forEach(track => { track.onended = null; track.stop(); }); this.stream = undefined;
     this.disconnectCapture();
-    if (this.context) { this.context.onstatechange = null; void this.context.close().catch(() => undefined); }
+    if (this.context) this.context.onstatechange = null;
     this.context = undefined;
   }
   private observeCue(context: AudioContext, opening: boolean): (event: VoiceCueEvent) => void {
