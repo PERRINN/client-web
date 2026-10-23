@@ -19,17 +19,6 @@ export class ScreenWakeLockService implements OnDestroy {
   private readonly hide = () => { this.suspended = true; this.reconcile(); };
   private readonly show = () => { this.suspended = false; this.reconcile(); };
 
-  get label(): string {
-    return ({ off: 'Keep awake', requesting: 'Starting…', active: 'Screen on',
-      paused: 'Paused', blocked: 'Not active', unsupported: 'Unavailable' })[this.state.value];
-  }
-  get description(): string {
-    return ({ off: 'Keep screen awake: off', requesting: 'Keep screen awake: requesting permission',
-      active: 'Keep screen awake: preventing idle dimming and automatic locking', paused: 'Keep screen awake: paused while the app is hidden',
-      blocked: 'Keep screen awake: the phone or browser did not allow it',
-      unsupported: 'Keep screen awake is not supported by this browser' })[this.state.value];
-  }
-
   start(): void {
     if (this.started) return;
     this.started = true;

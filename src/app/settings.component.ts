@@ -5,6 +5,7 @@ import { UserInterfaceService } from './userInterface.service';
 import { ImageUploadService, imageUploadState } from './imageUpload.service';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AccountEmailService } from './accountEmail.service';
+import { ScreenWakeLockService } from './screenWakeLock.service';
 
 @Component({
     selector: 'settings',
@@ -29,7 +30,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
     public UI:UserInterfaceService,
     private injector: EnvironmentInjector,
     private zone: NgZone,
-    public email: AccountEmailService
+    public email: AccountEmailService,
+    public screenWakeLock: ScreenWakeLockService
   ) {
     this.contract={}
     this.name=(this.UI.currentUserLastMessageObj||{}).name||null

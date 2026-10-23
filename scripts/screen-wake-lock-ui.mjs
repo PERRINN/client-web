@@ -32,58 +32,70 @@ async function open(viewport, installed = true, supported = true) {
   const page = await context.newPage(), errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(origin + '/apps?qa=1');
-  const control = page.locator('.wakeLockButton:visible');
+  await page.locator('app-apps, .appsPage, .mobile-brand, .shellBrandRow').first().waitFor({ state: 'attached' });
+  assert.equal(await page.locator('.wakeLockButton').count(), 0, 'No persistent header control');
+  await page.evaluate(async () => {
+    const { fixture } = shellPreview;
+    await fixture.componentInstance.router.navigate(['/settings']); fixture.detectChanges();
+  });
+  const control = page.getByRole('switch', { name: 'Keep screen on' });
   await control.waitFor();
   return { context, page, control, errors };
+}
+
+async function state(page, expected) {
+  await page.waitForFunction(expected => {
+    const service = shellPreview.fixture.componentInstance.screenWakeLock;
+    let current; const subscription = service.state$.subscribe(value => current = value); subscription.unsubscribe();
+    if (current !== expected) return false;
+    shellPreview.fixture.detectChanges();
+    return true;
+  }, expected);
 }
 
 try {
   for (const [width, height] of [[1440, 900], [390, 844], [320, 844], [844, 390], [915, 412]]) {
     const { context, page, control, errors } = await open({ width, height });
-    await page.waitForFunction(() => document.querySelector('.wakeActive')?.textContent.trim() === 'Screen on');
-    assert.equal(await control.getAttribute('aria-pressed'), 'true');
+    await state(page, 'active');
+    assert.equal(await control.getAttribute('aria-checked'), 'true');
     assert.equal(await page.evaluate(() => wakeTest.calls), 1);
-    await page.evaluate(() => {
-      const { fixture, activity } = shellPreview;
-      fixture.ngZone.run(() => activity.next({ mention: true, recipient: true, other: true, flagged: true, unavailable: true }));
-      fixture.detectChanges();
-    });
-    await page.locator('#main_container').evaluate(el => { el.scrollTop = 100; });
     const layout = async () => ({ main: await page.locator('#main_container').boundingBox(),
       button: await control.boundingBox(), scroll: await page.locator('#main_container').evaluate(el => el.scrollTop) });
     const before = await layout();
     assert.ok(before.button.x >= 0 && before.button.x + before.button.width <= width);
-    const brand = await page.locator(width < 900 ? '.mobile-brand' : '.shellBrandRow .iconBtn').boundingBox();
-    assert.ok(brand.x + brand.width <= before.button.x, 'Activity indicators must not overlap the wake control');
-    await control.click();
-    await page.waitForFunction(() => document.querySelector('.wakeLockButton')?.textContent.trim() === 'Keep awake');
+    assert.ok(before.button.height >= 44);
+    await control.click(); await state(page, 'off');
+    assert.equal(await control.getAttribute('aria-checked'), 'false');
     assert.deepEqual(await layout(), before);
     await page.evaluate(() => { wakeTest.mode = 'pending'; });
-    await control.click();
-    await page.waitForFunction(() => document.querySelector('.wakeLockButton')?.textContent.trim() === 'Starting…');
+    await control.click(); await state(page, 'requesting');
+    assert.equal(await control.getAttribute('aria-busy'), 'true');
     assert.deepEqual(await layout(), before);
-    await page.evaluate(() => wakeTest.pending.shift()());
-    await page.waitForFunction(() => document.querySelector('.wakeActive')?.textContent.trim() === 'Screen on');
-    await page.evaluate(() => wakeTest.locks.at(-1).release());
-    await page.waitForFunction(() => document.querySelector('.wakeLockButton')?.textContent.trim() === 'Not active');
+    await page.evaluate(() => wakeTest.pending.shift()()); await state(page, 'active');
+    await page.evaluate(() => wakeTest.locks.at(-1).release()); await state(page, 'blocked');
+    assert.equal(await page.locator('#keep-screen-on-status').textContent(), 'Couldn’t keep screen on.');
     assert.deepEqual(await layout(), before);
     await control.click(); await page.evaluate(() => { wakeTest.mode = 'denied'; }); await control.click();
-    await page.waitForFunction(() => document.querySelector('.wakeLockButton')?.textContent.trim() === 'Not active');
-    assert.deepEqual(await layout(), before);
+    await state(page, 'blocked'); assert.deepEqual(await layout(), before);
     await control.click(); await page.evaluate(() => { wakeTest.mode = 'grant'; });
-    await control.focus(); await page.keyboard.press('Space');
-    await page.waitForFunction(() => document.querySelector('.wakeActive')?.textContent.trim() === 'Screen on');
+    await control.focus(); await page.keyboard.press('Space'); await state(page, 'active');
+    assert.equal(await page.locator('#keep-screen-on-status').textContent(), '');
+    assert.deepEqual(await layout(), before);
     const calls = await page.evaluate(() => wakeTest.calls);
     await page.evaluate(async () => {
       const { fixture } = shellPreview;
-      await fixture.componentInstance.router.navigate(['/prototypes']); fixture.detectChanges();
+      await fixture.componentInstance.router.navigate(['/apps']); fixture.detectChanges();
     });
+    assert.equal(await page.getByRole('switch').count(), 0);
     assert.equal(await page.evaluate(() => wakeTest.calls), calls, 'Route changes share the existing lock');
-    await page.evaluate(() => { window.dispatchEvent(new Event('pagehide')); });
-    await page.waitForFunction(() => document.querySelector('.wakeLockButton')?.textContent.trim() === 'Paused');
-    await page.evaluate(() => { window.dispatchEvent(new Event('pageshow')); });
-    await page.waitForFunction(() => document.querySelector('.wakeActive')?.textContent.trim() === 'Screen on');
+    await page.evaluate(() => { window.dispatchEvent(new Event('pagehide')); }); await state(page, 'paused');
+    await page.evaluate(() => { window.dispatchEvent(new Event('pageshow')); }); await state(page, 'active');
     assert.equal(await page.evaluate(() => wakeTest.calls), calls + 1);
+    await page.evaluate(async () => {
+      const { fixture } = shellPreview;
+      await fixture.componentInstance.router.navigate(['/settings']); fixture.detectChanges();
+    });
+    assert.equal(await control.getAttribute('aria-checked'), 'true');
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     await page.screenshot({ path: `/tmp/perrinn-screen-awake-${width}.png` });
     assert.deepEqual(errors, []);
@@ -93,7 +105,8 @@ try {
   for (const supported of [true, false]) {
     const { context, page, control, errors } = await open({ width: 390, height: 844 }, false, supported);
     assert.equal(await page.evaluate(() => wakeTest.calls), 0);
-    assert.equal(await control.textContent(), supported ? 'Keep awake' : 'Unavailable');
+    assert.equal(await control.getAttribute('aria-checked'), 'false');
+    assert.equal(await page.locator('#keep-screen-on-status').textContent(), supported ? '' : 'Not supported by this browser.');
     assert.equal(await control.isDisabled(), !supported);
     assert.deepEqual(errors, []); await context.close();
   }

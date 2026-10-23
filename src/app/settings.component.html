@@ -50,6 +50,20 @@
           </div>
         </div>
       </div>
+      @if (screenWakeLock.state$ | async; as state) {
+        <section class="island settingsWakeLock" aria-label="Display">
+          <div class="settingsWakeRow">
+            <span id="keep-screen-on-label">Keep screen on</span>
+            <button type="button" class="screenWakeSwitch" role="switch"
+              aria-labelledby="keep-screen-on-label" aria-describedby="keep-screen-on-status"
+              [attr.aria-checked]="screenWakeLock.enabled" [attr.aria-busy]="state === 'requesting'"
+              [disabled]="!screenWakeLock.supported" (click)="screenWakeLock.toggle()">
+              <span aria-hidden="true"></span>
+            </button>
+          </div>
+          <p id="keep-screen-on-status" role="status" [class.wakeError]="state === 'blocked'">{{ state === 'blocked' ? 'Couldn’t keep screen on.' : state === 'unsupported' ? 'Not supported by this browser.' : '' }}</p>
+        </section>
+      }
       <div class="island settingsSection">
         <div class="title">Your name (preferably your first name)</div>
         <input [(ngModel)]="name" placeholder="First name">

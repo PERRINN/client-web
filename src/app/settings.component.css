@@ -66,3 +66,17 @@
 :host .settings-email-actions { display: flex; gap: 8px; overflow: visible; }
 :host .settings-email-actions button { margin: 0; font-size: 15px; line-height: 1.45; white-space: nowrap; transition: none; }
 :host .settings-email-actions .buttonPrimary { flex: 1; max-width: 250px; }
+
+/* Device display control; state changes never add shell controls or rows. */
+:host .settingsWakeLock { border: 0; }
+:host .settingsWakeRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; overflow: visible; }
+:host .settingsWakeRow > span { font-size: 16px; line-height: 1.45; color: var(--color-text); }
+:host .screenWakeSwitch { display: flex; align-items: center; flex: 0 0 52px; width: 52px; height: 44px; margin: 0; padding: 10px 3px; border: 0; border-radius: 0; background: transparent; cursor: pointer; position: relative; overflow: visible; transition: none; }
+:host .screenWakeSwitch::before { content: ''; position: absolute; inset: 10px 0; border-radius: 12px; background: var(--color-raised); border: 1px solid var(--color-border); }
+:host .screenWakeSwitch > span { position: relative; width: 18px; height: 18px; border-radius: 50%; background: var(--color-text-secondary); }
+:host .screenWakeSwitch[aria-checked="true"]::before { background: var(--color-selected); }
+:host .screenWakeSwitch[aria-checked="true"] > span { margin-left: auto; background: var(--color-text); }
+:host .screenWakeSwitch:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+:host .screenWakeSwitch:disabled { opacity: .6; cursor: default; }
+:host #keep-screen-on-status { margin: 0; font-size: 15px; line-height: 1.45; overflow: visible; color: var(--color-text-muted); }
+:host #keep-screen-on-status.wakeError { color: var(--color-danger-text); }

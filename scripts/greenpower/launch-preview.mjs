@@ -10,9 +10,14 @@ const root = process.cwd();
 const output = await mkdtemp(resolve(tmpdir(), 'greenpower-launch-preview-'));
 await writeFile(output + '/entry.ts', `
 import 'zone.js'; import '@angular/compiler';
-import { Component, NO_ERRORS_SCHEMA, Inject, ChangeDetectorRef } from '@angular/core';
+import { Component, NO_ERRORS_SCHEMA, Inject, ChangeDetectorRef, EnvironmentInjector, NgZone } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { BrowserDynamicTestingModule, platformBrowserDynamicTesting } from '@angular/platform-browser-dynamic/testing';
+import { FormsModule } from '@angular/forms';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { SettingsComponent } from '${root}/src/app/settings.component';
+import { AccountEmailService } from '${root}/src/app/accountEmail.service';
+import { ImageUploadService } from '${root}/src/app/imageUpload.service';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule, DOCUMENT, PlatformLocation, BrowserPlatformLocation } from '@angular/common';
 import { Title, Meta, By } from '@angular/platform-browser';
@@ -35,12 +40,14 @@ class Destination { label=''; }
 const live = new BehaviorSubject(false);
 const activity = new BehaviorSubject({});
 AppComponent.ctorParameters=()=>[Router,AngularFirestore,UserInterfaceService,SwUpdate,PresenceService,MessageActivityService,SidebarConversationsService,GreenpowerLiveService,ScreenWakeLockService].map(type=>({type}));
+SettingsComponent.ctorParameters=()=>[AngularFireAuth,AngularFirestore,ImageUploadService,UserInterfaceService,EnvironmentInjector,NgZone,AccountEmailService,ScreenWakeLockService].map(type=>({type}));
 AppsComponent.ctorParameters=()=>[{type:UserInterfaceService}];
 GreenpowerLaunchComponent.ctorParameters=()=>[{type:Title},{type:Meta},{type:undefined,decorators:[{type:Inject,args:[DOCUMENT]}]}];
 TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTesting());
-TestBed.configureTestingModule({declarations:[AppComponent,AppsComponent,PrototypeGalleryComponent,GreenpowerLaunchComponent,GreenpowerPhotoComponent,Destination],
- imports:[CommonModule,RouterModule.forRoot([
+TestBed.configureTestingModule({declarations:[AppComponent,AppsComponent,PrototypeGalleryComponent,GreenpowerLaunchComponent,GreenpowerPhotoComponent,Destination,SettingsComponent],
+ imports:[CommonModule,FormsModule,RouterModule.forRoot([
  {path:'apps',component:AppsComponent},
+ {path:'settings',component:SettingsComponent},
  {path:'prototypes',component:PrototypeGalleryComponent},
  {path:'424-greenpower-2027',component:GreenpowerLaunchComponent,data:{editorial:true}},
  {path:'424-greenpower-telemetry',component:Destination},
@@ -48,11 +55,14 @@ TestBed.configureTestingModule({declarations:[AppComponent,AppsComponent,Prototy
  {path:'**',redirectTo:'apps'}])], schemas:[NO_ERRORS_SCHEMA], providers:[
  {provide:PlatformLocation,useClass:BrowserPlatformLocation},
  {provide:UserInterfaceService,useValue:{currentUser:null,convertAndFormatPRNToPRNCurrency:()=>''}},
+ {provide:AngularFireAuth,useValue:{authState:of(null)}},
+ {provide:ImageUploadService,useValue:{}},
  {provide:AngularFirestore,useValue:{}}, {provide:SwUpdate,useValue:{isEnabled:false}},
  {provide:PresenceService,useValue:{trackActivity:()=>new Subscription()}},
  {provide:MessageActivityService,useValue:{summary:()=>activity}},
  {provide:SidebarConversationsService,useValue:{automatic:()=>of([])}},
  {provide:GreenpowerLiveService,useValue:{live$:live}}]});
+TestBed.overrideComponent(SettingsComponent,{set:{providers:[{provide:AccountEmailService,useValue:{status:'',canSend:false,refresh:async()=>{}}}]}});
 const fixture=TestBed.createComponent(AppComponent);document.body.append(fixture.nativeElement);fixture.autoDetectChanges();
 TestBed.inject(Router).initialNavigation();
 const toggle=document.createElement('button');toggle.textContent='Toggle test activity';toggle.id='test-activity';toggle.style.cssText='position:fixed;right:0;bottom:0;z-index:20000';
