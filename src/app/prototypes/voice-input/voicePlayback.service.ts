@@ -56,7 +56,7 @@ export class VoicePlaybackService implements OnDestroy {
   unlock(): void {
     if (!this.owner || this.destroyed) return;
     try {
-      this.context ??= new AudioContext();
+      this.context ??= new AudioContext({ sampleRate: 16000 });
       if (this.context.state !== 'running') void this.context.resume().catch(() => {});
     } catch { /* The play button remains available on unsupported devices. */ }
   }
