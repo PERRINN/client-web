@@ -1,4 +1,4 @@
-<section aria-label="Event metadata editor">
+<section aria-label="Event metadata editor" [class.saved-session]="edit.canDelete">
   @if (contextError) { <p role="alert" class="error">{{ contextError }}</p><button type="button" [disabled]="edit.locked" (click)="retryContext.emit()">Retry event</button> }
   @else if (!edit.recordingEvent) { <p role="status">Loading event…</p> }
   @if (!edit.mode) {
@@ -20,20 +20,33 @@
     }
   } @else {
     <div class="heading"><h3>{{ edit.mode === 'event' ? 'Edit event' : 'Session' }}</h3></div>
-    <app-greenpower-metadata-fields [data]="edit.draft" [session]="edit.sessionDraft" [disabled]="edit.locked" />
+    <app-greenpower-metadata-fields [data]="edit.draft" [session]="edit.sessionDraft" [disabled]="edit.locked || edit.confirmingDelete" />
     @if (edit.mode === 'session') {
       <h4>Recording · {{ edit.sourceEvent?.date }} · UK</h4>
       <p>{{ time(edit.sessionDraft?.startAt) }} – {{ time(edit.sessionDraft?.endAt) }}</p>
       <div class="actions">
-        <button type="button" [disabled]="edit.locked || !canCapture || cursor === undefined" (click)="capture('start')">Set start at cursor</button>
-        <button type="button" [disabled]="edit.locked || !canCapture || cursor === undefined" (click)="capture('end')">Set end at cursor</button>
-        <button type="button" [disabled]="edit.locked || !canCapture || edit.sessionDraft?.endAt === null" (click)="edit.clearEnd()">Clear end</button>
+        <button type="button" [disabled]="edit.locked || edit.confirmingDelete || !canCapture || cursor === undefined" (click)="capture('start')">Set start at cursor</button>
+        <button type="button" [disabled]="edit.locked || edit.confirmingDelete || !canCapture || cursor === undefined" (click)="capture('end')">Set end at cursor</button>
+        <button type="button" [disabled]="edit.locked || edit.confirmingDelete || !canCapture || edit.sessionDraft?.endAt === null" (click)="edit.clearEnd()">Clear end</button>
       </div>
     }
     <div class="actions footer">
-      <button type="button" class="primary" [disabled]="edit.saving || !events.canEdit" (click)="edit.save()">{{ edit.saving ? 'Saving' : edit.uncertain ? 'Retry save' : 'Save' }}</button>
-      <button type="button" [disabled]="edit.locked" (click)="edit.cancel()">Cancel</button>
+      <button type="button" class="primary" [disabled]="edit.saving || edit.confirmingDelete || !events.canEdit" (click)="edit.save()">{{ edit.confirmingDelete ? 'Save' : edit.saving ? 'Saving' : edit.uncertain ? 'Retry save' : 'Save' }}</button>
+      <button type="button" [disabled]="edit.locked || edit.confirmingDelete" (click)="edit.cancel()">Cancel</button>
     </div>
+    @if (edit.canDelete) {
+      <div class="deletion">
+        @if (edit.confirmingDelete) {
+          <p id="delete-session-question">Delete this session? Raw telemetry will be kept.</p>
+          <div class="actions" role="group" aria-labelledby="delete-session-question">
+            <button #keepSession type="button" [disabled]="edit.locked" (click)="edit.keepSession()">Keep session</button>
+            <button type="button" class="danger" [disabled]="edit.saving || !events.canEdit" (click)="edit.deleteSession()">{{ edit.saving ? 'Deleting' : edit.uncertain ? 'Retry delete' : 'Delete session' }}</button>
+          </div>
+        } @else {
+          <button type="button" class="danger" [disabled]="edit.locked" (click)="edit.requestDelete()">Delete session</button>
+        }
+      </div>
+    }
   }
   <div class="feedback" aria-live="polite">@if (edit.error) { <p class="error" role="alert">{{ edit.error }}</p> } @else if (edit.notice) { <p>{{ edit.notice }}</p> }</div>
 </section>

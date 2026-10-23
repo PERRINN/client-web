@@ -129,3 +129,16 @@ test('reconnecting after a missing session batch requires explicit pagination fr
   assert.equal(h.service.sessions.length, 41); assert.equal(h.service.more, false);
   h.service.ngOnDestroy();
 });
+
+test('acknowledged deletion removes annotations and prevents stale pages restoring them until context reload', async () => {
+  const h = harness(); h.service.select(date, false); await flush();
+  const removed = session(0);
+  h.service.acknowledge({ ...event, sessionTypeCounts: {} }, undefined, removed.id);
+  assert.deepEqual(h.service.sessions, []);
+  // A response captured before deletion cannot resurrect the local annotation.
+  h.delay(Promise.resolve({ docs: [{ id: removed.id, data: () => removed }], size: 1 }));
+  await h.service.loadMore(); assert.deepEqual(h.service.sessions, []);
+  h.service.clear(); h.service.select(date, false); await flush();
+  assert.equal(h.service.sessions.length, 1, 'a new context loads the server state afresh');
+  h.service.ngOnDestroy();
+});

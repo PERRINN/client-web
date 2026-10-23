@@ -309,3 +309,38 @@ test('event-only history selection defers session reads until the recording is l
   assert.equal(h.service.eventReady,true); assert.equal(h.calls.length,0); assert.equal(h.service.sessions.length,0);
   h.service.ngOnDestroy();
 });
+
+test('session deletion confirms explicitly, retries the identical request after unknown outcomes and removes cached selection', async () => {
+  const { rec, value, session } = migrated(); value.sessionTypeCounts = { practice: 1 };
+  const backend = memoryDb([...rec.records, [ROOT + '/days/' + day, value], [ROOT + '/days/' + day + '/sessions/' + session.id, session]]);
+  const h = client(backend.records); h.service.selectEvent(day); await flush(); h.service.selectSession(session.id); await flush();
+  const calls = []; let unknown = true;
+  const functions = { httpsCallable: () => input => defer(async () => {
+    calls.push(structuredClone(input)); const result = await editDayMetadata(backend, adminAuth, input, options);
+    if (unknown) { unknown = false; throw { code: 'functions/unavailable' }; } return result;
+  }) };
+  const editor = new GreenpowerEventEditService(h.service, { day }, functions); editor.recordingEvent = value;
+  const saved = []; editor.saved.subscribe(result => saved.push(result));
+  editor.session(false, undefined, session); assert.equal(editor.canDelete, true);
+  await editor.deleteSession(); assert.equal(calls.length, 0);
+  editor.requestDelete(); editor.keepSession(); assert.equal(editor.confirmingDelete, false);
+  editor.requestDelete(); await editor.save(); assert.equal(calls.length, 0);
+  await editor.deleteSession(); assert.equal(editor.uncertain, true); assert.equal(editor.locked, true);
+  editor.keepSession(); editor.cancel(); assert.equal(editor.confirmingDelete, true);
+  await editor.deleteSession(); assert.deepEqual(calls[0], calls[1]);
+  assert.equal(editor.notice, 'Session deleted'); assert.equal(editor.mode, '');
+  assert.equal(h.service.sessions.some(item => item.id === session.id), false); assert.equal(h.service.sessionId, '');
+  assert.equal(saved[0].deletedSessionId, session.id); assert.deepEqual(saved[0].event.sessionTypeCounts, {});
+  editor.session(true); assert.equal(editor.canDelete, false);
+  editor.ngOnDestroy(); h.service.ngOnDestroy();
+});
+test('session deletion resets on role loss and ignores late private results', async () => {
+  const { value, session } = migrated(), h = client(); let finish;
+  const editor = new GreenpowerEventEditService(h.service, { day }, { httpsCallable: () => () => defer(() => new Promise(resolve => finish = resolve)) });
+  editor.recordingEvent = value; editor.session(false, undefined, session); editor.requestDelete();
+  const pending = editor.deleteSession();
+  h.state.next({ ready: true, uid: 'viewer', isAdmin: false });
+  finish({ date: day, revision: value.revision, deletedSessionId: session.id, sessionTypeCounts: {} }); await pending;
+  assert.equal(editor.mode, ''); assert.equal(editor.confirmingDelete, false); assert.equal(editor.notice, '');
+  editor.ngOnDestroy(); h.service.ngOnDestroy();
+});

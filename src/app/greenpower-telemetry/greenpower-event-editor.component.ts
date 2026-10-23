@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { DaySession, sessionLabel } from './greenpowerDay';
 import { ChartWindow } from './greenpowerChart';
@@ -9,6 +9,9 @@ import { GreenpowerTelemetryService } from './greenpowerTelemetry.service';
 @Component({ selector: 'app-greenpower-event-editor', standalone: false,
   templateUrl: './greenpower-event-editor.component.html', styleUrls: ['./greenpower-event-editor.component.css'] })
 export class GreenpowerEventEditorComponent implements OnDestroy {
+  @ViewChild('keepSession') set keepSession(button: ElementRef<HTMLButtonElement> | undefined) {
+    if (button) queueMicrotask(() => { if (button.nativeElement.isConnected) button.nativeElement.focus({ preventScroll: true }); });
+  }
   @Input() sessions: DaySession[] = [];
   @Input() sessionPanel = false;
   @Input() more = false;

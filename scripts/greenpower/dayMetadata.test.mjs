@@ -184,3 +184,53 @@ test('open sessions cannot smuggle an unverified range or bypass permissions and
   assert.ok(dayData.sessionMetadataError(input.session, h.day));
   await assert.rejects(editDayMetadata(h.db, adminAuth, input, options), /Session times/);
 });
+
+function deletion(h, sessionId = 'race') {
+  return { schemaVersion: 2, kind: 'delete-session', requestId: 'delete-' + sessionId, date: h.day,
+    expectedRevision: 0, expectedSessionRevision: 1, sessionId };
+}
+test('deletion removes only session metadata, decrements counts, audits and replays without writes', async () => {
+  const h = fixture();
+  await editDayMetadata(h.db, adminAuth, sessionRequest(h), options);
+  const before = structuredClone(h.db.records), input = deletion(h);
+  const result = await editDayMetadata(h.db, adminAuth, input, options);
+  assert.equal(result.reads, 3); assert.equal(result.writes, 4); assert.equal(result.deletedSessionId, 'race');
+  assert.deepEqual(result.sessionTypeCounts, {});
+  const path = ROOT + '/days/' + h.day + '/sessions/race';
+  assert.equal(h.db.records.has(path), false);
+  for (const [key, value] of before) if (!key.endsWith('/sessions/race') && key !== ROOT + '/days/' + h.day) assert.deepEqual(h.db.records.get(key), value);
+  const audit = h.db.records.get(ROOT + '/metadataChanges/' + result.changeId);
+  assert.equal(audit.action, 'delete-session'); assert.deepEqual(audit.records.sessions[path], { before: before.get(path), after: null });
+  const writes = h.db.counts.writes;
+  assert.equal((await editDayMetadata(h.db, adminAuth, input, options)).replayed, true);
+  assert.equal(h.db.counts.writes, writes);
+  // Replaying a deletion must never delete a newly created session with the same ID.
+  await editDayMetadata(h.db, adminAuth, { ...sessionRequest(h), requestId: 'recreate' }, options);
+  await editDayMetadata(h.db, adminAuth, input, options);
+  assert.ok(h.db.records.has(path));
+});
+test('deletion rejects unauthorized, malformed, stale, missing and inconsistent requests without writes', async () => {
+  for (const auth of [undefined, { uid: 'viewer', token: {} }, { uid: 'viewer', token: { perrinnAdmin: 'true' } }]) {
+    const h = fixture(); await assert.rejects(editDayMetadata(h.db, auth, deletion(h), options)); assert.equal(h.db.counts.reads, 0);
+  }
+  for (const mutate of [input => input.expectedSessionRevision = 0, input => input.sessionId = '../bad', input => input.extra = true,
+    input => input.expectedRevision = 1, input => input.expectedSessionRevision = 2, input => input.sessionId = 'missing']) {
+    const h = fixture(); await editDayMetadata(h.db, adminAuth, sessionRequest(h), options);
+    const input = deletion(h), writes = h.db.counts.writes; mutate(input);
+    await assert.rejects(editDayMetadata(h.db, adminAuth, input, options)); assert.equal(h.db.counts.writes, writes);
+  }
+  const h = fixture(); await editDayMetadata(h.db, adminAuth, sessionRequest(h), options);
+  h.db.records.get(ROOT + '/days/' + h.day).sessionTypeCounts = {};
+  const writes = h.db.counts.writes;
+  await assert.rejects(editDayMetadata(h.db, adminAuth, deletion(h), options)); assert.equal(h.db.counts.writes, writes);
+});
+test('deletion supports dry-run and transaction retries with one count decrement', async () => {
+  const h = fixture({ retryOnce: true });
+  await editDayMetadata(h.db, adminAuth, sessionRequest(h), options);
+  await editDayMetadata(h.db, adminAuth, sessionRequest(h, 'other'), options);
+  const writes = h.db.counts.writes;
+  await editDayMetadata(h.db, adminAuth, deletion(h), { ...options, dryRun: true });
+  assert.equal(h.db.counts.writes, writes);
+  const result = await editDayMetadata(h.db, adminAuth, deletion(h), options);
+  assert.deepEqual(result.sessionTypeCounts, { race: 1 }); assert.equal(h.db.counts.writes - writes, 4);
+});

@@ -8,12 +8,13 @@ import { GreenpowerTelemetryService } from './greenpowerTelemetry.service';
 @Injectable()
 export class GreenpowerEventEditService implements OnDestroy {
   readonly changed = new Subject<void>();
-  readonly saved = new Subject<{ event: RecordedEvent; session?: DaySession }>();
+  readonly saved = new Subject<{ event: RecordedEvent; session?: DaySession; deletedSessionId?: string }>();
   recordingEvent?: RecordedEvent;
   get canEditSessions() { return !!this.recordingEvent && !this.telemetry.recordingKey && this.telemetry.day === this.recordingEvent.date; }
   mode: '' | 'event' | 'session' = '';
   draft?: DayMetadata;
   sessionDraft?: DaySession;
+  confirmingDelete = false;
   saving = false;
   uncertain = false;
   error = '';
@@ -31,7 +32,7 @@ export class GreenpowerEventEditService implements OnDestroy {
   }
   get locked() { return this.saving || this.uncertain; }
   get sourceEvent() { return this.base; }
-  private reset() { this.mode = ''; this.draft = undefined; this.sessionDraft = undefined; this.base = undefined; this.prepared = undefined; this.uncertain = false; this.error = ''; this.changed.next(); }
+  private reset() { this.confirmingDelete = false; this.mode = ''; this.draft = undefined; this.sessionDraft = undefined; this.base = undefined; this.prepared = undefined; this.uncertain = false; this.error = ''; this.changed.next(); }
   cancel() { if (!this.locked) { this.generation++; this.reset(); this.notice = ''; } }
   private begin(mode: 'event' | 'session') {
     if (!this.events.canEdit || this.locked || !this.recordingEvent || this.telemetry.day !== this.recordingEvent.date) return false;
@@ -96,10 +97,25 @@ export class GreenpowerEventEditService implements OnDestroy {
     } catch (error) { this.error = error instanceof Error ? error.message : 'Check the metadata.'; }
     this.changed.next(); return false;
   }
+  get canDelete() { return this.mode === 'session' && !!this.sessionDraft?.revision && this.events.canEdit; }
+  requestDelete() {
+    if (!this.canDelete || this.locked) return;
+    this.confirmingDelete = true; this.error = ''; this.changed.next();
+  }
+  keepSession() { if (!this.locked) { this.confirmingDelete = false; this.changed.next(); } }
+  async deleteSession() {
+    if (!this.canDelete || !this.confirmingDelete || this.saving || !this.base) return;
+    this.prepared ||= { schemaVersion: 2, kind: 'delete-session', requestId: crypto.randomUUID(), date: this.base.date,
+      expectedRevision: this.base.revision, expectedSessionRevision: this.sessionDraft!.revision!, sessionId: this.sessionDraft!.id };
+    await this.submit();
+  }
   async save() {
-    if (!this.events.canEdit || this.saving) return;
+    if (!this.events.canEdit || this.saving || this.confirmingDelete) return;
     if (!this.prepared && !this.prepare()) return;
-    const request = this.prepared, generation = this.generation, uid = this.uid;
+    await this.submit();
+  }
+  private async submit() {
+    const request = this.prepared!, generation = this.generation, uid = this.uid;
     this.saving = true; this.error = ''; this.changed.next();
     try {
       const result = await firstValueFrom(this.functions.httpsCallable<DayEditRequest, DayEditResult>('greenpowerEventEdit', { timeout: 35000 })(request));
@@ -109,13 +125,16 @@ export class GreenpowerEventEditService implements OnDestroy {
         ...(result.sessionTypeCounts === undefined ? {} : { sessionTypeCounts: result.sessionTypeCounts }) };
       const session = request.kind === 'session' ? { ...request.session, revision: result.sessionRevision } : undefined;
       if (this.recordingEvent?.date === event.date) this.recordingEvent = event;
-      this.saved.next({ event, session });
-      this.saving = false; this.reset(); this.notice = 'Saved';
+      this.saved.next({ event, session, deletedSessionId: result.deletedSessionId });
+      const deleted = request.kind === 'delete-session';
+      this.saving = false; this.reset(); this.notice = deleted ? 'Session deleted' : 'Saved';
     } catch (error) {
       if (generation !== this.generation || this.uid !== uid) return;
       const code = (error as { code?: string })?.code?.replace('functions/', '');
       this.uncertain = !['invalid-argument', 'failed-precondition', 'already-exists', 'permission-denied', 'unauthenticated', 'not-found', 'resource-exhausted'].includes(code || '');
-      this.error = code === 'failed-precondition' ? ((error as { message?: string }).message?.includes('Close the open session')
+      this.error = request.kind === 'delete-session'
+        ? this.uncertain ? 'Deletion status is unknown. Retry this deletion.' : 'Could not delete. Cancel and reopen the session.'
+        : code === 'failed-precondition' ? ((error as { message?: string }).message?.includes('Close the open session')
         ? 'Close the open session before opening another.' : 'Metadata changed elsewhere. Cancel and reopen the editor.')
         : this.uncertain ? 'Save status is unknown. Retry this save before making another edit.' : 'Could not save. Check the fields or reopen the editor.';
       if (!this.uncertain) this.prepared = undefined;

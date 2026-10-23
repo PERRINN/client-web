@@ -282,3 +282,30 @@ test('concurrent open sessions serialize, verify their starts, preserve raw data
   assert.equal(reopening.filter(result => result.status === 'fulfilled').length, 1);
   assert.equal((await parentRef.collection('sessions').where('endAt', '==', null).limit(2).get()).size, 1);
 });
+
+test('session deletion is atomic, audited, replay-safe and server-only in real Firestore', async () => {
+  const date = '2026-10-15', rec = recording(date, '424-phone'), parentRef = db.doc(ROOT + '/days/' + date);
+  const batch = db.batch(); rec.records.forEach(([path, value]) => batch.set(db.doc(path), value));
+  batch.set(parentRef, { ...dayData.emptyDay(date), sessionTypeCounts: {} });
+  batch.set(db.doc(parentRef.path + '/live/latest'), { count: 4, activeChunk: 0 }); await batch.commit();
+  const range = rec.segment();
+  await invoke({ schemaVersion: 2, kind: 'session', requestId: 'delete-fixture', date, expectedRevision: 0, expectedSessionRevision: 0,
+    session: { id: 'delete-me', type: 'race', startAt: range.firstAt, endAt: range.lastAt, ranges: [range], batteryIds: [], overrides: {} } });
+  const rawRef = db.doc(parentRef.path + '/chunks/0000000000'), rawBefore = await rawRef.get();
+  const input = { schemaVersion: 2, kind: 'delete-session', requestId: 'delete-emulator', date, expectedRevision: 0, expectedSessionRevision: 1, sessionId: 'delete-me' };
+  await assert.rejects(invoke(input, null), error => error.code === 'unauthenticated');
+  await assert.rejects(invoke(input, { uid: 'viewer', token: {} }), error => error.code === 'permission-denied');
+  await assert.rejects(invoke({ ...input, expectedSessionRevision: 2 }), error => error.code === 'failed-precondition');
+  const sessionPath = parentRef.path + '/sessions/delete-me';
+  assert.equal((await access(sessionPath, 'admin', 'DELETE', { perrinnAdmin: true })).status, 403);
+  const result = await invoke(input);
+  assert.equal(result.writes, 4); assert.equal((await db.doc(sessionPath).get()).exists, false);
+  assert.deepEqual((await parentRef.get()).data().sessionTypeCounts, {});
+  const audit = (await db.doc(ROOT + '/metadataChanges/' + result.changeId).get()).data();
+  assert.equal(audit.action, 'delete-session'); assert.equal(audit.records.sessions[sessionPath].before.id, 'delete-me');
+  assert.equal(audit.records.sessions[sessionPath].after, null);
+  assert.equal((await invoke(input)).writes, 0);
+  assert.ok((await rawRef.get()).updateTime.isEqual(rawBefore.updateTime));
+  assert.equal((await access(parentRef.path)).status, 403);
+  for (const uid of ['alice', 'bob']) assert.equal((await access(parentRef.path, uid)).status, 200);
+});

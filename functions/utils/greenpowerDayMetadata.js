@@ -64,11 +64,50 @@ function emptyDay(day, timestamp) {
   return { date: day, eventName: '', trackId: null, result: '', defaults: {}, wheelCircumferenceM: 1.29, sessionTypeCounts: {},
     schemaVersion: 2, revision: 0, updatedBy: 'ingestion', updatedAt: timestamp() };
 }
+async function deleteDaySession(db, auth, input, { timestamp, dryRun }) {
+  keys(input, ['schemaVersion', 'requestId', 'date', 'expectedRevision', 'kind', 'expectedSessionRevision', 'sessionId']);
+  check(input.schemaVersion === 2 && id(input.requestId) && date(input.date) && id(input.sessionId)
+    && Number.isSafeInteger(input.expectedRevision) && input.expectedRevision >= 0
+    && Number.isSafeInteger(input.expectedSessionRevision) && input.expectedSessionRevision > 0, 'Invalid deletion request.');
+  const checksum = hash(input), changeId = hash([auth.uid, input.requestId]);
+  const dayRef = db.doc(ROOT + '/days/' + input.date), sessionRef = db.doc(dayRef.path + '/sessions/' + input.sessionId);
+  const requestRef = db.doc(ROOT + '/metadataRequests/' + changeId);
+  return db.runTransaction(async transaction => {
+    const replay = (await transaction.get(requestRef)).data();
+    if (replay) {
+      check(replay.actor === auth.uid && replay.requestSha256 === checksum, 'Request ID already used.', 'already-exists');
+      return { ...replay.result, replayed: true, writes: 0, reads: 1 };
+    }
+    const [daySnapshot, sessionSnapshot] = await transaction.getAll(dayRef, sessionRef);
+    const before = daySnapshot.data(), session = sessionSnapshot.data();
+    check(before?.schemaVersion === 2 && before.revision === input.expectedRevision, 'Metadata changed. Reload before deleting.', 'failed-precondition');
+    check(session, 'Session is unavailable.', 'not-found');
+    check(session.schemaVersion === 2 && session.telemetryRoot === ROOT && session.id === input.sessionId
+      && session.revision === input.expectedSessionRevision && TYPES.includes(session.type), 'Session changed. Reload before deleting.', 'failed-precondition');
+    check(before.sessionTypeCounts !== undefined, 'Session counts need initialisation.', 'failed-precondition');
+    const counts = { ...validateSessionTypeCounts(before.sessionTypeCounts) };
+    check(counts[session.type] > 0, 'Session counts need repair.', 'failed-precondition');
+    if (--counts[session.type] === 0) delete counts[session.type];
+    const after = { ...before, sessionTypeCounts: counts };
+    const result = { date: input.date, revision: before.revision, deletedSessionId: input.sessionId, sessionTypeCounts: counts, changeId };
+    if (!dryRun) {
+      transaction.delete(sessionRef);
+      transaction.set(dayRef, after);
+      transaction.create(db.doc(ROOT + '/metadataChanges/' + changeId), {
+        actor: auth.uid, action: 'delete-session', requestId: input.requestId, requestSha256: checksum, createdAt: timestamp(),
+        records: { sessions: { [sessionRef.path]: { before: session, after: null } }, days: { [dayRef.path]: { before, after } } }
+      });
+      transaction.create(requestRef, { actor: auth.uid, requestSha256: checksum, result, createdAt: timestamp() });
+    }
+    return { ...result, reads: 3, writes: dryRun ? 0 : 4 };
+  }, { maxAttempts: 3 });
+}
 async function editDayMetadata(db, auth, input, { timestamp, dryRun = false } = {}) {
   check(auth && text(auth.uid, 128), 'Sign in.', 'unauthenticated');
   check(auth.token?.perrinnAdmin === true, 'Admin permission required.', 'permission-denied');
   check(object(input), 'Invalid edit request.');
   check(Buffer.byteLength(JSON.stringify(input)) <= 128 * 1024, 'Request exceeds limit.');
+  if (input.kind === 'delete-session') return deleteDaySession(db, auth, input, { timestamp, dryRun });
   check(['event', 'session'].includes(input.kind), 'Choose event or session edit.');
   keys(input, input.kind === 'event' ? ['schemaVersion', 'requestId', 'date', 'expectedRevision', 'kind', 'data']
     : ['schemaVersion', 'requestId', 'date', 'expectedRevision', 'kind', 'expectedSessionRevision', 'session']);

@@ -126,7 +126,7 @@ export class GreenpowerTelemetryComponent implements OnDestroy {
       this.eventEdit.recordingEvent = eventContext.event;
       this.refreshView(); this.syncHeader(); change.markForCheck();
     }));
-    this.changes.add(eventEdit.saved.subscribe(({ event, session }) => eventContext.acknowledge(event, session)));
+    this.changes.add(eventEdit.saved.subscribe(({ event, session, deletedSessionId }) => eventContext.acknowledge(event, session, deletedSessionId)));
     this.changes.add(eventEdit.changed.subscribe(() => change.markForCheck()));
 
     if (telemetry.access === 'signed-in' && telemetry.live) eventContext.select(telemetry.day, true);

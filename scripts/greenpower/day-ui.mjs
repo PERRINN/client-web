@@ -67,6 +67,7 @@ const view={marker:()=>({enabled:false,value:0}),draftMarker:()=>({enabled:false
 const laps={changed:new Subject(),eventTrack:true,ready:true,selectionReady:true,canEdit:false,candidates:[],fixes:[],analysis:{channel:{id:'lap',label:'Lap',unit:'',points:[]},laps:[]},select(){},syncEditing(){},update(){},line:null,name:'',revision:0,mismatch:false};
 const functions={httpsCallable:()=>input=>defer(async()=>{if(saveFail)throw {code:'functions/failed-precondition'};
 const parentPath='GreenpowerTelemetry/424/days/'+input.date;
+if(input.kind==='delete-session'){const sessionPath=parentPath+'/sessions/'+input.sessionId;const old=records.get(sessionPath);records.delete(sessionPath);const parent=records.get(parentPath);const counts={...parent.sessionTypeCounts};if(--counts[old.type]===0)delete counts[old.type];records.set(parentPath,{...parent,sessionTypeCounts:counts});notify();return {date:input.date,revision:input.expectedRevision,deletedSessionId:input.sessionId,sessionTypeCounts:counts,changeId:'synthetic-delete'};}
 if(input.kind==='session'){const next={...input.session,telemetryRoot:'GreenpowerTelemetry/424',schemaVersion:2,revision:input.expectedSessionRevision+1,updatedBy:'viewer'};records.set(parentPath+'/sessions/'+next.id,next);notify();return {date:input.date,revision:input.expectedRevision,sessionId:next.id,sessionRevision:next.revision,changeId:'synthetic'};}
 const next={...input.data,schemaVersion:2,revision:input.expectedRevision+1,updatedBy:'viewer'};records.set(parentPath,next);notify();return {date:input.date,revision:next.revision,changeId:'synthetic'};})};
 GreenpowerTelemetryComponent.ctorParameters=()=>[{type:GreenpowerTelemetryService},{type:ChangeDetectorRef},{type:Title},{type:GreenpowerViewService},{type:GreenpowerLapService},{type:GreenpowerEventsService},{type:GreenpowerEventEditService},{type:GreenpowerOverlayService},{type:GreenpowerEventContextService}];
@@ -111,7 +112,7 @@ await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 const errors = [];
 try {
-  for (const width of [1440, 390, 320]) {
+  for (const width of (process.env.GREENPOWER_DELETE_ONLY ? [] : [1440, 390, 320])) {
     const page=await browser.newPage({viewport:{width,height:900}});
     page.on('pageerror',error=>errors.push(error.message));
     await page.goto('http://127.0.0.1:'+server.address().port);
@@ -161,7 +162,7 @@ try {
 
     await page.close();
   }
-  for (const width of [1440, 390, 320]) {
+  for (const width of (process.env.GREENPOWER_DELETE_ONLY ? [] : [1440, 390, 320])) {
     const page = await browser.newPage({ viewport: { width, height: 900 }, hasTouch: width < 500 }); page.setDefaultTimeout(10000); page.on('pageerror', error => { errors.push(error.message); console.error(error.message); });
     await page.goto('http://127.0.0.1:' + server.address().port); await page.locator('.telemetry-page h1').waitFor();
     const selectHistoryEvent = async date => {
@@ -604,6 +605,46 @@ try {
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     await page.evaluate(() => window.dayHarness.logout());
     await page.getByRole('link', { name: 'Sign in to view telemetry' }).waitFor();
+    await page.close();
+  }
+  for (const width of [1440, 390, 320]) {
+    const page = await browser.newPage({ viewport: { width, height: 900 } });
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto('http://127.0.0.1:' + server.address().port); await page.locator('h1').waitFor();
+    await page.evaluate(() => window.dayHarness.admin());
+    await page.getByRole('button', { name: 'Load history', exact: true }).click();
+    await page.locator('#history-event').click();
+    await page.locator('#history-events [data-date="2026-06-14"]').click();
+    await page.getByRole('button', { name: 'Load', exact: true }).click();
+    await page.locator('.edit-mode').click();
+    await page.getByRole('button', { name: 'Sessions', exact: true }).click();
+    await page.locator('[aria-label="Event sessions"]').getByRole('button', { name: /^Edit Practice/ }).click();
+    const editor = page.locator('app-greenpower-event-editor');
+    await page.getByRole('button', { name: 'Delete session', exact: true }).scrollIntoViewIfNeeded();
+    const before = await editor.boundingBox();
+    const controls = await page.locator('.controls').boundingBox();
+    await page.getByRole('button', { name: 'Delete session', exact: true }).click();
+    await page.getByRole('button', { name: 'Keep session', exact: true }).waitFor();
+    await page.waitForFunction(() => document.activeElement?.textContent === 'Keep session');
+    assert.equal((await editor.boundingBox()).height, before.height, 'confirmation preserves editor height');
+    assert.deepEqual(await page.locator('.controls').boundingBox(), controls);
+    assert.equal(await page.getByRole('button', { name: 'Save', exact: true }).isDisabled(), true);
+    await page.screenshot({ path: output + '/delete-session-' + width + '.png', fullPage: true });
+    await page.getByRole('button', { name: 'Keep session', exact: true }).click();
+    await page.getByRole('button', { name: 'Keep session', exact: true }).waitFor({ state: 'detached' });
+    assert.equal((await editor.boundingBox()).height, before.height);
+    await page.getByRole('button', { name: 'Delete session', exact: true }).click();
+    await page.evaluate(() => window.dayHarness.saveFailure(true));
+    await page.getByRole('button', { name: 'Delete session', exact: true }).click();
+    await page.getByRole('alert').filter({ hasText: 'Could not delete' }).waitFor();
+    assert.equal((await editor.boundingBox()).height, before.height, 'failure preserves editor height');
+    await page.evaluate(() => window.dayHarness.saveFailure(false));
+    await page.getByRole('button', { name: 'Delete session', exact: true }).click();
+    await page.getByText('Session deleted', { exact: true }).waitFor();
+    assert.equal(await page.locator('[aria-label="Event sessions"] li').count(), 1);
+    const current = await page.evaluate(() => window.dayHarness.current());
+    assert.deepEqual(current.sessions.map(session => session.id), ['s1']);
+    assert.equal(await page.evaluate(() => window.dayHarness.stats().dayLoads), 1, 'deletion does not reload telemetry');
     await page.close();
   }
   const states = await browser.newPage({ viewport: { width: 390, height: 900 } });

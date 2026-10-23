@@ -1,0 +1,67 @@
+{
+  "date": "2026-10-23",
+  "projectId": "perrinn-d5fc1",
+  "branch": "master",
+  "deploymentScope": [
+    "functions:greenpowerEventEdit",
+    "hosting"
+  ],
+  "validation": {
+    "greenpowerUnitTests": {
+      "passed": 284,
+      "failed": 0
+    },
+    "firestoreEmulatorTests": {
+      "passed": 13,
+      "failed": 0,
+      "script": "scripts/greenpower/events.emulator.mjs"
+    },
+    "productionBuild": "passed",
+    "lint": {
+      "errors": 0,
+      "existingWarnings": 50
+    },
+    "syntheticDeletionBrowser": {
+      "script": "scripts/greenpower/day-ui.mjs",
+      "widths": [
+        1440,
+        390,
+        320
+      ],
+      "status": "passed",
+      "checks": [
+        "confirmation/cancel",
+        "initial Keep session focus",
+        "stable confirmation/error footprint",
+        "failed deletion retry",
+        "local list removal",
+        "no telemetry reload"
+      ]
+    },
+    "indexes": {
+      "liveCompositeCount": 31,
+      "repositoryCompositeCount": 31,
+      "normalizedCompositeMatch": true,
+      "normalizedFieldOverridesMatch": true,
+      "changes": []
+    }
+  },
+  "workBudget": {
+    "maximumTransactionAttempts": 3,
+    "readsPerAttempt": 3,
+    "maximumAttemptedReads": 9,
+    "committedWrites": 4,
+    "queries": 0,
+    "rawTelemetryReads": 0,
+    "rawTelemetryWrites": 0
+  },
+  "limitations": [
+    "Browser checks use synthetic Firebase services.",
+    "No real production session is deleted as a release smoke test.",
+    "Other historical views refresh session metadata on reload."
+  ],
+  "deploymentOrder": [
+    "functions:greenpowerEventEdit",
+    "hosting"
+  ]
+}

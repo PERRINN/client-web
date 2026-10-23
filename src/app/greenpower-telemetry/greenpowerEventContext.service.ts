@@ -16,6 +16,7 @@ export class GreenpowerEventContextService implements OnDestroy {
   more = false;
   error = '';
   metadataError = '';
+  private readonly deletedSessions = new Set<string>();
   private date = '';
   private live = false;
   private account = '';
@@ -35,6 +36,7 @@ export class GreenpowerEventContextService implements OnDestroy {
   clear() {
     this.generation++; this.eventOff?.(); this.sessionsOff?.();
     this.eventOff = this.sessionsOff = undefined;
+    this.deletedSessions.clear();
     this.date = ''; this.event = undefined; this.sessions = []; this.after = undefined;
     this.loading = this.more = false; this.error = this.metadataError = ''; this.changed.next();
   }
@@ -91,6 +93,7 @@ export class GreenpowerEventContextService implements OnDestroy {
   private merge(sessions: DaySession[]) {
     const merged = new Map(this.sessions.map(session => [session.id, session]));
     for (const session of sessions) {
+      if (this.deletedSessions.has(session.id)) continue;
       const previous = merged.get(session.id);
       if (!previous || previous.revision! <= session.revision!) merged.set(session.id, session);
     }
@@ -112,9 +115,13 @@ export class GreenpowerEventContextService implements OnDestroy {
     } catch { if (generation === this.generation) this.error = 'Could not load session details.'; }
     finally { if (generation === this.generation) { this.loading = false; this.changed.next(); } }
   }
-  acknowledge(event: RecordedEvent, session?: DaySession) {
+  acknowledge(event: RecordedEvent, session?: DaySession, deletedSessionId?: string) {
     if (event.date !== this.date) return;
     if (!this.event || event.revision >= this.event.revision) this.event = event;
+    if (deletedSessionId) {
+      this.deletedSessions.add(deletedSessionId);
+      this.sessions = this.sessions.filter(item => item.id !== deletedSessionId);
+    }
     if (session) this.merge([session]);
     this.changed.next();
   }

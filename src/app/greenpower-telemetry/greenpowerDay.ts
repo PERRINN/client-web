@@ -26,8 +26,9 @@ export interface RecordedEvent extends DayMetadata {
 }
 export type SessionTypeCounts = Partial<Record<'race' | 'practice' | 'battery_dyno' | 'motor_dyno', number>>;
 export type DayEditRequest = { schemaVersion: 2; requestId: string; date: string; expectedRevision: number } & (
-  { kind: 'event'; data: DayMetadata } | { kind: 'session'; expectedSessionRevision: number; session: DaySession });
-export interface DayEditResult { date: string; revision: number; changeId: string; sessionId?: string; sessionRevision?: number; sessionTypeCounts?: SessionTypeCounts; }
+  { kind: 'event'; data: DayMetadata } | { kind: 'session'; expectedSessionRevision: number; session: DaySession }
+  | { kind: 'delete-session'; expectedSessionRevision: number; sessionId: string });
+export interface DayEditResult { date: string; revision: number; changeId: string; sessionId?: string; deletedSessionId?: string; sessionRevision?: number; sessionTypeCounts?: SessionTypeCounts; }
 export function emptyDay(date: string): RecordedEvent {
   return { date, eventName: '', trackId: null, result: '', defaults: {}, wheelCircumferenceM: DEFAULT_WHEEL_CIRCUMFERENCE_M,
     schemaVersion: 2, revision: 0, updatedBy: 'ingestion' };

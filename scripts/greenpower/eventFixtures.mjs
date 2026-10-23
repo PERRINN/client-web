@@ -52,11 +52,12 @@ export function memoryDb(initial = [], { failCommit = false, retryOnce = false, 
         }
         return snapshot(ref); },
         async getAll(...refs) { assert.equal(writes.length, 0); counts.rpcs++; return refs.map(snapshot); },
+        delete(ref) { writes.push({ ref, deleted: true }); },
         set(ref, data) { writes.push({ ref, data }); }, create(ref, data) { assert.ok(!records.has(ref.path)); writes.push({ ref, data }); } };
       result = await callback(tx);
       if (failCommit) throw new Error('synthetic commit failure with private provider detail');
       if (retryOnce && attempt === 0) continue;
-      for (const { ref, data } of writes) { records.set(ref.path, structuredClone(data)); counts.writes++; }
+      for (const { ref, data, deleted } of writes) { if (deleted) records.delete(ref.path); else records.set(ref.path, structuredClone(data)); counts.writes++; }
     }
     return result;
   } };
