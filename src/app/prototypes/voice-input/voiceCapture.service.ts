@@ -1,6 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { MAX_VOICE_SAMPLES, voiceWav } from './voiceAudio';
 import { voiceCue } from './voiceCue';
+import { defaultVoiceEchoCancellation } from './voiceCaptureSettings';
 import type { VoiceCueEvent } from './voiceCue';
 
 @Injectable()
@@ -37,7 +38,7 @@ export class VoiceCaptureService implements OnDestroy {
     };
   }
 
-  async start(onLimit: () => void, onError: () => void, onLevel?: (level: number) => void, echoCancellation = false): Promise<boolean> {
+  async start(onLimit: () => void, onError: () => void, onLevel?: (level: number) => void, echoCancellation = defaultVoiceEchoCancellation()): Promise<boolean> {
     this.cancel();
     const generation = this.generation;
     this.audioTrace = []; this.audioTraceSince = performance.now();

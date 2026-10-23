@@ -5,6 +5,7 @@ import { VoiceCaptureService } from './voiceCapture.service';
 import { VoiceQueueService } from './voiceQueue.service';
 import { VoiceRecording } from './voiceQueueStore.service';
 import { voiceDiagnosticCode } from './voiceDiagnostics';
+import { defaultVoiceEchoCancellation } from './voiceCaptureSettings';
 
 export interface VoiceReply { id: number; kind: 'transcript' | 'error' | 'pending'; text: string; createdAt?: number; private?: boolean; recording?: VoiceRecording }
 type Phase = 'idle' | 'requesting' | 'recording' | 'sending' | 'saved' | 'error';
@@ -22,8 +23,7 @@ export class VoiceInputService implements OnDestroy {
   phaseSince = Date.now();
   captureFailure = '';
   testingCue = false;
-  // Avoid the Android communication preset suppressing startup feedback.
-  private requestedEchoCancellation = false;
+  private requestedEchoCancellation = defaultVoiceEchoCancellation();
   get phase(): Phase { return this.currentPhase; }
   set phase(value: Phase) { if (value !== this.currentPhase) this.phaseSince = Date.now(); this.currentPhase = value; }
   get captureDiagnostics() { return this.capture.diagnostics; }
@@ -167,7 +167,7 @@ export class VoiceInputService implements OnDestroy {
   private clearLevels(): void { this.levels = Array<number>(9).fill(0); }
   private reset(): void {
     this.captureFailure = ''; this.captureGeneration++; this.testingCue = false;
-    this.requestedEchoCancellation = false;
+    this.requestedEchoCancellation = defaultVoiceEchoCancellation();
     this.clearLevels();
     this.capture.cancel(); clearTimeout(this.timer);
     this.phase = 'idle'; this.replies.length = 0; this.changed.next();

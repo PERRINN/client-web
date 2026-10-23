@@ -30,7 +30,8 @@ const { VoiceQueueService } = load('../src/app/prototypes/voice-input/voiceQueue
 });
 const { VoiceInputService } = load('../src/app/prototypes/voice-input/voiceInput.service.ts', {
   '@angular/core': core, './voiceDiagnostics': diagnosticsModule, '@angular/fire/compat/auth': {}, './voiceQueue.service': { VoiceQueueService },
-  './voiceQueueStore.service': storeModule, './voiceCapture.service': {}
+  './voiceQueueStore.service': storeModule, './voiceCapture.service': {},
+  './voiceCaptureSettings': load('../src/app/prototypes/voice-input/voiceCaptureSettings.ts')
 });
 const bytes = new Uint8Array(32044).fill(1);
 const recording = (changes = {}) => ({ id: crypto.randomUUID(), owner: 'alice', createdAt: Date.now(),
