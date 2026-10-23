@@ -33,9 +33,9 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--color-focus); o
   .waveform i { transition: height 90ms linear, background-color 140ms ease; }
 }
 
-.voice-content { display: grid; flex: 1 1 0; min-height: 0; grid-template-columns: minmax(0, 1fr) 240px; gap: 16px; }
+.voice-content { display: grid; flex: 1 1 0; min-height: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 16px; }
 .replies { min-width: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 8px; }
-.diagnostics { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; background: var(--color-surface); border-radius: 12px; padding: 12px; font-size: 14px; line-height: 1.4; }
+.diagnostics { min-width: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; background: var(--color-surface); border-radius: 12px; padding: 12px; font-size: 14px; line-height: 1.4; }
 .diagnostics h2 { font-size: 14px; line-height: 1.4; font-weight: 600; margin: 0; }
 .diagnostic-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
 .diagnostic-meta { color: var(--color-text-muted); margin: 0; font-size: 12px; text-align: right; }
@@ -49,7 +49,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--color-focus); o
 .state-error { color: var(--color-danger-text); }
 @media (max-width: 480px) {
   .voice-page { padding: 12px 0 calc(130px + env(safe-area-inset-bottom, 0px)); }
-  .voice-content { grid-template-columns: minmax(0, 1fr) 148px; gap: 8px; }
+  .voice-content { gap: 8px; }
   .diagnostics { padding: 8px; }
   .reply { padding: 10px; }
 }
@@ -57,10 +57,8 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--color-focus); o
 .diagnostics:focus-visible, .replies:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
 
 @media (orientation: landscape) and (max-height: 500px) and (min-width: 600px) {
-  .voice-page { padding-top: 12px; padding-bottom: 12px; }
+  .voice-page { padding-top: 12px; }
   .back { margin-bottom: 8px; }
-  .voice-content { grid-template-columns: minmax(0, 1fr) min(240px, calc(50% - 116px)); }
-  .replies { margin-bottom: calc(118px + env(safe-area-inset-bottom, 0px)); }
 }
 
 .reply-own { align-self: flex-end; border-radius: 16px 16px 4px 16px; background: var(--color-raised); }
