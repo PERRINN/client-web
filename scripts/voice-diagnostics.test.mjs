@@ -75,6 +75,23 @@ test('diagnostics exclude identities and error messages while preserving useful 
   assert.equal(code({ message: 'private transcript' }), 'Unknown error');
   assert.equal(code({ code: 'private text with spaces', name: 'Error' }), 'Error');
 });
+test('audio cue rows distinguish render completion from playback failures and exist before recording', () => {
+  const idle = state();
+  assert.equal(idle.get('Opening cue').value, 'Not observed');
+  assert.equal(idle.get('Closing cue').value, 'Not observed');
+  assert.equal(idle.get('Audio trace').value, 'Waiting for recording');
+  const rendered = state({ capture: { openingCue: 'ended', closingCue: 'cancelled', audioTrace: '+65ms Opening ended' } });
+  assert.equal(rendered.get('Opening cue').value, 'Render ended');
+  assert.equal(rendered.get('Opening cue').ok, true);
+  assert.equal(rendered.get('Closing cue').ok, true);
+  assert.equal(rendered.get('Audio trace').value, '+65ms Opening ended');
+  for (const failure of ['skipped', 'timeout', 'failed']) {
+    const failed = state({ capture: { openingCue: failure, closingCue: 'ended' } });
+    assert.equal(failed.get('Opening cue').ok, false);
+    assert.equal(failed.get('Audio trace').ok, false);
+    assert.equal(failed.get('Closing cue').ok, true);
+  }
+});
 
 test('an expired worker lease is red independently of a healthy database listener', () => {
   const s = state({ queue: { received: 1, listeners: 1, confirmedResults: 1, resultStatus: 'processing', resultDeadline: now - 6000 } });

@@ -1,6 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { MAX_VOICE_SAMPLES, voiceWav } from './voiceAudio';
 import { voiceCue } from './voiceCue';
+import type { VoiceCueEvent } from './voiceCue';
 
 @Injectable()
 export class VoiceCaptureService implements OnDestroy {
@@ -17,6 +18,10 @@ export class VoiceCaptureService implements OnDestroy {
   private generation = 0;
   private stopped?: () => void;
   private startupCancelled?: () => void;
+  private audioTrace: string[] = [];
+  private audioTraceSince = 0;
+  private openingCue = 'idle';
+  private closingCueState = 'idle';
 
   get diagnostics() {
     const tracks = this.stream?.getAudioTracks() || [];
@@ -24,20 +29,26 @@ export class VoiceCaptureService implements OnDestroy {
       supported: !!navigator.mediaDevices?.getUserMedia && typeof AudioContext !== 'undefined' && typeof AudioWorkletNode !== 'undefined',
       context: this.context?.state || 'Idle', liveTracks: tracks.filter(track => track.readyState === 'live').length,
       muted: tracks.some(track => track.muted), permissionPending: !!this.startupCancelled && !this.stream,
-      worklet: !!this.node, durationMs: this.length / 16, connectedAt: this.connectedAt, lastSampleAt: this.lastSampleAt
+      worklet: !!this.node, durationMs: this.length / 16, connectedAt: this.connectedAt, lastSampleAt: this.lastSampleAt,
+      openingCue: this.openingCue, closingCue: this.closingCueState, audioTrace: this.audioTrace.join('\n')
     };
   }
 
   async start(onLimit: () => void, onError: () => void, onLevel?: (level: number) => void): Promise<boolean> {
     this.cancel();
     const generation = this.generation;
+    this.audioTrace = []; this.audioTraceSince = performance.now();
+    this.openingCue = this.closingCueState = 'idle';
     if (!navigator.mediaDevices?.getUserMedia || typeof AudioContext === 'undefined'
       || typeof AudioWorkletNode === 'undefined') throw new Error('Voice recording requires a supported browser on HTTPS.');
     const context = new AudioContext({ sampleRate: 16000 });
     this.context = context;
+    const note = (event: string) => { if (generation === this.generation) this.noteAudio(event, context); };
+    note(`Context created · ${context.sampleRate}Hz`);
+    context.onstatechange = () => note('Context changed');
     // Begin in the gesture, but do not wait on this promise: Safari can leave it
     // pending until microphone activation changes the system audio session.
-    void context.resume().catch(() => undefined);
+    void context.resume().then(() => note('Gesture resume resolved'), () => note('Gesture resume rejected'));
     let startupTimer: ReturnType<typeof setTimeout> | undefined;
     let armTimeout: () => void;
     const deadline = new Promise<never>((_, reject) => {
@@ -52,13 +63,17 @@ export class VoiceCaptureService implements OnDestroy {
       const prepared = Promise.all([requested.then(stream => {
         if (generation !== this.generation) { stream.getTracks().forEach(track => track.stop()); return; }
         this.stream = stream;
+        note('Mic acquired');
         // Only time out after permission is granted. One resume after acquisition
         // handles the audio-session change; no polling or automatic capture retry.
         armTimeout();
-        return context.state === 'running' ? undefined : context.resume();
+        if (context.state === 'running') return;
+        note('Mic resume requested');
+        return context.resume().then(() => note('Mic resume resolved'));
       }), context.audioWorklet.addModule('/assets/voice-input/capture.worklet.js')]).then(() => true);
       if (!await Promise.race([prepared, cancelled, deadline]) || generation !== this.generation) return false;
       if (context.sampleRate !== 16000 || context.state !== 'running') throw new Error('Could not start audio. Start recording again.');
+      note('Capture prepared');
       this.samples = new Float32Array(MAX_VOICE_SAMPLES); this.length = 0;
       const interrupted = () => { if (generation === this.generation) onError(); };
       this.node = new AudioWorkletNode(context, 'voice-capture', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1] });
@@ -78,14 +93,15 @@ export class VoiceCaptureService implements OnDestroy {
         else if (data.type === 'stopped') this.stopped?.();
       };
       this.node.onprocessorerror = interrupted;
-      context.onstatechange = () => { if (generation === this.generation && context.state !== 'running') onError(); };
+      context.onstatechange = () => { note('Context changed'); if (generation === this.generation && context.state !== 'running') onError(); };
       this.stream!.getAudioTracks().forEach(track => { track.onended = interrupted; });
       this.mute = context.createGain(); this.mute.gain.value = 0;
       this.source = context.createMediaStreamSource(this.stream!);
       this.node.connect(this.mute); this.mute.connect(context.destination);
-      if (!await Promise.race([voiceCue(context, true).then(() => true), cancelled, deadline])
+      if (!await Promise.race([voiceCue(context, true, this.observeCue(context, true)).then(() => true), cancelled, deadline])
         || generation !== this.generation) return false;
       this.source!.connect(this.node!); this.connectedAt = Date.now();
+      note('Mic connected');
       return true;
     } catch (error) {
       // Stop a late permission grant even if worklet setup failed first.
@@ -117,8 +133,9 @@ export class VoiceCaptureService implements OnDestroy {
         // Keep the device audio route stable while playing the closing cue.
         // The worklet is stopped and disconnected; no further samples are kept.
         this.disconnectCapture();
+        if (context) this.noteAudio('Capture drained', context);
         this.closingCue = true;
-        if (context) await voiceCue(context, false);
+        if (context) await voiceCue(context, false, this.observeCue(context, false));
         if (generation === this.generation) this.cancel();
       }
     }
@@ -127,6 +144,9 @@ export class VoiceCaptureService implements OnDestroy {
   silenceClosingCue(): void { if (this.closingCue) this.cancel(); }
 
   cancel(): void {
+    if (this.context) this.noteAudio('Releasing audio', this.context);
+    if (this.openingCue === 'scheduled') this.openingCue = 'cancelled';
+    if (this.closingCueState === 'scheduled') this.closingCueState = 'cancelled';
     this.generation++;
     this.startupCancelled?.(); this.startupCancelled = undefined;
     this.stopped?.(); this.stopped = undefined;
@@ -135,6 +155,23 @@ export class VoiceCaptureService implements OnDestroy {
     this.disconnectCapture();
     if (this.context) { this.context.onstatechange = null; void this.context.close().catch(() => undefined); }
     this.context = undefined;
+  }
+  private observeCue(context: AudioContext, opening: boolean): (event: VoiceCueEvent) => void {
+    const generation = this.generation;
+    return event => {
+      if (generation !== this.generation) return;
+      if (opening) this.openingCue = event; else this.closingCueState = event;
+      this.noteAudio(`${opening ? 'Opening' : 'Closing'} ${event}`, context);
+    };
+  }
+  private noteAudio(event: string, context: AudioContext): void {
+    // Local machine state only. Preserve opening evidence within a fixed budget;
+    // repeated state changes cannot displace it or create unbounded session work.
+    if (this.audioTrace.length >= 16) return;
+    const ms = (value?: number) => Number.isFinite(value) ? Math.round(value! * 1000) + 'ms' : '?';
+    let output: number | undefined;
+    try { output = context.getOutputTimestamp?.().contextTime; } catch { /* Optional browser diagnostic. */ }
+    this.audioTrace.push(`+${Math.round(performance.now() - this.audioTraceSince)}ms ${event} · ${context.state} · audio ${ms(context.currentTime)} · output ${ms(output)}`);
   }
   private disconnectCapture(): void {
     if (this.node) { this.node.onprocessorerror = null; this.node.port.onmessage = null; this.node.port.close(); this.node.disconnect(); }

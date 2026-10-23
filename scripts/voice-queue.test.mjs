@@ -110,7 +110,7 @@ test('new audio stores an owned buffer containing only the selected samples', as
   assert.deepEqual(new Uint8Array(row.audio), new Uint8Array(bytes.length).fill(7));
 });
 test('existing Blob audio uploads unchanged alongside new raw buffers', async t => {
-  environment(t, false); const store = new VoiceQueueStore(), legacy = recording(); await store.add(legacy);
+  environment(t, false); const store = new VoiceQueueStore(), legacy = recording({ createdAt: Date.now() - 1000 }); await store.add(legacy);
   const f = queue(t, { store }); await ready(f); await f.service.enqueue(bytes);
   navigator.onLine = true; await f.service.refresh(); await until(() => f.completed.length === 2);
   assert.equal(f.calls[0].input.requestId, legacy.id);

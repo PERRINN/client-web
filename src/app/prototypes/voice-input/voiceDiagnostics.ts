@@ -108,6 +108,11 @@ export function voiceDiagnosticRows(voice: Pick<VoiceInputService, 'phase' | 'ph
   const storageFault = queue.storageCode ? [queue.storageFaultStep, queue.storageCode].filter(Boolean).join(' · ') : '';
   const uploadFault = queue.uploadCode ? [queue.uploadFaultStage, queue.uploadCode].filter(Boolean).join(' · ') : '';
   const lastFault = storageFault || voice.captureFailure || uploadFault || queue.resultCode || (queue.recordingFault ? 'Unsent recording error' : '') || (serverOverdue ? 'Worker lease expired' : queue.resultStatus === 'failed' ? 'Transcription failed' : '');
+  const cue = (value = 'idle') => ({
+    idle: 'Not observed', scheduled: 'Scheduled', ended: 'Render ended', timeout: 'Timed out',
+    skipped: 'Skipped · context not running', failed: 'Playback setup failed', cancelled: 'Cancelled'
+  })[value] || 'Unknown';
+  const cueOk = (value?: string) => !['timeout', 'skipped', 'failed'].includes(value || '');
   return [
     { label: 'Button', value: voice.canToggle ? (active ? 'Enabled · Stop' : requesting ? 'Enabled · Cancel' : 'Enabled · Start') : 'Disabled', ok: voice.canToggle || expectedWait && lockOk },
     { label: 'Lock', value: lock, ok: lockOk },
@@ -124,6 +129,9 @@ export function voiceDiagnosticRows(voice: Pick<VoiceInputService, 'phase' | 'ph
     { label: 'Capture', value: `${voice.phase} · ${phaseAge}s`, ok: captureOk },
     { label: 'Microphone', value: capture.permissionPending ? 'Permission pending' : capture.liveTracks ? capture.muted ? 'Muted' : 'Live' : 'Released', ok: micOk && (!requesting || phaseAge < 30) },
     { label: 'Audio context', value: capture.context, ok: audioOk },
+    { label: 'Opening cue', value: cue(capture.openingCue), ok: cueOk(capture.openingCue) },
+    { label: 'Closing cue', value: cue(capture.closingCue), ok: cueOk(capture.closingCue) },
+    { label: 'Audio trace', value: capture.audioTrace || 'Waiting for recording', ok: cueOk(capture.openingCue) && cueOk(capture.closingCue) },
     { label: 'Worklet', value: capture.worklet ? `${Math.floor(capture.durationMs)}ms · batch ${batchAge}s ago` : 'Idle', ok: workletOk },
     { label: 'Gesture', value: device.gesture + (device.gestureSince ? ` · ${seconds(device.gestureSince)}s` : ''), ok: !device.gestureSince || active || requesting || seconds(device.gestureSince) < 5 },
     { label: 'Recovery', value: `DB ${queue.storageRetries}/3 · Results ${queue.resultRetries}/3`, ok: !queue.storageError && !queue.resultFailures }

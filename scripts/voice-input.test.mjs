@@ -771,14 +771,15 @@ test('radio cues use distinct quiet pitches, fade cleanly and release their audi
   t.mock.timers.enable({ apis: ['setTimeout'] });
   const { voiceCue } = load('../src/app/prototypes/voice-input/voiceCue.ts');
   for (const [opening, expectedFrequencies, duration] of [[true, [1040], 95], [false, [920], 95]]) {
-    const envelope = [], connections = [], frequencies = [];
+    const envelope = [], connections = [], frequencies = [], events = [];
     let stopped, disconnected = 0, resolved = false;
     const gain = { gain: { setValueAtTime: (...args) => envelope.push(args), linearRampToValueAtTime: (...args) => envelope.push(args) },
       connect: node => connections.push(node), disconnect: () => disconnected++ };
     const oscillator = { frequency: { setValueAtTime: (...args) => frequencies.push(args) },
       connect: node => connections.push(node), start() {}, stop: when => { stopped = when; }, disconnect: () => disconnected++ };
     const context = { state: 'running', currentTime: 0, destination: {}, createOscillator: () => oscillator, createGain: () => gain };
-    const pending = voiceCue(context, opening).then(() => { resolved = true; });
+    const pending = voiceCue(context, opening, event => events.push(event)).then(() => { resolved = true; });
+    assert.deepEqual(events, ['scheduled']);
     assert.deepEqual(frequencies, expectedFrequencies.map((frequency, index) => [frequency, index * .09]));
     assert.equal(oscillator.type, 'triangle');
     assert.deepEqual(envelope, expectedFrequencies.flatMap((_frequency, index) => {
@@ -790,12 +791,16 @@ test('radio cues use distinct quiet pitches, fade cleanly and release their audi
     t.mock.timers.tick(duration + 50); await Promise.resolve(); assert.equal(resolved, false);
     assert.equal(disconnected, 0, 'Do not truncate playback when the audio timeline stalls.');
     oscillator.onended();
+    assert.deepEqual(events, ['scheduled', 'ended']);
     t.mock.timers.tick(29); await Promise.resolve(); assert.equal(resolved, false);
     t.mock.timers.tick(1); await pending; assert.equal(disconnected, 2);
     assert.equal(oscillator.onended, null);
   }
-  await voiceCue({ state: 'suspended' }, true);
-  await voiceCue({ state: 'running', createOscillator() { throw Error('Playback unavailable'); } }, true);
+  const events = [];
+  await voiceCue({ state: 'suspended' }, true, event => events.push(event));
+  await voiceCue({ state: 'running', createOscillator() { throw Error('Playback unavailable'); } }, true, event => events.push(event));
+  assert.deepEqual(events, ['skipped', 'failed']);
+  await voiceCue({ state: 'suspended' }, true, () => { throw Error('Observer unavailable'); });
 });
 test('opening cue finishes before microphone samples connect; closing cue follows stopped capture', async () => {
   const cues = [];
@@ -830,10 +835,50 @@ test('stalled cue playback has a 500 ms cleanup deadline', async t => {
   const oscillator = { frequency: parameter, connect() {}, start() {}, stop() {}, disconnect() { disconnected++; } };
   const gain = { gain: parameter, connect() {}, disconnect() { disconnected++; } };
   const context = { state: 'running', currentTime: 0, destination: {}, createOscillator: () => oscillator, createGain: () => gain };
-  const pending = voiceCue(context, false).then(() => { resolved = true; });
+  const events = [];
+  const pending = voiceCue(context, false, event => events.push(event)).then(() => { resolved = true; });
   t.mock.timers.tick(499); await Promise.resolve(); assert.equal(resolved, false);
   t.mock.timers.tick(1); await pending;
   assert.equal(disconnected, 2); assert.equal(oscillator.onended, null);
+  assert.deepEqual(events, ['scheduled', 'timeout']);
+});
+test('audio diagnostics retain cue outcomes and bounded timing evidence without stale callbacks or remote work', async () => {
+  const observers = [];
+  const fixture = safariCapture({ cue: async (context, opening, observe) => {
+    observers.push(observe);
+    observe('scheduled');
+    context.currentTime = (context.currentTime || 0) + .065;
+    context.getOutputTimestamp = () => ({ contextTime: context.currentTime - .01 });
+    observe('ended');
+  } });
+  try {
+    assert.equal(fixture.capture.diagnostics.openingCue, 'idle');
+    assert.equal(fixture.capture.diagnostics.audioTrace, '');
+    assert.equal(await fixture.capture.start(() => {}, () => {}), true);
+    const first = fixture.capture.diagnostics;
+    assert.equal(first.openingCue, 'ended'); assert.equal(first.closingCue, 'idle');
+    assert.match(first.audioTrace, /Context created · 16000Hz/);
+    assert.match(first.audioTrace, /Mic acquired[\s\S]*Opening scheduled[\s\S]*Opening ended[\s\S]*Mic connected/);
+    assert.match(first.audioTrace, /audio 65ms · output 55ms/);
+    fixture.nodes[0].port.onmessage({ data: { type: 'samples', samples: new Float32Array(16000).fill(.1) } });
+    assert.equal((await fixture.capture.finish()).length, 32044);
+    assert.equal(fixture.capture.diagnostics.closingCue, 'ended');
+    assert.match(fixture.capture.diagnostics.audioTrace, /Capture drained[\s\S]*Closing scheduled[\s\S]*Closing ended[\s\S]*Releasing audio/);
+    assert.equal(await fixture.capture.start(() => {}, () => {}), true);
+    assert.equal(fixture.capture.diagnostics.closingCue, 'idle', 'Each attempt resets previous outcomes.');
+    assert.doesNotMatch(fixture.capture.diagnostics.audioTrace, /Closing ended/);
+    const before = fixture.capture.diagnostics.audioTrace;
+    observers[0]('failed');
+    assert.equal(fixture.capture.diagnostics.audioTrace, before, 'Previous attempts cannot overwrite diagnostics.');
+    for (let i = 0; i < 100; i++) fixture.contexts[1].onstatechange();
+    assert.equal(fixture.capture.diagnostics.audioTrace.split('\n').length, 16);
+    assert.match(fixture.capture.diagnostics.audioTrace, /Opening scheduled/);
+    fixture.capture.cancel();
+    observers.at(-1)('timeout');
+    assert.equal(fixture.capture.diagnostics.openingCue, 'ended');
+    assert.equal(fixture.contexts.every(context => context.closed), true);
+    assert.equal(fixture.tracks.every(track => track.stopped), true);
+  } finally { fixture.restore(); }
 });
 test('interrupting closing feedback releases mic immediately without discarding finished audio', async () => {
   let endCue;
