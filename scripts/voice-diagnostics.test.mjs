@@ -6,7 +6,7 @@ const exports = {};
 new Function('exports', ts.transpileModule(readFileSync(new URL('../src/app/prototypes/voice-input/voiceDiagnostics.ts', import.meta.url), 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
 }).outputText)(exports);
-const { voiceDiagnosticRows: rows, voiceDiagnosticCode: code } = exports;
+const { voiceDiagnosticRows: rows, voiceDiagnosticCode: code, VoiceKeyDiagnostics } = exports;
 const now = 1800000000000;
 function state(changes = {}) {
   const voice = { ready: true, uid: 'private-account-id', phase: 'idle', phaseSince: now, canToggle: true, captureFailure: '', ...changes.voice };
@@ -81,4 +81,38 @@ test('an expired worker lease is red independently of a healthy database listene
   assert.equal(s.get('Cloud DB').ok, true); assert.equal(s.get('Server').ok, false);
   assert.match(s.get('Server').value, /Lease expired/); assert.equal(s.get('Last fault').value, 'Worker lease expired');
   assert.equal(s.get('Button').ok, true);
+});
+
+test('keyboard evidence retains both edges of a fast press between renders', () => {
+  const keys = new VoiceKeyDiagnostics();
+  keys.event({ key: 'p', code: 'KeyP' }, 'down', 'Toggle from idle');
+  keys.observePhase('requesting'); keys.observePhase('recording');
+  keys.event({ key: 'p', code: '' }, 'up', 'Code mismatch', false);
+  const rows = new Map(keys.rows().map(row => [row.label, row]));
+  assert.match(rows.get('P keydown').value, /P \/ KeyP/);
+  assert.match(rows.get('P keyup').value, /P \/ Empty/);
+  assert.match(rows.get('P trace').value, /down:.*\n.*Mic: requesting\n.*Mic: recording\n.*up:.*Code mismatch/);
+  assert.equal(rows.get('P trace').ok, false);
+});
+
+test('keyboard diagnostics bound trace memory and coalesce repeat floods without losing the initial down', () => {
+  const keys = new VoiceKeyDiagnostics();
+  keys.event({ key: 'p', code: 'KeyP' }, 'down', 'Toggle from idle');
+  for (let i = 0; i < 1000; i++) keys.event({ key: 'p', code: 'KeyP', repeat: true }, 'down', 'Repeat ignored');
+  assert.equal(keys.rows().find(row => row.label === 'P trace').value.split('\n').length, 1);
+  assert.match(keys.rows().find(row => row.label === 'P repeats').value, /^1000 .*Repeat ignored/);
+  for (let i = 0; i < 20; i++) keys.observePhase(i % 2 ? 'recording' : 'idle');
+  assert.equal(keys.rows().find(row => row.label === 'P trace').value.split('\n').length, 8);
+});
+
+test('keyboard evidence recognizes Android unknown/composition events without collecting arbitrary input', () => {
+  const keys = new VoiceKeyDiagnostics();
+  assert.equal(keys.relevant({ key: 'Unidentified', keyCode: 229 }), true);
+  assert.equal(keys.relevant({ key: 'Process' }), true);
+  assert.equal(keys.relevant({ key: 'private typed text', code: 'KeyX' }), false);
+  keys.event({ key: 'private typed text', code: 'private code', target: { value: 'private content' }, ctrlKey: true,
+    keyCode: 229, isComposing: true, isTrusted: false }, 'up', 'Code mismatch');
+  const text = JSON.stringify(keys.rows());
+  assert.doesNotMatch(text, /private/);
+  assert.match(text, /Other \/ Other · 229 · composing, Ctrl, synthetic/);
 });

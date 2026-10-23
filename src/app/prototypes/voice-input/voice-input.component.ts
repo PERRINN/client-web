@@ -4,7 +4,7 @@ import { VoiceCaptureService } from './voiceCapture.service';
 import { VoiceInputService } from './voiceInput.service';
 import { VoiceConversationService } from './voiceConversation.service';
 import { VoiceQueueService } from './voiceQueue.service';
-import { VoiceDiagnosticRow, voiceDiagnosticRows } from './voiceDiagnostics';
+import { VoiceDiagnosticRow, VoiceKeyDiagnostics, voiceDiagnosticRows } from './voiceDiagnostics';
 
 @Component({
   selector: 'app-voice-input', standalone: false,
@@ -24,6 +24,7 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
   diagnosticUpdatedAt = 0;
   diagnosticBuild = '';
   private diagnosticsActive = false;
+  private readonly keyDiagnostics = new VoiceKeyDiagnostics();
   constructor(public voice: VoiceInputService, public conversation: VoiceConversationService, private changeDetector: ChangeDetectorRef) {
     this.conversationChanges = conversation.changed.subscribe(() => {
       voice.setAccess(conversation.allowed, conversation.uid);
@@ -31,10 +32,15 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
     });
     voice.setAccess(conversation.allowed, conversation.uid);
     this.changes = voice.changed.subscribe(() => {
+      this.keyDiagnostics.observePhase(voice.phase);
       if (this.pointer && (this.pointer.uid !== voice.uid
         || (this.pointer.started && voice.phase !== 'requesting' && voice.phase !== 'recording'))) this.clearPointer();
       if (this.keyboard && (this.keyboard.uid !== voice.uid
-        || (this.keyboard.started && voice.phase !== 'requesting' && voice.phase !== 'recording'))) this.keyboard = undefined;
+        || (this.keyboard.started && voice.phase !== 'requesting' && voice.phase !== 'recording'))) {
+        const reason = this.keyboard.uid !== voice.uid ? 'Account changed' : `Capture ${voice.phase}`;
+        this.keyDiagnostics.note(`P cleared: ${reason} · ${Date.now() - this.keyboard.downAt} ms`);
+        this.keyboard = undefined;
+      }
       if (this.diagnosticsActive) this.updateDiagnostics();
       changeDetector.markForCheck();
     });
@@ -56,7 +62,7 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
       gesture: this.pointer ? (this.pointer.held ? 'Held' : 'Pressed')
         : this.keyboard ? (now - this.keyboard.downAt >= 600 ? 'Held' : 'Pressed') : 'Released',
       gestureSince: this.pointer?.downAt || this.keyboard?.downAt || 0
-    }, this.diagnosticUpdatedAt);
+    }, this.diagnosticUpdatedAt).concat(this.keyDiagnostics.rows());
     this.changeDetector.markForCheck();
   }
 
@@ -115,30 +121,43 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
   @HostListener('document:keydown', ['$event'])
   shortcutKeyDown(event: KeyboardEvent): void {
     const target = event.target as HTMLElement | null;
-    if (event.key.toLowerCase() !== 'p' || event.defaultPrevented || event.repeat || event.isComposing
-      || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || this.pointer || this.keyboard || !this.voice.canToggle
-      || target?.isContentEditable || target?.closest?.('input, textarea, select, [role="textbox"], [contenteditable]:not([contenteditable="false"])')) return;
+    const ignored = event.key.toLowerCase() !== 'p' ? 'Not P'
+      : event.defaultPrevented ? 'Already prevented' : event.repeat ? 'Repeat ignored' : event.isComposing ? 'IME composition'
+      : event.altKey || event.ctrlKey || event.metaKey || event.shiftKey ? 'Modified shortcut'
+      : this.pointer ? 'Pointer active' : this.keyboard ? 'P already down' : !this.voice.canToggle ? 'Mic control locked'
+      : target?.isContentEditable || target?.closest?.('input, textarea, select, [role="textbox"], [contenteditable]:not([contenteditable="false"])') ? 'Editable field' : '';
+    if (this.keyDiagnostics.relevant(event)) this.keyDiagnostics.event(event, 'down', ignored || `Toggle from ${this.voice.phase}`,
+      !ignored || ignored === 'Repeat ignored');
+    if (ignored) return;
     event.preventDefault();
     this.keyboard = { downAt: Date.now(), code: event.code, uid: this.voice.uid, started: this.voice.canRecord };
     this.toggle();
   }
   @HostListener('document:keyup', ['$event'])
   shortcutKeyUp(event: KeyboardEvent): void {
-    if (!this.keyboard || event.code !== this.keyboard.code) return;
+    const ignored = !this.keyboard ? 'No active P press' : event.code !== this.keyboard.code ? 'Code mismatch' : '';
+    const duration = this.keyboard ? Date.now() - this.keyboard.downAt : 0;
+    if (this.keyboard || this.keyDiagnostics.relevant(event)) this.keyDiagnostics.event(event, 'up', ignored
+      || `${duration} ms · ${this.keyboard.started && duration >= 600 ? 'Held release: stop/cancel' : 'Toggle kept'} · ${this.voice.phase}`,
+      ignored !== 'Code mismatch');
+    if (ignored) return;
     event.preventDefault();
     const finish = this.keyboard.started && this.keyboard.uid === this.voice.uid && Date.now() - this.keyboard.downAt >= 600;
     this.keyboard = undefined;
     if (finish) void this.voice.release();
   }
   keyDown(event: KeyboardEvent): void {
-    if (event.key === 'Escape') { event.preventDefault(); this.interrupt(); return; }
+    if (event.key === 'Escape') { event.preventDefault(); this.interrupt('Escape'); return; }
     if ([' ', 'Enter'].includes(event.key) && (event.repeat || event.altKey || event.ctrlKey || event.metaKey)) event.preventDefault();
   }
-  @HostListener('window:blur')
-  interrupt(): void { this.clearPointer(); this.keyboard = undefined; this.voice.cancel(); }
+  @HostListener('window:blur', ['"Window blur"'])
+  interrupt(reason = 'Control blur'): void {
+    this.keyDiagnostics.note(`Interrupt: ${reason} · ${this.voice.phase}${this.keyboard ? ' · ' + (Date.now() - this.keyboard.downAt) + ' ms' : ''}`);
+    this.clearPointer(); this.keyboard = undefined; this.voice.cancel();
+  }
   @HostListener('document:visibilitychange')
-  visibility(): void { if (document.hidden) this.interrupt(); }
+  visibility(): void { if (document.hidden) this.interrupt('Page hidden'); }
   @HostListener('window:pagehide')
-  pageHide(): void { this.interrupt(); }
+  pageHide(): void { this.interrupt('Page hide'); }
   ngOnDestroy(): void { clearInterval(this.diagnosticTimer); this.diagnosticsActive = false; this.clearPointer(); this.keyboard = undefined; this.changes.unsubscribe(); this.conversationChanges.unsubscribe(); }
 }

@@ -5,6 +5,57 @@ import type { VoiceQueueService } from './voiceQueue.service';
 export interface VoiceDiagnosticRow { label: string; value: string; ok: boolean }
 export interface VoiceDeviceState { online: boolean; visible: boolean; secure: boolean; gesture: string; gestureSince: number }
 
+// Local, bounded evidence for external keyboard buttons. Never retain arbitrary typed keys or targets.
+export class VoiceKeyDiagnostics {
+  private down = 'None received';
+  private up = 'None received';
+  private repeats = 0;
+  private lastRepeat = '';
+  private phase = '';
+  private trace: { at: number; value: string; ok: boolean }[] = [];
+
+  relevant(event: KeyboardEvent): boolean {
+    return event.key?.toLowerCase() === 'p' || event.code === 'KeyP' || event.keyCode === 80
+      || ['Unidentified', 'Process', ''].includes(event.key) || event.keyCode === 229;
+  }
+  event(event: KeyboardEvent, type: 'down' | 'up', decision: string, ok = true): void {
+    const key = event.key?.toLowerCase() === 'p' ? 'P' : ['Unidentified', 'Process', ''].includes(event.key) ? event.key || 'Empty' : 'Other';
+    const code = event.code === 'KeyP' ? 'KeyP' : event.code ? 'Other' : 'Empty';
+    const flags = [event.repeat && 'repeat', event.isComposing && 'composing', event.defaultPrevented && 'prevented',
+      event.altKey && 'Alt', event.ctrlKey && 'Ctrl', event.metaKey && 'Meta', event.shiftKey && 'Shift',
+      event.isTrusted === false && 'synthetic'].filter(Boolean);
+    const legacy = [80, 229].includes(event.keyCode) ? ` · ${event.keyCode}` : '';
+    const detail = `${key} / ${code}${legacy}${flags.length ? ' · ' + flags.join(', ') : ''}`;
+    if (type === 'down' && event.repeat) {
+      this.repeats++; this.lastRepeat = `${detail} · ${decision}`;
+      return;
+    }
+    if (type === 'down') this.down = detail;
+    else this.up = detail;
+    this.note(`${type}: ${detail} · ${decision}`, ok);
+  }
+  note(value: string, ok = true): void {
+    this.trace.push({ at: Date.now(), value, ok });
+    if (this.trace.length > 8) this.trace.shift();
+  }
+  observePhase(phase: string): void {
+    if (!this.trace.length || this.phase === phase) return;
+    this.phase = phase;
+    this.note(`Mic: ${phase}`);
+  }
+  rows(): VoiceDiagnosticRow[] {
+    return [
+      { label: 'P keydown', value: this.down, ok: true },
+      { label: 'P keyup', value: this.up, ok: true },
+      { label: 'P repeats', value: `${this.repeats}${this.lastRepeat ? ' · ' + this.lastRepeat : ''}`, ok: true },
+      { label: 'P trace', value: this.trace.length ? this.trace.map(entry => {
+        const date = new Date(entry.at);
+        return `${date.toTimeString().slice(0, 8)}.${String(date.getMilliseconds()).padStart(3, '0')} ${entry.value}`;
+      }).join('\n') : 'Waiting for keyboard events', ok: this.trace.every(entry => entry.ok) }
+    ];
+  }
+}
+
 // Keep only machine codes, never exception messages that could contain data.
 export function voiceDiagnosticCode(error: unknown): string {
   const code = (error as { code?: unknown; name?: string })?.code;

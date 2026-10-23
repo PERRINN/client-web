@@ -317,6 +317,34 @@ function gesture(component, duration, changes = {}) {
   component.pointerUp(pointer({ ...changes, timeStamp: duration }));
 }
 const shortcut = (changes = {}) => ({ key: 'p', code: 'KeyP', preventDefault() { this.defaultPrevented = true; }, ...changes });
+const keyTrace = component => component.keyDiagnostics.rows().find(row => row.label === 'P trace').value;
+test('P diagnostics explain a held release during startup and retain the cancelled mic transition', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: 1000 });
+  let grant;
+  const { component, service, calls } = componentFixture(client(undefined, { start: () => new Promise(resolve => { grant = resolve; }) }));
+  component.shortcutKeyDown(shortcut()); t.mock.timers.tick(950);
+  component.shortcutKeyUp(shortcut());
+  assert.match(keyTrace(component), /950 ms · Held release: stop\/cancel · requesting/);
+  assert.match(keyTrace(component), /Mic: idle/);
+  grant(true); await new Promise(setImmediate);
+  assert.equal(service.phase, 'idle'); assert.equal(calls.length, 0);
+  component.ngOnDestroy(); service.ngOnDestroy();
+});
+test('P diagnostics explain ignored Android events, mismatched releases, repeat-only presses and interruption', async () => {
+  const { component, service } = componentFixture();
+  component.shortcutKeyDown(shortcut({ repeat: true }));
+  assert.equal(service.phase, 'idle');
+  assert.match(component.keyDiagnostics.rows().find(row => row.label === 'P repeats').value, /Repeat ignored/);
+  component.shortcutKeyDown(shortcut({ key: 'Unidentified', code: '', keyCode: 229, isComposing: true }));
+  assert.match(keyTrace(component), /Unidentified \/ Empty · 229 · composing · Not P/);
+  component.shortcutKeyDown(shortcut()); await new Promise(setImmediate);
+  component.shortcutKeyUp(shortcut({ code: '' }));
+  assert.equal(service.phase, 'recording'); assert.match(keyTrace(component), /Code mismatch/);
+  component.interrupt('Window blur');
+  assert.match(keyTrace(component), /Interrupt: Window blur · recording/);
+  assert.equal(service.phase, 'idle');
+  component.ngOnDestroy(); service.ngOnDestroy();
+});
 test('P uses the same 600 ms quick-press and hold boundary as pointer input', async t => {
   t.mock.timers.enable({ apis: ['Date'], now: 1000 });
   for (const duration of [0, 30, 599, 600, 900]) {

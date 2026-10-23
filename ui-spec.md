@@ -242,6 +242,8 @@ Validation: `npm run test:chat`, `npm run build`, and `npm run lint`. Chat unit 
 
 ### Voice diagnostics
 
+Retain P keydown/keyup summaries, a coalesced repeat count and the last eight keyboard/microphone trace entries in the existing diagnostic column. Show millisecond event times and hold duration, shortcut rejection reasons, capture transitions and interruptions. Include empty/unidentified Android key events and safe modifier/composition flags; never display arbitrary typed keys, key codes or editable-field contents. Keep all diagnostic rows present before any events arrive; trace updates scroll within the existing column.
+
 The voice prototype includes the explicitly requested right-hand diagnostic column, including at phone widths. Keep Button, Lock and Last fault first, followed by local DB, Cloud DB and server/upload state. Use existing success green and danger-text red tokens for normal/fault states, with readable status text and screen-reader OK/Fault labels so colour is not the only signal. Show the loaded bundle fingerprint and update time. Keep the column independently scrollable and keyboard focusable above the microphone dock; preserve page origin, dock geometry and the conversation's position during state updates. Do not put diagnostics on the microphone control or add queue-management controls. The observed-state/privacy/work contract is documented in [data-model.md → Voice input prototype](data-model.md#voice-input-prototype).
 
 ### Shared voice conversation
