@@ -76,3 +76,10 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--color-focus); o
 .diagnostic-echo { display: flex; align-items: center; gap: 8px; min-height: 44px; margin: 0; font-size: 13px; cursor: pointer; }
 .diagnostic-echo input { flex: 0 0 18px; width: 18px; height: 18px; margin: 0; accent-color: var(--color-text); }
 .diagnostic-echo-state { margin: 0 0 8px; min-height: 19px; font-size: 13px; overflow-wrap: anywhere; }
+
+.message-body { display: block; }
+.message-body p { min-width: 0; }
+.voice-play { display: block; margin: 0 0 0 auto; width: 32px; height: 44px; min-width: 32px; padding: 6px; background: transparent; color: var(--color-text-secondary); border: 0; border-radius: 6px; }
+.voice-play svg { width: 20px; height: 20px; fill: currentColor; }
+.voice-play:disabled { opacity: .45; }
+.voice-play[aria-busy="true"] { opacity: .6; }

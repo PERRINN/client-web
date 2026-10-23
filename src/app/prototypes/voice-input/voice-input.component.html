@@ -57,13 +57,26 @@
         <p>{{ voice.queue.storageError }}</p>
       </article>
     }
+    <p class="playback-status sr-only" role="status">{{ playback.error }}</p>
     @for (entry of conversationEntries; track entry.id) {
       @if (entry.message; as message) {
         <article class="reply" [class.reply-own]="message.userId === voice.uid">
           <div class="message-meta"><span>{{ message.userId === voice.uid ? 'You' : message.authorName }}</span>
             <time [attr.datetime]="message.createdAt.toDate() | date:'yyyy-MM-ddTHH:mm:ssZZZZZ'">{{ message.createdAt.toDate() | date:'short' }}</time>
           </div>
-          <p>{{ message.text }}</p>
+          <div class="message-body">
+            <p>{{ message.text }}</p>
+            @if (message.source === 'voice' || message.requestId) {
+              <button class="voice-play" type="button" [disabled]="!playback.available(message) || voice.busy"
+                [attr.aria-label]="playback.label(message)" [attr.title]="playback.label(message)"
+                [attr.aria-pressed]="playback.active === message.id" [attr.aria-busy]="playback.loading === message.id" (click)="playback.toggle(message)">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  @if (playback.active === message.id) { <path d="M6 6h12v12H6z" /> }
+                  @else { <path d="M7 2a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zM1 9h2v1a4 4 0 0 0 8 0V9h2v1a6 6 0 0 1-5 5.92V20h3v2H3v-2h3v-4.08A6 6 0 0 1 1 10zM16 7v10l7-5z" /> }
+                </svg>
+              </button>
+            }
+          </div>
         </article>
       }
       @if (entry.reply; as reply) {

@@ -10,12 +10,15 @@ export const VOICE_PARTICIPANT = 'xDfdZLLRHuObIUNEUj8SdClxZXf2';
 export interface VoiceMessage {
   id: string; userId: string; requestId: string; authorName: string; text: string;
   createdAt: firebase.firestore.Timestamp;
+  source?: 'voice'; audioExpiresAt?: number;
 }
 type MessageDocument = firebase.firestore.QueryDocumentSnapshot<Omit<VoiceMessage, 'id'>>;
 
 @Injectable()
 export class VoiceConversationService implements OnDestroy {
   readonly changed = new Subject<void>();
+  readonly incoming = new Subject<VoiceMessage>();
+  private openedAt = Date.now();
   allowed = false;
   ready = false;
   uid = '';
@@ -39,6 +42,7 @@ export class VoiceConversationService implements OnDestroy {
       if (state.uid !== this.uid || allowed !== this.allowed) {
         this.epoch++; this.revision++; this.cancelled.next(); this.listener?.unsubscribe(); this.listener = undefined;
         this.uid = state.uid; this.allowed = allowed; this.rows.clear(); this.messages = [];
+        this.openedAt = Date.now();
         this.cursor = undefined; this.canLoadEarlier = false; this.loadingEarlier = false; this.error = ''; this.historyError = false;
         this.loading = allowed;
         if (allowed) this.listen(this.epoch);
@@ -64,8 +68,14 @@ export class VoiceConversationService implements OnDestroy {
             || oldest.data().createdAt.toMillis() === this.cursor.data().createdAt.toMillis() && oldest.id < this.cursor.id)) {
             this.cursor = oldest; this.canLoadEarlier = docs.length === 50;
           }
-          for (const doc of docs) this.rows.set(doc.id, { id: doc.id, ...doc.data() });
+          const incoming: VoiceMessage[] = [];
+          for (const doc of docs) {
+            const message = { id: doc.id, ...doc.data() };
+            if (!this.rows.has(doc.id) && message.userId !== this.uid && message.createdAt.toMillis() >= this.openedAt) incoming.push(message);
+            this.rows.set(doc.id, message);
+          }
           this.loading = false; this.error = ''; this.publish();
+          for (const message of incoming.reverse()) this.incoming.next(message);
         },
         error: () => { if (epoch === this.epoch) { this.loading = false; this.error = 'Could not load the conversation.'; this.changed.next(); } }
       }));

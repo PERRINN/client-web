@@ -88,3 +88,13 @@ test('listener and history failures support explicit retry without automatic que
   assert.equal(f.calls.filter(c => c.kind === 'listen').length, 2); assert.equal(f.calls.filter(c => c.kind === 'get').length, 2);
   assert.equal(f.service.error, ''); assert.equal(f.service.canLoadEarlier, false);
 });
+
+test('incoming playback events exclude old history, own messages and duplicate snapshots', t => {
+  const f = fixture(t), incoming = [], now = Date.now();
+  f.service.incoming.subscribe(message => incoming.push(message.id));
+  const old = document('old', now - 60000), own = document('own', now + 1, VOICE_PARTICIPANT);
+  f.emit([own, old]); assert.deepEqual(incoming, []);
+  const fresh = document('new', now + 2, VOICE_ADMIN);
+  f.emit([fresh, own, old]); assert.deepEqual(incoming, ['new']);
+  f.emit([fresh, own, old]); assert.deepEqual(incoming, ['new']);
+});

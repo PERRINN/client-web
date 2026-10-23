@@ -1,5 +1,6 @@
 import { AfterViewChecked, ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { VoicePlaybackService } from './voicePlayback.service';
 import { VoiceCaptureService } from './voiceCapture.service';
 import { VoiceInputService, VoiceReply } from './voiceInput.service';
 import { VoiceConversationService, VoiceMessage } from './voiceConversation.service';
@@ -11,7 +12,7 @@ interface ConversationEntry { id: string; createdAt: number; message?: VoiceMess
 @Component({
   selector: 'app-voice-input', standalone: false,
   templateUrl: './voice-input.component.html', styleUrls: ['./voice-input.component.css'],
-  providers: [VoiceCaptureService, VoiceQueueService, VoiceInputService, VoiceConversationService]
+  providers: [VoiceCaptureService, VoiceQueueService, VoiceInputService, VoiceConversationService, VoicePlaybackService]
 })
 export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy {
   @ViewChild('replies') private replies?: ElementRef<HTMLElement>;
@@ -33,7 +34,7 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
   diagnosticBuild = '';
   private diagnosticsActive = false;
   private readonly keyDiagnostics = new VoiceKeyDiagnostics();
-  constructor(public voice: VoiceInputService, public conversation: VoiceConversationService, private changeDetector: ChangeDetectorRef) {
+  constructor(public playback: VoicePlaybackService, public voice: VoiceInputService, public conversation: VoiceConversationService, private changeDetector: ChangeDetectorRef) {
     this.conversationChanges = conversation.changed.subscribe(() => {
       voice.setAccess(conversation.allowed, conversation.uid);
       changeDetector.markForCheck();
@@ -53,6 +54,10 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
       changeDetector.markForCheck();
     });
   }
+
+  @HostListener('pointerdown')
+  @HostListener('keydown')
+  unlockPlayback(): void { this.playback.unlock(); }
 
   ngOnInit(): void {
     this.diagnosticsActive = true;
@@ -108,6 +113,7 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
   }
 
   toggle(): void {
+    this.playback.unlock();
     if (this.voice.phase === 'recording' || this.voice.phase === 'requesting') void this.voice.release();
     else if (this.voice.canRecord) void this.voice.press();
   }

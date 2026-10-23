@@ -17,6 +17,7 @@ function sharedVoiceMessage(event, transcript, createdAt) {
   if (event.conversationId !== VOICE_CONVERSATION || ![VOICE_ADMIN, VOICE_PARTICIPANT].includes(event.userId)
     || typeof event.requestId !== 'string') throw new VoiceInputError('failed-precondition', 'Invalid voice conversation.');
   return { userId: event.userId, requestId: event.requestId, text: transcript, createdAt,
+    ...(Number.isFinite(event.audioExpiresAt) ? { source: 'voice', audioExpiresAt: event.audioExpiresAt } : {}),
     authorName: event.authorName || (event.userId === VOICE_ADMIN ? 'Admin' : 'Participant') };
 }
 

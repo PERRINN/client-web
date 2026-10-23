@@ -33,3 +33,4 @@ exports.voiceInputStatus = require('./voiceInputStatus.f.js').voiceInputStatus;
 
 exports.voiceInputEnqueue = require('./voiceInputInbox.f.js').voiceInputEnqueue;
 exports.processVoiceInputInbox = require('./voiceInputInbox.f.js').processVoiceInputInbox;
+exports.voicePlayback = require('./voicePlayback.f.js').voicePlayback;

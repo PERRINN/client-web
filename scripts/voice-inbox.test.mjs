@@ -239,10 +239,12 @@ test('shared completion publishes exactly once atomically, with trusted author a
   const shared = [...f.records.keys()].filter(path => path.startsWith('VoiceConversations/'));
   assert.deepEqual(shared, [`VoiceConversations/pilot/messages/${receipt.eventId}`]);
   const message = f.records.get(shared[0]);
-  assert.deepEqual(Object.keys(message).sort(), ['authorName', 'createdAt', 'requestId', 'text', 'userId']);
+  assert.deepEqual(Object.keys(message).sort(), ['audioExpiresAt', 'authorName', 'createdAt', 'requestId', 'source', 'text', 'userId']);
   assert.equal(message.text, 'Saved transcript'); assert.equal(message.authorName, 'Test participant');
   assert.equal(message.requestId, data.requestId); assert.equal(message.userId, data.owner);
   assert.equal(f.counts.provider, 1); assert.equal(lost, true);
+  assert.equal(message.source, 'voice'); assert.equal(message.audioExpiresAt, f.options.now() + 7 * 86400000);
+  assert.equal(f.blobs.size, 1, 'Shared audio survives completion and replay.');
 });
 test('replays cannot move a private recording into shared history or change its destination', async () => {
   const f = fixture(), privateInput = input({ owner: VOICE_PARTICIPANT });
@@ -260,4 +262,48 @@ test('failed shared transcription never publishes a message', async () => {
   await f.process(receipt.eventId, { transcribe: async () => { throw new VoiceInputError('failed-precondition', 'No speech'); } });
   assert.equal(f.records.get(eventPath(receipt.eventId)).status, 'failed');
   assert.equal([...f.records.keys()].some(path => path.startsWith('VoiceConversations/')), false);
+});
+
+const { voicePlayback } = require('../functions/utils/voicePlayback');
+async function playableFixture() {
+  const f = fixture(), data = input({ owner: VOICE_PARTICIPANT, conversationId: 'pilot' });
+  const receipt = await f.enqueue(data); await f.process(receipt.eventId);
+  return { ...f, id: receipt.eventId, play: (auth, automatic = false, eventId = receipt.eventId) =>
+    voicePlayback(f.db, f.bucket, auth, { eventId, automatic }, f.options.now()) };
+}
+const playbackAdmin = { uid: VOICE_ADMIN, token: { perrinnAdmin: true } };
+test('playback denies anonymous, outsider, removed participant and admin without exact claim before reads', async () => {
+  const f = await playableFixture(), before = f.counts.reads;
+  for (const auth of [null, { uid: 'outsider' }, { uid: 'sPJhQ9lcLRgdKcIitszQp4oi7M23' }, { uid: VOICE_ADMIN }, { uid: VOICE_ADMIN, token: { perrinnAdmin: 1 } }]) {
+    await assert.rejects(f.play(auth), e => e.code === 'permission-denied');
+  }
+  assert.equal(f.counts.reads, before);
+});
+test('one recipient device claims automatic audio; sender never auto downloads and either participant can replay', async () => {
+  const f = await playableFixture(), downloads = f.counts.downloads;
+  assert.deepEqual(await f.play({ uid: VOICE_PARTICIPANT }, true), { skipped: true });
+  const results = await Promise.all([f.play(playbackAdmin, true), f.play(playbackAdmin, true)]);
+  assert.equal(results.filter(r => r.audio).length, 1); assert.equal(results.filter(r => r.skipped).length, 1);
+  assert.equal(f.counts.downloads, downloads + 1);
+  assert.equal(Buffer.from((await f.play({ uid: VOICE_PARTICIPANT })).audio, 'base64').length, 32044);
+  assert.ok((await f.play(playbackAdmin)).audio);
+  assert.equal(f.counts.provider, 1);
+});
+test('expired, legacy, wrong destination and forged paths never download audio', async () => {
+  for (const change of [{ audioExpiresAt: 0 }, { audioExpiresAt: undefined }, { conversationId: 'other' }, { audioPath: 'images/secret' }, { status: 'queued' }, { userId: 'outsider' }]) {
+    const f = await playableFixture(), before = f.counts.downloads;
+    Object.assign(f.records.get(eventPath(f.id)), change);
+    await assert.rejects(f.play(playbackAdmin)); assert.equal(f.counts.downloads, before);
+  }
+  const f = await playableFixture(); f.advance(7 * 86400000);
+  await assert.rejects(f.play(playbackAdmin), e => e.code === 'not-found');
+  await assert.rejects(f.play(playbackAdmin, false, '../private'), e => e.code === 'invalid-argument');
+});
+test('failed first automatic download is not repeated across devices; explicit retry works', async () => {
+  const f = await playableFixture(), original = f.bucket.file;
+  f.bucket.file = path => ({ ...original(path), download: async () => { throw Error('Offline'); } });
+  await assert.rejects(f.play(playbackAdmin, true));
+  f.bucket.file = original;
+  assert.deepEqual(await f.play(playbackAdmin, true), { skipped: true });
+  assert.ok((await f.play(playbackAdmin)).audio);
 });

@@ -6,7 +6,7 @@ import { randomUUID } from 'node:crypto';
 const host = process.env.FIRESTORE_EMULATOR_HOST;
 assert.match(host || '', /^(localhost|127\.0\.0\.1):\d+$/, 'A local Firestore emulator is required; never use production.');
 const require = createRequire(import.meta.url), admin = require('firebase-admin');
-const projectId = 'demo-voice-input', app = admin.initializeApp({ projectId }), db = app.firestore();
+const projectId = 'demo-voice-input', app = admin.initializeApp({ projectId, storageBucket: projectId + '.appspot.com' }), db = app.firestore();
 process.env.OPENAI_API_KEY = 'emulator-fake-key';
 process.env.VOICE_TRANSCRIPTION_MODEL = 'gpt-transcribe';
 process.env.VOICE_INPUT_HIGH_LIMIT_UID = 'quota-admin';
@@ -202,4 +202,28 @@ test('shared pilot publishes one message and rules isolate history to exactly tw
   }
   // Existing private events still cannot be read by the other pilot participant.
   assert.equal((await access('VoiceInputEvents/' + receipt.eventId, VOICE_ADMIN, 'GET', { perrinnAdmin: true })).status, 403);
+});
+
+
+test('private playback callable serves retained audio, atomically claims one device, and denies other accounts', async () => {
+  const { VOICE_ADMIN, VOICE_PARTICIPANT } = require('../functions/utils/voiceConversation');
+  const { voicePlayback } = require('../functions/voicePlayback.f.js');
+  const data = { ...request(), owner: VOICE_PARTICIPANT, conversationId: 'pilot' };
+  const settings = options({ enqueue: async () => {}, transcribe: async () => 'Playable result' });
+  const receipt = await enqueueVoiceInput(db, bucket, { uid: data.owner }, data, settings);
+  await processVoiceInbox(db, bucket, { eventId: receipt.eventId }, settings);
+  const payload = { eventId: receipt.eventId, automatic: true }, auth = { uid: VOICE_ADMIN, token: { perrinnAdmin: true } };
+  for (const denied of [undefined, { uid: 'outsider' }, { uid: VOICE_ADMIN, token: {} }]) {
+    await assert.rejects(voicePlayback.run({ data: payload, auth: denied }), e => e.code === 'permission-denied');
+  }
+  const results = await Promise.all([voicePlayback.run({ data: payload, auth }), voicePlayback.run({ data: payload, auth })]);
+  assert.equal(results.filter(r => r.skipped).length, 1); assert.equal(results.filter(r => r.audio).length, 1);
+  const manual = await voicePlayback.run({ data: { ...payload, automatic: false }, auth: { uid: VOICE_PARTICIPANT } });
+  assert.deepEqual(Buffer.from(manual.audio, 'base64'), audio);
+  const ref = db.doc('VoiceInputEvents/' + receipt.eventId), event = (await ref.get()).data();
+  assert.ok(event.audioAutoClaimedAt); assert.ok(event.audioExpiresAt > Date.now());
+  assert.equal((await storageAccess(event.audioPath, VOICE_PARTICIPANT)).status, 403);
+  assert.equal((await storageAccess(event.audioPath, VOICE_ADMIN)).status, 403);
+  await ref.update({ audioExpiresAt: Date.now() - 1 });
+  await assert.rejects(voicePlayback.run({ data: { ...payload, automatic: false }, auth }), e => e.code === 'not-found');
 });

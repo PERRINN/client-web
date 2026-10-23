@@ -343,9 +343,9 @@ test('audio history is bounded, clears on release/cancel, and ignores late captu
 function componentFixture(fixture = client()) {
   let marks = 0;
   const { VoiceInputComponent } = load('../src/app/prototypes/voice-input/voice-input.component.ts', {
-    '@angular/core': core, './voiceDiagnostics': diagnosticsModule, './voiceCapture.service': {}, './voiceInput.service': {}, './voiceQueue.service': {}, './voiceConversation.service': {}
+    '@angular/core': core, './voiceDiagnostics': diagnosticsModule, './voiceCapture.service': {}, './voiceInput.service': {}, './voiceQueue.service': {}, './voiceConversation.service': {}, './voicePlayback.service': {}
   });
-  const component = new VoiceInputComponent(fixture.service, { allowed: true, uid: 'alice', messages: [], changed: new Subject() }, { markForCheck: () => { marks++; } });
+  const component = new VoiceInputComponent({ unlock() {} }, fixture.service, { allowed: true, uid: 'alice', messages: [], changed: new Subject() }, { markForCheck: () => { marks++; } });
   return { ...fixture, component, marks: () => marks };
 }
 const pointer = (changes = {}) => ({ pointerId: 1, pointerType: 'touch', isPrimary: true, button: 0,
@@ -641,9 +641,9 @@ test('new replies scroll into view once, without repeated scrolling on audio-lev
   const { Subject } = require('rxjs'); let scrolls = 0;
   const voice = { replies: [], changed: new Subject(), setAccess() {} };
   const { VoiceInputComponent } = load('../src/app/prototypes/voice-input/voice-input.component.ts', {
-    '@angular/core': core, './voiceDiagnostics': diagnosticsModule, './voiceCapture.service': {}, './voiceInput.service': {}, './voiceQueue.service': {}, './voiceConversation.service': {}
+    '@angular/core': core, './voiceDiagnostics': diagnosticsModule, './voiceCapture.service': {}, './voiceInput.service': {}, './voiceQueue.service': {}, './voiceConversation.service': {}, './voicePlayback.service': {}
   });
-  const component = new VoiceInputComponent(voice, { allowed: true, uid: 'alice', messages: [], changed: new Subject() }, { markForCheck() {} });
+  const component = new VoiceInputComponent({ unlock() {} }, voice, { allowed: true, uid: 'alice', messages: [], changed: new Subject() }, { markForCheck() {} });
   component.replies = { nativeElement: { lastElementChild: { scrollIntoView: () => { scrolls++; } } } };
   component.ngAfterViewChecked(); assert.equal(scrolls, 0);
   voice.replies.push({ id: 1, kind: 'transcript', text: 'Hello' });

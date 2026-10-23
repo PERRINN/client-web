@@ -62,7 +62,7 @@ async function enqueueVoiceInput(db, bucket, auth, data, options) {
     return saved;
   }, { maxAttempts: 3 });
   if (saved?.status === 'completed') {
-    try { await file.delete({ ignoreNotFound: true }); } catch { /* Lifecycle fallback. */ }
+    if (!saved.audioExpiresAt) try { await file.delete({ ignoreNotFound: true }); } catch { /* Lifecycle fallback. */ }
     return receipt(saved);
   }
   try { await options.enqueue({ eventId }, { id: eventId, dispatchDeadlineSeconds: 90 }); }
@@ -106,18 +106,20 @@ async function processVoiceInbox(db, bucket, data, options) {
     const completed = await db.runTransaction(async tx => {
       const event = (await tx.get(ref)).data();
       if (event?.processingAttempt === attemptId && event.status === 'processing') {
-        tx.update(ref, { status: 'completed', transcript, completedAt: options.timestamp(), processingUntil: 0 });
+        const audioExpiresAt = event.conversationId ? event.createdAt.toMillis() + 7 * 86400000 : undefined;
+        tx.update(ref, { status: 'completed', transcript, completedAt: options.timestamp(), processingUntil: 0,
+          ...(audioExpiresAt ? { audioExpiresAt } : {}) });
         if (event.conversationId) {
-          const message = sharedVoiceMessage(event, transcript, options.timestamp());
+          const message = sharedVoiceMessage({ ...event, audioExpiresAt }, transcript, options.timestamp());
           tx.create(db.doc(`VoiceConversations/${event.conversationId}/messages/${event.eventId}`), message);
         }
         return true;
       }
       return event?.status === 'completed';
     }, { maxAttempts: 3 });
-    // Failure to delete must never undo a saved transcript or cause another
-    // transcription. Prefix-scoped bucket lifecycle is the cleanup fallback.
-    if (completed) try { await file.delete({ ignoreNotFound: true }); } catch { /* Lifecycle fallback. */ }
+    // Shared audio remains private for seven days. Legacy private audio is deleted
+    // after success; prefix-scoped lifecycle remains the cleanup fallback.
+    if (completed && !reserved.conversationId) try { await file.delete({ ignoreNotFound: true }); } catch { /* Lifecycle fallback. */ }
   } catch (error) {
     const permanent = error instanceof VoiceInputError && ['invalid-argument', 'failed-precondition'].includes(error.code);
     retry = !permanent && reserved.attempts < 3 && (options.retryCount || 0) < 7;
