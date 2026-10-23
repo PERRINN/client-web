@@ -7,7 +7,6 @@
     <header class="mobileShellHeader">
       <button #menuToggle type="button" (click)="openSidebar()" aria-label="Open navigation" aria-controls="shell-navigation" [attr.aria-expanded]="sidebarOpen"><span class="hamburgerIcon" aria-hidden="true"><span></span><span></span><span></span></span></button>
       <a class="mobile-brand" routerLink="/home">PERRINN<ng-container [ngTemplateOutlet]="activityDots"></ng-container></a>
-      <ng-container [ngTemplateOutlet]="radioReturn"></ng-container>
     </header>
     @if (sidebarOpen) {
       <button class="shellBackdrop" type="button" aria-label="Close navigation" (click)="closeSidebar()"></button>
@@ -34,13 +33,10 @@
           </a>
         }
       </div>
-      <div class="shellAppActions">
-        <button class="iconBtn" routerLink="/apps" routerLinkActive="activeNav" [attr.aria-current]="router.url === '/apps' ? 'page' : null" aria-label="Open apps">
-          <span class="material-icons-outlined">apps</span>
-          <span>Apps</span>
-        </button>
-        <ng-container [ngTemplateOutlet]="radioReturn"></ng-container>
-      </div>
+      <button class="iconBtn" routerLink="/apps" routerLinkActive="activeNav" [attr.aria-current]="router.url === '/apps' ? 'page' : null" aria-label="Open apps">
+        <span class="material-icons-outlined">apps</span>
+        <span>Apps</span>
+      </button>
     </nav>
     <div class="conversationSpace">
       <section class="sideProfile" aria-label="Conversations" [class.is-scrolling]="conversationScrollbarVisible" (scroll)="onConversationScroll()">
@@ -90,12 +86,6 @@
   </div>
 
 </div>
-
-<ng-template #radioReturn>
-  @if (radioLifecycle.returnLabel; as radioLabel) {
-    <a class="radioReturn" routerLink="/prototypes/team-radio" aria-label="Return to radio">{{ radioLabel }}</a>
-  }
-</ng-template>
 
 <ng-template #activityDots>
   @if (activitySummary | async; as activity) {

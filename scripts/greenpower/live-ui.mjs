@@ -33,7 +33,7 @@ class Home {
 @Component({selector:'app-workspace',standalone:false,template:'<div style="height:100%;min-height:700px"><nav style="position:sticky;top:0">Telemetry session</nav><p>Workspace</p></div>'}) class Workspace{}
 @Component({selector:'app-test',standalone:false,template:${JSON.stringify(shellTemplate)},styles:[${JSON.stringify(shellStyles)}]})
 class Shell {
- greenpowerLive={live$}; UI=UI; router=TestBed.inject(Router); radioLifecycle={returnLabel:''}; activitySummary=of({});automaticConversations=of({chats:[]});
+ greenpowerLive={live$}; UI=UI; router=TestBed.inject(Router); activitySummary=of({});automaticConversations=of({chats:[]});
  sidebarOpen=false;mobileLayout=innerWidth<900;conversationScrollbarVisible=false;automaticScrollbarVisible=false;
  openSidebar(){this.sidebarOpen=true} closeSidebar(){this.sidebarOpen=false} onSidebarKeydown(){} onConversationScroll(){} onAutomaticScroll(){} openDiscover(){}
 }
@@ -42,7 +42,7 @@ TestBed.configureTestingModule({declarations:[Shell,Home,Workspace],imports:[Com
 const fixture=TestBed.createComponent(Shell); document.body.append(fixture.nativeElement);fixture.detectChanges();
 const router=TestBed.inject(Router);
 router.events.subscribe(event=>{if(event.constructor.name==='NavigationEnd'){fixture.componentInstance.sidebarOpen=false;fixture.detectChanges()}});
-window.liveHarness={url:()=>router.url,async state(live,radio=false){fixture.ngZone.run(()=>{live$.next(live);fixture.componentInstance.mobileLayout=innerWidth<900;fixture.componentInstance.radioLifecycle.returnLabel=radio?'Radio · 2:59':''});fixture.detectChanges()},async route(path){await fixture.ngZone.run(()=>router.navigateByUrl(path));fixture.detectChanges()}};
+window.liveHarness={url:()=>router.url,async state(live){fixture.ngZone.run(()=>{live$.next(live);fixture.componentInstance.mobileLayout=innerWidth<900});fixture.detectChanges()},async route(path){await fixture.ngZone.run(()=>router.navigateByUrl(path));fixture.detectChanges()}};
 await window.liveHarness.route('/home');
 `);
 await build({entryPoints:[`${output}/entry.ts`],outfile:`${output}/bundle.js`,bundle:true,format:'esm',platform:'browser',nodePaths:[`${root}/node_modules`],tsconfigRaw:{compilerOptions:{experimentalDecorators:true}},logLevel:'silent'});
@@ -64,11 +64,11 @@ try{
   const before=await geometry();
   const link=page.getByRole('link',{name:'Open Greenpower telemetry'});
   assert.equal(await link.count(),0,'Home telemetry link is absent when inactive at '+width);
-  await page.evaluate(()=>window.liveHarness.state(true,true));
+  await page.evaluate(()=>window.liveHarness.state(true));
   assert.deepEqual((await geometry()).main,before.main,'live appearance preserves shell viewport at '+width);
   await link.waitFor();
   const liveGeometry=await geometry();
-  await page.evaluate(()=>window.liveHarness.state(true,true));
+  await page.evaluate(()=>window.liveHarness.state(true));
   assert.deepEqual(await geometry(),liveGeometry,'live updates preserve Home layout at '+width);
   assert.ok((await link.boundingBox()).width<=width);
   assert.equal(await page.getByRole('heading',{level:1}).isVisible(),true,'Home heading stays visible');
@@ -88,15 +88,15 @@ try{
   assert.equal(await page.locator('body').evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   await page.screenshot({path:output+'/'+name+'-navigation-live.png'});
   const appsBefore=await page.getByRole('button',{name:'Open apps',exact:true}).boundingBox();
-  await page.evaluate(()=>window.liveHarness.state(false,true));
+  await page.evaluate(()=>window.liveHarness.state(false));
   assert.equal(await link.count(),0,'Home telemetry link is removed when live status expires at '+width);
   assert.deepEqual(await page.getByRole('button',{name:'Open apps',exact:true}).boundingBox(),appsBefore);
   assert.deepEqual(await geometry(),before,'live removal preserves Home layout at '+width);
-  await page.evaluate(()=>window.liveHarness.state(true,true));await nav.click();
+  await page.evaluate(()=>window.liveHarness.state(true));await nav.click();
   await page.waitForFunction(()=>window.liveHarness.url()==='/424-greenpower-telemetry');
   const rect=await page.locator('#main_container').boundingBox();
-  await page.evaluate(()=>window.liveHarness.state(false,true));
+  await page.evaluate(()=>window.liveHarness.state(false));
   assert.deepEqual(await page.locator('#main_container').boundingBox(),rect,'expiry preserves telemetry viewport');
  }
- assert.deepEqual(errors,[]);console.log(JSON.stringify({output,widths:[1440,390,320],checks:['Home heading and Discover stay visible','No overlapping controls','Home appearance/removal','radio coexistence','navigation geometry','keyboard focus','telemetry link','viewport stability'],errors}));
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({output,widths:[1440,390,320],checks:['Home heading and Discover stay visible','No overlapping controls','Home appearance/removal','navigation geometry','keyboard focus','telemetry link','viewport stability'],errors}));
 }finally{await browser.close();await new Promise(done=>server.close(done));}

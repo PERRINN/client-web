@@ -1,6 +1,5 @@
 import { GreenpowerLiveService } from './greenpower-telemetry/greenpowerLive.service';
-import { RadioLifecycleService } from './prototypes/team-radio/radioLifecycle.service';
-import { Component, OnInit, OnDestroy, AfterViewInit, HostListener, ViewChild, ElementRef, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, HostListener, ViewChild, ElementRef, inject } from '@angular/core';
 import { MobileOrientationService } from './mobileOrientation.service';
 import { activeChatChain, sidebarChatCommands } from './chatNavigation';
 import { Router, NavigationEnd } from '@angular/router';
@@ -74,7 +73,6 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('sidebarNavigation') sidebarNavigation?: ElementRef<HTMLElement>;
   private navigationSubscription: Subscription;
   private presenceSubscription?: Subscription;
-  private radioSubscription: Subscription;
 
   get activeSidebarChatId(): string | null { return activeChatChain(this.router.url); }
   get editorialPage(): boolean { return this.router.routerState.root.firstChild?.snapshot.data['editorial'] === true; }
@@ -132,7 +130,6 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     clearTimeout(this.automaticScrollbarTimer);
     this.navigationSubscription.unsubscribe();
     this.presenceSubscription?.unsubscribe();
-    this.radioSubscription.unsubscribe();
   }
 
   private cleanupLegacyLocalStorage(): void {
@@ -154,11 +151,8 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     private presence: PresenceService,
     activity: MessageActivityService,
     conversations: SidebarConversationsService,
-    public radioLifecycle: RadioLifecycleService,
-    public greenpowerLive: GreenpowerLiveService,
-    changeDetector: ChangeDetectorRef
+    public greenpowerLive: GreenpowerLiveService
   ) {
-    this.radioSubscription = radioLifecycle.changed.subscribe(() => changeDetector.markForCheck());
     this.activitySummary = activity.summary();
     this.automaticConversations = conversations.automatic().pipe(
       map(chats => ({ status: 'ready' as const, chats })),

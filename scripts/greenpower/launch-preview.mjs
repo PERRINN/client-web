@@ -18,7 +18,7 @@ import { CommonModule, DOCUMENT, PlatformLocation, BrowserPlatformLocation } fro
 import { Title, Meta, By } from '@angular/platform-browser';
 import { SwUpdate } from '@angular/service-worker';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { BehaviorSubject, Subject, of, Subscription } from 'rxjs';
+import { BehaviorSubject, of, Subscription } from 'rxjs';
 import { AppComponent } from '${root}/src/app/app.component';
 import { AppsComponent } from '${root}/src/app/apps.component';
 import { PrototypeGalleryComponent } from '${root}/src/app/prototypes/prototype-gallery.component';
@@ -28,12 +28,11 @@ import { UserInterfaceService } from '${root}/src/app/userInterface.service';
 import { PresenceService } from '${root}/src/app/presence.service';
 import { MessageActivityService } from '${root}/src/app/messageActivity.service';
 import { SidebarConversationsService } from '${root}/src/app/sidebarConversations.service';
-import { RadioLifecycleService } from '${root}/src/app/prototypes/team-radio/radioLifecycle.service';
 import { GreenpowerLiveService } from '${root}/src/app/greenpower-telemetry/greenpowerLive.service';
 @Component({standalone:false, template:'<a routerLink="/apps">Apps</a><h1>Destination {{label}}</h1>'})
 class Destination { label=''; }
-const live = new BehaviorSubject(false), radio = {changed:new Subject(), returnLabel:''};
-AppComponent.ctorParameters=()=>[Router,AngularFirestore,UserInterfaceService,SwUpdate,PresenceService,MessageActivityService,SidebarConversationsService,RadioLifecycleService,GreenpowerLiveService,ChangeDetectorRef].map(type=>({type}));
+const live = new BehaviorSubject(false);
+AppComponent.ctorParameters=()=>[Router,AngularFirestore,UserInterfaceService,SwUpdate,PresenceService,MessageActivityService,SidebarConversationsService,GreenpowerLiveService].map(type=>({type}));
 AppsComponent.ctorParameters=()=>[{type:UserInterfaceService}];
 GreenpowerLaunchComponent.ctorParameters=()=>[{type:Title},{type:Meta},{type:undefined,decorators:[{type:Inject,args:[DOCUMENT]}]}];
 TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTesting());
@@ -41,7 +40,6 @@ TestBed.configureTestingModule({declarations:[AppComponent,AppsComponent,Prototy
  imports:[CommonModule,RouterModule.forRoot([
  {path:'apps',component:AppsComponent},
  {path:'prototypes',component:PrototypeGalleryComponent},
- {path:'prototypes/team-radio',component:Destination},
  {path:'424-greenpower-2027',component:GreenpowerLaunchComponent,data:{editorial:true}},
  {path:'424-greenpower-telemetry',component:Destination},
  {path:'chat/:id',component:Destination},
@@ -52,11 +50,11 @@ TestBed.configureTestingModule({declarations:[AppComponent,AppsComponent,Prototy
  {provide:PresenceService,useValue:{trackActivity:()=>new Subscription()}},
  {provide:MessageActivityService,useValue:{summary:()=>of({})}},
  {provide:SidebarConversationsService,useValue:{automatic:()=>of([])}},
- {provide:RadioLifecycleService,useValue:radio}, {provide:GreenpowerLiveService,useValue:{live$:live}}]});
+ {provide:GreenpowerLiveService,useValue:{live$:live}}]});
 const fixture=TestBed.createComponent(AppComponent);document.body.append(fixture.nativeElement);fixture.autoDetectChanges();
 TestBed.inject(Router).initialNavigation();
 const toggle=document.createElement('button');toggle.textContent='Toggle test activity';toggle.id='test-activity';toggle.style.cssText='position:fixed;right:0;bottom:0;z-index:20000';
-toggle.onclick=()=>{live.next(!live.value);radio.returnLabel=live.value?'Radio · 2m':'';radio.changed.next();fixture.detectChanges();};if(new URLSearchParams(location.search).has('qa')) {
+toggle.onclick=()=>{live.next(!live.value);fixture.detectChanges();};if(new URLSearchParams(location.search).has('qa')) {
   document.body.append(toggle);
   let originalPhoto;
   const fail=document.createElement('button');fail.id='test-image';fail.textContent='Toggle test image failure';fail.style.cssText='position:fixed;right:0;bottom:36px;z-index:20000';

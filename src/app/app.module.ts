@@ -10,7 +10,6 @@ import { GreenpowerChartComponent } from './greenpower-telemetry/greenpower-char
 import { GreenpowerEventSelectorComponent } from './greenpower-telemetry/greenpower-event-selector.component';
 import { GreenpowerEventEditorComponent } from './greenpower-telemetry/greenpower-event-editor.component';
 import { GreenpowerMetadataFieldsComponent } from './greenpower-telemetry/greenpower-metadata-fields.component';
-import { TeamRadioComponent } from './prototypes/team-radio/team-radio.component';
 import { VoiceInputComponent } from './prototypes/voice-input/voice-input.component';
 import { RearWingPilotComponent } from './prototypes/rear-wing-pilot/rear-wing-pilot.component';
 import { PrnSendManagerComponent } from './chat/prn-send-manager/prn-send-manager.component';
@@ -58,7 +57,6 @@ import { UserAvatarComponent } from './user-avatar.component';
 
 import { AngularFireModule } from '@angular/fire/compat';
 import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
-import { AngularFireDatabaseModule } from '@angular/fire/compat/database';
 import { AngularFireStorageModule } from '@angular/fire/compat/storage';
 import { AngularFireAuthModule } from '@angular/fire/compat/auth';
 
@@ -70,7 +68,6 @@ import { AgChartsAngular } from 'ag-charts-angular';
 export const firebaseConfig = {
   apiKey: environment.FIREBASE_API_KEY,
   authDodash: environment.FIREBASE_AUTH_DOMAIN,
-  databaseURL: environment.FIREBASE_DATABASE_URL,
   storageBucket: environment.FIREBASE_STORAGE_BUCKET,
   projectId: environment.FIREBASE_PROJECT_ID,
   messagingSenderId: environment.FIREBASE_MESSAGING_SENDER_ID
@@ -89,7 +86,6 @@ export const firebaseConfig = {
         GreenpowerMapComponent,
         GreenpowerLapListComponent,
         RearWingPilotComponent,
-        TeamRadioComponent,
         VoiceInputComponent,
         AppComponent,
         ImageViewerComponent,
@@ -128,7 +124,6 @@ export const firebaseConfig = {
         AngularFireModule.initializeApp(firebaseConfig),
         AngularFirestoreModule.enablePersistence({ synchronizeTabs: true }),
         AngularFireStorageModule,
-        AngularFireDatabaseModule,
         AngularFireAuthModule,
         AppRoutingModule,
         PipeModule.forRoot(),
