@@ -22,6 +22,7 @@ export class VoiceInputService implements OnDestroy {
   phaseSince = Date.now();
   captureFailure = '';
   testingCue = false;
+  private requestedEchoCancellation = true;
   get phase(): Phase { return this.currentPhase; }
   set phase(value: Phase) { if (value !== this.currentPhase) this.phaseSince = Date.now(); this.currentPhase = value; }
   get captureDiagnostics() { return this.capture.diagnostics; }
@@ -83,6 +84,12 @@ export class VoiceInputService implements OnDestroy {
     return ({ idle: 'Start recording', requesting: 'Cancel microphone', recording: 'Stop recording', sending: 'Preparing recording', saved: 'Start recording', error: 'Start recording' })[this.phase];
   }
 
+  get echoCancellation(): boolean { return this.requestedEchoCancellation; }
+  get canConfigureCapture(): boolean { return this.allowed && !this.busy; }
+  setEchoCancellation(enabled: boolean): void {
+    if (!this.canConfigureCapture) return;
+    this.requestedEchoCancellation = enabled; this.changed.next();
+  }
   get canTestCue(): boolean { return this.allowed && this.phase === 'recording' && !this.testingCue; }
   async testCue(opening: boolean): Promise<void> {
     if (!this.canTestCue) return;
@@ -108,7 +115,7 @@ export class VoiceInputService implements OnDestroy {
           this.zone.run(() => {
             this.levels = [...this.levels.slice(1), level]; this.changed.next();
           });
-        }
+        }, this.requestedEchoCancellation
       );
       if (!started || generation !== this.captureGeneration) return;
       this.phase = 'recording';
@@ -159,6 +166,7 @@ export class VoiceInputService implements OnDestroy {
   private clearLevels(): void { this.levels = Array<number>(9).fill(0); }
   private reset(): void {
     this.captureFailure = ''; this.captureGeneration++; this.testingCue = false;
+    this.requestedEchoCancellation = true;
     this.clearLevels();
     this.capture.cancel(); clearTimeout(this.timer);
     this.phase = 'idle'; this.replies.length = 0; this.changed.next();

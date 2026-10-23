@@ -24,6 +24,7 @@ export class VoiceCaptureService implements OnDestroy {
   private closingCueState = 'idle';
   private testingCue = false;
   private testCueState = 'idle';
+  private echoCancellation = 'Not requested';
 
   get diagnostics() {
     const tracks = this.stream?.getAudioTracks() || [];
@@ -32,15 +33,16 @@ export class VoiceCaptureService implements OnDestroy {
       context: this.context?.state || 'Idle', liveTracks: tracks.filter(track => track.readyState === 'live').length,
       muted: tracks.some(track => track.muted), permissionPending: !!this.startupCancelled && !this.stream,
       worklet: !!this.node, durationMs: this.length / 16, connectedAt: this.connectedAt, lastSampleAt: this.lastSampleAt,
-      openingCue: this.openingCue, closingCue: this.closingCueState, testCue: this.testCueState, audioTrace: this.audioTrace.join('\n')
+      openingCue: this.openingCue, closingCue: this.closingCueState, testCue: this.testCueState, echoCancellation: this.echoCancellation, audioTrace: this.audioTrace.join('\n')
     };
   }
 
-  async start(onLimit: () => void, onError: () => void, onLevel?: (level: number) => void): Promise<boolean> {
+  async start(onLimit: () => void, onError: () => void, onLevel?: (level: number) => void, echoCancellation = true): Promise<boolean> {
     this.cancel();
     const generation = this.generation;
     this.audioTrace = []; this.audioTraceSince = performance.now();
     this.openingCue = this.closingCueState = this.testCueState = 'idle';
+    this.echoCancellation = `Requested ${echoCancellation ? 'on' : 'off'} · actual unknown`;
     if (!navigator.mediaDevices?.getUserMedia || typeof AudioContext === 'undefined'
       || typeof AudioWorkletNode === 'undefined') throw new Error('Voice recording requires a supported browser on HTTPS.');
     const context = new AudioContext({ sampleRate: 16000 });
@@ -59,12 +61,16 @@ export class VoiceCaptureService implements OnDestroy {
       };
     });
     const cancelled = new Promise<boolean>(resolve => { this.startupCancelled = () => resolve(false); });
-    const requested = navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
+    const requested = navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation, noiseSuppression: true } });
     try {
       // Each promise has a rejection handler while the permission prompt is open.
       const prepared = Promise.all([requested.then(stream => {
         if (generation !== this.generation) { stream.getTracks().forEach(track => track.stop()); return; }
         this.stream = stream;
+        // Read only the safe boolean; never expose device identifiers or labels.
+        let actual: boolean | undefined;
+        try { actual = stream.getAudioTracks()[0]?.getSettings?.().echoCancellation; } catch { /* Optional diagnostic. */ }
+        this.echoCancellation = `Requested ${echoCancellation ? 'on' : 'off'} · actual ${typeof actual === 'boolean' ? (actual ? 'on' : 'off') : 'unknown'}`;
         note('Mic acquired');
         // Only time out after permission is granted. One resume after acquisition
         // handles the audio-session change; no polling or automatic capture retry.

@@ -85,6 +85,11 @@
       <h2>States</h2>
       <p class="diagnostic-meta">{{ diagnosticBuild }}<br><time>{{ diagnosticUpdatedAt | date:'HH:mm:ss' }}</time></p>
     </header>
+    <label class="diagnostic-echo">
+      <input #echo type="checkbox" [checked]="voice.echoCancellation" [disabled]="!voice.canConfigureCapture"
+        (change)="voice.setEchoCancellation(echo.checked)">
+      <span>Echo cancellation</span>
+    </label>
     <div class="diagnostic-tests">
       <button type="button" [disabled]="!voice.canTestCue" (pointerdown)="$event.preventDefault()"
         (click)="voice.testCue(true)" aria-label="Test opening bip while recording">Test bip</button>
@@ -92,6 +97,7 @@
         (click)="voice.testCue(false)" aria-label="Test closing bop while recording">Test bop</button>
     </div>
     <p class="diagnostic-test-state" aria-live="polite">Test: {{ voice.captureDiagnostics.testCue }}</p>
+    <p class="diagnostic-echo-state">Echo: {{ voice.captureDiagnostics.echoCancellation }}</p>
     <dl class="diagnostic-summary">
       @for (state of diagnosticSummary; track state.label) {
         <div class="diagnostic-row" [class.state-ok]="state.ok" [class.state-error]="!state.ok">

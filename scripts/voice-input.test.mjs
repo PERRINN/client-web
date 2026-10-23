@@ -687,9 +687,9 @@ test('timeline removes confirmed pending duplicates and hides private and other-
   component.ngOnDestroy(); service.ngOnDestroy();
 });
 
-function safariCapture({ stalled = false, permissionPending = false, inputPending = false, cue = async () => {} } = {}) {
+function safariCapture({ stalled = false, permissionPending = false, inputPending = false, cue = async () => {}, actualEchoCancellation, settingsError = false } = {}) {
   const originals = Object.fromEntries(['navigator', 'AudioContext', 'AudioWorkletNode'].map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
-  const contexts = [], tracks = [], nodes = [], sources = [];
+  const contexts = [], tracks = [], nodes = [], sources = [], constraints = [];
   let grant;
   const connection = () => ({ gain: { value: 1 }, connect() {}, disconnect() {} });
   class Context {
@@ -722,16 +722,16 @@ function safariCapture({ stalled = false, permissionPending = false, inputPendin
     } };
   }
   const stream = () => {
-    const track = { stopped: false, stop() { this.stopped = true; } }; tracks.push(track);
+    const track = { stopped: false, stop() { this.stopped = true; }, getSettings() { if (settingsError) throw Error('SECRET ERROR'); return { echoCancellation: actualEchoCancellation, deviceId: 'SECRET_DEVICE' }; } }; tracks.push(track);
     return { getTracks: () => [track], getAudioTracks: () => [track] };
   };
-  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { mediaDevices: { getUserMedia: () => permissionPending
-    ? new Promise(resolve => { grant = () => resolve(stream()); }) : Promise.resolve(stream()) } } });
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { mediaDevices: { getUserMedia: request => { constraints.push(request); return permissionPending
+    ? new Promise(resolve => { grant = () => resolve(stream()); }) : Promise.resolve(stream()); } } } });
   Object.defineProperty(globalThis, 'AudioContext', { configurable: true, value: Context });
   Object.defineProperty(globalThis, 'AudioWorkletNode', { configurable: true, value: Node });
   const { VoiceCaptureService } = load('../src/app/prototypes/voice-input/voiceCapture.service.ts', { '@angular/core': core, './voiceAudio': audio, './voiceCue': { voiceCue: cue } });
   const capture = new VoiceCaptureService();
-  return { capture, contexts, tracks, nodes, sources, grant: () => grant(), restore() {
+  return { capture, contexts, tracks, nodes, sources, constraints, grant: () => grant(), restore() {
     capture.ngOnDestroy();
     for (const [key, descriptor] of Object.entries(originals)) {
       if (descriptor) Object.defineProperty(globalThis, key, descriptor); else delete globalThis[key];
@@ -1127,4 +1127,43 @@ test('manual tones reuse the live capture context and preserve automatic outcome
     assert.equal(fixture.capture.diagnostics.testCue, 'Bop ended');
     await fixture.capture.testCue(false); assert.equal(tones.length, 3);
   } finally { fixture.restore(); }
+});
+
+
+test('echo cancellation diagnostic requests change only the selected constraint and report the observed boolean safely', async () => {
+  const fixture = safariCapture({ actualEchoCancellation: true });
+  try {
+    await fixture.capture.start(() => {}, () => {});
+    assert.deepEqual(fixture.constraints[0], { audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
+    assert.equal(fixture.capture.diagnostics.echoCancellation, 'Requested on · actual on');
+    fixture.capture.cancel();
+    await fixture.capture.start(() => {}, () => {}, undefined, false);
+    assert.deepEqual(fixture.constraints[1], { audio: { channelCount: 1, echoCancellation: false, noiseSuppression: true } });
+    assert.equal(fixture.capture.diagnostics.echoCancellation, 'Requested off · actual on', 'Ignored constraints must remain apparent.');
+    assert.doesNotMatch(JSON.stringify(fixture.capture.diagnostics), /SECRET_DEVICE/);
+    assert.equal(fixture.contexts.length, 2); assert.equal(fixture.constraints.length, 2);
+  } finally { fixture.restore(); }
+  for (const settingsError of [false, true]) {
+    const unsupported = safariCapture({ settingsError });
+    try {
+      await unsupported.capture.start(() => {}, () => {}, undefined, false);
+      assert.equal(unsupported.capture.diagnostics.echoCancellation, 'Requested off · actual unknown');
+      assert.doesNotMatch(JSON.stringify(unsupported.capture.diagnostics), /SECRET/);
+    } finally { unsupported.restore(); }
+  }
+});
+
+test('echo cancellation selection is local, idle-only and resets when access changes', async () => {
+  const requests = [];
+  const { service, calls } = client(undefined, { start: async (...args) => { requests.push(args[3]); return true; } });
+  try {
+    assert.equal(service.echoCancellation, true);
+    service.setEchoCancellation(false); assert.equal(service.echoCancellation, false);
+    await service.press(); service.setEchoCancellation(true);
+    assert.equal(service.echoCancellation, false); assert.deepEqual(requests, [false]);
+    assert.equal(service.canConfigureCapture, false); assert.equal(calls.length, 0);
+    service.cancel(); assert.equal(service.echoCancellation, false);
+    service.setAccess(false); assert.equal(service.echoCancellation, true);
+    service.setEchoCancellation(false); assert.equal(service.echoCancellation, true);
+  } finally { service.ngOnDestroy(); }
 });
