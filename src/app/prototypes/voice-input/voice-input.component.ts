@@ -27,6 +27,7 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
   private conversationChanges: Subscription;
   private pointer?: { downAt: number; id: number; x: number; y: number; uid: string; started: boolean; held: boolean };
   private keyboard?: { downAt: number; code: string; uid: string; started: boolean };
+  private heldKeyCode?: string;
   private holdTimer?: ReturnType<typeof setTimeout>;
   private changes: Subscription;
   private diagnosticTimer?: ReturnType<typeof setInterval>;
@@ -174,7 +175,7 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
     const target = event.target as HTMLElement | null;
     const editable = !!(target?.isContentEditable
       || target?.closest?.('input, textarea, select, [role="textbox"], [contenteditable]:not([contenteditable="false"])'));
-    const heldRepeat = !!this.keyboard && event.key.toLowerCase() === 'p' && event.code === this.keyboard.code
+    const heldRepeat = this.heldKeyCode !== undefined && event.key.toLowerCase() === 'p' && event.code === this.heldKeyCode
       && !editable && !event.isComposing && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey;
     const ignored = event.key.toLowerCase() !== 'p' ? 'Not P'
       : event.defaultPrevented ? 'Already prevented' : event.repeat ? 'Repeat ignored' : event.isComposing ? 'IME composition'
@@ -188,11 +189,17 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
     if (heldRepeat) event.preventDefault();
     if (ignored) return;
     event.preventDefault();
+    this.heldKeyCode = event.code;
     this.keyboard = { downAt: Date.now(), code: event.code, uid: this.voice.uid, started: this.voice.canRecord };
     this.toggle();
   }
   @HostListener('document:keyup', ['$event'])
   shortcutKeyUp(event: KeyboardEvent): void {
+    // Capture can finish before physical release. Keep consuming repeats until keyup.
+    if (this.heldKeyCode !== undefined && event.code === this.heldKeyCode) {
+      this.heldKeyCode = undefined;
+      event.preventDefault();
+    }
     const ignored = !this.keyboard ? 'No active P press' : event.code !== this.keyboard.code ? 'Code mismatch' : '';
     const duration = this.keyboard ? Date.now() - this.keyboard.downAt : 0;
     if (this.keyboard || this.keyDiagnostics.relevant(event)) this.keyDiagnostics.event(event, 'up', ignored
@@ -211,7 +218,7 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
   @HostListener('window:blur', ['"Window blur"'])
   interrupt(reason = 'Control blur'): void {
     this.keyDiagnostics.note(`Interrupt: ${reason} · ${this.voice.phase}${this.keyboard ? ' · ' + (Date.now() - this.keyboard.downAt) + ' ms' : ''}`);
-    this.clearPointer(); this.keyboard = undefined;
+    this.clearPointer(); this.keyboard = undefined; this.heldKeyCode = undefined;
     if (reason === 'Window blur' || reason === 'Page hide') this.playback.leave(reason);
     this.voice.cancel();
   }
@@ -223,5 +230,5 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
   focus(): void { this.playback.returned('Window focus'); }
   @HostListener('window:pageshow')
   pageShow(): void { this.playback.returned('Page show'); }
-  ngOnDestroy(): void { clearInterval(this.diagnosticTimer); this.diagnosticsActive = false; this.clearPointer(); this.keyboard = undefined; this.changes.unsubscribe(); this.conversationChanges.unsubscribe(); }
+  ngOnDestroy(): void { clearInterval(this.diagnosticTimer); this.diagnosticsActive = false; this.clearPointer(); this.keyboard = undefined; this.heldKeyCode = undefined; this.changes.unsubscribe(); this.conversationChanges.unsubscribe(); }
 }

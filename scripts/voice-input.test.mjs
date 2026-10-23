@@ -394,6 +394,55 @@ test('an active P hold still leaves modified shortcuts and other keys untouched'
   }
   component.ngOnDestroy(); service.ngOnDestroy();
 });
+test('unflagged P signals cannot reopen capture after completion until the physical key is released', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: 1000 });
+  for (const pending of [false, true]) {
+    let starts = 0, grant;
+    const { component, service, calls } = componentFixture(client(undefined, { start: () => {
+      starts++;
+      return pending ? new Promise(resolve => { grant = resolve; }) : Promise.resolve(true);
+    } }));
+    component.shortcutKeyDown(shortcut()); await new Promise(setImmediate);
+    for (let i = 0; i < 20; i++) {
+      t.mock.timers.tick(50);
+      component.shortcutKeyDown(shortcut({ repeat: false }));
+    }
+    assert.equal(starts, 1);
+    if (pending) {
+      component.shortcutKeyUp(shortcut());
+      grant(true); await new Promise(setImmediate);
+      assert.equal(service.phase, 'idle'); assert.equal(calls.length, 0);
+    } else {
+      // The capture service uses this release path at its automatic duration limit.
+      await service.release();
+      for (let i = 0; i < 20; i++) {
+        const event = shortcut({ repeat: i % 2 === 0 });
+        component.shortcutKeyDown(event);
+        assert.equal(event.defaultPrevented, true);
+      }
+      assert.equal(starts, 1); assert.equal(calls.length, 1);
+      component.shortcutKeyUp(shortcut());
+    }
+    component.shortcutKeyDown(shortcut());
+    assert.equal(starts, 2, 'a fresh press can start the next capture');
+    if (pending) { grant(true); await new Promise(setImmediate); }
+    component.ngOnDestroy(); service.ngOnDestroy();
+  }
+});
+test('P signals remain ignored throughout a press that stops an existing recording', async () => {
+  let starts = 0;
+  const { component, service, calls } = componentFixture(client(undefined, { start: async () => { starts++; return true; } }));
+  await service.press(); component.shortcutKeyDown(shortcut());
+  await until(() => service.phase === 'saved');
+  for (let i = 0; i < 20; i++) {
+    const event = shortcut({ repeat: false }); component.shortcutKeyDown(event);
+    assert.equal(event.defaultPrevented, true);
+  }
+  assert.equal(starts, 1); assert.equal(calls.length, 1);
+  component.shortcutKeyUp(shortcut()); component.shortcutKeyDown(shortcut());
+  await until(() => service.phase === 'recording'); assert.equal(starts, 2);
+  component.ngOnDestroy(); service.ngOnDestroy();
+});
 test('dock diagnostics inspect actual rendered bindings without scrolling or retaining audio', () => {
   const { component, service } = componentFixture();
   component.dock = { nativeElement: { dataset: { phase: 'recording' }, querySelectorAll: () => [
