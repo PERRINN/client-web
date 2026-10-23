@@ -33,6 +33,7 @@ class Home {
 @Component({selector:'app-workspace',standalone:false,template:'<div style="height:100%;min-height:700px"><nav style="position:sticky;top:0">Telemetry session</nav><p>Workspace</p></div>'}) class Workspace{}
 @Component({selector:'app-test',standalone:false,template:${JSON.stringify(shellTemplate)},styles:[${JSON.stringify(shellStyles)}]})
 class Shell {
+ screenWakeLock={state$:of('off'),supported:true,enabled:false,label:'Keep awake',description:'Keep screen awake: off',toggle(){}};
  greenpowerLive={live$}; UI=UI; router=TestBed.inject(Router); activitySummary=of({});automaticConversations=of({chats:[]});
  sidebarOpen=false;mobileLayout=innerWidth<900;conversationScrollbarVisible=false;automaticScrollbarVisible=false;
  openSidebar(){this.sidebarOpen=true} closeSidebar(){this.sidebarOpen=false} onSidebarKeydown(){} onConversationScroll(){} onAutomaticScroll(){} openDiscover(){}

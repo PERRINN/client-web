@@ -64,9 +64,18 @@ For safe public network/configuration checks, current findings, the enterprise I
 | `npm run start:prod` | Run the Angular development server with the production configuration. |
 | `npm run build` | Create an optimized production build in `dist/`. |
 | `npm run lint` | Lint the client TypeScript and HTML files. |
+| `npm run test:screen-wake-lock` | Check screen-awake defaults, visibility, cancellation, refusal and cleanup. |
 | `npm run test:telemetry` | Check chart range selection, navigation and touch reset gestures. |
 
 The root `package.json` does not currently define `test` or end-to-end test scripts. The Functions package provides `npm start` for its Firebase Functions shell, `npm run serve` for the Firebase Functions serve command, and `npm run logs` for viewing deployed Functions logs. Firebase emulator ports are configured in `firebase.json`; run `firebase emulators:start` to start the configured emulators when the Firebase CLI and a suitable project configuration are available.
+
+## Keep the screen awake
+
+The installed Home Screen app automatically requests a screen wake lock on every page while visible. Ordinary browser tabs opt in with **Keep awake**. The control is beside PERRINN in the desktop navigation and at the right of the mobile header. **Screen on** confirms a granted lock; **Not active** means the phone/browser refused or released it, and **Unavailable** means the API is unsupported. Tap the control to turn the request off or back on. That choice lasts until the app reloads/restarts; no preference is saved to an account or device storage.
+
+Backgrounding/leaving releases the lock; returning restores it if still enabled. One root service owns the lock across routes, serializes requests and releases late grants after cancellation. There are no timers, polling, backend requests or database operations. The OS can override the request for power saving, and the feature does not prevent a manual lock. Keeping the display on consumes battery; real-device auto-lock and foreground recovery still need checking on the race phone, including the installed iPhone app.
+
+Validate with `npm run test:screen-wake-lock`, build and lint. For synthetic browser lifecycle/layout checks, run `node scripts/greenpower/launch-preview.mjs`, then `node scripts/screen-wake-lock-ui.mjs` (set `PLAYWRIGHT_MODULE`/`PLAYWRIGHT_CHANNEL` for an external browser runtime). This uses the real shell/service with synthetic wake-lock grants, no Firebase access, and checks desktop, portrait and landscape layouts. It does not establish physical-phone behavior.
 
 ## Configuration and secrets
 

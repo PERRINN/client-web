@@ -4,17 +4,21 @@
     <header class="mobileShellHeader">
       <button #menuToggle type="button" (click)="openSidebar()" aria-label="Open navigation" aria-controls="shell-navigation" [attr.aria-expanded]="sidebarOpen"><span class="hamburgerIcon" aria-hidden="true"><span></span><span></span><span></span></span></button>
       <a class="mobile-brand" routerLink="/home">PERRINN<ng-container [ngTemplateOutlet]="activityDots"></ng-container></a>
+      <ng-container [ngTemplateOutlet]="wakeControl"></ng-container>
     </header>
     @if (sidebarOpen) {
       <button class="shellBackdrop" type="button" aria-label="Close navigation" (click)="closeSidebar()"></button>
     }
   <div class="topNav shellSidebar" id="shell-navigation" tabindex="-1" [class.sidebarOpen]="sidebarOpen" [attr.inert]="mobileLayout && !sidebarOpen ? '' : null" (keydown)="onSidebarKeydown($event)">
     <nav #sidebarNavigation class="navLeft" aria-label="Main navigation">
-      <button class="iconBtn" routerLink="/home" routerLinkActive="activeNav" [attr.aria-current]="router.url === '/home' ? 'page' : null" aria-label="Go to home">
-        <img src="./../assets/App icons/perrinn-02.png" class="brandIcon" alt="">
-        <span>PERRINN</span>
-        <ng-container [ngTemplateOutlet]="activityDots"></ng-container>
-      </button>
+      <div class="shellBrandRow">
+        <button class="iconBtn" routerLink="/home" routerLinkActive="activeNav" [attr.aria-current]="router.url === '/home' ? 'page' : null" aria-label="Go to home">
+          <img src="./../assets/App icons/perrinn-02.png" class="brandIcon" alt="">
+          <span>PERRINN</span>
+          <ng-container [ngTemplateOutlet]="activityDots"></ng-container>
+        </button>
+        <ng-container [ngTemplateOutlet]="wakeControl"></ng-container>
+      </div>
       <button class="iconBtn" routerLink="/team" routerLinkActive="activeNav" [attr.aria-current]="router.url === '/team' ? 'page' : null" aria-label="Open team">
         <span class="material-icons">group</span>
         <span>Team</span>
@@ -83,6 +87,17 @@
   </div>
 
 </div>
+
+<ng-template #wakeControl>
+  @if (screenWakeLock.state$ | async; as state) {
+    <button type="button" class="wakeLockButton" [class.wakeActive]="state === 'active'"
+      [disabled]="!screenWakeLock.supported" [attr.aria-pressed]="screenWakeLock.enabled"
+      [attr.aria-label]="screenWakeLock.description" [attr.title]="screenWakeLock.description"
+      (click)="screenWakeLock.toggle()">
+      <span class="wakeLockDot" aria-hidden="true"></span><span>{{ screenWakeLock.label }}</span>
+    </button>
+  }
+</ng-template>
 
 <ng-template #activityDots>
   @if (activitySummary | async; as activity) {

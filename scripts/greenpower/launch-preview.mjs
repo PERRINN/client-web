@@ -29,10 +29,12 @@ import { PresenceService } from '${root}/src/app/presence.service';
 import { MessageActivityService } from '${root}/src/app/messageActivity.service';
 import { SidebarConversationsService } from '${root}/src/app/sidebarConversations.service';
 import { GreenpowerLiveService } from '${root}/src/app/greenpower-telemetry/greenpowerLive.service';
+import { ScreenWakeLockService } from '${root}/src/app/screenWakeLock.service';
 @Component({standalone:false, template:'<a routerLink="/apps">Apps</a><h1>Destination {{label}}</h1>'})
 class Destination { label=''; }
 const live = new BehaviorSubject(false);
-AppComponent.ctorParameters=()=>[Router,AngularFirestore,UserInterfaceService,SwUpdate,PresenceService,MessageActivityService,SidebarConversationsService,GreenpowerLiveService].map(type=>({type}));
+const activity = new BehaviorSubject({});
+AppComponent.ctorParameters=()=>[Router,AngularFirestore,UserInterfaceService,SwUpdate,PresenceService,MessageActivityService,SidebarConversationsService,GreenpowerLiveService,ScreenWakeLockService].map(type=>({type}));
 AppsComponent.ctorParameters=()=>[{type:UserInterfaceService}];
 GreenpowerLaunchComponent.ctorParameters=()=>[{type:Title},{type:Meta},{type:undefined,decorators:[{type:Inject,args:[DOCUMENT]}]}];
 TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTesting());
@@ -48,7 +50,7 @@ TestBed.configureTestingModule({declarations:[AppComponent,AppsComponent,Prototy
  {provide:UserInterfaceService,useValue:{currentUser:null,convertAndFormatPRNToPRNCurrency:()=>''}},
  {provide:AngularFirestore,useValue:{}}, {provide:SwUpdate,useValue:{isEnabled:false}},
  {provide:PresenceService,useValue:{trackActivity:()=>new Subscription()}},
- {provide:MessageActivityService,useValue:{summary:()=>of({})}},
+ {provide:MessageActivityService,useValue:{summary:()=>activity}},
  {provide:SidebarConversationsService,useValue:{automatic:()=>of([])}},
  {provide:GreenpowerLiveService,useValue:{live$:live}}]});
 const fixture=TestBed.createComponent(AppComponent);document.body.append(fixture.nativeElement);fixture.autoDetectChanges();
@@ -56,6 +58,7 @@ TestBed.inject(Router).initialNavigation();
 const toggle=document.createElement('button');toggle.textContent='Toggle test activity';toggle.id='test-activity';toggle.style.cssText='position:fixed;right:0;bottom:0;z-index:20000';
 toggle.onclick=()=>{live.next(!live.value);fixture.detectChanges();};if(new URLSearchParams(location.search).has('qa')) {
   document.body.append(toggle);
+  window.shellPreview={fixture,live,activity};
   let originalPhoto;
   const fail=document.createElement('button');fail.id='test-image';fail.textContent='Toggle test image failure';fail.style.cssText='position:fixed;right:0;bottom:36px;z-index:20000';
   fail.onclick=()=>{const article=fixture.debugElement.query(By.directive(GreenpowerLaunchComponent))?.componentInstance;if(!article){const apps=fixture.debugElement.query(By.directive(AppsComponent))?.componentInstance;if(apps){apps.greenpowerImageFailed=!apps.greenpowerImageFailed;fixture.debugElement.query(By.directive(AppsComponent)).injector.get(ChangeDetectorRef).detectChanges();}return;}if(originalPhoto){article.photos.racing=originalPhoto;originalPhoto=undefined;}else{originalPhoto=article.photos.racing;article.photos.racing={...originalPhoto,name:'missing-image'};}fixture.detectChanges();};document.body.append(fail);

@@ -12,6 +12,7 @@ import { Observable } from 'rxjs';
 import { SidebarConversationsService, SidebarConversation } from './sidebarConversations.service';
 import { catchError, map, startWith } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { ScreenWakeLockService } from './screenWakeLock.service';
 
 @Component({
     selector: 'app-root',
@@ -121,7 +122,8 @@ export class AppComponent implements OnInit, OnDestroy {
     private presence: PresenceService,
     activity: MessageActivityService,
     conversations: SidebarConversationsService,
-    public greenpowerLive: GreenpowerLiveService
+    public greenpowerLive: GreenpowerLiveService,
+    public screenWakeLock: ScreenWakeLockService
   ) {
     this.activitySummary = activity.summary();
     this.automaticConversations = conversations.automatic().pipe(
@@ -156,6 +158,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.screenWakeLock.start();
     this.presenceSubscription = this.presence.trackActivity();
   }
 
