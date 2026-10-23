@@ -1,0 +1,144 @@
+{
+  "project": "perrinn-d5fc1",
+  "releaseCommit": "96aff4531366aac2eeed8553192c6dabb99db136",
+  "verifiedAt": "2026-10-23T15:39:42.594Z",
+  "functions": [
+    {
+      "name": "dbMessagesOnCreate",
+      "state": "ACTIVE",
+      "updateTime": "2026-10-23T15:34:30.494504704Z",
+      "runtime": "nodejs22",
+      "revision": "dbmessagesoncreate-00063-koy",
+      "codeHash": "ba177a003c71c4d118306b77114c2feaa3470e24",
+      "maxInstances": 100,
+      "concurrency": 80,
+      "model": "gpt-transcribe"
+    },
+    {
+      "name": "voiceInputEnqueue",
+      "state": "ACTIVE",
+      "updateTime": "2026-10-23T15:34:28.430973301Z",
+      "runtime": "nodejs22",
+      "revision": "voiceinputenqueue-00007-tas",
+      "codeHash": "ba177a003c71c4d118306b77114c2feaa3470e24",
+      "maxInstances": 2,
+      "concurrency": 2,
+      "model": "gpt-transcribe"
+    },
+    {
+      "name": "processVoiceInputInbox",
+      "state": "ACTIVE",
+      "updateTime": "2026-10-23T15:34:30.996899458Z",
+      "runtime": "nodejs22",
+      "revision": "processvoiceinputinbox-00008-rel",
+      "codeHash": "61909845b9f5f813fb577fc2ee3cf2f6bb4a7bf9",
+      "maxInstances": 2,
+      "concurrency": 1,
+      "model": "gpt-transcribe",
+      "secrets": [
+        {
+          "key": "OPENAI_API_KEY",
+          "version": "1"
+        }
+      ]
+    },
+    {
+      "name": "voicePlayback",
+      "state": "ACTIVE",
+      "updateTime": "2026-10-23T15:34:30.801125087Z",
+      "runtime": "nodejs22",
+      "revision": "voiceplayback-00004-wut",
+      "codeHash": "ba177a003c71c4d118306b77114c2feaa3470e24",
+      "maxInstances": 2,
+      "concurrency": 4,
+      "model": "gpt-transcribe"
+    }
+  ],
+  "firestoreRules": {
+    "rulesetName": "projects/perrinn-d5fc1/rulesets/d1974bb3-68fc-4c26-8cb7-d6a08e4a75ae",
+    "updateTime": "2026-10-23T15:33:23.900610Z",
+    "sourceSha256": "e5c943d57e1d943e211bcb531e48caa97198c5e85fb659436d13a0a943b29a05",
+    "matchesLocal": true
+  },
+  "index": {
+    "checkedAt": "2026-10-23T15:38:58.316Z",
+    "name": "projects/perrinn-d5fc1/databases/(default)/collectionGroups/PERRINNMessages/indexes/CICAgITsgYgK",
+    "state": "READY",
+    "planOnly": true,
+    "indexesUsed": [
+      {
+        "query_scope": "Collection",
+        "properties": "(chain ASC, verified ASC, serverTimestamp DESC, __name__ DESC)"
+      }
+    ]
+  },
+  "indexInventory": {
+    "compositeIndexes": 32,
+    "matchesRepository": true,
+    "deletions": 0,
+    "fieldOverridesMatch": true
+  },
+  "voiceInbox": {
+    "privateWorkerVerified": true,
+    "configurationChangesRequiredAfterVerification": [],
+    "restoredExistingRuntimeGrants": [
+      "roles/run.invoker",
+      "roles/cloudtasks.enqueuer"
+    ],
+    "queue": {
+      "state": "RUNNING",
+      "retryConfig": {
+        "maxAttempts": 8,
+        "minBackoff": "300s",
+        "maxBackoff": "3600s",
+        "maxDoublings": 6
+      },
+      "rateLimits": {
+        "maxDispatchesPerSecond": 2,
+        "maxBurstSize": 10,
+        "maxConcurrentDispatches": 2
+      }
+    },
+    "retentionDays": 7
+  },
+  "hosting": {
+    "checkedAt": "2026-10-23T15:39:42.594Z",
+    "origin": "https://perrinn.com",
+    "indexMatches": true,
+    "chatRouteMatches": true,
+    "mainBundle": "main.abcc1730fe3fe29e.js",
+    "mainSha256": "f03082cefee38c67d845708d06efafc272ccf5e4c1c4901d1cdec8499d3f30ab",
+    "serviceWorkerMatches": true,
+    "anonymousGuards": [
+      {
+        "name": "voiceInputEnqueue",
+        "status": 401,
+        "error": "UNAUTHENTICATED"
+      },
+      {
+        "name": "voicePlayback",
+        "status": 401,
+        "error": "UNAUTHENTICATED"
+      }
+    ],
+    "productionRecordingWrites": 0,
+    "providerCalls": 0
+  },
+  "validation": {
+    "testsPassed": 326,
+    "emulatorTestsPassed": 19,
+    "browserWidths": [
+      1440,
+      390,
+      320
+    ],
+    "productionBuild": "passed",
+    "lintErrors": 0,
+    "lintWarnings": 50
+  },
+  "remainingChecks": [
+    "Physical microphone and hardware P-button behavior",
+    "Authenticated phone audio routing and autoplay",
+    "User recording/transcription/playback/download acceptance test"
+  ]
+}
