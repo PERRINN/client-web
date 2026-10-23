@@ -5,7 +5,7 @@
   "theme_color": "#0B1118",
   "background_color": "#0B1118",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "icons": [
    {
     "src": "assets/App icons/android-icon-36x36.png",
