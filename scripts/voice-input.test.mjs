@@ -183,7 +183,9 @@ function client(call = () => of({ eventId: 'saved-id', transcript: 'Bonjour' }),
     '@angular/core': core, './voiceDiagnostics': diagnosticsModule, '@angular/fire/compat/auth': {},
     './voiceCapture.service': {}, './voiceQueue.service': {}, './voiceQueueStore.service': {}
   });
-  return { service: new VoiceInputService(auth, queue, capture, { run: fn => fn() }), auth, calls, capture };
+  const service = new VoiceInputService(auth, queue, capture, { run: fn => fn() });
+  auth.authState.subscribe(user => service.setAccess(!!user, user?.uid || ''));
+  return { service, auth, calls, capture };
 }
 test('release during permission prompt and cancellation never submit, including late permission grants', async () => {
   let grant, cancel = 0;
@@ -303,9 +305,9 @@ test('audio history is bounded, clears on release/cancel, and ignores late captu
 function componentFixture(fixture = client()) {
   let marks = 0;
   const { VoiceInputComponent } = load('../src/app/prototypes/voice-input/voice-input.component.ts', {
-    '@angular/core': core, './voiceDiagnostics': diagnosticsModule, './voiceCapture.service': {}, './voiceInput.service': {}, './voiceQueue.service': {}
+    '@angular/core': core, './voiceDiagnostics': diagnosticsModule, './voiceCapture.service': {}, './voiceInput.service': {}, './voiceQueue.service': {}, './voiceConversation.service': {}
   });
-  const component = new VoiceInputComponent(fixture.service, { markForCheck: () => { marks++; } });
+  const component = new VoiceInputComponent(fixture.service, { allowed: true, uid: 'alice', messages: [], changed: new Subject() }, { markForCheck: () => { marks++; } });
   return { ...fixture, component, marks: () => marks };
 }
 const pointer = (changes = {}) => ({ pointerId: 1, pointerType: 'touch', isPrimary: true, button: 0,
@@ -527,11 +529,11 @@ test('permission and local capture failures become conversation replies without 
 });
 test('new replies scroll into view once, without repeated scrolling on audio-level updates', () => {
   const { Subject } = require('rxjs'); let scrolls = 0;
-  const voice = { replies: [], changed: new Subject() };
+  const voice = { replies: [], changed: new Subject(), setAccess() {} };
   const { VoiceInputComponent } = load('../src/app/prototypes/voice-input/voice-input.component.ts', {
-    '@angular/core': core, './voiceDiagnostics': diagnosticsModule, './voiceCapture.service': {}, './voiceInput.service': {}, './voiceQueue.service': {}
+    '@angular/core': core, './voiceDiagnostics': diagnosticsModule, './voiceCapture.service': {}, './voiceInput.service': {}, './voiceQueue.service': {}, './voiceConversation.service': {}
   });
-  const component = new VoiceInputComponent(voice, { markForCheck() {} });
+  const component = new VoiceInputComponent(voice, { allowed: true, uid: 'alice', messages: [], changed: new Subject() }, { markForCheck() {} });
   component.replies = { nativeElement: { lastElementChild: { scrollIntoView: () => { scrolls++; } } } };
   component.ngAfterViewChecked(); assert.equal(scrolls, 0);
   voice.replies.push({ id: 1, kind: 'transcript', text: 'Hello' });
@@ -824,4 +826,24 @@ test('automatic completion clears the hold so releasing cannot affect a later re
   await service.press(); component.pointerUp(pointer()); await new Promise(setImmediate);
   assert.equal(service.phase, 'recording'); assert.equal(calls.length, 1);
   component.ngOnDestroy(); service.ngOnDestroy();
+});
+
+test('revoked or mismatched participant access cancels capture and prevents further recording', async () => {
+  const { service, calls } = client(); await service.press(); assert.equal(service.phase, 'recording');
+  service.setAccess(false); assert.equal(service.phase, 'idle'); assert.equal(service.canRecord, false);
+  await service.release(); await service.press(); assert.equal(calls.length, 0);
+  service.setAccess(true, 'different-account'); assert.equal(service.canRecord, false);
+  service.setAccess(true, 'alice'); assert.equal(service.canRecord, true); service.ngOnDestroy();
+});
+
+test('shared completion removes the pending local row instead of duplicating the shared transcript', async () => {
+  const response = new Subject();
+  const { service } = client(() => response);
+  await service.press(); const releasing = service.release();
+  await until(() => service.queue.items.length === 1);
+  const id = service.queue.items[0].id;
+  service.queue.completed.next({ id, transcript: 'Shared', conversationId: 'pilot' });
+  assert.equal(service.replies.length, 0);
+  // The account boundary also suppresses an outstanding upload/capture result.
+  service.ngOnDestroy(); response.next({ transcript: 'Shared' }); response.complete(); await releasing;
 });

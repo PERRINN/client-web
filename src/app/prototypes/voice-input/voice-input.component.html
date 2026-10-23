@@ -1,5 +1,6 @@
 <main class="voice-page">
   <a class="back" routerLink="/prototypes">← Prototyping</a>
+  @if (conversation.allowed) {
   <section class="capture-panel" aria-label="Voice recording">
     <button class="voice-dock" type="button" [class.recording]="voice.phase === 'recording'"
       [class.unavailable]="!voice.ready || !voice.uid" [attr.data-phase]="voice.phase"
@@ -29,10 +30,33 @@
         }
     </ng-template>
     <p id="voice-status" class="sr-only" role="status">{{ !voice.ready || (voice.uid && !voice.queue.ready) ? 'Loading recording queue' : voice.busy || voice.waiting ? voice.label : '' }}</p>
-    @if (voice.ready && !voice.uid) { <a class="sign-in" routerLink="/login" [queryParams]="{returnUrl: '/prototypes/voice-input'}">Sign in to record</a> }
   </section>
+  } @else if (conversation.ready) {
+    @if (conversation.uid) { <p class="access-state" role="status">This conversation is private.</p> }
+    @else { <a class="sign-in" routerLink="/login" [queryParams]="{returnUrl: '/prototypes/voice-input'}">Sign in</a> }
+  }
+  @if (conversation.allowed) {
   <div class="voice-content">
   <section #replies class="replies" role="log" aria-label="Voice conversation" aria-live="polite">
+    @if (conversation.canLoadEarlier) {
+      <button class="history" type="button" (click)="conversation.loadEarlier()" [disabled]="conversation.loadingEarlier">
+        {{ conversation.loadingEarlier ? 'Loading…' : 'Load earlier' }}
+      </button>
+    }
+    @if (conversation.loading) { <p class="conversation-state" role="status">Loading…</p> }
+    @if (conversation.error) {
+      <div class="conversation-state" role="alert"><p>{{ conversation.error }}</p>
+        <button type="button" (click)="conversation.retry()" [disabled]="conversation.loadingEarlier">Retry</button>
+      </div>
+    }
+    @for (message of conversation.messages; track message.id) {
+      <article class="reply" [class.reply-own]="message.userId === voice.uid">
+        <div class="message-meta"><span>{{ message.userId === voice.uid ? 'You' : message.authorName }}</span>
+          <time [attr.datetime]="message.createdAt.toDate() | date:'yyyy-MM-ddTHH:mm:ssZZZZZ'">{{ message.createdAt.toDate() | date:'short' }}</time>
+        </div>
+        <p>{{ message.text }}</p>
+      </article>
+    }
     @if (voice.uid && voice.queue.ready && !voice.queue.items.length && !voice.queue.canRecord) {
       <article class="reply"><p>Recording storage is full.</p></article>
     }
@@ -42,6 +66,7 @@
       </article>
     }
     @for (reply of voice.replies; track reply.id) {
+      @if (!reply.private && (!reply.recording || reply.recording.conversationId === 'pilot' && !hasSharedReply(reply.recording.id))) {
       <article class="reply" [class.reply-error]="reply.kind === 'error'">
         @if (reply.kind === 'error') { <span class="sr-only">Recording error: </span> }
         @if (reply.kind === 'pending' && reply.recording; as recording) {
@@ -53,6 +78,7 @@
 
         } @else { <p>{{ reply.text }}</p> }
       </article>
+      }
     }
   </section>
   <aside class="diagnostics" aria-label="Voice diagnostics" tabindex="0">
@@ -68,4 +94,5 @@
     </dl>
   </aside>
   </div>
+  }
 </main>

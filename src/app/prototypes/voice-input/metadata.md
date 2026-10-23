@@ -1,4 +1,4 @@
 Name: Voice input
 Type: Functional pilot
-Description: Toggle the microphone to record speech and privately save its transcription.
+Description: A private two-person voice conversation with shared transcripts.
 Status: EXPERIMENT

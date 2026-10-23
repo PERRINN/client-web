@@ -6,7 +6,7 @@ import { VoiceQueueService } from './voiceQueue.service';
 import { VoiceRecording } from './voiceQueueStore.service';
 import { voiceDiagnosticCode } from './voiceDiagnostics';
 
-export interface VoiceReply { id: number; kind: 'transcript' | 'error' | 'pending'; text: string; recording?: VoiceRecording }
+export interface VoiceReply { id: number; kind: 'transcript' | 'error' | 'pending'; text: string; private?: boolean; recording?: VoiceRecording }
 type Phase = 'idle' | 'requesting' | 'recording' | 'sending' | 'saved' | 'error';
 
 @Injectable()
@@ -15,6 +15,9 @@ export class VoiceInputService implements OnDestroy {
   levels = Array<number>(9).fill(0);
   ready = false;
   uid = '';
+  private accessUid = '';
+  private accessGranted = false;
+  get allowed(): boolean { return this.accessGranted && !!this.uid && this.uid === this.accessUid; }
   private currentPhase: Phase = 'idle';
   phaseSince = Date.now();
   captureFailure = '';
@@ -46,8 +49,10 @@ export class VoiceInputService implements OnDestroy {
     }));
     this.subscription.add(queue.completed.subscribe(result => {
       const reply = this.replies.find(row => row.recording?.id === result.id);
-      if (reply) { reply.kind = result.failed ? 'error' : 'transcript'; reply.text = result.transcript; reply.recording = undefined; }
-      else this.reply(result.transcript, result.failed ? 'error' : 'transcript');
+      if (result.conversationId && !result.failed) {
+        if (reply) this.replies.splice(this.replies.indexOf(reply), 1);
+      } else if (reply) { reply.kind = result.failed ? 'error' : 'transcript'; reply.text = result.transcript; reply.private = !result.conversationId; reply.recording = undefined; }
+      else this.reply(result.transcript, result.failed ? 'error' : 'transcript', !result.conversationId);
       if (!this.busy) this.phase = 'saved';
       this.changed.next();
     }));
@@ -55,15 +60,20 @@ export class VoiceInputService implements OnDestroy {
       next: user => {
         if (this.uid !== (user?.uid || '')) { this.generation++; this.reset(); }
         const uid = user?.uid || '';
-        if (this.uid !== uid) { this.uid = uid; queue.start(uid); }
+        if (this.uid !== uid) { this.uid = uid; queue.start(this.allowed ? uid : ''); }
         this.ready = true; this.changed.next();
       },
       error: () => { this.generation++; this.reset(); this.uid = ''; queue.start(''); this.ready = true; this.changed.next(); }
     }));
   }
+  setAccess(allowed: boolean, uid = this.uid): void {
+    if (allowed === this.accessGranted && uid === this.accessUid) return;
+    this.accessGranted = allowed; this.accessUid = uid; this.generation++; this.reset();
+    this.queue.start(this.allowed ? this.uid : ''); this.changed.next();
+  }
   get pendingCount(): number { return this.queue.items.length; }
   get busy(): boolean { return this.phase === 'requesting' || this.phase === 'recording' || this.phase === 'sending'; }
-  get canRecord(): boolean { return this.ready && !!this.uid && !this.busy && this.queue.canRecord; }
+  get canRecord(): boolean { return this.ready && this.allowed && !!this.uid && !this.busy && this.queue.canRecord; }
   get canToggle(): boolean { return this.canRecord || this.phase === 'recording' || this.phase === 'requesting'; }
   get waiting(): boolean { return this.phase === 'sending' || (!this.canToggle && !!this.uid && !this.queue.canRecord); }
   get label(): string {
@@ -112,7 +122,7 @@ export class VoiceInputService implements OnDestroy {
     try {
       const audio = await this.capture.finish();
       if (generation !== this.generation || captureGeneration !== this.captureGeneration) return;
-      await this.queue.enqueue(audio);
+      await this.queue.enqueue(audio, 'pilot');
       if (generation === this.generation) this.phase = this.replies.at(-1)?.kind === 'transcript' ? 'saved' : 'idle';
     } catch (error) {
       if (generation !== this.generation || captureGeneration !== this.captureGeneration) return;
@@ -130,8 +140,8 @@ export class VoiceInputService implements OnDestroy {
     if (message) { this.captureFailure = 'Interrupted'; this.reply(message, 'error'); }
     this.changed.next();
   }
-  private reply(text: string, kind: VoiceReply['kind']): void {
-    this.replies.push({ id: ++this.replyId, kind, text });
+  private reply(text: string, kind: VoiceReply['kind'], privateReply = false): void {
+    this.replies.push({ id: ++this.replyId, kind, text, private: privateReply });
     if (!this.busy) this.phase = kind === 'transcript' ? 'saved' : 'error';
   }
   private clearLevels(): void { this.levels = Array<number>(9).fill(0); }

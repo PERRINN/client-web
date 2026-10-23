@@ -169,3 +169,37 @@ test('durable inbox uses real Firestore and Storage, survives lost receipt, and 
   assert.equal(calls, 1); assert.equal((await ref.get()).data().transcript, 'Durable result');
   assert.equal((await bucket.file(event.audioPath).exists())[0], false);
 });
+
+test('shared pilot publishes one message and rules isolate history to exactly two participants', async () => {
+  const { VOICE_ADMIN, VOICE_PARTICIPANT } = require('../functions/utils/voiceConversation');
+  const data = { ...request(), owner: VOICE_PARTICIPANT, conversationId: 'pilot' };
+  let calls = 0;
+  const settings = options({ enqueue: async () => {}, transcribe: async () => { calls++; return 'Shared result'; } });
+  const receipt = await enqueueVoiceInput(db, bucket, { uid: data.owner, token: { name: 'Pilot participant' } }, data, settings);
+  await processVoiceInbox(db, bucket, { eventId: receipt.eventId }, settings);
+  await processVoiceInbox(db, bucket, { eventId: receipt.eventId }, settings);
+  const path = `VoiceConversations/pilot/messages/${receipt.eventId}`, message = (await db.doc(path).get()).data();
+  assert.equal(calls, 1); assert.equal(message.text, 'Shared result'); assert.equal(message.requestId, data.requestId);
+  assert.equal(message.authorName, 'Pilot participant'); assert.ok(message.createdAt.toMillis() > 0);
+  await db.doc('VoiceConversations/other/messages/hidden').set(message);
+  await db.doc(path + '/nested/hidden').set(message);
+  for (const [uid, claims, allowed] of [[undefined, {}, false], [VOICE_PARTICIPANT, {}, true],
+    [VOICE_ADMIN, { perrinnAdmin: true }, true], [VOICE_ADMIN, {}, false], ['outsider', {}, false], ['other-admin', { perrinnAdmin: true }, false]]) {
+    assert.equal((await access(path, uid, 'GET', claims)).status, allowed ? 200 : 403);
+    for (const method of ['PATCH', 'DELETE']) assert.equal((await access(path, uid, method, claims)).status, 403);
+    assert.equal((await access('VoiceConversations/pilot/messages/new', uid, 'PATCH', claims)).status, 403);
+    assert.equal((await access('VoiceConversations/pilot', uid, 'GET', claims)).status, 403);
+    assert.equal((await access('VoiceConversations/other/messages/hidden', uid, 'GET', claims)).status, 403);
+    assert.equal((await access(path + '/nested/hidden', uid, 'GET', claims)).status, 403);
+    for (const limit of [undefined, 50, 51]) {
+      const response = await originalFetch(`http://${host}/v1/projects/${projectId}/databases/(default)/documents/VoiceConversations/pilot:runQuery`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', ...(uid ? { Authorization: `Bearer ${token(uid, claims)}` } : {}) },
+        body: JSON.stringify({ structuredQuery: { from: [{ collectionId: 'messages' }],
+          orderBy: [{ field: { fieldPath: 'createdAt' }, direction: 'DESCENDING' }], ...(limit ? { limit } : {}) } })
+      });
+      assert.equal(response.status, allowed && limit === 50 ? 200 : 403, `${uid}: list limit ${limit}`);
+    }
+  }
+  // Existing private events still cannot be read by the other pilot participant.
+  assert.equal((await access('VoiceInputEvents/' + receipt.eventId, VOICE_ADMIN, 'GET', { perrinnAdmin: true })).status, 403);
+});

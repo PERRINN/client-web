@@ -1,5 +1,6 @@
 const { createHash, randomUUID } = require('node:crypto');
 const { VoiceInputError, validateInput } = require('./voiceAudio');
+const { authorizeVoiceConversation, sharedVoiceMessage } = require('./voiceConversation');
 
 const eventIdFor = (uid, requestId) => createHash('sha256').update(uid + ':' + requestId).digest('hex');
 const fail = (code, message, details) => { throw new VoiceInputError(code, message, details); };
@@ -9,7 +10,8 @@ const stale = (event, now) => now - (event.createdAt?.toMillis?.() || 0) >= 1200
 async function enqueueVoiceInput(db, bucket, auth, data, options) {
   if (!auth?.uid) fail('unauthenticated', 'Sign in to record.');
   if (!data || data.owner !== auth.uid) fail('permission-denied', 'Recording owner changed.');
-  const { owner, ...recording } = data;
+  const { owner, conversationId, ...recording } = data;
+  if (conversationId !== undefined) authorizeVoiceConversation(auth, conversationId);
   const input = validateInput(recording), now = options.now?.() ?? Date.now();
   const eventId = eventIdFor(auth.uid, data.requestId), ref = db.doc('VoiceInputEvents/' + eventId);
   const audioPath = `voice-input/${auth.uid}/${eventId}.wav`;
@@ -17,7 +19,7 @@ async function enqueueVoiceInput(db, bucket, auth, data, options) {
     const existing = await tx.get(ref);
     if (existing.exists) {
       const saved = existing.data();
-      if (saved.userId !== auth.uid || saved.fingerprint !== input.fingerprint) fail('invalid-argument', 'Recording ID already used.');
+      if (saved.userId !== auth.uid || saved.fingerprint !== input.fingerprint || saved.conversationId !== conversationId) fail('invalid-argument', 'Recording ID already used.');
       if (saved.status === 'completed' || (saved.inboxVersion === 1 && saved.status === 'failed')) return saved;
       if (saved.inboxVersion !== 1 && saved.status === 'processing' && !stale(saved, now)) {
         fail('aborted', 'Recording is still processing.');
@@ -34,6 +36,7 @@ async function enqueueVoiceInput(db, bucket, auth, data, options) {
     const dailyLimit = auth.uid === options.highLimitUid && auth.token?.perrinnAdmin === true ? 1000 : 20;
     if (count >= dailyLimit) fail('resource-exhausted', 'Daily recording limit reached.', { reason: 'daily-limit', dailyLimit });
     const created = { eventId, userId: auth.uid, sourcePage: data.sourcePage, createdAt: options.timestamp(),
+      ...(conversationId ? { conversationId, requestId: data.requestId, authorName: typeof auth.token?.name === 'string' ? auth.token.name.slice(0, 100) : '' } : {}),
       status: 'receiving', inboxVersion: 1, audioPath, durationMs: input.durationMs, fingerprint: input.fingerprint,
       provider: 'openai', model: options.model, attempts: 0 };
     tx.create(ref, created);
@@ -103,6 +106,10 @@ async function processVoiceInbox(db, bucket, data, options) {
       const event = (await tx.get(ref)).data();
       if (event?.processingAttempt === attemptId && event.status === 'processing') {
         tx.update(ref, { status: 'completed', transcript, completedAt: options.timestamp(), processingUntil: 0 });
+        if (event.conversationId) {
+          const message = sharedVoiceMessage(event, transcript, options.timestamp());
+          tx.create(db.doc(`VoiceConversations/${event.conversationId}/messages/${event.eventId}`), message);
+        }
         return true;
       }
       return event?.status === 'completed';

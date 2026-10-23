@@ -15,7 +15,7 @@ class QueueAudioError extends Error { constructor(readonly code: string) { super
 @Injectable()
 export class VoiceQueueService implements OnDestroy {
   readonly changed = new Subject<void>();
-  readonly completed = new Subject<{ id: string; transcript: string; failed?: boolean }>();
+  readonly completed = new Subject<{ id: string; transcript: string; failed?: boolean; conversationId?: string }>();
   items: VoiceRecording[] = [];
   ready = false;
   storageError = '';
@@ -106,9 +106,9 @@ export class VoiceQueueService implements OnDestroy {
     this.watchResults(epoch); this.changed.next(); void this.drain();
   }
 
-  async enqueue(audio: Uint8Array): Promise<void> {
+  async enqueue(audio: Uint8Array, conversationId?: string): Promise<void> {
     const item: VoiceRecording = { id: crypto.randomUUID(), owner: this.owner, createdAt: Date.now(),
-      audio: new Uint8Array(audio).buffer, attempts: 0, nextAt: 0, check: false };
+      audio: new Uint8Array(audio).buffer, ...(conversationId ? { conversationId } : {}), attempts: 0, nextAt: 0, check: false };
     this.unsaved = item; await this.saveUnsent(item, this.epoch);
   }
   private async saveUnsent(item: VoiceRecording, epoch: number): Promise<void> {
@@ -264,8 +264,8 @@ export class VoiceQueueService implements OnDestroy {
     // are outside Firebase's own HTTP timeout. The outer deadline covers auth,
     // IndexedDB and Blob preparation as well.
     attempt.stage = 'Uploading';
-    const receipt = await firstValueFrom(this.functions.httpsCallable<{ requestId: string; sourcePage: string; audio: string; owner: string }, Receipt>('voiceInputEnqueue', { timeout: 65000 })({
-      requestId: claimed.id, sourcePage: '/prototypes/voice-input', audio, owner: claimed.owner
+    const receipt = await firstValueFrom(this.functions.httpsCallable<{ requestId: string; sourcePage: string; audio: string; owner: string; conversationId?: string }, Receipt>('voiceInputEnqueue', { timeout: 65000 })({
+      requestId: claimed.id, sourcePage: '/prototypes/voice-input', audio, owner: claimed.owner, ...(claimed.conversationId ? { conversationId: claimed.conversationId } : {})
     }).pipe(timeout({ first: 65000 }), takeUntil(merge(this.cancelled, attempt.stopped))));
     if (!live()) return;
     if (!receipt?.eventId || !/^[a-f0-9]{64}$/.test(receipt.eventId) || !['queued', 'completed', 'failed'].includes(receipt.status)) throw new Error('Invalid receipt');
@@ -360,7 +360,7 @@ export class VoiceQueueService implements OnDestroy {
       const removed = await this.storage(this.store.change(item.id, item.owner, row => epoch === this.epoch && live()
         && (item.received && row.received || !row.received && row.leaseId === item.leaseId) ? null : undefined), 'Remove completed recording');
       if (removed && epoch === this.epoch && live()) {
-        this.completed.next({ id: item.id, transcript, failed }); this.storageRetries = 0;
+        this.completed.next({ id: item.id, transcript, failed, conversationId: item.conversationId }); this.storageRetries = 0;
         await this.refresh();
       }
     } catch { if (epoch === this.epoch) this.storageFailure(); }

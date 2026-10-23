@@ -18,6 +18,7 @@ export interface VoiceRecording {
   error?: string;
   received?: boolean;
   eventId?: string;
+  conversationId?: string;
   retryWindow?: number;
 }
 

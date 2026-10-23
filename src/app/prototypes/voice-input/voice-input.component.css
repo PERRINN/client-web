@@ -52,3 +52,10 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--color-focus); o
 }
 
 .diagnostics:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
+
+.reply-own { align-self: flex-end; border-radius: 16px 16px 4px 16px; background: var(--color-raised); }
+.message-meta { display: flex; flex-wrap: wrap; gap: 2px 10px; color: var(--color-text-secondary); margin-bottom: 4px; font-size: 15px; }
+.message-meta span, .message-meta time { font: inherit; }
+.history { align-self: center; background: var(--color-surface); }
+.conversation-state, .access-state { font-size: 15px; color: var(--color-text-secondary); }
+.conversation-state button { margin-top: 8px; }

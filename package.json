@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "test:orientation": "node --test scripts/mobile-orientation.test.mjs",
-    "test:voice-input": "node --test scripts/voice-input.test.mjs scripts/voice-queue.test.mjs scripts/voice-inbox.test.mjs scripts/voice-diagnostics.test.mjs",
+    "test:voice-input": "node --test scripts/voice-input.test.mjs scripts/voice-queue.test.mjs scripts/voice-inbox.test.mjs scripts/voice-diagnostics.test.mjs scripts/voice-conversation.test.mjs",
     "test:voice-input:emulator": "node --test scripts/voice-input.emulator.mjs",
     "ng": "ng",
     "start": "ng serve --configuration dev",

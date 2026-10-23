@@ -2,17 +2,19 @@ import { AfterViewChecked, ChangeDetectorRef, Component, ElementRef, HostListene
 import { Subscription } from 'rxjs';
 import { VoiceCaptureService } from './voiceCapture.service';
 import { VoiceInputService } from './voiceInput.service';
+import { VoiceConversationService } from './voiceConversation.service';
 import { VoiceQueueService } from './voiceQueue.service';
 import { VoiceDiagnosticRow, voiceDiagnosticRows } from './voiceDiagnostics';
 
 @Component({
   selector: 'app-voice-input', standalone: false,
   templateUrl: './voice-input.component.html', styleUrls: ['./voice-input.component.css'],
-  providers: [VoiceCaptureService, VoiceQueueService, VoiceInputService]
+  providers: [VoiceCaptureService, VoiceQueueService, VoiceInputService, VoiceConversationService]
 })
 export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy {
   @ViewChild('replies') private replies?: ElementRef<HTMLElement>;
-  private renderedReplies = 0;
+  private renderedReplies = ':';
+  private conversationChanges: Subscription;
   private pointer?: { downAt: number; id: number; x: number; y: number; uid: string; started: boolean; held: boolean };
   private keyboard?: { downAt: number; code: string; uid: string; started: boolean };
   private holdTimer?: ReturnType<typeof setTimeout>;
@@ -22,7 +24,12 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
   diagnosticUpdatedAt = 0;
   diagnosticBuild = '';
   private diagnosticsActive = false;
-  constructor(public voice: VoiceInputService, private changeDetector: ChangeDetectorRef) {
+  constructor(public voice: VoiceInputService, public conversation: VoiceConversationService, private changeDetector: ChangeDetectorRef) {
+    this.conversationChanges = conversation.changed.subscribe(() => {
+      voice.setAccess(conversation.allowed, conversation.uid);
+      changeDetector.markForCheck();
+    });
+    voice.setAccess(conversation.allowed, conversation.uid);
     this.changes = voice.changed.subscribe(() => {
       if (this.pointer && (this.pointer.uid !== voice.uid
         || (this.pointer.started && voice.phase !== 'requesting' && voice.phase !== 'recording'))) this.clearPointer();
@@ -54,9 +61,14 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
   }
 
   ngAfterViewChecked(): void {
-    if (this.renderedReplies === this.voice.replies.length) return;
-    this.renderedReplies = this.voice.replies.length;
+    const rendered = `${this.conversation.messages.at(-1)?.id || ''}:${this.voice.replies.at(-1)?.id || ''}`;
+    if (this.renderedReplies === rendered) return;
+    this.renderedReplies = rendered;
     this.replies?.nativeElement.lastElementChild?.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+  }
+
+  hasSharedReply(requestId: string): boolean {
+    return this.conversation.messages.some(message => message.requestId === requestId && message.userId === this.voice.uid);
   }
 
   toggle(): void {
@@ -128,5 +140,5 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
   visibility(): void { if (document.hidden) this.interrupt(); }
   @HostListener('window:pagehide')
   pageHide(): void { this.interrupt(); }
-  ngOnDestroy(): void { clearInterval(this.diagnosticTimer); this.diagnosticsActive = false; this.clearPointer(); this.keyboard = undefined; this.changes.unsubscribe(); }
+  ngOnDestroy(): void { clearInterval(this.diagnosticTimer); this.diagnosticsActive = false; this.clearPointer(); this.keyboard = undefined; this.changes.unsubscribe(); this.conversationChanges.unsubscribe(); }
 }

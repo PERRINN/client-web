@@ -183,3 +183,55 @@ test('existing image finalizer never publishes private audio or runs image queri
   await exports.storageOnFinalise.run({ data: { name: 'voice-input', bucket: 'demo' } });
   assert.deepEqual(operations, []);
 });
+
+const { VOICE_CONVERSATION, VOICE_ADMIN, VOICE_PARTICIPANT } = require('../functions/utils/voiceConversation');
+test('shared pilot accepts only its two participants, including an exact admin claim for its admin account', async () => {
+  for (const [uid, token, allowed] of [[VOICE_PARTICIPANT, {}, true], [VOICE_ADMIN, { perrinnAdmin: true }, true],
+    [VOICE_ADMIN, {}, false], ['outsider', {}, false], ['another-admin', { perrinnAdmin: true }, false]]) {
+    const f = fixture(), data = input({ owner: uid, conversationId: VOICE_CONVERSATION });
+    if (allowed) {
+      const receipt = await f.enqueue(data, { uid, token });
+      assert.equal(f.records.get(eventPath(receipt.eventId)).conversationId, VOICE_CONVERSATION);
+    } else {
+      await assert.rejects(f.enqueue(data, { uid, token }), e => e.code === 'permission-denied');
+      assert.equal(f.counts.reads, 0); assert.equal(f.counts.writes, 0); assert.equal(f.blobs.size, 0);
+    }
+  }
+  const f = fixture();
+  await assert.rejects(f.enqueue(input({ owner: VOICE_PARTICIPANT, conversationId: 'other' })), e => e.code === 'permission-denied');
+});
+test('shared completion publishes exactly once atomically, with trusted author and no private metadata', async () => {
+  const f = fixture(), data = input({ owner: VOICE_PARTICIPANT, conversationId: VOICE_CONVERSATION });
+  const receipt = await f.enqueue(data, { uid: data.owner, token: { name: 'Test participant' } });
+  const transaction = f.db.runTransaction.bind(f.db); let lost = false;
+  f.db.runTransaction = async (...args) => {
+    const result = await transaction(...args);
+    if (!lost && f.records.get(eventPath(receipt.eventId))?.status === 'completed') { lost = true; throw Error('Lost acknowledgement'); }
+    return result;
+  };
+  await f.process(receipt.eventId); await f.process(receipt.eventId); await f.enqueue(data);
+  const shared = [...f.records.keys()].filter(path => path.startsWith('VoiceConversations/'));
+  assert.deepEqual(shared, [`VoiceConversations/pilot/messages/${receipt.eventId}`]);
+  const message = f.records.get(shared[0]);
+  assert.deepEqual(Object.keys(message).sort(), ['authorName', 'createdAt', 'requestId', 'text', 'userId']);
+  assert.equal(message.text, 'Saved transcript'); assert.equal(message.authorName, 'Test participant');
+  assert.equal(message.requestId, data.requestId); assert.equal(message.userId, data.owner);
+  assert.equal(f.counts.provider, 1); assert.equal(lost, true);
+});
+test('replays cannot move a private recording into shared history or change its destination', async () => {
+  const f = fixture(), privateInput = input({ owner: VOICE_PARTICIPANT });
+  const receipt = await f.enqueue(privateInput);
+  await assert.rejects(f.enqueue({ ...privateInput, conversationId: VOICE_CONVERSATION }), e => e.code === 'invalid-argument');
+  await f.process(receipt.eventId);
+  assert.equal([...f.records.keys()].some(path => path.startsWith('VoiceConversations/')), false);
+  const shared = input({ owner: VOICE_PARTICIPANT, conversationId: VOICE_CONVERSATION });
+  await f.enqueue(shared);
+  const { conversationId, ...withoutDestination } = shared;
+  await assert.rejects(f.enqueue(withoutDestination), e => e.code === 'invalid-argument');
+});
+test('failed shared transcription never publishes a message', async () => {
+  const f = fixture(), receipt = await f.enqueue(input({ owner: VOICE_PARTICIPANT, conversationId: VOICE_CONVERSATION }));
+  await f.process(receipt.eventId, { transcribe: async () => { throw new VoiceInputError('failed-precondition', 'No speech'); } });
+  assert.equal(f.records.get(eventPath(receipt.eventId)).status, 'failed');
+  assert.equal([...f.records.keys()].some(path => path.startsWith('VoiceConversations/')), false);
+});

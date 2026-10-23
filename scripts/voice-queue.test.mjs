@@ -571,3 +571,15 @@ test('reopening after legacy recovery keeps the new short backoff without repeat
   f.service.ngOnDestroy(); const next = queue(t, { store }); await ready(next);
   assert.equal(next.calls.length, 0); assert.equal(next.service.diagnostics.nextAt, saved.nextAt);
 });
+
+test('new shared recordings persist their destination across reload without reclassifying legacy audio', async t => {
+  const env = environment(t, false), f = queue(t); await ready(f);
+  await f.service.enqueue(bytes, 'pilot'); await f.service.enqueue(bytes);
+  const items = (await f.store.list('alice')).items;
+  assert.equal(items[0].conversationId, 'pilot'); assert.equal(items[1].conversationId, undefined);
+  f.service.ngOnDestroy(); const next = queue(t); await ready(next);
+  env.navigator.onLine = true; env.window.dispatchEvent(new Event('online'));
+  await until(() => next.completed.length === 2); await ready(next);
+  assert.equal(next.calls[0].input.conversationId, 'pilot'); assert.equal(next.calls[1].input.conversationId, undefined);
+  assert.equal(next.completed[0].conversationId, 'pilot'); assert.equal(next.completed[1].conversationId, undefined);
+});
