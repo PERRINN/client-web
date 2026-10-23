@@ -3,7 +3,7 @@ const { VoiceInputError } = require('./voiceAudio');
 // Pilot participants only. This allowlist does not grant an application admin role.
 const VOICE_CONVERSATION = 'pilot';
 const VOICE_ADMIN = 'QYm5NATKa6MGD87UpNZCTl6IolX2';
-const VOICE_PARTICIPANT = 'sPJhQ9lcLRgdKcIitszQp4oi7M23';
+const VOICE_PARTICIPANT = 'xDfdZLLRHuObIUNEUj8SdClxZXf2';
 
 function authorizeVoiceConversation(auth, conversationId) {
   if (conversationId !== VOICE_CONVERSATION || !auth?.uid

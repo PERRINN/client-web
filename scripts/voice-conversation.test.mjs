@@ -43,6 +43,8 @@ test('pilot identity is consistent across the client, trusted handler and securi
 test('only the two participants open a single listener; permission changes clear history and unsubscribe', t => {
   const f = fixture(t, { uid: 'outsider', ready: true, isAdmin: true });
   assert.equal(f.service.allowed, false); assert.equal(f.calls.length, 0);
+  f.state.next({ uid: 'sPJhQ9lcLRgdKcIitszQp4oi7M23', ready: true, isAdmin: false });
+  assert.equal(f.service.allowed, false); assert.equal(f.calls.length, 0);
   f.state.next({ uid: VOICE_ADMIN, ready: true, isAdmin: false }); assert.equal(f.calls.length, 0);
   f.state.next({ uid: VOICE_ADMIN, ready: true, isAdmin: true }); assert.equal(f.active(), 1);
   f.emit([document('1')]); assert.equal(f.service.messages.length, 1);

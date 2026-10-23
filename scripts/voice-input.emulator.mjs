@@ -184,7 +184,7 @@ test('shared pilot publishes one message and rules isolate history to exactly tw
   await db.doc('VoiceConversations/other/messages/hidden').set(message);
   await db.doc(path + '/nested/hidden').set(message);
   for (const [uid, claims, allowed] of [[undefined, {}, false], [VOICE_PARTICIPANT, {}, true],
-    [VOICE_ADMIN, { perrinnAdmin: true }, true], [VOICE_ADMIN, {}, false], ['outsider', {}, false], ['other-admin', { perrinnAdmin: true }, false]]) {
+    [VOICE_ADMIN, { perrinnAdmin: true }, true], [VOICE_ADMIN, {}, false], ['sPJhQ9lcLRgdKcIitszQp4oi7M23', {}, false], ['outsider', {}, false], ['other-admin', { perrinnAdmin: true }, false]]) {
     assert.equal((await access(path, uid, 'GET', claims)).status, allowed ? 200 : 403);
     for (const method of ['PATCH', 'DELETE']) assert.equal((await access(path, uid, method, claims)).status, 403);
     assert.equal((await access('VoiceConversations/pilot/messages/new', uid, 'PATCH', claims)).status, 403);

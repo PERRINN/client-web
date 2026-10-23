@@ -6,7 +6,7 @@ import { PermissionsService } from '../../permissions.service';
 
 export const VOICE_CONVERSATION = 'pilot';
 export const VOICE_ADMIN = 'QYm5NATKa6MGD87UpNZCTl6IolX2';
-export const VOICE_PARTICIPANT = 'sPJhQ9lcLRgdKcIitszQp4oi7M23';
+export const VOICE_PARTICIPANT = 'xDfdZLLRHuObIUNEUj8SdClxZXf2';
 export interface VoiceMessage {
   id: string; userId: string; requestId: string; authorName: string; text: string;
   createdAt: firebase.firestore.Timestamp;

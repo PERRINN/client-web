@@ -187,7 +187,7 @@ test('existing image finalizer never publishes private audio or runs image queri
 const { VOICE_CONVERSATION, VOICE_ADMIN, VOICE_PARTICIPANT } = require('../functions/utils/voiceConversation');
 test('shared pilot accepts only its two participants, including an exact admin claim for its admin account', async () => {
   for (const [uid, token, allowed] of [[VOICE_PARTICIPANT, {}, true], [VOICE_ADMIN, { perrinnAdmin: true }, true],
-    [VOICE_ADMIN, {}, false], ['outsider', {}, false], ['another-admin', { perrinnAdmin: true }, false]]) {
+    [VOICE_ADMIN, {}, false], ['sPJhQ9lcLRgdKcIitszQp4oi7M23', {}, false], ['outsider', {}, false], ['another-admin', { perrinnAdmin: true }, false]]) {
     const f = fixture(), data = input({ owner: uid, conversationId: VOICE_CONVERSATION });
     if (allowed) {
       const receipt = await f.enqueue(data, { uid, token });
