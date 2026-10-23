@@ -1,5 +1,7 @@
 import { AfterViewChecked, ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { friendlyDateLabel } from '../../chat/chatDate';
+import { VoiceAuthorService } from './voiceAuthor.service';
 import { VoicePlaybackService } from './voicePlayback.service';
 import { VoiceCaptureService } from './voiceCapture.service';
 import { VoiceInputService, VoiceReply } from './voiceInput.service';
@@ -7,12 +9,12 @@ import { VoiceConversationService, VoiceMessage } from './voiceConversation.serv
 import { VoiceQueueService } from './voiceQueue.service';
 import { VoiceDiagnosticRow, VoiceKeyDiagnostics, voiceDiagnosticRows } from './voiceDiagnostics';
 
-interface ConversationEntry { id: string; createdAt: number; message?: VoiceMessage; reply?: VoiceReply }
+interface ConversationEntry { id: string; createdAt: number; message?: VoiceMessage; reply?: VoiceReply; dayStart?: boolean; continued?: boolean }
 
 @Component({
   selector: 'app-voice-input', standalone: false,
   templateUrl: './voice-input.component.html', styleUrls: ['./voice-input.component.css'],
-  providers: [VoiceCaptureService, VoiceQueueService, VoiceInputService, VoiceConversationService, VoicePlaybackService]
+  providers: [VoiceCaptureService, VoiceQueueService, VoiceInputService, VoiceConversationService, VoicePlaybackService, VoiceAuthorService]
 })
 export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy {
   @ViewChild('replies') private replies?: ElementRef<HTMLElement>;
@@ -27,6 +29,8 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
   private holdTimer?: ReturnType<typeof setTimeout>;
   private changes: Subscription;
   private diagnosticTimer?: ReturnType<typeof setInterval>;
+  diagnosticsOpen = false;
+  readonly dateLabel = friendlyDateLabel;
   diagnosticRows: VoiceDiagnosticRow[] = [];
   diagnosticSummary: VoiceDiagnosticRow[] = [];
   diagnosticDetails: VoiceDiagnosticRow[] = [];
@@ -34,7 +38,7 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
   diagnosticBuild = '';
   private diagnosticsActive = false;
   private readonly keyDiagnostics = new VoiceKeyDiagnostics();
-  constructor(public playback: VoicePlaybackService, public voice: VoiceInputService, public conversation: VoiceConversationService, private changeDetector: ChangeDetectorRef) {
+  constructor(public authors: VoiceAuthorService, public playback: VoicePlaybackService, public voice: VoiceInputService, public conversation: VoiceConversationService, private changeDetector: ChangeDetectorRef) {
     this.conversationChanges = conversation.changed.subscribe(() => {
       voice.setAccess(conversation.allowed, conversation.uid);
       changeDetector.markForCheck();
@@ -109,6 +113,12 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
       entries.push({ id: 'reply:' + reply.id, createdAt: reply.createdAt ?? reply.recording?.createdAt ?? 0, reply });
     }
     this.timeline = entries.sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id));
+    this.timeline.forEach((entry, index) => {
+      const previous = this.timeline[index - 1];
+      entry.dayStart = !previous || new Date(previous.createdAt).toDateString() !== new Date(entry.createdAt).toDateString();
+      entry.continued = !entry.dayStart && !!entry.message && previous?.message?.userId === entry.message.userId
+        && entry.createdAt - previous.createdAt <= 5 * 60 * 1000;
+    });
     return this.timeline;
   }
 

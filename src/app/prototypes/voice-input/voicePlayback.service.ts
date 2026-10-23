@@ -11,6 +11,8 @@ export class VoicePlaybackService implements OnDestroy {
   active = '';
   loading = '';
   error = '';
+  readonly idleLevels = [.15, .45, .8, .35, 1, .6, .25, .7, .2];
+  levels = this.idleLevels;
   private context?: AudioContext;
   private source?: AudioBufferSourceNode;
   private finish?: () => void;
@@ -21,6 +23,7 @@ export class VoicePlaybackService implements OnDestroy {
   private owner = '';
   private processing = false;
   private destroyed = false;
+  private waveformTimer?: ReturnType<typeof setInterval>;
   private readonly hide = () => { if (document.hidden) { this.queue = []; this.stop(); } };
 
   constructor(private functions: AngularFireFunctions, private injector: EnvironmentInjector,
@@ -112,6 +115,7 @@ export class VoicePlaybackService implements OnDestroy {
         this.finish = () => { clearTimeout(timer); resolve(); };
         source.onended = () => { if (this.source === source) this.stop(); };
         source.start();
+        this.startWaveform(cached.buffer);
       });
     } catch {
       if (epoch === this.epoch && owner === this.owner) { this.stop(); this.error = 'Could not play recording. Tap play to retry.'; }
@@ -119,7 +123,24 @@ export class VoicePlaybackService implements OnDestroy {
       if (epoch === this.epoch && owner === this.owner) { this.loading = ''; this.notify(); }
     }
   }
+  private startWaveform(buffer: AudioBuffer): void {
+    if (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this.levels = Array<number>(9).fill(.35); this.notify(); return;
+    }
+    const samples = buffer.getChannelData(0), startedAt = this.context!.currentTime;
+    // Read only the current 32 ms of already decoded audio, at most 13 times/s.
+    // The same nine-sample history drives both mirrored halves of the button.
+    this.waveformTimer = setInterval(() => {
+      const start = Math.floor((this.context!.currentTime - startedAt) * buffer.sampleRate);
+      const end = Math.min(start + 512, samples.length);
+      let energy = 0;
+      for (let i = start; i < end; i++) energy += samples[i] ** 2;
+      const level = Math.min(1, Math.sqrt(energy / Math.max(1, end - start)) * 5);
+      this.levels = [...this.levels.slice(1), level]; this.notify();
+    }, 80);
+  }
   private stop(): void {
+    clearInterval(this.waveformTimer); this.waveformTimer = undefined; this.levels = this.idleLevels;
     const source = this.source; this.source = undefined; this.active = '';
     if (source) { source.onended = null; try { source.stop(); } catch { /* Already ended. */ } source.disconnect(); }
     this.finish?.(); this.finish = undefined;

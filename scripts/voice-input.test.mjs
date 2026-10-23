@@ -19,6 +19,7 @@ function load(file, overrides = {}) {
   new Function('exports', 'require', code)(exports, name => overrides[name] || require(name));
   return exports;
 }
+const chatDateModule = load('../src/app/chat/chatDate.ts');
 const diagnosticsModule = load('../src/app/prototypes/voice-input/voiceDiagnostics.ts');
 const core = { Injectable: () => target => target, Component: () => target => target, HostListener: () => () => {}, ViewChild: () => () => {} };
 const audio = load('../src/app/prototypes/voice-input/voiceAudio.ts');
@@ -343,9 +344,9 @@ test('audio history is bounded, clears on release/cancel, and ignores late captu
 function componentFixture(fixture = client()) {
   let marks = 0;
   const { VoiceInputComponent } = load('../src/app/prototypes/voice-input/voice-input.component.ts', {
-    '@angular/core': core, './voiceDiagnostics': diagnosticsModule, './voiceCapture.service': {}, './voiceInput.service': {}, './voiceQueue.service': {}, './voiceConversation.service': {}, './voicePlayback.service': {}
+    '@angular/core': core, './voiceDiagnostics': diagnosticsModule, './voiceCapture.service': {}, './voiceInput.service': {}, './voiceQueue.service': {}, './voiceConversation.service': {}, './voiceAuthor.service': {}, './voicePlayback.service': {}, '../../chat/chatDate': chatDateModule
   });
-  const component = new VoiceInputComponent({ unlock() {} }, fixture.service, { allowed: true, uid: 'alice', messages: [], changed: new Subject() }, { markForCheck: () => { marks++; } });
+  const component = new VoiceInputComponent({}, { unlock() {} }, fixture.service, { allowed: true, uid: 'alice', messages: [], changed: new Subject() }, { markForCheck: () => { marks++; } });
   return { ...fixture, component, marks: () => marks };
 }
 const pointer = (changes = {}) => ({ pointerId: 1, pointerType: 'touch', isPrimary: true, button: 0,
@@ -641,9 +642,9 @@ test('new replies scroll into view once, without repeated scrolling on audio-lev
   const { Subject } = require('rxjs'); let scrolls = 0;
   const voice = { replies: [], changed: new Subject(), setAccess() {} };
   const { VoiceInputComponent } = load('../src/app/prototypes/voice-input/voice-input.component.ts', {
-    '@angular/core': core, './voiceDiagnostics': diagnosticsModule, './voiceCapture.service': {}, './voiceInput.service': {}, './voiceQueue.service': {}, './voiceConversation.service': {}, './voicePlayback.service': {}
+    '@angular/core': core, './voiceDiagnostics': diagnosticsModule, './voiceCapture.service': {}, './voiceInput.service': {}, './voiceQueue.service': {}, './voiceConversation.service': {}, './voiceAuthor.service': {}, './voicePlayback.service': {}, '../../chat/chatDate': chatDateModule
   });
-  const component = new VoiceInputComponent({ unlock() {} }, voice, { allowed: true, uid: 'alice', messages: [], changed: new Subject() }, { markForCheck() {} });
+  const component = new VoiceInputComponent({}, { unlock() {} }, voice, { allowed: true, uid: 'alice', messages: [], changed: new Subject() }, { markForCheck() {} });
   component.replies = { nativeElement: { lastElementChild: { scrollIntoView: () => { scrolls++; } } } };
   component.ngAfterViewChecked(); assert.equal(scrolls, 0);
   voice.replies.push({ id: 1, kind: 'transcript', text: 'Hello' });
@@ -1192,4 +1193,23 @@ test('capture and input share platform defaults, retain idle overrides, and rest
       service.setEchoCancellation(!expected); assert.equal(service.echoCancellation, expected);
     } finally { service.ngOnDestroy(); fixture.restore(); }
   }
+});
+
+test('voice message dates and five-minute author groups follow the production chat presentation', () => {
+  const { component, service } = componentFixture(), start = new Date(2026, 9, 23, 12).getTime();
+  const message = (id, userId, time) => ({ id, userId, text: '', createdAt: { toMillis: () => time } });
+  component.conversation.messages = [message('1', 'alice', start), message('2', 'alice', start + 300000),
+    message('3', 'alice', start + 600001), message('4', 'bob', start + 600002), message('5', 'bob', start + 86400000)];
+  assert.equal(component.diagnosticsOpen, false);
+  assert.deepEqual(component.conversationEntries.map(row => row.continued), [false, true, false, false, false]);
+  assert.deepEqual(component.conversationEntries.map(row => row.dayStart), [true, false, false, false, true]);
+  component.ngOnDestroy(); service.ngOnDestroy();
+});
+test('audio-only delivery clears the local receipt without creating a transcript or error bubble', async () => {
+  const response = new Subject(), { service } = client(() => response);
+  await service.press(); const releasing = service.release();
+  await until(() => service.queue.items.length === 1);
+  service.queue.completed.next({ id: service.queue.items[0].id, transcript: '', conversationId: 'pilot' });
+  assert.equal(service.replies.length, 0);
+  service.ngOnDestroy(); response.next({ transcript: '' }); response.complete(); await releasing;
 });

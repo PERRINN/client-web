@@ -227,3 +227,29 @@ test('private playback callable serves retained audio, atomically claims one dev
   await ref.update({ audioExpiresAt: Date.now() - 1 });
   await assert.rejects(voicePlayback.run({ data: { ...payload, automatic: false }, auth }), e => e.code === 'not-found');
 });
+
+test('audio is playable during transcription and remains a successful audio-only delivery when transcription fails', async () => {
+  const { VOICE_ADMIN, VOICE_PARTICIPANT } = require('../functions/utils/voiceConversation');
+  const { VoiceInputError } = require('../functions/utils/voiceAudio');
+  const { voicePlayback } = require('../functions/voicePlayback.f.js');
+  const data = { ...request(), owner: VOICE_PARTICIPANT, conversationId: 'pilot' };
+  let fail;
+  const settings = options({ enqueue: async () => {}, transcribe: () => new Promise((_resolve, reject) => { fail = reject; }) });
+  const receipt = await enqueueVoiceInput(db, bucket, { uid: data.owner }, data, settings);
+  const processing = processVoiceInbox(db, bucket, { eventId: receipt.eventId }, settings);
+  for (let i = 0; i < 100 && !fail; i++) await new Promise(resolve => setTimeout(resolve, 10));
+  assert.ok(fail);
+  const messageRef = db.doc(`VoiceConversations/pilot/messages/${receipt.eventId}`), before = (await messageRef.get()).data();
+  assert.equal(before.text, ''); assert.equal(before.source, 'voice');
+  const played = await voicePlayback.run({ data: { eventId: receipt.eventId, automatic: true }, auth: { uid: VOICE_ADMIN, token: { perrinnAdmin: true } } });
+  assert.deepEqual(Buffer.from(played.audio, 'base64'), audio);
+  fail(new VoiceInputError('failed-precondition', 'No transcript')); await processing;
+  const event = (await db.doc('VoiceInputEvents/' + receipt.eventId).get()).data(), after = (await messageRef.get()).data();
+  assert.equal(event.status, 'completed'); assert.equal(event.transcript, ''); assert.equal(after.text, '');
+  assert.equal(after.createdAt.toMillis(), before.createdAt.toMillis());
+  const status = await voiceInputStatus.run({ data: { requestId: data.requestId }, auth: { uid: data.owner } });
+  assert.equal(status.status, 'completed'); assert.equal(status.transcript, '');
+  assert.equal((await access(messageRef.path, VOICE_ADMIN, 'GET', { perrinnAdmin: true })).status, 200);
+  assert.equal((await access(messageRef.path, 'outsider')).status, 403);
+  assert.equal((await bucket.file(event.audioPath).exists())[0], true);
+});

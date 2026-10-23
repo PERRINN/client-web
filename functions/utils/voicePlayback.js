@@ -12,7 +12,7 @@ async function voicePlayback(db, bucket, auth, data, now = Date.now()) {
   const ref = db.doc('VoiceInputEvents/' + data.eventId);
   const event = await db.runTransaction(async tx => {
     const event = (await tx.get(ref)).data();
-    if (!event || event.conversationId !== 'pilot' || event.status !== 'completed'
+    if (!event || event.conversationId !== 'pilot' || !['queued', 'processing', 'completed'].includes(event.status)
       || !Number.isFinite(event.audioExpiresAt) || event.audioExpiresAt <= now
       || event.audioPath !== `voice-input/${event.userId}/${data.eventId}.wav`) {
       throw new VoiceInputError('not-found', 'Recording unavailable.');

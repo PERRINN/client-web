@@ -257,11 +257,15 @@ test('replays cannot move a private recording into shared history or change its 
   const { conversationId, ...withoutDestination } = shared;
   await assert.rejects(f.enqueue(withoutDestination), e => e.code === 'invalid-argument');
 });
-test('failed shared transcription never publishes a message', async () => {
+test('failed shared transcription delivers a playable audio-only message', async () => {
   const f = fixture(), receipt = await f.enqueue(input({ owner: VOICE_PARTICIPANT, conversationId: VOICE_CONVERSATION }));
   await f.process(receipt.eventId, { transcribe: async () => { throw new VoiceInputError('failed-precondition', 'No speech'); } });
-  assert.equal(f.records.get(eventPath(receipt.eventId)).status, 'failed');
-  assert.equal([...f.records.keys()].some(path => path.startsWith('VoiceConversations/')), false);
+  const event = f.records.get(eventPath(receipt.eventId));
+  assert.equal(event.status, 'completed'); assert.equal(event.transcript, '');
+  const message = f.records.get(`VoiceConversations/pilot/messages/${receipt.eventId}`);
+  assert.equal(message.text, ''); assert.equal(message.source, 'voice');
+  assert.ok((await voicePlayback(f.db, f.bucket, { uid: VOICE_ADMIN, token: { perrinnAdmin: true } },
+    { eventId: receipt.eventId, automatic: false }, f.options.now())).audio);
 });
 
 const { voicePlayback } = require('../functions/utils/voicePlayback');
@@ -290,7 +294,7 @@ test('one recipient device claims automatic audio; sender never auto downloads a
   assert.equal(f.counts.provider, 1);
 });
 test('expired, legacy, wrong destination and forged paths never download audio', async () => {
-  for (const change of [{ audioExpiresAt: 0 }, { audioExpiresAt: undefined }, { conversationId: 'other' }, { audioPath: 'images/secret' }, { status: 'queued' }, { userId: 'outsider' }]) {
+  for (const change of [{ audioExpiresAt: 0 }, { audioExpiresAt: undefined }, { conversationId: 'other' }, { audioPath: 'images/secret' }, { status: 'receiving' }, { userId: 'outsider' }]) {
     const f = await playableFixture(), before = f.counts.downloads;
     Object.assign(f.records.get(eventPath(f.id)), change);
     await assert.rejects(f.play(playbackAdmin)); assert.equal(f.counts.downloads, before);
@@ -306,4 +310,57 @@ test('failed first automatic download is not repeated across devices; explicit r
   f.bucket.file = original;
   assert.deepEqual(await f.play(playbackAdmin, true), { skipped: true });
   assert.ok((await f.play(playbackAdmin)).audio);
+});
+
+
+test('verified audio is shared and playable before transcription; text updates the same message without reordering', async () => {
+  const f = fixture(), receipt = await f.enqueue(input({ owner: VOICE_PARTICIPANT, conversationId: 'pilot' }));
+  let finish;
+  const pending = f.process(receipt.eventId, { transcribe: () => new Promise(resolve => { finish = resolve; }) });
+  for (let i = 0; i < 100 && !finish; i++) await new Promise(setImmediate);
+  assert.ok(finish);
+  const path = `VoiceConversations/pilot/messages/${receipt.eventId}`, before = f.records.get(path);
+  assert.equal(before.text, ''); assert.equal(f.records.get(eventPath(receipt.eventId)).status, 'processing');
+  assert.ok((await voicePlayback(f.db, f.bucket, playbackAdmin, { eventId: receipt.eventId, automatic: false }, f.options.now())).audio);
+  f.advance(10000); finish('Later text'); await pending;
+  const after = f.records.get(path);
+  assert.equal(after.text, 'Later text'); assert.equal(after.createdAt, before.createdAt);
+  assert.equal(after.audioExpiresAt, before.audioExpiresAt);
+  assert.equal([...f.records.keys()].filter(p => p.startsWith('VoiceConversations/')).length, 1);
+});
+test('shared transcription retries exhaust as one successful audio delivery, with no extra provider work on replay', async () => {
+  const f = fixture(), data = input({ owner: VOICE_PARTICIPANT, conversationId: 'pilot' }), receipt = await f.enqueue(data);
+  let calls = 0;
+  const settings = { transcribe: async () => { calls++; throw new VoiceInputError('unavailable', 'Offline'); } };
+  for (let i = 0; i < 3; i++) {
+    if (i < 2) await assert.rejects(f.process(receipt.eventId, settings)); else await f.process(receipt.eventId, settings);
+  }
+  const event = f.records.get(eventPath(receipt.eventId));
+  assert.equal(event.status, 'completed'); assert.equal(event.transcript, ''); assert.equal(event.failureCode, 'transcription-unavailable');
+  assert.equal(f.records.get(`VoiceConversations/pilot/messages/${receipt.eventId}`).text, '');
+  assert.deepEqual(await f.enqueue(data), { eventId: receipt.eventId, status: 'completed', transcript: '' });
+  await f.process(receipt.eventId, settings); assert.equal(calls, 3); assert.equal(f.blobs.size, 1);
+});
+test('task/attempt exhaustion preserves already shared audio and empty transcription is delivered without text', async () => {
+  for (const end of ['task', 'attempt', 'empty']) {
+    const f = fixture(), receipt = await f.enqueue(input({ owner: VOICE_PARTICIPANT, conversationId: 'pilot' }));
+    if (end === 'empty') await f.process(receipt.eventId, { transcribe: async () => '' });
+    else {
+      await assert.rejects(f.process(receipt.eventId, { transcribe: async () => { throw new VoiceInputError('unavailable', 'Offline'); } }));
+      if (end === 'task') await failExhaustedInbox(f.db, receipt.eventId, f.options.timestamp);
+      else { f.records.get(eventPath(receipt.eventId)).attempts = 3; await f.process(receipt.eventId); }
+    }
+    assert.equal(f.records.get(eventPath(receipt.eventId)).status, 'completed');
+    assert.equal(f.records.get(eventPath(receipt.eventId)).transcript, '');
+    assert.equal(f.records.get(`VoiceConversations/pilot/messages/${receipt.eventId}`).text, '');
+    assert.equal(f.blobs.size, 1);
+  }
+});
+test('invalid stored audio is never shared and retains the existing failure behavior', async () => {
+  const f = fixture(), receipt = await f.enqueue(input({ owner: VOICE_PARTICIPANT, conversationId: 'pilot' }));
+  f.blobs.values().next().value.bytes[50] ^= 1;
+  await f.process(receipt.eventId);
+  assert.equal(f.records.get(eventPath(receipt.eventId)).status, 'failed');
+  assert.equal(f.records.has(`VoiceConversations/pilot/messages/${receipt.eventId}`), false);
+  await assert.rejects(voicePlayback(f.db, f.bucket, playbackAdmin, { eventId: receipt.eventId, automatic: false }, f.options.now()));
 });

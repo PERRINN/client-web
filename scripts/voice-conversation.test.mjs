@@ -97,4 +97,6 @@ test('incoming playback events exclude old history, own messages and duplicate s
   const fresh = document('new', now + 2, VOICE_ADMIN);
   f.emit([fresh, own, old]); assert.deepEqual(incoming, ['new']);
   f.emit([fresh, own, old]); assert.deepEqual(incoming, ['new']);
+  const updated = { ...fresh, data: () => ({ ...fresh.data(), text: 'Late transcript' }) };
+  f.emit([updated, own, old]); assert.deepEqual(incoming, ['new'], 'Adding transcription never replays incoming audio.');
 });

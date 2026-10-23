@@ -1,7 +1,10 @@
 :host { display: block; height: 100%; min-height: 0; color: var(--color-text); font-family: var(--font-family-ui); }
 :host :where(*) { font-size: inherit; line-height: inherit; overflow: visible; }
-.voice-page { display: flex; flex-direction: column; height: 100%; min-height: 0; max-width: 960px; margin: 0 auto; padding: 16px 16px calc(130px + env(safe-area-inset-bottom, 0px)); font-size: 16px; line-height: 1.45; }
-.back { display: inline-block; flex: 0 0 auto; align-self: flex-start; font-size: 15px; margin-bottom: 16px; text-decoration: none; }
+.voice-page { display: flex; flex-direction: column; height: 100%; min-height: 0; max-width: 960px; margin: 0 auto; padding: 16px 16px calc(130px + env(safe-area-inset-bottom, 0px)); font-size: 14px; line-height: 1.45; }
+.voice-header { display: flex; flex: 0 0 44px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.back { font-size: 14px; text-decoration: none; }
+.diagnostic-toggle { display: grid; place-items: center; width: 44px; padding: 0; background: transparent; border: 0; border-radius: 8px; }
+.diagnostic-toggle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; }
 .capture-panel { display: flex; flex-direction: column; align-items: center; gap: 16px; }
 button { margin: 0; transition: none; color: var(--color-text); background: #242424; padding: 10px 14px; min-height: 44px; }
 .voice-dock { position: fixed; bottom: calc(40px + env(safe-area-inset-bottom, 0px)); z-index: 20; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border: 0; border-radius: 44px; touch-action: none; user-select: none; -webkit-touch-callout: none; background: #242424; color: #f5f5f5; }
@@ -19,8 +22,8 @@ button { margin: 0; transition: none; color: var(--color-text); background: #242
 .talk-logo { display: block; width: 100%; height: 100%; border-radius: 0; background: currentColor; mask: url('/assets/App icons/perrinn-02.png') center / 116% no-repeat; -webkit-mask: url('/assets/App icons/perrinn-02.png') center / 116% no-repeat; }
 .voice-dock:disabled .talk { color: #aaa; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
-.replies { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
-.reply { max-width: 92%; padding: 12px 16px; border-radius: 16px 16px 16px 4px; background: #242424; color: #f5f5f5; scroll-margin-bottom: 128px; }
+.replies { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.reply { max-width: 92%; padding: 8px 10px; border-radius: 4px 16px 16px; background: var(--color-surface); color: var(--color-text); scroll-margin-bottom: 128px; }
 .reply p { white-space: pre-wrap; overflow-wrap: anywhere; }
 .reply-error { background: #1d1d1d; }
 .recording-state { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
@@ -33,9 +36,9 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--color-focus); o
   .waveform i { transition: height 90ms linear, background-color 140ms ease; }
 }
 
-.voice-content { display: grid; flex: 1 1 0; min-height: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 16px; }
-.replies { min-width: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 8px; }
-.diagnostics { min-width: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; background: var(--color-surface); border-radius: 12px; padding: 12px; font-size: 14px; line-height: 1.4; }
+.voice-content { position: relative; flex: 1 1 0; min-height: 0; }
+.replies { height: 100%; min-width: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 8px; }
+.diagnostics { position: absolute; inset: 0 0 0 auto; z-index: 25; width: min(420px, 100%); min-width: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; background: var(--color-surface); border-radius: 12px; padding: 12px; font-size: 14px; line-height: 1.4; }
 .diagnostics h2 { font-size: 14px; line-height: 1.4; font-weight: 600; margin: 0; }
 .diagnostic-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
 .diagnostic-meta { color: var(--color-text-muted); margin: 0; font-size: 12px; text-align: right; }
@@ -49,21 +52,29 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--color-focus); o
 .state-error { color: var(--color-danger-text); }
 @media (max-width: 480px) {
   .voice-page { padding: 12px 0 calc(130px + env(safe-area-inset-bottom, 0px)); }
-  .voice-content { gap: 8px; }
   .diagnostics { padding: 8px; }
-  .reply { padding: 10px; }
 }
 
 .diagnostics:focus-visible, .replies:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
 
 @media (orientation: landscape) and (max-height: 500px) and (min-width: 600px) {
   .voice-page { padding-top: 12px; }
-  .back { margin-bottom: 8px; }
+  .voice-header { margin-bottom: 8px; }
 }
 
-.reply-own { align-self: flex-end; border-radius: 16px 16px 4px 16px; background: var(--color-raised); }
-.message-meta { display: flex; flex-wrap: wrap; gap: 2px 10px; color: var(--color-text-secondary); margin-bottom: 4px; font-size: 15px; }
-.message-meta span, .message-meta time { font: inherit; }
+.message-row { display: flex; align-items: flex-start; gap: 10px; width: 100%; max-width: 850px; margin: 0 auto; }
+.message-row .reply { min-width: 0; max-width: min(82%, 620px); }
+.member-avatar { flex: 0 0 34px; width: 34px; height: 34px; border-radius: 50%; background: var(--color-raised); }
+.reply-own { justify-content: flex-end; }
+.reply-own .reply { border-radius: 16px 4px 16px 16px; background: var(--color-raised); }
+.continued:not(.reply-own)::before { content: ''; flex: 0 0 34px; }
+.continued .reply { padding-block: 4px; }
+.continuation-time { display: block; text-align: right; color: var(--color-text-muted); font-size: 13px; }
+.date-divider { align-self: center; margin: 12px 0 16px; color: var(--color-text-muted); font-size: 13px; }
+@media (max-width: 700px) { .message-row .reply { max-width: calc(100% - 44px); } .reply-own .reply { max-width: 92%; } }
+.message-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; margin-bottom: 4px; font-size: 14px; }
+.message-meta strong { font-size: 14px; font-weight: 550; }
+.message-meta time { font-size: 13px; color: var(--color-text-muted); }
 .history { align-self: center; background: var(--color-surface); }
 .conversation-state, .access-state { font-size: 15px; color: var(--color-text-secondary); }
 .conversation-state button { margin-top: 8px; }
@@ -79,7 +90,14 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--color-focus); o
 
 .message-body { display: block; }
 .message-body p { min-width: 0; }
-.voice-play { display: block; margin: 0 0 0 auto; width: 32px; height: 44px; min-width: 32px; padding: 6px; background: transparent; color: var(--color-text-secondary); border: 0; border-radius: 6px; }
-.voice-play svg { width: 20px; height: 20px; fill: currentColor; }
+.voice-play { display: grid; place-items: center; margin: 0 0 0 auto; width: 68px; height: 44px; min-width: 68px; padding: 0; background: transparent; color: var(--color-text-secondary); border: 0; border-radius: 999px; }
+.playback-pill { display: flex; align-items: center; justify-content: center; gap: 4px; width: 68px; height: 32px; border-radius: 999px; background: #242424; }
+.voice-play.playing .playback-pill { background: #303030; outline: 1px solid #686868; outline-offset: -1px; }
+.playback-feedback { display: grid; place-items: center; width: 26px; height: 20px; }
+.playback-feedback:last-child .waveform { flex-direction: row-reverse; }
+.playback-feedback .waveform, .playback-feedback .waiting { height: 20px; gap: 1.5px; }
+.playback-feedback .waveform i { width: 1.5px; }
+.voice-play.playing .waveform i { background: currentColor; }
+.playback-feedback .waiting i { width: 3px; height: 3px; }
 .voice-play:disabled { opacity: .45; }
 .voice-play[aria-busy="true"] { opacity: .6; }

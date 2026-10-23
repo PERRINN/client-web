@@ -1,5 +1,14 @@
 <main class="voice-page">
-  <a class="back" routerLink="/prototypes">← Prototyping</a>
+  <header class="voice-header">
+    <a class="back" routerLink="/prototypes">← Prototyping</a>
+    @if (conversation.allowed) {
+      <button class="diagnostic-toggle" type="button" (pointerdown)="$event.preventDefault()" (click)="diagnosticsOpen = !diagnosticsOpen"
+        [attr.aria-expanded]="diagnosticsOpen" aria-controls="voice-diagnostics"
+        [attr.aria-label]="diagnosticsOpen ? 'Close diagnostics' : 'Open diagnostics'" [attr.title]="diagnosticsOpen ? 'Close diagnostics' : 'Open diagnostics'">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16M8 4v6M16 14v6" /></svg>
+      </button>
+    }
+  </header>
   @if (conversation.allowed) {
   <section class="capture-panel" aria-label="Voice recording">
     <button #dock class="voice-dock" type="button" [class.recording]="voice.phase === 'recording'"
@@ -59,23 +68,42 @@
     }
     <p class="playback-status sr-only" role="status">{{ playback.error }}</p>
     @for (entry of conversationEntries; track entry.id) {
+      @if (entry.dayStart) { <p class="date-divider"><time [attr.datetime]="entry.createdAt | date:'yyyy-MM-dd'" [attr.title]="entry.createdAt | date:'fullDate'">{{ dateLabel(entry.createdAt) }}</time></p> }
       @if (entry.message; as message) {
-        <article class="reply" [class.reply-own]="message.userId === voice.uid">
-          <div class="message-meta"><span>{{ message.userId === voice.uid ? 'You' : message.authorName }}</span>
-            <time [attr.datetime]="message.createdAt.toDate() | date:'yyyy-MM-ddTHH:mm:ssZZZZZ'">{{ message.createdAt.toDate() | date:'short' }}</time>
-          </div>
+        <article class="message-row" [class.reply-own]="message.userId === voice.uid" [class.continued]="entry.continued" [attr.aria-label]="'Message from ' + (message.userId === voice.uid ? 'You' : authors.name(message))">
+          @if (!entry.continued && message.userId !== voice.uid) { <app-user-avatar class="member-avatar" [name]="authors.name(message)" [sources]="authors.sources(message)" aria-hidden="true" /> }
+          <div class="reply">
+          @if (!entry.continued) {
+            <div class="message-meta"><strong>{{ message.userId === voice.uid ? 'You' : authors.name(message) }}</strong>
+              <time [attr.datetime]="entry.createdAt | date:'yyyy-MM-ddTHH:mm:ssZZZZZ'">{{ entry.createdAt | date:'HH:mm' }}</time>
+            </div>
+          }
           <div class="message-body">
-            <p>{{ message.text }}</p>
+            @if (message.text) { <p>{{ message.text }}</p> }
             @if (message.source === 'voice' || message.requestId) {
-              <button class="voice-play" type="button" [disabled]="!playback.available(message) || voice.busy"
+              <button class="voice-play" type="button" [class.playing]="playback.active === message.id"
+                [disabled]="!playback.available(message) || voice.busy"
                 [attr.aria-label]="playback.label(message)" [attr.title]="playback.label(message)"
                 [attr.aria-pressed]="playback.active === message.id" [attr.aria-busy]="playback.loading === message.id" (click)="playback.toggle(message)">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                  @if (playback.active === message.id) { <path d="M6 6h12v12H6z" /> }
-                  @else { <path d="M7 2a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zM1 9h2v1a4 4 0 0 0 8 0V9h2v1a6 6 0 0 1-5 5.92V20h3v2H3v-2h3v-4.08A6 6 0 0 1 1 10zM16 7v10l7-5z" /> }
-                </svg>
+                <span class="playback-pill" aria-hidden="true">
+                  @for (side of [0, 1]; track side) {
+                    <span class="playback-feedback">
+                      @if (playback.loading === message.id) {
+                        <span class="waiting"><i></i><i></i><i></i></span>
+                      } @else {
+                        <span class="waveform">
+                          @for (level of playback.active === message.id ? playback.levels : playback.idleLevels; track $index) {
+                            <i [style.height.px]="3 + level * 13"></i>
+                          }
+                        </span>
+                      }
+                    </span>
+                  }
+                </span>
               </button>
             }
+          </div>
+          @if (entry.continued) { <time class="continuation-time" [attr.datetime]="entry.createdAt | date:'yyyy-MM-ddTHH:mm:ssZZZZZ'">{{ entry.createdAt | date:'HH:mm' }}</time> }
           </div>
         </article>
       }
@@ -93,7 +121,7 @@
       }
     }
   </section>
-  <aside class="diagnostics" aria-label="Voice diagnostics" tabindex="0">
+  <aside id="voice-diagnostics" class="diagnostics" [hidden]="!diagnosticsOpen" aria-label="Voice diagnostics" tabindex="0">
     <header class="diagnostic-heading">
       <h2>States</h2>
       <p class="diagnostic-meta">{{ diagnosticBuild }}<br><time>{{ diagnosticUpdatedAt | date:'HH:mm:ss' }}</time></p>

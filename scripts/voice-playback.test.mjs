@@ -20,10 +20,10 @@ function fixture(t) {
   const document = { hidden: false, hasFocus: () => true, addEventListener: (key, fn) => listeners.set(key, fn), removeEventListener: key => listeners.delete(key) };
   globalThis.document = document;
   globalThis.AudioContext = class {
-    state = 'suspended'; destination = {};
+    state = 'suspended'; destination = {}; currentTime = 0;
     resume() { this.state = 'running'; return Promise.resolve(); }
     close() { this.state = 'closed'; return Promise.resolve(); }
-    decodeAudioData() { return Promise.resolve({ duration: 1 }); }
+    decodeAudioData() { return Promise.resolve({ duration: 1, sampleRate: 16000, getChannelData: () => new Float32Array(16000).fill(.1) }); }
     createBufferSource() { const node = { connect() {}, disconnect() {}, start() {}, stop() {}, onended: null }; nodes.push(node); return node; }
   };
   const conversation = { changed: new Subject(), incoming: new Subject(), allowed: true, uid: 'recipient' };
@@ -80,4 +80,27 @@ test('cache evicts at ten recordings, expires and is released on navigation', as
   f.service.cache.get('11').expiresAt = 1;
   f.service.toggle(f.message('11')); await tick(); assert.equal(f.calls.length, 13);
   f.service.ngOnDestroy(); assert.equal(f.service.cache.size, 0); assert.equal(f.service.active, '');
+});
+
+test('idle waveform has a fixed sound shape; playback follows decoded samples and releases its timer on stop', async t => {
+  t.mock.timers.enable({ apis: ['setInterval'] });
+  const f = fixture(t), idle = [...f.service.idleLevels];
+  assert.ok(new Set(idle).size > 1); assert.ok(idle.some(level => level > .5));
+  t.mock.timers.tick(1000); assert.deepEqual(f.service.levels, idle);
+  f.service.toggle(f.message('wave')); await tick();
+  const calls = f.calls.length;
+  t.mock.timers.tick(80);
+  assert.ok(Math.abs(f.service.levels.at(-1) - .5) < .00001);
+  assert.notDeepEqual(f.service.levels, idle); assert.equal(f.calls.length, calls, 'Waveform uses local audio only.');
+  f.service.toggle(f.message('wave'));
+  assert.deepEqual(f.service.levels, idle); assert.equal(f.service.waveformTimer, undefined);
+  t.mock.timers.tick(1000); assert.deepEqual(f.service.levels, idle);
+});
+test('reduced-motion playback keeps the waveform static and avoids a sampling timer', async t => {
+  const original = globalThis.matchMedia;
+  globalThis.matchMedia = () => ({ matches: true });
+  t.after(() => { globalThis.matchMedia = original; });
+  const f = fixture(t); f.service.toggle(f.message('still')); await tick();
+  assert.equal(f.service.active, 'still'); assert.equal(f.service.waveformTimer, undefined);
+  assert.deepEqual(f.service.levels, Array(9).fill(.35));
 });
