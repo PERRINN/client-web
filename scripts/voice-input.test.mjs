@@ -9,7 +9,7 @@ import { BehaviorSubject, Subject, firstValueFrom, of, throwError } from 'rxjs';
 const require = createRequire(import.meta.url);
 const { validateInput, VoiceInputError } = require('../functions/utils/voiceAudio');
 const { processVoiceInput } = require('../functions/utils/voiceInput');
-const { VOICE_PARTICIPANT } = require('../functions/utils/voiceConversation');
+const { VOICE_PARTICIPANT, VOICE_PARTICIPANTS } = require('../functions/utils/voiceConversation');
 const { transcribe } = require('../functions/utils/voiceTranscription');
 function load(file, overrides = {}) {
   const code = ts.transpileModule(readFileSync(new URL(file, import.meta.url), 'utf8'), {
@@ -811,6 +811,8 @@ test('opening cue waits for a connected input graph, with immediate cancellation
 test('1000 quota applies to the pilot participant or configured trusted admin', async () => {
   for (const [uid, token, highLimitUid, expected] of [
     [VOICE_PARTICIPANT, {}, '', 1000],
+    [VOICE_PARTICIPANTS[1], {}, '', 1000],
+    [VOICE_PARTICIPANTS[1] + '-other', {}, '', 20],
     [VOICE_PARTICIPANT + '-other', {}, '', 20],
     ['alice', { perrinnAdmin: true }, 'alice', 1000],
     ['alice', {}, 'alice', 20],

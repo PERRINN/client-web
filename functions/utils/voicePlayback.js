@@ -1,5 +1,5 @@
 const { VoiceInputError } = require('./voiceAudio');
-const { authorizeVoiceConversation, VOICE_ADMIN, VOICE_PARTICIPANT } = require('./voiceConversation');
+const { authorizeVoiceConversation, VOICE_ADMIN, VOICE_PARTICIPANTS } = require('./voiceConversation');
 
 // One known event, at most three transaction attempts, and one bounded object
 // download. Automatic delivery is claimed once; manual replay remains available.
@@ -18,7 +18,7 @@ async function voicePlayback(db, bucket, auth, data, now = Date.now()) {
       throw new VoiceInputError('not-found', 'Recording unavailable.');
     }
     // Validate author as well as current participant access.
-    if (![VOICE_ADMIN, VOICE_PARTICIPANT].includes(event.userId)) throw new VoiceInputError('not-found', 'Recording unavailable.');
+    if (![VOICE_ADMIN, ...VOICE_PARTICIPANTS].includes(event.userId)) throw new VoiceInputError('not-found', 'Recording unavailable.');
     if (data.automatic) {
       if (event.userId === auth.uid || event.audioAutoClaimedAt) return null;
       tx.update(ref, { audioAutoClaimedAt: now });

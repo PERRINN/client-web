@@ -170,9 +170,9 @@ test('durable inbox uses real Firestore and Storage, survives lost receipt, and 
   assert.equal((await bucket.file(event.audioPath).exists())[0], false);
 });
 
-test('shared pilot publishes one message and rules isolate history to exactly two participants', async () => {
-  const { VOICE_ADMIN, VOICE_PARTICIPANT } = require('../functions/utils/voiceConversation');
-  const data = { ...request(), owner: VOICE_PARTICIPANT, conversationId: 'pilot' };
+for (const uid of ['xDfdZLLRHuObIUNEUj8SdClxZXf2', 'sks8zpXOy7ZBzhOIx1ISjtNgegh1']) test('shared pilot publishes for ' + uid + ' and rules isolate history to exactly three participants', async () => {
+  const { VOICE_ADMIN, VOICE_PARTICIPANT, VOICE_PARTICIPANTS } = require('../functions/utils/voiceConversation');
+  const data = { ...request(), owner: uid, conversationId: 'pilot' };
   let calls = 0;
   const settings = options({ enqueue: async () => {}, transcribe: async () => { calls++; return 'Shared result'; } });
   const receipt = await enqueueVoiceInput(db, bucket, { uid: data.owner, token: { name: 'Pilot participant' } }, data, settings);
@@ -183,7 +183,7 @@ test('shared pilot publishes one message and rules isolate history to exactly tw
   assert.equal(message.authorName, 'Pilot participant'); assert.ok(message.createdAt.toMillis() > 0);
   await db.doc('VoiceConversations/other/messages/hidden').set(message);
   await db.doc(path + '/nested/hidden').set(message);
-  for (const [uid, claims, allowed] of [[undefined, {}, false], [VOICE_PARTICIPANT, {}, true],
+  for (const [uid, claims, allowed] of [[undefined, {}, false], [VOICE_PARTICIPANT, {}, true], [VOICE_PARTICIPANTS[1], {}, true],
     [VOICE_ADMIN, { perrinnAdmin: true }, true], [VOICE_ADMIN, {}, false], ['sPJhQ9lcLRgdKcIitszQp4oi7M23', {}, false], ['outsider', {}, false], ['other-admin', { perrinnAdmin: true }, false]]) {
     assert.equal((await access(path, uid, 'GET', claims)).status, allowed ? 200 : 403);
     for (const method of ['PATCH', 'DELETE']) assert.equal((await access(path, uid, method, claims)).status, 403);
@@ -206,7 +206,7 @@ test('shared pilot publishes one message and rules isolate history to exactly tw
 
 
 test('private playback callable serves retained audio, atomically claims one device, and denies other accounts', async () => {
-  const { VOICE_ADMIN, VOICE_PARTICIPANT } = require('../functions/utils/voiceConversation');
+  const { VOICE_ADMIN, VOICE_PARTICIPANT, VOICE_PARTICIPANTS } = require('../functions/utils/voiceConversation');
   const { voicePlayback } = require('../functions/voicePlayback.f.js');
   const data = { ...request(), owner: VOICE_PARTICIPANT, conversationId: 'pilot' };
   const settings = options({ enqueue: async () => {}, transcribe: async () => 'Playable result' });
@@ -220,6 +220,8 @@ test('private playback callable serves retained audio, atomically claims one dev
   assert.equal(results.filter(r => r.skipped).length, 1); assert.equal(results.filter(r => r.audio).length, 1);
   const manual = await voicePlayback.run({ data: { ...payload, automatic: false }, auth: { uid: VOICE_PARTICIPANT } });
   assert.deepEqual(Buffer.from(manual.audio, 'base64'), audio);
+  const added = await voicePlayback.run({ data: { ...payload, automatic: false }, auth: { uid: VOICE_PARTICIPANTS[1] } });
+  assert.deepEqual(Buffer.from(added.audio, 'base64'), audio);
   const ref = db.doc('VoiceInputEvents/' + receipt.eventId), event = (await ref.get()).data();
   assert.ok(event.audioAutoClaimedAt); assert.ok(event.audioExpiresAt > Date.now());
   assert.equal((await storageAccess(event.audioPath, VOICE_PARTICIPANT)).status, 403);

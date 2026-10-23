@@ -7,6 +7,7 @@ import { PermissionsService } from '../../permissions.service';
 export const VOICE_CONVERSATION = 'pilot';
 export const VOICE_ADMIN = 'QYm5NATKa6MGD87UpNZCTl6IolX2';
 export const VOICE_PARTICIPANT = 'xDfdZLLRHuObIUNEUj8SdClxZXf2';
+export const VOICE_PARTICIPANTS = [VOICE_PARTICIPANT, 'sks8zpXOy7ZBzhOIx1ISjtNgegh1'];
 export interface VoiceMessage {
   id: string; userId: string; requestId: string; authorName: string; text: string;
   createdAt: firebase.firestore.Timestamp;
@@ -38,7 +39,7 @@ export class VoiceConversationService implements OnDestroy {
 
   constructor(private firestore: AngularFirestore, private injector: EnvironmentInjector, permissions: PermissionsService) {
     this.permissions = permissions.state.subscribe(state => {
-      const allowed = state.ready && (state.uid === VOICE_PARTICIPANT || state.uid === VOICE_ADMIN && state.isAdmin);
+      const allowed = state.ready && (VOICE_PARTICIPANTS.includes(state.uid) || state.uid === VOICE_ADMIN && state.isAdmin);
       if (state.uid !== this.uid || allowed !== this.allowed) {
         this.epoch++; this.revision++; this.cancelled.next(); this.listener?.unsubscribe(); this.listener = undefined;
         this.uid = state.uid; this.allowed = allowed; this.rows.clear(); this.messages = [];

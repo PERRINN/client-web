@@ -5,7 +5,7 @@ import { randomUUID } from 'node:crypto';
 const require = createRequire(import.meta.url);
 const { enqueueVoiceInput, processVoiceInbox, failExhaustedInbox, eventIdFor } = require('../functions/utils/voiceInbox');
 const { VoiceInputError } = require('../functions/utils/voiceAudio');
-const { VOICE_CONVERSATION, VOICE_ADMIN, VOICE_PARTICIPANT } = require('../functions/utils/voiceConversation');
+const { VOICE_CONVERSATION, VOICE_ADMIN, VOICE_PARTICIPANT, VOICE_PARTICIPANTS } = require('../functions/utils/voiceConversation');
 export function audio() {
   const b = Buffer.alloc(32044); b.write('RIFF'); b.writeUInt32LE(b.length - 8, 4); b.write('WAVEfmt ', 8);
   b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20); b.writeUInt16LE(1, 22); b.writeUInt32LE(16000, 24);
@@ -157,8 +157,8 @@ test('existing ordinary/admin daily quotas apply once per accepted recording', a
   }
 });
 
-test('pilot participant can resume at 20, replay at 1000, and reset at UTC midnight', async () => {
-  const f = fixture(), uid = VOICE_PARTICIPANT, auth = { uid, token: {} };
+for (const uid of VOICE_PARTICIPANTS) test('pilot participant ' + uid + ' can resume at 20, replay at 1000, and reset at UTC midnight', async () => {
+  const f = fixture(), auth = { uid, token: {} };
   const limitPath = 'VoiceInputLimits/' + uid;
   const data = input({ owner: uid, conversationId: 'pilot' });
   const day = new Date(f.options.now()).toISOString().slice(0, 10);
@@ -211,8 +211,8 @@ test('existing image finalizer never publishes private audio or runs image queri
   assert.deepEqual(operations, []);
 });
 
-test('shared pilot accepts only its two participants, including an exact admin claim for its admin account', async () => {
-  for (const [uid, token, allowed] of [[VOICE_PARTICIPANT, {}, true], [VOICE_ADMIN, { perrinnAdmin: true }, true],
+test('shared pilot accepts only its three participants, including an exact admin claim for its admin account', async () => {
+  for (const [uid, token, allowed] of [[VOICE_PARTICIPANT, {}, true], [VOICE_PARTICIPANTS[1], {}, true], [VOICE_ADMIN, { perrinnAdmin: true }, true],
     [VOICE_ADMIN, {}, false], ['sPJhQ9lcLRgdKcIitszQp4oi7M23', {}, false], ['outsider', {}, false], ['another-admin', { perrinnAdmin: true }, false]]) {
     const f = fixture(), data = input({ owner: uid, conversationId: VOICE_CONVERSATION });
     if (allowed) {
@@ -226,8 +226,8 @@ test('shared pilot accepts only its two participants, including an exact admin c
   const f = fixture();
   await assert.rejects(f.enqueue(input({ owner: VOICE_PARTICIPANT, conversationId: 'other' })), e => e.code === 'permission-denied');
 });
-test('shared completion publishes exactly once atomically, with trusted author and no private metadata', async () => {
-  const f = fixture(), data = input({ owner: VOICE_PARTICIPANT, conversationId: VOICE_CONVERSATION });
+for (const uid of VOICE_PARTICIPANTS) test('shared completion for ' + uid + ' publishes exactly once atomically, with trusted author and no private metadata', async () => {
+  const f = fixture(), data = input({ owner: uid, conversationId: VOICE_CONVERSATION });
   const receipt = await f.enqueue(data, { uid: data.owner, token: { name: 'Test participant' } });
   const transaction = f.db.runTransaction.bind(f.db); let lost = false;
   f.db.runTransaction = async (...args) => {
@@ -291,6 +291,7 @@ test('one recipient device claims automatic audio; sender never auto downloads a
   assert.equal(f.counts.downloads, downloads + 1);
   assert.equal(Buffer.from((await f.play({ uid: VOICE_PARTICIPANT })).audio, 'base64').length, 32044);
   assert.ok((await f.play(playbackAdmin)).audio);
+  assert.ok((await f.play({ uid: VOICE_PARTICIPANTS[1] })).audio);
   assert.equal(f.counts.provider, 1);
 });
 test('expired, legacy, wrong destination and forged paths never download audio', async () => {
@@ -310,6 +311,7 @@ test('failed first automatic download is not repeated across devices; explicit r
   f.bucket.file = original;
   assert.deepEqual(await f.play(playbackAdmin, true), { skipped: true });
   assert.ok((await f.play(playbackAdmin)).audio);
+  assert.ok((await f.play({ uid: VOICE_PARTICIPANTS[1] })).audio);
 });
 
 
@@ -363,4 +365,14 @@ test('invalid stored audio is never shared and retains the existing failure beha
   assert.equal(f.records.get(eventPath(receipt.eventId)).status, 'failed');
   assert.equal(f.records.has(`VoiceConversations/pilot/messages/${receipt.eventId}`), false);
   await assert.rejects(voicePlayback(f.db, f.bucket, playbackAdmin, { eventId: receipt.eventId, automatic: false }, f.options.now()));
+});
+
+test('added participant audio can be replayed by both other participants', async () => {
+  const f = fixture(), uid = VOICE_PARTICIPANTS[1];
+  const receipt = await f.enqueue(input({ owner: uid, conversationId: 'pilot' }), { uid });
+  await f.process(receipt.eventId);
+  for (const auth of [playbackAdmin, { uid: VOICE_PARTICIPANT }]) {
+    const result = await voicePlayback(f.db, f.bucket, auth, { eventId: receipt.eventId, automatic: false }, f.options.now());
+    assert.ok(result.audio);
+  }
 });

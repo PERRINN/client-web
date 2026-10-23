@@ -12,7 +12,7 @@ let inContext = false;
 new Function('exports', 'require', source)(exports, name => name === '@angular/core'
   ? { Injectable: () => value => value, runInInjectionContext: (_injector, fn) => { inContext = true; try { return fn(); } finally { inContext = false; } } }
   : name === 'rxjs' ? require(name) : {});
-const { VoiceConversationService, VOICE_ADMIN, VOICE_PARTICIPANT } = exports;
+const { VoiceConversationService, VOICE_ADMIN, VOICE_PARTICIPANT, VOICE_PARTICIPANTS } = exports;
 function document(id, createdAt = Number(id), userId = VOICE_PARTICIPANT) {
   return { id, data: () => ({ userId, requestId: 'request-' + id, text: 'Message ' + id, authorName: 'Participant', createdAt: { toMillis: () => createdAt } }) };
 }
@@ -38,9 +38,11 @@ test('pilot identity is consistent across the client, trusted handler and securi
   const backend = require('../functions/utils/voiceConversation');
   assert.equal(VOICE_ADMIN, backend.VOICE_ADMIN); assert.equal(VOICE_PARTICIPANT, backend.VOICE_PARTICIPANT);
   const rules = readFileSync(new URL('../firestore.rules', import.meta.url), 'utf8');
+  assert.deepEqual(VOICE_PARTICIPANTS, backend.VOICE_PARTICIPANTS);
+  for (const uid of VOICE_PARTICIPANTS) assert.ok(rules.includes(uid));
   assert.ok(rules.includes(VOICE_ADMIN)); assert.ok(rules.includes(VOICE_PARTICIPANT));
 });
-test('only the two participants open a single listener; permission changes clear history and unsubscribe', t => {
+test('only the three participants open a single listener; permission changes clear history and unsubscribe', t => {
   const f = fixture(t, { uid: 'outsider', ready: true, isAdmin: true });
   assert.equal(f.service.allowed, false); assert.equal(f.calls.length, 0);
   f.state.next({ uid: 'sPJhQ9lcLRgdKcIitszQp4oi7M23', ready: true, isAdmin: false });
@@ -53,6 +55,8 @@ test('only the two participants open a single listener; permission changes clear
   f.listeners[0].next([{ payload: { doc: document('2') } }]); assert.deepEqual(f.service.messages, []);
   f.state.next({ uid: VOICE_PARTICIPANT, ready: true, isAdmin: false }); assert.equal(f.active(), 1);
   f.state.next({ uid: VOICE_PARTICIPANT, ready: true, isAdmin: false }); assert.equal(f.active(), 1); assert.equal(f.calls.length, 2);
+  f.state.next({ uid: VOICE_PARTICIPANTS[1], ready: true, isAdmin: false });
+  assert.equal(f.service.allowed, true); assert.equal(f.active(), 1); assert.deepEqual(f.service.messages, []);
 });
 test('history makes one fifty-record request per action and ignores concurrent clicks and stale account results', async t => {
   const f = fixture(t); f.emit(Array.from({ length: 50 }, (_, i) => document(String(100 - i))));

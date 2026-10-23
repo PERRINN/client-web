@@ -83,7 +83,7 @@ service cloud.firestore {
     }
     match /VoiceConversations/pilot/messages/{messageId} {
       function isVoiceParticipant() {
-        return request.auth != null && (request.auth.uid == 'xDfdZLLRHuObIUNEUj8SdClxZXf2'
+        return request.auth != null && (request.auth.uid in ['xDfdZLLRHuObIUNEUj8SdClxZXf2', 'sks8zpXOy7ZBzhOIx1ISjtNgegh1']
           || (request.auth.uid == 'QYm5NATKa6MGD87UpNZCTl6IolX2' && isPerrinnAdmin()));
       }
       allow get: if isVoiceParticipant();
