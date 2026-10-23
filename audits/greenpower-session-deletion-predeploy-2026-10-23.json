@@ -8,7 +8,7 @@
   ],
   "validation": {
     "greenpowerUnitTests": {
-      "passed": 284,
+      "passed": 285,
       "failed": 0
     },
     "firestoreEmulatorTests": {

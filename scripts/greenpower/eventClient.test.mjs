@@ -344,3 +344,14 @@ test('session deletion resets on role loss and ignores late private results', as
   assert.equal(editor.mode, ''); assert.equal(editor.confirmingDelete, false); assert.equal(editor.notice, '');
   editor.ngOnDestroy(); h.service.ngOnDestroy();
 });
+
+test('deletion updates the cached History count even when a different event is pending', () => {
+  const h = client(), value = dayData.emptyDay(day);
+  h.service.events = [{ ...value, sessionTypeCounts: { race: 1 } }];
+  h.service.eventId = '2026-06-15';
+  h.service.acknowledge({ schemaVersion: 2, kind: 'delete-session', requestId: 'pending-history', date: day,
+    expectedRevision: 0, expectedSessionRevision: 1, sessionId: 'race' },
+  { date: day, revision: 0, changeId: 'change', deletedSessionId: 'race', sessionTypeCounts: {} });
+  assert.deepEqual(h.service.events[0].sessionTypeCounts, {});
+  assert.equal(h.service.eventId, '2026-06-15'); h.service.ngOnDestroy();
+});

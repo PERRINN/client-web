@@ -164,7 +164,10 @@ export class GreenpowerEventsService implements OnDestroy {
       .filter(item => !this.filters.location || item.trackId === this.filters.location);
   }
   acknowledge(request: DayEditRequest, result: DayEditResult) {
-    if (this.eventId !== result.date) return;
+    if (request.kind === 'delete-session' && result.sessionTypeCounts) {
+      this.events = this.events.map(event => event.date === result.date ? { ...event, sessionTypeCounts: result.sessionTypeCounts } : event);
+    }
+    if (this.eventId !== result.date) { this.changed.next(); return; }
     if (request.kind === 'event' && (!this.selectedEvent || this.selectedEvent.revision < result.revision)) {
       this.accept({ ...request.data, ...(result.sessionTypeCounts === undefined ? {} : { sessionTypeCounts: result.sessionTypeCounts }), schemaVersion: 2, revision: result.revision, updatedBy: this.account });
     } else if (request.kind === 'delete-session') {
