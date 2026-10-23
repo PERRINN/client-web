@@ -600,16 +600,62 @@ test('touch activates synchronously and even a quick tap stays latched', async t
     component.ngOnDestroy(); service.ngOnDestroy();
   }
 });
+test('sliding release keeps quick presses latched and submits held recordings for touch, mouse and pen', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  for (const pointerType of ['touch', 'mouse', 'pen']) {
+    for (const duration of [30, 599, 600, 950]) {
+      let captured;
+      const { service, component, calls } = componentFixture();
+      component.pointerDown(pointer({ pointerType, currentTarget: { setPointerCapture(id) { captured = id; } } }));
+      assert.equal(captured, 1, 'release stays routed to the dock even outside its bounds');
+      await new Promise(setImmediate);
+      t.mock.timers.tick(duration);
+      component.pointerUp(pointer({ pointerType, clientX: 240, clientY: -100 }));
+      await new Promise(setImmediate);
+      if (duration < 600) {
+        assert.equal(service.phase, 'recording', `${pointerType}: sliding quick release keeps recording`);
+        component.pointerDown(pointer({ pointerType }));
+        component.pointerUp(pointer({ pointerType, clientX: -100, clientY: 200 }));
+        await new Promise(setImmediate);
+      }
+      assert.equal(service.phase, 'saved', `${pointerType}: stop gesture submits without reopening`);
+      assert.equal(calls.length, 1);
+      component.ngOnDestroy(); service.ngOnDestroy();
+    }
+  }
+});
+test('sliding release during permission preserves quick-toggle and held-cancel behavior', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  for (const duration of [30, 599, 600, 950]) {
+    let grant;
+    const { service, component, calls } = componentFixture(client(undefined, {
+      start: () => new Promise(resolve => { grant = resolve; })
+    }));
+    component.pointerDown(pointer());
+    t.mock.timers.tick(duration);
+    component.pointerUp(pointer({ clientX: 240, clientY: -100 }));
+    assert.equal(service.phase, duration < 600 ? 'requesting' : 'idle');
+    grant(true); await new Promise(setImmediate);
+    assert.equal(service.phase, duration < 600 ? 'recording' : 'idle');
+    assert.equal(calls.length, 0);
+    component.ngOnDestroy(); service.ngOnDestroy();
+  }
+});
+test('dock ignores movement events while owning native touch panning', () => {
+  const template = readFileSync(new URL('../src/app/prototypes/voice-input/voice-input.component.html', import.meta.url), 'utf8');
+  const styles = readFileSync(new URL('../src/app/prototypes/voice-input/voice-input.component.css', import.meta.url), 'utf8');
+  assert.doesNotMatch(template, /\(pointermove\)/);
+  assert.match(styles, /\.voice-dock\s*\{[^}]*touch-action:\s*none/);
+});
 test('cancelled touch startup ignores late permission grants without submitting', async t => {
   t.mock.timers.enable({ apis: ['setTimeout'] });
-  for (const action of ['move', 'cancel', 'lost capture', 'blur', 'account change']) {
+  for (const action of ['cancel', 'lost capture', 'blur', 'account change']) {
     let grant;
     const { service, component, auth, calls } = componentFixture(client(undefined, {
       start: () => new Promise(resolve => { grant = resolve; })
     }));
     component.pointerDown(pointer()); assert.equal(service.phase, 'requesting');
-    if (action === 'move') component.pointerMove(pointer({ clientX: 31 }));
-    else if (action === 'cancel' || action === 'lost capture') component.pointerCancel(pointer());
+    if (action === 'cancel' || action === 'lost capture') component.pointerCancel(pointer());
     else if (action === 'blur') component.interrupt();
     else auth.authState.next({ uid: 'bob' });
     t.mock.timers.tick(600); component.pointerUp(pointer()); grant(true); await new Promise(setImmediate);
@@ -1133,14 +1179,13 @@ test('holding a press that stops latched recording never reopens it on release',
     component.ngOnDestroy(); service.ngOnDestroy();
   }
 });
-test('movement, pointer cancellation, lost capture and interruption cancel held capture without submission', async t => {
+test('pointer cancellation, lost capture and interruption cancel held capture without submission', async t => {
   t.mock.timers.enable({ apis: ['setTimeout'] });
-  for (const action of ['move', 'cancel', 'lost capture', 'blur', 'hidden', 'pagehide']) {
+  for (const action of ['cancel', 'lost capture', 'blur', 'hidden', 'pagehide']) {
     const { service, component, calls } = componentFixture();
     component.pointerDown(pointer()); t.mock.timers.tick(120); await new Promise(setImmediate);
     t.mock.timers.tick(480);
-    if (action === 'move') component.pointerMove(pointer({ clientX: 31 }));
-    else if (action === 'cancel' || action === 'lost capture') component.pointerCancel(pointer());
+    if (action === 'cancel' || action === 'lost capture') component.pointerCancel(pointer());
     else component.interrupt();
     component.pointerUp(pointer()); await new Promise(setImmediate);
     assert.equal(service.phase, 'idle', action); assert.equal(calls.length, 0, action);

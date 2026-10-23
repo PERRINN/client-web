@@ -25,7 +25,7 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
   private timelineLocal = '';
   private timeline: ConversationEntry[] = [];
   private conversationChanges: Subscription;
-  private pointer?: { downAt: number; id: number; x: number; y: number; uid: string; started: boolean; held: boolean };
+  private pointer?: { downAt: number; id: number; uid: string; started: boolean; held: boolean };
   private keyboard?: { downAt: number; code: string; uid: string; started: boolean };
   private heldKeyCode?: string;
   private holdTimer?: ReturnType<typeof setTimeout>;
@@ -136,7 +136,7 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
   pointerDown(event: PointerEvent): void {
     if (!event.isPrimary || event.button !== 0 || this.pointer || this.keyboard || !this.voice.canToggle) return;
     event.preventDefault();
-    this.pointer = { downAt: Date.now(), id: event.pointerId, x: event.clientX, y: event.clientY,
+    this.pointer = { downAt: Date.now(), id: event.pointerId,
       uid: this.voice.uid, started: false, held: false };
     try { (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId); }
     catch { this.clearPointer(); return; }
@@ -147,13 +147,8 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
     this.pointer.started = this.voice.canRecord;
     this.toggle();
   }
-  pointerMove(event: PointerEvent): void {
-    if (this.pointer?.id !== event.pointerId) return;
-    if (Math.hypot(event.clientX - this.pointer.x, event.clientY - this.pointer.y) > 10) this.cancelPointer();
-  }
   pointerUp(event: PointerEvent): void {
     if (this.pointer?.id !== event.pointerId) return;
-    this.pointerMove(event);
     const finish = this.pointer?.started && this.pointer.held && this.pointer.uid === this.voice.uid;
     this.clearPointer();
     if (finish) void this.voice.release();
