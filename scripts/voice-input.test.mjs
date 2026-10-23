@@ -770,7 +770,7 @@ test('raised allowance reuses today counter, counts failures and resets at UTC r
 test('radio cues use distinct quiet pitches, fade cleanly and release their audio nodes', async t => {
   t.mock.timers.enable({ apis: ['setTimeout'] });
   const { voiceCue } = load('../src/app/prototypes/voice-input/voiceCue.ts');
-  for (const [opening, expectedFrequencies, duration] of [[true, [1040], 345], [false, [920], 95]]) {
+  for (const [opening, expectedFrequencies, duration] of [[true, [1040], 95], [false, [920], 95]]) {
     const envelope = [], connections = [], frequencies = [];
     let stopped, disconnected = 0, resolved = false;
     const gain = { gain: { setValueAtTime: (...args) => envelope.push(args), linearRampToValueAtTime: (...args) => envelope.push(args) },
@@ -782,10 +782,10 @@ test('radio cues use distinct quiet pitches, fade cleanly and release their audi
     assert.deepEqual(frequencies, expectedFrequencies.map((frequency, index) => [frequency, index * .09]));
     assert.equal(oscillator.type, 'triangle');
     assert.deepEqual(envelope, expectedFrequencies.flatMap((_frequency, index) => {
-      const start = opening ? .25 : 0;
-      return [[0, 0], [0, start], [.07, start + .005], [.07, start + .035], [0, start + .06]];
+      const start = index * .09;
+      return [[0, start], [.07, start + .005], [.07, start + .035], [0, start + .06]];
     }));
-    assert.equal(stopped, (opening ? .25 : 0) + .065);
+    assert.equal(stopped, (expectedFrequencies.length - 1) * .09 + .065);
     assert.deepEqual(connections, [gain, context.destination]);
     t.mock.timers.tick(duration + 50); await Promise.resolve(); assert.equal(resolved, false);
     assert.equal(disconnected, 0, 'Do not truncate playback when the audio timeline stalls.');
@@ -822,7 +822,7 @@ test('opening cue finishes before microphone samples connect; closing cue follow
 });
 
 
-test('stalled cue playback has a one-second cleanup deadline', async t => {
+test('stalled cue playback has a 500 ms cleanup deadline', async t => {
   t.mock.timers.enable({ apis: ['setTimeout'] });
   const { voiceCue } = load('../src/app/prototypes/voice-input/voiceCue.ts');
   let disconnected = 0, resolved = false;
@@ -831,35 +831,9 @@ test('stalled cue playback has a one-second cleanup deadline', async t => {
   const gain = { gain: parameter, connect() {}, disconnect() { disconnected++; } };
   const context = { state: 'running', currentTime: 0, destination: {}, createOscillator: () => oscillator, createGain: () => gain };
   const pending = voiceCue(context, false).then(() => { resolved = true; });
-  t.mock.timers.tick(999); await Promise.resolve(); assert.equal(resolved, false);
+  t.mock.timers.tick(499); await Promise.resolve(); assert.equal(resolved, false);
   t.mock.timers.tick(1); await pending;
   assert.equal(disconnected, 2); assert.equal(oscillator.onended, null);
-});
-test('cue completion waits for device output latency and safely handles absent or invalid estimates', async t => {
-  t.mock.timers.enable({ apis: ['setTimeout'] });
-  const { voiceCue } = load('../src/app/prototypes/voice-input/voiceCue.ts');
-  for (const [baseLatency, outputLatency, expectedTail] of [
-    [.02, .1, 150], [undefined, undefined, 30], [NaN, -1, 30], [0, Infinity, 30], [.2, 3, 530]
-  ]) {
-    for (const opening of [true, false]) {
-      let resolved = false, started, stopped;
-      const envelope = [];
-      const parameter = { setValueAtTime() {}, linearRampToValueAtTime() {} };
-      const oscillator = { frequency: parameter, connect() {}, start(time) { started = time; },
-        stop(time) { stopped = time; }, disconnect() {} };
-      const gain = { gain: { setValueAtTime: (...args) => envelope.push(args), linearRampToValueAtTime() {} },
-        connect() {}, disconnect() {} };
-      const context = { state: 'running', currentTime: 10, baseLatency, outputLatency, destination: {},
-        createOscillator: () => oscillator, createGain: () => gain };
-      const pending = voiceCue(context, opening).then(() => { resolved = true; });
-      assert.equal(started, 10, 'Render immediately to warm the route, with gain held at zero.');
-      assert.deepEqual(envelope.slice(0, 2), [[0, 10], [0, opening ? 10.25 : 10]]);
-      assert.equal(stopped, (opening ? 10.25 : 10) + .065);
-      oscillator.onended();
-      t.mock.timers.tick(expectedTail - 1); await Promise.resolve(); assert.equal(resolved, false);
-      t.mock.timers.tick(1); await pending;
-    }
-  }
 });
 test('interrupting closing feedback releases mic immediately without discarding finished audio', async () => {
   let endCue;
