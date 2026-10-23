@@ -49,14 +49,6 @@
         <button type="button" (click)="conversation.retry()" [disabled]="conversation.loadingEarlier">Retry</button>
       </div>
     }
-    @for (message of conversation.messages; track message.id) {
-      <article class="reply" [class.reply-own]="message.userId === voice.uid">
-        <div class="message-meta"><span>{{ message.userId === voice.uid ? 'You' : message.authorName }}</span>
-          <time [attr.datetime]="message.createdAt.toDate() | date:'yyyy-MM-ddTHH:mm:ssZZZZZ'">{{ message.createdAt.toDate() | date:'short' }}</time>
-        </div>
-        <p>{{ message.text }}</p>
-      </article>
-    }
     @if (voice.uid && voice.queue.ready && !voice.queue.items.length && !voice.queue.canRecord) {
       <article class="reply"><p>Recording storage is full.</p></article>
     }
@@ -65,19 +57,26 @@
         <p>{{ voice.queue.storageError }}</p>
       </article>
     }
-    @for (reply of voice.replies; track reply.id) {
-      @if (!reply.private && (!reply.recording || reply.recording.conversationId === 'pilot' && !hasSharedReply(reply.recording.id))) {
-      <article class="reply" [class.reply-error]="reply.kind === 'error'">
-        @if (reply.kind === 'error') { <span class="sr-only">Recording error: </span> }
-        @if (reply.kind === 'pending' && reply.recording; as recording) {
-          <div class="recording-state">
-            <span>{{ voice.queue.label(recording) }}</span>
-            <time [attr.datetime]="recording.createdAt | date:'yyyy-MM-ddTHH:mm:ssZZZZZ'">{{ recording.createdAt | date:'shortTime' }}</time>
+    @for (entry of conversationEntries; track entry.id) {
+      @if (entry.message; as message) {
+        <article class="reply" [class.reply-own]="message.userId === voice.uid">
+          <div class="message-meta"><span>{{ message.userId === voice.uid ? 'You' : message.authorName }}</span>
+            <time [attr.datetime]="message.createdAt.toDate() | date:'yyyy-MM-ddTHH:mm:ssZZZZZ'">{{ message.createdAt.toDate() | date:'short' }}</time>
           </div>
-          @if (reply.text) { <p>{{ reply.text }}</p> }
-
-        } @else { <p>{{ reply.text }}</p> }
-      </article>
+          <p>{{ message.text }}</p>
+        </article>
+      }
+      @if (entry.reply; as reply) {
+        <article class="reply" [class.reply-error]="reply.kind === 'error'">
+          @if (reply.kind === 'error') { <span class="sr-only">Recording error: </span> }
+          @if (reply.kind === 'pending' && reply.recording; as recording) {
+            <div class="recording-state">
+              <span>{{ voice.queue.label(recording) }}</span>
+              <time [attr.datetime]="recording.createdAt | date:'yyyy-MM-ddTHH:mm:ssZZZZZ'">{{ recording.createdAt | date:'shortTime' }}</time>
+            </div>
+            @if (reply.text) { <p>{{ reply.text }}</p> }
+          } @else { <p>{{ reply.text }}</p> }
+        </article>
       }
     }
   </section>

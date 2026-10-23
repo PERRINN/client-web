@@ -482,6 +482,41 @@ test('daily quota does not consume the final upload attempt', async t => {
   assert.equal(f.service.items[0].attempts, VOICE_REQUEST_LIMIT - 1); assert.equal(f.completed.length, 0);
 });
 
+test('a newly accepted upload releases older quota waits without changing audio, identity or retry budgets', async t => {
+  environment(t); const store = new VoiceQueueStore(), now = new Date();
+  const midnight = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+  const waiting = [recording({ createdAt: Date.now() - 2000, nextAt: midnight, attempts: 1 }),
+    recording({ createdAt: Date.now() - 1000, nextAt: midnight, attempts: 2, retryWindow: Date.now() })];
+  const foreign = recording({ owner: 'bob', nextAt: midnight });
+  const leased = recording({ nextAt: midnight, leaseUntil: Date.now() + 150000, leaseId: 'other-tab' });
+  for (const row of [...waiting, foreign, leased]) await store.add(row);
+  const f = queue(t, { store }); await ready(f); assert.equal(f.calls.length, 0);
+  await f.service.enqueue(bytes, 'pilot');
+  await until(() => f.completed.length === 3); await ready(f);
+  assert.equal(f.calls.length, 3, 'One new upload plus one per eligible saved recording');
+  assert.deepEqual(f.calls.slice(1).map(call => call.input.requestId), waiting.map(row => row.id));
+  for (const call of f.calls) assert.deepEqual(Buffer.from(call.input.audio, 'base64'), Buffer.from(bytes));
+  assert.equal((await store.list('bob')).items[0].nextAt, midnight);
+  assert.equal((await store.list('alice')).items[0].leaseId, leased.leaseId);
+});
+
+test('quota rechecks stop at renewed daily rejection and survive reload with the original attempt count', async t => {
+  environment(t); const store = new VoiceQueueStore(), now = new Date();
+  const midnight = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+  const row = recording({ nextAt: midnight, attempts: 2 }); await store.add(row);
+  const f = queue(t, { store, call: (_name, input) => input.requestId === row.id
+    ? throwError(() => ({ code: 'functions/resource-exhausted', details: { reason: 'daily-limit' } }))
+    : of({ eventId, status: 'queued' }) });
+  await ready(f); await f.service.enqueue(bytes, 'pilot');
+  await until(() => f.calls.length === 2 && !f.service.running); await ready(f);
+  const saved = (await store.list('alice')).items.find(item => item.id === row.id);
+  assert.equal(saved.attempts, 2); assert.equal(saved.nextAt, midnight);
+  await f.service.refresh(); await ready(f); assert.equal(f.calls.length, 2);
+  f.service.ngOnDestroy();
+  const reopened = queue(t, { store }); await ready(reopened);
+  assert.equal(reopened.calls.length, 0, 'Reopening cannot bypass the renewed server rejection');
+});
+
 test('a stalled update aborts its actual transaction before the service timeout', async t => {
   environment(t, false); clock(t); const store = new VoiceQueueStore(), db = await store.open();
   const original = db.transaction.bind(db); let aborted = false, requested = false;
@@ -574,12 +609,17 @@ test('reopening after legacy recovery keeps the new short backoff without repeat
 
 test('new shared recordings persist their destination across reload without reclassifying legacy audio', async t => {
   const env = environment(t, false), f = queue(t); await ready(f);
-  await f.service.enqueue(bytes, 'pilot'); await f.service.enqueue(bytes);
+  await f.service.enqueue(bytes, 'pilot');
+  const sharedId = f.service.items[0].id;
+  await f.service.enqueue(bytes);
   const items = (await f.store.list('alice')).items;
-  assert.equal(items[0].conversationId, 'pilot'); assert.equal(items[1].conversationId, undefined);
+  assert.equal(items.find(item => item.id === sharedId).conversationId, 'pilot');
+  assert.equal(items.find(item => item.id !== sharedId).conversationId, undefined);
   f.service.ngOnDestroy(); const next = queue(t); await ready(next);
   env.navigator.onLine = true; env.window.dispatchEvent(new Event('online'));
   await until(() => next.completed.length === 2); await ready(next);
-  assert.equal(next.calls[0].input.conversationId, 'pilot'); assert.equal(next.calls[1].input.conversationId, undefined);
-  assert.equal(next.completed[0].conversationId, 'pilot'); assert.equal(next.completed[1].conversationId, undefined);
+  assert.equal(next.calls.find(call => call.input.requestId === sharedId).input.conversationId, 'pilot');
+  assert.equal(next.calls.find(call => call.input.requestId !== sharedId).input.conversationId, undefined);
+  assert.equal(next.completed.find(result => result.id === sharedId).conversationId, 'pilot');
+  assert.equal(next.completed.find(result => result.id !== sharedId).conversationId, undefined);
 });

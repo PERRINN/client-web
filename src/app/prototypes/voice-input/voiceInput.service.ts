@@ -6,7 +6,7 @@ import { VoiceQueueService } from './voiceQueue.service';
 import { VoiceRecording } from './voiceQueueStore.service';
 import { voiceDiagnosticCode } from './voiceDiagnostics';
 
-export interface VoiceReply { id: number; kind: 'transcript' | 'error' | 'pending'; text: string; private?: boolean; recording?: VoiceRecording }
+export interface VoiceReply { id: number; kind: 'transcript' | 'error' | 'pending'; text: string; createdAt?: number; private?: boolean; recording?: VoiceRecording }
 type Phase = 'idle' | 'requesting' | 'recording' | 'sending' | 'saved' | 'error';
 
 @Injectable()
@@ -42,7 +42,7 @@ export class VoiceInputService implements OnDestroy {
       }
       for (const item of queue.items) {
         let reply = this.replies.find(row => row.recording?.id === item.id);
-        if (!reply) { reply = { id: ++this.replyId, kind: 'pending', text: '', recording: item }; this.replies.push(reply); }
+        if (!reply) { reply = { id: ++this.replyId, kind: 'pending', text: '', createdAt: item.createdAt, recording: item }; this.replies.push(reply); }
         reply.recording = item; reply.text = item.error || '';
       }
       this.changed.next();
@@ -141,7 +141,7 @@ export class VoiceInputService implements OnDestroy {
     this.changed.next();
   }
   private reply(text: string, kind: VoiceReply['kind'], privateReply = false): void {
-    this.replies.push({ id: ++this.replyId, kind, text, private: privateReply });
+    this.replies.push({ id: ++this.replyId, kind, text, createdAt: Date.now(), private: privateReply });
     if (!this.busy) this.phase = kind === 'transcript' ? 'saved' : 'error';
   }
   private clearLevels(): void { this.levels = Array<number>(9).fill(0); }

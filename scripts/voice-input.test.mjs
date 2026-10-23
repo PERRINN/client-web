@@ -615,6 +615,42 @@ test('new replies scroll into view once, without repeated scrolling on audio-lev
   component.ngAfterViewChecked(); assert.equal(scrolls, 2); component.ngOnDestroy();
 });
 
+test('old waiting rows precede new shared messages and cannot take their scroll target', () => {
+  const { component, service } = componentFixture();
+  let scrolls = 0;
+  component.replies = { nativeElement: { lastElementChild: { scrollIntoView: () => { scrolls++; } } } };
+  const pending = { id: 1, kind: 'pending', text: '', createdAt: 100,
+    recording: { id: 'waiting', owner: 'alice', createdAt: 100, conversationId: 'pilot' } };
+  service.replies.push(pending);
+  component.ngAfterViewChecked();
+  const message = { id: 'new', userId: 'bob', requestId: 'remote', text: 'New message', createdAt: { toMillis: () => 200 } };
+  component.conversation.messages = [message];
+  assert.deepEqual(component.conversationEntries.map(row => row.id), ['reply:1', 'message:new']);
+  component.ngAfterViewChecked(); assert.equal(scrolls, 2);
+  const entries = component.conversationEntries;
+  pending.text = 'Still waiting'; service.changed.next();
+  assert.equal(component.conversationEntries, entries, 'Status and waveform updates reuse the ordered timeline');
+  component.ngAfterViewChecked(); assert.equal(scrolls, 2);
+  component.conversation.messages = [{ ...message, id: 'earlier', createdAt: { toMillis: () => 50 } }, message];
+  component.ngAfterViewChecked(); assert.equal(scrolls, 2, 'Loading earlier must keep the scroll position');
+  component.ngOnDestroy(); service.ngOnDestroy();
+});
+
+test('timeline removes confirmed pending duplicates and hides private and other-conversation replies', () => {
+  const { component, service } = componentFixture();
+  service.replies.push(
+    { id: 1, kind: 'pending', text: '', recording: { id: 'same', conversationId: 'pilot', createdAt: 100 } },
+    { id: 2, kind: 'pending', text: '', recording: { id: 'legacy', createdAt: 100 } },
+    { id: 3, kind: 'error', text: 'Private', private: true },
+    { id: 4, kind: 'error', text: 'Capture error', createdAt: 300 }
+  );
+  component.conversation.messages = [{ id: 'completed', requestId: 'same', userId: service.uid, createdAt: { toMillis: () => 200 } }];
+  assert.deepEqual(component.conversationEntries.map(row => row.id), ['message:completed', 'reply:4']);
+  service.replies.splice(0, 3);
+  assert.deepEqual(component.conversationEntries.map(row => row.id), ['message:completed', 'reply:4']);
+  component.ngOnDestroy(); service.ngOnDestroy();
+});
+
 function safariCapture({ stalled = false, permissionPending = false, cue = async () => {} } = {}) {
   const originals = Object.fromEntries(['navigator', 'AudioContext', 'AudioWorkletNode'].map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
   const contexts = [], tracks = [], nodes = [], sources = [];

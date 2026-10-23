@@ -46,6 +46,7 @@ export class VoiceQueueService implements OnDestroy {
   private unsaved?: VoiceRecording;
   private watchers = new Map<string, Subscription>();
   private finishing = new Set<string>();
+  private quotaRechecks = new Set<string>();
   private readonly wake = () => {
     // Mobile OS suspension can delay timer callbacks. Resume by wall-clock
     // deadline, never by trusting the SDK promise or the running flag.
@@ -86,6 +87,7 @@ export class VoiceQueueService implements OnDestroy {
     clearTimeout(this.timer); clearTimeout(this.storageTimer); clearTimeout(this.resultTimer);
     this.resultTimer = undefined; this.resultRetries = 0; this.resultFailures.clear();
     this.watchers.forEach(watcher => watcher.unsubscribe()); this.watchers.clear(); this.finishing.clear();
+    this.quotaRechecks.clear();
     this.storageCode = ''; this.storageFaultStep = ''; this.uploadCode = ''; this.uploadFaultStage = ''; this.resultCode = ''; this.resultStatus = ''; this.resultDeadline = 0; this.resultCached = false; this.confirmedResults.clear();
     this.owner = owner; this.items = []; this.total = 0; this.ready = false;
     this.unsaved = undefined; this.storageError = ''; this.running = false; this.storageRetries = 0;
@@ -175,6 +177,7 @@ export class VoiceQueueService implements OnDestroy {
   }
 
   private retryAt(item: VoiceRecording): number {
+    if (this.quotaRechecks.has(item.id)) return 0;
     if (!item.retryWindow) return item.nextAt;
     // Old rolling-budget records can carry a day-long wait. Retire that
     // schedule on their next claim, preserving real UTC quota deferrals.
@@ -229,6 +232,7 @@ export class VoiceQueueService implements OnDestroy {
         leaseId: crypto.randomUUID(), leaseUntil: Date.now() + 150000, check: true };
     }, 'Claim recording', live);
     if (!claimed || !live() || !this.active(claimed)) return;
+    this.quotaRechecks.delete(claimed.id);
     attempt.record = claimed; attempt.stage = 'Account';
     const user = await this.auth.currentUser;
     if (!live()) return;
@@ -269,6 +273,12 @@ export class VoiceQueueService implements OnDestroy {
     }).pipe(timeout({ first: 65000 }), takeUntil(merge(this.cancelled, attempt.stopped))));
     if (!live()) return;
     if (!receipt?.eventId || !/^[a-f0-9]{64}$/.test(receipt.eventId) || !['queued', 'completed', 'failed'].includes(receipt.status)) throw new Error('Invalid receipt');
+    // A newly accepted upload can reveal a raised allowance. Recheck only the
+    // other saved quota waits (at most nine), within their existing budgets.
+    const now = new Date(), midnight = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+    for (const row of this.items) {
+      if (row.id !== claimed.id && !row.received && row.nextAt === midnight) this.quotaRechecks.add(row.id);
+    }
     this.uploadCode = ''; this.uploadFaultStage = ''; attempt.stage = 'Saving receipt';
     if (receipt.status === 'completed' && typeof receipt.transcript === 'string') {
       await this.finish(claimed, receipt.transcript, false, this.epoch, live); return;

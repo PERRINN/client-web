@@ -1,10 +1,12 @@
 import { AfterViewChecked, ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { VoiceCaptureService } from './voiceCapture.service';
-import { VoiceInputService } from './voiceInput.service';
-import { VoiceConversationService } from './voiceConversation.service';
+import { VoiceInputService, VoiceReply } from './voiceInput.service';
+import { VoiceConversationService, VoiceMessage } from './voiceConversation.service';
 import { VoiceQueueService } from './voiceQueue.service';
 import { VoiceDiagnosticRow, VoiceKeyDiagnostics, voiceDiagnosticRows } from './voiceDiagnostics';
+
+interface ConversationEntry { id: string; createdAt: number; message?: VoiceMessage; reply?: VoiceReply }
 
 @Component({
   selector: 'app-voice-input', standalone: false,
@@ -14,7 +16,10 @@ import { VoiceDiagnosticRow, VoiceKeyDiagnostics, voiceDiagnosticRows } from './
 export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy {
   @ViewChild('replies') private replies?: ElementRef<HTMLElement>;
   @ViewChild('dock') private dock?: ElementRef<HTMLButtonElement>;
-  private renderedReplies = ':';
+  private renderedReplies = '';
+  private timelineMessages?: VoiceMessage[];
+  private timelineLocal = '';
+  private timeline: ConversationEntry[] = [];
   private conversationChanges: Subscription;
   private pointer?: { downAt: number; id: number; x: number; y: number; uid: string; started: boolean; held: boolean };
   private keyboard?: { downAt: number; code: string; uid: string; started: boolean };
@@ -74,14 +79,25 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
       this.keyDiagnostics.observeDock(dock.dataset.phase || 'Unknown', bars.length,
         Math.max(0, ...bars.map(bar => Number.parseFloat(bar.style.height) || 0)));
     }
-    const rendered = `${this.conversation.messages.at(-1)?.id || ''}:${this.voice.replies.at(-1)?.id || ''}`;
+    const rendered = this.conversationEntries.at(-1)?.id || '';
     if (this.renderedReplies === rendered) return;
     this.renderedReplies = rendered;
     this.replies?.nativeElement.lastElementChild?.scrollIntoView({ block: 'nearest', behavior: 'instant' });
   }
 
-  hasSharedReply(requestId: string): boolean {
-    return this.conversation.messages.some(message => message.requestId === requestId && message.userId === this.voice.uid);
+  get conversationEntries(): ConversationEntry[] {
+    const messages = this.conversation.messages;
+    const local = this.voice.replies.map(reply => `${reply.id}:${!!reply.private}:${reply.recording?.id || ''}`).join('|');
+    if (this.timelineMessages === messages && this.timelineLocal === local) return this.timeline;
+    this.timelineMessages = messages; this.timelineLocal = local;
+    const shared = new Set(messages.filter(message => message.userId === this.voice.uid).map(message => message.requestId));
+    const entries: ConversationEntry[] = messages.map(message => ({ id: 'message:' + message.id, createdAt: message.createdAt.toMillis(), message }));
+    for (const reply of this.voice.replies) {
+      if (reply.private || reply.recording && (reply.recording.conversationId !== 'pilot' || shared.has(reply.recording.id))) continue;
+      entries.push({ id: 'reply:' + reply.id, createdAt: reply.createdAt ?? reply.recording?.createdAt ?? 0, reply });
+    }
+    this.timeline = entries.sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id));
+    return this.timeline;
   }
 
   toggle(): void {
