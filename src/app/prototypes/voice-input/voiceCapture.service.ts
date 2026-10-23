@@ -37,7 +37,7 @@ export class VoiceCaptureService implements OnDestroy {
     };
   }
 
-  async start(onLimit: () => void, onError: () => void, onLevel?: (level: number) => void, echoCancellation = true): Promise<boolean> {
+  async start(onLimit: () => void, onError: () => void, onLevel?: (level: number) => void, echoCancellation = false): Promise<boolean> {
     this.cancel();
     const generation = this.generation;
     this.audioTrace = []; this.audioTraceSince = performance.now();

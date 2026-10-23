@@ -22,7 +22,8 @@ export class VoiceInputService implements OnDestroy {
   phaseSince = Date.now();
   captureFailure = '';
   testingCue = false;
-  private requestedEchoCancellation = true;
+  // Avoid the Android communication preset suppressing startup feedback.
+  private requestedEchoCancellation = false;
   get phase(): Phase { return this.currentPhase; }
   set phase(value: Phase) { if (value !== this.currentPhase) this.phaseSince = Date.now(); this.currentPhase = value; }
   get captureDiagnostics() { return this.capture.diagnostics; }
@@ -166,7 +167,7 @@ export class VoiceInputService implements OnDestroy {
   private clearLevels(): void { this.levels = Array<number>(9).fill(0); }
   private reset(): void {
     this.captureFailure = ''; this.captureGeneration++; this.testingCue = false;
-    this.requestedEchoCancellation = true;
+    this.requestedEchoCancellation = false;
     this.clearLevels();
     this.capture.cancel(); clearTimeout(this.timer);
     this.phase = 'idle'; this.replies.length = 0; this.changed.next();

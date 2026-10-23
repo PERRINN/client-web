@@ -1131,15 +1131,15 @@ test('manual tones reuse the live capture context and preserve automatic outcome
 
 
 test('echo cancellation diagnostic requests change only the selected constraint and report the observed boolean safely', async () => {
-  const fixture = safariCapture({ actualEchoCancellation: true });
+  const fixture = safariCapture({ actualEchoCancellation: false });
   try {
     await fixture.capture.start(() => {}, () => {});
-    assert.deepEqual(fixture.constraints[0], { audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
-    assert.equal(fixture.capture.diagnostics.echoCancellation, 'Requested on · actual on');
+    assert.deepEqual(fixture.constraints[0], { audio: { channelCount: 1, echoCancellation: false, noiseSuppression: true } });
+    assert.equal(fixture.capture.diagnostics.echoCancellation, 'Requested off · actual off');
     fixture.capture.cancel();
-    await fixture.capture.start(() => {}, () => {}, undefined, false);
-    assert.deepEqual(fixture.constraints[1], { audio: { channelCount: 1, echoCancellation: false, noiseSuppression: true } });
-    assert.equal(fixture.capture.diagnostics.echoCancellation, 'Requested off · actual on', 'Ignored constraints must remain apparent.');
+    await fixture.capture.start(() => {}, () => {}, undefined, true);
+    assert.deepEqual(fixture.constraints[1], { audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
+    assert.equal(fixture.capture.diagnostics.echoCancellation, 'Requested on · actual off', 'Ignored constraints must remain apparent.');
     assert.doesNotMatch(JSON.stringify(fixture.capture.diagnostics), /SECRET_DEVICE/);
     assert.equal(fixture.contexts.length, 2); assert.equal(fixture.constraints.length, 2);
   } finally { fixture.restore(); }
@@ -1153,17 +1153,19 @@ test('echo cancellation diagnostic requests change only the selected constraint 
   }
 });
 
-test('echo cancellation selection is local, idle-only and resets when access changes', async () => {
+test('echo cancellation defaults off, stays idle-only and resets off when access changes', async () => {
   const requests = [];
   const { service, calls } = client(undefined, { start: async (...args) => { requests.push(args[3]); return true; } });
   try {
-    assert.equal(service.echoCancellation, true);
-    service.setEchoCancellation(false); assert.equal(service.echoCancellation, false);
-    await service.press(); service.setEchoCancellation(true);
-    assert.equal(service.echoCancellation, false); assert.deepEqual(requests, [false]);
+    assert.equal(service.echoCancellation, false);
+    await service.press(); assert.deepEqual(requests, [false]);
+    service.cancel();
+    service.setEchoCancellation(true); assert.equal(service.echoCancellation, true);
+    await service.press(); service.setEchoCancellation(false);
+    assert.equal(service.echoCancellation, true); assert.deepEqual(requests, [false, true]);
     assert.equal(service.canConfigureCapture, false); assert.equal(calls.length, 0);
-    service.cancel(); assert.equal(service.echoCancellation, false);
-    service.setAccess(false); assert.equal(service.echoCancellation, true);
-    service.setEchoCancellation(false); assert.equal(service.echoCancellation, true);
+    service.cancel(); assert.equal(service.echoCancellation, true);
+    service.setAccess(false); assert.equal(service.echoCancellation, false);
+    service.setEchoCancellation(true); assert.equal(service.echoCancellation, false);
   } finally { service.ngOnDestroy(); }
 });
