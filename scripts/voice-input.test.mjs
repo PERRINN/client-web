@@ -318,6 +318,50 @@ function gesture(component, duration, changes = {}) {
 }
 const shortcut = (changes = {}) => ({ key: 'p', code: 'KeyP', preventDefault() { this.defaultPrevented = true; }, ...changes });
 const keyTrace = component => component.keyDiagnostics.rows().find(row => row.label === 'P trace').value;
+test('an accepted P hold consumes flagged and unflagged repeats without restarting capture or losing live levels', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: 1000 });
+  let starts = 0, report;
+  const { component, service, calls } = componentFixture(client(undefined, { start: async (_limit, _error, level) => {
+    starts++; report = level; return true;
+  } }));
+  component.shortcutKeyDown(shortcut()); await new Promise(setImmediate);
+  for (let i = 0; i < 20; i++) {
+    t.mock.timers.tick(50);
+    const event = shortcut({ repeat: i % 2 === 0 });
+    component.shortcutKeyDown(event); report(.6);
+    assert.equal(event.defaultPrevented, true);
+    assert.equal(service.phase, 'recording');
+    assert.equal(service.levels.at(-1), .6);
+  }
+  assert.equal(starts, 1); assert.equal(calls.length, 0);
+  assert.match(component.keyDiagnostics.rows().find(row => row.label === 'P repeats').value, /^20 .*unflagged repeat/);
+  assert.doesNotMatch(keyTrace(component), /already down/);
+  component.shortcutKeyUp(shortcut()); await new Promise(setImmediate);
+  assert.equal(calls.length, 1); assert.equal(service.phase, 'saved');
+  assert.match(keyTrace(component), /1000 ms · Held release/);
+  component.ngOnDestroy(); service.ngOnDestroy();
+});
+test('an active P hold still leaves modified shortcuts and other keys untouched', async () => {
+  const { component, service } = componentFixture();
+  component.shortcutKeyDown(shortcut()); await new Promise(setImmediate);
+  for (const changes of [{ ctrlKey: true }, { altKey: true }, { shiftKey: true }, { metaKey: true },
+    { isComposing: true }, { key: 'x', code: 'KeyX' }, { target: { isContentEditable: true } },
+    { target: { closest: () => ({}) } }]) {
+    const event = shortcut(changes); component.shortcutKeyDown(event);
+    assert.equal(event.defaultPrevented, undefined);
+    assert.equal(service.phase, 'recording');
+  }
+  component.ngOnDestroy(); service.ngOnDestroy();
+});
+test('dock diagnostics inspect actual rendered bindings without scrolling or retaining audio', () => {
+  const { component, service } = componentFixture();
+  component.dock = { nativeElement: { dataset: { phase: 'recording' }, querySelectorAll: () => [
+    { style: { height: '4px' } }, { style: { height: '22.4px' } }
+  ] } };
+  component.ngAfterViewChecked();
+  assert.match(component.keyDiagnostics.rows().find(row => row.label === 'Dock DOM').value, /recording · 2 bars · max 22px/);
+  component.ngOnDestroy(); service.ngOnDestroy();
+});
 test('P diagnostics explain a held release during startup and retain the cancelled mic transition', async t => {
   t.mock.timers.enable({ apis: ['Date'], now: 1000 });
   let grant;

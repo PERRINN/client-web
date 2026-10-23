@@ -13,6 +13,7 @@ import { VoiceDiagnosticRow, VoiceKeyDiagnostics, voiceDiagnosticRows } from './
 })
 export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy {
   @ViewChild('replies') private replies?: ElementRef<HTMLElement>;
+  @ViewChild('dock') private dock?: ElementRef<HTMLButtonElement>;
   private renderedReplies = ':';
   private conversationChanges: Subscription;
   private pointer?: { downAt: number; id: number; x: number; y: number; uid: string; started: boolean; held: boolean };
@@ -67,6 +68,12 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
   }
 
   ngAfterViewChecked(): void {
+    const dock = this.dock?.nativeElement;
+    if (dock) {
+      const bars = Array.from(dock.querySelectorAll<HTMLElement>('.waveform i'));
+      this.keyDiagnostics.observeDock(dock.dataset.phase || 'Unknown', bars.length,
+        Math.max(0, ...bars.map(bar => Number.parseFloat(bar.style.height) || 0)));
+    }
     const rendered = `${this.conversation.messages.at(-1)?.id || ''}:${this.voice.replies.at(-1)?.id || ''}`;
     if (this.renderedReplies === rendered) return;
     this.renderedReplies = rendered;
@@ -121,13 +128,20 @@ export class VoiceInputComponent implements AfterViewChecked, OnInit, OnDestroy 
   @HostListener('document:keydown', ['$event'])
   shortcutKeyDown(event: KeyboardEvent): void {
     const target = event.target as HTMLElement | null;
+    const editable = !!(target?.isContentEditable
+      || target?.closest?.('input, textarea, select, [role="textbox"], [contenteditable]:not([contenteditable="false"])'));
+    const heldRepeat = !!this.keyboard && event.key.toLowerCase() === 'p' && event.code === this.keyboard.code
+      && !editable && !event.isComposing && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey;
     const ignored = event.key.toLowerCase() !== 'p' ? 'Not P'
       : event.defaultPrevented ? 'Already prevented' : event.repeat ? 'Repeat ignored' : event.isComposing ? 'IME composition'
       : event.altKey || event.ctrlKey || event.metaKey || event.shiftKey ? 'Modified shortcut'
-      : this.pointer ? 'Pointer active' : this.keyboard ? 'P already down' : !this.voice.canToggle ? 'Mic control locked'
-      : target?.isContentEditable || target?.closest?.('input, textarea, select, [role="textbox"], [contenteditable]:not([contenteditable="false"])') ? 'Editable field' : '';
+      : this.pointer ? 'Pointer active' : heldRepeat ? 'Held repeat ignored' : this.keyboard ? 'P already down' : !this.voice.canToggle ? 'Mic control locked'
+      : editable ? 'Editable field' : '';
     if (this.keyDiagnostics.relevant(event)) this.keyDiagnostics.event(event, 'down', ignored || `Toggle from ${this.voice.phase}`,
-      !ignored || ignored === 'Repeat ignored');
+      !ignored || ignored === 'Repeat ignored' || heldRepeat, heldRepeat);
+    // External Android buttons can repeat keydown without setting event.repeat.
+    // Own every event in an accepted hold so native long-press handling cannot compete.
+    if (heldRepeat) event.preventDefault();
     if (ignored) return;
     event.preventDefault();
     this.keyboard = { downAt: Date.now(), code: event.code, uid: this.voice.uid, started: this.voice.canRecord };

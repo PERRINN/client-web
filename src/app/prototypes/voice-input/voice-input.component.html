@@ -2,7 +2,7 @@
   <a class="back" routerLink="/prototypes">← Prototyping</a>
   @if (conversation.allowed) {
   <section class="capture-panel" aria-label="Voice recording">
-    <button class="voice-dock" type="button" [class.recording]="voice.phase === 'recording'"
+    <button #dock class="voice-dock" type="button" [class.recording]="voice.phase === 'recording'"
       [class.unavailable]="!voice.ready || !voice.uid" [attr.data-phase]="voice.phase"
       [disabled]="!voice.canToggle"
       [attr.aria-pressed]="voice.phase === 'recording' || voice.phase === 'requesting'" [attr.aria-label]="voice.label + ' · P to toggle · Hold to talk · 30 seconds maximum'"

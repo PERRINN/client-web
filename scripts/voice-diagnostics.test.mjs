@@ -105,6 +105,28 @@ test('keyboard diagnostics bound trace memory and coalesce repeat floods without
   assert.equal(keys.rows().find(row => row.label === 'P trace').value.split('\n').length, 8);
 });
 
+test('unflagged repeats preserve the start trace and rendered waveform evidence survives release', () => {
+  const keys = new VoiceKeyDiagnostics();
+  keys.observeDock('idle', 18, 4);
+  keys.event({ key: 'p', code: 'KeyP' }, 'down', 'Toggle from idle');
+  keys.observeDock('requesting', 18, 4); keys.observeDock('recording', 18, 4);
+  for (let i = 0; i < 1000; i++) {
+    keys.event({ key: 'p', code: 'KeyP' }, 'down', 'Held repeat ignored', true, true);
+    keys.observeDock('recording', 18, 24);
+  }
+  keys.observeDock('sending', 0, 0); keys.observeDock('idle', 18, 4);
+  const rows = new Map(keys.rows().map(row => [row.label, row]));
+  assert.match(rows.get('P repeats').value, /^1000 .*unflagged repeat/);
+  assert.equal(rows.get('Dock DOM').value, 'idle · 18 bars · max 24px');
+  assert.equal(rows.get('P trace').value.split('\n').length, 6);
+  assert.match(rows.get('P trace').value, /Toggle from idle/);
+  assert.match(rows.get('P trace').value, /Waveform rendered: active/);
+  keys.observeDock('requesting', 18, 4);
+  assert.match(keys.rows().find(row => row.label === 'Dock DOM').value, /max 0px/);
+  keys.observeDock('idle', 18, 4); keys.observeDock('recording', 18, 10);
+  assert.match(keys.rows().find(row => row.label === 'Dock DOM').value, /max 10px/);
+});
+
 test('keyboard evidence recognizes Android unknown/composition events without collecting arbitrary input', () => {
   const keys = new VoiceKeyDiagnostics();
   assert.equal(keys.relevant({ key: 'Unidentified', keyCode: 229 }), true);

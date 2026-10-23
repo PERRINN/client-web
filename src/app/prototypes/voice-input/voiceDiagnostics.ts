@@ -12,21 +12,25 @@ export class VoiceKeyDiagnostics {
   private repeats = 0;
   private lastRepeat = '';
   private phase = '';
+  private dockPhase = '';
+  private dockBars = 0;
+  private dockPeak = 0;
+  private waveformSeen = false;
   private trace: { at: number; value: string; ok: boolean }[] = [];
 
   relevant(event: KeyboardEvent): boolean {
     return event.key?.toLowerCase() === 'p' || event.code === 'KeyP' || event.keyCode === 80
       || ['Unidentified', 'Process', ''].includes(event.key) || event.keyCode === 229;
   }
-  event(event: KeyboardEvent, type: 'down' | 'up', decision: string, ok = true): void {
+  event(event: KeyboardEvent, type: 'down' | 'up', decision: string, ok = true, heldRepeat = false): void {
     const key = event.key?.toLowerCase() === 'p' ? 'P' : ['Unidentified', 'Process', ''].includes(event.key) ? event.key || 'Empty' : 'Other';
     const code = event.code === 'KeyP' ? 'KeyP' : event.code ? 'Other' : 'Empty';
-    const flags = [event.repeat && 'repeat', event.isComposing && 'composing', event.defaultPrevented && 'prevented',
+    const flags = [event.repeat && 'repeat', heldRepeat && !event.repeat && 'unflagged repeat', event.isComposing && 'composing', event.defaultPrevented && 'prevented',
       event.altKey && 'Alt', event.ctrlKey && 'Ctrl', event.metaKey && 'Meta', event.shiftKey && 'Shift',
       event.isTrusted === false && 'synthetic'].filter(Boolean);
     const legacy = [80, 229].includes(event.keyCode) ? ` · ${event.keyCode}` : '';
     const detail = `${key} / ${code}${legacy}${flags.length ? ' · ' + flags.join(', ') : ''}`;
-    if (type === 'down' && event.repeat) {
+    if (type === 'down' && (event.repeat || heldRepeat)) {
       this.repeats++; this.lastRepeat = `${detail} · ${decision}`;
       return;
     }
@@ -43,11 +47,28 @@ export class VoiceKeyDiagnostics {
     this.phase = phase;
     this.note(`Mic: ${phase}`);
   }
+  observeDock(phase: string, bars: number, peak: number): void {
+    if (this.dockPhase !== phase) {
+      if (phase === 'requesting' || phase === 'recording' && this.dockPhase !== 'requesting') {
+        this.dockPeak = 0; this.waveformSeen = false;
+      }
+      if (this.trace.length) this.note(`Dock rendered: ${phase}`);
+      this.dockPhase = phase;
+    }
+    this.dockBars = bars;
+    if (phase !== 'recording') return;
+    this.dockPeak = Math.max(this.dockPeak, peak);
+    if (!this.waveformSeen && peak > 4) {
+      this.waveformSeen = true;
+      if (this.trace.length) this.note('Waveform rendered: active');
+    }
+  }
   rows(): VoiceDiagnosticRow[] {
     return [
       { label: 'P keydown', value: this.down, ok: true },
       { label: 'P keyup', value: this.up, ok: true },
       { label: 'P repeats', value: `${this.repeats}${this.lastRepeat ? ' · ' + this.lastRepeat : ''}`, ok: true },
+      { label: 'Dock DOM', value: this.dockPhase ? `${this.dockPhase} · ${this.dockBars} bars · max ${Math.round(this.dockPeak)}px` : 'Not observed', ok: true },
       { label: 'P trace', value: this.trace.length ? this.trace.map(entry => {
         const date = new Date(entry.at);
         return `${date.toTimeString().slice(0, 8)}.${String(date.getMilliseconds()).padStart(3, '0')} ${entry.value}`;
