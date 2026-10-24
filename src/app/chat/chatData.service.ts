@@ -53,6 +53,11 @@ export class ChatDataService {
     return this.UI.convertAndFormatPRNToPRNCurrency(null, amount);
   }
 
+  participantBalance(amount?: number | null): string {
+    return typeof amount === 'number' && Number.isFinite(amount)
+      ? this.UI.convertAndFormatPRNToPRNCurrency(null, amount) : 'PRN —';
+  }
+
   acknowledgeSubmission(chain: string, userId: string, messageId: string): void {
     this.submittedMessages.next({ chain, userId, messageId });
   }

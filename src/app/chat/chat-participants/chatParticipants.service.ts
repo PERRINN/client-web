@@ -4,8 +4,8 @@ import { firstValueFrom } from 'rxjs';
 import firebase from 'firebase/compat/app';
 import { PermissionsService } from '../../permissions.service';
 
-export interface ChatParticipant { id: string; name: string; avatarName: string; avatar: string; }
-interface ContributorRecord { user?: string; name?: string; imageUrlThumbUser?: string; }
+export interface ChatParticipant { id: string; name: string; avatarName: string; avatar: string; balance?: number | null; }
+interface ContributorRecord { user?: string; name?: string; imageUrlThumbUser?: string; wallet?: { balance?: number }; }
 export interface ParticipantPage { people: ChatParticipant[]; cursor?: firebase.firestore.QueryDocumentSnapshot<ContributorRecord>; hasMore: boolean; }
 
 @Injectable({ providedIn: 'root' })
@@ -26,7 +26,8 @@ export class ChatParticipantsService {
       }).get({ source: 'server' })));
     if (this.permissions.current.uid !== actor.uid || !this.permissions.current.isAdmin) throw new Error('Your account changed.');
     const people = snapshot.docs.map(doc => doc.data()).filter(person => !!person.user).map(person => ({
-      id: person.user!, name: person.name || 'Contributor', avatarName: person.name || 'Contributor', avatar: person.imageUrlThumbUser || ''
+      id: person.user!, name: person.name || 'Contributor', avatarName: person.name || 'Contributor', avatar: person.imageUrlThumbUser || '',
+      balance: typeof person.wallet?.balance === 'number' && Number.isFinite(person.wallet.balance) ? person.wallet.balance : null
     }));
     return { people, cursor: snapshot.docs.at(-1), hasMore: snapshot.size === 20 };
   }

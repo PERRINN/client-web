@@ -11,7 +11,7 @@
   </form>
   @if (loading) { <p role="status">Loading</p> }
   <ul aria-label="Contributors to add">@for (person of available; track person.id) {
-    <li><a class="person" [routerLink]="['/profile', person.id]"><app-user-avatar [name]="person.avatarName" [sources]="person.avatar" aria-hidden="true" /><span>{{ person.name }}</span></a>
+    <li><a class="person" [routerLink]="['/profile', person.id]"><app-user-avatar [name]="person.avatarName" [sources]="person.avatar" aria-hidden="true" /><span class="result-identity"><span>{{ person.name }}</span> <span class="balance" [attr.aria-label]="person.balance === null || person.balance === undefined ? 'PRN balance unavailable' : 'PRN balance: ' + balanceLabel(person.balance)">{{ balanceLabel(person.balance) }}</span></span></a>
       <button type="button" [disabled]="saving || loading" (click)="change('add', person)" [attr.aria-label]="'Add ' + person.avatarName">Add</button></li>
   }</ul>
   @if (searched && !available.length && !loading) { <p>No new contributors in these results.</p> }

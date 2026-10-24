@@ -24,12 +24,12 @@ import {ChatParticipantsService} from '${root}/src/app/chat/chat-participants/ch
 import {ChatDataService} from '${root}/src/app/chat/chatData.service';
 import {PermissionsService} from '${root}/src/app/permissions.service';
 import {UserAvatarComponent} from '${root}/src/app/user-avatar.component';
-const alex={id:'alex',name:'Alex With A Long Contributor Name',avatarName:'Alex With A Long Contributor Name',avatar:''};
+const alex={id:'alex',name:'Alex With A Long Contributor Name',avatarName:'Alex With A Long Contributor Name',avatar:'',balance:12500};
 const state=new BehaviorSubject({uid:'admin',isAdmin:true,ready:true});
 const permissions={state,get current(){return state.value}};
 let fail=false,requests=[],searches=0,resolveSearch;
 const directory={search:async()=>{searches++;if(fail)throw Error('offline');return new Promise(resolve=>resolveSearch=()=>resolve({people:[alex],hasMore:false}));}};
-const data={fundCurrency:{code:'gbp',perGBP:1},changeParticipant:async(chain,action,person)=>{if(fail)throw Error('offline');requests.push({chain,action,person});return 'saved-'+requests.length;}};
+const data={participantBalance:amount=>amount==null?'PRN —':'PRN £'+amount.toLocaleString('en-GB'),fundCurrency:{code:'gbp',perGBP:1},changeParticipant:async(chain,action,person)=>{if(fail)throw Error('offline');requests.push({chain,action,person});return 'saved-'+requests.length;}};
 @Component({standalone:false,template:${JSON.stringify(template)},styles:[${JSON.stringify(styles)}]})
 class Area extends ChatComponent {
  constructor(){super({paramMap:EMPTY} as any,{} as any,data as any,{} as any,{run:fn=>fn()} as any,{error:'',attach(){},scan(){}} as any,{} as any,{mode:'text',configure(){},unlock(){}} as any);
@@ -74,6 +74,10 @@ try {
   await page.evaluate(()=>window.participantsUI.searchDone());
   const add=panel.getByRole('button',{name:'Add Alex With A Long Contributor Name',exact:true});await add.waitFor();
   await stable();assert.equal(await page.evaluate(()=>window.participantsUI.searches()),1);
+  const balance=panel.getByLabel('PRN balance: PRN £12,500',{exact:true});await balance.waitFor();
+  assert.equal(await balance.innerText(),'PRN £12,500');
+  const row=await balance.locator('xpath=ancestor::li').boundingBox(),value=await balance.boundingBox();assert.ok(value.x>=row.x && value.x+value.width<=row.x+row.width);
+  await page.screenshot({path:output+'/participant-balance-'+width+'.png'});
   if(width<600)assert.equal(await page.getByRole('textbox',{name:'Contributor name'}).evaluate(el=>getComputedStyle(el).fontSize),'16px');
   await page.getByRole('textbox',{name:'Contributor name'}).focus();
   assert.equal(await page.getByRole('textbox',{name:'Contributor name'}).evaluate(el=>getComputedStyle(el).outlineStyle),'solid');

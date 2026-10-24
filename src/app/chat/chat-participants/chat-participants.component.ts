@@ -56,6 +56,7 @@ export class ChatParticipantsComponent implements OnChanges, OnDestroy {
     if (this.removing && !this.members.some(member => member.id === this.removing!.id) && !this.saving) this.removing = null;
   }
   get available(): ChatParticipant[] { return this.results.filter(person => !this.members.some(member => member.id === person.id)); }
+  balanceLabel(balance?: number | null): string { return this.data.participantBalance(balance); }
   get canLoadMore(): boolean { return this.hasMore && this.pages < 10; }
   openPicker(): void {
     this.picker = true; this.removing = null; this.error = ''; this.notice = '';

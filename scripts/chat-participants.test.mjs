@@ -81,11 +81,11 @@ test('picker performs exactly one limit-20 server request per action, with curso
   const calls = [], cursor = {}, permissions = { current: admin };
   const query = new Proxy({}, { get: (_, name) => (...args) => { calls.push([name, ...args]); return query; } });
   const afs = { collection: (name, callback) => { assert.equal(name, 'PERRINNMessages'); callback(query); return { get: options => {
-    calls.push(['get', options]); return of({ size: 20, docs: [{ data: () => ({ user: 'alex', name: 'Alex' }) }] });
+    calls.push(['get', options]); return of({ size: 20, docs: [{ data: () => ({ user: 'alex', name: 'Alex', wallet: { balance: 42.5 } }) }] });
   } }; } };
   const service = new ChatParticipantsService(afs, {}, permissions);
   const result = await service.search(' Alex ', cursor);
-  assert.equal(result.people[0].id, 'alex'); assert.equal(result.hasMore, true);
+  assert.equal(result.people[0].id, 'alex'); assert.equal(result.people[0].balance, 42.5); assert.equal(result.hasMore, true);
   assert.deepEqual(calls.filter(call => call[0] === 'limit'), [['limit', 20]]);
   assert.deepEqual(calls.find(call => call[0] === 'startAfter'), ['startAfter', cursor]);
   assert.deepEqual(calls.find(call => call[0] === 'startAt'), ['startAt', 'alex']);
@@ -126,4 +126,13 @@ test('failed drafts remain retryable, existing members are filtered, paging stop
   f.component.confirmRemoval(member); await f.component.change('remove', member);
   assert.equal(f.component.removing, member); assert.equal(f.component.saving, false); assert.match(f.component.error, /couldn’t save/);
   f.component.ngOnDestroy(); await tick();
+});
+
+test('participant balances use the shared viewer-currency formatter and preserve zero and missing values', () => {
+  const calls = [], UI = { currency: 'GBP', convertAndFormatPRNToPRNCurrency(currency, amount) { calls.push([currency, amount]); return `PRN ${this.currency} ${amount}`; } };
+  const data = new ChatDataService({}, {}, {}, {}, UI);
+  for (const amount of [0, 42.5, -1]) assert.equal(data.participantBalance(amount), `PRN GBP ${amount}`);
+  UI.currency = 'EUR'; assert.equal(data.participantBalance(42.5), 'PRN EUR 42.5');
+  for (const amount of [undefined, null, NaN, Infinity, '42']) assert.equal(data.participantBalance(amount), 'PRN —');
+  assert.deepEqual(calls, [[null, 0], [null, 42.5], [null, -1], [null, 42.5]]);
 });
