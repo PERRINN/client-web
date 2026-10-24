@@ -4,8 +4,9 @@ section { max-width: 760px; }
 .actions, .heading { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 h3 { font-size: 17px; font-weight: 600; margin-bottom: 10px; }
 h4 { font-size: 16px; font-weight: 600; margin: 14px 0 8px; }
-button, select { min-height: 44px; margin: 0; flex: 0 0 auto; padding: 8px 10px; font: inherit; background: var(--color-raised); color: var(--color-text); border: 1px solid transparent; border-radius: 6px; }
-select { width: 100%; border-color: var(--color-border); margin-bottom: 12px; text-align: left; color-scheme: dark; }
+select { min-height: 44px; margin: 0; flex: 0 0 auto; padding: 8px 10px; font: inherit; color: var(--color-text); }
+button { min-height: 44px; margin: 0; flex: 0 0 auto; padding: 8px 10px; font: inherit; background: var(--color-raised); color: var(--color-text); border: 1px solid transparent; border-radius: 6px; }
+select { width: 100%; margin-bottom: 12px; text-align: left; color-scheme: dark; }
 button:disabled, select:disabled { opacity: .6; }
 button:focus-visible, select:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .primary { background: var(--color-accent); color: var(--color-accent-ink); }

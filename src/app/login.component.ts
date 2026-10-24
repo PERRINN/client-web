@@ -29,8 +29,6 @@ export class LoginComponent  {
   icon:string = "display:none"
   iconOutlinedConfirm:string = "display:block"
   iconConfirm:string = "display:none"
-  focusPassword:string
-  focusPasswordConfirm:string
 
   constructor(
     public afAuth:AngularFireAuth,
@@ -62,10 +60,10 @@ export class LoginComponent  {
 
   toggleField(field:string, effect:string) {
     if (field === 'password'){
-      [this.passwordVisibility,this.iconOutlined,this.icon,this.focusPassword] = this.UI.fieldShowHide(effect);
+      [this.passwordVisibility,this.iconOutlined,this.icon] = this.UI.fieldShowHide(effect);
     }
     else if (field === 'passwordConfirm'){
-      [this.passwordConfirmVisibility,this.iconOutlinedConfirm,this.iconConfirm,this.focusPasswordConfirm] = this.UI.fieldShowHide(effect);
+      [this.passwordConfirmVisibility,this.iconOutlinedConfirm,this.iconConfirm] = this.UI.fieldShowHide(effect);
     }
   }
 

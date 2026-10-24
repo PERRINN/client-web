@@ -54,16 +54,17 @@ test('Auth refresh updates checkout email without multiplying private profile li
 });
 
 test('Settings keeps one private profile listener, cancels on account changes and releases on navigation', () => {
-  const { SettingsComponent } = load('../src/app/settings.component.ts', {
-    './imageUpload.service': { imageUploadState: () => ({}) },
-    './accountEmail.service': { AccountEmailService: class {} }
+  const model = load('../src/app/settings/settingsModel.ts', {}, { URL });
+  const { SettingsDataService } = load('../src/app/settings/settingsData.service.ts', {
+    '../userAvatar': load('../src/app/userAvatar.ts'), './settingsModel': model, '../imageUpload.service': { imageUploadState: () => ({}) }
   });
-  const authState = new BehaviorSubject({ uid: 'alice' }), { afs, active } = profiles();
-  const email = { currentAddress: 'auth@example.test' };
-  const page = new SettingsComponent({ authState }, afs, {}, { currentUserLastMessageObj: {} }, {}, { run: fn => fn() }, email);
-  page.ngOnInit(); assert.equal(active.get('alice'), 1); assert.equal(email.currentAddress, 'auth@example.test');
+  const authState = new BehaviorSubject({ uid: 'alice' }), { afs, active, queries } = profiles();
+  const page = new SettingsDataService({ authState }, afs, {}, {}, {}, { run: fn => fn() });
+  page.start(); assert.equal(active.get('alice'), 1);
+  authState.next({ uid: 'alice' }); assert.equal(queries.length, 1);
   authState.next({ uid: 'bob' }); assert.equal(active.get('alice'), 0); assert.equal(active.get('bob'), 1);
-  authState.next(null); assert.equal(active.get('bob'), 0); assert.equal(page.name, null);
+  assert.equal(page.draft.name, 'bob');
+  authState.next(null); assert.equal(active.get('bob'), 0); assert.equal(page.draft.name, '');
   authState.next({ uid: 'alice' }); assert.equal(active.get('alice'), 1);
   page.ngOnDestroy(); assert.equal(active.get('alice'), 0); assert.equal(authState.observed, false);
 });

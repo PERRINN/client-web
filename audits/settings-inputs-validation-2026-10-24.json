@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-24",
+  "scope": "Single-page Settings, shared borderless fields, desktop select chevrons, Change photo upload/paste chooser",
+  "unitChecks": {
+    "accountRegression": 139,
+    "settings": 5,
+    "screenWakeLock": 13
+  },
+  "browserChecks": {
+    "settingsWidths": [
+      1440,
+      768,
+      390,
+      320
+    ],
+    "accountEmailWidths": [
+      1440,
+      390,
+      320
+    ],
+    "chatDetailsWidths": [
+      1440,
+      390,
+      320
+    ],
+    "fundEditorWidths": [
+      1440,
+      390,
+      320
+    ],
+    "greenpowerEditorWidths": [
+      1440,
+      390,
+      320
+    ],
+    "sharedFieldCases": 15,
+    "sharedFieldModes": [
+      "desktop fine pointer",
+      "mobile touch"
+    ]
+  },
+  "build": "passed",
+  "lint": {
+    "errors": 0,
+    "warnings": 28
+  },
+  "indexes": {
+    "live": 32,
+    "repository": 32,
+    "additions": 0,
+    "deletions": 0,
+    "fieldOverridesMatch": true,
+    "normalization": "Expand default __name__ ordering; default ttl false; sort field overrides."
+  },
+  "deploymentScope": "Firebase Hosting only; no Functions, rules, indexes, schema or production data changes",
+  "coverageLimits": [
+    "Browser checks use synthetic accounts and telemetry with Firebase requests disabled.",
+    "Clipboard content/permission outcomes are simulated; physical OS/device clipboard behaviour remains a manual check.",
+    "Settings retains the existing server contract that does not support clearing a previously set presentation or public link."
+  ]
+}

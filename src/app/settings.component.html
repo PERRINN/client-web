@@ -1,158 +1,147 @@
-<div class="settingsPage">
-  <div class="settingsPageTitle">Settings
-  </div>
-  <div class="island profileSummary settingsProfileCard">
-    <div class="settingsProfileHead">
-      <button type="button" class="user-photo-button" [disabled]="!settingsAvatar.src" aria-label="View profile photo"
-        (click)="UI.showFullScreenImage(settingsAvatar.previewSource(UI.currentUserLastMessageObj?.imageUrlOriginal))">
-        <app-user-avatar class="settingsProfileImage" #settingsAvatar [name]="UI.currentUserLastMessageObj?.name"
-          [sources]="[UI.currentUserLastMessageObj?.imageUrlMedium, UI.currentUserLastMessageObj?.imageUrlThumbUser, UI.currentUserLastMessageObj?.imageUrlOriginal]" aria-hidden="true"></app-user-avatar>
-      </button>
+<main class="settings-page" aria-labelledby="settings-title">
+  <header class="page-header">
+    <h1 id="settings-title">Settings</h1>
+    @if (settings.uid) { <a class="quiet-button" [routerLink]="['/profile', settings.uid]">View profile</a> }
+  </header>
 
-        <div class="settingsProfileMain">
-          <div class="settingsProfileTopRow">
-            <div class="settingsProfileNameWrap">
-              <span class="settingsProfileName">{{UI.currentUserLastMessageObj?.name}}</span>
+  @if (settings.loading) { <p class="page-state" role="status">Loading</p> }
+  @else if (settings.unavailable) {
+    <section class="panel"><p class="error" role="alert">Settings are unavailable right now.</p><button class="quiet-button" type="button" (click)="settings.retry()">Try again</button></section>
+  } @else if (!settings.uid) {
+    <section class="panel sign-in"><h2>Profile</h2><p>Sign in to edit your settings.</p><a class="primary-button" routerLink="/login" [queryParams]="{returnUrl: '/settings'}">Sign in</a></section>
+  } @else {
+    <section class="panel" aria-labelledby="profile-title">
+      <h2 id="profile-title">Profile</h2>
+      <div class="photo-row">
+        <button type="button" class="photo-preview" aria-label="View profile photo" [disabled]="!settings.hasPhoto"
+          (click)="viewPhoto(avatar.previewSource(settings.profile.imageUrlOriginal))">
+          <app-user-avatar class="settings-photo" #avatar [name]="settings.profile.name"
+            [sources]="[settings.profile.imageUrlMedium, settings.profile.imageUrlThumbUser, settings.profile.imageUrlOriginal]" aria-hidden="true" />
+        </button>
+        <div class="photo-controls">
+          <span class="field-label">Profile photo</span>
+          <input #photoPicker type="file" accept="image/*" class="file-input" aria-label="Choose profile photo"
+            [disabled]="!settings.canEdit || settings.busy" (change)="onImageChange($event)">
+          <button class="quiet-button" type="button" [disabled]="!settings.canEdit || settings.busy" (click)="photoDialog.showModal(); photoUpload.focus()">Change photo</button>
+          <dialog #photoDialog class="photo-dialog" aria-labelledby="photo-dialog-title" (paste)="onPhotoPaste($event, photoDialog)">
+            <div class="dialog-heading"><h3 id="photo-dialog-title">Change photo</h3><button class="quiet-button dialog-close" type="button" aria-label="Close photo chooser" (click)="photoDialog.close()">×</button></div>
+            <div class="photo-options">
+              <button class="quiet-button" type="button" #photoUpload (click)="photoPicker.click(); photoDialog.close()" [disabled]="!settings.canEdit || settings.busy">Upload photo</button>
+              <button class="quiet-button" type="button" (click)="pastePhoto(photoDialog)" [disabled]="!settings.canEdit || settings.busy">Paste image</button>
             </div>
-            <div class="settingsWalletActions">
-              <button type="button" class="buttonPrimary" routerLink="/buyPRN/">Contribute funds</button>
-              <span class="settingsProfileBalance">{{UI.convertAndFormatPRNToPRNCurrency(null,UI.currentUserLastMessageObj?.wallet?.balance)}}</span>
-            </div>
-          </div>
-
-          <div class="settingsProfilePresentation">{{UI.currentUserLastMessageObj?.userPresentation}} Level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</div>
-
-          <div class="settingsProfileMeta">
-            @if (UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed) {
-              <span>Waiting for contract signature (Level {{UI.currentUserLastMessageObj?.contract?.level}})</span>
+            @if (settings.photo.busy) { <p class="feedback" role="status">Saving photo</p> }
+            @if (settings.photo.error) { <p class="feedback error" role="alert">{{settings.photo.error}}</p> }
+          </dialog>
+          @if (settings.photo.busy) {
+            <p class="feedback" role="status">{{settings.photo.percent === null ? 'Saving' : 'Uploading · ' + settings.photo.percent + '%'}}</p>
+            @if (settings.photo.percent !== null) {
+              <div class="upload-track" role="progressbar" aria-label="Photo upload" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="settings.photo.percent"><span [style.width.%]="settings.photo.percent"></span></div>
             }
-            <span>{{UI.hasTouch?"On mobile (touch screen)":"On desktop / laptop"}}</span>
-            <span>{{UI.isStandalone?"On home screen":"In the browser"}}</span>
-          </div>
-
-          <div class="settingsUploadRow">
-            <input
-              #profilePicturePicker
-              [disabled]="profileUpload.busy"
-              type="file"
-              id="chatImage"
-              (change)="onImageChange($event)"
-              accept="image/*"
-              class="settings-upload-input"
-              />
-              <button type="button"
-                (click)="profilePicturePicker.click()"
-                [disabled]="profileUpload.busy"
-                class="buttonPrimary settingsUploadBtn"
-                >
-                Upload a new profile picture
-              </button>
-              @if (profileUpload.busy) { <div class="local-upload-status"><span role="status">{{ profileUpload.percent === null ? 'Saving' : 'Uploading image · ' + profileUpload.percent + '%' }}</span>@if (profileUpload.percent !== null) { <span class="local-upload-track" role="progressbar" aria-label="Image upload" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="profileUpload.percent"><span [style.width.%]="profileUpload.percent"></span></span> }</div> }
-              @if (profileUpload.error) { <p class="local-upload-error" role="alert">{{ profileUpload.error }}</p> }
-            </div>
-          </div>
-        </div>
-      </div>
-      @if (screenWakeLock.state$ | async; as state) {
-        <section class="island settingsWakeLock" aria-label="Display">
-          <div class="settingsWakeRow">
-            <span id="keep-screen-on-label">Keep screen on</span>
-            <button type="button" class="screenWakeSwitch" role="switch"
-              aria-labelledby="keep-screen-on-label" aria-describedby="keep-screen-on-status"
-              [attr.aria-checked]="screenWakeLock.enabled" [attr.aria-busy]="state === 'requesting'"
-              [disabled]="!screenWakeLock.supported" (click)="screenWakeLock.toggle()">
-              <span aria-hidden="true"></span>
-            </button>
-          </div>
-          <p id="keep-screen-on-status" role="status" [class.wakeError]="state === 'blocked'">{{ state === 'blocked' ? 'Couldn’t keep screen on.' : state === 'unsupported' ? 'Not supported by this browser.' : '' }}</p>
-        </section>
-      }
-      <div class="island settingsSection">
-        <div class="title">Your name (preferably your first name)</div>
-        <input [(ngModel)]="name" placeholder="First name">
-        <button class="buttonPrimary settings-action-btn" (click)="updateName()" [disabled]="!name || name == UI.currentUserLastMessageObj?.name">Update my name</button>
-      </div>
-
-      <div class="island settingsSection">
-        <div class="title">Preferred currency</div>
-        <div class="settings-currency-container">
-          <ul class="listLight">
-            @for (currency of objectToArray(UI.PERRINNAdminLastMessageObj?.currencyList); track currency[0]) {
-              <li>
-                <button type="button" class="buttonBlack"
-                  (click)="UI.currentUserLastMessageObj?.userCurrency==currency[0]?'':updateUserCurrency(currency[0])"
-                  [class.activeCurrency]="UI.currentUserLastMessageObj?.userCurrency==currency[0]"
-                  [attr.aria-pressed]="UI.currentUserLastMessageObj?.userCurrency==currency[0]">
-                  {{currency[1].designation}}
-                </button>
-              </li>
-            }
-          </ul>
-        </div>
-      </div>
-
-      <div class="island settingsSection">
-        <div class="title">Short presentation</div>
-        <div class="settings-help-text">Your short presentation helps other contributors get to know you.</div>
-        <div class="settings-help-text settings-help-margin-top">I am someone who is:</div>
-        <input [(ngModel)]="userPresentation" placeholder="Your short presentation" maxlength="150">
-        <button class="buttonPrimary settings-action-btn" (click)="updateUserPresentation()" [disabled]="!userPresentation || userPresentation == UI.currentUserLastMessageObj?.userPresentation">Update my presentation</button>
-      </div>
-
-      <div class="island settingsSection">
-        <div class="title">Public link</div>
-        <div class="settings-help-text settings-help-margin-all">Add view only public link so other contributors can view your documents, website, code and more.</div>
-        <input [(ngModel)]="publicLink" placeholder="Add a link">
-        <button class="buttonPrimary settings-action-btn" (click)="updatePublicLink()" [disabled]="!publicLink || publicLink == UI.currentUserLastMessageObj?.publicLink">Update my link</button>
-      </div>
-
-      <div class="island settingsSection">
-        <div class="title">Email address</div>
-        <form class="settings-email" (ngSubmit)="email.send()" [attr.aria-busy]="email.busy">
-          <p id="email-status" [attr.role]="email.error ? 'alert' : 'status'" [class.email-error]="email.error">{{email.status}}</p>
-          @if (email.needsPassword) {
-            <input name="current-password" [(ngModel)]="email.password" type="password" autocomplete="current-password"
-              aria-label="Current password" aria-describedby="email-status" [disabled]="email.busy" placeholder="Current password">
-          } @else {
-            <input name="email" [(ngModel)]="email.address" (ngModelChange)="email.edit()" type="email" autocomplete="email"
-              aria-label="Email address" aria-describedby="email-status" [disabled]="email.busy" placeholder="Email address" maxlength="254">
           }
-          <div class="settings-email-actions">
-            <button type="submit" class="buttonPrimary" [disabled]="!email.canSend">{{email.needsPassword ? 'Confirm and send' : 'Send verification'}}</button>
-            @if (email.needsPassword || email.sent) {
-              <button type="button" class="buttonSecondary" (click)="email.cancel()" [disabled]="email.busy">{{email.sent ? 'Done' : 'Cancel'}}</button>
-            }
+          @if (settings.photo.error && !photoDialog.open) { <p class="feedback error" role="alert">{{settings.photo.error}}</p> }
+        </div>
+      </div>
+      <form (ngSubmit)="settings.saveProfile()" [attr.aria-busy]="settings.saving">
+        <fieldset [disabled]="!settings.canEdit || settings.busy">
+          <div class="field-grid">
+            <div class="field"><label for="settings-name">First name</label>
+              <input id="settings-name" name="name" autocomplete="given-name" [ngModel]="settings.draft.name" (ngModelChange)="settings.edit('name', $event)"
+                [attr.aria-invalid]="settings.errors.name ? 'true' : null" [attr.aria-describedby]="settings.errors.name ? 'name-error' : null">
+              @if (settings.errors.name) { <p id="name-error" class="feedback error" role="alert">{{settings.errors.name}}</p> }
+            </div>
+            <div class="field"><label for="settings-link">Public link</label>
+              <input id="settings-link" name="public-link" type="url" autocomplete="url" [ngModel]="settings.draft.publicLink" (ngModelChange)="settings.edit('publicLink', $event)"
+                [attr.aria-invalid]="settings.errors.publicLink ? 'true' : null" [attr.aria-describedby]="settings.errors.publicLink ? 'link-error' : null">
+              @if (settings.errors.publicLink) { <p id="link-error" class="feedback error" role="alert">{{settings.errors.publicLink}}</p> }
+            </div>
+            <div class="field presentation-field"><label for="settings-presentation">Short presentation</label>
+              <textarea id="settings-presentation" name="presentation" rows="3" maxlength="150" [ngModel]="settings.draft.userPresentation" (ngModelChange)="settings.edit('userPresentation', $event)"
+                [attr.aria-invalid]="settings.errors.userPresentation ? 'true' : null" [attr.aria-describedby]="settings.errors.userPresentation ? 'presentation-error' : null"></textarea>
+              @if (settings.errors.userPresentation) { <p id="presentation-error" class="feedback error" role="alert">{{settings.errors.userPresentation}}</p> }
+            </div>
           </div>
+        </fieldset>
+        <div class="form-actions">
+          <button class="primary-button" type="submit" [disabled]="!settings.canEdit || settings.busy || !settings.dirty">{{settings.saving ? 'Saving' : 'Save changes'}}</button>
+          <button class="quiet-button" type="button" [disabled]="settings.busy || !settings.dirty" (click)="settings.cancel()">Cancel</button>
+        </div>
+        @if (settings.saveError) { <p class="feedback error" role="alert">{{settings.saveError}}</p> }
+        @else if (settings.saved) { <p class="feedback" role="status">Saved</p> }
+      </form>
+    </section>
+
+    <section class="panel" aria-labelledby="account-title">
+      <h2 id="account-title">Account</h2>
+      <form class="email-form" (ngSubmit)="sendEmail()" [attr.aria-busy]="email.busy">
+        <div class="field email-field"><label [for]="email.needsPassword ? 'settings-password' : 'settings-email'">{{email.needsPassword ? 'Current password' : 'Email address'}}</label>
+          @if (email.needsPassword) {
+            <input id="settings-password" name="current-password" [(ngModel)]="email.password" type="password" autocomplete="current-password" aria-describedby="email-status" [disabled]="email.busy">
+          } @else {
+            <input id="settings-email" name="email" [(ngModel)]="email.address" (ngModelChange)="email.edit()" type="email" autocomplete="email" aria-describedby="email-status" [disabled]="email.busy" maxlength="254">
+          }
+          <p id="email-status" class="feedback" [attr.role]="email.error ? 'alert' : 'status'" [class.error]="email.error">{{email.status}}</p>
+        </div>
+        <div class="form-actions email-actions">
+          <button class="primary-button" type="submit" [disabled]="!email.canSend">{{email.needsPassword ? 'Confirm and send' : 'Send verification'}}</button>
+          <button class="quiet-button" type="button" (click)="email.cancel()" [disabled]="email.busy || (!email.needsPassword && !email.sent && !email.error && email.address === email.currentAddress)">{{email.sent ? 'Done' : 'Cancel'}}</button>
+        </div>
+      </form>
+      <div class="setting-row sign-out-row"><span>Session</span><button class="quiet-button" type="button" (click)="UI.logout()">Sign out</button></div>
+    </section>
+  }
+
+  <section class="panel" aria-labelledby="preferences-title">
+    <h2 id="preferences-title">Preferences</h2>
+    @if (settings.uid && !settings.loading && !settings.unavailable) {
+      <div class="setting-row currency-row"><label for="settings-currency">Preferred currency</label>
+        <select id="settings-currency" [ngModel]="settings.currency" (ngModelChange)="settings.setCurrency($event)" [disabled]="!settings.canEdit || settings.busy">
+          @for (currency of settings.currencies; track currency.code) { <option [value]="currency.code">{{currency.label}}</option> }
+        </select>
+      </div>
+      @if (settings.currencyError) { <p class="feedback error" role="alert">{{settings.currencyError}}</p> }
+    }
+    @if (screenWakeLock.state$ | async; as state) {
+      <div class="setting-row"><span id="keep-screen-on-label">Keep screen on</span>
+        <button class="setting-switch" type="button" role="switch" aria-labelledby="keep-screen-on-label" [attr.aria-describedby]="state === 'blocked' || state === 'unsupported' ? 'keep-screen-on-status' : null"
+          [attr.aria-checked]="screenWakeLock.enabled" [attr.aria-busy]="state === 'requesting'" [disabled]="!screenWakeLock.supported" (click)="screenWakeLock.toggle()"><span></span></button>
+      </div>
+      @if (state === 'blocked' || state === 'unsupported') { <p id="keep-screen-on-status" class="feedback" role="status" [class.error]="state === 'blocked'">{{state === 'blocked' ? 'Couldn’t keep screen on.' : 'Not supported by this browser.'}}</p> }
+    }
+  </section>
+
+  @if (settings.uid && !settings.loading && !settings.unavailable) {
+    <section class="panel" aria-labelledby="contributions-title">
+      <h2 id="contributions-title">Contributions</h2>
+      <div class="setting-row balance-row"><div><span class="field-label">PRN balance</span><p class="balance">{{UI.convertAndFormatPRNToPRNCurrency(null, settings.profile.wallet?.balance || 0)}}</p></div>
+        <a class="primary-button" routerLink="/buyPRN/">Contribute funds</a>
+      </div>
+      <div class="contract-section">
+        <h3>Time contribution contract</h3>
+        @if (settings.profile.contract?.createdTimestamp) {
+          <dl class="contract-summary"><div><dt>Status</dt><dd>{{settings.profile.contract.signed ? 'Signed' : 'Awaiting signature'}}</dd></div>
+            @if (settings.profile.contract.signed) { <div><dt>Effective level</dt><dd>{{settings.profile.contract.levelTimeAdjusted | number:'1.1-1'}}</dd></div><div><dt>Hourly credit</dt><dd>{{UI.convertAndFormatPRNToPRNCurrency(null, hourlyCredit)}}</dd></div> }
+            <div><dt>Contract number</dt><dd>{{settings.profile.contract.createdTimestamp}}</dd></div>
+          </dl>
+        } @else { <p class="feedback">No contract registered.</p> }
+        <form class="contract-form" (ngSubmit)="settings.saveContract()" [attr.aria-busy]="settings.contractSaving">
+          <div class="field contract-level"><label for="contract-level">Contract level</label><input id="contract-level" name="contract-level" [ngModel]="settings.contractLevel" (input)="editContract($event)" inputmode="numeric" pattern="[0-9]*" maxlength="2" [disabled]="!settings.canEdit || settings.busy" aria-describedby="contract-help"></div>
+          <p id="contract-help" class="feedback">1 · Beginner to 10 · Expert</p>
+          <div class="form-actions"><button class="primary-button" type="submit" [disabled]="!settings.canEdit || settings.busy || !settings.contractChanged || !settings.validContract">{{settings.contractSaving ? 'Saving' : 'Update contract'}}</button>
+            <button class="quiet-button" type="button" [disabled]="settings.busy || !settings.contractChanged" (click)="settings.cancelContract()">Cancel</button></div>
+          @if (settings.contractError) { <p class="feedback error" role="alert">{{settings.contractError}}</p> }
+          @else if (settings.contractSaved) { <p class="feedback" role="status">Submitted for signature</p> }
         </form>
+        <details class="contract-help"><summary>About contract levels</summary><p>Choose a level from 1 (beginner) to 10 (expert, with 10+ years of experience). Changes need review and signature before taking effect. After signature, your effective level increases by about one per year. Either you or PERRINN can end the contract at any time.</p></details>
       </div>
+    </section>
+  }
 
-      <div class="island settingsSection">
-        <div class="title">PERRINN contract</div>
-        <div class="settings-help-text">Your PERRINN contract defines how you collaborate with the team. Any change you submit here is first reviewed, then approved before it becomes active. Either you or PERRINN can end the contract at any time.</div>
-        <div class="settings-help-text settings-help-margin-contract">Contract level is a scale from <b>1 to 10</b> based on your ability to work independently: <b>1</b> = beginner, <b>10</b> = expert (10+ years of experience). After signature, your effective level increases automatically over time by about <b>+1 per year</b>.</div>
-        <input [(ngModel)]="contract.level" (input)="onContractLevelInput($event)" maxlength="2" inputmode="numeric" pattern="[0-9]*" placeholder="Contract level">
-        <button class="buttonPrimary settings-action-btn settings-btn-centered" (click)="updateContract()" [disabled]="!(contract.level >= 1 && contract.level <= 10) || contract.level == UI.currentUserLastMessageObj?.contract?.level">Update my contract</button>
-        @if (!UI.currentUserLastMessageObj?.contract?.createdTimestamp) {
-          <div class="settings-info-text">No contract registered.</div>
-        }
-        @if (UI.currentUserLastMessageObj?.contract?.createdTimestamp) {
-          <div class="settings-info-text">Contract number {{UI.currentUserLastMessageObj?.contract?.createdTimestamp}}</div>
-        }
-        @if (UI.currentUserLastMessageObj?.contract?.createdTimestamp&&UI.currentUserLastMessageObj?.contract?.signed) {
-          <div class="settings-info-text settings-info-details">Signature valid for level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}, you will receive {{UI.convertAndFormatPRNToPRNCurrency(null,(UI.PERRINNAdminLastMessageObj?.contract?.hourlyRateLevel1||0)*UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted)}} per hour when you declare working hours.</div>
-        }
-        @if (UI.currentUserLastMessageObj?.contract?.createdTimestamp&&!UI.currentUserLastMessageObj?.contract?.signed) {
-          <div class="settings-info-text settings-info-details">Waiting for contract signature</div>
-        }
-      </div>
-
-      <div class="island settingsSection">
-        <div class="title">Profile simulator (for UI dev)</div>
-        <button class="buttonPrimary settings-action-btn settings-btn-centered" (click)="UI.toggleprofileSimulatorLoggedOut()">Logged-out {{UI.profileSimulatorLoggedOut ? 'ON' : 'OFF'}}</button>
-      </div>
-
-      <div class="island settingsSection">
-        <div class="title">Account</div>
-        <button class="buttonRed logout-btn" (click)="this.UI.logout()">Logout</button>
-      </div>
+  <section class="panel" aria-labelledby="developer-title">
+    <h2 id="developer-title">Developer</h2>
+    <div class="setting-row"><span id="simulator-label">Profile simulator · Logged-out preview</span>
+      <button class="setting-switch" type="button" role="switch" aria-labelledby="simulator-label" [attr.aria-checked]="UI.profileSimulatorLoggedOut" (click)="UI.toggleprofileSimulatorLoggedOut()"><span></span></button>
     </div>
+    <p class="feedback">{{UI.hasTouch ? 'Touch device' : 'Desktop'}} · {{UI.isStandalone ? 'Home screen' : 'Browser'}}</p>
+    @if (UI.profileSimulatorLoggedOut) { <p class="feedback">Preview only. Your account stays signed in.</p> }
+  </section>
+</main>

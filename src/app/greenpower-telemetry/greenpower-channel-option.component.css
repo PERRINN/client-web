@@ -11,6 +11,6 @@ input:disabled, button:disabled { opacity: .5; }
 .drag-handle:disabled { cursor: default; touch-action: pan-y; }
 .marker-controls { grid-column: 2 / 4; display: grid; grid-template-columns: auto minmax(0, 100px) minmax(0, 1fr); align-items: center; gap: 6px; padding-bottom: 6px; overflow: visible; }
 .marker-controls label { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; white-space: nowrap; }
-.marker-value { box-sizing: border-box; min-width: 0; width: 100%; min-height: 44px; padding: 6px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-raised); color: var(--color-text); font: inherit; font-size: 13px; line-height: 1.45; }
+.marker-value { box-sizing: border-box; min-width: 0; width: 100%; min-height: 44px; padding: 6px; color: var(--color-text); font: inherit; font-size: 13px; line-height: 1.45; }
 .marker-error { grid-column: 1 / -1; color: var(--color-danger-text); overflow: visible; }
 @media (max-width: 900px) { .marker-value { font-size: 16px; } }

@@ -13,10 +13,10 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const root = resolve(import.meta.dirname, '..');
 const output = await mkdtemp(resolve(tmpdir(), 'perrinn-account-email-'));
 const template = await readFile(root + '/src/app/settings.component.html', 'utf8');
-const marker = '<div class="title">Email address</div>', start = template.indexOf(marker), end = template.indexOf('</form>', start) + 7;
+const marker = '<form class="email-form"', start = template.indexOf(marker), end = template.indexOf('</form>', start) + 7;
 assert.ok(start > 0 && end > start);
-const section = '<div class="settingsPage"><div class="settingsPageTitle">Settings</div><section class="island settingsSection">'
-  + template.slice(start, end) + '</section><section class="island" id="following">PERRINN contract</section></div>';
+const section = '<div class="settings-page"><h1>Settings</h1><section class="panel">'
+  + template.slice(start, end) + '</section><section class="panel" id="following">PERRINN contract</section></div>';
 const styles = await readFile(root + '/src/app/settings.component.css', 'utf8');
 await writeFile(output + '/entry.ts', `
 import 'zone.js'; import '@angular/compiler';
@@ -35,7 +35,7 @@ const user={uid:'alice',email:'current@example.test',
 };
 const state=new BehaviorSubject(user),auth={user:state,currentUser:Promise.resolve(user)};
 const service=new AccountEmailService(auth);
-const Area=Component({selector:'email-test',standalone:false,template:${JSON.stringify(section)},styles:[${JSON.stringify(styles)}]})(class {email=service;});
+const Area=Component({selector:'email-test',standalone:false,template:${JSON.stringify(section)},styles:[${JSON.stringify(styles)}]})(class {email=service;async sendEmail(){await service.send();}});
 TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTesting());
 TestBed.configureTestingModule({imports:[FormsModule],declarations:[Area],providers:[provideZoneChangeDetection()]});
 const fixture=TestBed.createComponent(Area);document.querySelector('.contentCard').append(fixture.nativeElement);fixture.autoDetectChanges();fixture.detectChanges();
@@ -70,7 +70,7 @@ try {
       assert.deepEqual(await following(), origin, 'email state must not move the following section');
       assert.deepEqual(await page.locator('#main_container').boundingBox(), shell);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
-      assert.equal(await page.locator('.settings-email').evaluate(el => el.scrollWidth > el.clientWidth), false);
+      assert.equal(await page.locator('.email-form').evaluate(el => el.scrollWidth > el.clientWidth), false);
     };
     const input = page.getByRole('textbox', { name: 'Email address', exact: true });
     await input.fill('new@example.test');

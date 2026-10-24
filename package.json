@@ -7,6 +7,9 @@
     "functions"
   ],
   "scripts": {
+    "test:inputs:ui": "node scripts/input-controls-ui.mjs",
+    "test:settings": "node --test scripts/settings.test.mjs",
+    "test:settings:ui": "node scripts/settings-ui.mjs",
     "test:screen-wake-lock": "node --test scripts/screen-wake-lock.test.mjs",
     "test:orientation": "node --test scripts/mobile-orientation.test.mjs",
     "test:voice-input": "node --test scripts/voice-input.test.mjs scripts/voice-queue.test.mjs scripts/voice-inbox.test.mjs scripts/voice-diagnostics.test.mjs",

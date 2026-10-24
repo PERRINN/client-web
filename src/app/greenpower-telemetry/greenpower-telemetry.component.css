@@ -8,12 +8,12 @@ h1:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .actions button { margin: 0; }
 .controls { justify-content: space-between; min-height: 44px; }
 .day { color: var(--color-text-secondary); max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-button, select, .primary { font: inherit; font-size: 16px; line-height: 1.45; padding: 9px 12px; border: 1px solid transparent; background: var(--color-raised); color: var(--color-text); min-height: 44px; border-radius: 6px; }
+select { font: inherit; font-size: 16px; line-height: 1.45; padding: 9px 12px; color: var(--color-text); min-height: 44px; }
+button, .primary { font: inherit; font-size: 16px; line-height: 1.45; padding: 9px 12px; border: 1px solid transparent; background: var(--color-raised); color: var(--color-text); min-height: 44px; border-radius: 6px; }
 button:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 button:disabled { opacity: .6; cursor: wait; }
 .primary { background: var(--color-accent); color: var(--color-accent-ink); }
 .sign-in { display: inline-block; text-decoration: none; }
-select { border-color: var(--color-border); }
 .status { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; color: var(--color-text-secondary); min-height: 44px; margin: 4px 0; }
 .status span { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .error { color: var(--color-danger-text); margin: 8px 0; overflow-wrap: anywhere; }

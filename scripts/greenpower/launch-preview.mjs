@@ -15,6 +15,7 @@ import { TestBed } from '@angular/core/testing';
 import { BrowserDynamicTestingModule, platformBrowserDynamicTesting } from '@angular/platform-browser-dynamic/testing';
 import { FormsModule } from '@angular/forms';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { SettingsDataService } from '${root}/src/app/settings/settingsData.service';
 import { SettingsComponent } from '${root}/src/app/settings.component';
 import { AccountEmailService } from '${root}/src/app/accountEmail.service';
 import { ImageUploadService } from '${root}/src/app/imageUpload.service';
@@ -40,7 +41,8 @@ class Destination { label=''; }
 const live = new BehaviorSubject(false);
 const activity = new BehaviorSubject({});
 AppComponent.ctorParameters=()=>[Router,AngularFirestore,UserInterfaceService,SwUpdate,PresenceService,MessageActivityService,SidebarConversationsService,GreenpowerLiveService,ScreenWakeLockService].map(type=>({type}));
-SettingsComponent.ctorParameters=()=>[AngularFireAuth,AngularFirestore,ImageUploadService,UserInterfaceService,EnvironmentInjector,NgZone,AccountEmailService,ScreenWakeLockService].map(type=>({type}));
+SettingsDataService.ctorParameters=()=>[AngularFireAuth,AngularFirestore,ImageUploadService,UserInterfaceService,EnvironmentInjector,NgZone].map(type=>({type}));
+SettingsComponent.ctorParameters=()=>[SettingsDataService,UserInterfaceService,AccountEmailService,ScreenWakeLockService,ChangeDetectorRef].map(type=>({type}));
 AppsComponent.ctorParameters=()=>[{type:UserInterfaceService}];
 GreenpowerLaunchComponent.ctorParameters=()=>[{type:Title},{type:Meta},{type:undefined,decorators:[{type:Inject,args:[DOCUMENT]}]}];
 TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTesting());
@@ -62,7 +64,7 @@ TestBed.configureTestingModule({declarations:[AppComponent,AppsComponent,Prototy
  {provide:MessageActivityService,useValue:{summary:()=>activity}},
  {provide:SidebarConversationsService,useValue:{automatic:()=>of([])}},
  {provide:GreenpowerLiveService,useValue:{live$:live}}]});
-TestBed.overrideComponent(SettingsComponent,{set:{providers:[{provide:AccountEmailService,useValue:{status:'',canSend:false,refresh:async()=>{}}}]}});
+TestBed.overrideComponent(SettingsComponent,{set:{providers:[SettingsDataService,{provide:AccountEmailService,useValue:{status:'',canSend:false,refresh:async()=>{}}}]}});
 const fixture=TestBed.createComponent(AppComponent);document.body.append(fixture.nativeElement);fixture.autoDetectChanges();
 TestBed.inject(Router).initialNavigation();
 const toggle=document.createElement('button');toggle.textContent='Toggle test activity';toggle.id='test-activity';toggle.style.cssText='position:fixed;right:0;bottom:0;z-index:20000';

@@ -67,7 +67,7 @@ button:disabled { cursor: default; opacity: .5; }
 .details-avatar { position: relative; display: grid; place-items: center; width: 80px; height: 80px; border-radius: 50%; background: var(--color-raised); font-size: 23px; overflow: hidden; }
 .details-editor { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
 .details-editor label { font-size: 13px; }
-.details-editor input:not([type=file]) { width: 100%; margin: 0; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: 8px; font: inherit; }
+.details-editor input:not([type=file]) { width: 100%; margin: 0; padding: 10px 12px; font: inherit; }
 .details-editor input:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .file-input { display: none; }
 .editor-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }

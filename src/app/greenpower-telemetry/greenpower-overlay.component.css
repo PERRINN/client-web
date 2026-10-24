@@ -1,8 +1,9 @@
 :host { display: block; min-width: 0; }
 .overlay-panel { padding: 14px; margin: 12px 0; background: var(--color-surface); }
 .overlay-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-button, select { font: inherit; font-size: 16px; line-height: 1.45; min-height: 44px; padding: 8px 12px; border: 1px solid transparent; border-radius: 6px; background: var(--color-raised); color: var(--color-text); margin: 0; }
-select { border-color: var(--color-border); max-width: 100%; min-width: 0; flex: 1; }
+select { font: inherit; font-size: 16px; line-height: 1.45; min-height: 44px; padding: 8px 12px; color: var(--color-text); margin: 0; }
+button { font: inherit; font-size: 16px; line-height: 1.45; min-height: 44px; padding: 8px 12px; border: 1px solid transparent; border-radius: 6px; background: var(--color-raised); color: var(--color-text); margin: 0; }
+select { max-width: 100%; min-width: 0; flex: 1; }
 button:disabled, select:disabled { opacity: .6; }
 button:focus-visible, select:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .session-list { list-style: none; margin: 10px 0; padding: 0; max-height: 260px; overflow-y: auto; }

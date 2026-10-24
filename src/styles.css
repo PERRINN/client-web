@@ -39,6 +39,9 @@
   --danger-red: #b91c1c;
   --border-green: rgba(16, 185, 129, 0.12);
 
+  /* Shared filled-field geometry. */
+  --field-radius: 12px;
+
   /* Shared unread/manual-flag indicator size. */
   --activity-dot-size: 8px;
 
@@ -109,15 +112,16 @@ button, div.buttonBlack {
 }
 input,
 textarea {
-  background-color: var(--color-surface);
+  background-color: var(--color-raised);
   color: var(--color-text);
   width: 90%;
   padding: 10px;
   margin: 5px;
-  -webkit-transition: 0.3s ease;
-  transition: 0.3s ease;
-  outline: none;                 /* No blue outline unless focused */
-  border: 1px solid var(--color-border);
+  transition: none;
+  outline: none;
+  /* Transparent edge retains field geometry while the surface defines its shape. */
+  border: 1px solid transparent;
+  border-radius: var(--field-radius);
 }
 input:focus-visible,
 textarea:focus-visible,
@@ -131,7 +135,9 @@ select {
   font-size: 16px;
   line-height: 1.45;
   padding: 8px 12px;
-  background-color: var(--color-surface);
+  background-color: var(--color-raised);
+  border: 1px solid transparent;
+  border-radius: var(--field-radius);
   color: var(--color-text);
   color-scheme: dark;
   width: 100%;
@@ -152,6 +158,27 @@ select:not([multiple]):not([size]) {
   select:not([multiple]):not([size]) {
     font-size: 16px;
   }
+}
+@media (max-width: 600px) {
+  :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]), textarea) { font-size: 16px; }
+}
+/* Chat-composer field language: filled surfaces, quiet edges, clear editing/focus. */
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]), textarea, select):focus {
+  background-color: var(--color-selected);
+}
+:where(input, textarea)::placeholder { color: var(--color-text-muted); opacity: 1; }
+/* Desktop native selects keep keyboard/OS menus, with a deliberately inset chevron.
+   SVG ink mirrors --color-text-secondary; mobile retains its native affordance. */
+@media (hover: hover) and (pointer: fine) {
+  html:root select:not([multiple]):not([size]) {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23CBD4DE' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 20px 20px;
+    padding-inline-end: 46px;
+  }
+  :root[dir="rtl"] select:not([multiple]):not([size]) { background-position: left 14px center; }
 }
 option {
   color: var(--color-text-secondary);

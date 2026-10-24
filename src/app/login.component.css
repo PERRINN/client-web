@@ -16,8 +16,7 @@
 /* Fields, password visibility and feedback */
 :host .authForm { display: flex; flex-direction: column; gap: 10px; }
 :host .fieldLabel { position: relative; display: block; }
-:host .fieldInput { width: 100%; box-sizing: border-box; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--color-border) 30%, transparent); background: color-mix(in srgb, var(--color-raised) 55%, transparent); color: var(--color-text); padding: 11px 40px 11px 12px; margin: 0; font-size: 14px; outline: none; }
-:host .fieldInput:focus { border-color: color-mix(in srgb, var(--color-selected) 55%, transparent); }
+:host .fieldInput { width: 100%; box-sizing: border-box; color: var(--color-text); padding: 11px 40px 11px 12px; margin: 0; font-size: 14px; outline: none; }
 :host .password-icon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); cursor: pointer; line-height: 0; }
 :host .password .password-icon:hover { color: color-mix(in srgb, var(--color-text) 60%, transparent); }
 :host .actionGroup { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
@@ -28,3 +27,6 @@
 /* Match the shared secondary hover despite Angular scoped-selector specificity. */
 :host .buttonSecondary:hover:not(:disabled) { border-color: var(--color-text-muted); background: var(--color-selected); }
 :host .errorMsg { text-align: center; padding: 8px; color: var(--color-danger-text); font-size: 13px; background: color-mix(in srgb, var(--color-danger-text) 8%, transparent); border: 1px solid color-mix(in srgb, var(--color-danger-text) 20%, transparent); border-radius: 8px; margin-top: 2px; }
+
+:host .fieldInput:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+@media (max-width: 600px) { :host .fieldInput { font-size: 16px; } }

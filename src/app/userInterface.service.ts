@@ -308,19 +308,16 @@ export class UserInterfaceService {
     let visibility = 'password';
     let outlinedEyeStyle = 'display:block';
     let fullEyeStyle = 'display:none';
-    let focus = '';
     if (effect === 'show') {
       visibility = 'text';
       outlinedEyeStyle = 'display:none';
       fullEyeStyle = 'display:block';
-      focus = 'border-style:solid; border-width: 1px; border-color:var(--color-border);';
     } else if (effect === 'hide') {
       visibility = 'password';
       outlinedEyeStyle = 'display:block';
       fullEyeStyle = 'display:none';
-      focus = '';
     }
-    return [visibility, outlinedEyeStyle, fullEyeStyle, focus];
+    return [visibility, outlinedEyeStyle, fullEyeStyle];
   }
 
   handleChatImageError(event: Event, message: any) {

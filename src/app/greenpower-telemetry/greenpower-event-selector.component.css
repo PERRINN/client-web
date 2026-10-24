@@ -3,7 +3,8 @@
 section { display: grid; gap: 12px; background: var(--color-surface); padding: 14px; margin: 12px 0; }
 .event-filters { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; align-items: start; }
 label { display: grid; gap: 6px; min-width: 0; color: var(--color-text-secondary); font-size: 14px; }
-input, select, button { padding: 8px; min-height: 44px; min-width: 0; margin: 0; font: inherit; font-size: 16px; background: var(--color-raised); color: var(--color-text); border: 1px solid var(--color-border); border-radius: 6px; }
+input, select { padding: 8px; min-height: 44px; min-width: 0; margin: 0; font: inherit; font-size: 16px; color: var(--color-text); }
+button { padding: 8px; min-height: 44px; min-width: 0; margin: 0; font: inherit; font-size: 16px; background: var(--color-raised); color: var(--color-text); border: 1px solid var(--color-border); border-radius: 6px; }
 input, select { display: block; width: 100%; text-align: left; color-scheme: dark; }
 button { border-color: transparent; }
 button:disabled, input:disabled, select:disabled { opacity: .6; }
@@ -13,7 +14,6 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .feedback span { min-width: 0; }
 .feedback button { flex-shrink: 0; }
 .error { color: var(--color-danger-text); overflow-wrap: anywhere; }
-
 button, input, select, textarea { transition: none; }
 .recording-choice { display: flex; justify-content: flex-end; }
 .primary { color: var(--color-accent-ink); background: var(--color-accent); }
@@ -37,3 +37,5 @@ button, input, select, textarea { transition: none; }
 .event-options button[aria-selected="true"] { background: var(--color-selected); }
 .event-options button:focus-visible { outline-offset: -2px; }
 @media (hover: hover) and (pointer: fine) { .event-options button:hover { background: var(--color-selected); } }
+
+@media (hover: hover) and (pointer: fine) { .select-shell svg { display: none; } }

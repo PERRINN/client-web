@@ -14,7 +14,7 @@
       <input class="fieldInput" maxlength="500" [(ngModel)]="email" name="email" type="text" placeholder="Email *" (keyup)="messageUser=''" required #e="ngModel"/>
 
       <label class="password fieldLabel">
-        <input class="fieldInput" maxlength="500" [(ngModel)]="password" name="password" [type]="passwordVisibility" [style]="focusPassword" placeholder="Password *" (keyup)="messageUser=''" required #p="ngModel"/>
+        <input class="fieldInput" maxlength="500" [(ngModel)]="password" name="password" [type]="passwordVisibility" placeholder="Password *" (keyup)="messageUser=''" required #p="ngModel"/>
         <div class="password-icon" (mousedown)="toggleField('password','show')" (touchstart)="toggleField('password','show')" (mouseup)="toggleField('password','hide')" (touchend)="toggleField('password','hide')">
           <span class="material-icons-outlined" id="visibility-outlined" [style]="iconOutlined">visibility</span>
           <span class="material-icons" id="visibility" [style]="icon">visibility</span>
@@ -24,7 +24,7 @@
       @if (action==='register') {
         <div class="authForm">
           <label class="password fieldLabel">
-            <input class="fieldInput" maxlength="500" [(ngModel)]="passwordConfirm" name="passwordConfirm" [type]="passwordConfirmVisibility" [style]="focusPasswordConfirm" placeholder="Confirm password *" (keyup)="messageUser=''" #c="ngModel" required/>
+            <input class="fieldInput" maxlength="500" [(ngModel)]="passwordConfirm" name="passwordConfirm" [type]="passwordConfirmVisibility" placeholder="Confirm password *" (keyup)="messageUser=''" #c="ngModel" required/>
             <div class="password-icon" (mousedown)="toggleField('passwordConfirm','show')" (touchstart)="toggleField('passwordConfirm','show')" (mouseup)="toggleField('passwordConfirm','hide')" (touchend)="toggleField('passwordConfirm','hide')">
               <span class="material-icons-outlined" id="visibilityConfirm-outlined" [style]="iconOutlinedConfirm">visibility</span>
               <span class="material-icons" id="visibilityConfirm" [style]="iconConfirm">visibility</span>

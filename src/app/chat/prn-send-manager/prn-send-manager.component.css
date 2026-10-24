@@ -6,7 +6,7 @@ h4 { margin: 0 0 12px; font-weight: 600; }
 p { margin: 8px 0; font-size: 13px; color: var(--color-text-secondary); overflow-wrap: anywhere; }
 form { display: flex; flex-direction: column; gap: 8px; }
 label { margin-top: 4px; font-size: 13px; }
-input, select { width: 100%; min-width: 0; min-height: 44px; margin: 0; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-raised); color: var(--color-text); color-scheme: dark; text-align: left; }
+input, select { width: 100%; min-width: 0; min-height: 44px; margin: 0; padding: 10px 12px; color: var(--color-text); color-scheme: dark; text-align: left; }
 button { min-height: 44px; margin: 0; padding: 8px 12px; border: 0; border-radius: 8px; background: var(--color-raised); color: var(--color-text-secondary); cursor: pointer; }
 @media (hover: hover) and (pointer: fine) {
   button:not(.primary):hover { background: var(--color-selected); }

@@ -13,7 +13,8 @@ function load(path, overrides = {}) {
 }
 const core = { Injectable: () => target => target, Component: () => target => target, ViewChild: () => () => {}, HostListener: () => () => {}, runInInjectionContext: (_, fn) => fn() };
 const uploads = load('../src/app/imageUpload.service.ts', { '@angular/core': core });
-const { SettingsComponent } = load('../src/app/settings.component.ts', { '@angular/core': core, './imageUpload.service': uploads, './accountEmail.service': { AccountEmailService: class {} } });
+const model = load('../src/app/settings/settingsModel.ts');
+const { SettingsDataService } = load('../src/app/settings/settingsData.service.ts', { '@angular/core': core, '../imageUpload.service': uploads, '../userAvatar': load('../src/app/userAvatar.ts'), './settingsModel': model });
 const zone = { run: fn => fn() };
 const input = () => ({ files: [{ name: 'Team photo.png', type: 'image/png', size: 100 }], value: 'selected' });
 const tick = () => new Promise(resolve => setImmediate(resolve));
@@ -43,29 +44,51 @@ test('shared uploader releases progress listeners when upload or URL resolution 
 });
 function settings(upload, createMessage) {
   const UI = { currentUser: 'owner', currentUserLastMessageObj: { name: 'Nico' }, createMessage };
-  return new SettingsComponent({}, {}, { upload }, UI, {}, zone);
+  const service = new SettingsDataService({ currentUser: Promise.resolve({ uid: 'owner' }) }, {}, { upload }, UI, {}, zone);
+  service.uid = 'owner'; service.loading = false;
+  return service;
 }
 test('profile picture uploads preserve the existing message contract and remain busy through saving', async () => {
   const paths = [], writes = []; let finish;
   const component = settings(async (path, _, report) => { paths.push(path); report(62); report(null); return 'profile-photo'; }, message => { writes.push(message); return new Promise(resolve => finish = resolve); });
-  const file = input(), result = component.onImageChange({ target: file }); await tick();
-  assert.equal(component.profileUpload.busy, true); assert.equal(component.profileUpload.percent, null);
+  const file = input(), result = component.uploadPhoto(file); await tick();
+  assert.equal(component.photo.busy, true); assert.equal(component.photo.percent, null);
   assert.match(paths[0], /^images\/\d{13}Team photo.png$/);
   const timestamp = paths[0].slice(7,20);
   assert.deepEqual(writes[0], { chain:'owner', text:'updating my profile picture', userImageTimestamp:timestamp, imageUrlThumbUser:'profile-photo', imageUrlMedium:'profile-photo', imageUrlOriginal:'profile-photo', chatImageTimestamp:timestamp, chatImageUrlThumb:'profile-photo', chatImageUrlMedium:'profile-photo', chatImageUrlOriginal:'profile-photo' });
-  finish(); await result; assert.equal(component.profileUpload.busy, false); assert.equal(file.value, ''); assert.equal(component.UI.currentUserLastMessageObj.name, 'Nico'); assert.equal(component.UI.currentUserLastMessageObj.imageUrlOriginal, 'profile-photo');
+  finish(); await result; assert.equal(component.photo.busy, false); assert.equal(file.value, ''); assert.equal(component.UI.currentUserLastMessageObj.name, 'Nico'); assert.equal(component.UI.currentUserLastMessageObj.imageUrlOriginal, 'profile-photo');
 });
 test('profile uploads reject account changes and late results after navigation, and recover on failures', async () => {
   for (const mode of ['account', 'destroy', 'upload', 'save']) {
     let finish; const writes = [];
     const component = settings(mode === 'upload' ? async () => { throw Error('offline'); } : () => new Promise(resolve => finish = resolve), async message => { writes.push(message); if (mode === 'save') throw Error('offline'); });
-    const result = component.onImageChange({ target: input() });
+    const result = component.uploadPhoto(input());
     if (mode === 'account') component.UI.currentUser = 'another';
     if (mode === 'destroy') component.ngOnDestroy();
     if (mode !== 'upload') finish('photo');
     await result;
-    assert.equal(writes.length, mode === 'save' ? 1 : 0); assert.equal(component.profileUpload.busy, false);
+    assert.equal(writes.length, mode === 'save' ? 1 : 0); assert.equal(component.photo.busy, false);
     assert.equal(component.UI.currentUserLastMessageObj.imageUrlOriginal, undefined);
-    if (mode !== 'destroy') assert.match(component.profileUpload.error, /couldn’t save/);
+    if (mode !== 'destroy') assert.match(component.photo.error, /couldn’t save/);
   }
+});
+
+test('clipboard photo uses one image and the existing upload contract; denied/empty/stale reads do not write', async () => {
+  const original = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  try {
+    for (const mode of ['image', 'empty', 'denied', 'account', 'destroy']) {
+      let finish; const writes = [], paths = [];
+      const component = settings(async path => { paths.push(path); return 'clipboard-photo'; }, async message => writes.push(message));
+      Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { clipboard: { read: () => mode === 'denied' ? Promise.reject(Error('denied')) : new Promise(resolve => finish = resolve) } } });
+      const result = component.pastePhoto(); assert.equal(component.photo.busy, true);
+      if (mode === 'account') component.UI.currentUser = 'other';
+      if (mode === 'destroy') component.ngOnDestroy();
+      if (mode !== 'denied') finish(mode === 'empty' ? [] : [{ types: ['text/plain', 'image/png'], getType: async type => new Blob(['synthetic'], { type }) }]);
+      await result;
+      assert.equal(writes.length, mode === 'image' ? 1 : 0);
+      if (mode === 'image') { assert.match(paths[0], /pasted-photo\.png$/); assert.equal(writes[0].imageUrlOriginal, 'clipboard-photo'); }
+      if (['denied','empty'].includes(mode)) assert.match(component.photo.error, /Use Paste/);
+      assert.equal(component.photo.busy, false);
+    }
+  } finally { if (original) Object.defineProperty(globalThis, 'navigator', original); else delete globalThis.navigator; }
 });
