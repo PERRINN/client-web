@@ -1,3 +1,4 @@
+import { EchookConnectionComponent } from './prototypes/echook-connection/echook-connection.component';
 import { ChatParticipantsComponent } from './chat/chat-participants/chat-participants.component';
 import { GreenpowerChannelOptionComponent } from './greenpower-telemetry/greenpower-channel-option.component';
 import { GreenpowerLaunchComponent } from './greenpower-launch/greenpower-launch.component';
@@ -80,6 +81,7 @@ export const firebaseConfig = {
 };
 
 @NgModule({ declarations: [
+        EchookConnectionComponent,
         GreenpowerLaunchComponent,
         GreenpowerPhotoComponent,
         GreenpowerTelemetryComponent,

@@ -19,6 +19,14 @@
         <a class="prototype-card" [routerLink]="prototype.route">
           <div class="preview-stage" aria-hidden="true">
             @switch (prototype.name) {
+              @case ('echook-connection') {
+                <svg class="echook-preview" viewBox="0 0 240 88" focusable="false">
+                  <rect x="16" y="22" width="58" height="44" rx="6" />
+                  <path d="M33 35h24M33 44h17M33 53h24M86 44h36" />
+                  <rect x="134" y="8" width="88" height="72" rx="8" />
+                  <path d="M146 54h12l8-22 12 32 10-19h22M148 20h22" />
+                </svg>
+              }
               @case ('rear-wing-pilot') {
                 <svg class="wing-preview" viewBox="0 0 240 88" focusable="false">
                   <path class="wing-surface" d="M25 23 Q120 10 215 23 L207 36 Q120 28 33 36 Z" />

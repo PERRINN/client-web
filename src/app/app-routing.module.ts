@@ -1,3 +1,4 @@
+import { EchookConnectionComponent } from './prototypes/echook-connection/echook-connection.component';
 import { GreenpowerTelemetryComponent } from './greenpower-telemetry/greenpower-telemetry.component';
 import { RearWingPilotComponent } from './prototypes/rear-wing-pilot/rear-wing-pilot.component';
 import { TelemetryComponent } from './telemetry/telemetry.component';
@@ -24,6 +25,7 @@ import { HomeComponent } from './home.component';
 import { GreenpowerLaunchComponent } from './greenpower-launch/greenpower-launch.component';
 
 const appRoutes: Routes = [
+  { path: 'prototypes/echook-connection', component: EchookConnectionComponent },
   { path: '424-greenpower-2027', component: GreenpowerLaunchComponent, data: { editorial: true } },
   { path: '424-greenpower-telemetry', component: GreenpowerTelemetryComponent },
   { path: 'prototypes/rear-wing-pilot', component: RearWingPilotComponent },

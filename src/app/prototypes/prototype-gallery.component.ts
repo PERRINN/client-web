@@ -8,6 +8,7 @@ import { Component } from '@angular/core';
 })
 export class PrototypeGalleryComponent {
   readonly prototypes = [
+    { name: 'echook-connection', category: 'engineering', type: 'Hardware connection', description: 'Connect to eChook and inspect live sensor values.', route: '/prototypes/echook-connection' },
     { name: 'rear-wing-pilot', category: 'engineering', type: 'Engineering brief', description: '424 rear-wing engineering scope and deliverables for Lewis’s NativeCAD pilot.', route: '/prototypes/rear-wing-pilot' },
     {
       name: 'app-wiring',

@@ -63,3 +63,7 @@ h1 { margin-bottom: 6px; font-size: 25px; font-weight: 600; }
 .wing-flap { fill:var(--color-accent); }
 .wing-pillar, .wing-edge { fill:var(--color-raised); stroke:var(--color-text-secondary); }
 .wing-lines { fill:none; stroke:var(--color-accent); stroke-width:2; }
+
+.echook-preview { width: 90%; height: 82px; }
+.echook-preview rect { fill: var(--color-raised); }
+.echook-preview path { fill: none; stroke: var(--color-accent); stroke-width: 2; }
