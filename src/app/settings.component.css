@@ -17,6 +17,10 @@
 :host .settingsProfileNameWrap { display: flex; align-items: center; gap: 8px; min-width: 0; }
 :host .settingsProfileName { color: var(--color-text); font-size: 21px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
 :host .settingsProfileBalance { color: var(--color-text); font-size: 19px; font-weight: 700; }
+:host .settingsWalletActions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; overflow: visible; }
+:host .settingsWalletActions > button { margin: 0; min-height: 44px; }
+:host .settingsWalletActions > button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+:host .settingsWalletActions > span { overflow: visible; line-height: 1.35; }
 :host .settingsProfilePresentation { font-size: 14px; color: var(--color-text-muted); line-height: 1.5; margin-bottom: 8px; }
 :host .settingsProfileMeta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px; color: var(--color-text-secondary); margin-bottom: 10px; }
 :host .settingsUploadRow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
@@ -36,7 +40,9 @@
 :host .settings-help-text { color: var(--color-text-muted); line-height: 1.5; margin: 20px; }
 :host .settings-info-text { float: left; margin: 10px 10px 5px 15px; }
 :host .listLight { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-:host .listLight li { width: 125px; }
+:host .listLight li { flex: 1 1 160px; min-width: 0; max-width: 100%; padding: 0; }
+:host .settings-currency-container button { width: 100%; min-height: 44px; height: auto; padding: 10px 12px; font-size: 16px; line-height: 1.45; white-space: normal; overflow-wrap: anywhere; }
+:host .settings-currency-container button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -3px; }
 :host .settings-upload-input { display: none; }
 :host .settings-currency-container { padding: 10px; }
 :host .settings-help-margin-top { margin: 10px 20px 0 20px; }
@@ -49,6 +55,7 @@
 @media (max-width: 760px) {
   :host .settingsUploadBtn { width: 100%; }
   :host .listLight { flex-direction: column; align-items: center; }
+  :host .listLight li { flex: 0 0 auto; width: 100%; }
 }
 
 /* Photo previews are actions only when a stored photo is available. */

@@ -1,0 +1,15 @@
+:host { display: block; min-width: 0; color: var(--color-text-secondary); }
+:host .note { font-size: 15px; line-height: 1.45; margin: 0 0 16px; overflow: visible; }
+:host .chart { height: 400px; width: 100%; min-width: 0; margin-bottom: 16px; border-radius: 0; }
+:host ag-charts-angular { display: block; height: 100%; width: 100%; }
+:host .ledger-scroll { overflow-x: auto; max-width: 100%; border-radius: 0; }
+:host table { width: 100%; border-collapse: collapse; text-align: right; }
+:host caption { text-align: left; font-size: 17px; font-weight: 600; line-height: 1.35; margin-bottom: 12px; }
+:host th, :host td { float: none; height: auto; display: table-cell; padding: 12px; font-size: 15px; line-height: 1.45; white-space: nowrap; border-radius: 0; }
+:host thead th { font-size: 14px; color: var(--color-text-muted); font-weight: 550; background: var(--color-raised); }
+:host tbody tr:nth-child(even) { background: color-mix(in srgb, var(--color-raised) 35%, transparent); }
+:host th:first-child { text-align: left; }
+:host .message { min-width: 220px; max-width: 360px; white-space: normal; overflow-wrap: anywhere; text-align: left; }
+:host button { margin: 0; padding: 0; border: 0; background: transparent; color: var(--color-text); text-align: left; text-decoration: underline; text-underline-offset: 3px; min-height: 44px; font: inherit; }
+:host button:focus-visible, :host .ledger-scroll:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+@media (max-width: 600px) { :host th, :host td { float: none; height: auto; display: table-cell; padding: 8px; } }

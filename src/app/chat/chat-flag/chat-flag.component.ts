@@ -1,4 +1,4 @@
-import { Component, Input, NgZone, OnChanges, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, NgZone, OnChanges, OnDestroy } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Subscription } from 'rxjs';
 import { ReadCursorService } from '../../readCursor.service';
@@ -16,14 +16,15 @@ export class ChatFlagComponent implements OnChanges, OnDestroy {
   private session;
   private subscriptions = new Subscription();
 
-  constructor(private cursors: ReadCursorService, auth: AngularFireAuth, private zone: NgZone) {
+  constructor(private cursors: ReadCursorService, auth: AngularFireAuth, private zone: NgZone, private cd: ChangeDetectorRef) {
     this.session = cursors.createSession();
     this.subscriptions.add(this.session.changes.subscribe(state => this.zone.run(() => {
       this.flagged = !!state.flags[this.chain]; this.ready = state.ready && !state.unavailable;
       this.unavailable = state.unavailable;
+      this.cd.markForCheck();
     })));
     this.subscriptions.add(auth.authState.subscribe(user => this.zone.run(() => {
-      this.userId = user?.uid || ''; this.ngOnChanges();
+      this.userId = user?.uid || ''; this.ngOnChanges(); this.cd.markForCheck();
     })));
   }
   ngOnChanges(): void {
@@ -36,8 +37,19 @@ export class ChatFlagComponent implements OnChanges, OnDestroy {
     const generation = this.generation;
     this.saving = true; this.error = '';
     try { await this.cursors.setFlag(this.userId, this.chain, !this.flagged); }
-    catch { this.zone.run(() => { if (generation === this.generation) this.error = 'Flag couldn’t save. Try again.'; }); }
-    finally { this.zone.run(() => { if (generation === this.generation) this.saving = false; }); }
+    catch {
+      this.zone.run(() => {
+        if (generation !== this.generation) return;
+        this.error = 'Flag couldn’t save. Try again.';
+        this.cd.markForCheck();
+      });
+    } finally {
+      this.zone.run(() => {
+        if (generation !== this.generation) return;
+        this.saving = false;
+        this.cd.markForCheck();
+      });
+    }
   }
   ngOnDestroy(): void { this.generation++; this.subscriptions.unsubscribe(); this.session.destroy(); }
 }

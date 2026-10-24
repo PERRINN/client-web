@@ -1,365 +1,79 @@
-<div class="profileModern">
-  <div class="profileContainer">
-
-    @if (UI.currentUserLastMessageObj && !UI.currentUserLastMessageObj?.isImageUserUpdated && !sidePanelScope) {
-      <div class="island warning-island"
-        (click)="router.navigate(['settings'])">
-        Add a profile picture.
-      </div>
-    }
-
-    @if (UI.hasTouch&&!UI.isStandalone && !sidePanelScope) {
-      <div class="island warning-island">
-        Add this app to your home screen for a better experience.
-      </div>
-    }
-
-    @if (scope!=='all') {
-      <div class="island prof-p-14">
-        <div class="prof-header-wrap">
-          @if (focusUserLastMessageObj) {
-            <button type="button" class="user-photo-button" [disabled]="!profileAvatar.src" aria-label="View profile photo"
-              (click)="UI.showFullScreenImage(profileAvatar.previewSource(focusUserLastMessageObj?.imageUrlOriginal))">
-              <app-user-avatar [name]="focusUserLastMessageObj?.name" #profileAvatar
-                [sources]="[focusUserLastMessageObj?.imageUrlMedium, focusUserLastMessageObj?.imageUrlThumbUser, focusUserLastMessageObj?.imageUrlOriginal]"
-                class="profile-header-img" aria-hidden="true"></app-user-avatar>
-            </button>
-          }
-          <div class="prof-main-area">
-            <div class="prof-top-row">
-              <div class="prof-name-area">
-                <span class="prof-name-text">{{focusUserLastMessageObj?.name}}</span>
-                @if (focusUserLastMessageObj?.publicLink) {
-                  <span class="material-icons-outlined prof-icon-18" (click)="UI.openWindow(focusUserLastMessageObj?.publicLink)">link</span>
-                }
-              </div>
-              <div class="profile-wallet-actions">
-                <button type="button" class="buttonPrimary" routerLink="/buyPRN/">Contribute funds</button>
-                <span class="prof-balance-text">{{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance||0)}}</span>
-              </div>
-            </div>
-            <div class="prof-stats-grid">
-              <div class="profile-stat-box">
-                @if (focusUserLastMessageObj?.locking?.amountCummulate>1) {
-                  <span>PRN holding duration: {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} days</span>
-                }
-                @if (focusUserLastMessageObj?.locking?.amountCummulate<=1) {
-                  <span>PRN holding duration: {{(focusUserLastMessageObj?.locking?.amountCummulate||0)/(focusUserLastMessageObj?.wallet?.balance||1)|number:'1.0-0'}} day</span>
-                }
-              </div>
-              <div class="profile-stat-box">
-                Balance adjustment: {{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.wallet?.balance*(math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)/365)-1))}} per day
-              </div>
-              @if (focusUserLastMessageObj?.contract?.hoursTotal > 0) {
-                <div class="profile-stat-box">{{focusUserLastMessageObj?.contract?.hoursTotal | number:'1.0-1'}} hours credited</div>
-              }
-              @if (focusUserLastMessageObj?.purchaseCOIN?.amountCummulate > 0) {
-                <div class="profile-stat-box">Funding credits: {{UI.convertAndFormatPRNToPRNCurrency(null,focusUserLastMessageObj?.purchaseCOIN?.amountCummulate)}}</div>
-              }
-            </div>
-            <div class="prof-pres-text">
-              {{focusUserLastMessageObj?.userPresentation}}
-            </div>
-            <div class="prof-meta-wrap">
-              <span>Created in {{focusUserLastMessageObj?.createdTimestamp|date:'MMMM yyyy'}}</span>
-              @if (scope!=='all') {
-                <span>{{formatFocusUserActivity()}}</span>
-              }
-              @if (focusUserLastMessageObj?.userChain?.index>1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)>1) {
-                <span>{{focusUserLastMessageObj?.userChain?.index}} created messages, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</span>
-              }
-              @if (focusUserLastMessageObj?.userChain?.index>1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)<=1) {
-                <span>{{focusUserLastMessageObj?.userChain?.index}} created messages, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} day ago</span>
-              }
-              @if (focusUserLastMessageObj?.userChain?.index<=1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)>1) {
-                <span>{{focusUserLastMessageObj?.userChain?.index}} created message, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} days ago</span>
-              }
-              @if (focusUserLastMessageObj?.userChain?.index<=1 && ((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)<=1) {
-                <span>{{focusUserLastMessageObj?.userChain?.index}} created message, verified {{((UI.nowSeconds-focusUserLastMessageObj?.verifiedTimestamp?.seconds)/3600/24)|number:'1.2-2'}} day ago</span>
-              }
-            </div>
-            <div class="prof-contract-area">
-              @if (focusUserLastMessageObj?.contract?.signed) {
-                <span class="prof-contract-signed">Level {{focusUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</span>
-              }
-              @if (focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed) {
-                <span>Waiting for contract signature (Level {{focusUserLastMessageObj?.contract?.level|number:'1.1-1'}})</span>
-              }
-              @if (focusUserLastMessageObj?.contract?.createdTimestamp&&!focusUserLastMessageObj?.contract?.signed&&UI.currentUser==='QYm5NATKa6MGD87UpNZCTl6IolX2') {
-                <button class="buttonPrimary prof-margin-left-10" (click)=signContract()>Sign contract</button>
-              }
-            </div>
+<main class="profile-page" aria-label="User profile">
+  @if (loading) { <p class="page-state" role="status">Loading profile</p> }
+  @else if (error) {
+    <div class="page-state"><p role="alert">Profile unavailable.</p><button type="button" class="quiet-button" (click)="loadProfile()">Try again</button></div>
+  } @else if (!profile) { <p class="page-state">User not found.</p> }
+  @else {
+    <header class="identity">
+      <button type="button" class="photo-button" [disabled]="!avatar.src" aria-label="View profile photo"
+        (click)="UI.showFullScreenImage(avatar.previewSource(profile.imageUrlOriginal))">
+        <app-user-avatar class="profile-photo" #avatar [name]="profile.name" [sources]="[profile.imageUrlMedium, profile.imageUrlThumbUser, profile.imageUrlOriginal]" aria-hidden="true" />
+      </button>
+      <div class="identity-details">
+        <div class="identity-top"><h1>{{profile.name || 'Contributor'}}</h1>
+          <div class="profile-actions">
+            @if (ownProfile) { <a class="quiet-button" routerLink="/settings">Settings</a> }
+            @else if (UI.currentUser) { <button type="button" class="message-button" (click)="message()" [disabled]="actionBusy">Message</button> }
+            @if (profile.publicLink) { <button type="button" class="quiet-button" (click)="UI.openWindow(profile.publicLink)">Public link<span aria-hidden="true">↗</span></button> }
           </div>
         </div>
-        <div class="modeSwitchWrap">
-          <div class="modeSwitchTrack">
-            <button [attr.aria-pressed]="mode==='inbox'" [class.buttonPrimary]="mode==='inbox'" [class.buttonBlack]="mode!=='inbox'" class="modeSwitchBtn" (click)="mode='inbox';refreshMessages()">Inbox</button>
-            <button [attr.aria-pressed]="mode==='history'" [class.buttonPrimary]="mode==='history'" [class.buttonBlack]="mode!=='history'" class="modeSwitchBtn" (click)="mode='history';refreshMessages();refreshChart()">History</button>
-            <button [attr.aria-pressed]="mode==='chain'" [class.buttonPrimary]="mode==='chain'" [class.buttonBlack]="mode!=='chain'" class="modeSwitchBtn" (click)="mode='chain';refreshMessages()">Chain</button>
-            <button [attr.aria-pressed]="mode==='forecast'" [class.buttonPrimary]="mode==='forecast'" [class.buttonBlack]="mode!=='forecast'" class="modeSwitchBtn" (click)="mode='forecast';refreshMessages();refreshForecastChart()">Balance illustration</button>
-          </div>
-        </div>
-        <div class="prof-action-bar">
-          @if (UI.currentUser && focusUserLastMessageObj?.user && focusUserLastMessageObj?.user != UI.currentUser) {
-            <button class="buttonSecondary prof-msg-btn" (click)="newMessageToUser()">
-              <span class="material-icons prof-icon-16">chat</span>
-              New message to {{focusUserLastMessageObj?.name}}
-            </button>
-          }
-          @if (focusUserLastMessageObj?.user==UI.currentUser) {
-            <button class="buttonBlack prof-settings-btn" (click)="router.navigate(['settings'])">
-              <span class="material-icons prof-icon-16">settings</span>
-              Settings
-            </button>
-          }
-        </div>
+        @if (profile.userPresentation) { <p class="presentation">{{profile.userPresentation}}</p> }
+        <div class="identity-meta"><span>{{activityLabel}}</span>@if (profile.createdTimestamp) { <span>Joined {{profile.createdTimestamp | date:'MMMM yyyy'}}</span> }</div>
       </div>
-    }
-    <div>
-      @if (mode==='inbox' || scope==='all') {
-        <div class="splitContainer">
-          @if (!sidePanelScope) {
-            <div class="profile-events-item">
-              @if (comingEvents|async; as events) {
-                <ul class="listLight">
-                  @if (events.length===0) {
-                    <li class="prof-no-events">
-                      No upcoming events.
-                    </li>
-                  }
-                  @for (message of events; track message; let i = $index) {
-                    <li class="guardedChatItem eventListItem"
-                      [style.display]="showAllEvents || i===0 ? 'block' : 'none'"
-                      (click)="openListedChat(message.payload.doc.data()?.chain)">
-                      @if (scope==='all'||mode==='inbox') {
-                        <div class="guardedChatItem eventCardBody">
-                          <div class="eventCardHeader">
-                            <div class="eventCardMedia">
-                              @if (message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb) {
-                                <img
-                                  [src]="message.payload.doc.data()?.chatProfileImageUrlMedium || message.payload.doc.data()?.chatProfileImageUrlThumb"
-                                  class="eventCardChatImage"
-                                  (error)="UI.handleChatImageError($event, message.payload.doc.data())">
-                                } @else {
-                                  <span class="material-icons-outlined eventCardIconBadge">event</span>
-                                }
-                                <div class="eventCardTitleBlock">
-                                  <div class="eventCardLabel">
-                                    {{i===0 ? 'Next Event' : 'Other Event'}}
-                                  </div>
-                                  <div class="eventCardSubjectRow">
-                                    <div class="chatSubject chatSubjectTruncate">
-                                      {{message.payload.doc.data()?.chatSubject}}
-                                    </div>
-                                    <div class="eventCardDescriptionInline chatSubjectTruncate">
-                                      {{message.payload.doc.data()?.eventDescription}}
-                                    </div>
-                                  </div>
-                                  <div class="eventCardMeta compact">
-                                    @if (math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)>0) {
-                                      <span class="eventCardStatusChip">
-                                        In {{UI.formatSecondsToDhm2(message.payload.doc.data()?.eventDateStart/1000-UI.nowSeconds)}}
-                                      </span>
-                                    }
-                                    @if (math.floor(message.payload.doc.data()?.eventDateStart/60000-UI.nowSeconds/60)<=0&&message.payload.doc.data()?.eventDateEnd/60000>UI.nowSeconds/60) {
-                                      <span class="eventCardStatusChip eventCardStatusNow">
-                                        Live
-                                      </span>
-                                    }
-                                    <span class="eventCardDateText">
-                                      {{message.payload.doc.data()?.eventDateStart|date:'EEEE d MMM h:mm a'}} ({{message.payload.doc.data()?.eventDuration}}h)
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                              @if (message.payload.doc.data()?.eventLocation && isEventLive(message.payload.doc.data()?.eventDateStart, message.payload.doc.data()?.eventDateEnd)) {
-                                <button
-                                  class="buttonPrimary eventCardJoinBtn"
-                                  (click)="$event.stopPropagation(); UI.openWindow(message.payload.doc.data()?.eventLocation)">
-                                  <span>Join</span>
-                                </button>
-                              }
-                            </div>
-                          </div>
-                        }
-                      </li>
-                    }
-                  </ul>
-                  @if (events.length>1) {
-                    <button class="buttonBlack eventCardToggleBtn"
-                      (click)="showAllEvents=!showAllEvents">
-                      {{showAllEvents ? 'Hide Other Events' : 'Show More Events'}}
-                    </button>
-                  }
-                }
-              </div>
-            }
-            @if (!sidePanelScope && fundList) {
-              <section class="profile-funds-item" aria-label="Funds">
-                @if (fundList.state | async; as state) {
-                  @for (item of state.items; track item.chain) {
-                    <app-chat-fund-summary layout="row" [subject]="item.subject" [fund]="item.fund" [currency]="fundDisplayCurrency" [image]="item.image" (openFund)="openListedChat(item.chain)" />
-                  }
-                  @if (state.loading) { <p role="status">Loading</p> }
-                  @else if (state.error) { <p role="alert">Funds are unavailable right now.</p> }
-                  @else if (!state.items.length && !state.hasMore) { <p>No active funds.</p> }
-                  @if (state.hasMore || state.error) { <button class="fund-more" type="button" (click)="fundList.loadMore()" [disabled]="state.loading">{{ state.error ? 'Try again' : 'Load more' }}</button> }
-                }
-              </section>
-            }
-
-            </div>
+    </header>
+    @if (actionError) { <p class="action-error" role="alert">{{actionError}}</p> }
+    <nav class="profile-tabs" role="tablist" aria-label="Profile sections">
+      @for (item of tabs; track item.id; let index = $index) {
+        <button type="button" role="tab" [id]="'profile-tab-' + item.id" [attr.aria-selected]="tab === item.id" aria-controls="profile-content"
+          [attr.tabindex]="tab === item.id ? 0 : -1" (click)="selectTab(item.id)" (keydown)="tabKey($event, index)">{{item.label}}</button>
+      }
+    </nav>
+    <section id="profile-content" role="tabpanel" [attr.aria-labelledby]="'profile-tab-' + tab" tabindex="0" class="tab-content">
+      @if (tab === 'overview') {
+        <div class="overview-grid">
+          <section class="panel balance-panel" aria-labelledby="balance-title">
+            <h2 id="balance-title">PRN balance</h2>
+            <p class="balance-value">{{UI.convertAndFormatPRNToPRNCurrency(null, profile.wallet?.balance || 0)}}</p>
+            <dl class="balance-details">
+              <div><dt>Daily adjustment</dt><dd>{{UI.convertAndFormatPRNToPRNCurrency(null, dailyAdjustment)}}</dd></div>
+              <div><dt>Holding duration</dt><dd>{{holdingDays | number:'1.0-0'}} days</dd></div>
+            </dl>
+            <button type="button" class="text-button" (click)="selectTab('history')">View history<span aria-hidden="true">→</span></button>
+          </section>
+          <section class="panel contributions-panel" aria-labelledby="contributions-title">
+            <h2 id="contributions-title">Contributions</h2>
+            <dl class="contribution-metrics">
+              <div><dt>Time credited</dt><dd>{{profile.contract?.hoursTotal || 0 | number:'1.0-1'}}<span>hours</span></dd></div>
+              <div><dt>Funding credits</dt><dd>{{UI.convertAndFormatPRNToPRNCurrency(null, profile.purchaseCOIN?.amountCummulate || 0)}}</dd></div>
+              <div><dt>Messages</dt><dd>{{profile.userChain?.index || 0 | number:'1.0-0'}}</dd></div>
+            </dl>
+          </section>
+          @if (profile.contract?.createdTimestamp) {
+            <section class="panel contract-panel" aria-labelledby="contract-title">
+              <div><h2 id="contract-title">Time contribution contract</h2><p>{{profile.contract.signed ? 'Signed' : 'Awaiting signature'}} · Level {{(profile.contract.levelTimeAdjusted || profile.contract.level || 0) | number:'1.1-1'}}</p></div>
+              @if (canSign) { <button type="button" class="quiet-button" (click)="sign()" [disabled]="actionBusy">Sign contract</button> }
+            </section>
           }
-
-          @if ((mode==='inbox' || scope==='all') && !sidePanelScope) {
-            <ul class="listLight imageCarousel" id="scroll-images">
-              @for (message of latestImages|async; track message; let first = $first; let last = $last) {
-                <li class="carouselItem guardedChatItem">
-                  @if (scope==='all'||mode==='inbox') {
-                    <button type="button" class="carouselImageWrap" aria-label="View full-size image" (click)="openCarouselImage(message.payload.doc.data(), message.payload.doc.id)">
-                      <img [src]="message.payload.doc.data()?.chatImageUrlMedium||message.payload.doc.data()?.chatImageUrlThumb||message.payload.doc.data()?.chatImageUrlOriginal" (error)="UI.handleChatImageError($event, message.payload.doc.data())" class="carouselImage">
-                    </button>
-                  }
-                  <button class="carouselMeta" (click)="openListedChat(message.payload.doc.data()?.chain, message.payload.doc.id)">
-                    <span class="messageTiming">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</span>
-                  </button>
-                </li>
-              }
-            </ul>
-          }
-          @if (scope!=='all'&& mode==='history') {
-            <div class="prof-chart-box"><ag-charts-angular [options]="chartOptions"></ag-charts-angular></div>
-          }
-          @if (scope!=='all'&& mode==='forecast') {
-            <p class="profile-illustration-note">PRN balance illustration at the current adjustment rate; future rates may change. This is not an investment return.</p>
-            <div class="prof-chart-box"><ag-charts-angular [options]="forecastChartOptions"></ag-charts-angular></div>
-          }
-          @if (mode!=='forecast' || scope==='all') {
-            <div [class.table-scroll-wrapper]="scope !== 'all' && (mode==='chain'||mode==='history')">
-              <ul class="listLight" [class.sidebar-conversations]="sidePanelScope">
-                @for (message of messages|async; track message; let first = $first; let last = $last) {
-                  <li class="guardedChatItem prof-list-item-rel"
-                    [attr.tabindex]="sidePanelScope ? 0 : null"
-                    [attr.title]="sidePanelScope ? message.payload.doc.data()?.chatSubject : null"
-                    (keydown.enter)="sidePanelScope && $event.target === $event.currentTarget && $event.preventDefault(); sidePanelScope && $event.target === $event.currentTarget && openListedChat(message.payload.doc.data()?.chain)"
-                    (keydown.space)="sidePanelScope && $event.target === $event.currentTarget && openListedChat(message.payload.doc.data()?.chain); sidePanelScope && $event.target === $event.currentTarget && $event.preventDefault()"
-                    [class.activeChatListItem]="activeChatId === message.payload.doc.data()?.chain"
-                    (click)="openListedChat(message.payload.doc.data()?.chain)">
-                    @if (scope==='all'||mode==='inbox') {
-                      <div>
-                        @if (cursorsReady && UI.currentUser && (UI.currentUserLastMessageObj?.createdTimestamp/1000)<message.payload.doc.data()?.serverTimestamp?.seconds && !isMessageSeen(message.payload.doc.data()?.chain,message.payload.doc.data()?.serverTimestamp)) {
-                          <div
-                            class="chatListUnreadFlag" role="img" aria-label="Unread conversation"
-                            [class.alertFlag]="message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name)"
-                            [class.recipientFlag]="!message.payload.doc.data()?.text.includes(UI.currentUserLastMessageObj?.name) && message.payload.doc.data()?.recipients[UI.currentUser]">
-                          </div>
-                        }
-                        @if (cursorsReady && UI.currentUser && blueFlagByChain[message.payload.doc.data()?.chain]) {
-                          <div
-                            class="chatListBlueFlag" role="img" aria-label="Flagged conversation">
-                          </div>
-                        }
-                        <div class="prof-avatar-wrap">
-                          <app-user-avatar class="profile-list-avatar"
-                            [name]="message.payload.doc.data()?.chain === message.payload.doc.data()?.user ? message.payload.doc.data()?.name : message.payload.doc.data()?.chatSubject || message.payload.doc.data()?.name"
-                            [sources]="[message.payload.doc.data()?.chatProfileImageUrlThumb, message.payload.doc.data()?.chatProfileImageUrlMedium, message.payload.doc.data()?.chatProfileImageUrlOriginal, message.payload.doc.data()?.imageUrlThumbUser, message.payload.doc.data()?.imageUrlMedium, message.payload.doc.data()?.imageUrlOriginal]" aria-hidden="true"></app-user-avatar>
-                          </div>
-                          <div>
-                            <div class="profile-chat-subject-wrap">
-                              <span class="chatSubject chatSubjectStrong">{{message.payload.doc.data()?.chatSubject}}</span>
-                            </div>
-                            <div class="messageTiming profile-chat-timing">{{UI.formatSecondsToDhm1(math.max(0,(UI.nowSeconds-message.payload.doc.data()?.serverTimestamp?.seconds)))}}</div>
-                            <div class="profile-chat-preview">
-                              <span class="messageAuthor">{{message.payload.doc.data()?.name}}:&nbsp;</span>
-                              @if (message.payload.doc.data()?.imageResized) {
-                                <span class="messageImageBadge">
-                                  <span class="material-icons-outlined prof-icon-14">photo</span>
-                                </span>
-                              }
-                              <span>{{message.payload.doc.data()?.text}}</span>
-                            </div>
-                          </div>
-                        </div>
-                      }
-                      @if (scope!=='all'&&(mode==='chain'||mode==='history')) {
-                        <table>
-                          @if (first) {
-                            <tr>
-                              <th class="th-date">Date</th>
-                              <th class="th-days">Days</th>
-                              <th class="th-messages">Messages</th>
-                              <th class="th-balance">Balance</th>
-                              <th class="th-change">Change</th>
-                              <th class="th-purchase">Funding credits</th>
-                              <th class="th-transaction">Transfers</th>
-                              <th class="th-interest">Adjustments</th>
-                              <th class="th-contract">Time credits</th>
-                              <th class="th-message">Message</th>
-                            </tr>
-                          }
-                          <tr class="tableRow">
-                            <th class="th-date">
-                              <span class="dateFull">{{(message.payload.doc.data()?.verifiedTimestamp?.seconds*1000)|date:'d MMM yyyy'}}</span>
-                              <span class="dateShort">{{(message.payload.doc.data()?.verifiedTimestamp?.seconds*1000)|date:'d MMM yy'}}</span>
-                            </th>
-                            <th class="th-days">{{first?'':(message.payload.doc.data()?.verifiedTimestamp?.seconds-previousTimestamp.seconds)/3600/24|number:'1.2-2'}}</th>
-                            <th class="th-messages">{{first?'':(message.payload.doc.data()?.userChain?.index-previousIndex)}}</th>
-                            <th class="th-balance">{{UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.wallet?.balance)}}</th>
-                            <th class="th-change">{{first?'':UI.convertAndFormatPRNToCurrency(null,message.payload.doc.data()?.wallet?.balance-previousBalance)}}</th>
-                            <th class="th-purchase">{{first?'':UI.convertAndFormatPRNToCurrency(null,(message.payload.doc.data()?.purchaseCOIN?.amountCummulate||0)-previousPurchaseCOINAmountCummulate)|blankIfZero}}</th>
-                            <th class="th-transaction">{{first?'':UI.convertAndFormatPRNToCurrency(null,(message.payload.doc.data()?.transactionIn?.amountCummulate||0)-(message.payload.doc.data()?.transactionOut?.amountCummulate||0)-previousAmountTransactionCummulate)|blankIfZero}}</th>
-                            <th class="th-interest">{{first?'':UI.convertAndFormatPRNToCurrency(null,(message.payload.doc.data()?.interest?.amountCummulate||0)-previousAmountInterestCummulate)|blankIfZero}}</th>
-                            <th class="th-contract">{{first?'':UI.convertAndFormatPRNToCurrency(null,(message.payload.doc.data()?.contract?.amountCummulate||0)-previousContractAmountCummulate)|blankIfZero}}</th>
-                            <th class="th-message">{{message.payload.doc.data()?.userChain?.currentMessage}}</th>
-                          </tr>
-                          {{storeMessageValues(message.payload.doc.data())}}
-                        </table>
-                      }
-                    </li>
-                  }
-                </ul>
-              </div>
-            }
-            @if (scope!=='all'&& mode==='forecast') {
-              <div class="table-scroll-wrapper">
-                <ul class="listLight">
-                  @for (number of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]; track number; let first = $first) {
-                    <li class="guardedChatItem no-interaction-row">
-                      <table>
-                        @if (first) {
-                          <tr>
-                            <th class="th-forecast-year">Year</th>
-                            <th class="th-forecast-growth">Adjustment rate</th>
-                            <th class="th-forecast-balance">Balance</th>
-                            <th class="th-forecast-multiple">Balance factor</th>
-                          </tr>
-                        }
-                        <tr class="tableRow no-interaction-row">
-                          <th class="th-forecast-year">{{number}}</th>
-                          <th class="th-forecast-growth">{{(UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0) | percent : "0.0"}}</th>
-                          <th class="th-forecast-balance">
-                            {{UI.convertAndFormatPRNToCurrency(null,focusUserLastMessageObj?.wallet?.balance*math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)*number))}}
-                          </th>
-                          <th class="th-forecast-multiple">{{math.exp((UI.PERRINNAdminLastMessageObj?.interest?.rateYear||0)*number)|number:'1.1-1'}}x</th>
-                        </tr>
-                      </table>
-                    </li>
-                  }
-                </ul>
-              </div>
-            }
-            @if (UI.loading) {
-              <div class="spinner">
-                <div class="bounce1"></div>
-                <div class="bounce2"></div>
-                <div class="bounce3"></div>
-              </div>
-            }
-            <div class="prof-load-more-wrap" [class.island]="!sidePanelScope" [class.sidebar-load-more]="sidePanelScope">
-              @if ((!UI.loading && !['forecast', 'history'].includes(mode)) || scope==='all') {
-                <button [class.buttonPrimary]="!sidePanelScope" [class.prof-btn-200]="!sidePanelScope" [class.sidebar-load-more-button]="sidePanelScope" type="button" (click)="loadMore()">@if (sidePanelScope) { <span class="material-icons-outlined" aria-hidden="true">expand_more</span> }<span>Load more</span></button>
-              }
-            </div>
-          </div>
         </div>
-      </div>
+      } @else {
+        <section class="panel detail-panel" [attr.aria-busy]="feedState.loading">
+          @if (tab === 'inbox') {
+            <h2>Inbox</h2>
+            @if (cursors?.unavailable) { <p class="feed-state" role="status">Some conversation indicators are unavailable.</p><button type="button" class="quiet-button" (click)="retryIndicators()">Retry indicators</button> }
+            <app-conversation-list [items]="feedState.items" [cursors]="cursors" (openChat)="openChat($event)" />
+          } @else {
+            <app-profile-ledger [profile]="profile" [records]="feedState.items" [mode]="tab" [rate]="rate" (openMessage)="openMessage($event)" />
+          }
+          @if (tab !== 'forecast') {
+            @if (feedState.loading) { <p class="feed-state" role="status">Loading</p> }
+            @else if (feedState.error) { <p class="feed-state" role="alert">Couldn’t load this section.</p> }
+            @else if (!feedState.items.length) { <p class="feed-state">{{tab === 'inbox' ? 'No conversations yet.' : 'No records yet.'}}</p> }
+            @if (feedState.hasMore || feedState.error) {
+              <button type="button" class="quiet-button load-more" (click)="feed.loadMore()" [disabled]="feedState.loading">{{feedState.error ? 'Try again' : tab === 'inbox' ? 'Load more' : 'Load older records'}}</button>
+            }
+          }
+        </section>
+      }
+    </section>
+  }
+</main>

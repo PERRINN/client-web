@@ -72,11 +72,12 @@
             Currency
           </div>
           <ul class="listLight currency-selector-list">
-            @for (currency of objectToArray(UI.PERRINNAdminLastMessageObj?.currencyList); track currency) {
+            @for (currency of objectToArray(UI.PERRINNAdminLastMessageObj?.currencyList); track currency[0]) {
               <li class="currency-item">
-                <button class="buttonToggle currency-btn"
+                <button type="button" class="buttonToggle currency-btn"
                   (click)="onCurrencySelected(currency[0])"
                   [class.selected]="currencySelected === currency[0]"
+                  [attr.aria-pressed]="currencySelected === currency[0]"
                   >
                   {{ currency[1].designation }}
                 </button>

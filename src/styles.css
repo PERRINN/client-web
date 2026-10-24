@@ -39,6 +39,9 @@
   --danger-red: #b91c1c;
   --border-green: rgba(16, 185, 129, 0.12);
 
+  /* Shared unread/manual-flag indicator size. */
+  --activity-dot-size: 8px;
+
   /* Borders & Spacing */
   --radius-lg: 12px;
   --radius-md: 10px;

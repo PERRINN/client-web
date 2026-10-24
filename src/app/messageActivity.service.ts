@@ -1,6 +1,8 @@
 import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { ActivityConversation, conversationIndicators } from './conversationActivity';
+export type { ActivityConversation } from './conversationActivity';
 
 export interface ActivitySummary {
   mention: boolean;
@@ -8,17 +10,6 @@ export interface ActivitySummary {
   other: boolean;
   flagged: boolean;
   unavailable?: boolean;
-}
-
-export interface ActivityConversation {
-  isBackendMessage?: boolean;
-  chain?: string;
-  text?: string;
-  chatSubject?: string;
-  chatProfileImageUrlThumb?: string;
-  chatProfileImageUrlMedium?: string;
-  serverTimestamp?: { seconds: number };
-  recipients?: Record<string, unknown>;
 }
 
 export interface MentionedChat {
@@ -38,7 +29,9 @@ export interface MentionActivity {
 export interface ConversationActivityInput {
   conversations: ActivityConversation[];
   userId: string | null;
-  profile?: { name?: string; createdTimestamp?: number } | null;
+  profile?: { user?: string; name?: string; createdTimestamp?: number } | null;
+  readyChains?: Record<string, boolean>;
+  messageIds?: Record<string, string>;
   timestamps: Record<string, number>;
   flags: Record<string, boolean>;
   ready: boolean;
@@ -65,16 +58,17 @@ export class MessageActivityService {
     const chats: MentionedChat[] = [];
     const status = !input.userId ? 'signed-out' : input.unavailable ? 'unavailable'
       : !input.ready || !input.profile ? 'loading' : 'ready';
-    if (input.userId && input.ready) for (const message of input.conversations) {
+    if (input.userId && (input.ready || input.readyChains)) for (const message of input.conversations) {
       if (message.isBackendMessage === true) continue;
       const chain = message.chain || '';
-      summary.flagged ||= !!input.flags[chain];
+      const indicator = conversationIndicators(message, input.userId, input.profile || null, {
+        timestamps: input.timestamps, flags: input.flags, messageIds: input.messageIds,
+        ready: input.ready, readyChains: input.readyChains, unavailable: input.unavailable
+      });
+      summary.flagged ||= indicator.flagged;
+      if (!indicator.unread) continue;
       const timestamp = (message.serverTimestamp?.seconds || 0) * 1000;
-      const seen = input.timestamps[chain] || 0;
-      // Match the sidebar's account-age, name-in-text and cursor conditions.
-      if (!(Number(input.profile?.createdTimestamp) / 1000 < Number(message.serverTimestamp?.seconds)) ||
-          (seen > 0 && timestamp > 0 && timestamp <= seen)) continue;
-      if (message.text?.includes(String(input.profile?.name))) {
+      if (indicator.unread === 'mention') {
         summary.mention = true;
         if (chain && status === 'ready') chats.push({
           chain,
@@ -83,7 +77,7 @@ export class MessageActivityService {
           imageUrl: message.chatProfileImageUrlThumb || message.chatProfileImageUrlMedium || '',
           timestamp
         });
-      } else if (message.recipients?.[input.userId]) summary.recipient = true;
+      } else if (indicator.unread === 'recipient') summary.recipient = true;
       else summary.other = true;
     }
     const unique = new Map<string, MentionedChat>();

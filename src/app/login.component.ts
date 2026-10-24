@@ -42,7 +42,7 @@ export class LoginComponent  {
     this.action='login'
     this.afAuth.user.subscribe((auth) => {
       if (auth != null) {
-        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/profile/all';
+        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/home';
         this.router.navigateByUrl(returnUrl);
       }
     })

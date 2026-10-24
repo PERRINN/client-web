@@ -249,7 +249,7 @@ test('flag control shares owner cursors, handles failure and ignores stale chat 
   const states = new BehaviorSubject({ flags: { chat: true }, ready: true, unavailable: false });
   const updates = [], writes = []; let finish, destroyed = false;
   const component = new ChatFlagComponent({ createSession: () => ({ changes: states, update: (...args) => updates.push(args), destroy: () => destroyed = true }),
-    setFlag: (...args) => { writes.push(args); return new Promise((_, reject) => finish = reject); } }, { authState: new BehaviorSubject({ uid: 'owner' }) }, zone);
+    setFlag: (...args) => { writes.push(args); return new Promise((_, reject) => finish = reject); } }, { authState: new BehaviorSubject({ uid: 'owner' }) }, zone, { markForCheck() {} });
   component.chain = 'chat'; component.ngOnChanges(); states.next({ flags: { chat: true }, ready: true, unavailable: false });
   const work = component.toggle(); assert.deepEqual(writes[0], ['owner', 'chat', false]);
   component.chain = 'next'; component.ngOnChanges(); finish(Error('offline')); await work;

@@ -49,7 +49,7 @@
 :host .info-stat-value { font-size: 19px; font-weight: 700; color: var(--color-text); }
 :host .buy-mb-8 { margin-bottom: 8px; }
 :host .buy-mb-12 { margin-bottom: 12px; }
-:host .currency-item { flex: 1; min-width: 120px; }
+:host .currency-item { flex: 1 1 120px; min-width: 0; max-width: 100%; }
 :host .amount-item { flex: 0 1 auto; }
 :host .buy-title-15 { font-size: 16px; }
 :host .buy-status-text { font-size: 14px; color: var(--color-text-secondary); margin-bottom: 10px; line-height: 1.45; }
@@ -87,10 +87,13 @@
 /* Currency and amount selection */
 :host .currency-btn, :host .amount-btn { width: 100%; padding: 10px; border-radius: 8px; border: 2px solid; transition: all 0.3s ease; font-weight: 600; font-size: 14px; background: var(--color-surface); border-color: var(--color-border); color: var(--color-text-secondary); }
 :host .currency-btn.selected, :host .amount-btn.selected { background: var(--color-selected); border-color: var(--color-accent); color: var(--color-text); }
+:host .currency-btn { min-height: 44px; height: auto; white-space: normal; overflow-wrap: anywhere; line-height: 1.45; }
+:host .currency-btn:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -4px; }
 :host .amount-btn { padding: 10px 16px; font-size: 13px; white-space: nowrap; }
 :host .summary-box { text-align: center; padding: 16px; background: var(--color-surface); border-radius: 10px; margin-top: 16px; border: 1px solid color-mix(in srgb, var(--color-selected) 20%, transparent); }
 @media (max-width:545px) {
   :host .currency-selector-list { flex-direction: column; }
+  :host .currency-item { flex: 0 0 auto; width: 100%; }
 }
 
 @media (max-width:420px) {

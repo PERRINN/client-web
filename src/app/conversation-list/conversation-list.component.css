@@ -1,0 +1,30 @@
+:host { display: block; min-width: 0; }
+:host ul { list-style: none; padding: 0; margin: 0; }
+:host li { padding: 0; margin: 0; }
+:host .conversation { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px; margin: 0; border: 0; border-radius: 8px; color: var(--color-text); background: transparent; text-align: left; transition: none; }
+:host .conversation:hover { background: var(--color-raised); }
+:host .conversation.active { background: var(--color-selected); }
+:host .conversation:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+:host .conversation-avatar { width: 40px; height: 40px; flex: 0 0 40px; }
+:host .content { flex: 1; min-width: 0; display: grid; gap: 3px; }
+:host .subject { font-size: 16px; line-height: 1.45; font-weight: 550; overflow-wrap: anywhere; }
+:host .preview { color: var(--color-text-secondary); font-size: 15px; line-height: 1.45; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+:host time { width: 84px; text-align: right; font-size: 14px; color: var(--color-text-muted); white-space: nowrap; }
+:host .indicators { display: flex; align-items: center; justify-content: flex-end; gap: 6px; flex: 0 0 calc(var(--activity-dot-size) * 2 + 6px); width: calc(var(--activity-dot-size) * 2 + 6px); }
+:host .compact .indicators { flex-basis: auto; width: auto; }
+:host .dot { flex: 0 0 var(--activity-dot-size); width: var(--activity-dot-size); height: var(--activity-dot-size); border-radius: 50%; background: var(--color-text-muted); }
+:host .dot.mention { background: var(--color-danger); }
+:host .dot.recipient { background: var(--color-success); }
+:host .dot.flagged { background: var(--color-accent); }
+:host .compact .conversation { height: var(--conversation-row-height, 42px); padding: 6px 4px; gap: 8px; border-radius: 0; scroll-snap-align: start; }
+:host .compact .conversation-avatar { width: 24px; height: 24px; flex-basis: 24px; }
+:host .compact .subject { font-size: 14px; font-weight: var(--font-weight-body); white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+
+/* A stable timestamp column above a separate status lane; the preview uses the full remaining width. */
+:host ul:not(.compact) .conversation { display: grid; grid-template-columns: 40px minmax(0, 1fr) 84px; gap: 4px 12px; }
+:host ul:not(.compact) .conversation-avatar { grid-column: 1; grid-row: 1 / 3; align-self: start; }
+:host ul:not(.compact) .content { display: contents; }
+:host ul:not(.compact) .subject { grid-column: 2; grid-row: 1; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+:host ul:not(.compact) time { grid-column: 3; grid-row: 1; }
+:host ul:not(.compact) .preview { grid-column: 2 / 4; grid-row: 2; padding-inline-end: calc(var(--activity-dot-size) * 2 + 14px); }
+:host ul:not(.compact) .indicators { grid-column: 3; grid-row: 2; justify-self: end; align-self: center; }

@@ -94,7 +94,7 @@ button:focus-visible,.visitor-list:focus-visible{outline:2px solid var(--color-f
 .mention-list{display:grid;gap:2px}
 .mention-row{display:flex;align-items:center;gap:12px;width:100%;min-height:66px;padding:10px 8px;border:0;border-radius:0;background:transparent;text-align:left;cursor:pointer}
 .mention-row:hover{background:var(--color-selected)}
-.mention-dot{width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:var(--color-danger-text)}
+.mention-dot{width:var(--activity-dot-size);height:var(--activity-dot-size);flex:0 0 var(--activity-dot-size);border-radius:50%;background:var(--color-danger-text)}
 .mention-avatar{--avatar-image-fit:contain;display:block;width:36px;height:36px;flex:0 0 36px;object-fit:contain;border-radius:6px;background:transparent}
 .mention-copy{display:grid;flex:1;min-width:0;gap:2px}
 .mention-copy strong{font-size:14px;font-weight:550;overflow-wrap:anywhere}

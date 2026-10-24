@@ -27,7 +27,7 @@
 
 /* Desktop shell and primary navigation. */
 :host .sidebarShell { display: grid; grid-template-columns: 320px minmax(0, 1fr); height: 100dvh; padding: 0; gap: 0; border-radius: 0; background: var(--color-page); font-weight: var(--font-weight-body); font-family: var(--font-family-ui); }
-/* Scoped defaults do not reach routed components or the reused profile list. */
+/* Scoped defaults do not reach routed components or the shared conversation list. */
 :host .sidebarShell *:not([class*="material-icons"]):not([class*="material-symbols"]) { font-family: inherit; font-weight: inherit; }
 :host .sidebarShell button, :host .sidebarShell a { font-family: var(--font-family-ui); font-weight: var(--font-weight-body); }
 :host .sidebarShell span:not([class*="material-icons"]):not([class*="material-symbols"]), :host .sidebarShell a, :host .sidebarShell button { line-height: 1.35; overflow: visible; }
@@ -85,7 +85,7 @@
 /* Activity summary and the fixed three-row automatic list. */
 :host .mobile-brand, :host .activity-dots { display: inline-flex; align-items: center; gap: 6px; }
 :host .activity-dots { margin-left: 2px; }
-:host .activity-dot { display: block; width: 6px; height: 6px; flex: 0 0 6px; border-radius: 50%; }
+:host .activity-dot { display: block; width: var(--activity-dot-size); height: var(--activity-dot-size); flex: 0 0 var(--activity-dot-size); border-radius: 50%; }
 :host .mention-dot { background: var(--color-danger); }
 :host .recipient-dot { background: var(--color-success); }
 :host .other-dot { background: var(--color-text-muted); }

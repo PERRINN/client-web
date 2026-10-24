@@ -14,7 +14,10 @@
             <div class="settingsProfileNameWrap">
               <span class="settingsProfileName">{{UI.currentUserLastMessageObj?.name}}</span>
             </div>
-            <span class="settingsProfileBalance">{{UI.convertAndFormatPRNToPRNCurrency(null,UI.currentUserLastMessageObj?.wallet?.balance)}}</span>
+            <div class="settingsWalletActions">
+              <button type="button" class="buttonPrimary" routerLink="/buyPRN/">Contribute funds</button>
+              <span class="settingsProfileBalance">{{UI.convertAndFormatPRNToPRNCurrency(null,UI.currentUserLastMessageObj?.wallet?.balance)}}</span>
+            </div>
           </div>
 
           <div class="settingsProfilePresentation">{{UI.currentUserLastMessageObj?.userPresentation}} Level {{UI.currentUserLastMessageObj?.contract?.levelTimeAdjusted|number:'1.1-1'}}</div>
@@ -74,11 +77,14 @@
         <div class="title">Preferred currency</div>
         <div class="settings-currency-container">
           <ul class="listLight">
-            @for (currency of objectToArray(UI.PERRINNAdminLastMessageObj?.currencyList); track currency) {
-              <li class="buttonBlack"
-                (click)="UI.currentUserLastMessageObj?.userCurrency==currency[0]?'':updateUserCurrency(currency[0])"
-                [class.activeCurrency]="UI.currentUserLastMessageObj?.userCurrency==currency[0]">
-                {{currency[1].designation}}
+            @for (currency of objectToArray(UI.PERRINNAdminLastMessageObj?.currencyList); track currency[0]) {
+              <li>
+                <button type="button" class="buttonBlack"
+                  (click)="UI.currentUserLastMessageObj?.userCurrency==currency[0]?'':updateUserCurrency(currency[0])"
+                  [class.activeCurrency]="UI.currentUserLastMessageObj?.userCurrency==currency[0]"
+                  [attr.aria-pressed]="UI.currentUserLastMessageObj?.userCurrency==currency[0]">
+                  {{currency[1].designation}}
+                </button>
               </li>
             }
           </ul>

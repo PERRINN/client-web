@@ -39,7 +39,7 @@
     </nav>
     <div class="conversationSpace">
       <section class="sideProfile" aria-label="Conversations" [class.is-scrolling]="conversationScrollbarVisible" (scroll)="onConversationScroll()">
-        <profile [sidePanelScope]="'all'" (chatOpened)="closeSidebar()"></profile>
+        <app-sidebar-conversations (chatOpened)="closeSidebar()" />
       </section>
     </div>
     @if (automaticConversations | async; as automatic) {

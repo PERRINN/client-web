@@ -13,9 +13,9 @@ const root = resolve(import.meta.dirname, '..');
 const output = await mkdtemp(resolve(tmpdir(), 'perrinn-chat-avatars-'));
 const template = await readFile(root + '/src/app/chat/chat.component.html', 'utf8');
 const styles = await readFile(root + '/src/app/chat/chat.component.css', 'utf8');
-const profileTemplate = await readFile(root + '/src/app/profile.component.html', 'utf8');
-const sidebarAvatar = profileTemplate.match(/<app-user-avatar class="profile-list-avatar"[\s\S]*?<\/app-user-avatar>/)[0];
-const profileStyles = await readFile(root + '/src/app/profile.component.css', 'utf8');
+const profileTemplate = await readFile(root + '/src/app/conversation-list/conversation-list.component.html', 'utf8');
+const sidebarAvatar = profileTemplate.match(/<app-user-avatar class="conversation-avatar"[\s\S]*?\/>/)[0];
+const profileStyles = await readFile(root + '/src/app/conversation-list/conversation-list.component.css', 'utf8');
 await writeFile(output + '/entry.ts', `
 import 'zone.js'; import '@angular/compiler';
 import {Component,NO_ERRORS_SCHEMA,provideZoneChangeDetection} from '@angular/core';
@@ -33,8 +33,8 @@ class Area extends ChatComponent {
  constructor(){super({paramMap:EMPTY} as any,{} as any,data as any,{} as any,{run:fn=>fn()} as any,{error:'',attach(){},scan(){}} as any,{} as any,{mode:'text',configure(){},unlock(){}} as any);
  this.state='empty';this.chain='synthetic';this.title='Engineering Team';this.signedIn=true;this.avatarSources=['/broken.png','/photo.svg'];}
 }
-@Component({standalone:false,template:${JSON.stringify('<ul class="sidebar-conversations listLight"><li><div class="prof-avatar-wrap">'+sidebarAvatar+'</div><span>Engineering Team</span></li></ul>')},styles:[${JSON.stringify(profileStyles)}]})
-class SidebarArea {record={chain:'team',user:'author',name:'Alex Morgan',chatSubject:'Engineering Team',chatProfileImageUrlThumb:'/broken.png',chatProfileImageUrlMedium:'/photo.svg'};message={payload:{doc:{data:()=>this.record}}};}
+@Component({standalone:false,template:${JSON.stringify('<ul class="compact"><li><div class="conversation">'+sidebarAvatar+'<span>Engineering Team</span></div></li></ul>')},styles:[${JSON.stringify(profileStyles)}]})
+class SidebarArea {get item(){return this.record;}record={chain:'team',user:'author',name:'Alex Morgan',chatSubject:'Engineering Team',chatProfileImageUrlThumb:'/broken.png',chatProfileImageUrlMedium:'/photo.svg'};message={payload:{doc:{data:()=>this.record}}};}
 TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTesting());
 TestBed.configureTestingModule({imports:[CommonModule,FormsModule],declarations:[Area,SidebarArea,UserAvatarComponent,ChatComposerComponent],schemas:[NO_ERRORS_SCHEMA],providers:[provideZoneChangeDetection()]});
 const fixture=TestBed.createComponent(Area);document.body.append(fixture.nativeElement);fixture.autoDetectChanges();fixture.detectChanges();
@@ -126,8 +126,8 @@ try{
   }
   await page.screenshot({path:output+'/header-'+width+'.png'});
   await page.evaluate(()=>window.avatarUI.sidebar());
-  const sidebar=page.locator('.profile-list-avatar');
-  await page.waitForFunction(()=>document.querySelector('.profile-list-avatar img')?.getAttribute('src')==='/photo.svg');
+  const sidebar=page.locator('.conversation-avatar');
+  await page.waitForFunction(()=>document.querySelector('.conversation-avatar img')?.getAttribute('src')==='/photo.svg');
   assert.equal((await sidebar.boundingBox()).width,24);
   await page.evaluate(()=>window.sidebarUI.missing());
   assert.equal(await sidebar.innerText(),'ET');assert.equal(await sidebar.locator('img').count(),0);

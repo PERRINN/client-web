@@ -1,0 +1,23 @@
+<ul [class.compact]="compact" aria-label="Conversations">
+  @for (item of items; track item.id || item.chain) {
+    @let activity = indicators(item);
+    <li>
+      <button type="button" class="conversation" [class.active]="activeChain === item.chain"
+        [attr.aria-current]="activeChain === item.chain ? 'page' : null" [title]="item.chatSubject || 'Conversation'"
+        (click)="openChat.emit(item.chain)">
+        <app-user-avatar class="conversation-avatar" [name]="item.chain === item.user ? item.name : item.chatSubject || item.name"
+          [sources]="[item.chatProfileImageUrlThumb, item.chatProfileImageUrlMedium, item.chatProfileImageUrlOriginal, item.imageUrlThumbUser, item.imageUrlMedium, item.imageUrlOriginal]" aria-hidden="true" />
+        <span class="content"><span class="subject">{{item.chatSubject || 'Conversation'}}</span>
+          @if (!compact) { <span class="preview">{{item.name ? item.name + ': ' : ''}}{{item.text}}</span> }
+        </span>
+        @if (!compact) { <time [attr.datetime]="(item.serverTimestamp?.seconds * 1000) | date:'yyyy-MM-ddTHH:mm:ssZZZZZ'" [title]="(item.serverTimestamp?.seconds * 1000) | date:'d MMM yyyy, HH:mm'">{{dateLabel(item)}}</time> }
+        @if (!compact || activity.unread || activity.flagged) {
+          <span class="indicators">
+        @if (activity.unread) { <span class="dot" role="img" [attr.aria-label]="activity.unread === 'mention' ? 'Unread name mention' : activity.unread === 'recipient' ? 'Unread conversation addressed to you' : 'Other unread activity'" [class.mention]="activity.unread === 'mention'" [class.recipient]="activity.unread === 'recipient'"></span> }
+        @if (activity.flagged) { <span class="dot flagged" role="img" aria-label="Flagged conversation"></span> }
+          </span>
+        }
+      </button>
+    </li>
+  }
+</ul>

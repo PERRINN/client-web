@@ -57,6 +57,7 @@ const appRoutes: Routes = [
   { path: 'home', component: HomeComponent },
   { path: 'chat/:id', component: ChatComponent },
   { path: 'chat', component: ChatComponent },
+  { path: 'profile/all', redirectTo: 'home', pathMatch: 'full' },
   { path: 'profile/:id', component: ProfileComponent },
   { path: 'settings', component: SettingsComponent },
   { path: 'login', component: LoginComponent },
@@ -66,7 +67,7 @@ const appRoutes: Routes = [
   { path: 'buyPRN/:id', component: BuyPrnComponent },
   { path: 'buyPRN', redirectTo: 'buyPRN/', pathMatch: 'full' },
   { path: '',   redirectTo: 'home', pathMatch: 'full' },
-  { path: '**', component: ProfileComponent }
+  { path: '**', redirectTo: 'home' }
 ];
 
 @NgModule({

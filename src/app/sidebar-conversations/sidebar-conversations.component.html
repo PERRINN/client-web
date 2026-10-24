@@ -1,0 +1,4 @@
+<app-conversation-list [items]="items" [compact]="true" [activeChain]="activeChain" [cursors]="cursors" (openChat)="open($event)" />
+<button type="button" class="load-more" (click)="loadMore()" [disabled]="loading">
+  <span class="material-icons-outlined" aria-hidden="true">expand_more</span><span>{{error || cursors?.unavailable ? 'Try again' : loading ? 'Loading' : 'Load more'}}</span>
+</button>

@@ -1,0 +1,28 @@
+@if (mode === 'forecast') {
+  <p class="note">PRN balance illustration at the current adjustment rate; future rates may change. This is not an investment return.</p>
+}
+@if (mode !== 'chain' && (mode === 'forecast' || records.length)) {
+  <div class="chart"><ag-charts-angular [options]="chart" /></div>
+}
+@if (mode === 'forecast' || records.length) {
+  <div class="ledger-scroll" tabindex="0" role="region" [attr.aria-label]="mode === 'forecast' ? 'Balance illustration table' : 'Contribution history table'">
+    <table>
+      <caption>{{mode === 'forecast' ? 'Balance illustration' : mode === 'history' ? 'Monthly history' : 'Message chain'}}</caption>
+      @if (mode === 'forecast') {
+        <thead><tr><th scope="col">Year</th><th scope="col">Adjustment rate</th><th scope="col">Balance</th><th scope="col">Balance factor</th></tr></thead>
+        <tbody>@for (year of years; track year.year) {
+          <tr><th scope="row">{{year.year}}</th><td>{{rate | percent:'1.0-2'}}</td><td>{{amount(year.balance)}}</td><td>{{year.factor | number:'1.1-1'}}×</td></tr>
+        }</tbody>
+      } @else {
+        <thead><tr><th scope="col">Date</th><th scope="col">Days</th><th scope="col">Messages</th><th scope="col">Balance</th><th scope="col">Change</th><th scope="col">Funding credits</th><th scope="col">Transfers</th><th scope="col">Adjustments</th><th scope="col">Time credits</th><th scope="col">Message</th></tr></thead>
+        <tbody>@for (row of rows; track row.record.id) {
+          <tr>
+            <th scope="row"><button type="button" (click)="openMessage.emit(row.record)" [attr.aria-label]="'Open message from ' + (row.timestamp | date:'d MMM yyyy')">{{row.timestamp | date:'d MMM yyyy'}}</button></th>
+            <td>{{row.days === null ? '—' : (row.days | number:'1.2-2')}}</td><td>{{row.messages === null ? '—' : row.messages}}</td>
+            <td>{{amount(row.balance)}}</td><td>{{amount(row.change)}}</td><td>{{amount(row.funding)}}</td><td>{{amount(row.transfers)}}</td><td>{{amount(row.adjustments)}}</td><td>{{amount(row.time)}}</td><td class="message">{{row.record.userChain?.currentMessage || row.record.text || '—'}}</td>
+          </tr>
+        }</tbody>
+      }
+    </table>
+  </div>
+}
