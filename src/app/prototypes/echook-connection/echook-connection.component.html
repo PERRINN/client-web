@@ -15,7 +15,10 @@
       @for (metric of state.metrics; track metric.id) {
         <div class="metric" [class]="'metric ' + metric.id">
           <dt [attr.aria-label]="!metric.visibleLabel ? metric.label : null">{{ metric.visibleLabel ? metric.label : '' }}</dt>
-          <dd [attr.aria-description]="metric.status" [attr.title]="metric.status">{{ metric.value === undefined ? '—' : (metric.value | number:metric.digits) }} {{ metric.unit }}</dd>
+          <dd [attr.aria-description]="metric.status" [attr.title]="metric.status">
+            <span class="reading-value">{{ metric.value === undefined ? '—' : (metric.value | number:metric.digits) }}</span>
+            <span class="reading-unit"> {{ metric.unit }}</span>
+          </dd>
         </div>
       }
     </dl>

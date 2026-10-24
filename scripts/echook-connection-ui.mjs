@@ -145,6 +145,31 @@ try {
     await page.waitForFunction(() => document.querySelector('time').textContent === '21:34:57');
     await page.clock.setFixedTime(new Date('2026-10-24T12:34:58Z'));
     await page.waitForFunction(() => document.querySelector('time').textContent === '21:34:58');
+    const anchors = () => page.locator('.metric dd').evaluateAll(elements => elements.map(element => {
+      const value = element.querySelector('.reading-value').getBoundingClientRect();
+      const unit = element.querySelector('.reading-unit').getBoundingClientRect();
+      return { numberRight: value.right, unitLeft: unit.left, unitRight: unit.right, y: unit.y };
+    }));
+    const originalAnchors = await anchors();
+    await page.evaluate(() => window.sensorStream.enqueue(Uint8Array.from([
+      123, 115, 0, 0, 125, 123, 116, 0, 0, 125, 123, 109, 0, 0, 125, 123, 105, 0, 0, 125,
+      123, 118, 0, 0, 125, 123, 119, 0, 0, 125, 123, 97, 0, 0, 125, 123, 98, 0, 0, 125
+    ])));
+    await page.locator('.motor .reading-value').getByText('0', { exact: true }).waitFor();
+    assert.deepEqual(await anchors(), originalAnchors, 'Units and right-aligned numeric anchors remain fixed at zero');
+    await page.evaluate(() => window.sensorStream.enqueue(Uint8Array.from([
+      123, 115, 44, 70, 125, 123, 116, 100, 0, 125, 123, 109, 254, 99, 125, 123, 105, 100, 0, 125,
+      123, 118, 26, 50, 125, 123, 119, 13, 25, 125, 123, 97, 30, 0, 125, 123, 98, 110, 0, 125
+    ])));
+    await page.locator('.motor .reading-value').getByText('12,699', { exact: true }).waitFor();
+    assert.deepEqual(await anchors(), originalAnchors, 'Extra digits and separators do not move units');
+    await assertFits();
+    assert.equal(await page.locator('.metric dd').evaluateAll(elements => elements.every(element => {
+      const value = element.querySelector('.reading-value'), unit = element.querySelector('.reading-unit');
+      return value.scrollWidth <= value.clientWidth + 1 && unit.scrollWidth <= unit.clientWidth + 1
+        && value.getBoundingClientRect().right < unit.getBoundingClientRect().left;
+    })), true, 'Largest readouts fit their separate columns');
+
     await assertFits();
     await page.screenshot({ path: output + '/' + width + 'x' + height + '-live.png', fullPage: true });
     // Rotate in place: preserve the connection and fit the new available height.
@@ -160,9 +185,10 @@ try {
       await page.evaluate(() => { window.testVisibleHeight = undefined; visualViewport.dispatchEvent(new Event('resize')); });
       await assertFits();
     }
-    await page.clock.setFixedTime(new Date('2026-10-24T12:35:03Z'));
+    await page.clock.setFixedTime(new Date('2026-10-24T12:35:04Z'));
     await page.waitForFunction(() => document.querySelector('.speed dd').getAttribute('aria-description') === 'Stale'); await assertFits();
-    assert.equal(await page.locator('.speed dd').innerText(), '— mph');
+    assert.equal(await page.locator('.speed .reading-value').innerText(), '—');
+    assert.deepEqual(await anchors(), originalAnchors, 'Missing values retain the same numeric/unit anchors');
     await page.evaluate(() => window.sensorStream.close());
     await page.waitForFunction(() => window.serialCalls.opened === 2); await assertFits();
     assert.equal(await page.evaluate(() => window.serialCalls.closed), 1);

@@ -18,7 +18,10 @@ button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2
 .ambient { order: 6; }
 .motor-temp { order: 7; }
 dt { font-size: 16px; color: var(--color-text-secondary); }
-dd { margin: 2px 0; font-size: clamp(20px, min(14cqw, 35cqh), 64px); line-height: 1.15; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+dd { display: grid; grid-template-columns: minmax(0, 1fr) 4ch; column-gap: .3ch; align-items: baseline; margin: 2px 0; font-size: clamp(20px, min(14cqw, 35cqh), 64px); line-height: 1.15; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.reading-value, .reading-unit { min-width: 0; font: inherit; line-height: inherit; }
+.reading-value { text-align: right; }
+.reading-unit { text-align: left; }
 time { flex-shrink: 0; font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
 @media (hover: hover) and (pointer: fine) { button:hover:not(:disabled) { background: var(--color-text-secondary); } }
 @container echook (min-aspect-ratio: 3/2) {
