@@ -55,6 +55,36 @@ test('latest-message visibility stays stable during rendering and refreshes afte
   } finally { globalThis.requestAnimationFrame = previousFrame; }
 });
 
+test('voice-chat non-participants cannot send text or images, including with keyboard override', async () => {
+  const { ChatComponent } = load('../src/app/chat/chat.component.ts', {
+    '@angular/core': core, './chatRead.service': {}, './chat-composer/chat-composer.component': {},
+    './chatData': {}
+  });
+  const writes = [], voice = { mode: 'voice', canListen: false, keyboard: false };
+  const component = new ChatComponent({ paramMap: of() }, {}, { send: async (...args) => writes.push(args) }, {}, zone, {}, {}, voice);
+  Object.assign(component, { signedIn: true, chain: 'engineering', messages: [{ id: 'visible', text: 'Still readable' }] });
+  const draft = { text: 'Hello', image: null };
+  assert.equal(component.canSend, false);
+  await component.send(draft);
+  voice.keyboard = true;
+  await component.send({ text: '', image: { name: 'photo.png' } });
+  assert.equal(writes.length, 0);
+  assert.equal(component.messages[0].text, 'Still readable');
+  voice.canListen = true;
+  assert.equal(component.canSend, true);
+  await component.send(draft);
+  assert.equal(writes.length, 1);
+  voice.canListen = false;
+  await component.send(draft);
+  assert.equal(writes.length, 1);
+  voice.mode = 'text';
+  await component.send(draft);
+  assert.equal(writes.length, 2);
+  component.signedIn = false;
+  await component.send(draft);
+  assert.equal(writes.length, 2);
+});
+
 test('mentions match full Unicode names and case without substring or regex false positives', () => {
   for (const [text, name, expected] of [
     ['Hello NICOLAS PERRIN!', 'Nicolas Perrin', true], ['@Nicolas Perrin, thanks', 'Nicolas Perrin', true],

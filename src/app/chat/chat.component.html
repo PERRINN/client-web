@@ -35,9 +35,9 @@
         @if (showLatest && state === 'ready') { <button class="latest-button" type="button" (click)="jumpToLatest()">Latest messages ↓</button> }
         <div class="composer-area">
           @if (voice.mode === 'voice' && !voice.keyboard && signedIn) {
-            <app-voice-composer [chain]="chain" [disabled]="!chain || state === 'loading' || state === 'error'" (keyboardRequested)="voice.useKeyboard()" />
+            <app-voice-composer [chain]="chain" [disabled]="!canSend || !chain || state === 'loading' || state === 'error'" (keyboardRequested)="voice.useKeyboard()" />
           }
-            <app-chat-composer [hidden]="voice.mode === 'voice' && !voice.keyboard && signedIn" [disabled]="!signedIn || sending || !chain || state === 'loading' || state === 'error'" [sending]="sending" [voiceAvailable]="signedIn && voice.mode === 'voice'" (voiceRequested)="voice.useVoice()" (messageSent)="send($event)" />
+            <app-chat-composer [hidden]="voice.mode === 'voice' && !voice.keyboard && signedIn" [disabled]="!canSend || sending || !chain || state === 'loading' || state === 'error'" [sending]="sending" [voiceAvailable]="signedIn && voice.mode === 'voice'" (voiceRequested)="voice.useVoice()" (messageSent)="send($event)" />
           <span class="sr-only" role="status">{{ voice.error }}</span>
         </div>
         @if (reads.error) { <div class="read-error" role="alert"><span>{{ reads.error }}</span><button type="button" (click)="reads.retry(); retry()">Try again</button></div> }

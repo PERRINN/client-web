@@ -51,7 +51,7 @@ export class ChatVoiceService implements OnDestroy {
     }
     this.chain = chain; this.uid = uid; this.canListen = allowed; this.mode = mode;
     this.input.setDestination('chat:' + chain);
-    this.input.setAccess(!!uid && mode === 'voice', uid);
+    this.input.setAccess(allowed && mode === 'voice', uid);
     for (const message of messages) {
       if (!this.seen.has(message.id) && this.initialized && message.verified && message.timestamp >= this.openedAt && message.voice && !message.own
         && this.available(message) && this.foreground && this.session.current?.state === 'running'

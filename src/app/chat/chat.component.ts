@@ -151,8 +151,10 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
     }));
   }
 
+  get canSend(): boolean { return this.signedIn && (this.voice.mode !== 'voice' || this.voice.canListen); }
+
   async send(draft: ChatDraft): Promise<void> {
-    if (this.sending || !this.signedIn || !this.chain) return;
+    if (this.sending || !this.canSend || !this.chain) return;
     const chain = this.chain;
     this.sending = true; this.sendError = '';
     try {

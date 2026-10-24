@@ -893,7 +893,7 @@ test('Chat clears upload feedback after a failed send and ignores progress for a
   const progress = [];
   let report, fail;
   const data = { send: (_, __, callback) => { report = callback; return new Promise((_, reject) => fail = reject); } };
-  const component = new ChatComponent({ paramMap: of() }, {}, data, {}, { run: fn => fn() });
+  const component = new ChatComponent({ paramMap: of() }, {}, data, {}, { run: fn => fn() }, {}, {}, { mode: 'text' });
   Object.assign(component, { chain: 'chat', signedIn: true, composer: { setUploadProgress: value => progress.push(value) } });
   const sending = component.send({ text: 'Image', image: {} });
   report(35); assert.deepEqual(progress, [35]); assert.equal(component.sending, true);

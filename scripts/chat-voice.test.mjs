@@ -32,11 +32,17 @@ function fixture(t) {
   const configure = messages => voice.configure('engineering', 'voice', 'bob', ['alice', 'bob'], messages);
   return { voice, input, context, session, document, nodes, calls, message, configure, respond: fn => { respond = fn; } };
 }
-test('production defaults to text; enabling voice configures recording independently of recipient playback', t => {
+test('voice input requires a current participant and updates on participant, account and mode changes', t => {
   const f = fixture(t); assert.equal(f.voice.mode, 'text');
   f.voice.configure('engineering', 'voice', 'outsider', ['alice'], []);
-  assert.equal(f.input.access, true); assert.equal(f.input.destination, 'chat:engineering'); assert.equal(f.voice.canListen, false);
-  f.voice.configure('engineering', 'text', '', ['alice'], []); assert.equal(f.input.access, false);
+  assert.equal(f.input.access, false); assert.equal(f.input.destination, 'chat:engineering'); assert.equal(f.voice.canListen, false);
+  f.voice.configure('engineering', 'voice', 'alice', ['alice'], []); assert.equal(f.input.access, true);
+  f.voice.useKeyboard();
+  f.voice.configure('engineering', 'voice', 'alice', [], []); assert.equal(f.input.access, false);
+  assert.equal(f.voice.keyboard, true); // Keyboard preference cannot restore recording access.
+  f.voice.configure('engineering', 'voice', 'alice', ['alice'], []); assert.equal(f.input.access, true);
+  f.voice.configure('engineering', 'text', 'alice', ['alice'], []); assert.equal(f.input.access, false);
+  f.voice.configure('engineering', 'voice', '', ['alice'], []); assert.equal(f.input.access, false);
 });
 test('autoplay ignores entry history, older loaded history, own messages and duplicate updates', async t => {
   const f = fixture(t), history = f.message('history'); f.configure([history]); await tick(); assert.equal(f.calls.length, 0);

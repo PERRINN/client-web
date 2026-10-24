@@ -121,6 +121,25 @@ try {
     await page.evaluate(() => window.voiceUI.playback('idle')); await page.emulateMedia({reducedMotion:'no-preference'});
     assert.equal(await page.getByRole('button', {name:/Download/}).count(),0);
     await page.evaluate(() => window.voiceUI.recipient(false)); assert.equal(await recording.count(), 0); await page.getByText('Voice · 30s', { exact: true }).waitFor(); await stable();
+    assert.equal(await page.locator('.voice-dock').isDisabled(), true);
+    assert.equal(await page.getByRole('button', {name:'Use keyboard'}).isDisabled(), true);
+    await page.keyboard.press('p'); assert.equal(await page.locator('.waveform').count(), 0);
+    await page.evaluate(() => { voiceUI.mode('text'); });
+    assert.equal(await page.locator('textarea').isDisabled(), false); await stable();
+    await page.evaluate(() => { voiceUI.recipient(true); voiceUI.mode('voice'); });
+    await page.getByRole('button', {name:'Use keyboard'}).click();
+    await page.locator('textarea').fill('Keep this draft');
+    await page.evaluate(() => voiceUI.recipient(false));
+    assert.equal(await page.locator('textarea').isDisabled(), true);
+    assert.equal(await page.getByRole('button', {name:'Attach an image'}).isDisabled(), true);
+    assert.equal(await page.getByRole('button', {name:'Send message',exact:true}).isDisabled(), true);
+    assert.equal(await page.getByRole('button', {name:'Use voice',exact:true}).isDisabled(), true);
+    await page.getByText('A full voice transcription.',{exact:false}).waitFor(); await stable();
+    await page.evaluate(() => voiceUI.recipient(true));
+    assert.equal(await page.locator('textarea').isDisabled(), false);
+    assert.equal(await page.locator('textarea').inputValue(),'Keep this draft');
+    await page.locator('textarea').fill('');
+    await page.getByRole('button', {name:'Use voice',exact:true}).click(); await stable();
     await page.evaluate(() => { window.voiceUI.recipient(true); window.voiceUI.audioOnly(); }); await page.getByText('Transcription unavailable').waitFor(); await stable();
     await page.evaluate(() => window.voiceUI.expired()); assert.equal(await page.getByRole('button', { name: 'Play voice recording' }).isDisabled(), true);
     await page.getByRole('button', { name: 'Chat details: Engineering' }).click(); await page.getByRole('switch').waitFor();
@@ -131,5 +150,5 @@ try {
     for (const state of ['loading', 'error', 'empty', 'ready']) { await page.evaluate(value => window.voiceUI.state(value), state); await stable(); }
     await page.screenshot({ path: output + '/chat-voice-' + width + '.png' });
   }
-  assert.deepEqual(errors, []); console.log(JSON.stringify({ output, widths: [1440, 390, 320], checks: ['text/voice/keyboard stable geometry', 'recording and error states', 'pending', 'long transcript', 'audio-only', 'recipient-only 28px pill with 44px touch area', 'loading/playing/error stable feedback', 'reduced motion', 'expiry', 'admin toggle failure/retry/role loss', 'loading/error/empty', 'no overflow'], errors }));
+  assert.deepEqual(errors, []); console.log(JSON.stringify({ output, widths: [1440, 390, 320], checks: ['text/voice/keyboard stable geometry', 'recording and error states', 'pending', 'long transcript', 'audio-only', 'recipient-only 28px pill with 44px touch area', 'loading/playing/error stable feedback', 'reduced motion', 'expiry', 'admin toggle failure/retry/role loss', 'loading/error/empty', 'non-participant voice/keyboard blocking and restored access', 'no overflow'], errors }));
 } finally { await browser.close(); await new Promise(done => server.close(done)); }
