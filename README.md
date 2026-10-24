@@ -77,6 +77,10 @@ For safe public network/configuration checks, current findings, the enterprise I
 
 The root `package.json` does not currently define `test` or end-to-end test scripts. The Functions package provides `npm start` for its Firebase Functions shell, `npm run serve` for the Firebase Functions serve command, and `npm run logs` for viewing deployed Functions logs. Firebase emulator ports are configured in `firebase.json`; run `firebase emulators:start` to start the configured emulators when the Firebase CLI and a suitable project configuration are available.
 
+## Automatic app updates
+
+Production checks for updates every 30 seconds and when the app becomes visible. Ready updates reload the app automatically, except on `/424-greenpower-dashboard`: the running dashboard keeps its current version, including while disconnected from the car. Checks and background downloads continue; a pending update reloads only after successful navigation away. Initial navigation and the legacy dashboard redirect are also protected. Manual reloads and browser/OS restarts still load the available version. This policy adds no database operations. Run `npm run test:app-update` for update, navigation and cleanup regression checks.
+
 ## Keep the screen awake
 
 The installed Home Screen app automatically requests a screen wake lock on every page while visible. Ordinary browser tabs opt in using **Settings → Keep screen on**. The switch enables or disables the request; it does not claim that the phone granted it. There is no persistent header control or status. Settings shows **Couldn’t keep screen on.** if the phone/browser refuses or releases the request, or **Not supported by this browser.** when unavailable. That choice lasts until the app reloads/restarts; no preference is saved to an account or device storage. A granted screen wake lock inhibits inactivity-based dimming and automatic screen locking.

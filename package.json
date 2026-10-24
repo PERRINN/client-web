@@ -7,6 +7,7 @@
     "functions"
   ],
   "scripts": {
+    "test:app-update": "node --test scripts/app-update.test.mjs",
     "test:inputs:ui": "node scripts/input-controls-ui.mjs",
     "test:settings": "node --test scripts/settings.test.mjs",
     "test:settings:ui": "node scripts/settings-ui.mjs",

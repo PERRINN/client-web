@@ -4,8 +4,8 @@ import { activeChatChain, sidebarChatCommands } from './chatNavigation';
 import { Router, NavigationEnd } from '@angular/router';
 import { UserInterfaceService } from './userInterface.service';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
-import { filter, interval, Subscription } from 'rxjs';
+import { filter, Subscription } from 'rxjs';
+import { AppUpdateService } from './appUpdate.service';
 import { PresenceService } from './presence.service';
 import { MessageActivityService, ActivitySummary } from './messageActivity.service';
 import { Observable } from 'rxjs';
@@ -118,7 +118,7 @@ export class AppComponent implements OnInit, OnDestroy {
     public router:Router,
     public afs:AngularFirestore,
     public UI:UserInterfaceService,
-    private updates: SwUpdate,
+    private updates: AppUpdateService,
     private presence: PresenceService,
     activity: MessageActivityService,
     conversations: SidebarConversationsService,
@@ -138,23 +138,7 @@ export class AppComponent implements OnInit, OnDestroy {
       requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
     });
 
-    if (this.updates.isEnabled) {
-      this.updates.versionUpdates
-        .pipe(filter((event): event is VersionReadyEvent => event.type === 'VERSION_READY'))
-        .subscribe(() => {
-          this.updates.activateUpdate().then(() => document.location.reload());
-        });
-
-      interval(30000).subscribe(() => {
-        this.updates.checkForUpdate();
-      });
-
-      document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) {
-          this.updates.checkForUpdate();
-        }
-      });
-    }
+    this.updates.start();
   }
 
   ngOnInit() {
