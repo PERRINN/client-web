@@ -9,7 +9,7 @@ const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright')
 const root = process.cwd(), output = await mkdtemp(resolve(tmpdir(), 'echook-ui-'));
 await writeFile(output + '/entry.ts', `
 import 'zone.js'; import '@angular/compiler';
-import { NO_ERRORS_SCHEMA, NgZone } from '@angular/core';
+import { NO_ERRORS_SCHEMA, NgZone, ElementRef } from '@angular/core';
 import { CommonModule, PlatformLocation, BrowserPlatformLocation } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
 import { BrowserDynamicTestingModule, platformBrowserDynamicTesting } from '@angular/platform-browser-dynamic/testing';
@@ -28,7 +28,7 @@ import { SidebarConversationsService } from '${root}/src/app/sidebarConversation
 import { GreenpowerLiveService } from '${root}/src/app/greenpower-telemetry/greenpowerLive.service';
 import { ScreenWakeLockService } from '${root}/src/app/screenWakeLock.service';
 AppComponent.ctorParameters=()=>[Router,AngularFirestore,UserInterfaceService,SwUpdate,PresenceService,MessageActivityService,SidebarConversationsService,GreenpowerLiveService,ScreenWakeLockService].map(type=>({type}));
-EchookConnectionComponent.ctorParameters=()=>[{type:EchookConnectionService}];
+EchookConnectionComponent.ctorParameters=()=>[{type:EchookConnectionService},{type:ElementRef},{type:NgZone}];
 EchookConnectionService.ctorParameters=()=>[{type:NgZone}];
 TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTesting());
 TestBed.configureTestingModule({schemas:[NO_ERRORS_SCHEMA],providers:[
@@ -71,20 +71,34 @@ try {
     const page = await browser.newPage({ viewport: { width, height }, timezoneId: 'Asia/Tokyo' }), errors = [];
     page.on('pageerror', error => errors.push(error.message));
     const assertFits = async () => {
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      await page.waitForFunction(() => {
+        const host = document.querySelector('app-echook-connection');
+        return host && host.getBoundingClientRect().bottom <= Math.min(innerHeight, (visualViewport?.height || innerHeight) + (visualViewport?.offsetTop || 0)) + 1;
+      }, undefined, { timeout: 5000 });
       const result = await page.evaluate(() => {
         const main = document.querySelector('#main_container');
         const page = document.querySelector('.echook-page');
         const fits = element => element.scrollHeight <= element.clientHeight + 1 && element.scrollWidth <= element.clientWidth + 1;
         const metrics = [...document.querySelectorAll('.metric')];
+        const viewportTop = window.visualViewport?.offsetTop || 0;
+        const viewportBottom = Math.min(innerHeight, viewportTop + (window.visualViewport?.height || innerHeight));
         return { main: fits(main), page: fits(page), metrics: metrics.every(fits),
+          viewport: metrics.every(metric => {
+            const box = metric.getBoundingClientRect();
+            return box.top >= viewportTop && box.bottom <= viewportBottom + 1 && box.left >= 0 && box.right <= innerWidth;
+          }),
           visible: metrics.every(metric => [...metric.children].every(child => {
             const box = child.getBoundingClientRect(), parent = metric.getBoundingClientRect();
             return box.top >= parent.top && box.bottom <= parent.bottom && box.right <= parent.right && box.left >= parent.left;
           })) };
       });
-      assert.deepEqual(result, { main: true, page: true, metrics: true, visible: true }, width + 'x' + height);
+      assert.deepEqual(result, { main: true, page: true, metrics: true, viewport: true, visible: true }, width + 'x' + height);
     };
     await page.addInitScript(() => {
+      const viewport = new EventTarget();
+      Object.defineProperties(viewport, { height: { get: () => window.testVisibleHeight || innerHeight }, offsetTop: { value: 0 } });
+      Object.defineProperty(window, 'visualViewport', { configurable: true, value: viewport });
       window.serialCalls = { opened: 0, closed: 0 };
       Object.defineProperty(navigator, 'serial', { configurable: true, value: { requestPort: async () => ({
         readable: new ReadableStream({ start(controller) { window.sensorStream = controller; } }),
@@ -94,14 +108,21 @@ try {
     await page.goto(`http://127.0.0.1:${server.address().port}/prototypes`);
     const tile = page.locator('a[href="/prototypes/echook-connection"]');
     await tile.waitFor(); assert.equal(await tile.locator('svg path').count(), 2);
-    assert.ok((await tile.locator('svg').boundingBox()).height > 0); await tile.click();
+    assert.ok((await tile.locator('svg').boundingBox()).height > 0);
+    await page.locator('#main_container').evaluate(el => el.scrollTop = 100);
+    await tile.click();
     await page.getByRole('main', { name: 'eChook dashboard' }).waitFor();
     await assertFits();
     await page.clock.setFixedTime(new Date('2026-10-24T12:34:56Z'));
     const button = page.getByRole('button', { name: 'Connect', exact: true });
     await page.keyboard.press('Tab'); await button.focus(); assert.equal(await button.evaluate(el => el.matches(':focus-visible')), true);
-    const start = await button.boundingBox(); await button.click();
-    await page.getByText('Connected', { exact: true }).waitFor();
+    await button.click();
+    await page.waitForFunction(() => window.serialCalls.opened === 1);
+    await page.waitForFunction(() => !document.querySelector('.echook-page button'));
+    assert.equal(await page.getByRole('button', { name: 'Disconnect', exact: true }).count(), 0);
+    assert.equal(await page.getByRole('link', { name: '← Prototyping' }).count(), 0);
+    assert.equal(await page.getByText('Connected', { exact: true }).count(), 0);
+    assert.equal(await page.locator('#main_container').evaluate(el => el.scrollTop), 0);
     await page.evaluate(() => window.sensorStream.enqueue(Uint8Array.from([
       123, 118, 24, 75, 125, 123, 119, 12, 25, 125, 123, 115, 10, 0, 125,
       123, 105, 12, 50, 125, 123, 109, 140, 34, 125, 123, 116, 75, 0, 125, 123, 97, 18, 20, 125, 123, 98, 64, 70, 125
@@ -119,8 +140,6 @@ try {
     await page.waitForFunction(() => document.querySelector('time').textContent === '21:34:57');
     await page.clock.setFixedTime(new Date('2026-10-24T12:34:58Z'));
     await page.waitForFunction(() => document.querySelector('time').textContent === '21:34:58');
-    const during = await page.getByRole('button', { name: 'Disconnect', exact: true }).boundingBox();
-    assert.equal(start.y, during.y); assert.equal(start.width, during.width);
     await assertFits();
     await page.screenshot({ path: output + '/' + width + 'x' + height + '-live.png', fullPage: true });
     // Rotate in place: preserve the connection and fit the new available height.
@@ -129,15 +148,23 @@ try {
       assert.equal(await page.evaluate(() => window.serialCalls.opened), 1);
       await page.setViewportSize({ width, height }); await assertFits();
     }
+    if (width === 844 || width === 320) {
+      await page.evaluate(height => { window.testVisibleHeight = height; visualViewport.dispatchEvent(new Event('resize')); }, width === 844 ? 220 : 460);
+      await assertFits();
+      await page.screenshot({ path: output + '/' + width + '-reduced-visible-height.png', fullPage: true });
+      await page.evaluate(() => { window.testVisibleHeight = undefined; visualViewport.dispatchEvent(new Event('resize')); });
+      await assertFits();
+    }
     await page.clock.setFixedTime(new Date('2026-10-24T12:35:03Z'));
-    await page.getByText('Connected · Stale data', { exact: true }).waitFor(); await assertFits();
+    await page.waitForFunction(() => document.querySelector('.speed dd').getAttribute('aria-description') === 'Stale'); await assertFits();
     assert.equal(await page.locator('.speed dd').innerText(), '— mph');
-    await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
+    await page.evaluate(() => window.sensorStream.close());
     await page.getByRole('button', { name: 'Connect', exact: true }).waitFor(); await assertFits();
     assert.equal(await page.evaluate(() => window.serialCalls.closed), 1);
     await page.getByRole('button', { name: 'Connect', exact: true }).click();
-    await page.getByText('Connected', { exact: true }).waitFor();
-    await page.getByRole('link', { name: '← Prototyping' }).click();
+    await page.waitForFunction(() => window.serialCalls.opened === 2);
+    await page.goBack();
+    await tile.waitFor();
     await page.waitForFunction(() => window.serialCalls.closed === 2);
     assert.deepEqual(errors, []); await page.close();
   }
@@ -160,5 +187,5 @@ try {
   assert.equal(await failed.locator('#main_container').evaluate(el => el.scrollHeight <= el.clientHeight), true);
   assert.equal(await failed.locator('.dashboard').evaluate(el => [...el.children].every(child => child.scrollHeight <= child.clientHeight)), true);
   assert.equal(await failed.getByRole('button', { name: 'Connect', exact: true }).isEnabled(), true);
-  console.log('Six desktop/portrait/landscape sizes: real shell, no scrolling or clipped metrics, mph/battery mapping, local clock, rotation, live/stale/disconnected states, keyboard focus, gallery, cleanup and unsupported/error states passed. Screenshots: ' + output);
+  console.log('Six desktop/portrait/landscape sizes plus reduced visual viewports and scrolled gallery entry: real shell, no scrolling or clipped metrics, mph/battery mapping, local clock, rotation, live/stale/disconnected states, keyboard focus, gallery, cleanup and unsupported/error states passed. Screenshots: ' + output);
 } finally { await browser.close(); await new Promise(r => server.close(r)); }

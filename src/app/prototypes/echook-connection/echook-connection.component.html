@@ -1,27 +1,18 @@
 <main class="echook-page" aria-label="eChook dashboard">
   @if (dashboard$ | async; as state) {
     <header>
-      <a routerLink="/prototypes" class="back">← Prototyping</a>
-      @if (state.status === 'connected' || state.status === 'connecting' || state.status === 'disconnecting') {
-        <button type="button" (click)="connection.disconnect()" [disabled]="state.status === 'disconnecting'">
-          {{ state.status === 'disconnecting' ? 'Disconnecting…' : 'Disconnect' }}
-        </button>
-      } @else {
-        <button type="button" (click)="connection.connect()" [disabled]="!!connection.unavailable">Connect</button>
-      }
-    </header>
-    <div class="connection-row">
-      <div class="connection-status" [class.error]="!!state.message" [attr.role]="state.message ? 'alert' : 'status'">
-        @if (connection.unavailable) {
-          {{ connection.unavailable }}
-        } @else if (state.message) {
-          {{ state.message }}
-        } @else {
-          {{ state.status === 'connecting' ? 'Connecting…' : state.status === 'connected' ? (state.stale ? 'Connected · Stale data' : 'Connected') : state.status === 'disconnecting' ? 'Disconnecting…' : 'Disconnected' }}
+      <div class="connection-controls">
+        @if (state.status !== 'connected') {
+          <button type="button" (click)="connection.connect()" [disabled]="!!connection.unavailable || state.status === 'connecting' || state.status === 'disconnecting'">
+            {{ state.status === 'connecting' ? 'Connecting…' : 'Connect' }}
+          </button>
+        }
+        @if (connection.unavailable || state.message) {
+          <p class="error" role="alert">{{ connection.unavailable || state.message }}</p>
         }
       </div>
       <time aria-label="Time of day">{{ state.clock }}</time>
-    </div>
+    </header>
     <dl class="dashboard">
       @for (metric of state.metrics; track metric.id) {
         <div class="metric" [class]="'metric ' + metric.id">
