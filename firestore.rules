@@ -110,6 +110,17 @@ service cloud.firestore {
       }
     }
     match /PERRINNMessages/{message} {
+      function validParticipantChange() {
+        let data = request.resource.data;
+        return !('participantChange' in data) || (isPerrinnAdmin()
+          && data.participantChange is map
+          && data.participantChange.keys().hasAll(['action', 'userId'])
+          && data.participantChange.keys().hasOnly(['action', 'userId'])
+          && data.participantChange.action in ['add', 'remove']
+          && data.participantChange.userId is string
+          && data.participantChange.userId.matches('^[A-Za-z0-9_-]{1,128}$')
+          && data.chain is string && data.chain.matches('^[A-Za-z0-9_-]{1,128}$'));
+      }
       function validFundCommand() {
         let data = request.resource.data;
         return !('fund' in data) || (data.fund is map
@@ -138,7 +149,7 @@ service cloud.firestore {
                       || (isPerrinnAdmin() && request.resource.data.chatInputMode in ['text', 'voice']))
                     && request.resource.data.serverTimestamp==request.time
                     && request.resource.data.text.size()<=500
-                    && validFundCommand() && validRaisedAmount();
+                    && validFundCommand() && validRaisedAmount() && validParticipantChange();
     }
   }
 }

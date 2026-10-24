@@ -1,0 +1,34 @@
+<div class="participants-heading"><h3>Participants <span>{{ members.length }}</span></h3>
+  @if (permissions.current.ready && permissions.current.isAdmin) {
+    <button #addButton type="button" (click)="picker ? closePicker() : openPicker()" [disabled]="saving" [attr.aria-expanded]="picker">{{ picker ? 'Done' : 'Add' }}</button>
+  }
+</div>
+@if (permissions.current.ready && permissions.current.isAdmin && picker) {
+  <form (ngSubmit)="search()" class="search-form">
+    <label class="sr-only" for="participant-search">Contributor name</label>
+    <input #searchInput id="participant-search" name="participant-search" [(ngModel)]="query" placeholder="Contributor name" maxlength="60" autocomplete="off" [disabled]="loading || saving">
+    <button type="submit" [disabled]="loading || saving || !query.trim()">Search</button>
+  </form>
+  @if (loading) { <p role="status">Loading</p> }
+  <ul aria-label="Contributors to add">@for (person of available; track person.id) {
+    <li><a class="person" [routerLink]="['/profile', person.id]"><app-user-avatar [name]="person.avatarName" [sources]="person.avatar" aria-hidden="true" /><span>{{ person.name }}</span></a>
+      <button type="button" [disabled]="saving || loading" (click)="change('add', person)" [attr.aria-label]="'Add ' + person.avatarName">Add</button></li>
+  }</ul>
+  @if (searched && !available.length && !loading) { <p>No new contributors in these results.</p> }
+  @if (canLoadMore) { <button type="button" [disabled]="loading || saving" (click)="search(true)">Load more</button> }
+  @if (hasMore && !canLoadMore) { <p>Refine your search to find more contributors.</p> }
+}
+<ul aria-label="Chat participants">@for (member of members; track member.id) {
+  <li><a class="person" [routerLink]="['/profile', member.id]" [attr.aria-label]="'View profile: ' + member.avatarName"><app-user-avatar [name]="member.avatarName" [sources]="member.avatar" aria-hidden="true" /><span>{{ member.name }}</span></a>
+    @if (permissions.current.ready && permissions.current.isAdmin) {
+      <button type="button" [disabled]="saving" (click)="confirmRemoval(member)" [attr.aria-label]="'Remove ' + member.avatarName">Remove</button>
+    }
+  </li>
+  @if (removing?.id === member.id && permissions.current.isAdmin) {
+    <li class="confirmation"><p>Remove {{ member.avatarName }}?</p><div class="actions"><button #keepButton type="button" [disabled]="saving" (click)="removing = null">Keep</button><button type="button" [disabled]="saving" (click)="change('remove', member)">Remove participant</button></div></li>
+  }
+}</ul>
+@if (!members.length) { <p>No participants</p> }
+@if (saving) { <p role="status">Updating participants</p> }
+@if (error) { <p class="error" role="alert">{{ error }}</p> }
+@if (notice) { <p role="status">{{ notice }}</p> }

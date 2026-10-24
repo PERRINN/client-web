@@ -4,7 +4,7 @@
       <div class="conversation">
         <header class="chat-header">
           <h1 class="chat-heading">
-            <button #detailsTrigger type="button" class="chat-identity-button" (click)="toggleDetails()" [disabled]="state === 'loading' || !chain || savingDetails || eventSaving || fundSaving || transferBusy || inputSaving" [attr.aria-expanded]="detailsOpen" aria-controls="chat-details" [attr.aria-label]="'Chat details: ' + title">
+            <button #detailsTrigger type="button" class="chat-identity-button" (click)="toggleDetails()" [disabled]="state === 'loading' || !chain || savingDetails || eventSaving || fundSaving || transferBusy || inputSaving || participantsSaving" [attr.aria-expanded]="detailsOpen" aria-controls="chat-details" [attr.aria-label]="'Chat details: ' + title">
               <app-user-avatar class="chat-avatar" [name]="title" [sources]="avatarSources" aria-hidden="true"></app-user-avatar>
               <span class="chat-title"><span class="chat-subject">{{ title }}</span>@if (members.length) { <span class="chat-participants">{{ members.length }} participants</span> }</span>
             </button>
@@ -47,7 +47,7 @@
       </div>
       @if (detailsOpen) {
         <aside id="chat-details" class="chat-details" tabindex="-1" aria-labelledby="details-title" (keydown.escape)="onDetailsEscape($event)">
-          <header><h2 id="details-title">Chat details</h2><button #detailsClose type="button" (click)="closeDetails()" [disabled]="savingDetails || eventSaving || fundSaving || transferBusy || inputSaving" aria-label="Close chat details">×</button></header>
+          <header><h2 id="details-title">Chat details</h2><button #detailsClose type="button" (click)="closeDetails()" [disabled]="savingDetails || eventSaving || fundSaving || transferBusy || inputSaving || participantsSaving" aria-label="Close chat details">×</button></header>
           <div class="details-body">
             <div class="chat-identity">
               <app-user-avatar class="details-avatar" [name]="editingDetails ? subjectDraft : title" [sources]="imagePreview ? [imagePreview] : avatarSources" aria-hidden="true"></app-user-avatar>
@@ -71,8 +71,7 @@
             <app-chat-event-editor #eventEditor [chain]="chain" [event]="event" [signedIn]="signedIn" (busyChange)="eventSaving = $event" />
             <app-chat-fund-editor #fundEditor [chain]="chain" [fund]="fund" [signedIn]="signedIn" (busyChange)="fundSaving = $event" />
             <app-prn-send-manager [chain]="chain" [signedIn]="signedIn" [members]="members" (busyChange)="transferBusy = $event" />
-            <h3>Participants <span>{{ members.length }}</span></h3>
-            <ul>@for (member of members; track member.id) { <li><a class="participant-link" [routerLink]="['/profile', member.id]" [attr.aria-label]="'View profile: ' + member.avatarName"><app-user-avatar class="member-avatar" [name]="member.avatarName" [sources]="member.avatar" aria-hidden="true"></app-user-avatar><span>{{ member.name }}</span></a></li> }</ul>
+            <app-chat-participants [chain]="chain" [members]="members" [messages]="messages" (busyChange)="participantsSaving = $event" />
             <h3>Shared images</h3>
             <div class="shared-images">
               @for (message of messages; track message.id) {

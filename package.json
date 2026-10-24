@@ -35,7 +35,10 @@
     "test:greenpower": "node --test scripts/greenpower/*.test.mjs",
     "test:greenpower:emulator": "node --test scripts/greenpower/emulator.mjs scripts/greenpower/import.emulator.mjs scripts/greenpower/events.emulator.mjs",
     "test:account-email": "node --test scripts/account-email.test.mjs scripts/account-state.test.mjs scripts/message-email-audit.test.mjs scripts/image-upload.test.mjs scripts/participation.test.mjs scripts/fund-command.test.mjs scripts/chat.test.mjs scripts/chat-actions.test.mjs",
-    "test:account-email:emulator": "node --test scripts/account-email-auth.emulator.mjs scripts/message-email-rules.test.mjs scripts/fund-rules.test.mjs"
+    "test:account-email:emulator": "node --test scripts/account-email-auth.emulator.mjs scripts/message-email-rules.test.mjs scripts/fund-rules.test.mjs",
+    "test:chat-participants": "node --test scripts/chat-participants.test.mjs scripts/fund-command.test.mjs",
+    "test:chat-participants:ui": "node scripts/chat-participants-ui.mjs",
+    "test:chat-participants:emulator": "firebase emulators:exec --only firestore --project demo-participants \"node --test scripts/chat-participants-rules.test.mjs\""
   },
   "dependencies": {
     "@angular/animations": "21.2.24",

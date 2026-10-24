@@ -4,6 +4,7 @@ const admin = require('firebase-admin');
 const { validateFundCommand } = require('./fundCommand');
 const { resolveFund } = require('./fundState');
 const { validateChatInputMode } = require('./chatVoice');
+const { validateParticipantChange, resolveParticipants } = require('./chatParticipants');
 
 module.exports = {
 
@@ -17,6 +18,7 @@ module.exports = {
 
     try{
       if (!(reprocessing && messageData.verified === true)) await validateChatInputMode(messageData, admin.auth());
+      if (!(reprocessing && messageData.verified === true)) await validateParticipantChange(messageData, admin.auth());
       // Only the trusted daily caller opts in; a client field cannot enable this path.
       const correctedRaised = reprocessing && messageData.verified === true
         ? messageData.fund?.amountGBPRaised
@@ -149,12 +151,16 @@ module.exports = {
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{chatProfileImageUrlMedium:messageData.chatProfileImageUrlMedium},{create:true})
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{chatProfileImageUrlOriginal:messageData.chatProfileImageUrlOriginal},{create:true})
 
-      //message recipientList (merge with user, transactionOut user, previous chat list and remove duplicates and remove undefined and null and remove from the ToBeRemoved list)
-      messageData.recipientList=[user].concat([(messageData.transactionOut||{}).user]||[]).concat(messageData.recipientList||[]).concat(chatPreviousMessageData.recipientList||[])
-      messageData.recipientList=messageData.recipientList.filter((item,pos)=>messageData.recipientList.indexOf(item)===pos)
-      messageData.recipientList.indexOf('undefined')!=-1&&messageData.recipientList.splice(messageData.recipientList.indexOf('undefined'),1)
-      messageData.recipientList.indexOf(null)!=-1&&messageData.recipientList.splice(messageData.recipientList.indexOf(null),1)
+      // Carry forward recipients, join authors and apply validated admin deltas.
+      messageData.recipientList=resolveParticipants(messageData, chatPreviousMessageData, reprocessing)
       batch.update(admin.firestore().doc('PERRINNMessages/'+messageId),{recipientList:messageData.recipientList||[]},{create:true})
+      if (messageData.participantChange) {
+        // Reset the map to the effective list, including when the admin removes themselves.
+        const recipients = Object.fromEntries(messageData.recipientList.map(id => [id,
+          id === user ? { name: messageData.name || null, imageUrlThumb: messageData.imageUrlThumbUser || null }
+            : chatPreviousMessageData.recipients?.[id] || {}]));
+        batch.update(admin.firestore().doc('PERRINNMessages/'+messageId), { recipients });
+      }
 
       //message recipients data
       var reads=[]

@@ -7,6 +7,7 @@ export interface ChatVoice { eventId: string; durationMs: number; expiresAt: num
 export interface ChatRecord extends EventRecord, TransferRecord, TimeCreditRecord {
   isBackendMessage?: boolean;
   chatInputMode?: 'text' | 'voice';
+  participantChange?: { action: 'add' | 'remove'; userId: string };
   voice?: ChatVoice;
   fund?: Partial<ChatFund>;
   chain?: string;

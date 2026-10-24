@@ -45,11 +45,11 @@ test('malformed amounts and disguised cancellation fail before Auth or verificat
   assert.deepEqual(account.calls, []);
 });
 
-async function verifyFixture({ fund, previousRaised = 125, adminClaim = false, verified = false, options, mode, previousMode } = {}) {
+async function verifyFixture({ fund, previousRaised = 125, adminClaim = false, verified = false, options, mode, previousMode, participantChange, recipientList } = {}) {
   const { readFileSync } = await import('node:fs');
   const { runInNewContext } = await import('node:vm');
   const updates = [], logs = [], authCalls = [];
-  const previous = { chatInputMode: previousMode, name: 'Alex', emails: { auth: 'person@example.test' }, verifiedTimestamp: { seconds: 1799999999 },
+  const previous = { recipientList, recipients: { alex: { name: 'Alex' } }, chatInputMode: previousMode, name: 'Alex', emails: { auth: 'person@example.test' }, verifiedTimestamp: { seconds: 1799999999 },
     serverTimestamp: 1, wallet: { balance: 100 }, fund: { description: 'Testing', amountGBPTarget: 1000, amountGBPRaised: previousRaised, daysLeft: 30 } };
   const doc = { id: 'previous', data: () => previous }, snapshot = docs => ({ docs, forEach: fn => docs.forEach(fn) });
   const db = { batch: () => ({ update: (path, fields) => updates.push({ path, fields }), commit: async () => {} }), doc: path => path,
@@ -62,10 +62,10 @@ async function verifyFixture({ fund, previousRaised = 125, adminClaim = false, v
     firestore: Object.assign(() => db, { FieldValue: { arrayUnion: value => [value], serverTimestamp: () => 'server-time' } }) };
   const module = { exports: {} };
   runInNewContext(readFileSync(new URL('../functions/utils/verifyMessage.js', import.meta.url), 'utf8'), {
-    module, require: name => ({ 'firebase-admin': admin, 'firebase-admin/firestore': { getFirestore: () => db }, './createMessage': {}, './chatVoice': require('../functions/utils/chatVoice'), './fundCommand': { validateFundCommand }, './fundState': require('../functions/utils/fundState') })[name],
+    module, require: name => ({ 'firebase-admin': admin, 'firebase-admin/firestore': { getFirestore: () => db }, './createMessage': {}, './chatVoice': require('../functions/utils/chatVoice'), './chatParticipants': require('../functions/utils/chatParticipants'), './fundCommand': { validateFundCommand }, './fundState': require('../functions/utils/fundState') })[name],
     Date: class extends Date { static now() { return 1800000000000; } }, console: { log: message => logs.push(message) }
   });
-  await module.exports.verifyMessage('new', { user: 'person', chain: 'chat', name: 'Alex', text: 'Testing', serverTimestamp: 2, verified, ...(fund === undefined ? {} : { fund }), ...(mode === undefined ? {} : { chatInputMode: mode }) }, options);
+  await module.exports.verifyMessage('new', { user: 'person', chain: 'chat', name: 'Alex', text: 'Testing', serverTimestamp: 2, verified, ...(fund === undefined ? {} : { fund }), ...(mode === undefined ? {} : { chatInputMode: mode }), ...(participantChange === undefined ? {} : { participantChange }) }, options);
   return { fund: updates.find(update => update.fields.fund)?.fields.fund, updates, logs, authCalls };
 }
 
@@ -141,4 +141,23 @@ test('input mode commands are admin-only and subsequent ordinary/voice messages 
     assert.deepEqual(result.authCalls, []);
     assert.ok(result.updates.some(row => row.fields.verified === true));
   }
+});
+
+// Exercise participant deltas through the full verifier and its propagated chat state.
+test('full verifier applies admin participant changes and clears removed profile entries', async () => {
+  for (const action of ['add', 'remove']) {
+    const result = await verifyFixture({ participantChange: { action, userId: 'alex' }, recipientList: ['person', 'alex'], adminClaim: true });
+    assert.deepEqual(result.logs, []);
+    const list = result.updates.find(row => row.fields.recipientList)?.fields.recipientList;
+    assert.equal(list.includes('alex'), action === 'add');
+    const recipients = result.updates.find(row => row.fields.recipients)?.fields.recipients;
+    assert.equal(Object.hasOwn(recipients, 'alex'), action === 'add');
+    assert.ok(result.updates.some(row => row.fields.verified === true));
+    assert.deepEqual(result.authCalls, action === 'add' ? ['person', 'alex'] : ['person']);
+  }
+  const self = await verifyFixture({ participantChange: { action: 'remove', userId: 'person' }, recipientList: ['person', 'alex'], adminClaim: true });
+  assert.equal(self.updates.find(row => row.fields.recipientList)?.fields.recipientList.includes('person'), false);
+  assert.equal(Object.hasOwn(self.updates.find(row => row.fields.recipients)?.fields.recipients, 'person'), false);
+  const denied = await verifyFixture({ participantChange: { action: 'remove', userId: 'alex' }, recipientList: ['person', 'alex'] });
+  assert.equal(denied.updates.length, 0); assert.deepEqual(denied.authCalls, ['person']);
 });

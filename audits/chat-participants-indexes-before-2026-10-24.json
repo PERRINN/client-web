@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-24",
+  "project": "perrinn-d5fc1",
+  "scope": "Chat participant management predeploy index comparison",
+  "liveCompositeCount": 32,
+  "repositoryCompositeCount": 32,
+  "compositeDifferences": [],
+  "fieldOverrideDifferences": [],
+  "normalization": "Ignore implicit __name__ ordering; normalize omitted ttl to false and field-override order.",
+  "requiredSearchIndex": {
+    "fields": [
+      "userChain.nextMessage ASCENDING",
+      "verified ASCENDING",
+      "nameLowerCase ASCENDING"
+    ],
+    "state": "READY"
+  },
+  "indexDeploymentRequired": false,
+  "plannedIndexDeletions": []
+}

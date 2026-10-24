@@ -36,7 +36,7 @@ export class ChatDataService {
         });
         return {
           inputMode: verified?.chatInputMode === 'voice' ? 'voice' as const : 'text' as const, voiceRecipients: verified?.recipientList || [],
-          messages, event: chatEvent(latest), fund: chatFund(latest), title: latest.chatSubject || 'Conversation', members: chatMembers(latest, user?.uid || null),
+          messages, event: chatEvent(latest), fund: chatFund(latest), title: latest.chatSubject || 'Conversation', members: chatMembers(verified || latest, user?.uid || null),
           avatarSources: [latest.chatProfileImageUrlThumb, latest.chatProfileImageUrlMedium, latest.chatProfileImageUrlOriginal].filter((url): url is string => !!url),
           unreadId: firstUnread(messages, seen?.timestamp || 0, seen?.messageId), userId: user?.uid || null, seen, cursorUnavailable: !!user && seen === null, hasMore: rows.length === limit, signedIn: !!user
         };
@@ -92,6 +92,17 @@ export class ChatDataService {
     }
     await this.checkSender(uid);
     await this.createMessage(uid, { chain, chatInputMode: mode, text: mode === 'voice' ? 'Enabled voice input' : 'Enabled text input' });
+  }
+
+  async changeParticipant(chain: string, action: 'add' | 'remove', member: { id: string; avatarName: string }): Promise<string> {
+    const uid = await this.requireSender(), user = await this.auth.currentUser;
+    const token = await user?.getIdTokenResult();
+    if (user?.uid !== uid || token?.claims['sub'] !== uid || token?.claims['perrinnAdmin'] !== true) throw new Error('Admin permission is required to manage participants.');
+    if (!/^[A-Za-z0-9_-]{1,128}$/.test(chain) || !/^[A-Za-z0-9_-]{1,128}$/.test(member.id)
+      || !['add', 'remove'].includes(action)) throw new Error('Choose a chat and participant.');
+    await this.checkSender(uid);
+    return this.createMessage(uid, { chain, participantChange: { action, userId: member.id },
+      text: `${action === 'add' ? 'Added' : 'Removed'} ${member.avatarName.slice(0, 200)} ${action === 'add' ? 'to' : 'from'} participants` });
   }
 
   async updateDetails(chain: string, changes: { subject?: string; image?: File }): Promise<void> {
@@ -173,9 +184,11 @@ export class ChatDataService {
     if (user?.uid !== userId || token?.claims['sub'] !== userId || token?.claims['perrinnAdmin'] !== true) throw new Error('Admin permission is required to manage raised totals or cancel funds.');
   }
 
-  private async createMessage(userId: string, message: { chain: string; text: string; [key: string]: unknown }): Promise<void> {
+  private async createMessage(userId: string, message: { chain: string; text: string; [key: string]: unknown }): Promise<string> {
     const ref = await this.UI.createMessage(message);
-    if (ref?.id) this.submittedMessages.next({ chain: message.chain, userId, messageId: ref.id });
+    if (!ref?.id) throw new Error('Message couldn’t save.');
+    this.submittedMessages.next({ chain: message.chain, userId, messageId: ref.id });
+    return ref.id;
   }
 
   private async requireSender(): Promise<string> {

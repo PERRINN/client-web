@@ -1205,3 +1205,15 @@ test('admin mode changes submit normal message-state commands, while nonadmins a
   f.auth.currentUser = Promise.resolve({ uid: 'other', getIdTokenResult: async () => ({ claims: { sub: 'other', perrinnAdmin: true } }) });
   await assert.rejects(f.service.updateInputMode('chat', 'text'), /Sign in/);
 });
+
+test('pending participant commands preserve the verified list without extra reads', async () => {
+  const f = fixture();
+  const previous = { ...f.rows[0].payload.doc.data(), verified: true };
+  f.rows[1].payload.doc.data = () => previous;
+  f.rows[0].payload.doc.data = () => ({ user: 'owner', text: 'Removed Maya', chain: 'chat', verified: false,
+    participantChange: { action: 'remove', userId: 'other' }, serverTimestamp: { seconds: 40 } });
+  const chat = await firstValueFrom(f.service.watch('chat', 30));
+  assert.deepEqual(chat.members.map(person => person.id), ['owner', 'other']);
+  assert.deepEqual(f.queries, [['where', 'chain', '==', 'chat'], ['orderBy', 'serverTimestamp', 'desc'], ['limit', 30]]);
+  assert.equal(f.cursors.length, 1);
+});

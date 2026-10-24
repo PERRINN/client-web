@@ -33,6 +33,7 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
   fundSaving = false;
   transferBusy = false;
   inputSaving = false;
+  participantsSaving = false;
   get viewerName(): string { return this.signedIn ? this.data.viewerName : ''; }
   timeCreditAmount(amount: number): string { return this.data.timeCreditAmount(amount); }
   @ViewChild('fundEditor') fundEditor?: ChatFundEditorComponent;
@@ -83,7 +84,7 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
       this.resetDetailsEditor(); this.savingDetails = false; this.detailsNotice = '';
       this.event = null; this.eventSaving = false; this.fund = null; this.fundSaving = false; this.transferBusy = false;
       this.chain = params.get('id') || ''; this.messages = []; this.members = [];
-      this.voice.configure(this.chain, 'text', '', [], []); this.inputSaving = false;
+      this.voice.configure(this.chain, 'text', '', [], []); this.inputSaving = false; this.participantsSaving = false;
       this.state = 'loading'; this.title = 'Conversation'; this.avatarSources = []; this.unreadId = '';
       this.detailsOpen = false; this.awayFromLatest = false; this.showLatest = false; this.sendError = ''; this.loadMoreError = '';
       this.hasMore = false; this.loadingMore = false; this.pendingAnchor = undefined; this.composer?.clearDraft();
@@ -300,7 +301,7 @@ export class ChatComponent implements AfterViewInit, OnDestroy {
   }
 
   closeDetails(): void {
-    if (this.savingDetails || this.eventSaving || this.fundSaving || this.transferBusy || this.inputSaving) return;
+    if (this.savingDetails || this.eventSaving || this.fundSaving || this.transferBusy || this.inputSaving || this.participantsSaving) return;
     this.resetDetailsEditor(); this.detailsNotice = '';
     this.detailsOpen = false; this.reads.paused = false; this.reads.scan();
     requestAnimationFrame(() => this.detailsTrigger?.nativeElement.focus());

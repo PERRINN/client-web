@@ -1,3 +1,4 @@
+import { ChatParticipantsComponent } from './chat/chat-participants/chat-participants.component';
 import { GreenpowerChannelOptionComponent } from './greenpower-telemetry/greenpower-channel-option.component';
 import { GreenpowerLaunchComponent } from './greenpower-launch/greenpower-launch.component';
 import { GreenpowerPhotoComponent } from './greenpower-launch/greenpower-photo.component';
@@ -109,7 +110,7 @@ export const firebaseConfig = {
         ClayEmberComponent,
         NightSignalComponent,
         ChatComposerComponent,
-        VoiceComposerComponent, ChatVoiceMessageComponent, ChatInputSettingsComponent,
+        VoiceComposerComponent, ChatVoiceMessageComponent, ChatInputSettingsComponent, ChatParticipantsComponent,
         ChatComponent,
         PrnSendManagerComponent,
         ChatFlagComponent,
