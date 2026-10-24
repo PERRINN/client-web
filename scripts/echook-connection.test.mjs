@@ -158,8 +158,8 @@ test('dashboard adds throttle input, native motor RPM and current with per-chann
 test('temperature 1 is ambient and temperature 2 is motor, matching telemetry', () => {
   const temperatures = dashboardMetrics([reading('a', 18.25), reading('b', 64.75), reading('c', 30)], true, 10000).slice(6);
   assert.deepEqual(temperatures.map(({ id, label, value, unit, digits }) => ({ id, label, value, unit, digits })), [
-    { id: 'ambient', label: 'Ambient temp', value: 18.25, unit: '°C', digits: '1.1-1' },
-    { id: 'motor-temp', label: 'Motor temp', value: 64.75, unit: '°C', digits: '1.1-1' }
+    { id: 'ambient', label: 'Ambient', value: 18.25, unit: '°C', digits: '1.1-1' },
+    { id: 'motor-temp', label: 'Motor', value: 64.75, unit: '°C', digits: '1.1-1' }
   ]);
   const partial = dashboardMetrics([reading('a', 0)], true, 10000).slice(6);
   assert.equal(partial[0].value, 0); assert.equal(partial[1].value, undefined);

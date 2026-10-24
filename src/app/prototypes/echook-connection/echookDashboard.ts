@@ -20,12 +20,12 @@ export function dashboardMetrics(readings: EchookReading[], connected: boolean, 
   };
   return [
     metric('speed', 'Vehicle speed', 'mph', [speed], speed && speed.value / 0.44704),
-    metric('left', 'Battery left', 'V', [left], left?.value),
-    metric('right', 'Battery right', 'V', [total, left], total && left && total.value - left.value),
+    metric('left', 'Left', 'V', [left], left?.value),
+    metric('right', 'Right', 'V', [total, left], total && left && total.value - left.value),
     metric('throttle', 'Throttle', '%', [throttle], throttle?.value),
     metric('motor', 'Motor speed', 'rpm', [motor], motor?.value),
     metric('current', 'Current', 'A', [current], current?.value),
-    metric('ambient', 'Ambient temp', '°C', [ambient], ambient?.value),
-    metric('motor-temp', 'Motor temp', '°C', [motorTemperature], motorTemperature?.value)
+    metric('ambient', 'Ambient', '°C', [ambient], ambient?.value),
+    metric('motor-temp', 'Motor', '°C', [motorTemperature], motorTemperature?.value)
   ];
 }

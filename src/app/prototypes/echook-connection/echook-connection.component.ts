@@ -13,13 +13,15 @@ export class EchookConnectionComponent implements AfterViewInit, OnDestroy, OnIn
   private readonly clockFormat = new Intl.DateTimeFormat('en-GB', {
     hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
   });
-  readonly dashboard$: Observable<EchookState & { metrics: DashboardMetric[]; clock: string }>;
+  readonly dashboard$: Observable<EchookState & { groups: { id: string; metrics: DashboardMetric[] }[]; clock: string }>;
 
   constructor(public connection: EchookConnectionService, private element: ElementRef<HTMLElement>, private zone: NgZone) {
     this.dashboard$ = combineLatest([connection.state$, timer(0, 1000)]).pipe(map(([state]) => {
       const now = Date.now();
       const metrics = dashboardMetrics(state.readings, state.status === 'connected', now);
-      return { ...state, metrics,
+      const groups = [['speed'], ['throttle'], ['motor'], ['current'], ['left', 'right'], ['ambient', 'motor-temp']]
+        .map(ids => ({ id: ids[0], metrics: ids.map(id => metrics.find(metric => metric.id === id)!) }));
+      return { ...state, groups,
         clock: this.clockFormat.format(now) };
     }));
   }

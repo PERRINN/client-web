@@ -80,7 +80,7 @@ try {
         const main = document.querySelector('#main_container');
         const page = document.querySelector('.echook-page');
         const fits = element => element.scrollHeight <= element.clientHeight + 1 && element.scrollWidth <= element.clientWidth + 1;
-        const metrics = [...document.querySelectorAll('.metric')];
+        const metrics = [...document.querySelectorAll('.metric-group, .metric')];
         const viewportTop = window.visualViewport?.offsetTop || 0;
         const viewportBottom = Math.min(innerHeight, viewportTop + (window.visualViewport?.height || innerHeight));
         return { main: fits(main), page: fits(page), metrics: metrics.every(fits),
@@ -137,6 +137,8 @@ try {
     await page.getByText('12.50 V', { exact: true }).waitFor();
     await page.getByText('22.4 mph', { exact: true }).waitFor();
     assert.equal(await page.locator('.metric').count(), 8);
+    assert.equal(await page.locator('.metric-group').count(), 6);
+    assert.deepEqual(await page.locator('.paired').evaluateAll(groups => groups.map(group => [...group.querySelectorAll('dt')].map(label => label.textContent))), [['Left', 'Right'], ['Ambient', 'Motor']]);
     await page.locator('.ambient').getByText('18.2 °C', { exact: true }).waitFor();
     await page.locator('.motor-temp').getByText('64.7 °C', { exact: true }).waitFor();
     await page.getByText('75 %', { exact: true }).waitFor();
@@ -168,7 +170,7 @@ try {
       const value = element.querySelector('.reading-value'), unit = element.querySelector('.reading-unit');
       return value.scrollWidth <= value.clientWidth + 1 && unit.scrollWidth <= unit.clientWidth + 1
         && value.getBoundingClientRect().right < unit.getBoundingClientRect().left;
-    })), true, 'Largest readouts fit their separate columns');
+    })), true, width + 'x' + height + ': Largest readouts fit their separate columns');
 
     await assertFits();
     await page.screenshot({ path: output + '/' + width + 'x' + height + '-live.png', fullPage: true });

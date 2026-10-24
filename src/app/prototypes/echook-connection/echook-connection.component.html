@@ -11,16 +11,20 @@
       </div>
       <time aria-label="Time of day">{{ state.clock }}</time>
     </header>
-    <dl class="dashboard">
-      @for (metric of state.metrics; track metric.id) {
-        <div class="metric" [class]="'metric ' + metric.id">
-          <dt [attr.aria-label]="!metric.visibleLabel ? metric.label : null">{{ metric.visibleLabel ? metric.label : '' }}</dt>
-          <dd [attr.aria-description]="metric.status" [attr.title]="metric.status">
-            <span class="reading-value">{{ metric.value === undefined ? '—' : (metric.value | number:metric.digits) }}</span>
-            <span class="reading-unit"> {{ metric.unit }}</span>
-          </dd>
-        </div>
+    <div class="dashboard">
+      @for (group of state.groups; track group.id) {
+        <dl class="metric-group" [class.paired]="group.metrics.length > 1">
+          @for (metric of group.metrics; track metric.id) {
+            <div class="metric" [class]="'metric ' + metric.id">
+              <dt [attr.aria-label]="!metric.visibleLabel ? metric.label : null">{{ metric.visibleLabel ? metric.label : '' }}</dt>
+              <dd [attr.aria-description]="metric.status" [attr.title]="metric.status">
+                <span class="reading-value">{{ metric.value === undefined ? '—' : (metric.value | number:metric.digits) }}</span>
+                <span class="reading-unit"> {{ metric.unit }}</span>
+              </dd>
+            </div>
+          }
+        </dl>
       }
-    </dl>
+    </div>
   }
 </main>
