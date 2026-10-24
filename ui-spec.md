@@ -37,6 +37,8 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 
 ## Colour
 
+- Declare the page-wide dark colour scheme in `src/index.html` and on `:root` in `src/styles.css`, alongside the existing dark theme colour. This requests dark browser/native controls; Android system navigation-bar appearance still depends on the browser and device and needs physical-device verification.
+
 - Use the **Night Signal Dark** palette as the production colour direction. Its core tokens are:
 
   | Role | Token | Value |
