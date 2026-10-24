@@ -13,8 +13,9 @@ module.exports = {
       messageObj.serverTimestamp=FieldValue.serverTimestamp()
       messageObj.isBackendMessage=true
       messageObj.chain=messageObj.chain||autoId
-      if (typeof messageObj.text === 'string' && !messageObj.text.endsWith(' (Backend message)')) {
-        messageObj.text = `${messageObj.text} (Backend message)`
+      if (typeof messageObj.text === 'string') {
+        const text = messageObj.text.replace(/\s*\((?:Backend message|System)\)\s*$/, '').trimEnd()
+        messageObj.text = text ? `${text}\n(System)` : '(System)'
       }
       return getFirestore().collection('PERRINNMessages').add(messageObj)
     }
