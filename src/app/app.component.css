@@ -138,3 +138,8 @@
 :host .sidebarShell.editorialShell #main_container { height: 100%; padding: 0; }
 :host .sidebarShell.editorialShell .contentWrap { max-width: none; }
 :host .sidebarShell.editorialShell .contentCard { border-radius: 0; }
+
+/* The eChook dashboard fills the existing content viewport without page scrolling. */
+:host .sidebarShell #main_container:has(app-echook-connection) { overflow-y: hidden; }
+:host .sidebarShell .contentWrap:has(app-echook-connection) { height: 100%; min-height: 0; }
+:host .sidebarShell .contentCard:has(app-echook-connection) { height: 100%; min-height: 0; }

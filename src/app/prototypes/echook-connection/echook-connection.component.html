@@ -1,41 +1,36 @@
-<main class="echook-page">
-  <a routerLink="/prototypes" class="back">← Prototyping</a>
-  <h1>eChook connection</h1>
-  @if (connection.state$ | async; as state) {
-    <section aria-label="Bluetooth connection" class="connection-panel">
-      <div class="actions">
-        @if (state.status === 'connected' || state.status === 'connecting' || state.status === 'disconnecting') {
-          <button type="button" (click)="connection.disconnect()" [disabled]="state.status === 'disconnecting'">
-            {{ state.status === 'disconnecting' ? 'Disconnecting…' : 'Disconnect' }}
-          </button>
-        } @else {
-          <button type="button" (click)="connection.connect()" [disabled]="!!connection.unavailable">Connect</button>
-        }
-        <span role="status">{{ state.status === 'connecting' ? 'Connecting…' : state.status === 'connected' ? 'Connected' : state.status === 'disconnecting' ? 'Disconnecting…' : 'Disconnected' }}</span>
-      </div>
-      @if (connection.unavailable) {
-        <p class="feedback">{{ connection.unavailable }}</p>
-      } @else if (state.message) {
-        <p class="feedback error" role="alert">{{ state.message }}</p>
-      } @else if (state.status === 'idle' && !state.readings.length) {
-        <p class="feedback">Close OMNI before connecting. Select the paired eChook device.</p>
-      }
-    </section>
-    <section class="readings-panel" aria-labelledby="readings-title">
-      <h2 id="readings-title">Live values</h2>
-      @if (!state.readings.length) {
-        <p>{{ state.status === 'connected' ? 'Waiting for sensor data…' : 'No sensor data' }}</p>
+<main class="echook-page" aria-label="eChook dashboard">
+  @if (dashboard$ | async; as state) {
+    <header>
+      <a routerLink="/prototypes" class="back">← Prototyping</a>
+      @if (state.status === 'connected' || state.status === 'connecting' || state.status === 'disconnecting') {
+        <button type="button" (click)="connection.disconnect()" [disabled]="state.status === 'disconnecting'">
+          {{ state.status === 'disconnecting' ? 'Disconnecting…' : 'Disconnect' }}
+        </button>
       } @else {
-        <dl>
-          @for (reading of state.readings; track reading.id) {
-            <div class="reading">
-              <dt>{{ reading.label }}</dt>
-              <dd>{{ reading.value | number:'1.0-2' }} {{ reading.unit }}</dd>
-              <span class="freshness">{{ state.status !== 'connected' ? 'Disconnected' : state.now - reading.at > 5000 ? 'Stale' : 'Live' }}</span>
-            </div>
-          }
-        </dl>
+        <button type="button" (click)="connection.connect()" [disabled]="!!connection.unavailable">Connect</button>
       }
-    </section>
+    </header>
+    <div class="connection-status" [class.error]="!!state.message" [attr.role]="state.message ? 'alert' : 'status'">
+      @if (connection.unavailable) {
+        {{ connection.unavailable }}
+      } @else if (state.message) {
+        {{ state.message }}
+      } @else {
+        {{ state.status === 'connecting' ? 'Connecting…' : state.status === 'connected' ? 'Connected' : state.status === 'disconnecting' ? 'Disconnecting…' : 'Disconnected' }}
+      }
+    </div>
+    <dl class="dashboard">
+      @for (metric of state.metrics; track metric.id) {
+        <div class="metric" [class]="'metric ' + metric.id">
+          <dt>{{ metric.label }}</dt>
+          <dd>{{ metric.value === undefined ? '—' : (metric.value | number:(metric.id === 'speed' ? '1.1-1' : '1.2-2')) }} {{ metric.unit }}</dd>
+          <span class="freshness">{{ metric.status }}</span>
+        </div>
+      }
+      <div class="metric clock">
+        <dt>Time of day</dt>
+        <dd><time>{{ state.clock }}</time></dd>
+      </div>
+    </dl>
   }
 </main>

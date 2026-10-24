@@ -108,3 +108,24 @@ test('unsupported browser prevents chooser access', t => {
   assert.match(service.unavailable, /Chrome on Android/); service.connect();
   assert.equal(f.counts().requests, 0); service.ngOnDestroy();
 });
+
+const { dashboardMetrics } = load('echookDashboard.ts');
+const reading = (id, value, at = 10000) => ({ id, value, at });
+test('dashboard uses mph and the same left/right voltage mapping as telemetry', () => {
+  const metrics = dashboardMetrics([reading('s', 4.4704), reading('w', 12.2), reading('v', 24.6)], true, 10000);
+  assert.ok(Math.abs(metrics[0].value - 10) < 1e-10);
+  assert.equal(metrics[0].unit, 'mph');
+  assert.equal(metrics[1].value, 12.2);
+  assert.ok(Math.abs(metrics[2].value - 12.4) < 1e-10);
+  assert.deepEqual(metrics.map(metric => metric.status), ['Live', 'Live', 'Live']);
+});
+test('dashboard preserves zero and hides missing, stale or disconnected values', () => {
+  const metrics = dashboardMetrics([reading('s', 0), reading('w', 12)], true, 15000);
+  assert.equal(metrics[0].value, 0); assert.equal(metrics[2].value, undefined);
+  assert.equal(metrics[2].status, 'Waiting');
+  const old = dashboardMetrics([reading('s', 3), reading('w', 12), reading('v', 24, 15001)], true, 15001);
+  assert.equal(old[1].status, 'Stale'); assert.equal(old[2].status, 'Stale');
+  assert.equal(old[2].value, undefined, 'A fresh total cannot make an old lower voltage fresh');
+  assert.ok(dashboardMetrics([reading('s', 2)], false, 10000).every(metric => metric.value === undefined));
+  assert.equal(dashboardMetrics([reading('s', NaN)], true, 10000)[0].status, 'Waiting');
+});
