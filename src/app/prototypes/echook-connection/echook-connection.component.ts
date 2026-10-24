@@ -13,12 +13,13 @@ export class EchookConnectionComponent implements OnDestroy {
   private readonly clockFormat = new Intl.DateTimeFormat('en-GB', {
     hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
   });
-  readonly dashboard$: Observable<EchookState & { metrics: DashboardMetric[]; clock: string }>;
+  readonly dashboard$: Observable<EchookState & { metrics: DashboardMetric[]; clock: string; stale: boolean }>;
 
   constructor(public connection: EchookConnectionService) {
     this.dashboard$ = combineLatest([connection.state$, timer(0, 1000)]).pipe(map(([state]) => {
       const now = Date.now();
-      return { ...state, metrics: dashboardMetrics(state.readings, state.status === 'connected', now),
+      const metrics = dashboardMetrics(state.readings, state.status === 'connected', now);
+      return { ...state, metrics, stale: metrics.some(metric => metric.status === 'Stale'),
         clock: this.clockFormat.format(now) };
     }));
   }

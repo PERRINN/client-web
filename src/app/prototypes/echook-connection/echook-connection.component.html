@@ -10,27 +10,25 @@
         <button type="button" (click)="connection.connect()" [disabled]="!!connection.unavailable">Connect</button>
       }
     </header>
-    <div class="connection-status" [class.error]="!!state.message" [attr.role]="state.message ? 'alert' : 'status'">
-      @if (connection.unavailable) {
-        {{ connection.unavailable }}
-      } @else if (state.message) {
-        {{ state.message }}
-      } @else {
-        {{ state.status === 'connecting' ? 'Connecting…' : state.status === 'connected' ? 'Connected' : state.status === 'disconnecting' ? 'Disconnecting…' : 'Disconnected' }}
-      }
+    <div class="connection-row">
+      <div class="connection-status" [class.error]="!!state.message" [attr.role]="state.message ? 'alert' : 'status'">
+        @if (connection.unavailable) {
+          {{ connection.unavailable }}
+        } @else if (state.message) {
+          {{ state.message }}
+        } @else {
+          {{ state.status === 'connecting' ? 'Connecting…' : state.status === 'connected' ? (state.stale ? 'Connected · Stale data' : 'Connected') : state.status === 'disconnecting' ? 'Disconnecting…' : 'Disconnected' }}
+        }
+      </div>
+      <time aria-label="Time of day">{{ state.clock }}</time>
     </div>
     <dl class="dashboard">
       @for (metric of state.metrics; track metric.id) {
         <div class="metric" [class]="'metric ' + metric.id">
-          <dt [attr.aria-label]="metric.id === 'speed' ? metric.label : null">{{ metric.id === 'speed' ? '' : metric.label }}</dt>
-          <dd>{{ metric.value === undefined ? '—' : (metric.value | number:(metric.id === 'speed' ? '1.1-1' : '1.2-2')) }} {{ metric.unit }}</dd>
-          <span class="freshness">{{ metric.status }}</span>
+          <dt [attr.aria-label]="!metric.visibleLabel ? metric.label : null">{{ metric.visibleLabel ? metric.label : '' }}</dt>
+          <dd [attr.aria-description]="metric.status" [attr.title]="metric.status">{{ metric.value === undefined ? '—' : (metric.value | number:metric.digits) }} {{ metric.unit }}</dd>
         </div>
       }
-      <div class="metric clock">
-        <dt aria-label="Time of day"></dt>
-        <dd><time>{{ state.clock }}</time></dd>
-      </div>
     </dl>
   }
 </main>

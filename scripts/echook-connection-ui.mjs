@@ -104,13 +104,16 @@ try {
     await page.getByText('Connected', { exact: true }).waitFor();
     await page.evaluate(() => window.sensorStream.enqueue(Uint8Array.from([
       123, 118, 24, 75, 125, 123, 119, 12, 25, 125, 123, 115, 10, 0, 125,
-      123, 105, 12, 50, 125, 123, 109, 140, 34, 125
+      123, 105, 12, 50, 125, 123, 109, 140, 34, 125, 123, 116, 75, 0, 125
     ])));
     await page.clock.setFixedTime(new Date('2026-10-24T12:34:57Z'));
     await page.getByText('12.25 V', { exact: true }).waitFor();
     await page.getByText('12.50 V', { exact: true }).waitFor();
     await page.getByText('22.4 mph', { exact: true }).waitFor();
-    assert.equal(await page.locator('.metric').count(), 4);
+    assert.equal(await page.locator('.metric').count(), 6);
+    await page.getByText('75 %', { exact: true }).waitFor();
+    await page.getByText('1,234 rpm', { exact: true }).waitFor();
+    await page.getByText('12.5 A', { exact: true }).waitFor();
     await page.waitForFunction(() => document.querySelector('time').textContent === '21:34:57');
     await page.clock.setFixedTime(new Date('2026-10-24T12:34:58Z'));
     await page.waitForFunction(() => document.querySelector('time').textContent === '21:34:58');
@@ -125,7 +128,7 @@ try {
       await page.setViewportSize({ width, height }); await assertFits();
     }
     await page.clock.setFixedTime(new Date('2026-10-24T12:35:03Z'));
-    await page.getByText('Stale', { exact: true }).first().waitFor(); await assertFits();
+    await page.getByText('Connected · Stale data', { exact: true }).waitFor(); await assertFits();
     assert.equal(await page.locator('.speed dd').innerText(), '— mph');
     await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
     await page.getByRole('button', { name: 'Connect', exact: true }).waitFor(); await assertFits();

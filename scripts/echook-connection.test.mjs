@@ -117,7 +117,7 @@ test('dashboard uses mph and the same left/right voltage mapping as telemetry', 
   assert.equal(metrics[0].unit, 'mph');
   assert.equal(metrics[1].value, 12.2);
   assert.ok(Math.abs(metrics[2].value - 12.4) < 1e-10);
-  assert.deepEqual(metrics.map(metric => metric.status), ['Live', 'Live', 'Live']);
+  assert.deepEqual(metrics.slice(0, 3).map(metric => metric.status), ['Live', 'Live', 'Live']);
 });
 test('dashboard preserves zero and hides missing, stale or disconnected values', () => {
   const metrics = dashboardMetrics([reading('s', 0), reading('w', 12)], true, 15000);
@@ -128,4 +128,17 @@ test('dashboard preserves zero and hides missing, stale or disconnected values',
   assert.equal(old[2].value, undefined, 'A fresh total cannot make an old lower voltage fresh');
   assert.ok(dashboardMetrics([reading('s', 2)], false, 10000).every(metric => metric.value === undefined));
   assert.equal(dashboardMetrics([reading('s', NaN)], true, 10000)[0].status, 'Waiting');
+});
+
+test('dashboard adds throttle input, native motor RPM and current with per-channel freshness', () => {
+  const inputs = [reading('t', 75), reading('d', 20), reading('m', 1234), reading('i', 12.5)];
+  const metrics = dashboardMetrics(inputs, true, 10000).slice(3);
+  assert.deepEqual(metrics.map(({ id, value, unit, status }) => ({ id, value, unit, status })), [
+    { id: 'throttle', value: 75, unit: '%', status: 'Live' },
+    { id: 'motor', value: 1234, unit: 'rpm', status: 'Live' },
+    { id: 'current', value: 12.5, unit: 'A', status: 'Live' }
+  ]);
+  assert.ok(dashboardMetrics(inputs, true, 15001).slice(3).every(metric => metric.value === undefined && metric.status === 'Stale'));
+  assert.ok(dashboardMetrics([reading('t', 0), reading('m', 0), reading('i', 0)], true, 10000).slice(3).every(metric => metric.value === 0));
+  assert.equal(dashboardMetrics([reading('d', 75)], true, 10000)[3].value, undefined, 'Do not substitute throttle output for input');
 });
