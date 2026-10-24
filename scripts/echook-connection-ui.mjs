@@ -84,6 +84,8 @@ try {
         const viewportTop = window.visualViewport?.offsetTop || 0;
         const viewportBottom = Math.min(innerHeight, viewportTop + (window.visualViewport?.height || innerHeight));
         return { main: fits(main), page: fits(page), metrics: metrics.every(fits),
+          frequencyClear: [...document.querySelectorAll('.metric-group')].every(tile =>
+            tile.querySelector('.readings').getBoundingClientRect().bottom <= tile.querySelector('.frequency').getBoundingClientRect().top + 1),
           viewport: metrics.every(metric => {
             const box = metric.getBoundingClientRect();
             return box.top >= viewportTop && box.bottom <= viewportBottom + 1 && box.left >= 0 && box.right <= innerWidth;
@@ -93,7 +95,7 @@ try {
             return box.top >= parent.top && box.bottom <= parent.bottom && box.right <= parent.right && box.left >= parent.left;
           })) };
       });
-      assert.deepEqual(result, { main: true, page: true, metrics: true, viewport: true, visible: true }, width + 'x' + height);
+      assert.deepEqual(result, { main: true, page: true, metrics: true, frequencyClear: true, viewport: true, visible: true }, width + 'x' + height);
     };
     await page.addInitScript(() => {
       const viewport = new EventTarget();
@@ -152,20 +154,25 @@ try {
       const unit = element.querySelector('.reading-unit').getBoundingClientRect();
       return { numberRight: value.right, unitLeft: unit.left, unitRight: unit.right, y: unit.y };
     }));
-    assert.equal(await page.locator('.frequency').count(), 8);
+    assert.equal(await page.locator('.frequency').count(), 6);
     const originalAnchors = await anchors();
     const frequencyAnchors = () => page.locator('.frequency').evaluateAll(elements => elements.map(element => {
       const box = element.getBoundingClientRect(); return { x: box.x, y: box.y, width: box.width };
     }));
     const originalFrequencyAnchors = await frequencyAnchors();
+    assert.ok(await page.locator('.metric-group').evaluateAll(tiles => tiles.every(tile => {
+      const box = tile.getBoundingClientRect(), frequency = tile.querySelector('.frequency').getBoundingClientRect();
+      return Math.abs(box.right - frequency.right - 4) < 1 && Math.abs(box.bottom - frequency.bottom - 2) < 1;
+    })), 'One frequency per tile stays in the bottom-right corner');
     await page.evaluate(() => {
       window.rateTimer = setInterval(() => window.sensorStream.enqueue(Uint8Array.from([123, 115, 10, 0, 125])), 100);
     });
     await page.waitForFunction(() => {
-      const text = document.querySelector('.speed .frequency').textContent;
+      const text = document.querySelector('.metric-group:has(.speed) .frequency').textContent;
       return !text.includes('—') && parseFloat(text) > 5;
     });
     await page.evaluate(() => clearInterval(window.rateTimer));
+    assert.match(await page.locator('.metric-group:has(.speed) .frequency').innerText(), /^\d+ Hz$/);
     assert.deepEqual(await frequencyAnchors(), originalFrequencyAnchors, 'Hz indicators keep a fixed footprint during measurement');
     await page.evaluate(() => window.sensorStream.enqueue(Uint8Array.from([
       123, 115, 0, 0, 125, 123, 116, 0, 0, 125, 123, 109, 0, 0, 125, 123, 105, 0, 0, 125,

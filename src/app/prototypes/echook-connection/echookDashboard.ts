@@ -31,3 +31,16 @@ export function dashboardMetrics(readings: EchookReading[], connected: boolean, 
     metric('motor-temp', 'Motor', '°C', [motorTemperature], motorTemperature?.value)
   ];
 }
+
+export interface DashboardGroup { id: string; metrics: DashboardMetric[]; frequency?: number; }
+
+export function dashboardGroups(metrics: DashboardMetric[]): DashboardGroup[] {
+  return [['speed'], ['throttle'], ['motor'], ['current'], ['left', 'right'], ['ambient', 'motor-temp']]
+    .map(ids => {
+      const grouped = ids.map(id => metrics.find(metric => metric.id === id)!);
+      const rates = grouped.map(metric => metric.frequency);
+      const frequency = rates.every(rate => rate !== undefined)
+        ? rates.reduce((total, rate) => total + rate, 0) / rates.length : undefined;
+      return { id: ids[0], metrics: grouped, frequency };
+    });
+}

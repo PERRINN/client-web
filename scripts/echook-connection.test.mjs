@@ -123,7 +123,7 @@ test('unsupported browser prevents chooser access', t => {
   assert.equal(f.counts().requests, 0); service.ngOnDestroy();
 });
 
-const { dashboardMetrics } = load('echookDashboard.ts');
+const { dashboardMetrics, dashboardGroups } = load('echookDashboard.ts');
 const reading = (id, value, at = 10000) => ({ id, value, at });
 test('dashboard uses mph and the same left/right voltage mapping as telemetry', () => {
   const metrics = dashboardMetrics([reading('s', 4.4704), reading('w', 12.2), reading('v', 24.6)], true, 10000);
@@ -288,4 +288,15 @@ test('service counts all decoded arrivals before latest-value replacement and re
   assert.deepEqual(f.service.state$.value.frequencies, {});
   f.service.start(); await flush();
   assert.deepEqual(f.service.state$.value.frequencies, {});
+});
+
+test('tiles average both displayed channel rates before rounding, and wait for both inputs', () => {
+  const inputs = [reading('v', 24), reading('w', 12), reading('a', 20), reading('b', 50), reading('s', 1)];
+  const groups = dashboardGroups(dashboardMetrics(inputs, true, 10000, { v: 6, w: 10, a: 2, b: 3, s: 9.6 }));
+  assert.equal(groups.length, 6);
+  assert.equal(groups[0].frequency, 9.6);
+  assert.equal(groups[4].frequency, 8);
+  assert.equal(groups[5].frequency, 2.5);
+  assert.equal(dashboardGroups(dashboardMetrics(inputs, true, 10000, { a: 2 }))[5].frequency, undefined);
+  assert.ok(dashboardGroups(dashboardMetrics(inputs, false, 10000, { a: 2, b: 3 })).every(group => group.frequency === undefined));
 });

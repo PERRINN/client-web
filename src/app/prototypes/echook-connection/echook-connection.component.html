@@ -13,19 +13,20 @@
     </header>
     <div class="dashboard">
       @for (group of state.groups; track group.id) {
-        <dl class="metric-group" [class.paired]="group.metrics.length > 1">
-          @for (metric of group.metrics; track metric.id) {
-            <div class="metric" [class]="'metric ' + metric.id">
-              <dt [attr.aria-label]="!metric.visibleLabel ? metric.label : null">{{ metric.visibleLabel ? metric.label : '' }}</dt>
-              <dd [attr.aria-description]="metric.status" [attr.title]="metric.status">
-                <span class="reading-value">{{ metric.value === undefined ? '—' : (metric.value | number:metric.digits) }}</span>
-                <span class="reading-unit"> {{ metric.unit }}</span>
-              </dd>
-              <span class="frequency" [attr.aria-label]="metric.label + ' receive frequency'"
-                [attr.title]="metric.id === 'right' ? 'Receive rate over 5 seconds: slower of total and lower voltage' : 'Receive rate over 5 seconds'">{{ metric.frequency === undefined ? '—' : (metric.frequency | number:'1.1-1') }} Hz</span>
-            </div>
-          }
-        </dl>
+        <div class="metric-group" [class.paired]="group.metrics.length > 1">
+          <dl class="readings">
+            @for (metric of group.metrics; track metric.id) {
+              <div class="metric" [class]="'metric ' + metric.id">
+                <dt [attr.aria-label]="!metric.visibleLabel ? metric.label : null">{{ metric.visibleLabel ? metric.label : '' }}</dt>
+                <dd [attr.aria-description]="metric.status" [attr.title]="metric.status">
+                  <span class="reading-value">{{ metric.value === undefined ? '—' : (metric.value | number:metric.digits) }}</span>
+                  <span class="reading-unit"> {{ metric.unit }}</span>
+                </dd>
+              </div>
+            }
+          </dl>
+          <span class="frequency" aria-label="Tile receive frequency" title="Average receive rate over 5 seconds">{{ group.frequency === undefined ? '—' : (group.frequency | number:'1.0-0') }} Hz</span>
+        </div>
       }
     </div>
   }
