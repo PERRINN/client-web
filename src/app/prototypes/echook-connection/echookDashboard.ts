@@ -1,12 +1,12 @@
 import { EchookReading } from './echookProtocol';
 
 export interface DashboardMetric {
-  id: string; label: string; value?: number; unit: string; status: string; digits: string; visibleLabel: boolean;
+  id: string; label: string; frequency?: number; value?: number; unit: string; status: string; digits: string; visibleLabel: boolean;
 }
 
 // Same battery mapping and mph conversion as Greenpower telemetry. Serial fields
 // arrive individually, so right voltage requires both inputs to be fresh.
-export function dashboardMetrics(readings: EchookReading[], connected: boolean, now: number): DashboardMetric[] {
+export function dashboardMetrics(readings: EchookReading[], connected: boolean, now: number, frequencies: Record<string, number> = {}): DashboardMetric[] {
   const find = (id: string) => readings.find(reading => reading.id === id && Number.isFinite(reading.value));
   const speed = find('s'), total = find('v'), left = find('w');
   const throttle = find('t'), motor = find('m'), current = find('i');
@@ -16,7 +16,9 @@ export function dashboardMetrics(readings: EchookReading[], connected: boolean, 
     const stale = inputs.some(input => input && now - input.at > 5000);
     const status = !connected ? 'Disconnected' : missing ? 'Waiting' : stale ? 'Stale' : 'Live';
     const digits = id === 'motor' || id === 'throttle' ? '1.0-0' : ['speed', 'current', 'ambient', 'motor-temp'].includes(id) ? '1.1-1' : '1.2-2';
-    return { id, label, unit, status, digits, visibleLabel: ['left', 'right', 'throttle', 'ambient', 'motor-temp'].includes(id), value: status === 'Live' && Number.isFinite(value) ? value : undefined };
+    const rates = inputs.map(input => input && frequencies[input.id]);
+    const frequency = connected && rates.every(rate => rate !== undefined) ? Math.min(...rates) : undefined;
+    return { id, label, unit, status, digits, frequency, visibleLabel: ['left', 'right', 'throttle', 'ambient', 'motor-temp'].includes(id), value: status === 'Live' && Number.isFinite(value) ? value : undefined };
   };
   return [
     metric('speed', 'Vehicle speed', 'mph', [speed], speed && speed.value / 0.44704),

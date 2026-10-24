@@ -152,7 +152,21 @@ try {
       const unit = element.querySelector('.reading-unit').getBoundingClientRect();
       return { numberRight: value.right, unitLeft: unit.left, unitRight: unit.right, y: unit.y };
     }));
+    assert.equal(await page.locator('.frequency').count(), 8);
     const originalAnchors = await anchors();
+    const frequencyAnchors = () => page.locator('.frequency').evaluateAll(elements => elements.map(element => {
+      const box = element.getBoundingClientRect(); return { x: box.x, y: box.y, width: box.width };
+    }));
+    const originalFrequencyAnchors = await frequencyAnchors();
+    await page.evaluate(() => {
+      window.rateTimer = setInterval(() => window.sensorStream.enqueue(Uint8Array.from([123, 115, 10, 0, 125])), 100);
+    });
+    await page.waitForFunction(() => {
+      const text = document.querySelector('.speed .frequency').textContent;
+      return !text.includes('—') && parseFloat(text) > 5;
+    });
+    await page.evaluate(() => clearInterval(window.rateTimer));
+    assert.deepEqual(await frequencyAnchors(), originalFrequencyAnchors, 'Hz indicators keep a fixed footprint during measurement');
     await page.evaluate(() => window.sensorStream.enqueue(Uint8Array.from([
       123, 115, 0, 0, 125, 123, 116, 0, 0, 125, 123, 109, 0, 0, 125, 123, 105, 0, 0, 125,
       123, 118, 0, 0, 125, 123, 119, 0, 0, 125, 123, 97, 0, 0, 125, 123, 98, 0, 0, 125
@@ -191,6 +205,7 @@ try {
     await page.waitForFunction(() => document.querySelector('.speed dd').getAttribute('aria-description') === 'Stale'); await assertFits();
     assert.equal(await page.locator('.speed .reading-value').innerText(), '—');
     assert.deepEqual(await anchors(), originalAnchors, 'Missing values retain the same numeric/unit anchors');
+    assert.deepEqual(await frequencyAnchors(), originalFrequencyAnchors, 'Frequency indicators retain position through stale values');
     await page.evaluate(() => window.sensorStream.close());
     await page.waitForFunction(() => window.serialCalls.opened === 2); await assertFits();
     assert.equal(await page.evaluate(() => window.serialCalls.closed), 1);

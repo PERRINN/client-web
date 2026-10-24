@@ -1,5 +1,6 @@
 import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { EchookFrequency } from './echookFrequency';
 import { EchookDecoder, EchookReading } from './echookProtocol';
 
 export interface EchookPort {
@@ -18,7 +19,7 @@ interface Session {
 }
 export interface EchookState {
   status: 'idle' | 'connecting' | 'connected' | 'disconnecting' | 'error';
-  message: string; readings: EchookReading[]; now: number; needsPermission: boolean;
+  frequencies: Record<string, number>; message: string; readings: EchookReading[]; now: number; needsPermission: boolean;
 }
 const SPP = '00001101-0000-1000-8000-00805f9b34fb';
 export const RECONNECT_DELAYS = [1000, 2000, 4000, 8000, 16000];
@@ -29,7 +30,7 @@ export class EchookConnectionService implements OnDestroy {
   readonly unavailable = !window.isSecureContext ? 'Open this page over HTTPS to connect.'
     : !(navigator as Navigator & { serial?: SerialAccess }).serial
       ? 'Bluetooth serial is unavailable. Open this page in an up-to-date Chrome on Android.' : '';
-  readonly state$ = new BehaviorSubject<EchookState>({ status: 'idle', message: '', readings: [], now: Date.now(), needsPermission: false });
+  readonly state$ = new BehaviorSubject<EchookState>({ status: 'idle', frequencies: {}, message: '', readings: [], now: Date.now(), needsPermission: false });
   private session?: Session;
   private selected?: EchookPort;
   private destroyed = false;
@@ -107,12 +108,13 @@ export class EchookConnectionService implements OnDestroy {
   private begin(port?: EchookPort) {
     const session: Session = { cancelled: false };
     this.session = session;
-    this.publish({ status: 'connecting', message: '', readings: [], needsPermission: false });
+    this.publish({ status: 'connecting', frequencies: {}, message: '', readings: [], needsPermission: false });
     session.task = this.zone.runOutsideAngular(() => this.receive(session, port));
   }
 
   private async receive(session: Session, port?: EchookPort) {
     const decoder = new EchookDecoder();
+    const frequency = new EchookFrequency();
     const latest = new Map<string, EchookReading>();
     let timer: ReturnType<typeof setInterval> | undefined;
     let failure = '';
@@ -134,7 +136,7 @@ export class EchookConnectionService implements OnDestroy {
       // Latest values only; one read at a time and UI at 2 Hz. No valid packets
       // for ten seconds closes the stalled stream and enters bounded recovery.
       timer = setInterval(() => {
-        this.publish({ readings: [...latest.values()], now: Date.now() });
+        this.publish({ readings: [...latest.values()], frequencies: frequency.snapshot(performance.now()), now: Date.now() });
         if (!stalled && Date.now() - lastData > 10000) {
           stalled = true;
           void session.reader.cancel().catch(() => undefined);
@@ -145,6 +147,7 @@ export class EchookConnectionService implements OnDestroy {
         if (session.cancelled) break;
         if (done) throw new Error('Connection ended');
         if (value) decoder.push(value, Date.now(), reading => {
+          frequency.record(reading.id, performance.now());
           latest.set(reading.id, reading);
           lastData = reading.at;
           // A successful open alone is insufficient: broken streams must not
@@ -170,7 +173,7 @@ export class EchookConnectionService implements OnDestroy {
         }
       }
       if (this.session === session) this.session = undefined;
-      this.publish({ status: failure ? 'error' : 'idle', message: failure, readings: [...latest.values()], now: Date.now() });
+      this.publish({ status: failure ? 'error' : 'idle', frequencies: {}, message: failure, readings: [...latest.values()], now: Date.now() });
       if (retryable && !session.cancelled) this.scheduleRetry();
       else if (session.cancelled && this.active) void this.restore();
     }

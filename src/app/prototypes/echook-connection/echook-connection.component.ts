@@ -18,7 +18,7 @@ export class EchookConnectionComponent implements AfterViewInit, OnDestroy, OnIn
   constructor(public connection: EchookConnectionService, private element: ElementRef<HTMLElement>, private zone: NgZone) {
     this.dashboard$ = combineLatest([connection.state$, timer(0, 1000)]).pipe(map(([state]) => {
       const now = Date.now();
-      const metrics = dashboardMetrics(state.readings, state.status === 'connected', now);
+      const metrics = dashboardMetrics(state.readings, state.status === 'connected', now, state.frequencies);
       const groups = [['speed'], ['throttle'], ['motor'], ['current'], ['left', 'right'], ['ambient', 'motor-temp']]
         .map(ids => ({ id: ids[0], metrics: ids.map(id => metrics.find(metric => metric.id === id)!) }));
       return { ...state, groups,

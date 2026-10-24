@@ -21,6 +21,8 @@
                 <span class="reading-value">{{ metric.value === undefined ? '—' : (metric.value | number:metric.digits) }}</span>
                 <span class="reading-unit"> {{ metric.unit }}</span>
               </dd>
+              <span class="frequency" [attr.aria-label]="metric.label + ' receive frequency'"
+                [attr.title]="metric.id === 'right' ? 'Receive rate over 5 seconds: slower of total and lower voltage' : 'Receive rate over 5 seconds'">{{ metric.frequency === undefined ? '—' : (metric.frequency | number:'1.1-1') }} Hz</span>
             </div>
           }
         </dl>

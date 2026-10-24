@@ -14,8 +14,10 @@ function load(file, dependencies = {}) {
 }
 const protocol = load('echookProtocol.ts');
 const { EchookDecoder } = protocol;
+const frequencyModule = load('echookFrequency.ts');
+const { EchookFrequency } = frequencyModule;
 const { EchookConnectionService } = load('echookConnection.service.ts', {
-  '@angular/core': { Injectable: () => value => value }, './echookProtocol': protocol
+  '@angular/core': { Injectable: () => value => value }, './echookProtocol': protocol, './echookFrequency': frequencyModule
 });
 const packet = (id, a, b) => [123, id.charCodeAt(0), a, b, 125];
 const flush = async () => { for (let i = 0; i < 15; i++) await Promise.resolve(); };
@@ -238,4 +240,52 @@ test('failure to close a port stops retries instead of risking a second owner', 
   f.service.start(); await flush(); f.end(); await flush();
   t.mock.timers.tick(100000); f.available(); await flush();
   assert.equal(f.counts().opens, 1); assert.match(f.service.state$.value.message, /Close this tab/);
+});
+
+test('arrival frequency counts repeat packets, separate channels and bundled packets over a rolling window', () => {
+  const meter = new EchookFrequency();
+  for (let at = 0; at <= 10000; at += 100) {
+    meter.record('s', at);
+    if (at % 200 === 0) meter.record('i', at);
+    if (at % 1000 === 0) meter.record('a', at);
+  }
+  assert.deepEqual(meter.snapshot(10000), { s: 10, i: 5, a: 1 });
+  assert.equal(meter.channels.size, 3);
+  assert.equal(meter.channels.get('s').buckets.length, 51);
+  assert.deepEqual(meter.snapshot(15000), { s: 0, i: 0, a: 0 });
+  const burst = new EchookFrequency();
+  burst.record('s', 0);
+  assert.deepEqual(burst.snapshot(500), {});
+  for (let i = 0; i < 10; i++) burst.record('s', 1000);
+  assert.equal(burst.snapshot(1000).s, 10);
+  burst.record('?', 1000); assert.equal(burst.channels.size, 1);
+  assert.deepEqual(new EchookFrequency().snapshot(10000), {});
+});
+test('derived battery frequency uses the slower input and disconnected channels hide frequency', () => {
+  const inputs = [reading('v', 24), reading('w', 12), reading('s', 0)];
+  const rates = { v: 10, w: 5, s: 10 };
+  const metrics = dashboardMetrics(inputs, true, 10000, rates);
+  assert.equal(metrics[0].frequency, 10); assert.equal(metrics[1].frequency, 5); assert.equal(metrics[2].frequency, 5);
+  assert.equal(dashboardMetrics(inputs, true, 10000, { v: 10 })[2].frequency, undefined);
+  assert.equal(dashboardMetrics(inputs, true, 15001, { v: 0, w: 0 })[2].frequency, 0);
+  assert.ok(dashboardMetrics(inputs, false, 10000, rates).every(metric => metric.frequency === undefined));
+});
+
+test('service counts all decoded arrivals before latest-value replacement and resets on reconnect', async t => {
+  let now = 0;
+  t.mock.method(performance, 'now', () => now);
+  t.mock.timers.enable({ apis: ['setInterval', 'setTimeout'] });
+  const f = fixture(t); f.service.start(); await flush();
+  for (now = 0; now <= 1000; now += 100) {
+    f.send(packet('s', 0, 0)); await flush();
+  }
+  now = 1000; t.mock.timers.tick(500); await flush();
+  assert.equal(f.service.state$.value.frequencies.s, 10);
+  assert.equal(f.service.state$.value.readings.length, 1);
+  now = 6500; t.mock.timers.tick(500); await flush();
+  assert.equal(f.service.state$.value.frequencies.s, 0);
+  await f.service.disconnect();
+  assert.deepEqual(f.service.state$.value.frequencies, {});
+  f.service.start(); await flush();
+  assert.deepEqual(f.service.state$.value.frequencies, {});
 });
