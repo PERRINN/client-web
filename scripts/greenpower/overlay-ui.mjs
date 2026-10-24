@@ -46,7 +46,7 @@ const overlay:any={syncLive(){},active:false,loading:false,more:false,error:'',s
  get title(){return Object.getOwnPropertyDescriptor(GreenpowerOverlayService.prototype,'title').get.call(this)},
  get channels(){return this.sessions.length?Object.getOwnPropertyDescriptor(GreenpowerOverlayService.prototype,'channels').get.call(this):channels()},get visibleSessions(){return this.sessions.filter(s=>s.loaded&&!s.hidden&&!s.excluded)},get status(){return this.loading?'Loading sessions…':this.sessions.length+' sessions'},
  async load(reset=false,sessionType='race'){this.sessionType=sessionType;this.active=true;this.loading=true;this.changed.next();await new Promise(r=>setTimeout(r,80));
-  this.sessions=Array.from({length:6},(_,i)=>({id:'session-'+i,label:overlayLabel({...emptyDay('2026-06-'+(14+i)),eventName:i%2?'Goodwood':'Dunsfold',defaults:{driver:'Driver '+(i+1)}},{type:sessionType,batteryIds:['Battery '+(i+1)+'A','Battery '+(i+1)+'B'],overrides:{}} as any),colour:overlayColour(i),loaded:true,hidden:false,excluded:false,channels:channels(i),session:{startAt:0,endAt:this.end}}));
+  this.sessions=Array.from({length:6},(_,i)=>({id:'session-'+i,label:overlayLabel({...emptyDay('2026-06-'+(14+i)),eventName:i%2?'Goodwood':'Dunsfold',defaults:{driver:'Driver '+(i+1)}},{type:sessionType,startAt:100000,endAt:110000,batteryIds:['Battery '+(i+1)+'A','Battery '+(i+1)+'B'],overrides:{motorGearTeeth:12,wheelGearTeeth:60}} as any,[{id:'computed:power',points:[{time:0,value:100},{time:1000,value:300},{time:10000,value:500}]},{id:'[\"RPM\"]:rpm',points:[{time:0,value:1000},{time:1000,value:3000},{time:10000,value:5000}]}] as any),colour:overlayColour(i),loaded:true,hidden:false,excluded:false,channels:channels(i),session:{startAt:0,endAt:this.end}}));
   this.loading=false;this.changed.next()},
  toggleVisibility:GreenpowerOverlayService.prototype.toggleVisibility,
  toggleInclusion:GreenpowerOverlayService.prototype.toggleInclusion,
@@ -172,7 +172,8 @@ try {
   assert.equal(await page.getByRole('heading',{name:'2026 motor dyno sessions',exact:true}).count(),1);
   assert.equal(await page.title(),'2026 motor dyno sessions · PERRINN');
   const motorLabels=await page.locator('.session-list .session-label').allTextContents();
-  assert.ok(motorLabels.every(label=>!label.includes('Battery')));
+  assert.ok(motorLabels.every(label=>!label.includes('Battery')&&label.endsWith('Avg power 380 W · Avg generator 760 rpm')));
+  assert.equal(await page.locator('.session-list .session-label').evaluateAll(rows=>rows.every(row=>row.scrollWidth<=row.clientWidth)),true,'motor summaries wrap within session rows');
   assert.deepEqual(await page.locator('app-greenpower-chart').first().locator('.overlay-name').allTextContents(),motorLabels);
   await page.screenshot({path:output+'/'+name+'-motor-dyno.png',fullPage:true});
   await page.locator('#overlay-source').selectOption('2026-race');

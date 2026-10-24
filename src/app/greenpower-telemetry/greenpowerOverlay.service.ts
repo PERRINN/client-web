@@ -118,7 +118,8 @@ export class GreenpowerOverlayService implements OnDestroy {
       ? unavailable(channel) : channel);
     // Retain existing graph slots when a channel becomes temporarily unavailable.
     item.channels.push(...previous.filter(channel => !channels.some(next => next.id === channel.id)).map(unavailable));
-    item.label = overlayLabel(source.event, session, item.channels) + (session.endAt === null ? ' · Live' : '');
+    item.label = overlayLabel(source.event, session, item.channels, complete ? item.observedEnd : null)
+      + (session.endAt === null ? ' · Live' : '');
     item.loaded = true;
   }
   get visibleSessions() { return this.sessions.filter(item => item.loaded && !item.hidden && !item.excluded); }

@@ -1,6 +1,6 @@
-import { ENERGY, formatChannelNumber, GreenpowerChannel, channelsFor, sampleTime, pointIndex } from './greenpowerData';
-import { DaySession, RecordedEvent, effectiveDefaults } from './greenpowerDay';
-import { gpsAnalysis, gpsFixes } from './greenpowerGps';
+import { ENERGY, POWER, formatChannelNumber, GreenpowerChannel, channelsFor, sampleTime, pointIndex } from './greenpowerData';
+import { DaySession, RecordedEvent, effectiveDefaults, gearingRatio } from './greenpowerDay';
+import { gpsAnalysis, gpsFixes, timeAverage } from './greenpowerGps';
 import { contains, TrackDefinition } from './greenpowerTracks';
 import { motorLapSpeeds, withMotorDerivedSpeed } from './greenpowerSpeed';
 import { lapMetricChannels } from './greenpowerLapMetrics';
@@ -14,7 +14,7 @@ export interface OverlaySession {
 }
 export interface OverlayTrace { id: string; label: string; colour: string; channel: GreenpowerChannel; dashed?: boolean; detail?: string; sessionId?: string; hidden?: boolean; excluded?: boolean; }
 export function overlayColour(index: number) { return `hsl(${(205 + index * 137.508) % 360} 60% 72%)`; }
-export function overlayLabel(event: RecordedEvent, session: DaySession, channels: GreenpowerChannel[] = []) {
+export function overlayLabel(event: RecordedEvent, session: DaySession, channels: GreenpowerChannel[] = [], endAt = session.endAt) {
   let maximum: number | undefined;
   if (session.type === 'battery_dyno') {
     for (const point of channels.find(channel => channel.id === ENERGY)?.points ?? []) {
@@ -23,7 +23,19 @@ export function overlayLabel(event: RecordedEvent, session: DaySession, channels
   }
   return [event.date, event.eventName, effectiveDefaults(event, session).driver,
     session.type === 'battery_dyno' ? session.batteryIds.join(', ') : '',
-    maximum === undefined ? '' : `${formatChannelNumber({ id: ENERGY, unit: 'Wh' }, maximum)} Wh`].filter(Boolean).join(' · ');
+    maximum === undefined ? '' : `${formatChannelNumber({ id: ENERGY, unit: 'Wh' }, maximum)} Wh`,
+    ...motorDynoSummary(event, session, channels, endAt)].filter(Boolean).join(' · ');
+}
+
+/** Average elapsed session channels over their full observed duration, never across missing coverage. */
+function motorDynoSummary(event: RecordedEvent, session: DaySession, channels: GreenpowerChannel[], endAt: number | null) {
+  if (session.type !== 'motor_dyno' || endAt === null || !(endAt > session.startAt)) return [];
+  const average = (id: string) => timeAverage(channels.find(channel => channel.id === id)?.points ?? [], 0, endAt - session.startAt);
+  const power = average(POWER), motor = average('["RPM"]:rpm'), ratio = gearingRatio(event, session);
+  const generator = motor !== undefined && ratio !== undefined && Number.isFinite(ratio) && ratio > 0 ? motor / ratio : undefined;
+  const label = (id: string, unit: string, value: number | undefined, name: string) =>
+    value !== undefined && Number.isFinite(value) ? `${name} ${formatChannelNumber({ id, unit }, value)} ${unit}` : '';
+  return [label(POWER, 'W', power, 'Avg power'), label('["RPM"]:rpm', 'rpm', generator, 'Avg generator')];
 }
 export function overlayChannels(samples: Parameters<typeof channelsFor>[0], session: DaySession, event?: RecordedEvent, track?: TrackDefinition | null) {
   if (session.endAt === null) return [];

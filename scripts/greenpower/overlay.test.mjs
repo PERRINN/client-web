@@ -144,6 +144,44 @@ test('battery dyno labels use the maximum finite computed Wh, including zero, ra
   assert.equal(overlay.overlayLabel(event, { ...session, type: 'race' }, channels), date);
 });
 
+test('motor dyno averages weight elapsed time and use inherited or overridden gearing', () => {
+  const event = { ...dayData.emptyDay(date), defaults: { motorGearTeeth: 12, wheelGearTeeth: 60 } };
+  const session = { type: 'motor_dyno', startAt: 100000, endAt: 110000, overrides: {} };
+  const channels = [
+    { id: data.POWER, points: [{ time: 0, value: 100 }, { time: 1000, value: 300 }, { time: 10000, value: 500 }] },
+    { id: '["RPM"]:rpm', points: [{ time: 0, value: 1000 }, { time: 1000, value: 3000 }, { time: 10000, value: 5000 }] }
+  ];
+  assert.equal(overlay.overlayLabel(event, session, channels), date + ' · Avg power 380 W · Avg generator 760 rpm');
+  assert.equal(overlay.overlayLabel(event, { ...session, overrides: { wheelGearTeeth: 24 } }, channels), date + ' · Avg power 380 W · Avg generator 1900 rpm');
+  assert.equal(overlay.overlayLabel(dayData.emptyDay(date), session, channels), date + ' · Avg power 380 W');
+  assert.equal(overlay.overlayLabel(event, { ...session, type: 'race' }, channels), date);
+  assert.equal(overlay.overlayLabel(event, session), date);
+  assert.equal(overlay.overlayLabel(event, session, channels, null), date);
+  for (const points of [[], [{ time: 0, value: 1 }], [{ time: 1, value: 1 }, { time: 10000, value: 1 }],
+    [{ time: 0, value: 1 }, { time: 9999, value: 1 }], [{ time: 0, value: NaN }, { time: 10000, value: 1 }]]) {
+    assert.equal(overlay.overlayLabel(event, session, channels.map(channel => ({ ...channel, points }))), date);
+  }
+  assert.equal(overlay.overlayLabel(event, { ...session, endAt: 120000 }, channels.map(channel => ({ ...channel,
+    points: [{ time: 0, value: 1 }, { time: 20000, value: 1 }] }))), date, 'outages withhold averages');
+  assert.equal(overlay.overlayLabel(event, session, channels.map(channel => ({ ...channel,
+    points: [{ time: 0, value: 0 }, { time: 10000, value: 0 }] }))), date + ' · Avg power 0 W · Avg generator 0 rpm');
+});
+
+test('loaded motor dyno averages reach every chart label with no extra reads', async () => {
+  const h = fixture(1, 3);
+  h.records.get(`${ROOT}/days/${date}/sessions/race-0`).type = 'motor_dyno';
+  h.records.get(`${ROOT}/days/${date}`).defaults = { motorGearTeeth: 12, wheelGearTeeth: 60 };
+  for (const [path, record] of h.records) if (path.includes('/chunks/')) {
+    for (const sample of record.samples) sample.raw = JSON.stringify({ Vt: 24, A: 20, RPM: 3000 });
+  }
+  const component = new GreenpowerOverlayComponent(h.service, { changed: new Subject(), charts: channels => channels }, { markForCheck() {} });
+  await h.service.load(true, 'motor_dyno');
+  assert.equal(h.service.sessions[0].label, date + ' · Goodwood · Avg power 480 W · Avg generator 600 rpm');
+  assert.ok(component.charts.every(chart => chart.traces.every(trace => trace.label === h.service.sessions[0].label)));
+  assert.equal(h.calls.length, 3);
+  component.ngOnDestroy(); h.service.ngOnDestroy();
+});
+
 test('loading a battery dyno adds computed maximum Wh to shared session and chart labels', async () => {
   const h = fixture(1, 3);
   h.records.get(`${ROOT}/days/${date}/sessions/race-0`).type = 'battery_dyno';
@@ -408,6 +446,26 @@ test('live overlay reuses calculated data with zero extra queries, keeps its sta
   const original = source.channels.find(channel => channel.id === data.ENERGY).points.at(-1);
   assert.equal(original.time, source.end); assert.ok(Math.abs(original.value - 1.2) < 1e-10);
   component.ngOnDestroy(); h.service.ngOnDestroy();
+});
+
+test('live motor dyno averages refresh, withhold incomplete data and freeze on closure without reads', async () => {
+  const h = liveFixture(1, 'motor_dyno');
+  h.service.syncLive(h.source()); await h.service.load(true, 'motor_dyno');
+  const item = h.service.sessions.find(item => item.live), before = h.calls.length;
+  assert.match(item.label, /Avg power 480 W · Avg generator 947 rpm · Live$/);
+  const changed = h.source(8);
+  changed.channels.find(channel => channel.id === data.POWER).points.forEach(point => point.value = 600);
+  h.service.syncLive(changed);
+  assert.match(item.label, /Avg power 600 W · Avg generator 947 rpm · Live$/);
+  h.service.syncLive({ ...changed, complete: false });
+  assert.doesNotMatch(item.label, /Avg /);
+  const closed = { ...h.session, endAt: h.session.startAt + 9000 };
+  h.service.syncLive({ ...changed, sessions: [closed] });
+  assert.match(item.label, /Avg power 600 W · Avg generator 947 rpm$/);
+  const label = item.label;
+  h.service.syncLive(h.source(10, { sessions: [closed] }));
+  assert.equal(item.label, label); assert.equal(h.calls.length, before);
+  h.service.ngOnDestroy();
 });
 
 test('live session is included before historical pagination reaches it, without a second chunk reader or duplicate', async () => {
