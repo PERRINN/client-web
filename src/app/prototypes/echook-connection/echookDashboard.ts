@@ -15,7 +15,7 @@ export function dashboardMetrics(readings: EchookReading[], connected: boolean, 
     const missing = inputs.some(input => !input);
     const stale = inputs.some(input => input && now - input.at > 5000);
     const status = !connected ? 'Disconnected' : missing ? 'Waiting' : stale ? 'Stale' : 'Live';
-    const digits = id === 'motor' || id === 'throttle' ? '1.0-0' : ['speed', 'current', 'ambient', 'motor-temp'].includes(id) ? '1.1-1' : '1.2-2';
+    const digits = id === 'motor' || id === 'throttle' ? '1.0-0' : '1.1-1';
     const rates = inputs.map(input => input && frequencies[input.id]);
     const frequency = connected && rates.every(rate => rate !== undefined) ? Math.min(...rates) : undefined;
     return { id, label, unit, status, digits, frequency, visibleLabel: ['left', 'right', 'throttle', 'ambient', 'motor-temp'].includes(id), value: status === 'Live' && Number.isFinite(value) ? value : undefined };

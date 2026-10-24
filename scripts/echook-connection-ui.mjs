@@ -133,8 +133,8 @@ try {
       123, 105, 12, 50, 125, 123, 109, 140, 34, 125, 123, 116, 75, 0, 125, 123, 97, 18, 20, 125, 123, 98, 64, 70, 125
     ])));
     await page.clock.setFixedTime(new Date('2026-10-24T12:34:57Z'));
-    await page.getByText('12.25 V', { exact: true }).waitFor();
-    await page.getByText('12.50 V', { exact: true }).waitFor();
+    await page.getByText('12.3 V', { exact: true }).waitFor();
+    await page.getByText('12.5 V', { exact: true }).waitFor();
     await page.getByText('22.4 mph', { exact: true }).waitFor();
     assert.equal(await page.locator('.metric').count(), 8);
     assert.equal(await page.locator('.metric-group').count(), 6);
