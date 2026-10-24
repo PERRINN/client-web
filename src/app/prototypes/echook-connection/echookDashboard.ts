@@ -10,12 +10,13 @@ export function dashboardMetrics(readings: EchookReading[], connected: boolean, 
   const find = (id: string) => readings.find(reading => reading.id === id && Number.isFinite(reading.value));
   const speed = find('s'), total = find('v'), left = find('w');
   const throttle = find('t'), motor = find('m'), current = find('i');
+  const ambient = find('a'), motorTemperature = find('b');
   const metric = (id: string, label: string, unit: string, inputs: (EchookReading | undefined)[], value?: number) => {
     const missing = inputs.some(input => !input);
     const stale = inputs.some(input => input && now - input.at > 5000);
     const status = !connected ? 'Disconnected' : missing ? 'Waiting' : stale ? 'Stale' : 'Live';
-    const digits = id === 'motor' || id === 'throttle' ? '1.0-0' : id === 'speed' || id === 'current' ? '1.1-1' : '1.2-2';
-    return { id, label, unit, status, digits, visibleLabel: ['left', 'right', 'throttle'].includes(id), value: status === 'Live' && Number.isFinite(value) ? value : undefined };
+    const digits = id === 'motor' || id === 'throttle' ? '1.0-0' : ['speed', 'current', 'ambient', 'motor-temp'].includes(id) ? '1.1-1' : '1.2-2';
+    return { id, label, unit, status, digits, visibleLabel: ['left', 'right', 'throttle', 'ambient', 'motor-temp'].includes(id), value: status === 'Live' && Number.isFinite(value) ? value : undefined };
   };
   return [
     metric('speed', 'Vehicle speed', 'mph', [speed], speed && speed.value / 0.44704),
@@ -23,6 +24,8 @@ export function dashboardMetrics(readings: EchookReading[], connected: boolean, 
     metric('right', 'Battery right', 'V', [total, left], total && left && total.value - left.value),
     metric('throttle', 'Throttle', '%', [throttle], throttle?.value),
     metric('motor', 'Motor speed', 'rpm', [motor], motor?.value),
-    metric('current', 'Current', 'A', [current], current?.value)
+    metric('current', 'Current', 'A', [current], current?.value),
+    metric('ambient', 'Ambient temp', '°C', [ambient], ambient?.value),
+    metric('motor-temp', 'Motor temp', '°C', [motorTemperature], motorTemperature?.value)
   ];
 }

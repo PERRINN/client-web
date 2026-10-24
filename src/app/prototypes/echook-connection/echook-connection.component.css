@@ -9,20 +9,22 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--color-focus); o
 .connection-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .connection-status { flex: 1; min-width: 0; display: flex; align-items: center; min-height: 24px; font-size: 15px; color: var(--color-text-secondary); }
 .error { color: var(--color-danger-text); }
-.dashboard { display: grid; grid-template: repeat(3, minmax(0, 1fr)) / repeat(2, minmax(0, 1fr)); gap: 8px; min-height: 0; margin: 0; }
-.metric { display: flex; flex-direction: column; justify-content: center; min-width: 0; min-height: 0; padding: 12px; border-radius: 12px; background: var(--color-surface); container-type: size; }
+.dashboard { display: grid; grid-template: repeat(4, minmax(0, 1fr)) / repeat(2, minmax(0, 1fr)); gap: 8px; min-height: 0; margin: 0; }
+.metric { display: flex; flex-direction: column; justify-content: center; min-width: 0; min-height: 0; padding: 8px; border-radius: 12px; background: var(--color-surface); container-type: size; }
 .speed { order: 0; }
 .throttle { order: 1; }
 .motor { order: 2; }
 .current { order: 3; }
 .left { order: 4; }
 .right { order: 5; }
+.ambient { order: 6; }
+.motor-temp { order: 7; }
 dt { font-size: 16px; color: var(--color-text-secondary); }
-dd { margin: 6px 0; font-size: clamp(24px, 15cqw, 64px); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+dd { margin: 4px 0; font-size: clamp(24px, 15cqw, 64px); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
 time { flex-shrink: 0; font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
 @media (hover: hover) and (pointer: fine) { button:hover:not(:disabled) { background: var(--color-text-secondary); } }
 @media (orientation: landscape) and (max-height: 600px) {
-  .dashboard { grid-template: repeat(2, minmax(0, 1fr)) / repeat(3, minmax(0, 1fr)); }
+  .dashboard { grid-template: repeat(2, minmax(0, 1fr)) / repeat(4, minmax(0, 1fr)); }
   .metric { padding: 2px 8px; }
   dd { margin: 0; font-size: clamp(20px, 11cqw, 40px); }
 }

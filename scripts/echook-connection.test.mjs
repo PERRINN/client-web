@@ -132,13 +132,24 @@ test('dashboard preserves zero and hides missing, stale or disconnected values',
 
 test('dashboard adds throttle input, native motor RPM and current with per-channel freshness', () => {
   const inputs = [reading('t', 75), reading('d', 20), reading('m', 1234), reading('i', 12.5)];
-  const metrics = dashboardMetrics(inputs, true, 10000).slice(3);
+  const metrics = dashboardMetrics(inputs, true, 10000).slice(3, 6);
   assert.deepEqual(metrics.map(({ id, value, unit, status }) => ({ id, value, unit, status })), [
     { id: 'throttle', value: 75, unit: '%', status: 'Live' },
     { id: 'motor', value: 1234, unit: 'rpm', status: 'Live' },
     { id: 'current', value: 12.5, unit: 'A', status: 'Live' }
   ]);
-  assert.ok(dashboardMetrics(inputs, true, 15001).slice(3).every(metric => metric.value === undefined && metric.status === 'Stale'));
-  assert.ok(dashboardMetrics([reading('t', 0), reading('m', 0), reading('i', 0)], true, 10000).slice(3).every(metric => metric.value === 0));
+  assert.ok(dashboardMetrics(inputs, true, 15001).slice(3, 6).every(metric => metric.value === undefined && metric.status === 'Stale'));
+  assert.ok(dashboardMetrics([reading('t', 0), reading('m', 0), reading('i', 0)], true, 10000).slice(3, 6).every(metric => metric.value === 0));
   assert.equal(dashboardMetrics([reading('d', 75)], true, 10000)[3].value, undefined, 'Do not substitute throttle output for input');
+});
+
+test('temperature 1 is ambient and temperature 2 is motor, matching telemetry', () => {
+  const temperatures = dashboardMetrics([reading('a', 18.25), reading('b', 64.75), reading('c', 30)], true, 10000).slice(6);
+  assert.deepEqual(temperatures.map(({ id, label, value, unit, digits }) => ({ id, label, value, unit, digits })), [
+    { id: 'ambient', label: 'Ambient temp', value: 18.25, unit: '°C', digits: '1.1-1' },
+    { id: 'motor-temp', label: 'Motor temp', value: 64.75, unit: '°C', digits: '1.1-1' }
+  ]);
+  const partial = dashboardMetrics([reading('a', 0)], true, 10000).slice(6);
+  assert.equal(partial[0].value, 0); assert.equal(partial[1].value, undefined);
+  assert.ok(dashboardMetrics([reading('a', 20), reading('b', 60)], true, 15001).slice(6).every(metric => metric.status === 'Stale' && metric.value === undefined));
 });

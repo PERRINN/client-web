@@ -104,13 +104,15 @@ try {
     await page.getByText('Connected', { exact: true }).waitFor();
     await page.evaluate(() => window.sensorStream.enqueue(Uint8Array.from([
       123, 118, 24, 75, 125, 123, 119, 12, 25, 125, 123, 115, 10, 0, 125,
-      123, 105, 12, 50, 125, 123, 109, 140, 34, 125, 123, 116, 75, 0, 125
+      123, 105, 12, 50, 125, 123, 109, 140, 34, 125, 123, 116, 75, 0, 125, 123, 97, 18, 20, 125, 123, 98, 64, 70, 125
     ])));
     await page.clock.setFixedTime(new Date('2026-10-24T12:34:57Z'));
     await page.getByText('12.25 V', { exact: true }).waitFor();
     await page.getByText('12.50 V', { exact: true }).waitFor();
     await page.getByText('22.4 mph', { exact: true }).waitFor();
-    assert.equal(await page.locator('.metric').count(), 6);
+    assert.equal(await page.locator('.metric').count(), 8);
+    await page.locator('.ambient').getByText('18.2 °C', { exact: true }).waitFor();
+    await page.locator('.motor-temp').getByText('64.7 °C', { exact: true }).waitFor();
     await page.getByText('75 %', { exact: true }).waitFor();
     await page.getByText('1,234 rpm', { exact: true }).waitFor();
     await page.getByText('12.5 A', { exact: true }).waitFor();
