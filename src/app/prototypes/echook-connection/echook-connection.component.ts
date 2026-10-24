@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, HostBinding, HostListener, NgZone, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostBinding, HostListener, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, map, Observable, timer } from 'rxjs';
 import { EchookConnectionService, EchookState } from './echookConnection.service';
 import { dashboardMetrics, DashboardMetric } from './echookDashboard';
@@ -9,7 +9,7 @@ import { dashboardMetrics, DashboardMetric } from './echookDashboard';
   styleUrls: ['./echook-connection.component.css'],
   providers: [EchookConnectionService]
 })
-export class EchookConnectionComponent implements AfterViewInit, OnDestroy {
+export class EchookConnectionComponent implements AfterViewInit, OnDestroy, OnInit {
   private readonly clockFormat = new Intl.DateTimeFormat('en-GB', {
     hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
   });
@@ -23,6 +23,11 @@ export class EchookConnectionComponent implements AfterViewInit, OnDestroy {
         clock: this.clockFormat.format(now) };
     }));
   }
+
+  ngOnInit() { this.connection.start(); }
+
+  @HostListener('window:pageshow')
+  onPageShow() { this.connection.start(); }
 
   @HostBinding('style.height.px') visibleHeight?: number;
   private frame?: number;

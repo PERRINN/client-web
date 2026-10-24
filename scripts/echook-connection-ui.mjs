@@ -99,11 +99,17 @@ try {
       const viewport = new EventTarget();
       Object.defineProperties(viewport, { height: { get: () => window.testVisibleHeight || innerHeight }, offsetTop: { value: 0 } });
       Object.defineProperty(window, 'visualViewport', { configurable: true, value: viewport });
-      window.serialCalls = { opened: 0, closed: 0 };
-      Object.defineProperty(navigator, 'serial', { configurable: true, value: { requestPort: async () => ({
-        readable: new ReadableStream({ start(controller) { window.sensorStream = controller; } }),
-        open: async () => { window.serialCalls.opened++; }, close: async () => { window.serialCalls.closed++; }
-      }) } });
+      window.serialCalls = { opened: 0, closed: 0, requests: 0 };
+      const port = {
+        readable: null,
+        getInfo: () => ({ bluetoothServiceClassId: '00001101-0000-1000-8000-00805f9b34fb' }),
+        async open() { window.serialCalls.opened++; this.readable = new ReadableStream({ start(controller) { window.sensorStream = controller; } }); },
+        async close() { window.serialCalls.closed++; }
+      };
+      Object.defineProperty(navigator, 'serial', { configurable: true, value: Object.assign(new EventTarget(), {
+        getPorts: async () => [port],
+        requestPort: async () => { window.serialCalls.requests++; return port; }
+      }) });
     });
     await page.goto(`http://127.0.0.1:${server.address().port}/prototypes`);
     const tile = page.locator('a[href="/prototypes/echook-connection"]');
@@ -114,11 +120,10 @@ try {
     await page.getByRole('main', { name: 'eChook dashboard' }).waitFor();
     await assertFits();
     await page.clock.setFixedTime(new Date('2026-10-24T12:34:56Z'));
-    const button = page.getByRole('button', { name: 'Connect', exact: true });
-    await page.keyboard.press('Tab'); await button.focus(); assert.equal(await button.evaluate(el => el.matches(':focus-visible')), true);
-    await button.click();
     await page.waitForFunction(() => window.serialCalls.opened === 1);
     await page.waitForFunction(() => !document.querySelector('.echook-page button'));
+    assert.equal(await page.getByRole('button', { name: 'Connect', exact: true }).count(), 0);
+    assert.equal(await page.evaluate(() => window.serialCalls.requests), 0);
     assert.equal(await page.getByRole('button', { name: 'Disconnect', exact: true }).count(), 0);
     assert.equal(await page.getByRole('link', { name: '← Prototyping' }).count(), 0);
     assert.equal(await page.getByText('Connected', { exact: true }).count(), 0);
@@ -159,33 +164,49 @@ try {
     await page.waitForFunction(() => document.querySelector('.speed dd').getAttribute('aria-description') === 'Stale'); await assertFits();
     assert.equal(await page.locator('.speed dd').innerText(), '— mph');
     await page.evaluate(() => window.sensorStream.close());
-    await page.getByRole('button', { name: 'Connect', exact: true }).waitFor(); await assertFits();
+    await page.waitForFunction(() => window.serialCalls.opened === 2); await assertFits();
     assert.equal(await page.evaluate(() => window.serialCalls.closed), 1);
-    await page.getByRole('button', { name: 'Connect', exact: true }).click();
-    await page.waitForFunction(() => window.serialCalls.opened === 2);
-    await page.goBack();
-    await tile.waitFor();
-    await page.waitForFunction(() => window.serialCalls.closed === 2);
+    assert.equal(await page.evaluate(() => window.serialCalls.requests), 0);
+    // A full reload must also reconnect automatically using getPorts, not a chooser.
+    await page.reload(); await page.waitForFunction(() => window.serialCalls.opened === 1);
+    assert.equal(await page.evaluate(() => window.serialCalls.requests), 0);
+    await assertFits();
+    await page.goBack(); await tile.waitFor();
+    await page.waitForFunction(() => window.serialCalls.closed === 1);
     assert.deepEqual(errors, []); await page.close();
   }
   const page = await browser.newPage({ viewport: { width: 640, height: 280 } });
   await page.addInitScript(() => Object.defineProperty(navigator, 'serial', { configurable: true, value: undefined }));
   await page.goto(`http://127.0.0.1:${server.address().port}/prototypes/echook-connection`);
   await page.getByText(/Bluetooth serial is unavailable/).waitFor();
-  assert.equal(await page.getByRole('button', { name: 'Connect', exact: true }).isDisabled(), true);
+  assert.equal(await page.getByRole('button', { name: 'Connect', exact: true }).count(), 0);
   assert.equal(await page.locator('#main_container').evaluate(el => el.scrollHeight <= el.clientHeight), true);
   await page.close();
   const failed = await browser.newPage({ viewport: { width: 390, height: 850 } });
-  await failed.addInitScript(() => Object.defineProperty(navigator, 'serial', { configurable: true, value: {
-    requestPort: async () => { throw new DOMException('Busy', 'NetworkError'); }
-  } }));
+  await failed.addInitScript(() => {
+    const port = { getInfo: () => ({ bluetoothServiceClassId: '00001101-0000-1000-8000-00805f9b34fb' }), open: async () => { throw new DOMException('Busy', 'NetworkError'); } };
+    Object.defineProperty(navigator, 'serial', { configurable: true, value: Object.assign(new EventTarget(), {
+      getPorts: async () => [port], requestPort: async () => { throw new Error('Unexpected chooser'); }
+    }) });
+  });
   await failed.goto(`http://127.0.0.1:${server.address().port}/prototypes/echook-connection`);
-  await failed.getByRole('button', { name: 'Connect', exact: true }).click();
   await failed.getByRole('alert').waitFor();
-  assert.match(await failed.getByRole('alert').innerText(), /Close OMNI/);
+  assert.match(await failed.getByRole('alert').innerText(), /close OMNI/);
   await failed.setViewportSize({ width: 568, height: 320 });
   assert.equal(await failed.locator('#main_container').evaluate(el => el.scrollHeight <= el.clientHeight), true);
   assert.equal(await failed.locator('.dashboard').evaluate(el => [...el.children].every(child => child.scrollHeight <= child.clientHeight)), true);
-  assert.equal(await failed.getByRole('button', { name: 'Connect', exact: true }).isEnabled(), true);
-  console.log('Six desktop/portrait/landscape sizes plus reduced visual viewports and scrolled gallery entry: real shell, no scrolling or clipped metrics, mph/battery mapping, local clock, rotation, live/stale/disconnected states, keyboard focus, gallery, cleanup and unsupported/error states passed. Screenshots: ' + output);
+  assert.equal(await failed.getByRole('button', { name: 'Connect', exact: true }).count(), 0);
+  const permission = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await permission.addInitScript(() => {
+    window.permissionRequests = 0;
+    Object.defineProperty(navigator, 'serial', { configurable: true, value: Object.assign(new EventTarget(), {
+      getPorts: async () => [], requestPort: async () => { window.permissionRequests++; throw new DOMException('Cancelled', 'NotFoundError'); }
+    }) });
+  });
+  await permission.goto(`http://127.0.0.1:${server.address().port}/prototypes/echook-connection`);
+  const choose = permission.getByRole('button', { name: 'Choose eChook', exact: true }); await choose.waitFor();
+  assert.equal(await permission.evaluate(() => window.permissionRequests), 0);
+  await permission.keyboard.press('Tab'); await choose.focus(); assert.equal(await choose.evaluate(el => el.matches(':focus-visible')), true);
+  await choose.click(); await choose.waitFor(); assert.equal(await permission.evaluate(() => window.permissionRequests), 1);
+  console.log('Six desktop/portrait/landscape sizes plus reduced visual viewports and scrolled gallery entry: real shell, no scrolling or clipped metrics, mph/battery mapping, local clock, rotation, live/stale/disconnected states, keyboard focus, gallery, cleanup, automatic startup/reload/recovery without a chooser, one-time permission selection and unsupported/error states passed. Screenshots: ' + output);
 } finally { await browser.close(); await new Promise(r => server.close(r)); }

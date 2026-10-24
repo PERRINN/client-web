@@ -2,10 +2,8 @@
   @if (dashboard$ | async; as state) {
     <header>
       <div class="connection-controls">
-        @if (state.status !== 'connected') {
-          <button type="button" (click)="connection.connect()" [disabled]="!!connection.unavailable || state.status === 'connecting' || state.status === 'disconnecting'">
-            {{ state.status === 'connecting' ? 'Connecting…' : 'Connect' }}
-          </button>
+        @if (state.needsPermission) {
+          <button type="button" (click)="connection.connect()">Choose eChook</button>
         }
         @if (connection.unavailable || state.message) {
           <p class="error" role="alert">{{ connection.unavailable || state.message }}</p>

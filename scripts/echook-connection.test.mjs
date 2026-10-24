@@ -44,24 +44,32 @@ test('noise does not accumulate state', () => {
 });
 
 function fixture(t, request) {
-  const originals = Object.fromEntries(['window', 'navigator'].map(k => [k, Object.getOwnPropertyDescriptor(globalThis, k)]));
-  let source, opens = 0, closes = 0, requests = 0;
-  const port = { readable: new ReadableStream({ start(controller) { source = controller; } }),
-    async open(options) { opens++; assert.equal(options.baudRate, 115200); }, async close() { closes++; } };
+  const originals = Object.fromEntries(['window', 'navigator', 'document'].map(k => [k, Object.getOwnPropertyDescriptor(globalThis, k)]));
+  let source, opens = 0, closes = 0, requests = 0, lookups = 0;
+  const stream = () => new ReadableStream({ start(controller) { source = controller; } });
+  const port = { readable: stream(), getInfo: () => ({ bluetoothServiceClassId: '00001101-0000-1000-8000-00805f9b34fb' }),
+    async open(options) { opens++; assert.equal(options.baudRate, 115200); this.readable = stream(); }, async close() { closes++; } };
+  const serial = Object.assign(new EventTarget(), { grants: [port],
+    async getPorts() { lookups++; return this.grants; }, requestPort(options) {
+      requests++; assert.equal(options.filters[0].bluetoothServiceClassId, '00001101-0000-1000-8000-00805f9b34fb');
+      return request ? request(port) : Promise.resolve(port);
+    } });
+  const document = Object.assign(new EventTarget(), { hidden: false });
   Object.defineProperty(globalThis, 'window', { configurable: true, value: { isSecureContext: true } });
-  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { serial: { requestPort(options) {
-    requests++; assert.equal(options.filters[0].bluetoothServiceClassId, '00001101-0000-1000-8000-00805f9b34fb');
-    return request ? request(port) : Promise.resolve(port);
-  } } } });
-  const service = new EchookConnectionService({ run: fn => fn(), runOutsideAngular: fn => fn() });
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { serial } });
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: document });
+  const zone = { run: fn => fn(), runOutsideAngular: fn => fn() };
+  const service = new EchookConnectionService(zone);
   t.after(async () => {
     service.ngOnDestroy(); await flush();
     for (const [key, descriptor] of Object.entries(originals)) {
       if (descriptor) Object.defineProperty(globalThis, key, descriptor); else delete globalThis[key];
     }
   });
-  return { service, port, send: bytes => source.enqueue(Uint8Array.from(bytes)), end: () => source.close(),
-    counts: () => ({ opens, closes, requests }) };
+  return { service, port, serial, document, zone, send: bytes => source.enqueue(Uint8Array.from(bytes)), end: () => source.close(),
+    counts: () => ({ opens, closes, requests }), lookups: () => lookups,
+    visible(value) { document.hidden = !value; document.dispatchEvent(new Event('visibilitychange')); },
+    available() { const event = new Event('connect'); Object.defineProperty(event, 'port', { value: port }); serial.dispatchEvent(event); } };
 }
 test('single connection keeps latest values and closes on disconnect', async t => {
   const f = fixture(t); f.service.connect(); f.service.connect(); await flush();
@@ -86,10 +94,14 @@ test('cancel while opening closes late opened port', async t => {
   f.service.connect(); await flush(); const stopped = f.service.disconnect(); resolve(); await stopped;
   assert.equal(f.counts().closes, 1); assert.equal(f.port.readable.locked, false);
 });
-test('unexpected end shows a retryable error and never reconnects automatically', async t => {
+test('unexpected end recovers using the saved grant without another chooser', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
   const f = fixture(t); f.service.connect(); await flush(); f.end(); await flush();
   assert.equal(f.service.state$.value.status, 'error');
   assert.equal(f.counts().requests, 1); assert.equal(f.counts().closes, 1);
+  t.mock.timers.tick(1000); await flush();
+  assert.equal(f.counts().opens, 2); assert.equal(f.counts().requests, 1);
+  assert.equal(f.service.state$.value.status, 'connected');
 });
 test('chooser dismissal stays idle, open failure shows an error', async t => {
   const f = fixture(t, () => Promise.reject(new DOMException('Cancelled', 'NotFoundError')));
@@ -152,4 +164,78 @@ test('temperature 1 is ambient and temperature 2 is motor, matching telemetry', 
   const partial = dashboardMetrics([reading('a', 0)], true, 10000).slice(6);
   assert.equal(partial[0].value, 0); assert.equal(partial[1].value, undefined);
   assert.ok(dashboardMetrics([reading('a', 20), reading('b', 60)], true, 15001).slice(6).every(metric => metric.status === 'Stale' && metric.value === undefined));
+});
+
+test('startup and restart reuse the sole granted Bluetooth serial port automatically', async t => {
+  const f = fixture(t); f.service.start(); f.service.start(); await flush();
+  assert.deepEqual(f.counts(), { opens: 1, closes: 0, requests: 0 });
+  await f.service.disconnect(); f.service.start(); await flush();
+  assert.deepEqual(f.counts(), { opens: 2, closes: 1, requests: 0 });
+});
+test('no grant or ambiguous grants require selection and never open a chooser automatically', async t => {
+  const f = fixture(t); f.serial.grants = []; f.service.start(); await flush();
+  assert.equal(f.service.state$.value.needsPermission, true); assert.equal(f.counts().requests, 0);
+  await f.service.disconnect(); f.serial.grants = [f.port, { getInfo: f.port.getInfo }]; f.service.start(); await flush();
+  assert.equal(f.counts().opens, 0); assert.equal(f.service.state$.value.needsPermission, true);
+});
+test('retry burst is bounded at six opens and a device availability event can restart it', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const f = fixture(t); let failures = 0;
+  f.port.open = async () => { failures++; throw new Error('Off'); };
+  f.service.start(); await flush();
+  for (const delay of [1000, 2000, 4000, 8000, 16000]) { t.mock.timers.tick(delay); await flush(); }
+  assert.equal(failures, 6); assert.equal(f.lookups(), 6); assert.equal(f.counts().requests, 0);
+  t.mock.timers.tick(3600000); await flush(); assert.equal(failures, 6);
+  f.available(); await flush(); assert.equal(failures, 7);
+});
+test('permission revocation stops automatic opens and requests one-time selection', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const f = fixture(t); f.service.start(); await flush(); f.serial.grants = []; f.end(); await flush();
+  t.mock.timers.tick(1000); await flush();
+  assert.equal(f.counts().opens, 1); assert.equal(f.service.state$.value.needsPermission, true);
+  assert.equal(f.counts().requests, 0);
+});
+test('stop or destruction cancels pending retries and ignores late grant lookup', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const f = fixture(t); f.service.start(); await flush(); f.end(); await flush();
+  await f.service.disconnect(); t.mock.timers.tick(100000); await flush(); assert.equal(f.counts().opens, 1);
+  let resolve; f.serial.getPorts = () => new Promise(r => { resolve = r; });
+  f.service.start(); f.service.ngOnDestroy(); resolve([f.port]); await flush();
+  assert.equal(f.counts().opens, 1);
+});
+test('hidden pages pause reconnect work and foreground resumes with the saved grant', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const f = fixture(t); f.service.start(); await flush(); f.end(); await flush();
+  f.visible(false); t.mock.timers.tick(100000); await flush(); assert.equal(f.counts().opens, 1);
+  f.visible(true); await flush(); assert.equal(f.counts().opens, 2); assert.equal(f.counts().requests, 0);
+});
+test('a stalled stream closes after ten seconds and enters recovery once', async t => {
+  t.mock.timers.enable({ apis: ['Date', 'setInterval', 'setTimeout'] });
+  const f = fixture(t); f.service.start(); await flush();
+  t.mock.timers.tick(10500); await flush(); assert.equal(f.counts().closes, 1);
+  t.mock.timers.tick(1000); await flush(); assert.equal(f.counts().opens, 2);
+});
+test('open followed by immediate EOF cannot bypass the reconnect budget', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const f = fixture(t); let opens = 0;
+  f.port.open = async () => { opens++; f.port.readable = new ReadableStream({ start(c) { c.close(); } }); };
+  f.service.start(); await flush();
+  for (const delay of [1000, 2000, 4000, 8000, 16000]) { t.mock.timers.tick(delay); await flush(); }
+  assert.equal(opens, 6); t.mock.timers.tick(100000); await flush(); assert.equal(opens, 6);
+});
+
+test('resume during an unfinished open waits for cleanup and then reconnects once', async t => {
+  const f = fixture(t), originalOpen = f.port.open.bind(f.port);
+  let finish, calls = 0;
+  f.port.open = async options => { calls++; if (calls === 1) await new Promise(resolve => { finish = resolve; }); return originalOpen(options); };
+  f.service.start(); await flush(); const stopping = f.service.disconnect();
+  f.service.start(); finish(); await stopping; await flush();
+  assert.equal(calls, 2); assert.equal(f.counts().closes, 1); assert.equal(f.service.state$.value.status, 'connected');
+});
+test('failure to close a port stops retries instead of risking a second owner', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const f = fixture(t); f.port.close = async () => { throw new Error('Busy'); };
+  f.service.start(); await flush(); f.end(); await flush();
+  t.mock.timers.tick(100000); f.available(); await flush();
+  assert.equal(f.counts().opens, 1); assert.match(f.service.state$.value.message, /Close this tab/);
 });
