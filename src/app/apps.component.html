@@ -27,6 +27,10 @@
         <ng-container [ngTemplateOutlet]="appIcon" [ngTemplateOutletContext]="{ $implicit: 'show_chart' }"></ng-container>
         <h3>Telemetry</h3>
       </a>
+      <a class="app-card featured-app" routerLink="/424-greenpower-dashboard">
+        <ng-container [ngTemplateOutlet]="appIcon" [ngTemplateOutletContext]="{ $implicit: 'dashboard' }"></ng-container>
+        <h3>Dashboard</h3>
+      </a>
     </nav>
   </section>
 
@@ -90,6 +94,12 @@
           <rect x="2.5" y="3.5" width="19" height="17" rx="4" />
           <path class="icon-accent" d="m6 15 3.5-4 3 2.5 5.5-6" />
           <path d="M6 18h12" />
+        }
+        @case ('dashboard') {
+          <rect x="2.5" y="3.5" width="19" height="17" rx="4" />
+          <path d="M6 13a6 6 0 0 1 12 0M6 17h3m6 0h3M6.8 9.8l1.1.7m8.2 0 1.1-.7M12 7v1.3" />
+          <path class="icon-accent" d="m12 13 3-3M11 17h2" />
+          <circle cx="12" cy="13" r="1" fill="currentColor" stroke="none" />
         }
         @case ('cloud') {
           <path d="M3 9V6a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z" />

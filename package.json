@@ -32,6 +32,8 @@
     "audit:enterprise:test": "node --test scripts/enterprise-audit/*.test.mjs",
     "test:image-viewer": "node --test scripts/image-viewer.test.mjs",
     "test:chat": "node --test scripts/chat.test.mjs scripts/chat-actions.test.mjs",
+    "test:greenpower-dashboard": "node --test scripts/greenpower-dashboard.test.mjs",
+    "test:greenpower-dashboard:ui": "node scripts/greenpower-dashboard-ui.mjs",
     "test:greenpower": "node --test scripts/greenpower/*.test.mjs",
     "test:greenpower:emulator": "node --test scripts/greenpower/emulator.mjs scripts/greenpower/import.emulator.mjs scripts/greenpower/events.emulator.mjs",
     "test:account-email": "node --test scripts/account-email.test.mjs scripts/account-state.test.mjs scripts/message-email-audit.test.mjs scripts/image-upload.test.mjs scripts/participation.test.mjs scripts/fund-command.test.mjs scripts/chat.test.mjs scripts/chat-actions.test.mjs",

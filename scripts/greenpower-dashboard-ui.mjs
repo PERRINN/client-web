@@ -1,4 +1,4 @@
-// Real Angular page and gallery, synthetic serial stream, no Firebase initialization.
+// Real Angular dashboard, Apps and legacy redirect, synthetic serial stream, no Firebase initialization.
 import assert from 'node:assert/strict';
 import { readFile, writeFile, mkdtemp } from 'node:fs/promises';
 import { createServer } from 'node:http';
@@ -14,8 +14,10 @@ import { CommonModule, PlatformLocation, BrowserPlatformLocation } from '@angula
 import { TestBed } from '@angular/core/testing';
 import { BrowserDynamicTestingModule, platformBrowserDynamicTesting } from '@angular/platform-browser-dynamic/testing';
 import { Router, RouterModule } from '@angular/router';
-import { EchookConnectionComponent } from '${root}/src/app/prototypes/echook-connection/echook-connection.component';
-import { EchookConnectionService } from '${root}/src/app/prototypes/echook-connection/echookConnection.service';
+import { Title } from '@angular/platform-browser';
+import { GreenpowerDashboardComponent } from '${root}/src/app/greenpower-dashboard/greenpower-dashboard.component';
+import { EchookConnectionService } from '${root}/src/app/greenpower-dashboard/echookConnection.service';
+import { AppsComponent } from '${root}/src/app/apps.component';
 import { PrototypeGalleryComponent } from '${root}/src/app/prototypes/prototype-gallery.component';
 import { AppComponent } from '${root}/src/app/app.component';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
@@ -28,7 +30,8 @@ import { SidebarConversationsService } from '${root}/src/app/sidebarConversation
 import { GreenpowerLiveService } from '${root}/src/app/greenpower-telemetry/greenpowerLive.service';
 import { ScreenWakeLockService } from '${root}/src/app/screenWakeLock.service';
 AppComponent.ctorParameters=()=>[Router,AngularFirestore,UserInterfaceService,SwUpdate,PresenceService,MessageActivityService,SidebarConversationsService,GreenpowerLiveService,ScreenWakeLockService].map(type=>({type}));
-EchookConnectionComponent.ctorParameters=()=>[{type:EchookConnectionService},{type:ElementRef},{type:NgZone}];
+AppsComponent.ctorParameters=()=>[{type:UserInterfaceService}];
+GreenpowerDashboardComponent.ctorParameters=()=>[{type:EchookConnectionService},{type:ElementRef},{type:NgZone},{type:Title}];
 EchookConnectionService.ctorParameters=()=>[{type:NgZone}];
 TestBed.initTestEnvironment(BrowserDynamicTestingModule,platformBrowserDynamicTesting());
 TestBed.configureTestingModule({schemas:[NO_ERRORS_SCHEMA],providers:[
@@ -40,8 +43,10 @@ TestBed.configureTestingModule({schemas:[NO_ERRORS_SCHEMA],providers:[
  {provide:SidebarConversationsService,useValue:{automatic:()=>of([])}},
  {provide:GreenpowerLiveService,useValue:{live$:of(false)}},
  {provide:ScreenWakeLockService,useValue:{start:()=>{}}}
-],declarations:[AppComponent,EchookConnectionComponent,PrototypeGalleryComponent],imports:[CommonModule,RouterModule.forRoot([
- {path:'prototypes/echook-connection',component:EchookConnectionComponent},
+],declarations:[AppComponent,GreenpowerDashboardComponent,PrototypeGalleryComponent,AppsComponent],imports:[CommonModule,RouterModule.forRoot([
+ {path:'424-greenpower-dashboard',component:GreenpowerDashboardComponent},
+ {path:'prototypes/echook-connection',redirectTo:'424-greenpower-dashboard',pathMatch:'full'},
+ {path:'apps',component:AppsComponent},
  {path:'prototypes',component:PrototypeGalleryComponent},
  {path:'**',redirectTo:'prototypes'}])]});
 const fixture=TestBed.createComponent(AppComponent);document.body.append(fixture.nativeElement);fixture.autoDetectChanges();
@@ -61,6 +66,7 @@ await build({ entryPoints: [output + '/entry.ts'], outfile: output + '/bundle.js
 });
 const html = `<!doctype html><html><head><base href="/"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${await readFile(root + '/src/styles.css', 'utf8')}</style></head><body><script src="/bundle.js"></script></body></html>`;
 const server = createServer(async (req, res) => {
+  if (req.url.startsWith('/assets/greenpower-2027/racing-') && /^\/assets\/greenpower-2027\/racing-\d+\.webp$/.test(req.url)) { res.setHeader('Content-Type', 'image/webp'); res.end(await readFile(root + '/src' + req.url)); return; }
   res.setHeader('Content-Type', req.url === '/bundle.js' ? 'text/javascript' : 'text/html');
   res.end(req.url === '/bundle.js' ? await readFile(output + '/bundle.js') : html);
 });
@@ -73,12 +79,12 @@ try {
     const assertFits = async () => {
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       await page.waitForFunction(() => {
-        const host = document.querySelector('app-echook-connection');
+        const host = document.querySelector('app-greenpower-dashboard');
         return host && host.getBoundingClientRect().bottom <= Math.min(innerHeight, (visualViewport?.height || innerHeight) + (visualViewport?.offsetTop || 0)) + 1;
       }, undefined, { timeout: 5000 });
       const result = await page.evaluate(() => {
         const main = document.querySelector('#main_container');
-        const page = document.querySelector('.echook-page');
+        const page = document.querySelector('.dashboard-page');
         const fits = element => element.scrollHeight <= element.clientHeight + 1 && element.scrollWidth <= element.clientWidth + 1;
         const metrics = [...document.querySelectorAll('.metric-group, .metric')];
         const viewportTop = window.visualViewport?.offsetTop || 0;
@@ -113,17 +119,23 @@ try {
         requestPort: async () => { window.serialCalls.requests++; return port; }
       }) });
     });
-    await page.goto(`http://127.0.0.1:${server.address().port}/prototypes`);
-    const tile = page.locator('a[href="/prototypes/echook-connection"]');
-    await tile.waitFor(); assert.equal(await tile.locator('svg path').count(), 2);
+    await page.goto(`http://127.0.0.1:${server.address().port}/apps`);
+    const tile = page.locator('a[href="/424-greenpower-dashboard"]');
+    await tile.waitFor(); const appsTitle = await page.title(); assert.ok(await tile.locator('svg path').count() >= 2);
+    const telemetry = page.locator('.greenpower-links a[href="/424-greenpower-telemetry"]');
+    const dashboardBox = await tile.boundingBox(), telemetryBox = await telemetry.boundingBox();
+    assert.equal(dashboardBox.y, telemetryBox.y); assert.ok(dashboardBox.x > telemetryBox.x);
+    await tile.focus(); assert.equal(await tile.evaluate(el => el.matches(':focus-visible')), true);
+    await page.screenshot({ path: output + '/' + width + 'x' + height + '-apps.png', fullPage: true });
     assert.ok((await tile.locator('svg').boundingBox()).height > 0);
     await page.locator('#main_container').evaluate(el => el.scrollTop = 100);
     await tile.click();
-    await page.getByRole('main', { name: 'eChook dashboard' }).waitFor();
+    await page.getByRole('main', { name: 'Dashboard', exact: true }).waitFor();
+    await page.waitForURL('**/424-greenpower-dashboard'); await page.waitForFunction(() => document.title === 'Dashboard', undefined, { timeout: 5000 }); assert.equal(await page.title(), 'Dashboard');
     await assertFits();
     await page.clock.setFixedTime(new Date('2026-10-24T12:34:56Z'));
     await page.waitForFunction(() => window.serialCalls.opened === 1);
-    await page.waitForFunction(() => !document.querySelector('.echook-page button'));
+    await page.waitForFunction(() => !document.querySelector('.dashboard-page button'));
     assert.equal(await page.getByRole('button', { name: 'Connect', exact: true }).count(), 0);
     assert.equal(await page.evaluate(() => window.serialCalls.requests), 0);
     assert.equal(await page.getByRole('button', { name: 'Disconnect', exact: true }).count(), 0);
@@ -221,13 +233,13 @@ try {
     await page.reload(); await page.waitForFunction(() => window.serialCalls.opened === 1);
     assert.equal(await page.evaluate(() => window.serialCalls.requests), 0);
     await assertFits();
-    await page.goBack(); await tile.waitFor();
+    await page.goBack(); await tile.waitFor(); assert.equal(await page.title(), appsTitle);
     await page.waitForFunction(() => window.serialCalls.closed === 1);
     assert.deepEqual(errors, []); await page.close();
   }
   const page = await browser.newPage({ viewport: { width: 640, height: 280 } });
   await page.addInitScript(() => Object.defineProperty(navigator, 'serial', { configurable: true, value: undefined }));
-  await page.goto(`http://127.0.0.1:${server.address().port}/prototypes/echook-connection`);
+  await page.goto(`http://127.0.0.1:${server.address().port}/424-greenpower-dashboard`);
   await page.getByText(/Bluetooth serial is unavailable/).waitFor();
   assert.equal(await page.getByRole('button', { name: 'Connect', exact: true }).count(), 0);
   assert.equal(await page.locator('#main_container').evaluate(el => el.scrollHeight <= el.clientHeight), true);
@@ -239,7 +251,7 @@ try {
       getPorts: async () => [port], requestPort: async () => { throw new Error('Unexpected chooser'); }
     }) });
   });
-  await failed.goto(`http://127.0.0.1:${server.address().port}/prototypes/echook-connection`);
+  await failed.goto(`http://127.0.0.1:${server.address().port}/424-greenpower-dashboard`);
   await failed.getByRole('alert').waitFor();
   assert.match(await failed.getByRole('alert').innerText(), /close OMNI/);
   await failed.setViewportSize({ width: 568, height: 320 });
@@ -253,10 +265,18 @@ try {
       getPorts: async () => [], requestPort: async () => { window.permissionRequests++; throw new DOMException('Cancelled', 'NotFoundError'); }
     }) });
   });
-  await permission.goto(`http://127.0.0.1:${server.address().port}/prototypes/echook-connection`);
+  await permission.goto(`http://127.0.0.1:${server.address().port}/424-greenpower-dashboard`);
   const choose = permission.getByRole('button', { name: 'Choose eChook', exact: true }); await choose.waitFor();
   assert.equal(await permission.evaluate(() => window.permissionRequests), 0);
   await permission.keyboard.press('Tab'); await choose.focus(); assert.equal(await choose.evaluate(el => el.matches(':focus-visible')), true);
   await choose.click(); await choose.waitFor(); assert.equal(await permission.evaluate(() => window.permissionRequests), 1);
-  console.log('Six desktop/portrait/landscape sizes plus reduced visual viewports and scrolled gallery entry: real shell, no scrolling or clipped metrics, mph/battery mapping, local clock, rotation, live/stale/disconnected states, keyboard focus, gallery, cleanup, automatic startup/reload/recovery without a chooser, one-time permission selection and unsupported/error states passed. Screenshots: ' + output);
+  const legacy = await browser.newPage();
+  await legacy.goto(`http://127.0.0.1:${server.address().port}/prototypes/echook-connection`);
+  await legacy.waitForURL('**/424-greenpower-dashboard');
+  await legacy.getByRole('main', { name: 'Dashboard', exact: true }).waitFor();
+  await legacy.goto(`http://127.0.0.1:${server.address().port}/prototypes`);
+  await legacy.getByRole('heading', { name: 'Prototyping', exact: true }).waitFor();
+  assert.equal(await legacy.locator('a[href="/prototypes/echook-connection"]').count(), 0);
+  await legacy.close();
+  console.log('Production Apps tile and graphic, keyboard navigation, old-route redirect and removed prototype tile; six desktop/portrait/landscape sizes plus reduced visual viewports and scrolled Apps entry: real shell, no scrolling or clipped metrics, mph/battery mapping, local clock, rotation, live/stale/disconnected states, keyboard focus, Apps, cleanup, automatic startup/reload/recovery without a chooser, one-time permission selection and unsupported/error states passed. Screenshots: ' + output);
 } finally { await browser.close(); await new Promise(r => server.close(r)); }

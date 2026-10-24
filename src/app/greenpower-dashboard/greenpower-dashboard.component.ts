@@ -1,21 +1,24 @@
 import { AfterViewInit, Component, ElementRef, HostBinding, HostListener, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { combineLatest, map, Observable, timer } from 'rxjs';
 import { EchookConnectionService, EchookState } from './echookConnection.service';
 import { dashboardGroups, dashboardMetrics, DashboardGroup } from './echookDashboard';
 
 @Component({
-  selector: 'app-echook-connection', standalone: false,
-  templateUrl: './echook-connection.component.html',
-  styleUrls: ['./echook-connection.component.css'],
+  selector: 'app-greenpower-dashboard', standalone: false,
+  templateUrl: './greenpower-dashboard.component.html',
+  styleUrls: ['./greenpower-dashboard.component.css'],
   providers: [EchookConnectionService]
 })
-export class EchookConnectionComponent implements AfterViewInit, OnDestroy, OnInit {
+export class GreenpowerDashboardComponent implements AfterViewInit, OnDestroy, OnInit {
   private readonly clockFormat = new Intl.DateTimeFormat('en-GB', {
     hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
   });
+  private readonly previousTitle: string;
   readonly dashboard$: Observable<EchookState & { groups: DashboardGroup[]; clock: string }>;
 
-  constructor(public connection: EchookConnectionService, private element: ElementRef<HTMLElement>, private zone: NgZone) {
+  constructor(public connection: EchookConnectionService, private element: ElementRef<HTMLElement>, private zone: NgZone, private title: Title) {
+    this.previousTitle = title.getTitle();
     this.dashboard$ = combineLatest([connection.state$, timer(0, 1000)]).pipe(map(([state]) => {
       const now = Date.now();
       const metrics = dashboardMetrics(state.readings, state.status === 'connected', now, state.frequencies);
@@ -25,7 +28,7 @@ export class EchookConnectionComponent implements AfterViewInit, OnDestroy, OnIn
     }));
   }
 
-  ngOnInit() { this.connection.start(); }
+  ngOnInit() { this.title.setTitle('Dashboard'); this.connection.start(); }
 
   @HostListener('window:pageshow')
   onPageShow() { this.connection.start(); }
@@ -63,6 +66,7 @@ export class EchookConnectionComponent implements AfterViewInit, OnDestroy, OnIn
   onPageHide() { void this.connection.disconnect(); }
 
   ngOnDestroy() {
+    this.title.setTitle(this.previousTitle);
     this.observer?.disconnect();
     if (this.frame !== undefined) cancelAnimationFrame(this.frame);
     this.viewport?.removeEventListener('resize', this.resize);

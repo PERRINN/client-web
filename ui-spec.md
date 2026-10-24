@@ -190,9 +190,13 @@ This is the design authority for new and rebuilt PERRINN components. It reflects
 - On tablet, choose columns and navigation based on actual content fit. On desktop, use additional width for useful comparison or workspace layouts, not decorative empty space.
 - Preserve readable text, usable controls, and clear scroll ownership at every size.
 
+## Greenpower Dashboard
+
+`/424-greenpower-dashboard` is the production, phone-local Bluetooth dashboard, branded **Dashboard** in Apps → Greenpower beside Telemetry. Preserve its six-tile viewport layout, minimal labels, paired voltage and temperature rows, one-decimal voltages and stable value/unit columns. Each tile has one whole-number receive-frequency indicator in its bottom-right corner; paired readings average their rates before rounding. Keep automatic connection/recovery and show device selection or errors only when needed. The old prototype URL redirects to production and is absent from the gallery. Shell viewport sizing remains scoped to `app-greenpower-dashboard`; other routes retain their scroll behavior. See [README.md → Greenpower Dashboard](README.md#greenpower-dashboard) for Bluetooth compatibility and receiver bounds.
+
 ## Greenpower editorial letter
 
-`/424-greenpower-2027` is the approved standalone editorial exception to the app-shell and default typography rules. Use a minimal PERRINN home link, full-width authentic racing photography, larger responsive headlines and a readable article column, retaining Night Signal Dark tokens. The shell still owns scrolling through `#main_container`; hide its sidebar/mobile header only on this route and restore them on exit. Apps groups the letter and telemetry under Greenpower. Preserve the telemetry sign-in requirement. Caption all article images, reserve image dimensions and show failures within that space. All other pages retain the existing shell and type scales.
+`/424-greenpower-2027` is the approved standalone editorial exception to the app-shell and default typography rules. Use a minimal PERRINN home link, full-width authentic racing photography, larger responsive headlines and a readable article column, retaining Night Signal Dark tokens. The shell still owns scrolling through `#main_container`; hide its sidebar/mobile header only on this route and restore them on exit. Apps groups the letter, Telemetry and Dashboard under Greenpower. Telemetry and Dashboard use adjacent graphic tiles; Dashboard has an instrument-cluster SVG and opens `/424-greenpower-dashboard`. Preserve the telemetry sign-in requirement. Caption all article images, reserve image dimensions and show failures within that space. All other pages retain the existing shell and type scales.
 
 ## Prototypes
 

@@ -6,7 +6,7 @@ import ts from 'typescript';
 const require = createRequire(import.meta.url);
 function load(file, dependencies = {}) {
   const exports = {};
-  const source = ts.transpileModule(readFileSync(new URL('../src/app/prototypes/echook-connection/' + file, import.meta.url), 'utf8'), {
+  const source = ts.transpileModule(readFileSync(new URL('../src/app/greenpower-dashboard/' + file, import.meta.url), 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, experimentalDecorators: true }
   }).outputText;
   new Function('exports', 'require', source)(exports, name => dependencies[name] || require(name));
