@@ -22,13 +22,13 @@
     <dl class="dashboard">
       @for (metric of state.metrics; track metric.id) {
         <div class="metric" [class]="'metric ' + metric.id">
-          <dt>{{ metric.label }}</dt>
+          <dt [attr.aria-label]="metric.id === 'speed' ? metric.label : null">{{ metric.id === 'speed' ? '' : metric.label }}</dt>
           <dd>{{ metric.value === undefined ? '—' : (metric.value | number:(metric.id === 'speed' ? '1.1-1' : '1.2-2')) }} {{ metric.unit }}</dd>
           <span class="freshness">{{ metric.status }}</span>
         </div>
       }
       <div class="metric clock">
-        <dt>Time of day</dt>
+        <dt aria-label="Time of day"></dt>
         <dd><time>{{ state.clock }}</time></dd>
       </div>
     </dl>
